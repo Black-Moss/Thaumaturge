@@ -7,7 +7,7 @@ import net.minecraft.world.level.ChunkPos;
  *
  * <p>The record is per-chunk and lives on the server. Clients receive a copy through the
  * underlying attachment sync. Mutating the record is internal; addons read through
- * {@link AuraAccess}.
+ * {@link AuraHelper}.
  *
  * @since 1.0.0
  */

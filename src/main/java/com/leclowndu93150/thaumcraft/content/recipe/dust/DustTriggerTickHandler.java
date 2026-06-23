@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.recipe.dust;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.content.particle.FX;
+import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.ArrayList;
 import java.util.List;

@@ -2,8 +2,8 @@ package com.leclowndu93150.thaumcraft.content.essentia.tube;
 
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumcraft.content.aura.AuraManager;
-import com.leclowndu93150.thaumcraft.content.particle.FX;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.content.fx.FX;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -156,7 +156,7 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
         int amount = transport.getEssentiaAmount(Direction.UP);
         if (amount <= 0) return;
         if (!(level instanceof ServerLevel server)) return;
-        AuraManager.addFlux(server, pos, amount);
+        AuraHelper.addFlux(server, pos, amount);
         RandomSource rand = server.getRandom();
         server.playSound(null,
                 pos.getX() + 0.5,

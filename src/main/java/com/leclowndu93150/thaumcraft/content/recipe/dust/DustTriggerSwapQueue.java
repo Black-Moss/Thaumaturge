@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -103,7 +104,7 @@ public final class DustTriggerSwapQueue {
         }
     }
 
-    public static boolean isBlocked(net.minecraft.world.level.LevelAccessor level, BlockPos pos) {
+    public static boolean isBlocked(LevelAccessor level, BlockPos pos) {
         if (!(level instanceof ServerLevel sl)) {
             return false;
         }

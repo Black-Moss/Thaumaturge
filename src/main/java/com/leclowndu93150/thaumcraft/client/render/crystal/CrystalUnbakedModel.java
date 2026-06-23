@@ -1,0 +1,52 @@
+package com.leclowndu93150.thaumcraft.client.render.crystal;
+
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
+import com.leclowndu93150.thaumcraft.client.model.obj.TCObjLoader;
+import com.mojang.serialization.MapCodec;
+import java.io.IOException;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
+
+@OnlyIn(Dist.CLIENT)
+public final class CrystalUnbakedModel implements CustomUnbakedBlockStateModel {
+    public static final CrystalUnbakedModel INSTANCE = new CrystalUnbakedModel();
+    public static final MapCodec<CrystalUnbakedModel> CODEC = MapCodec.unit(INSTANCE);
+    public static final Identifier MODEL_LOCATION = Identifier.fromNamespaceAndPath(TCIds.MODID, "models/obj/crystal.obj");
+    public static final Identifier SPRITE_LOCATION = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/crystal");
+    public static final Identifier DEBUG_NAME = Identifier.fromNamespaceAndPath(TCIds.MODID, "crystal");
+
+    private CrystalUnbakedModel() {}
+
+    @Override
+    public BlockStateModel bake(ModelBaker baker) {
+        MeshModel mesh = loadMesh();
+        Material material = new Material(SPRITE_LOCATION);
+        Material.Baked baked = baker.materials().get(material, () -> DEBUG_NAME.toString());
+        return new CrystalBakedModel(mesh, baked);
+    }
+
+    @Override
+    public void resolveDependencies(Resolver resolver) {
+    }
+
+    @Override
+    public MapCodec<? extends CustomUnbakedBlockStateModel> codec() {
+        return CODEC;
+    }
+
+    private static MeshModel loadMesh() {
+        try {
+            return TCObjLoader.load(Minecraft.getInstance().getResourceManager(), MODEL_LOCATION);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load crystal OBJ at " + MODEL_LOCATION, e);
+        }
+    }
+
+}

@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
+import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -20,7 +21,7 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
     }
 
     public static ItemStack makeFilled(Holder<IAspect> aspect, int amount) {
-        ItemStack stack = new ItemStack(com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers.PHIAL.get());
+        ItemStack stack = new ItemStack(TCItemsHContainers.PHIAL.get());
         stack.set(TCDataComponents.ASPECTS.get(), AspectList.of(new AspectInstance(aspect, amount)));
         return stack;
     }

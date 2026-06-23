@@ -3,13 +3,13 @@ package com.leclowndu93150.thaumcraft.network;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.network.AspectIndexClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.AuraSnapshotClientHandler;
-import com.leclowndu93150.thaumcraft.client.network.BeamClientHandler;
-import com.leclowndu93150.thaumcraft.client.network.BoreVoidStreamClientHandler;
-import com.leclowndu93150.thaumcraft.client.network.EssentiaStreamClientHandler;
+import com.leclowndu93150.thaumcraft.client.fx.network.FXStreamClientHandler;
+import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
 import com.leclowndu93150.thaumcraft.client.network.RecipeDisplayClientHandler;
-import com.leclowndu93150.thaumcraft.client.network.SpawnParticleClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.TubeEventClientHandler;
+import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
+import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -17,7 +17,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class TCPayloads {
-    private static final String VERSION = "1";
+    private static final String VERSION = "2";
 
     private TCPayloads() {}
 
@@ -115,34 +115,9 @@ public final class TCPayloads {
                 AuraSnapshotClientHandler::handle
         );
         registrar.playToClient(
-                ClientboundEssentiaStreamPayload.TYPE,
-                ClientboundEssentiaStreamPayload.STREAM_CODEC,
-                EssentiaStreamClientHandler::handle
-        );
-        registrar.playToClient(
-                ClientboundArcPayload.TYPE,
-                ClientboundArcPayload.STREAM_CODEC,
-                BeamClientHandler::handleArc
-        );
-        registrar.playToClient(
-                ClientboundBoltPayload.TYPE,
-                ClientboundBoltPayload.STREAM_CODEC,
-                BeamClientHandler::handleBolt
-        );
-        registrar.playToClient(
-                ClientboundBeamPayload.TYPE,
-                ClientboundBeamPayload.STREAM_CODEC,
-                BeamClientHandler::handleBeam
-        );
-        registrar.playToClient(
-                ClientboundBoreStreamPayload.TYPE,
-                ClientboundBoreStreamPayload.STREAM_CODEC,
-                BoreVoidStreamClientHandler::handleBore
-        );
-        registrar.playToClient(
-                ClientboundVoidStreamPayload.TYPE,
-                ClientboundVoidStreamPayload.STREAM_CODEC,
-                BoreVoidStreamClientHandler::handleVoid
+                ClientboundFXStreamPayload.TYPE,
+                ClientboundFXStreamPayload.STREAM_CODEC,
+                FXStreamClientHandler::handle
         );
     }
 }

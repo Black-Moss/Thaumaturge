@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.world.crystal;
 
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.content.aura.AuraManager;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -137,23 +137,23 @@ public final class BlockCrystal extends Block {
         int growth = growth(state);
         int generation = generation(state);
         if (!flux) {
-            float vis = AuraManager.getVis(level, pos);
+            float vis = AuraHelper.getVis(level, pos);
             if (vis <= VIS_THRESHOLD) {
                 if (growth > 0) {
                     level.setBlockAndUpdate(pos, state.setValue(SIZE, growth - 1));
-                    AuraManager.addVis(level, pos, VIS_THRESHOLD);
+                    AuraHelper.addVis(level, pos, VIS_THRESHOLD);
                 } else if (touchingSameCrystal(level, pos)) {
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-                    AuraManager.addVis(level, pos, VIS_THRESHOLD);
+                    AuraHelper.addVis(level, pos, VIS_THRESHOLD);
                 }
-            } else if (vis > AuraManager.getAuraBase(level, pos) + VIS_THRESHOLD) {
+            } else if (vis > AuraHelper.getAuraBase(level, pos) + VIS_THRESHOLD) {
                 if (growth < 3 && growth < 5 - generation + Math.floorMod(pos.asLong(), 3L)) {
-                    if (AuraManager.drainVis(level, pos, VIS_THRESHOLD, false) > 0.0F) {
+                    if (AuraHelper.drainVis(level, pos, VIS_THRESHOLD, false) > 0.0F) {
                         level.setBlockAndUpdate(pos, state.setValue(SIZE, growth + 1));
                     }
                 } else if (generation < 4) {
                     BlockPos spreadTo = spreadCrystal(level, pos, random);
-                    if (spreadTo != null && AuraManager.drainVis(level, pos, VIS_THRESHOLD, false) > 0.0F) {
+                    if (spreadTo != null && AuraHelper.drainVis(level, pos, VIS_THRESHOLD, false) > 0.0F) {
                         int childGeneration = generation;
                         if (random.nextInt(6) == 0) {
                             childGeneration--;
@@ -163,23 +163,23 @@ public final class BlockCrystal extends Block {
                 }
             }
         } else {
-            float flux = AuraManager.getFlux(level, pos);
+            float flux = AuraHelper.getFlux(level, pos);
             if (flux <= VIS_THRESHOLD) {
                 if (growth > 0) {
                     level.setBlockAndUpdate(pos, state.setValue(SIZE, growth - 1));
-                    AuraManager.addFlux(level, pos, VIS_THRESHOLD);
+                    AuraHelper.addFlux(level, pos, VIS_THRESHOLD);
                 } else if (touchingSameCrystal(level, pos)) {
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-                    AuraManager.addFlux(level, pos, VIS_THRESHOLD);
+                    AuraHelper.addFlux(level, pos, VIS_THRESHOLD);
                 }
-            } else if (flux > AuraManager.getAuraBase(level, pos) + VIS_THRESHOLD) {
+            } else if (flux > AuraHelper.getAuraBase(level, pos) + VIS_THRESHOLD) {
                 if (growth < 3 && growth < 5 - generation + Math.floorMod(pos.asLong(), 3L)) {
-                    if (AuraManager.drainFlux(level, pos, VIS_THRESHOLD, false) > 0.0F) {
+                    if (AuraHelper.drainFlux(level, pos, VIS_THRESHOLD, false) > 0.0F) {
                         level.setBlockAndUpdate(pos, state.setValue(SIZE, growth + 1));
                     }
                 } else if (generation < 4) {
                     BlockPos spreadTo = spreadCrystal(level, pos, random);
-                    if (spreadTo != null && AuraManager.drainFlux(level, pos, VIS_THRESHOLD, false) > 0.0F) {
+                    if (spreadTo != null && AuraHelper.drainFlux(level, pos, VIS_THRESHOLD, false) > 0.0F) {
                         int childGeneration = generation;
                         if (random.nextInt(6) == 0) {
                             childGeneration--;

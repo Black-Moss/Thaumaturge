@@ -94,6 +94,10 @@ public final class AuraManager {
         modifyFluxInChunk(level, pos, ac, amount, true);
     }
 
+    public static void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect) {
+        addFlux(level, pos, amount);
+    }
+
     public static float drainVis(Level level, BlockPos pos, float amount, boolean simulate) {
         AuraData ac = getAuraChunk(level, pos);
         if (ac == null) {

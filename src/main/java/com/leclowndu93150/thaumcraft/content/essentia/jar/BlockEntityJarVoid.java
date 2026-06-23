@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.jar;
 
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.content.aura.AuraManager;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,7 +27,7 @@ public final class BlockEntityJarVoid extends BlockEntityJar {
             int overflow = newTotal - CAPACITY;
             if (overflow > 0 && level != null && !level.isClientSide()) {
                 if (level.getRandom().nextInt(250) == 0) {
-                    AuraManager.addFlux(level, getBlockPos(), 1.0F);
+                    AuraHelper.addFlux(level, getBlockPos(), 1.0F);
                 }
             }
             return 0;

@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeRestrict;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeValve;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockResearchTable;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -85,7 +86,7 @@ public final class TCBlocks {
             TCBlocks::tubeProps
     );
 
-    private static net.minecraft.world.level.block.state.BlockBehaviour.Properties tubeProps(net.minecraft.world.level.block.state.BlockBehaviour.Properties props) {
+    private static BlockBehaviour.Properties tubeProps(BlockBehaviour.Properties props) {
         return props
                 .mapColor(MapColor.METAL)
                 .strength(0.5F, 5.0F)

@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.misc.nitor;
 
-import com.leclowndu93150.thaumcraft.client.particle.FXClient;
+import com.leclowndu93150.thaumcraft.client.fx.FXClient;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;

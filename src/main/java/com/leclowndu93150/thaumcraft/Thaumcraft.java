@@ -1,10 +1,9 @@
 package com.leclowndu93150.thaumcraft;
 
-import com.leclowndu93150.thaumcraft.api.aura.AuraAccess;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftAccess;
-import com.leclowndu93150.thaumcraft.content.aura.AuraData;
-import com.leclowndu93150.thaumcraft.content.aura.AuraManager;
+import com.leclowndu93150.thaumcraft.content.aura.AuraHelperBindings;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftServerConfig;
@@ -87,24 +86,6 @@ public final class Thaumcraft {
 
         KnowledgeAccess.bind(player -> player.getData(TCAttachments.KNOWLEDGE));
         TheorycraftAccess.bind(player -> player.getData(TCAttachments.RESEARCH_TABLE));
-        AuraAccess.bind(
-                (serverLevel, chunkPos) -> {
-                    AuraData data = AuraManager.getAuraChunk(serverLevel, chunkPos);
-                    if (data == null) {
-                        AuraData empty = new AuraData();
-                        empty.setChunkPos(chunkPos);
-                        return empty;
-                    }
-                    return data;
-                },
-                (level, blockPos) -> {
-                    AuraData data = AuraManager.getAuraChunk(level, blockPos);
-                    if (data == null) {
-                        AuraData empty = new AuraData();
-                        return empty;
-                    }
-                    return data;
-                }
-        );
+        AuraHelper.bind(new AuraHelperBindings());
     }
 }

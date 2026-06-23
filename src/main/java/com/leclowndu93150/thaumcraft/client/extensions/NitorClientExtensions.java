@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.extensions;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.particle.FXClient;
+import com.leclowndu93150.thaumcraft.client.fx.FXClient;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockNitor;
 import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksAOres;
 import net.minecraft.client.particle.ParticleEngine;

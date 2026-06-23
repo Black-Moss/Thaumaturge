@@ -8,6 +8,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -15,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 public record AspectColorTint(int fallback) implements ItemTintSource {
     public static final MapCodec<AspectColorTint> MAP_CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
-                    net.minecraft.util.ExtraCodecs.RGB_COLOR_CODEC.optionalFieldOf("fallback", 0xFFFFFF)
+                    ExtraCodecs.RGB_COLOR_CODEC.optionalFieldOf("fallback", 0xFFFFFF)
                             .forGetter(AspectColorTint::fallback)
             ).apply(instance, AspectColorTint::new)
     );

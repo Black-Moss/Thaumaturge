@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.essentia.tube;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -45,7 +46,7 @@ public final class BlockTubeBuffer extends BlockEssentiaTransport {
     }
 
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, net.minecraft.core.Direction direction) {
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityTubeBuffer buffer)) return 0;
         int size = buffer.visSize();
         if (size <= 0) return 0;

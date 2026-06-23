@@ -4,15 +4,17 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import org.jspecify.annotations.Nullable;
 
 public record Blueprint(int xSize, int ySize, int zSize, List<Optional<BlueprintPart>> cells) {
-    public static final ResourceKey<net.minecraft.core.Registry<Blueprint>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(net.minecraft.resources.Identifier.fromNamespaceAndPath("thaumcraft", "blueprint"));
+    public static final ResourceKey<Registry<Blueprint>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumcraft", "blueprint"));
 
     private static final Codec<Optional<BlueprintPart>> CELL_CODEC = BlueprintPart.CODEC
             .optionalFieldOf("part")

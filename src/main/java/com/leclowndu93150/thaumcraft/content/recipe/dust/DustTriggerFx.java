@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.recipe.dust;
 
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerPlacement;
-import com.leclowndu93150.thaumcraft.content.particle.FX;
+import com.leclowndu93150.thaumcraft.content.fx.FX;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

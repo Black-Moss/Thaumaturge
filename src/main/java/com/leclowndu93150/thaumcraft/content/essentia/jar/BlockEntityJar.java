@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumcraft.content.aura.AuraManager;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -86,7 +86,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport {
 
     public void emptyJar() {
         if (level != null && !level.isClientSide() && amount > 0 && aspectFilter == null) {
-            AuraManager.addFlux(level, getBlockPos(), amount);
+            AuraHelper.addFlux(level, getBlockPos(), amount);
         }
         if (aspectFilter == null) {
             aspect = null;

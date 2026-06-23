@@ -1,12 +1,15 @@
 package com.leclowndu93150.thaumcraft.server.command;
 
-import com.leclowndu93150.thaumcraft.content.particle.FX;
+import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public final class ParticleDemos {
@@ -59,7 +62,7 @@ public final class ParticleDemos {
         register("arcLightning", "Parabolic arc from eye to target with child sparkles", (p, v) -> FX.arcLightning(p.level(), p.getEyePosition()).to(v).color(0xFFFFFF).gravity(0.2F).send());
         register("arcBolt", "Lightning bolt twin-cone from eye to target", (p, v) -> FX.arcBolt(p.level(), p.getEyePosition()).to(v).color(0x80C0FF).width(1F).send());
 
-        register("essentiaStream", "Essentia trail polycone from eye to target (red)", (p, v) -> com.leclowndu93150.thaumcraft.content.particle.TCParticleDispatch.spawnEssentiaStream(p.level(), p.getEyePosition(), v, 0xFF4040, 0, 4, 0.15F, 30, 0.0));
+        register("essentiaStream", "Essentia trail polycone from eye to target (red)", (p, v) -> TCParticleDispatch.spawnEssentiaStream(p.level(), p.getEyePosition(), v, 0xFF4040, 0, 4, 0.15F, 30, 0.0));
 
         register("fluxVent_legacy", "Legacy flux vent path (now FX.vent2 with flame)", (p, v) -> FX.vent2(p.level(), v).motion(0, 0.15, 0).color(0x800080).scale(1F).withFlame().send());
 
@@ -78,7 +81,7 @@ public final class ParticleDemos {
         register("beamBore", "Bore beam with spinning source orb from eye to target (5s)", (p, v) -> FX.beamBore(p.level(), p.getEyePosition()).to(v).color(0xFF8040).age(100).type(0).send());
 
         register("boreParticles", "Stone-textured bore particles homing toward target (10x)", (p, v) -> {
-            net.minecraft.world.level.block.state.BlockState stone = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+            BlockState stone = Blocks.STONE.defaultBlockState();
             for (int i = 0; i < 10; i++) {
                 Vec3 spawn = v.add(p.level().getRandom().nextGaussian() * 0.5, p.level().getRandom().nextGaussian() * 0.5, p.level().getRandom().nextGaussian() * 0.5);
                 FX.boreParticles(p.level(), spawn, stone).to(p.getEyePosition()).send();

@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
-import com.leclowndu93150.thaumcraft.content.particle.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;

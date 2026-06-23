@@ -3,14 +3,16 @@ package com.leclowndu93150.thaumcraft.data.model;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksAOresModels;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksBCrystalsModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksCStoneModels;
+import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
+import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksDTreesModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksEPlantsModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksFMetalsModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCItemsHContainersModels;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
+import com.leclowndu93150.thaumcraft.registry.items.TCItemsGTools;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsMAuraHud;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
@@ -25,6 +27,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public final class TCModelProvider extends ModelProvider {
@@ -49,10 +52,11 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.TUBE_ONEWAY.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE_BUFFER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItemsMAuraHud.GOGGLES_REVEALING.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(com.leclowndu93150.thaumcraft.registry.items.TCItemsGTools.THAUMOMETER.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(com.leclowndu93150.thaumcraft.registry.items.TCItemsGTools.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItemsGTools.THAUMOMETER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItemsGTools.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
         TCBlocksAOresModels.register(blockModels, itemModels);
-        TCBlocksBCrystalsModels.register(blockModels, itemModels);
+        CrystalBlockstateGenerator.register(blockModels);
+        CrystalItemModelGenerator.register(itemModels);
         TCBlocksCStoneModels.register(blockModels);
         TCBlocksFMetalsModels.register(blockModels, itemModels);
         TCBlocksDTreesModels.register(blockModels);
@@ -60,7 +64,7 @@ public final class TCModelProvider extends ModelProvider {
         TCItemsHContainersModels.register(itemModels);
     }
 
-    private void registerJar(BlockModelGenerators blockModels, net.minecraft.world.level.block.Block block, String modelName) {
+    private void registerJar(BlockModelGenerators blockModels, Block block, String modelName) {
         MultiVariant empty = variantOf(modelName);
         MultiVariant fill25 = variantOf(modelName + "_25");
         MultiVariant fill50 = variantOf(modelName + "_50");

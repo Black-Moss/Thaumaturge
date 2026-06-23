@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -89,8 +90,8 @@ public final class TCBlocksDTrees {
                     .ignitedByLava()
     );
 
-    private static net.minecraft.world.level.block.state.BlockBehaviour.Properties leavesProps(
-            net.minecraft.world.level.block.state.BlockBehaviour.Properties props
+    private static BlockBehaviour.Properties leavesProps(
+            BlockBehaviour.Properties props
     ) {
         return props
                 .mapColor(MapColor.PLANT)
