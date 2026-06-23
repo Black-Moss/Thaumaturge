@@ -1,0 +1,11 @@
+{
+  "type": "thaumcraft:dust_trigger_tag",
+  "target_tag": "c:crafting_tables",
+  "result": {
+    "id": "thaumcraft:arcane_workbench"
+  },
+  "research": {
+    "entry": "thaumcraft:firststeps",
+    "stage": 1
+  }
+}

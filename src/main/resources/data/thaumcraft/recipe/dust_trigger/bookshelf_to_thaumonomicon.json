@@ -1,0 +1,11 @@
+{
+  "type": "thaumcraft:dust_trigger_simple",
+  "target": "minecraft:bookshelf",
+  "result": {
+    "id": "thaumcraft:thaumonomicon"
+  },
+  "research": {
+    "entry": "thaumcraft:gotdream",
+    "negate": true
+  }
+}

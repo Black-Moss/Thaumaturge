@@ -1,0 +1,6 @@
+{
+    "parent": "block/cube_all",
+    "textures": {
+        "all": "thaumcraft:block/ancient_rock_stone_3"
+    }
+}

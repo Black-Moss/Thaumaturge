@@ -1,0 +1,7 @@
+{
+  "type": "thaumcraft:dust_trigger_multiblock",
+  "blueprint": "thaumcraft:golem_press",
+  "result": {
+    "id": "thaumcraft:golem_builder"
+  }
+}

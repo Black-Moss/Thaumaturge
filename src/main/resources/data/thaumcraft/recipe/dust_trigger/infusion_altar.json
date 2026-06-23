@@ -1,0 +1,7 @@
+{
+  "type": "thaumcraft:dust_trigger_multiblock",
+  "blueprint": "thaumcraft:infusion_altar",
+  "result": {
+    "id": "thaumcraft:infusion_matrix"
+  }
+}

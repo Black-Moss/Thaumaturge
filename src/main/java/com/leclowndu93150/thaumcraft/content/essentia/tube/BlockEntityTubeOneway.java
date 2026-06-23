@@ -1,0 +1,32 @@
+package com.leclowndu93150.thaumcraft.content.essentia.tube;
+
+import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+
+public final class BlockEntityTubeOneway extends BlockEntityTube {
+    public BlockEntityTubeOneway(BlockPos pos, BlockState state) {
+        super(TCBlockEntities.TUBE_ONEWAY.get(), pos, state);
+    }
+
+    @Override
+    protected boolean directionalSuction() {
+        return true;
+    }
+
+    @Override
+    protected boolean directionalEqualize() {
+        return true;
+    }
+
+    @Override
+    public Direction facing() {
+        BlockState state = getBlockState();
+        if (state.hasProperty(BlockStateProperties.FACING)) {
+            return state.getValue(BlockStateProperties.FACING);
+        }
+        return super.facing();
+    }
+}

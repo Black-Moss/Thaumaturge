@@ -1,0 +1,21 @@
+package com.leclowndu93150.thaumcraft.client.color;
+
+import com.leclowndu93150.thaumcraft.TCIds;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+
+@EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
+public final class TCColorHandlers {
+    public static final Identifier ASPECT_COLOR_TINT_ID =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "aspect_color");
+
+    private TCColorHandlers() {}
+
+    @SubscribeEvent
+    public static void onRegisterItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
+        event.register(ASPECT_COLOR_TINT_ID, AspectColorTint.MAP_CODEC);
+    }
+}

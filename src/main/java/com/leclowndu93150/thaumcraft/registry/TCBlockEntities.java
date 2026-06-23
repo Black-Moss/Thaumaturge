@@ -1,0 +1,94 @@
+package com.leclowndu93150.thaumcraft.registry;
+
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeBuffer;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeFilter;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeOneway;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeRestrict;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeValve;
+import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
+import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
+import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksAOres;
+import java.util.Set;
+import java.util.stream.Collectors;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+public final class TCBlockEntities {
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
+            DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TCIds.MODID);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityResearchTable>> RESEARCH_TABLE =
+            BLOCK_ENTITIES.register(
+                    "research_table",
+                    () -> new BlockEntityType<>(BlockEntityResearchTable::new, Set.of(TCBlocks.RESEARCH_TABLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJar>> JAR =
+            BLOCK_ENTITIES.register(
+                    "jar",
+                    () -> new BlockEntityType<>(BlockEntityJar::new, Set.of(TCBlocks.JAR_NORMAL.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarVoid>> JAR_VOID =
+            BLOCK_ENTITIES.register(
+                    "jar_void",
+                    () -> new BlockEntityType<>(BlockEntityJarVoid::new, Set.of(TCBlocks.JAR_VOID.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityTube>> TUBE =
+            BLOCK_ENTITIES.register(
+                    "tube",
+                    () -> new BlockEntityType<>(BlockEntityTube::new, Set.of(TCBlocks.TUBE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityTubeValve>> TUBE_VALVE =
+            BLOCK_ENTITIES.register(
+                    "tube_valve",
+                    () -> new BlockEntityType<>(BlockEntityTubeValve::new, Set.of(TCBlocks.TUBE_VALVE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityTubeRestrict>> TUBE_RESTRICT =
+            BLOCK_ENTITIES.register(
+                    "tube_restrict",
+                    () -> new BlockEntityType<>(BlockEntityTubeRestrict::new, Set.of(TCBlocks.TUBE_RESTRICT.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityTubeFilter>> TUBE_FILTER =
+            BLOCK_ENTITIES.register(
+                    "tube_filter",
+                    () -> new BlockEntityType<>(BlockEntityTubeFilter::new, Set.of(TCBlocks.TUBE_FILTER.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityTubeOneway>> TUBE_ONEWAY =
+            BLOCK_ENTITIES.register(
+                    "tube_oneway",
+                    () -> new BlockEntityType<>(BlockEntityTubeOneway::new, Set.of(TCBlocks.TUBE_ONEWAY.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityTubeBuffer>> TUBE_BUFFER =
+            BLOCK_ENTITIES.register(
+                    "tube_buffer",
+                    () -> new BlockEntityType<>(BlockEntityTubeBuffer::new, Set.of(TCBlocks.TUBE_BUFFER.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNitor>> NITOR =
+            BLOCK_ENTITIES.register(
+                    "nitor",
+                    () -> new BlockEntityType<>(BlockEntityNitor::new,
+                            TCBlocksAOres.NITORS.values().stream().map(b -> (Block) b.get()).collect(Collectors.toSet()))
+            );
+
+    private TCBlockEntities() {}
+
+    public static void register(IEventBus modBus) {
+        BLOCK_ENTITIES.register(modBus);
+    }
+}

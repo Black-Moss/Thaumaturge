@@ -1,0 +1,39 @@
+package com.leclowndu93150.thaumcraft.registry;
+
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
+import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+public final class TCDataComponents {
+    public static final DeferredRegister.DataComponents DATA_COMPONENTS =
+            DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, TCIds.MODID);
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AspectList>> ASPECTS =
+            DATA_COMPONENTS.registerComponentType("aspects", builder -> builder
+                    .persistent(AspectList.CODEC)
+                    .networkSynchronized(AspectList.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<EssentiaList>> ESSENTIA_CONTENTS =
+            DATA_COMPONENTS.registerComponentType("essentia_contents", builder -> builder
+                    .persistent(EssentiaContentsComponent.CODEC)
+                    .networkSynchronized(EssentiaContentsComponent.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceKey<IAspect>>> ASPECT_FILTER =
+            DATA_COMPONENTS.registerComponentType("aspect_filter", builder -> builder
+                    .persistent(ResourceKey.codec(IAspect.REGISTRY_KEY))
+                    .networkSynchronized(ResourceKey.streamCodec(IAspect.REGISTRY_KEY)));
+
+    private TCDataComponents() {}
+
+    public static void register(IEventBus modBus) {
+        DATA_COMPONENTS.register(modBus);
+    }
+}

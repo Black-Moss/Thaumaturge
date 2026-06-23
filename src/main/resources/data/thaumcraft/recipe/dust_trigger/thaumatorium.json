@@ -1,0 +1,7 @@
+{
+  "type": "thaumcraft:dust_trigger_multiblock",
+  "blueprint": "thaumcraft:thaumatorium",
+  "result": {
+    "id": "thaumcraft:thaumatorium"
+  }
+}

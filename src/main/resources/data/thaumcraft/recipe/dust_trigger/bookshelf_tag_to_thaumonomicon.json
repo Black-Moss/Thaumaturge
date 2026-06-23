@@ -1,0 +1,11 @@
+{
+  "type": "thaumcraft:dust_trigger_tag",
+  "target_tag": "c:bookshelves",
+  "result": {
+    "id": "thaumcraft:thaumonomicon"
+  },
+  "research": {
+    "entry": "thaumcraft:gotdream",
+    "negate": true
+  }
+}
