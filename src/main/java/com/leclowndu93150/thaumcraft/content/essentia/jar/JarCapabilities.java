@@ -36,5 +36,16 @@ public final class JarCapabilities {
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
                 TCItemsHContainers.PHIAL.get()
         );
+        event.registerItem(
+                EssentiaCapabilities.CONTAINER,
+                (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
+                TCItems.ESSENTIA_CRYSTAL.get()
+        );
+
+        event.registerItem(
+                EssentiaCapabilities.CONTAINER,
+                (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
+                TCItems.JAR_NORMAL.get(), TCItems.JAR_VOID.get()
+        );
     }
 }

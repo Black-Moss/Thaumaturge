@@ -26,8 +26,8 @@ public final class TCLangTaint {
         provider.add("death.attack.thaumcraft.swarm", "%1$s was swarmed");
         provider.add("death.attack.thaumcraft.dissolve", "%1$s dissolved");
 
-        provider.add("item.thaumcraft.essentia_crystal", "Crystal of %s");
-        provider.add("item.thaumcraft.essentia_crystal.unknown", "Crystal of Unknown");
+        provider.add("item.thaumcraft.essentia_crystal", "%s Vis Crystal");
+        provider.add("item.thaumcraft.essentia_crystal.unknown", "Unknown Vis Crystal");
 
         provider.add("entity.thaumcraft.thaumic_slime", "Thaumic Slime");
         provider.add("entity.thaumcraft.taint_seed", "Taint Seed");

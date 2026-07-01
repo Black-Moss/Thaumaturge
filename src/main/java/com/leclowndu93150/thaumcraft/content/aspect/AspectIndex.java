@@ -1,7 +1,11 @@
 package com.leclowndu93150.thaumcraft.content.aspect;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectIndex;
+import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
+import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
+import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -57,10 +61,12 @@ public final class AspectIndex implements IAspectIndex {
         if (stack.isEmpty()) {
             return AspectList.EMPTY;
         }
-        AspectList override = stack.get(TCDataComponents.ASPECTS.get());
-        if (override != null) {
-            return override;
+
+        IEssentiaContainerItem container = stack.getCapability(EssentiaCapabilities.CONTAINER);
+        if (container != null && !container.ignoreContainedAspects()){
+            return container.getAspects(stack);
         }
+
         return of(stack.getItem());
     }
 

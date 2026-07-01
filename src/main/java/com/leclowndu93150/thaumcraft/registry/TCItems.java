@@ -2,26 +2,33 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
 import com.leclowndu93150.thaumcraft.content.item.LabelItem;
 import com.leclowndu93150.thaumcraft.content.item.SalisMundusItem;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class TCItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TCIds.MODID);
 
     public static final DeferredItem<BlockItem> RESEARCH_TABLE = ITEMS.registerSimpleBlockItem(TCBlocks.RESEARCH_TABLE);
 
-    public static final DeferredItem<BlockItem> JAR_NORMAL = ITEMS.registerSimpleBlockItem(TCBlocks.JAR_NORMAL);
+    public static final DeferredItem<BlockItem> JAR_NORMAL = registerSimpleBlockItem(TCBlocks.JAR_NORMAL, JarItem::new);
 
-    public static final DeferredItem<BlockItem> JAR_VOID = ITEMS.registerSimpleBlockItem(TCBlocks.JAR_VOID);
+    public static final DeferredItem<BlockItem> JAR_VOID = registerSimpleBlockItem(TCBlocks.JAR_VOID,JarItem::new);
 
     public static final DeferredItem<BlockItem> TUBE = ITEMS.registerSimpleBlockItem(TCBlocks.TUBE);
 
@@ -76,5 +83,9 @@ public final class TCItems {
 
     public static void register(IEventBus modBus) {
         ITEMS.register(modBus);
+    }
+
+    public static <T extends BlockItem> DeferredItem<BlockItem> registerSimpleBlockItem(Holder<Block> block, BiFunction<Block, Item.Properties, T> constructor) {
+        return ITEMS.registerItem(block.unwrapKey().orElseThrow().identifier().getPath(), p->constructor.apply(block.value(),p), ()->new Item.Properties().useBlockDescriptionPrefix());
     }
 }

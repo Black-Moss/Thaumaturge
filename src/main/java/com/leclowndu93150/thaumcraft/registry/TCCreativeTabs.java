@@ -1,6 +1,10 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.content.item.PhialItem;
+import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsAOres;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsBCrystals;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsCStone;
@@ -8,6 +12,7 @@ import com.leclowndu93150.thaumcraft.registry.items.TCItemsDTrees;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsGTools;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsMAuraHud;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -77,7 +82,13 @@ public final class TCCreativeTabs {
                         output.accept(TCItemsDTrees.LEAVES_SILVERWOOD.get());
                         output.accept(TCItemsDTrees.PLANK_GREATWOOD.get());
                         output.accept(TCItemsDTrees.PLANK_SILVERWOOD.get());
+                        for (Holder<IAspect> aspect : parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()){
+                            output.accept(EssentiaCrystalFactory.of(aspect));
+                        }
                         output.accept(TCItemsHContainers.PHIAL.get());
+                        for (Holder<IAspect> aspect : parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()){
+                            output.accept(PhialItem.makeFilled(aspect));
+                        }
                         output.accept(TCItemsHContainers.PRIMORDIAL_PEARL.get());
                     })
                     .build()

@@ -2,16 +2,10 @@ package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksAOresModels;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksCStoneModels;
+import com.leclowndu93150.thaumcraft.data.fragments.*;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.EssentiaCrystalModelGenerator;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksDTreesModels;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksEPlantsModels;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksFMetalsModels;
-import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksTaintModels;
-import com.leclowndu93150.thaumcraft.data.fragments.TCItemsHContainersModels;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.items.TCItemsGTools;
@@ -25,12 +19,18 @@ import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
+import net.minecraft.client.renderer.item.CompositeModel;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+import net.minecraft.client.renderer.item.SpecialModelWrapper;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+
+import java.util.List;
+import java.util.Optional;
 
 public final class TCModelProvider extends ModelProvider {
     public TCModelProvider(PackOutput output) {
@@ -87,7 +87,7 @@ public final class TCModelProvider extends ModelProvider {
                 .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
                 .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(
-                MultiVariantGenerator.dispatch(block).with(fillLevels).with(rotations)
+                MultiVariantGenerator.dispatch(block, empty)/*.with(fillLevels)*/.with(rotations)
         );
     }
 

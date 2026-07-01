@@ -22,9 +22,9 @@ public final class AspectTooltipEvents {
         if (event.getItemStack().isEmpty()) {
             return;
         }
-        if (!isContainerScreenOpen()) {
+        /*if (!isContainerScreenOpen()) {
             return;
-        }
+        }*/
         if (!shouldShowAspects()) {
             return;
         }

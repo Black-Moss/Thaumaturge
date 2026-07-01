@@ -35,13 +35,13 @@ import org.jspecify.annotations.Nullable;
 public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, JarRenderState> {
     private static final Identifier BRINE_TEXTURE = Identifier.fromNamespaceAndPath("thaumcraft", "textures/entity/jarbrine.png");
     private static final Identifier LABEL_TEXTURE = Identifier.fromNamespaceAndPath("thaumcraft", "textures/entity/label.png");
-    private static final Identifier ANIMATED_GLOW_LOCATION = Identifier.fromNamespaceAndPath("thaumcraft", "block/animatedglow");
-    private static final SpriteId ANIMATED_GLOW_SPRITE = new SpriteId(TextureAtlas.LOCATION_BLOCKS, ANIMATED_GLOW_LOCATION);
+    public static final Identifier ANIMATED_GLOW_LOCATION = Identifier.fromNamespaceAndPath("thaumcraft", "block/animatedglow");
+    public static final SpriteId ANIMATED_GLOW_SPRITE = new SpriteId(TextureAtlas.LOCATION_BLOCKS, ANIMATED_GLOW_LOCATION);
 
-    private static final float FLUID_MIN = 4.0F / 16.0F;
-    private static final float FLUID_MAX = 12.0F / 16.0F;
-    private static final float FLUID_BASE_Y = 1.0F / 16.0F;
-    private static final float FLUID_MAX_HEIGHT = 10.0F / 16.0F;
+    public static final float FLUID_MIN = 4.0F / 16.0F;
+    public static final float FLUID_MAX = 12.0F / 16.0F;
+    public static final float FLUID_BASE_Y = 1.0F / 16.0F;
+    public static final float FLUID_MAX_HEIGHT = 10.0F / 16.0F;
 
     private static final float BRACE_MIN_XZ = 4.5F / 16.0F;
     private static final float BRACE_MAX_XZ = 11.5F / 16.0F;
@@ -108,7 +108,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     @Override
     public void submit(JarRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
         if (state.amount > 0 && state.aspectColor != -1) {
-            submitFluid(state, poseStack, submitNodeCollector);
+            submitFluid(state.amount, state.aspectColor, state.lightCoords,Minecraft.getInstance().getAtlasManager().get(ANIMATED_GLOW_SPRITE), poseStack, submitNodeCollector);
         }
         if (state.hasFilter && state.filterTexture != null) {
             submitFilterLabel(state, poseStack, submitNodeCollector);
@@ -121,39 +121,36 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
         }
     }
 
-    private void submitFluid(JarRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
-        float ratio = Math.min(1.0F, state.amount / (float) BlockEntityJar.CAPACITY);
+    public static void submitFluid(float amount, int aspectColor, int lightCoords, TextureAtlasSprite sprite, PoseStack poseStack, SubmitNodeCollector collector) {
+        float ratio = Math.min(1.0F, amount / (float) BlockEntityJar.CAPACITY);
         float height = FLUID_BASE_Y + ratio * FLUID_MAX_HEIGHT;
-        int color = state.aspectColor;
-        int light = state.lightCoords;
-        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().get(ANIMATED_GLOW_SPRITE);
-        RenderType type = Sheets.translucentBlockItemSheet();
+                RenderType type = Sheets.translucentBlockItemSheet();
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {
             VertexConsumer wrapped = sprite.wrap(buffer);
-            fluidQuadTop(wrapped, pose, height, color, light);
-            fluidQuadBottom(wrapped, pose, color, light);
-            fluidQuadSide(wrapped, pose, FLUID_MIN, FLUID_MAX, FLUID_MIN, FLUID_MIN, height, color, light, 0.0F, 0.0F, -1.0F);
-            fluidQuadSide(wrapped, pose, FLUID_MAX, FLUID_MIN, FLUID_MAX, FLUID_MAX, height, color, light, 0.0F, 0.0F, 1.0F);
-            fluidQuadSide(wrapped, pose, FLUID_MIN, FLUID_MIN, FLUID_MIN, FLUID_MAX, height, color, light, -1.0F, 0.0F, 0.0F);
-            fluidQuadSide(wrapped, pose, FLUID_MAX, FLUID_MAX, FLUID_MAX, FLUID_MIN, height, color, light, 1.0F, 0.0F, 0.0F);
+            fluidQuadTop(wrapped, pose, height, aspectColor, lightCoords);
+            fluidQuadBottom(wrapped, pose, aspectColor, lightCoords);
+            fluidQuadSide(wrapped, pose, FLUID_MIN, FLUID_MIN, FLUID_MIN, FLUID_MAX, height, aspectColor, lightCoords, -1.0F, 0.0F, 0.0F);
+            fluidQuadSide(wrapped, pose, FLUID_MAX, FLUID_MAX, FLUID_MAX, FLUID_MIN, height, aspectColor, lightCoords, 1.0F, 0.0F, 0.0F);
+            fluidQuadSide(wrapped, pose, FLUID_MAX, FLUID_MIN, FLUID_MIN, FLUID_MIN, height, aspectColor, lightCoords, 0.0F, 0.0F, -1.0F);
+            fluidQuadSide(wrapped, pose, FLUID_MIN, FLUID_MAX, FLUID_MAX, FLUID_MAX, height, aspectColor, lightCoords, 0.0F, 0.0F, 1.0F);
         });
     }
 
-    private static void fluidQuadTop(VertexConsumer buffer, PoseStack.Pose pose, float y, int color, int light) {
-        addVertex(buffer, pose, FLUID_MIN, y, FLUID_MIN, 0.0F, 0.0F, color, light, 0.0F, 1.0F, 0.0F);
-        addVertex(buffer, pose, FLUID_MIN, y, FLUID_MAX, 0.0F, 1.0F, color, light, 0.0F, 1.0F, 0.0F);
-        addVertex(buffer, pose, FLUID_MAX, y, FLUID_MAX, 1.0F, 1.0F, color, light, 0.0F, 1.0F, 0.0F);
-        addVertex(buffer, pose, FLUID_MAX, y, FLUID_MIN, 1.0F, 0.0F, color, light, 0.0F, 1.0F, 0.0F);
+    public static void fluidQuadTop(VertexConsumer buffer, PoseStack.Pose pose, float y, int color, int light) {
+        addVertex(buffer, pose, FLUID_MIN, y, FLUID_MIN, FLUID_MIN, FLUID_MIN, color, light, 0.0F, 1.0F, 0.0F);
+        addVertex(buffer, pose, FLUID_MIN, y, FLUID_MAX, FLUID_MIN, FLUID_MAX, color, light, 0.0F, 1.0F, 0.0F);
+        addVertex(buffer, pose, FLUID_MAX, y, FLUID_MAX, FLUID_MAX, FLUID_MAX, color, light, 0.0F, 1.0F, 0.0F);
+        addVertex(buffer, pose, FLUID_MAX, y, FLUID_MIN, FLUID_MAX, FLUID_MIN, color, light, 0.0F, 1.0F, 0.0F);
     }
 
-    private static void fluidQuadBottom(VertexConsumer buffer, PoseStack.Pose pose, int color, int light) {
-        addVertex(buffer, pose, FLUID_MIN, FLUID_BASE_Y, FLUID_MIN, 0.0F, 0.0F, color, light, 0.0F, -1.0F, 0.0F);
-        addVertex(buffer, pose, FLUID_MAX, FLUID_BASE_Y, FLUID_MIN, 1.0F, 0.0F, color, light, 0.0F, -1.0F, 0.0F);
-        addVertex(buffer, pose, FLUID_MAX, FLUID_BASE_Y, FLUID_MAX, 1.0F, 1.0F, color, light, 0.0F, -1.0F, 0.0F);
-        addVertex(buffer, pose, FLUID_MIN, FLUID_BASE_Y, FLUID_MAX, 0.0F, 1.0F, color, light, 0.0F, -1.0F, 0.0F);
+    public static void fluidQuadBottom(VertexConsumer buffer, PoseStack.Pose pose, int color, int light) {
+        addVertex(buffer, pose, FLUID_MIN, FLUID_BASE_Y, FLUID_MIN, FLUID_MIN, FLUID_MIN, color, light, 0.0F, -1.0F, 0.0F);
+        addVertex(buffer, pose, FLUID_MAX, FLUID_BASE_Y, FLUID_MIN, FLUID_MAX, FLUID_MIN, color, light, 0.0F, -1.0F, 0.0F);
+        addVertex(buffer, pose, FLUID_MAX, FLUID_BASE_Y, FLUID_MAX, FLUID_MAX, FLUID_MAX, color, light, 0.0F, -1.0F, 0.0F);
+        addVertex(buffer, pose, FLUID_MIN, FLUID_BASE_Y, FLUID_MAX, FLUID_MIN, FLUID_MAX, color, light, 0.0F, -1.0F, 0.0F);
     }
 
-    private static void fluidQuadSide(
+    public static void fluidQuadSide(
             VertexConsumer buffer,
             PoseStack.Pose pose,
             float x0,
@@ -167,13 +164,15 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
             float ny,
             float nz
     ) {
-        addVertex(buffer, pose, x0, FLUID_BASE_Y, z0, 0.0F, 1.0F, color, light, nx, ny, nz);
-        addVertex(buffer, pose, x1, FLUID_BASE_Y, z1, 1.0F, 1.0F, color, light, nx, ny, nz);
-        addVertex(buffer, pose, x1, yTop, z1, 1.0F, 0.0F, color, light, nx, ny, nz);
-        addVertex(buffer, pose, x0, yTop, z0, 0.0F, 0.0F, color, light, nx, ny, nz);
+        float minV = 1 - FLUID_BASE_Y;
+        float maxV = minV - yTop;
+        addVertex(buffer, pose, x0, FLUID_BASE_Y, z0, FLUID_MIN, maxV, color, light, nx, ny, nz);
+        addVertex(buffer, pose, x1, FLUID_BASE_Y, z1, FLUID_MAX, maxV, color, light, nx, ny, nz);
+        addVertex(buffer, pose, x1, yTop, z1, FLUID_MAX, minV, color, light, nx, ny, nz);
+        addVertex(buffer, pose, x0, yTop, z0, FLUID_MIN, minV, color, light, nx, ny, nz);
     }
 
-    private static void addVertex(
+    public static void addVertex(
             VertexConsumer buffer,
             PoseStack.Pose pose,
             float x,
@@ -188,11 +187,12 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
             float nz
     ) {
         buffer.addVertex(pose, x, y, z)
-                .setColor(color)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)
-                .setNormal(pose, nx, ny, nz);
+                .setNormal(pose, nx, ny, nz)
+                // Let the .setColor at the end otherwise the vertex consumer is not the good one
+                .setColor(color);
     }
 
     private void submitFilterLabel(JarRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {

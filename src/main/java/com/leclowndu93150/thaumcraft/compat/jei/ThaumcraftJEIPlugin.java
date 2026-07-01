@@ -15,6 +15,7 @@ import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
+import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,11 +62,14 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         ISubtypeInterpreter<ItemStack> aspectsInterpreter = ThaumcraftJEIPlugin::aspectsSubtype;
         ISubtypeInterpreter<ItemStack> essentiaInterpreter = ThaumcraftJEIPlugin::essentiaSubtype;
         ISubtypeInterpreter<ItemStack> filterInterpreter = ThaumcraftJEIPlugin::aspectFilterSubtype;
+        ISubtypeInterpreter<ItemStack> crystalAspectInterpreter = ThaumcraftJEIPlugin::crystalAspectSubtype;
         registration.registerSubtypeInterpreter(TCItems.JAR_NORMAL.get(), essentiaInterpreter);
         registration.registerSubtypeInterpreter(TCItems.JAR_VOID.get(), essentiaInterpreter);
         registration.registerSubtypeInterpreter(TCItems.LABEL.get(), filterInterpreter);
         registration.registerSubtypeInterpreter(TCItems.TUBE_FILTER.get(), filterInterpreter);
         registration.registerSubtypeInterpreter(TCItems.SALIS_MUNDUS.get(), aspectsInterpreter);
+        registration.registerSubtypeInterpreter(TCItems.ESSENTIA_CRYSTAL.get(), crystalAspectInterpreter);
+        registration.registerSubtypeInterpreter(TCItemsHContainers.PHIAL.get(), aspectsInterpreter);
     }
 
     @Override
@@ -211,5 +215,9 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
 
     private static @Nullable Object aspectFilterSubtype(ItemStack stack, UidContext context) {
         return stack.get(TCDataComponents.ASPECT_FILTER.get());
+    }
+
+    private static @Nullable Object crystalAspectSubtype(ItemStack stack, UidContext context) {
+        return stack.get(TCDataComponents.CRYSTAL_ASPECT.get());
     }
 }
