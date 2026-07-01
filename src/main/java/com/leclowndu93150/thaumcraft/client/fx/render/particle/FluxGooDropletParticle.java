@@ -45,8 +45,11 @@ public final class FluxGooDropletParticle extends BreakingItemParticle {
                                        RandomSource random) {
             TextureAtlasSprite sprite = this.getSprite(
                     new ItemStackTemplate(Items.SLIME_BALL), level, random);
+            int lifetime = options.lifetime() > 0
+                    ? options.lifetime()
+                    : (int) (66.0F / (random.nextFloat() * 0.9F + 0.1F));
             return new FluxGooDropletParticle(level, x, y, z, xa, ya, za,
-                    sprite, options.color(), options.alpha(), options.lifetime());
+                    sprite, options.color(), options.alpha(), lifetime);
         }
     }
 }

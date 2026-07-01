@@ -14,6 +14,8 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 public final class CrystalQuadBaker {
+    private static final int CRYSTAL_LIGHT_EMISSION = 15;
+
     private CrystalQuadBaker() {}
 
     public static void bakePart(MeshModel mesh, MeshPart part, Baked baked, int tintIndex, Matrix4f transform, java.util.List<BakedQuad> output) {
@@ -22,8 +24,8 @@ public final class CrystalQuadBaker {
                 ChunkSectionLayer.CUTOUT,
                 Sheets.cutoutBlockItemSheet(),
                 tintIndex,
-                true,
-                0);
+                false,
+                CRYSTAL_LIGHT_EMISSION);
         for (int i = 0; i + 3 < part.indices().size(); i += 4) {
             BakedQuad q = bakeQuad(mesh, part, i, baked, transform, info);
             if (q != null) output.add(q);

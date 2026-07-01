@@ -1,8 +1,10 @@
 package com.leclowndu93150.thaumcraft.data.fragments;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksDTrees;
 import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.MultiVariant;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
@@ -16,15 +18,17 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 public final class TCBlocksDTreesModels {
     private TCBlocksDTreesModels() {}
 
-    public static void register(BlockModelGenerators blockModels) {
-        simpleCube(blockModels, TCBlocksDTrees.SAPLING_GREATWOOD.get(), "sapling_greatwood");
-        simpleCube(blockModels, TCBlocksDTrees.SAPLING_SILVERWOOD.get(), "sapling_silverwood");
-        simpleCube(blockModels, TCBlocksDTrees.PLANK_GREATWOOD.get(), "plank_greatwood");
-        simpleCube(blockModels, TCBlocksDTrees.PLANK_SILVERWOOD.get(), "plank_silverwood");
-        simpleCube(blockModels, TCBlocksDTrees.LEAVES_GREATWOOD.get(), "leaves_greatwood");
-        simpleCube(blockModels, TCBlocksDTrees.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
-        log(blockModels, TCBlocksDTrees.LOG_GREATWOOD.get(), "log_greatwood", "log_greatwood_horizontal");
-        log(blockModels, TCBlocksDTrees.LOG_SILVERWOOD.get(), "log_silverwood", "log_silverwood_horizontal");
+    public static void register(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        simpleCube(blockModels, TCBlocks.SAPLING_GREATWOOD.get(), "sapling_greatwood");
+        simpleCube(blockModels, TCBlocks.SAPLING_SILVERWOOD.get(), "sapling_silverwood");
+        TCBlocksEPlantsModels.flatItemFromBlock(itemModels, TCItems.SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get());
+        TCBlocksEPlantsModels.flatItemFromBlock(itemModels, TCItems.SAPLING_SILVERWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get());
+        simpleCube(blockModels, TCBlocks.PLANK_GREATWOOD.get(), "plank_greatwood");
+        simpleCube(blockModels, TCBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
+        simpleCube(blockModels, TCBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
+        simpleCube(blockModels, TCBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
+        log(blockModels, TCBlocks.LOG_GREATWOOD.get(), "log_greatwood", "log_greatwood_horizontal");
+        log(blockModels, TCBlocks.LOG_SILVERWOOD.get(), "log_silverwood", "log_silverwood_horizontal");
     }
 
     private static void simpleCube(BlockModelGenerators blockModels, Block block, String modelName) {

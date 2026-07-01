@@ -1,0 +1,115 @@
+package com.leclowndu93150.thaumcraft.api.taint;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+
+/**
+ * Static facade over the taint spread engine. Addons can seed, query, and drive taint without
+ * touching internals.
+ *
+ * <p>All mutating calls are server side; passing a client level is a no-op for queries and
+ * ignored for mutators.
+ *
+ * @since 1.0.0
+ */
+public final class TaintApi {
+    private static Bindings impl;
+
+    private TaintApi() {}
+
+    /**
+     * Registers a taint seed anchor. Spread checks treat registered positions as live seeds as
+     * long as a taint seed entity is present within one block of the position; stale entries are
+     * pruned automatically during spread checks.
+     *
+     * @param level the level owning the seed
+     * @param pos   the seed anchor position
+     */
+    public static void addTaintSeed(ServerLevel level, BlockPos pos) {
+        bindingOrThrow().addTaintSeed(level, pos);
+    }
+
+    /**
+     * Removes a taint seed anchor previously registered via {@link #addTaintSeed}.
+     *
+     * @param level the level owning the seed
+     * @param pos   the seed anchor position
+     */
+    public static void removeTaintSeed(ServerLevel level, BlockPos pos) {
+        bindingOrThrow().removeTaintSeed(level, pos);
+    }
+
+    /**
+     * Returns whether the position lies within the configured spread radius of a live taint
+     * seed. A registered seed whose entity has died is pruned and reported as absent.
+     *
+     * @param level the level to query
+     * @param pos   the position to test
+     * @return {@code true} when a live seed is in range
+     */
+    public static boolean isNearTaintSeed(Level level, BlockPos pos) {
+        return bindingOrThrow().isNearTaintSeed(level, pos);
+    }
+
+    /**
+     * Returns whether the position lies on the outer fringe of a seed's spread zone, the ring
+     * where new taint seeds may sprout naturally.
+     *
+     * @param level the level to query
+     * @param pos   the position to test
+     * @return {@code true} when the position is between 80% and 100% of the spread radius
+     */
+    public static boolean isAtTaintSeedEdge(Level level, BlockPos pos) {
+        return bindingOrThrow().isAtTaintSeedEdge(level, pos);
+    }
+
+    /**
+     * Runs one taint spread attempt from the given position, identical to the random-tick spread
+     * performed by taint blocks. Honours the wuss-mode and spread-rate configuration unless
+     * {@code force} is set.
+     *
+     * @param level the level to mutate
+     * @param pos   the spread origin
+     * @param force when true, bypasses the configured rate and wuss-mode gates
+     */
+    public static void spreadFibres(ServerLevel level, BlockPos pos, boolean force) {
+        bindingOrThrow().spreadFibres(level, pos, force);
+    }
+
+    /**
+     * Binds the facade's implementation. Called once at mod init by the implementation; addons
+     * must not call this.
+     *
+     * @param bindings the implementation
+     * @throws IllegalStateException when already bound
+     */
+    public static void bind(Bindings bindings) {
+        if (impl != null) {
+            throw new IllegalStateException("TaintApi already bound");
+        }
+        impl = bindings;
+    }
+
+    private static Bindings bindingOrThrow() {
+        if (impl == null) {
+            throw new IllegalStateException("TaintApi accessed before binding");
+        }
+        return impl;
+    }
+
+    /**
+     * Implementation hook supplied by Thaumcraft at mod init. Each method on this interface
+     * corresponds to a public static on {@link TaintApi}. Addons must not implement this
+     * interface.
+     *
+     * @since 1.0.0
+     */
+    public interface Bindings {
+        void addTaintSeed(ServerLevel level, BlockPos pos);
+        void removeTaintSeed(ServerLevel level, BlockPos pos);
+        boolean isNearTaintSeed(Level level, BlockPos pos);
+        boolean isAtTaintSeedEdge(Level level, BlockPos pos);
+        void spreadFibres(ServerLevel level, BlockPos pos, boolean force);
+    }
+}

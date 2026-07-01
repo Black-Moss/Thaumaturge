@@ -1,8 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.taint.block;
 
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.content.entity.EntityTaintCrawler;
 import com.leclowndu93150.thaumcraft.content.taint.TaintHelper;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -31,6 +35,8 @@ public final class BlockTaintFeature extends DirectionalBlock implements ITaintB
 
     private static final int DIE_CHANCE = 10;
     private static final int GEYSER_CHANCE = 100;
+    private static final float CRAWLER_ON_BREAK_CHANCE = 0.333F;
+    private static final float BREAK_POLLUTE_AMOUNT = 1.0F;
 
     public BlockTaintFeature(Properties properties) {
         super(properties);
@@ -82,6 +88,21 @@ public final class BlockTaintFeature extends DirectionalBlock implements ITaintB
             if (axis == Direction.Axis.Y && random.nextInt(GEYSER_CHANCE) == 0) {
                 level.setBlock(pos, TCBlocks.TAINT_GEYSER.get().defaultBlockState(), Block.UPDATE_ALL);
             }
+        }
+    }
+
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        if (level.getRandom().nextFloat() < CRAWLER_ON_BREAK_CHANCE) {
+            EntityTaintCrawler crawler = TCEntities.TAINT_CRAWLER.get().create(level, EntitySpawnReason.NATURAL);
+            if (crawler != null) {
+                crawler.snapTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                        level.getRandom().nextInt(360), 0.0F);
+                level.addFreshEntity(crawler);
+            }
+        } else {
+            AuraHelper.polluteAura(level, pos, BREAK_POLLUTE_AMOUNT, true);
         }
     }
 

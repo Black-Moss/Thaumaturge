@@ -10,10 +10,15 @@ import com.leclowndu93150.thaumcraft.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCBlockLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.model.TCModelProvider;
 import com.leclowndu93150.thaumcraft.data.recipe.TCRecipeProvider;
+import com.leclowndu93150.thaumcraft.data.tag.TCBiomeTagsProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCBlockTagsProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCDamageTypeTagsProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCItemTagsProvider;
 import com.leclowndu93150.thaumcraft.data.worldgen.aspect.AspectBootstrap;
+import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomeModifiers;
+import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
+import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
+import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
 import com.leclowndu93150.thaumcraft.data.worldgen.research.CategoryBootstrap;
 import com.leclowndu93150.thaumcraft.data.worldgen.research.EntryBootstrap;
 import java.util.List;
@@ -25,6 +30,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class TCDataGenerators {
@@ -36,7 +42,11 @@ public final class TCDataGenerators {
                 .add(IAspect.REGISTRY_KEY, AspectBootstrap::bootstrap)
                 .add(IResearchCategory.REGISTRY_KEY, CategoryBootstrap::bootstrap)
                 .add(IResearchEntry.REGISTRY_KEY, EntryBootstrap::bootstrap)
-                .add(Registries.DAMAGE_TYPE, TCDamageTypeBootstrap::bootstrap);
+                .add(Registries.DAMAGE_TYPE, TCDamageTypeBootstrap::bootstrap)
+                .add(Registries.CONFIGURED_FEATURE, TCConfiguredFeatures::bootstrap)
+                .add(Registries.PLACED_FEATURE, TCPlacedFeatures::bootstrap)
+                .add(Registries.BIOME, TCBiomes::bootstrap)
+                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, TCBiomeModifiers::bootstrap);
         event.createDatapackRegistryObjects(registries);
 
         event.createProvider(TCEnglishProvider::new);
@@ -46,6 +56,7 @@ public final class TCDataGenerators {
 
         event.createBlockAndItemTags(TCBlockTagsProvider::new, TCItemTagsProvider::new);
         event.createProvider(TCDamageTypeTagsProvider::new);
+        event.createProvider(TCBiomeTagsProvider::new);
 
         event.createProvider((output, lookupProvider) -> new LootTableProvider(
                 output,

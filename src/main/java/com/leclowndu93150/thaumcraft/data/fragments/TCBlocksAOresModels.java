@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumcraft.data.fragments;
 
+import com.leclowndu93150.thaumcraft.registry.TCItems;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksAOres;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsAOres;
 import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
@@ -21,25 +21,25 @@ public final class TCBlocksAOresModels {
     private TCBlocksAOresModels() {}
 
     public static void register(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
-        blockModels.createTrivialCube(TCBlocksAOres.ORE_AMBER.get());
-        blockModels.createTrivialCube(TCBlocksAOres.ORE_CINNABAR.get());
-        blockModels.createTrivialCube(TCBlocksAOres.ORE_QUARTZ.get());
+        blockModels.createTrivialCube(TCBlocks.ORE_AMBER.get());
+        blockModels.createTrivialCube(TCBlocks.ORE_CINNABAR.get());
+        blockModels.createTrivialCube(TCBlocks.ORE_QUARTZ.get());
 
         for (DyeColor dye : DyeColor.values()) {
             registerNitor(blockModels, itemModels, dye);
         }
 
-        itemModels.generateFlatItem(TCItemsAOres.AMBER.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(TCItemsAOres.CINNABAR.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.AMBER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CINNABAR.get(), ModelTemplates.FLAT_ITEM);
     }
 
     private static void registerNitor(BlockModelGenerators blockModels, ItemModelGenerators itemModels, DyeColor dye) {
-        var block = TCBlocksAOres.NITORS.get(dye).get();
+        var block = TCBlocks.NITORS.get(dye).get();
         Identifier empty = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/empty");
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(empty)));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
 
-        var item = TCItemsAOres.NITORS.get(dye).get();
+        var item = TCItems.NITORS.get(dye).get();
         Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/nitor_" + dye.getName());
         Material baseTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor"));
         Material coreTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor_core"));

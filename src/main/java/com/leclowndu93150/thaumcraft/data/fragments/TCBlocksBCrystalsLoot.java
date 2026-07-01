@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.data.fragments;
 
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksBCrystals;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -19,30 +19,30 @@ public final class TCBlocksBCrystalsLoot {
     }
 
     public static LootTable.Builder crystalAer() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_AER.get());
+        return dropSelf(TCBlocks.CRYSTAL_AER.get());
     }
 
     public static LootTable.Builder crystalIgnis() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_IGNIS.get());
+        return dropSelf(TCBlocks.CRYSTAL_IGNIS.get());
     }
 
     public static LootTable.Builder crystalAqua() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_AQUA.get());
+        return dropSelf(TCBlocks.CRYSTAL_AQUA.get());
     }
 
     public static LootTable.Builder crystalTerra() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_TERRA.get());
+        return dropSelf(TCBlocks.CRYSTAL_TERRA.get());
     }
 
     public static LootTable.Builder crystalOrdo() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_ORDO.get());
+        return dropSelf(TCBlocks.CRYSTAL_ORDO.get());
     }
 
     public static LootTable.Builder crystalPerditio() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_PERDITIO.get());
+        return dropSelf(TCBlocks.CRYSTAL_PERDITIO.get());
     }
 
     public static LootTable.Builder crystalVitium() {
-        return dropSelf(TCBlocksBCrystals.CRYSTAL_VITIUM.get());
+        return dropSelf(TCBlocks.CRYSTAL_VITIUM.get());
     }
 }

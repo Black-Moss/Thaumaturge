@@ -139,7 +139,7 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
         boolean west = canAttachTo(level, pos.west(), Direction.EAST);
         boolean up = canAttachTo(level, pos.above(), Direction.DOWN);
         boolean down = canAttachTo(level, pos.below(), Direction.UP);
-        int q = (int) (Math.floorMod(pos.asLong(), (long) GROWTH_RNG_RANGE));
+        int q = RandomSource.create(pos.asLong()).nextInt(GROWTH_RNG_RANGE);
         boolean growth1 = down && q < GROWTH1_THRESHOLD;
         boolean growth2 = down && (q == GROWTH2_THRESHOLD_LO || q == GROWTH2_THRESHOLD_HI);
         boolean growth3 = down && q == GROWTH3_VALUE;

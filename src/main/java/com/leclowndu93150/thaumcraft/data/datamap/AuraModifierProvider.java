@@ -1,7 +1,12 @@
 package com.leclowndu93150.thaumcraft.data.datamap;
 
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.aura.BiomeAspects;
 import com.leclowndu93150.thaumcraft.api.aura.BiomeAuraModifier;
+import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumcraft.registry.TCDataMaps;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -84,6 +89,87 @@ public final class AuraModifierProvider extends DataMapProvider {
         add(b, Biomes.SMALL_END_ISLANDS, 0.125F);
         add(b, Biomes.END_BARRENS, 0.125F);
         add(b, Biomes.THE_VOID, 0.0F);
+
+        add(b, TCBiomes.MAGICAL_FOREST, 0.625F);
+        add(b, TCBiomes.EERIE, 0.625F);
+        add(b, TCBiomes.ELDRITCH, 0.458F);
+
+        Builder<BiomeAspects, Biome> aspects = builder(TCDataMaps.BIOME_ASPECTS);
+
+        addAspects(aspects, Biomes.PLAINS, TCAspects.AER);
+        addAspects(aspects, Biomes.SUNFLOWER_PLAINS, TCAspects.AER);
+        addAspects(aspects, Biomes.MEADOW, TCAspects.AER);
+        addAspects(aspects, Biomes.SNOWY_PLAINS, TCAspects.ORDO);
+        addAspects(aspects, Biomes.ICE_SPIKES, TCAspects.ORDO);
+        addAspects(aspects, Biomes.GROVE, TCAspects.ORDO);
+        addAspects(aspects, Biomes.SNOWY_SLOPES, TCAspects.ORDO);
+        addAspects(aspects, Biomes.FROZEN_PEAKS, TCAspects.ORDO);
+        addAspects(aspects, Biomes.JAGGED_PEAKS, TCAspects.AER);
+        addAspects(aspects, Biomes.STONY_PEAKS, TCAspects.AER);
+        addAspects(aspects, Biomes.WINDSWEPT_HILLS, TCAspects.AER);
+        addAspects(aspects, Biomes.WINDSWEPT_GRAVELLY_HILLS, TCAspects.AER);
+        addAspects(aspects, Biomes.WINDSWEPT_FOREST, TCAspects.AER, TCAspects.TERRA);
+        addAspects(aspects, Biomes.WINDSWEPT_SAVANNA, TCAspects.AER, TCAspects.IGNIS);
+        addAspects(aspects, Biomes.SAVANNA, TCAspects.AER, TCAspects.IGNIS);
+        addAspects(aspects, Biomes.SAVANNA_PLATEAU, TCAspects.AER, TCAspects.IGNIS);
+        addAspects(aspects, Biomes.DESERT, TCAspects.IGNIS, TCAspects.TERRA, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.BADLANDS, TCAspects.IGNIS, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.ERODED_BADLANDS, TCAspects.IGNIS, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.WOODED_BADLANDS, TCAspects.IGNIS, TCAspects.TERRA);
+        addAspects(aspects, Biomes.SWAMP, TCAspects.PERDITIO, TCAspects.AQUA);
+        addAspects(aspects, Biomes.MANGROVE_SWAMP, TCAspects.PERDITIO, TCAspects.AQUA);
+        addAspects(aspects, Biomes.FOREST, TCAspects.TERRA);
+        addAspects(aspects, Biomes.FLOWER_FOREST, TCAspects.TERRA);
+        addAspects(aspects, Biomes.BIRCH_FOREST, TCAspects.TERRA);
+        addAspects(aspects, Biomes.OLD_GROWTH_BIRCH_FOREST, TCAspects.TERRA);
+        addAspects(aspects, Biomes.DARK_FOREST, TCAspects.TERRA);
+        addAspects(aspects, Biomes.PALE_GARDEN, TCAspects.TERRA, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.CHERRY_GROVE, TCAspects.TERRA);
+        addAspects(aspects, Biomes.TAIGA, TCAspects.TERRA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.SNOWY_TAIGA, TCAspects.TERRA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.OLD_GROWTH_PINE_TAIGA, TCAspects.TERRA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.OLD_GROWTH_SPRUCE_TAIGA, TCAspects.TERRA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.JUNGLE, TCAspects.TERRA, TCAspects.AQUA);
+        addAspects(aspects, Biomes.SPARSE_JUNGLE, TCAspects.TERRA, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.BAMBOO_JUNGLE, TCAspects.TERRA, TCAspects.AQUA);
+        addAspects(aspects, Biomes.RIVER, TCAspects.AQUA);
+        addAspects(aspects, Biomes.FROZEN_RIVER, TCAspects.AQUA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.BEACH, TCAspects.TERRA, TCAspects.AQUA);
+        addAspects(aspects, Biomes.SNOWY_BEACH, TCAspects.ORDO, TCAspects.AQUA);
+        addAspects(aspects, Biomes.STONY_SHORE, TCAspects.TERRA, TCAspects.AQUA);
+        addAspects(aspects, Biomes.OCEAN, TCAspects.AQUA);
+        addAspects(aspects, Biomes.DEEP_OCEAN, TCAspects.AQUA);
+        addAspects(aspects, Biomes.WARM_OCEAN, TCAspects.AQUA);
+        addAspects(aspects, Biomes.LUKEWARM_OCEAN, TCAspects.AQUA);
+        addAspects(aspects, Biomes.DEEP_LUKEWARM_OCEAN, TCAspects.AQUA);
+        addAspects(aspects, Biomes.COLD_OCEAN, TCAspects.AQUA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.DEEP_COLD_OCEAN, TCAspects.AQUA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.FROZEN_OCEAN, TCAspects.AQUA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.DEEP_FROZEN_OCEAN, TCAspects.AQUA, TCAspects.ORDO);
+        addAspects(aspects, Biomes.MUSHROOM_FIELDS, TCAspects.ORDO);
+        addAspects(aspects, Biomes.DRIPSTONE_CAVES, TCAspects.TERRA);
+        addAspects(aspects, Biomes.LUSH_CAVES, TCAspects.AQUA, TCAspects.TERRA);
+        addAspects(aspects, Biomes.DEEP_DARK, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.NETHER_WASTES, TCAspects.IGNIS);
+        addAspects(aspects, Biomes.WARPED_FOREST, TCAspects.IGNIS, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.CRIMSON_FOREST, TCAspects.IGNIS);
+        addAspects(aspects, Biomes.SOUL_SAND_VALLEY, TCAspects.IGNIS, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.BASALT_DELTAS, TCAspects.IGNIS);
+        addAspects(aspects, Biomes.THE_END, TCAspects.AER, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.END_HIGHLANDS, TCAspects.AER, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.END_MIDLANDS, TCAspects.AER, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.SMALL_END_ISLANDS, TCAspects.AER, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.END_BARRENS, TCAspects.AER, TCAspects.PERDITIO);
+        addAspects(aspects, Biomes.THE_VOID, TCAspects.PERDITIO);
+
+        addAspects(aspects, TCBiomes.MAGICAL_FOREST, TCAspects.ORDO, TCAspects.TERRA);
+        addAspects(aspects, TCBiomes.EERIE, TCAspects.ORDO, TCAspects.IGNIS);
+        addAspects(aspects, TCBiomes.ELDRITCH, TCAspects.ORDO, TCAspects.IGNIS, TCAspects.AER);
+    }
+
+    @SafeVarargs
+    private static void addAspects(Builder<BiomeAspects, Biome> b, ResourceKey<Biome> key, ResourceKey<IAspect>... aspectKeys) {
+        b.add(key, new BiomeAspects(List.of(aspectKeys)), false);
     }
 
     private static void add(Builder<BiomeAuraModifier, Biome> b, ResourceKey<Biome> key, float value) {

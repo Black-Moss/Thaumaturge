@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class AbstractTaintBlock extends Block implements ITaintBlock {
     private static final int DIE_CHANCE = 10;
-    private static final int WALK_EFFECT_CHANCE = 750;
+    private static final int WALK_EFFECT_CHANCE = 250;
     private static final int WALK_EFFECT_DURATION = 200;
 
     protected AbstractTaintBlock(Properties properties) {

@@ -2,6 +2,9 @@ package com.leclowndu93150.thaumcraft.server.command;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
+import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.TheorycraftManager;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
@@ -10,6 +13,7 @@ import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -21,6 +25,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -31,6 +36,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -72,8 +78,123 @@ public final class TCCommands {
                         .then(Commands.literal("taintacle_small").executes(ctx -> spawnEntity(ctx, "taintacle_small"))))
                 .then(Commands.literal("crystal")
                         .then(Commands.argument("aspect", StringArgumentType.word())
-                                .executes(TCCommands::giveCrystal)));
+                                .executes(TCCommands::giveCrystal)))
+                .then(Commands.literal("aura").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("info").executes(TCCommands::auraInfo))
+                        .then(Commands.literal("vis")
+                                .then(Commands.literal("add")
+                                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0.0F))
+                                                .executes(ctx -> auraVis(ctx, false))))
+                                .then(Commands.literal("remove")
+                                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0.0F))
+                                                .executes(ctx -> auraVis(ctx, true)))))
+                        .then(Commands.literal("flux")
+                                .then(Commands.literal("add")
+                                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0.0F))
+                                                .executes(ctx -> auraFlux(ctx, false))))
+                                .then(Commands.literal("remove")
+                                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0.0F))
+                                                .executes(ctx -> auraFlux(ctx, true))))))
+                .then(Commands.literal("taint").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("seed").executes(ctx -> spawnEntity(ctx, "taint_seed")))
+                        .then(Commands.literal("spread").executes(TCCommands::taintSpread)))
+                .then(Commands.literal("tree").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("greatwood").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.GREATWOOD_TREE)))
+                        .then(Commands.literal("silverwood").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.SILVERWOOD_TREE)))
+                        .then(Commands.literal("magic").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.BIG_MAGIC_TREE))));
         event.getDispatcher().register(tc);
+    }
+
+    private static int auraInfo(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            BlockPos pos = player.blockPosition();
+            float vis = AuraHelper.getVis(level, pos);
+            float flux = AuraHelper.getFlux(level, pos);
+            int base = AuraHelper.getAuraBase(level, pos);
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    String.format("Aura at %s: vis %.1f, flux %.1f, base %d", pos.toShortString(), vis, flux, base)), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int auraVis(CommandContext<CommandSourceStack> ctx, boolean remove) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            BlockPos pos = player.blockPosition();
+            float amount = FloatArgumentType.getFloat(ctx, "amount");
+            if (remove) {
+                float drained = AuraHelper.drainVis(level, pos, amount, false);
+                ctx.getSource().sendSuccess(() -> Component.literal(String.format("Drained %.1f vis", drained)), false);
+            } else {
+                AuraHelper.addVis(level, pos, amount);
+                ctx.getSource().sendSuccess(() -> Component.literal(String.format("Added %.1f vis", amount)), false);
+            }
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int auraFlux(CommandContext<CommandSourceStack> ctx, boolean remove) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            BlockPos pos = player.blockPosition();
+            float amount = FloatArgumentType.getFloat(ctx, "amount");
+            if (remove) {
+                float drained = AuraHelper.drainFlux(level, pos, amount, false);
+                ctx.getSource().sendSuccess(() -> Component.literal(String.format("Drained %.1f flux", drained)), false);
+            } else {
+                AuraHelper.addFlux(level, pos, amount);
+                ctx.getSource().sendSuccess(() -> Component.literal(String.format("Added %.1f flux", amount)), false);
+            }
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int placeFeature(CommandContext<CommandSourceStack> ctx, ResourceKey<ConfiguredFeature<?, ?>> key) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            BlockPos pos = player.blockPosition();
+            Holder<ConfiguredFeature<?, ?>> holder = level.registryAccess()
+                    .lookupOrThrow(Registries.CONFIGURED_FEATURE)
+                    .getOrThrow(key);
+            boolean placed = holder.value().place(level, level.getChunkSource().getGenerator(), level.getRandom(), pos);
+            if (placed) {
+                ctx.getSource().sendSuccess(() -> Component.literal("Placed " + key.identifier()), false);
+                return Command.SINGLE_SUCCESS;
+            }
+            ctx.getSource().sendFailure(Component.literal("Feature refused to place here (bad soil or no clearance)"));
+            return 0;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int taintSpread(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            BlockPos pos = player.blockPosition();
+            TaintApi.spreadFibres(level, pos, true);
+            ctx.getSource().sendSuccess(() -> Component.literal("Forced taint spread at " + pos.toShortString()), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
     }
 
     private static int setFluxGoo(CommandContext<CommandSourceStack> ctx) {

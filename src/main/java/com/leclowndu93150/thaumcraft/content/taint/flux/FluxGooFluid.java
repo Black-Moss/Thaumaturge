@@ -1,9 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.taint.flux;
 
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
-import com.leclowndu93150.thaumcraft.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
-import com.leclowndu93150.thaumcraft.content.taint.FluxImmunityHelper;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
@@ -30,9 +28,9 @@ import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 public abstract class FluxGooFluid extends BaseFlowingFluid {
     private static final int SLIME_SPAWN_CHANCE = 50;
     private static final int DECAY_ROLL_CHANCE = 4;
-    private static final int SMALL_SLIME_AMOUNT_MIN = 2;
-    private static final int SMALL_SLIME_AMOUNT_MAX = 5;
-    private static final int LARGE_SLIME_AMOUNT_MIN = 6;
+    private static final int SMALL_SLIME_AMOUNT_MIN = 3;
+    private static final int SMALL_SLIME_AMOUNT_MAX = 6;
+    private static final int LARGE_SLIME_AMOUNT_MIN = 7;
     private static final int VIS_EXHAUST_DURATION = 600;
     private static final float POLLUTE_AMOUNT = 1.0F;
     private static final float MAX_AMOUNT = 8.0F;
@@ -62,17 +60,17 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
         }
         if (random.nextInt(DECAY_ROLL_CHANCE) == 0) {
             if (amount <= 1) {
-                AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
                 if (random.nextBoolean()) {
+                    AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 } else {
                     level.setBlock(pos, taintFibreState(), Block.UPDATE_ALL);
                 }
             } else {
-                AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
                 FluidState dropped = getFlowing(amount - 1, false);
                 level.setBlock(pos, dropped.createLegacyBlock(), Block.UPDATE_ALL);
                 level.scheduleTick(pos, dropped.getType(), getTickDelay(level));
+                AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
             }
         }
     }
@@ -81,17 +79,29 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
     protected void entityInside(Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier) {
         FluidState fs = level.getFluidState(pos);
         int amount = fs.getAmount();
-        if (entity instanceof LivingEntity living) {
-            if (!(living instanceof ITaintedMob) && !FluxImmunityHelper.isImmune(living)) {
-                int amp = Math.max(0, amount / 3);
-                living.addEffect(new MobEffectInstance(TCMobEffects.VIS_EXHAUST,
-                        VIS_EXHAUST_DURATION, amp, true, true, false));
+        int meta = amount - 1;
+        if (entity instanceof ThaumicSlime slime) {
+            if (!level.isClientSide() && slime.getSize() < meta && level.getRandom().nextBoolean()) {
+                slime.setSize(slime.getSize() + 1, true);
+                if (meta > 1) {
+                    FluidState dropped = getFlowing(amount - 1, false);
+                    level.setBlock(pos, dropped.createLegacyBlock(), Block.UPDATE_ALL);
+                    level.scheduleTick(pos, dropped.getType(), getTickDelay(level));
+                } else {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+                }
             }
+            return;
         }
         float quanta = amount / MAX_AMOUNT;
         Vec3 motion = entity.getDeltaMovement();
         double damp = 1.0 - quanta;
         entity.setDeltaMovement(motion.x * damp, motion.y, motion.z * damp);
+        if (entity instanceof LivingEntity living) {
+            int amp = meta / 3;
+            living.addEffect(new MobEffectInstance(TCMobEffects.VIS_EXHAUST,
+                    VIS_EXHAUST_DURATION, amp, true, true, false));
+        }
     }
 
     private static BlockState taintFibreState() {

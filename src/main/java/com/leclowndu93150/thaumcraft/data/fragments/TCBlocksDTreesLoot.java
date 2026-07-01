@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.data.fragments;
 
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksDTrees;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.minecraft.world.level.block.Block;
@@ -14,19 +14,19 @@ public final class TCBlocksDTreesLoot {
             BiConsumer<Block, LootTable.Builder> add,
             LeavesLoot leavesLoot
     ) {
-        dropSelf.accept(TCBlocksDTrees.SAPLING_GREATWOOD.get());
-        dropSelf.accept(TCBlocksDTrees.SAPLING_SILVERWOOD.get());
-        dropSelf.accept(TCBlocksDTrees.LOG_GREATWOOD.get());
-        dropSelf.accept(TCBlocksDTrees.LOG_SILVERWOOD.get());
-        dropSelf.accept(TCBlocksDTrees.PLANK_GREATWOOD.get());
-        dropSelf.accept(TCBlocksDTrees.PLANK_SILVERWOOD.get());
+        dropSelf.accept(TCBlocks.SAPLING_GREATWOOD.get());
+        dropSelf.accept(TCBlocks.SAPLING_SILVERWOOD.get());
+        dropSelf.accept(TCBlocks.LOG_GREATWOOD.get());
+        dropSelf.accept(TCBlocks.LOG_SILVERWOOD.get());
+        dropSelf.accept(TCBlocks.PLANK_GREATWOOD.get());
+        dropSelf.accept(TCBlocks.PLANK_SILVERWOOD.get());
         add.accept(
-                TCBlocksDTrees.LEAVES_GREATWOOD.get(),
-                leavesLoot.build(TCBlocksDTrees.LEAVES_GREATWOOD.get(), TCBlocksDTrees.SAPLING_GREATWOOD.get())
+                TCBlocks.LEAVES_GREATWOOD.get(),
+                leavesLoot.build(TCBlocks.LEAVES_GREATWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get())
         );
         add.accept(
-                TCBlocksDTrees.LEAVES_SILVERWOOD.get(),
-                leavesLoot.build(TCBlocksDTrees.LEAVES_SILVERWOOD.get(), TCBlocksDTrees.SAPLING_SILVERWOOD.get())
+                TCBlocks.LEAVES_SILVERWOOD.get(),
+                leavesLoot.build(TCBlocks.LEAVES_SILVERWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get())
         );
     }
 

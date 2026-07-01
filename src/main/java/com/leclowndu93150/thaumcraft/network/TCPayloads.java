@@ -27,12 +27,12 @@ public final class TCPayloads {
         registrar.playToClient(
                 ClientboundAspectIndexPayload.TYPE,
                 ClientboundAspectIndexPayload.STREAM_CODEC,
-                AspectIndexClientHandler::handle
+                (payload, context) -> AspectIndexClientHandler.handle(payload, context)
         );
         registrar.playToClient(
                 ClientboundOpenThaumonomiconPayload.TYPE,
                 ClientboundOpenThaumonomiconPayload.STREAM_CODEC,
-                OpenThaumonomiconHandler::handle
+                (payload, context) -> OpenThaumonomiconHandler.handle(payload, context)
         );
         registrar.playToServer(
                 ServerboundAdvanceStagePayload.TYPE,
@@ -72,7 +72,7 @@ public final class TCPayloads {
         registrar.playToClient(
                 ClientboundRecipeDisplayPayload.TYPE,
                 ClientboundRecipeDisplayPayload.STREAM_CODEC,
-                RecipeDisplayClientHandler::handle
+                (payload, context) -> RecipeDisplayClientHandler.handle(payload, context)
         );
         registrar.playToServer(
                 ServerboundRequestRecipeDisplayPayload.TYPE,
@@ -92,17 +92,17 @@ public final class TCPayloads {
         registrar.playToClient(
                 ClientboundSpawnParticlePayload.TYPE,
                 ClientboundSpawnParticlePayload.STREAM_CODEC,
-                SpawnParticleClientHandler::handle
+                (payload, context) -> SpawnParticleClientHandler.handle(payload, context)
         );
         registrar.playToClient(
                 ClientboundTubeVentPayload.TYPE,
                 ClientboundTubeVentPayload.STREAM_CODEC,
-                TubeEventClientHandler::handleVent
+                (payload, context) -> TubeEventClientHandler.handleVent(payload, context)
         );
         registrar.playToClient(
                 ClientboundTubeCreakPayload.TYPE,
                 ClientboundTubeCreakPayload.STREAM_CODEC,
-                TubeEventClientHandler::handleCreak
+                (payload, context) -> TubeEventClientHandler.handleCreak(payload, context)
         );
         registrar.playToServer(
                 ServerboundRequestAuraChunkPayload.TYPE,
@@ -112,12 +112,12 @@ public final class TCPayloads {
         registrar.playToClient(
                 ClientboundAuraSnapshotPayload.TYPE,
                 ClientboundAuraSnapshotPayload.STREAM_CODEC,
-                AuraSnapshotClientHandler::handle
+                (payload, context) -> AuraSnapshotClientHandler.handle(payload, context)
         );
         registrar.playToClient(
                 ClientboundFXStreamPayload.TYPE,
                 ClientboundFXStreamPayload.STREAM_CODEC,
-                FXStreamClientHandler::handle
+                (payload, context) -> FXStreamClientHandler.handle(payload, context)
         );
     }
 }

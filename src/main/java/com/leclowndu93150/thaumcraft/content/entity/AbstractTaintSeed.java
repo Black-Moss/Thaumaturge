@@ -30,6 +30,12 @@ public abstract class AbstractTaintSeed extends Monster implements ITaintedMob {
     private static final float STARVE_POLLUTION = 0.1F;
     private static final float FLUX_TAINT_RADIUS_MULT = 4.0F;
     private static final int FLUX_TAINT_TICKS = 100;
+    private static final byte EVENT_ATTACK = 16;
+    private static final float ATTACK_ANIM_START = 0.5F;
+    private static final float ATTACK_ANIM_DECAY = 0.75F;
+    private static final float ATTACK_ANIM_EPSILON = 0.001F;
+
+    public float attackAnim;
 
     private boolean registered;
 
@@ -56,9 +62,31 @@ public abstract class AbstractTaintSeed extends Monster implements ITaintedMob {
     }
 
     @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        level.broadcastEntityEvent(this, EVENT_ATTACK);
+        this.playSound(TCSounds.TENTACLE.get(), this.getSoundVolume(), this.getVoicePitch());
+        return super.doHurtTarget(level, target);
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        if (id == EVENT_ATTACK) {
+            this.attackAnim = ATTACK_ANIM_START;
+        } else {
+            super.handleEntityEvent(id);
+        }
+    }
+
+    @Override
     public void aiStep() {
         super.aiStep();
         if (!(this.level() instanceof ServerLevel server)) {
+            if (this.attackAnim > 0.0F) {
+                this.attackAnim *= ATTACK_ANIM_DECAY;
+                if (this.attackAnim < ATTACK_ANIM_EPSILON) {
+                    this.attackAnim = 0.0F;
+                }
+            }
             return;
         }
         if (!registered) {

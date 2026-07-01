@@ -5,13 +5,6 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsAOres;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsBCrystals;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsCStone;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsDTrees;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsGTools;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsMAuraHud;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -35,9 +28,9 @@ public final class TCCreativeTabs {
                     .displayItems((parameters, output) -> {
                         output.accept(TCItems.THAUMONOMICON.get());
                         output.accept(TCItems.SALIS_MUNDUS.get());
-                        output.accept(TCItemsGTools.THAUMOMETER.get());
-                        output.accept(TCItemsGTools.SCRIBING_TOOLS.get());
-                        output.accept(TCItemsMAuraHud.GOGGLES_REVEALING.get());
+                        output.accept(TCItems.THAUMOMETER.get());
+                        output.accept(TCItems.SCRIBING_TOOLS.get());
+                        output.accept(TCItems.GOGGLES_REVEALING.get());
                         output.accept(TCItems.LABEL.get());
                         output.accept(TCItems.RESEARCH_TABLE.get());
                         output.accept(TCItems.JAR_NORMAL.get());
@@ -49,47 +42,57 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.TUBE_FILTER.get());
                         output.accept(TCItems.TUBE_ONEWAY.get());
                         output.accept(TCItems.TUBE_BUFFER.get());
-                        output.accept(TCItemsAOres.ORE_AMBER.get());
-                        output.accept(TCItemsAOres.ORE_CINNABAR.get());
-                        output.accept(TCItemsAOres.ORE_QUARTZ.get());
+                        output.accept(TCItems.ORE_AMBER.get());
+                        output.accept(TCItems.ORE_CINNABAR.get());
+                        output.accept(TCItems.ORE_QUARTZ.get());
                         for (DyeColor dye : DyeColor.values()) {
-                            output.accept(TCItemsAOres.NITORS.get(dye).get());
+                            output.accept(TCItems.NITORS.get(dye).get());
                         }
-                        output.accept(TCItemsAOres.AMBER.get());
-                        output.accept(TCItemsAOres.CINNABAR.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_AER.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_IGNIS.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_AQUA.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_TERRA.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_ORDO.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_PERDITIO.get());
-                        output.accept(TCItemsBCrystals.CRYSTAL_VITIUM.get());
-                        output.accept(TCItemsCStone.STONE_ARCANE.get());
-                        output.accept(TCItemsCStone.STONE_ARCANE_BRICK.get());
-                        output.accept(TCItemsCStone.STAIRS_ARCANE.get());
-                        output.accept(TCItemsCStone.STAIRS_ARCANE_BRICK.get());
-                        output.accept(TCItemsCStone.STONE_ANCIENT.get());
-                        output.accept(TCItemsCStone.STONE_ANCIENT_TILE.get());
-                        output.accept(TCItemsCStone.STONE_ANCIENT_GLYPHED.get());
-                        output.accept(TCItemsCStone.STAIRS_ANCIENT.get());
-                        output.accept(TCItemsCStone.STONE_ELDRITCH_TILE.get());
-                        output.accept(TCItemsCStone.STONE_POROUS.get());
-                        output.accept(TCItemsDTrees.SAPLING_GREATWOOD.get());
-                        output.accept(TCItemsDTrees.SAPLING_SILVERWOOD.get());
-                        output.accept(TCItemsDTrees.LOG_GREATWOOD.get());
-                        output.accept(TCItemsDTrees.LOG_SILVERWOOD.get());
-                        output.accept(TCItemsDTrees.LEAVES_GREATWOOD.get());
-                        output.accept(TCItemsDTrees.LEAVES_SILVERWOOD.get());
-                        output.accept(TCItemsDTrees.PLANK_GREATWOOD.get());
-                        output.accept(TCItemsDTrees.PLANK_SILVERWOOD.get());
+                        output.accept(TCItems.AMBER.get());
+                        output.accept(TCItems.CINNABAR.get());
+                        output.accept(TCItems.CRYSTAL_AER.get());
+                        output.accept(TCItems.CRYSTAL_IGNIS.get());
+                        output.accept(TCItems.CRYSTAL_AQUA.get());
+                        output.accept(TCItems.CRYSTAL_TERRA.get());
+                        output.accept(TCItems.CRYSTAL_ORDO.get());
+                        output.accept(TCItems.CRYSTAL_PERDITIO.get());
+                        output.accept(TCItems.CRYSTAL_VITIUM.get());
+                        output.accept(TCItems.STONE_ARCANE.get());
+                        output.accept(TCItems.STONE_ARCANE_BRICK.get());
+                        output.accept(TCItems.STAIRS_ARCANE.get());
+                        output.accept(TCItems.STAIRS_ARCANE_BRICK.get());
+                        output.accept(TCItems.STONE_ANCIENT.get());
+                        output.accept(TCItems.STONE_ANCIENT_TILE.get());
+                        output.accept(TCItems.STONE_ANCIENT_GLYPHED.get());
+                        output.accept(TCItems.STAIRS_ANCIENT.get());
+                        output.accept(TCItems.STONE_ELDRITCH_TILE.get());
+                        output.accept(TCItems.STONE_POROUS.get());
+                        output.accept(TCItems.SAPLING_GREATWOOD.get());
+                        output.accept(TCItems.SAPLING_SILVERWOOD.get());
+                        output.accept(TCItems.LOG_GREATWOOD.get());
+                        output.accept(TCItems.LOG_SILVERWOOD.get());
+                        output.accept(TCItems.LEAVES_GREATWOOD.get());
+                        output.accept(TCItems.LEAVES_SILVERWOOD.get());
+                        output.accept(TCItems.PLANK_GREATWOOD.get());
+                        output.accept(TCItems.PLANK_SILVERWOOD.get());
+                        output.accept(TCItems.PLANT_SHIMMERLEAF.get());
+                        output.accept(TCItems.PLANT_CINDERPEARL.get());
+                        output.accept(TCItems.PLANT_VISHROOM.get());
+                        output.accept(TCItems.GRASS_AMBIENT.get());
                         for (Holder<IAspect> aspect : parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()){
                             output.accept(EssentiaCrystalFactory.of(aspect));
                         }
-                        output.accept(TCItemsHContainers.PHIAL.get());
+                        output.accept(TCItems.PHIAL.get());
                         for (Holder<IAspect> aspect : parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()){
                             output.accept(PhialItem.makeFilled(aspect));
                         }
-                        output.accept(TCItemsHContainers.PRIMORDIAL_PEARL.get());
+                        output.accept(TCItems.PRIMORDIAL_PEARL.get());
+                        output.accept(TCItems.THAUMIC_SLIME_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINT_CRAWLER_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINTACLE_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINT_SWARM_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINT_SEED_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINT_SEED_PRIME_SPAWN_EGG.get());
                     })
                     .build()
     );

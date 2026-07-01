@@ -21,6 +21,11 @@ import net.minecraft.world.level.block.state.BlockState;
 public abstract class AbstractTaintacle extends Monster implements ITaintedMob {
     private static final int SUBSTRATE_CHECK_INTERVAL = 20;
     private static final float STARVE_DAMAGE = 1.0F;
+    private static final byte EVENT_FLAIL = 16;
+    private static final float FLAIL_MAX = 3.0F;
+    private static final float FLAIL_DECAY = 0.01F;
+
+    public float flailIntensity = 1.0F;
 
     protected AbstractTaintacle(EntityType<? extends AbstractTaintacle> type, Level level) {
         super(type, level);
@@ -43,9 +48,27 @@ public abstract class AbstractTaintacle extends Monster implements ITaintedMob {
     }
 
     @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        level.broadcastEntityEvent(this, EVENT_FLAIL);
+        return super.doHurtTarget(level, target);
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        if (id == EVENT_FLAIL) {
+            this.flailIntensity = FLAIL_MAX;
+        } else {
+            super.handleEntityEvent(id);
+        }
+    }
+
+    @Override
     public void aiStep() {
         super.aiStep();
         if (!(this.level() instanceof ServerLevel server)) {
+            if (this.flailIntensity > 1.0F) {
+                this.flailIntensity -= FLAIL_DECAY;
+            }
             return;
         }
         if (this.tickCount % SUBSTRATE_CHECK_INTERVAL == 0) {

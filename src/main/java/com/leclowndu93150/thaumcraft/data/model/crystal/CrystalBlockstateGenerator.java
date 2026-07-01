@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.model.crystal;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.client.render.crystal.CrystalUnbakedModel;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksBCrystals;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.client.data.models.BlockModelGenerators;
@@ -14,13 +14,13 @@ public final class CrystalBlockstateGenerator {
     private CrystalBlockstateGenerator() {}
 
     public static void register(BlockModelGenerators blockModels) {
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_AER.get());
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_IGNIS.get());
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_AQUA.get());
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_TERRA.get());
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_ORDO.get());
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_PERDITIO.get());
-        emit(blockModels, TCBlocksBCrystals.CRYSTAL_VITIUM.get());
+        emit(blockModels, TCBlocks.CRYSTAL_AER.get());
+        emit(blockModels, TCBlocks.CRYSTAL_IGNIS.get());
+        emit(blockModels, TCBlocks.CRYSTAL_AQUA.get());
+        emit(blockModels, TCBlocks.CRYSTAL_TERRA.get());
+        emit(blockModels, TCBlocks.CRYSTAL_ORDO.get());
+        emit(blockModels, TCBlocks.CRYSTAL_PERDITIO.get());
+        emit(blockModels, TCBlocks.CRYSTAL_VITIUM.get());
     }
 
     private static void emit(BlockModelGenerators blockModels, Block block) {

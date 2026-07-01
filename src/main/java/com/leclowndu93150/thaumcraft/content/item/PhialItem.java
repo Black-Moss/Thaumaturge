@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.item;
 
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
@@ -11,7 +12,6 @@ import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -38,7 +38,7 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
     }
 
     public static ItemStack makeFilled(Holder<IAspect> aspect, int amount) {
-        ItemStack stack = new ItemStack(TCItemsHContainers.PHIAL.get());
+        ItemStack stack = new ItemStack(TCItems.PHIAL.get());
         stack.set(TCDataComponents.ASPECTS.get(), AspectList.of(new AspectInstance(aspect, amount)));
         return stack;
     }
@@ -114,7 +114,7 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
                     return InteractionResult.SUCCESS;
                 }
                 if (jar.addEssentia(first.aspect(),first.amount(),Direction.UP) == first.amount()) {
-                    ItemStack empty = new ItemStack(TCItemsHContainers.PHIAL.get());
+                    ItemStack empty = new ItemStack(TCItems.PHIAL.get());
                     if (!player.getAbilities().instabuild) stack.shrink(1);
                     if (!player.addItem(empty)) {
                         player.drop(empty,false);

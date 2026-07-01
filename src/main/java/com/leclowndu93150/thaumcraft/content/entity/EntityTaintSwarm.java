@@ -1,7 +1,10 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
 import com.leclowndu93150.thaumcraft.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.fx.helper.Sprites;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -37,6 +40,11 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
     private static final int ATTACK_COOLDOWN = 25;
     private static final int WEAKNESS_DURATION = 100;
     private static final float SELF_DAMAGE_SUMMONED = 5.0F;
+    private static final int SWARM_PARTICLES_PER_TICK = 3;
+    private static final float SWARM_PARTICLE_SCALE = 0.22F;
+    private static final float SWARM_PARTICLE_R = 0.7F;
+    private static final float SWARM_PARTICLE_G = 0.0F;
+    private static final float SWARM_PARTICLE_B = 1.0F;
 
     private int damBonus;
     private int attackTicks;
@@ -96,6 +104,25 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
         this.setDeltaMovement(motion.x, motion.y * 0.6, motion.z);
 
         if (!(this.level() instanceof ServerLevel server)) {
+            AABB box = this.getBoundingBox();
+            for (int n = 0; n < SWARM_PARTICLES_PER_TICK; n++) {
+                double x = box.minX + this.random.nextDouble() * (box.maxX - box.minX);
+                double y = box.minY + this.random.nextDouble() * (box.maxY - box.minY);
+                double z = box.minZ + this.random.nextDouble() * (box.maxZ - box.minZ);
+                FXGenericData data = FXGenericData.builder()
+                        .maxAge(10 + this.random.nextInt(10))
+                        .grid(Sprites.TAINT.grid())
+                        .particles(Sprites.TAINT.start(), Sprites.TAINT.num(), Sprites.TAINT.inc())
+                        .color(SWARM_PARTICLE_R, SWARM_PARTICLE_G, SWARM_PARTICLE_B)
+                        .alpha(0.66F, 0.0F)
+                        .scale(SWARM_PARTICLE_SCALE)
+                        .layer(1)
+                        .slowDown(0.9)
+                        .random(0.02F, 0.02F, 0.02F)
+                        .build();
+                this.level().addParticle(data, x, y, z,
+                        this.getDeltaMovement().x, this.getDeltaMovement().y, this.getDeltaMovement().z);
+            }
             return;
         }
         if (isSummoned()) {

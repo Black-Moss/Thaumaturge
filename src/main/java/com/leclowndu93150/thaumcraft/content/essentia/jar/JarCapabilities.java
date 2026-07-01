@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -35,7 +34,7 @@ public final class JarCapabilities {
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
-                TCItemsHContainers.PHIAL.get()
+                TCItems.PHIAL.get()
         );
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,

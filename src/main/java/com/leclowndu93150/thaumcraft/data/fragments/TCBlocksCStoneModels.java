@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.fragments;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksCStone;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.MultiVariant;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
@@ -19,19 +19,19 @@ public final class TCBlocksCStoneModels {
     private TCBlocksCStoneModels() {}
 
     public static void register(BlockModelGenerators blockModels) {
-        simpleCube(blockModels, TCBlocksCStone.STONE_ARCANE.get(), "stone_arcane");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ARCANE_BRICK.get(), "stone_arcane_brick");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ANCIENT.get(), "stone_ancient");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ANCIENT_TILE.get(), "stone_ancient_tile");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ANCIENT_ROCK.get(), "stone_ancient_rock");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ANCIENT_GLYPHED.get(), "stone_ancient_glyphed");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ANCIENT_DOORWAY.get(), "stone_ancient_doorway");
-        simpleCube(blockModels, TCBlocksCStone.STONE_ELDRITCH_TILE.get(), "stone_eldritch_tile");
-        simpleCube(blockModels, TCBlocksCStone.STONE_POROUS.get(), "stone_porous");
+        simpleCube(blockModels, TCBlocks.STONE_ARCANE.get(), "stone_arcane");
+        simpleCube(blockModels, TCBlocks.STONE_ARCANE_BRICK.get(), "stone_arcane_brick");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT.get(), "stone_ancient");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_TILE.get(), "stone_ancient_tile");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_ROCK.get(), "stone_ancient_rock");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_GLYPHED.get(), "stone_ancient_glyphed");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_DOORWAY.get(), "stone_ancient_doorway");
+        simpleCube(blockModels, TCBlocks.STONE_ELDRITCH_TILE.get(), "stone_eldritch_tile");
+        simpleCube(blockModels, TCBlocks.STONE_POROUS.get(), "stone_porous");
 
-        stairs(blockModels, TCBlocksCStone.STAIRS_ARCANE.get(), "arcane_stairs", "arcane_inner_stairs", "arcane_outer_stairs");
-        stairs(blockModels, TCBlocksCStone.STAIRS_ARCANE_BRICK.get(), "arcane_brick_stairs", "arcane_brick_inner_stairs", "arcane_brick_outer_stairs");
-        stairs(blockModels, TCBlocksCStone.STAIRS_ANCIENT.get(), "ancient_stairs", "ancient_inner_stairs", "ancient_outer_stairs");
+        stairs(blockModels, TCBlocks.STAIRS_ARCANE.get(), "arcane_stairs", "arcane_inner_stairs", "arcane_outer_stairs");
+        stairs(blockModels, TCBlocks.STAIRS_ARCANE_BRICK.get(), "arcane_brick_stairs", "arcane_brick_inner_stairs", "arcane_brick_outer_stairs");
+        stairs(blockModels, TCBlocks.STAIRS_ANCIENT.get(), "ancient_stairs", "ancient_inner_stairs", "ancient_outer_stairs");
 
     }
 

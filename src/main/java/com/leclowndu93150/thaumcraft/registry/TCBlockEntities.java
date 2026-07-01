@@ -11,7 +11,6 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeRestri
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeValve;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksAOres;
 import java.util.Set;
 import java.util.stream.Collectors;
 import net.minecraft.core.registries.Registries;
@@ -83,7 +82,7 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "nitor",
                     () -> new BlockEntityType<>(BlockEntityNitor::new,
-                            TCBlocksAOres.NITORS.values().stream().map(b -> (Block) b.get()).collect(Collectors.toSet()))
+                            TCBlocks.NITORS.values().stream().map(b -> (Block) b.get()).collect(Collectors.toSet()))
             );
 
     private TCBlockEntities() {}

@@ -6,6 +6,8 @@ import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.platform.DestFactor;
 import com.mojang.blaze3d.platform.SourceFactor;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -45,12 +47,22 @@ public final class TCRenderPipelines {
             .withDepthStencilState(ALWAYS_NO_WRITE)
             .build();
 
+    public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder()
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
+            .withVertexShader("core/position_tex_color")
+            .withFragmentShader("core/position_tex_color")
+            .withSampler("Sampler0")
+            .withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING))
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+            .build();
+
     @SubscribeEvent
     static void register(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(FX_ADDITIVE);
         event.registerPipeline(FX_TRANSLUCENT);
         event.registerPipeline(FX_ADDITIVE_NO_DEPTH);
         event.registerPipeline(FX_TRANSLUCENT_NO_DEPTH);
+        event.registerPipeline(GUI_TEXTURED_ADDITIVE);
     }
 
     private TCRenderPipelines() {}

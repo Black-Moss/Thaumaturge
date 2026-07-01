@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumcraft.content.fx.data.BoreParticlesData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FireMoteData;
-import com.leclowndu93150.thaumcraft.content.fx.data.FluxGooDropletData;
 import com.leclowndu93150.thaumcraft.content.fx.data.NitorCoreData;
 import com.leclowndu93150.thaumcraft.content.fx.data.SmokeSpiralData;
 import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
@@ -88,22 +87,6 @@ public final class FX {
 
     public static FluxFume fluxFume(ServerLevel level, Vec3 pos) { return new FluxFume(level, pos); }
     public static FluxFume fluxFume(ServerLevel level, BlockPos pos) { return new FluxFume(level, Vec3.atCenterOf(pos)); }
-
-    public static void slimeJumpFX(ServerLevel level, Entity entity, int size) {
-        RandomSource rand = level.getRandom();
-        int count = Math.max(1, size * 2);
-        AABB box = entity.getBoundingBox();
-        double midY = (box.minY + box.maxY) / 2.0;
-        for (int n = 0; n < count; n++) {
-            float f = rand.nextFloat() * Mth.TWO_PI;
-            float r = rand.nextFloat() * 0.5F + 0.5F;
-            float ox = Mth.sin(f) * size * 0.5F * r;
-            float oz = Mth.cos(f) * size * 0.5F * r;
-            int lifetime = (int) (66.0F / (rand.nextFloat() * 0.9F + 0.1F));
-            FluxGooDropletData data = new FluxGooDropletData(0xB300FF, 0.4F, lifetime);
-            spawn(level, data, entity.getX() + ox, midY, entity.getZ() + oz);
-        }
-    }
 
     static void spawn(ServerLevel level, FXGenericData data, double x, double y, double z) {
         PacketDistributor.sendToPlayersNear(level, null, x, y, z, DEFAULT_RADIUS,
@@ -1478,7 +1461,7 @@ public final class FX {
                     .maxAge(maxAge)
                     .color(r, g, b)
                     .alpha(0.25F, 0.0F)
-                    .grid(16)
+                    .grid(64)
                     .particle(64)
                     .finalFrames(65, 66)
                     .scale(scale, scale / 2.0F)

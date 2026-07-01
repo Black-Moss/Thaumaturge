@@ -15,7 +15,6 @@ import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +68,7 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(TCItems.TUBE_FILTER.get(), filterInterpreter);
         registration.registerSubtypeInterpreter(TCItems.SALIS_MUNDUS.get(), aspectsInterpreter);
         registration.registerSubtypeInterpreter(TCItems.ESSENTIA_CRYSTAL.get(), crystalAspectInterpreter);
-        registration.registerSubtypeInterpreter(TCItemsHContainers.PHIAL.get(), aspectsInterpreter);
+        registration.registerSubtypeInterpreter(TCItems.PHIAL.get(), aspectsInterpreter);
     }
 
     @Override

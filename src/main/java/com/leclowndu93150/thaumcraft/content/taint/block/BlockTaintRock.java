@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.taint.block;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.content.taint.TaintHelper;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksCStone;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +24,7 @@ public final class BlockTaintRock extends AbstractTaintBlock {
 
     @Override
     public void die(Level level, BlockPos pos, BlockState state) {
-        level.setBlock(pos, TCBlocksCStone.STONE_POROUS.get().defaultBlockState(), Block.UPDATE_ALL);
+        level.setBlock(pos, TCBlocks.STONE_POROUS.get().defaultBlockState(), Block.UPDATE_ALL);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.render.aspect;
 
+import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -134,7 +135,7 @@ public final class AspectTagRenderer {
         IAspect value = aspect.value();
         int color = colorOf(value, alpha, bw);
         RenderPipeline pipeline = blend == BlendMode.ADDITIVE
-                ? AspectTagPipelines.GUI_TEXTURED_ADDITIVE
+                ? TCRenderPipelines.GUI_TEXTURED_ADDITIVE
                 : RenderPipelines.GUI_TEXTURED;
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) x, (float) y);

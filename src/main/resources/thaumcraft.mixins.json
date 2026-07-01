@@ -4,6 +4,7 @@
   "package": "com.leclowndu93150.thaumcraft.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "world.entity.monster.SlimeAccessor"
   ],
   "client": [
   ],

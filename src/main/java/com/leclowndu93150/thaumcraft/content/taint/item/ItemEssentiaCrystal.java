@@ -7,7 +7,6 @@ import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import java.util.function.Consumer;
 
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsHContainers;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;

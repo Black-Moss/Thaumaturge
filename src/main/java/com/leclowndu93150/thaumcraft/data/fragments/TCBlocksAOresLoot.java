@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.fragments;
 
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksAOres;
-import com.leclowndu93150.thaumcraft.registry.items.TCItemsAOres;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import java.util.List;
 import net.minecraft.advancements.criterion.DataComponentMatchers;
 import net.minecraft.advancements.criterion.EnchantmentPredicate;
@@ -32,19 +32,19 @@ public final class TCBlocksAOresLoot {
 
     public static LootTable.Builder amber(HolderLookup.Provider lookup) {
         HolderLookup.RegistryLookup<Enchantment> enchants = lookup.lookupOrThrow(Registries.ENCHANTMENT);
-        LootPoolEntryContainer.Builder<?> entry = LootItem.lootTableItem(TCItemsAOres.AMBER.get())
+        LootPoolEntryContainer.Builder<?> entry = LootItem.lootTableItem(TCItems.AMBER.get())
                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 2.0F)))
                 .apply(ApplyBonusCount.addOreBonusCount(enchants.getOrThrow(Enchantments.FORTUNE)))
                 .apply(ApplyExplosionDecay.explosionDecay());
-        return silkOrDrop(TCBlocksAOres.ORE_AMBER.get(), silkCondition(enchants), entry);
+        return silkOrDrop(TCBlocks.ORE_AMBER.get(), silkCondition(enchants), entry);
     }
 
     public static LootTable.Builder cinnabar(HolderLookup.Provider lookup) {
         HolderLookup.RegistryLookup<Enchantment> enchants = lookup.lookupOrThrow(Registries.ENCHANTMENT);
-        LootPoolEntryContainer.Builder<?> entry = LootItem.lootTableItem(TCItemsAOres.CINNABAR.get())
+        LootPoolEntryContainer.Builder<?> entry = LootItem.lootTableItem(TCItems.CINNABAR.get())
                 .apply(ApplyBonusCount.addOreBonusCount(enchants.getOrThrow(Enchantments.FORTUNE)))
                 .apply(ApplyExplosionDecay.explosionDecay());
-        return silkOrDrop(TCBlocksAOres.ORE_CINNABAR.get(), silkCondition(enchants), entry);
+        return silkOrDrop(TCBlocks.ORE_CINNABAR.get(), silkCondition(enchants), entry);
     }
 
     public static LootTable.Builder quartz(HolderLookup.Provider lookup) {
@@ -52,7 +52,7 @@ public final class TCBlocksAOresLoot {
         LootPoolEntryContainer.Builder<?> entry = LootItem.lootTableItem(Items.QUARTZ)
                 .apply(ApplyBonusCount.addOreBonusCount(enchants.getOrThrow(Enchantments.FORTUNE)))
                 .apply(ApplyExplosionDecay.explosionDecay());
-        return silkOrDrop(TCBlocksAOres.ORE_QUARTZ.get(), silkCondition(enchants), entry);
+        return silkOrDrop(TCBlocks.ORE_QUARTZ.get(), silkCondition(enchants), entry);
     }
 
     private static LootTable.Builder silkOrDrop(Block block, LootItemCondition.Builder silk, LootPoolEntryContainer.Builder<?> entry) {

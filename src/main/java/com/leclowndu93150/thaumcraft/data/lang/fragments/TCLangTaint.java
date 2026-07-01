@@ -38,5 +38,12 @@ public final class TCLangTaint {
         provider.add("entity.thaumcraft.taintacle_small", "Lesser Taintacle");
         provider.add("entity.thaumcraft.falling_taint", "Falling Taint");
         provider.add("entity.thaumcraft.bottle_taint", "Bottle of Tainted Goo");
+
+        provider.add("item.thaumcraft.thaumic_slime_spawn_egg", "Thaumic Slime Spawn Egg");
+        provider.add("item.thaumcraft.taint_crawler_spawn_egg", "Taint Crawler Spawn Egg");
+        provider.add("item.thaumcraft.taintacle_spawn_egg", "Taintacle Spawn Egg");
+        provider.add("item.thaumcraft.taint_swarm_spawn_egg", "Taint Swarm Spawn Egg");
+        provider.add("item.thaumcraft.taint_seed_spawn_egg", "Taint Seed Spawn Egg");
+        provider.add("item.thaumcraft.taint_seed_prime_spawn_egg", "Greater Taint Seed Spawn Egg");
     }
 }

@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.color;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.registry.blocks.TCBlocksBCrystals;
 import java.util.List;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.util.ARGB;
@@ -25,13 +25,13 @@ public final class CrystalBlockColors {
 
     @SubscribeEvent
     public static void onRegisterBlockColors(RegisterColorHandlersEvent.BlockTintSources event) {
-        register(event, TCBlocksBCrystals.CRYSTAL_AER.get(), AER);
-        register(event, TCBlocksBCrystals.CRYSTAL_IGNIS.get(), IGNIS);
-        register(event, TCBlocksBCrystals.CRYSTAL_AQUA.get(), AQUA);
-        register(event, TCBlocksBCrystals.CRYSTAL_TERRA.get(), TERRA);
-        register(event, TCBlocksBCrystals.CRYSTAL_ORDO.get(), ORDO);
-        register(event, TCBlocksBCrystals.CRYSTAL_PERDITIO.get(), PERDITIO);
-        register(event, TCBlocksBCrystals.CRYSTAL_VITIUM.get(), VITIUM);
+        register(event, TCBlocks.CRYSTAL_AER.get(), AER);
+        register(event, TCBlocks.CRYSTAL_IGNIS.get(), IGNIS);
+        register(event, TCBlocks.CRYSTAL_AQUA.get(), AQUA);
+        register(event, TCBlocks.CRYSTAL_TERRA.get(), TERRA);
+        register(event, TCBlocks.CRYSTAL_ORDO.get(), ORDO);
+        register(event, TCBlocks.CRYSTAL_PERDITIO.get(), PERDITIO);
+        register(event, TCBlocks.CRYSTAL_VITIUM.get(), VITIUM);
     }
 
     private static void register(RegisterColorHandlersEvent.BlockTintSources event, Block block, int rgb) {
