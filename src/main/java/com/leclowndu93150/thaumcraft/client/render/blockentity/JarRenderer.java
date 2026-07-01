@@ -124,7 +124,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     public static void submitFluid(float amount, int aspectColor, int lightCoords, TextureAtlasSprite sprite, PoseStack poseStack, SubmitNodeCollector collector) {
         float ratio = Math.min(1.0F, amount / (float) BlockEntityJar.CAPACITY);
         float height = FLUID_BASE_Y + ratio * FLUID_MAX_HEIGHT;
-                RenderType type = Sheets.translucentBlockItemSheet();
+        RenderType type = Sheets.translucentBlockItemSheet();
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {
             VertexConsumer wrapped = sprite.wrap(buffer);
             fluidQuadTop(wrapped, pose, height, aspectColor, lightCoords);

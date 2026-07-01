@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.data.fragments.*;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
@@ -40,8 +41,8 @@ public final class TCModelProvider extends ModelProvider {
     @Override
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         registerResearchTable(blockModels);
-        registerJar(blockModels, TCBlocks.JAR_NORMAL.get(), "jar_normal");
-        registerJar(blockModels, TCBlocks.JAR_VOID.get(), "jar_void");
+        registerJar(blockModels, itemModels, TCBlocks.JAR_NORMAL.get(), "jar_normal");
+        registerJar(blockModels, itemModels, TCBlocks.JAR_VOID.get(), "jar_void");
         TubeModels.register(blockModels);
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
@@ -69,7 +70,7 @@ public final class TCModelProvider extends ModelProvider {
         TCItemsHContainersModels.register(itemModels);
     }
 
-    private void registerJar(BlockModelGenerators blockModels, Block block, String modelName) {
+    private void registerJar(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName) {
         MultiVariant empty = variantOf(modelName);
         MultiVariant fill25 = variantOf(modelName + "_25");
         MultiVariant fill50 = variantOf(modelName + "_50");
@@ -89,6 +90,22 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(
                 MultiVariantGenerator.dispatch(block, empty)/*.with(fillLevels)*/.with(rotations)
         );
+
+        itemModels.itemModelOutput.accept(block.asItem(), new CompositeModel.Unbaked(
+                List.of(
+                        new CuboidItemModelWrapper.Unbaked(
+                                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName),
+                                Optional.empty(),
+                                List.of()
+                        ),
+                        new SpecialModelWrapper.Unbaked(
+                                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName),
+                                Optional.empty(),
+                                new JarItemSpecialRenderer.Unbaked()
+                        )
+                ),
+                Optional.empty()
+        ));
     }
 
     private MultiVariant variantOf(String modelName) {
