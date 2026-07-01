@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.content.fx.data.BoreParticlesData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FireMoteData;
+import com.leclowndu93150.thaumcraft.content.fx.data.FluxGooDropletData;
 import com.leclowndu93150.thaumcraft.content.fx.data.NitorCoreData;
 import com.leclowndu93150.thaumcraft.content.fx.data.SmokeSpiralData;
 import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
@@ -84,6 +85,25 @@ public final class FX {
     public static CultistSpawn cultistSpawn(ServerLevel level, Vec3 pos) { return new CultistSpawn(level, pos); }
     public static WispyMotesEntity wispyMotesEntity(ServerLevel level, Vec3 origin, int targetEntityId) { return new WispyMotesEntity(level, origin, targetEntityId); }
     public static WispyMotesOnBlock wispyMotesOnBlock(ServerLevel level, BlockPos pos) { return new WispyMotesOnBlock(level, pos); }
+
+    public static FluxFume fluxFume(ServerLevel level, Vec3 pos) { return new FluxFume(level, pos); }
+    public static FluxFume fluxFume(ServerLevel level, BlockPos pos) { return new FluxFume(level, Vec3.atCenterOf(pos)); }
+
+    public static void slimeJumpFX(ServerLevel level, Entity entity, int size) {
+        RandomSource rand = level.getRandom();
+        int count = Math.max(1, size * 2);
+        AABB box = entity.getBoundingBox();
+        double midY = (box.minY + box.maxY) / 2.0;
+        for (int n = 0; n < count; n++) {
+            float f = rand.nextFloat() * Mth.TWO_PI;
+            float r = rand.nextFloat() * 0.5F + 0.5F;
+            float ox = Mth.sin(f) * size * 0.5F * r;
+            float oz = Mth.cos(f) * size * 0.5F * r;
+            int lifetime = (int) (66.0F / (rand.nextFloat() * 0.9F + 0.1F));
+            FluxGooDropletData data = new FluxGooDropletData(0xB300FF, 0.4F, lifetime);
+            spawn(level, data, entity.getX() + ox, midY, entity.getZ() + oz);
+        }
+    }
 
     static void spawn(ServerLevel level, FXGenericData data, double x, double y, double z) {
         PacketDistributor.sendToPlayersNear(level, null, x, y, z, DEFAULT_RADIUS,
@@ -1429,6 +1449,46 @@ public final class FX {
                     seed, scale);
             PacketDistributor.sendToPlayersNear(level, null,
                     source.x, source.y, source.z, DEFAULT_RADIUS, payload);
+        }
+    }
+
+    public static final class FluxFume {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private float r = 1.0F, g = 0.0F, b = 0.5F;
+        private float scale = 0.3F;
+        private int maxAge = 3;
+
+        FluxFume(ServerLevel level, Vec3 pos) { this.level = level; this.pos = pos; }
+
+        public FluxFume color(int rgb) {
+            this.r = ((rgb >> 16) & 0xFF) / 255.0F;
+            this.g = ((rgb >> 8) & 0xFF) / 255.0F;
+            this.b = (rgb & 0xFF) / 255.0F;
+            return this;
+        }
+        public FluxFume color(float r, float g, float b) { this.r = r; this.g = g; this.b = b; return this; }
+        public FluxFume scale(float scale) { this.scale = scale; return this; }
+        public FluxFume maxAge(int maxAge) { this.maxAge = maxAge; return this; }
+
+        public void send() {
+            RandomSource rand = level.getRandom();
+            FXGenericData data = FXGenericData.builder()
+                    .motion(0.0, 0.0, 0.0)
+                    .maxAge(maxAge)
+                    .color(r, g, b)
+                    .alpha(0.25F, 0.0F)
+                    .grid(16)
+                    .particle(64)
+                    .finalFrames(65, 66)
+                    .scale(scale, scale / 2.0F)
+                    .layer(1)
+                    .gravity(-0.01F)
+                    .slowDown(0.98)
+                    .random(0.001F, 0.001F, 0.001F)
+                    .rotation(rand.nextFloat(), rand.nextBoolean() ? -0.25F : 0.25F)
+                    .build();
+            spawn(level, data, pos.x, pos.y, pos.z);
         }
     }
 }

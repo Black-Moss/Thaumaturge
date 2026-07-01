@@ -1,0 +1,7 @@
+{
+    "parent": "block/cube_column",
+    "textures": {
+        "side": "thaumcraft:block/taint_log",
+        "end": "thaumcraft:block/taint_log_top"
+    }
+}

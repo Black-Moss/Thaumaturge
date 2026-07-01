@@ -6,9 +6,11 @@ import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksAOresModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksCStoneModels;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalItemModelGenerator;
+import com.leclowndu93150.thaumcraft.data.model.crystal.EssentiaCrystalModelGenerator;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksDTreesModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksEPlantsModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksFMetalsModels;
+import com.leclowndu93150.thaumcraft.data.fragments.TCBlocksTaintModels;
 import com.leclowndu93150.thaumcraft.data.fragments.TCItemsHContainersModels;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -45,6 +47,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.JAR_BRACE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.LABEL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.BOTTLE_TAINT.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE_VALVE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE_RESTRICT.get(), ModelTemplates.FLAT_ITEM);
@@ -57,10 +60,12 @@ public final class TCModelProvider extends ModelProvider {
         TCBlocksAOresModels.register(blockModels, itemModels);
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
+        EssentiaCrystalModelGenerator.register(itemModels);
         TCBlocksCStoneModels.register(blockModels);
         TCBlocksFMetalsModels.register(blockModels, itemModels);
         TCBlocksDTreesModels.register(blockModels);
         TCBlocksEPlantsModels.register(blockModels, itemModels);
+        TCBlocksTaintModels.register(blockModels, itemModels);
         TCItemsHContainersModels.register(itemModels);
     }
 

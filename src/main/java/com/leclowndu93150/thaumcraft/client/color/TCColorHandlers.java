@@ -11,11 +11,14 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 public final class TCColorHandlers {
     public static final Identifier ASPECT_COLOR_TINT_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "aspect_color");
+    public static final Identifier CRYSTAL_ASPECT_TINT_ID =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "crystal_aspect");
 
     private TCColorHandlers() {}
 
     @SubscribeEvent
     public static void onRegisterItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
         event.register(ASPECT_COLOR_TINT_ID, AspectColorTint.MAP_CODEC);
+        event.register(CRYSTAL_ASPECT_TINT_ID, CrystalAspectTint.MAP_CODEC);
     }
 }

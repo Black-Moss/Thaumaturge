@@ -1434,6 +1434,41 @@
       {"aspect": "thaumcraft:vacuos", "amount": 5},
       {"aspect": "thaumcraft:fabrico", "amount": 5},
       {"aspect": "thaumcraft:lux", "amount": 5}
+    ],
+
+    "thaumcraft:taint_rock": [
+      {"aspect": "thaumcraft:terra", "amount": 10},
+      {"aspect": "thaumcraft:vitium", "amount": 5}
+    ],
+    "thaumcraft:taint_soil": [
+      {"aspect": "thaumcraft:terra", "amount": 5},
+      {"aspect": "thaumcraft:vitium", "amount": 5}
+    ],
+    "thaumcraft:taint_crust": [
+      {"aspect": "thaumcraft:victus", "amount": 5},
+      {"aspect": "thaumcraft:vitium", "amount": 5}
+    ],
+    "thaumcraft:taint_geyser": [
+      {"aspect": "thaumcraft:auram", "amount": 5},
+      {"aspect": "thaumcraft:aqua", "amount": 5},
+      {"aspect": "thaumcraft:vitium", "amount": 10}
+    ],
+    "thaumcraft:taint_log": [
+      {"aspect": "thaumcraft:herba", "amount": 5},
+      {"aspect": "thaumcraft:vitium", "amount": 10}
+    ],
+    "thaumcraft:taint_feature": [
+      {"aspect": "thaumcraft:auram", "amount": 5},
+      {"aspect": "thaumcraft:bestia", "amount": 5},
+      {"aspect": "thaumcraft:vitium", "amount": 10}
+    ],
+    "thaumcraft:taint_fibre": [
+      {"aspect": "thaumcraft:herba", "amount": 5},
+      {"aspect": "thaumcraft:vitium", "amount": 10}
+    ],
+    "thaumcraft:bottle_taint": [
+      {"aspect": "thaumcraft:vitium", "amount": 15},
+      {"aspect": "thaumcraft:vitreus", "amount": 1}
     ]
   }
 }

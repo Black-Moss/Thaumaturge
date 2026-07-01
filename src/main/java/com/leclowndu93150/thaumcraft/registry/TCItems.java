@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.item.LabelItem;
 import com.leclowndu93150.thaumcraft.content.item.SalisMundusItem;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
+import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
+import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
@@ -33,6 +35,14 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> TUBE_BUFFER = ITEMS.registerSimpleBlockItem(TCBlocks.TUBE_BUFFER);
 
+    public static final DeferredItem<BlockItem> TAINT_ROCK = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_ROCK);
+    public static final DeferredItem<BlockItem> TAINT_SOIL = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_SOIL);
+    public static final DeferredItem<BlockItem> TAINT_CRUST = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_CRUST);
+    public static final DeferredItem<BlockItem> TAINT_GEYSER = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_GEYSER);
+    public static final DeferredItem<BlockItem> TAINT_LOG = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_LOG);
+    public static final DeferredItem<BlockItem> TAINT_FEATURE = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_FEATURE);
+    public static final DeferredItem<BlockItem> TAINT_FIBRE = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_FIBRE);
+
     public static final DeferredItem<JarBraceItem> JAR_BRACE = ITEMS.registerItem(
             "jar_brace",
             JarBraceItem::new
@@ -52,6 +62,15 @@ public final class TCItems {
             "salis_mundus",
             SalisMundusItem::new,
             props -> props.rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<ItemEssentiaCrystal> ESSENTIA_CRYSTAL = ITEMS.registerItem(
+            "essentia_crystal",
+            ItemEssentiaCrystal::new);
+
+    public static final DeferredItem<ItemBottleTaint> BOTTLE_TAINT = ITEMS.registerItem(
+            "bottle_taint",
+            ItemBottleTaint::new,
+            props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
 
     private TCItems() {}
 

@@ -1,0 +1,28 @@
+package com.leclowndu93150.thaumcraft.client.entity;
+
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.entity.EntityTaintCrawler;
+import net.minecraft.client.model.monster.silverfish.SilverfishModel;
+import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.resources.Identifier;
+
+public final class TaintCrawlerRenderer extends MobRenderer<EntityTaintCrawler, LivingEntityRenderState, SilverfishModel> {
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/entity/taint_crawler.png");
+
+    public TaintCrawlerRenderer(EntityRendererProvider.Context context) {
+        super(context, new SilverfishModel(context.bakeLayer(ModelLayers.SILVERFISH)), 0.3F);
+    }
+
+    @Override
+    public Identifier getTextureLocation(LivingEntityRenderState state) {
+        return TEXTURE;
+    }
+
+    @Override
+    public LivingEntityRenderState createRenderState() {
+        return new LivingEntityRenderState();
+    }
+}

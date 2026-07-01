@@ -66,6 +66,13 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         TCBlocksFMetalsLoot.register(this::dropSelf);
         TCBlocksDTreesLoot.register(this::dropSelf, this::add, this::createLeavesDrops);
         TCBlocksEPlantsLoot.register(this::dropSelf);
+        dropSelf(TCBlocks.TAINT_ROCK.get());
+        dropSelf(TCBlocks.TAINT_SOIL.get());
+        dropSelf(TCBlocks.TAINT_CRUST.get());
+        dropSelf(TCBlocks.TAINT_GEYSER.get());
+        dropSelf(TCBlocks.TAINT_LOG.get());
+        dropSelf(TCBlocks.TAINT_FEATURE.get());
+        add(TCBlocks.TAINT_FIBRE.get(), noDrop());
     }
 
     private LootTable.Builder createLeavesDrops(Block leaves, Block sapling) {

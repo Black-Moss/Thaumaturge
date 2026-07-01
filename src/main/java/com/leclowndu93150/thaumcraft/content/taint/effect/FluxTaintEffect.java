@@ -1,0 +1,43 @@
+package com.leclowndu93150.thaumcraft.content.taint.effect;
+
+import com.leclowndu93150.thaumcraft.api.damagesource.TCDamageSources;
+import com.leclowndu93150.thaumcraft.api.entity.ITaintedMob;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+
+public final class FluxTaintEffect extends MobEffect {
+    private static final int BASE_INTERVAL = 40;
+    private static final int MAX_AMP_DIVIDER_SHIFT = 5;
+    private static final float DAMAGE = 1.0F;
+    private static final float HEAL = 1.0F;
+
+    public FluxTaintEffect() {
+        super(MobEffectCategory.HARMFUL, 0xFF0080);
+    }
+
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int tickCount, int amplification) {
+        int divider = Math.max(1, BASE_INTERVAL >> Math.min(amplification, MAX_AMP_DIVIDER_SHIFT));
+        return tickCount % divider == 0;
+    }
+
+    @Override
+    public boolean applyEffectTick(ServerLevel level, LivingEntity mob, int amplification) {
+        if (mob instanceof ITaintedMob) {
+            mob.heal(HEAL);
+            return true;
+        }
+        if (mob.is(EntityTypeTags.UNDEAD)) {
+            mob.heal(HEAL);
+            return true;
+        }
+        if (mob instanceof Player || mob.getMaxHealth() > 1.0F) {
+            mob.hurt(TCDamageSources.taint(level), DAMAGE);
+        }
+        return true;
+    }
+}

@@ -24,5 +24,6 @@ public final class TCParticleProviders {
         event.registerSpriteSet(TCParticles.ESSENTIA_DROP.get(), EssentiaDropParticle.Provider::new);
         event.registerSpecial(TCParticles.BORE_PARTICLES.get(), new BoreParticlesParticle.Provider());
         event.registerSpriteSet(TCParticles.BORE_SPARKLE.get(), BoreSparkleParticle.Provider::new);
+        event.registerSpecial(TCParticles.FLUX_GOO_DROPLET.get(), new FluxGooDropletParticle.Provider());
     }
 }

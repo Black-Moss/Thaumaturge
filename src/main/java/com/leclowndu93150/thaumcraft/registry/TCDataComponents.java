@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
@@ -30,6 +31,11 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("aspect_filter", builder -> builder
                     .persistent(ResourceKey.codec(IAspect.REGISTRY_KEY))
                     .networkSynchronized(ResourceKey.streamCodec(IAspect.REGISTRY_KEY)));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AspectInstance>> CRYSTAL_ASPECT =
+            DATA_COMPONENTS.registerComponentType("crystal_aspect", builder -> builder
+                    .persistent(AspectInstance.CODEC)
+                    .networkSynchronized(AspectInstance.STREAM_CODEC));
 
     private TCDataComponents() {}
 

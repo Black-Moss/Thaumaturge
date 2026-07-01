@@ -1,12 +1,13 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.content.fx.data.EssentiaDropParticleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BlockRunesData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreParticlesData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
+import com.leclowndu93150.thaumcraft.content.fx.data.EssentiaDropParticleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FireMoteData;
+import com.leclowndu93150.thaumcraft.content.fx.data.FluxGooDropletData;
 import com.leclowndu93150.thaumcraft.content.fx.data.NitorCoreData;
 import com.leclowndu93150.thaumcraft.content.fx.data.SmokeSpiralData;
 import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
@@ -165,6 +166,19 @@ public final class TCParticles {
                 @Override
                 public StreamCodec<? super RegistryFriendlyByteBuf, EssentiaDropParticleData> streamCodec() {
                     return EssentiaDropParticleData.STREAM_CODEC;
+                }
+            });
+
+    public static final DeferredHolder<ParticleType<?>, ParticleType<FluxGooDropletData>> FLUX_GOO_DROPLET =
+            PARTICLES.register("flux_goo_droplet", () -> new ParticleType<FluxGooDropletData>(false) {
+                @Override
+                public MapCodec<FluxGooDropletData> codec() {
+                    return FluxGooDropletData.CODEC;
+                }
+
+                @Override
+                public StreamCodec<? super RegistryFriendlyByteBuf, FluxGooDropletData> streamCodec() {
+                    return FluxGooDropletData.STREAM_CODEC;
                 }
             });
 

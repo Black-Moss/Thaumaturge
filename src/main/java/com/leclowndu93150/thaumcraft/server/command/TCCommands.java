@@ -1,9 +1,16 @@
 package com.leclowndu93150.thaumcraft.server.command;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.TheorycraftManager;
+import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
+import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -12,9 +19,18 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -37,8 +53,116 @@ public final class TCCommands {
                         .then(Commands.literal("list").executes(TCCommands::listParticles))
                         .then(Commands.argument("name", StringArgumentType.word())
                                 .suggests(PARTICLE_NAMES)
-                                .executes(TCCommands::runParticle)));
+                                .executes(TCCommands::runParticle)))
+                .then(Commands.literal("flux_goo")
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("level", IntegerArgumentType.integer(1, 8))
+                                        .executes(TCCommands::setFluxGoo))))
+                .then(Commands.literal("effect")
+                        .then(Commands.literal("vis_exhaust").executes(ctx -> giveEffect(ctx, "vis_exhaust")))
+                        .then(Commands.literal("infectious_vis_exhaust").executes(ctx -> giveEffect(ctx, "infectious_vis_exhaust")))
+                        .then(Commands.literal("flux_taint").executes(ctx -> giveEffect(ctx, "flux_taint"))))
+                .then(Commands.literal("entity")
+                        .then(Commands.literal("thaumic_slime").executes(ctx -> spawnEntity(ctx, "thaumic_slime")))
+                        .then(Commands.literal("taint_crawler").executes(ctx -> spawnEntity(ctx, "taint_crawler")))
+                        .then(Commands.literal("taint_seed").executes(ctx -> spawnEntity(ctx, "taint_seed")))
+                        .then(Commands.literal("taint_seed_prime").executes(ctx -> spawnEntity(ctx, "taint_seed_prime")))
+                        .then(Commands.literal("taint_swarm").executes(ctx -> spawnEntity(ctx, "taint_swarm")))
+                        .then(Commands.literal("taintacle").executes(ctx -> spawnEntity(ctx, "taintacle")))
+                        .then(Commands.literal("taintacle_small").executes(ctx -> spawnEntity(ctx, "taintacle_small"))))
+                .then(Commands.literal("crystal")
+                        .then(Commands.argument("aspect", StringArgumentType.word())
+                                .executes(TCCommands::giveCrystal)));
         event.getDispatcher().register(tc);
+    }
+
+    private static int setFluxGoo(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            int level = IntegerArgumentType.getInteger(ctx, "level");
+            BlockPos pos = player.blockPosition();
+            ServerLevel serverLevel = (ServerLevel) player.level();
+            var state = TCBlocks.FLUX_GOO.get().defaultBlockState();
+            serverLevel.setBlock(pos, state, Block.UPDATE_ALL);
+            ctx.getSource().sendSuccess(() -> Component.literal("Placed flux goo at level " + level), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int giveEffect(CommandContext<CommandSourceStack> ctx, String key) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            Holder<MobEffect> effect = switch (key) {
+                case "vis_exhaust" -> TCMobEffects.VIS_EXHAUST;
+                case "infectious_vis_exhaust" -> TCMobEffects.INFECTIOUS_VIS_EXHAUST;
+                case "flux_taint" -> TCMobEffects.FLUX_TAINT;
+                default -> null;
+            };
+            if (effect == null) {
+                ctx.getSource().sendFailure(Component.literal("Unknown effect: " + key));
+                return 0;
+            }
+            player.addEffect(new MobEffectInstance(effect, 600, 0, true, true, true));
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int spawnEntity(CommandContext<CommandSourceStack> ctx, String name) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            var type = switch (name) {
+                case "thaumic_slime" -> TCEntities.THAUMIC_SLIME.get();
+                case "taint_crawler" -> TCEntities.TAINT_CRAWLER.get();
+                case "taint_seed" -> TCEntities.TAINT_SEED.get();
+                case "taint_seed_prime" -> TCEntities.TAINT_SEED_PRIME.get();
+                case "taint_swarm" -> TCEntities.TAINT_SWARM.get();
+                case "taintacle" -> TCEntities.TAINTACLE.get();
+                case "taintacle_small" -> TCEntities.TAINTACLE_SMALL.get();
+                default -> null;
+            };
+            if (type == null) {
+                ctx.getSource().sendFailure(Component.literal("Unknown entity: " + name));
+                return 0;
+            }
+            var entity = type.create(level, EntitySpawnReason.COMMAND);
+            if (entity == null) {
+                ctx.getSource().sendFailure(Component.literal("Failed to create " + name));
+                return 0;
+            }
+            entity.setPos(player.getX(), player.getY(), player.getZ());
+            if (entity instanceof ThaumicSlime slime) {
+                slime.setSize(2, true);
+            }
+            level.addFreshEntity(entity);
+            ctx.getSource().sendSuccess(() -> Component.literal("Spawned " + name), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int giveCrystal(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            String tag = StringArgumentType.getString(ctx, "aspect");
+            ResourceKey<IAspect> key = ResourceKey.create(IAspect.REGISTRY_KEY,
+                    Identifier.fromNamespaceAndPath(TCIds.MODID, tag));
+            ItemStack stack = EssentiaCrystalFactory.of(player.registryAccess(), key);
+            player.getInventory().add(stack);
+            ctx.getSource().sendSuccess(() -> Component.literal("Gave crystal of " + tag), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
     }
 
     private static int startTestSession(CommandContext<CommandSourceStack> ctx) {

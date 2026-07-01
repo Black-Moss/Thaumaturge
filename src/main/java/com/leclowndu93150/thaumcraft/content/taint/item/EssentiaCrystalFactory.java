@@ -1,0 +1,29 @@
+package com.leclowndu93150.thaumcraft.content.taint.item;
+
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.ItemStack;
+
+public final class EssentiaCrystalFactory {
+    private EssentiaCrystalFactory() {}
+
+    public static ItemStack of(Holder<IAspect> aspect, int count) {
+        ItemStack stack = new ItemStack(TCItems.ESSENTIA_CRYSTAL.get(), count);
+        stack.set(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1));
+        return stack;
+    }
+
+    public static ItemStack of(Holder<IAspect> aspect) {
+        return of(aspect, 1);
+    }
+
+    public static ItemStack of(HolderLookup.Provider registries, ResourceKey<IAspect> key) {
+        Holder<IAspect> aspect = registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(key);
+        return of(aspect, 1);
+    }
+}

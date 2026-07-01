@@ -14,6 +14,8 @@ import com.leclowndu93150.thaumcraft.registry.TCCreativeTabs;
 import com.leclowndu93150.thaumcraft.registry.TCDamageTypes;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
+import com.leclowndu93150.thaumcraft.registry.TCFluidTypes;
+import com.leclowndu93150.thaumcraft.registry.TCFluids;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCMenus;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
@@ -63,6 +65,8 @@ public final class Thaumcraft {
         TCItemsFMetals.touch();
         TCItemsHContainers.touch();
         TCItemsMAuraHud.touch();
+        TCFluidTypes.register(modBus);
+        TCFluids.register(modBus);
         TCBlocks.register(modBus);
         TCItems.register(modBus);
         TCItemsGTools.register(modBus);
