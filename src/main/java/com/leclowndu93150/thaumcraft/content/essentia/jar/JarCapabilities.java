@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.jar;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -46,6 +47,17 @@ public final class JarCapabilities {
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
                 TCItems.JAR_NORMAL.get(), TCItems.JAR_VOID.get()
+        );
+
+        event.registerBlockEntity(
+                AspectCapabilities.CONTAINER,
+                TCBlockEntities.JAR.get(),
+                (be, side) -> be
+        );
+        event.registerBlockEntity(
+                AspectCapabilities.CONTAINER,
+                TCBlockEntities.JAR_VOID.get(),
+                (be, side) -> be
         );
     }
 }

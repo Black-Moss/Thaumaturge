@@ -1,9 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.jar;
 
 import com.leclowndu93150.thaumcraft.Thaumcraft;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
-import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.aspect.*;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
@@ -33,7 +31,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityJar extends BlockEntity implements IEssentiaTransport {
+import java.util.Objects;
+
+public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, IAspectSource {
     public static final int CAPACITY = 250;
     private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = ResourceKey.codec(IAspect.REGISTRY_KEY);
 
@@ -317,5 +317,75 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport {
             aspectFilter = filter;
             if (aspect == null) aspect = filter;
         }
+    }
+
+    @Override
+    public AspectList getAspects() {
+        if (amount() == 0) return AspectList.EMPTY;
+        return AspectList.of(new AspectInstance(EssentiaTransportHelper.resolve(getLevel(),aspectKey()),amount()));
+    }
+
+    @Override
+    public void setAspects(AspectList aspects) {
+        if (aspects.isEmpty()) return;
+        AspectInstance first = aspects.entries().getFirst();
+        ResourceKey<IAspect> key = first.aspect().unwrapKey().orElse(null);
+        if (key != null) {
+            aspect = key;
+            amount = Math.min(first.amount(), CAPACITY);
+        }
+        setChanged();
+        syncToClient();
+    }
+
+    @Override
+    public boolean doesContainerAccept(Holder<IAspect> aspect) {
+        return aspectFilter == null || aspectFilter.equals(aspect.getKey());
+    }
+
+    @Override
+    public int addToContainer(Holder<IAspect> aspect, int amount) {
+        if (amount == 0) return amount;
+        if ((this.amount < CAPACITY && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0){
+            this.aspect = aspect.getKey();
+            int added = Math.min(amount, CAPACITY - this.amount);
+            this.amount += added;
+            amount -= added;
+        }
+        setChanged();
+        syncToClient();
+        return amount;
+    }
+
+    @Override
+    public boolean takeFromContainer(Holder<IAspect> aspect, int amount) {
+        if (this.amount >= amount && Objects.equals(this.aspect, aspect.getKey())) {
+            this.amount -= amount;
+            if (this.amount <= 0) {
+                if (aspectFilter == null) {
+                    this.aspect = null;
+                }
+                this.amount = 0;
+            }
+            setChanged();
+            syncToClient();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean doesContainerContainAmount(Holder<IAspect> aspect, int amount) {
+        return this.amount >= amount && Objects.equals(this.aspect, aspect.getKey());
+    }
+
+    @Override
+    public int containerContains(Holder<IAspect> aspect) {
+        return Objects.equals(this.aspect, aspect.getKey()) ? this.amount : 0;
+    }
+
+    @Override
+    public boolean isBlocked() {
+        return false;
     }
 }
