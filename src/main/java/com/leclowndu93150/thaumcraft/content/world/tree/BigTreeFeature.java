@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.world.tree;
 
 import com.mojang.serialization.Codec;
+import java.util.HashSet;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -41,6 +43,8 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
         private final RandomSource rand;
         private final BigTreeConfig config;
         private final BlockPos origin;
+        private final Set<BlockPos> placedLogs = new HashSet<>();
+        private final Set<BlockPos> placedLeaves = new HashSet<>();
         private final int[] basePos = new int[3];
         private int heightLimit;
         private int height;
@@ -85,6 +89,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
             if (config.spiderChance() > 0.0F && rand.nextFloat() < config.spiderChance()) {
                 generateSpiderNest();
             }
+            TreeLeafUpdater.run(level, placedLogs, placedLeaves);
             return true;
         }
 
@@ -196,6 +201,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
                         BlockState state = level.getBlockState(pos);
                         if (state.isAir() || state.is(config.leaves())) {
                             level.setBlock(pos, block.defaultBlockState(), PLACE_FLAGS);
+                            placedLeaves.add(pos);
                         }
                     }
                 }
@@ -269,6 +275,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
                 BlockPos pos = new BlockPos(cursor[0], cursor[1], cursor[2]);
                 if (isReplaceable(pos)) {
                     level.setBlock(pos, logState(block, axisMeta), PLACE_FLAGS);
+                    placedLogs.add(pos);
                 }
             }
         }

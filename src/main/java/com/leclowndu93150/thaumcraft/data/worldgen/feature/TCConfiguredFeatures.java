@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraConfig;
+import com.leclowndu93150.thaumcraft.content.world.tree.BigMagicTreeConfig;
 import com.leclowndu93150.thaumcraft.content.world.tree.BigTreeConfig;
 import com.leclowndu93150.thaumcraft.content.world.tree.SilverwoodTreeConfig;
 import com.leclowndu93150.thaumcraft.content.world.tree.TCTreeGrowers;
@@ -45,15 +46,12 @@ public final class TCConfiguredFeatures {
     private static final double GREATWOOD_BRANCH_SLOPE = 0.38;
     private static final double GREATWOOD_SCALE_WIDTH = 1.2;
     private static final float GREATWOOD_SPIDER_CHANCE = 0.125F;
-    private static final double MAGIC_TREE_HEIGHT_ATTENUATION = 0.6618;
-    private static final double MAGIC_TREE_BRANCH_SLOPE = 0.381;
-    private static final double MAGIC_TREE_SCALE_WIDTH = 1.25;
     private static final int SILVERWOOD_NATURAL_MIN_HEIGHT = 8;
     private static final int SILVERWOOD_NATURAL_EXTRA_HEIGHT = 5;
     private static final int SILVERWOOD_GROWN_MIN_HEIGHT = 7;
     private static final int SILVERWOOD_GROWN_EXTRA_HEIGHT = 4;
     private static final float MAGIC_FOREST_SILVERWOOD_CHANCE = 1.0F / 18.0F;
-    private static final float MAGIC_FOREST_GREATWOOD_CHANCE = 17.0F / 18.0F / 12.0F;
+    private static final float MAGIC_FOREST_GREATWOOD_CHANCE = 1.0F / 12.0F;
     private static final int CRYSTAL_ATTEMPTS = 8;
     private static final int CRYSTAL_MAX_TOTAL = 64;
     private static final int CRYSTAL_BIOME_ASPECT_CHANCE = 3;
@@ -78,14 +76,10 @@ public final class TCConfiguredFeatures {
                 TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LEAVES_GREATWOOD.get(), 2,
                 GREATWOOD_HEIGHT_ATTENUATION, GREATWOOD_BRANCH_SLOPE, GREATWOOD_SCALE_WIDTH,
                 true, 0.0F);
-        BigTreeConfig bigMagic = new BigTreeConfig(
-                Blocks.OAK_LOG, Blocks.OAK_LEAVES, 1,
-                MAGIC_TREE_HEIGHT_ATTENUATION, MAGIC_TREE_BRANCH_SLOPE, MAGIC_TREE_SCALE_WIDTH,
-                false, 0.0F);
-
         context.register(GREATWOOD_TREE, new ConfiguredFeature<>(TCFeatures.BIG_TREE.get(), greatwoodNatural));
         context.register(GREATWOOD_TREE_GROWN, new ConfiguredFeature<>(TCFeatures.BIG_TREE.get(), greatwoodGrown));
-        context.register(BIG_MAGIC_TREE, new ConfiguredFeature<>(TCFeatures.BIG_TREE.get(), bigMagic));
+        context.register(BIG_MAGIC_TREE, new ConfiguredFeature<>(TCFeatures.BIG_MAGIC_TREE.get(),
+                new BigMagicTreeConfig(Blocks.OAK_LOG, Blocks.OAK_LEAVES)));
         context.register(SILVERWOOD_TREE, new ConfiguredFeature<>(TCFeatures.SILVERWOOD_TREE.get(),
                 new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(),
                         SILVERWOOD_NATURAL_MIN_HEIGHT, SILVERWOOD_NATURAL_EXTRA_HEIGHT,

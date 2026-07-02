@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterFeature;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraConfig;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraFeature;
+import com.leclowndu93150.thaumcraft.content.world.tree.BigMagicTreeConfig;
+import com.leclowndu93150.thaumcraft.content.world.tree.BigMagicTreeFeature;
 import com.leclowndu93150.thaumcraft.content.world.tree.BigTreeConfig;
 import com.leclowndu93150.thaumcraft.content.world.tree.BigTreeFeature;
 import com.leclowndu93150.thaumcraft.content.world.tree.SilverwoodTreeConfig;
@@ -21,6 +23,9 @@ public final class TCFeatures {
 
     public static final DeferredHolder<Feature<?>, BigTreeFeature> BIG_TREE =
             FEATURES.register("big_tree", () -> new BigTreeFeature(BigTreeConfig.CODEC));
+
+    public static final DeferredHolder<Feature<?>, BigMagicTreeFeature> BIG_MAGIC_TREE =
+            FEATURES.register("big_magic_tree", () -> new BigMagicTreeFeature(BigMagicTreeConfig.CODEC));
 
     public static final DeferredHolder<Feature<?>, SilverwoodTreeFeature> SILVERWOOD_TREE =
             FEATURES.register("silverwood_tree", () -> new SilverwoodTreeFeature(SilverwoodTreeConfig.CODEC));

@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.world.tree;
 
 import com.mojang.serialization.Codec;
+import java.util.HashSet;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -64,6 +66,8 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
             return false;
         }
 
+        Set<BlockPos> placedLogs = new HashSet<>();
+        Set<BlockPos> placedLeaves = new HashSet<>();
         int canopyStart = y + height - 5;
         int canopyEnd = y + height + 3 + random.nextInt(3);
         for (int cy = canopyStart; cy <= canopyEnd; cy++) {
@@ -78,6 +82,7 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                     BlockState state = level.getBlockState(pos);
                     if (dist < 10 + random.nextInt(8) && (state.isAir() || state.canBeReplaced() || state.is(BlockTags.LEAVES))) {
                         level.setBlock(pos, config.leaves().defaultBlockState(), PLACE_FLAGS);
+                        placedLeaves.add(pos);
                     }
                 }
             }
@@ -87,65 +92,66 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         for (trunkY = 0; trunkY < height; trunkY++) {
             BlockState state = level.getBlockState(new BlockPos(x, y + trunkY, z));
             if (state.isAir() || state.is(BlockTags.LEAVES) || state.canBeReplaced()) {
-                placeLog(level, x, y + trunkY, z, config, Direction.Axis.Y);
-                placeLog(level, x - 1, y + trunkY, z, config, Direction.Axis.Y);
-                placeLog(level, x + 1, y + trunkY, z, config, Direction.Axis.Y);
-                placeLog(level, x, y + trunkY, z - 1, config, Direction.Axis.Y);
-                placeLog(level, x, y + trunkY, z + 1, config, Direction.Axis.Y);
+                placeLog(level, x, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
+                placeLog(level, x - 1, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
+                placeLog(level, x + 1, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
+                placeLog(level, x, y + trunkY, z - 1, config, placedLogs, Direction.Axis.Y);
+                placeLog(level, x, y + trunkY, z + 1, config, placedLogs, Direction.Axis.Y);
             }
         }
-        placeLog(level, x, y + trunkY, z, config, Direction.Axis.Y);
-        placeLog(level, x - 1, y, z - 1, config, Direction.Axis.Y);
-        placeLog(level, x + 1, y, z + 1, config, Direction.Axis.Y);
-        placeLog(level, x - 1, y, z + 1, config, Direction.Axis.Y);
-        placeLog(level, x + 1, y, z - 1, config, Direction.Axis.Y);
+        placeLog(level, x, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x - 1, y, z - 1, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x + 1, y, z + 1, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x - 1, y, z + 1, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x + 1, y, z - 1, config, placedLogs, Direction.Axis.Y);
         if (random.nextInt(3) != 0) {
-            placeLog(level, x - 1, y + 1, z - 1, config, Direction.Axis.Y);
-        }
-        if (random.nextInt(3) != 0) {
-            placeLog(level, x + 1, y + 1, z + 1, config, Direction.Axis.Y);
+            placeLog(level, x - 1, y + 1, z - 1, config, placedLogs, Direction.Axis.Y);
         }
         if (random.nextInt(3) != 0) {
-            placeLog(level, x - 1, y + 1, z + 1, config, Direction.Axis.Y);
+            placeLog(level, x + 1, y + 1, z + 1, config, placedLogs, Direction.Axis.Y);
         }
         if (random.nextInt(3) != 0) {
-            placeLog(level, x + 1, y + 1, z - 1, config, Direction.Axis.Y);
+            placeLog(level, x - 1, y + 1, z + 1, config, placedLogs, Direction.Axis.Y);
         }
-        placeLog(level, x - 2, y, z, config, Direction.Axis.X);
-        placeLog(level, x + 2, y, z, config, Direction.Axis.X);
-        placeLog(level, x, y, z - 2, config, Direction.Axis.Z);
-        placeLog(level, x, y, z + 2, config, Direction.Axis.Z);
-        placeLog(level, x - 2, y - 1, z, config, Direction.Axis.Y);
-        placeLog(level, x + 2, y - 1, z, config, Direction.Axis.Y);
-        placeLog(level, x, y - 1, z - 2, config, Direction.Axis.Y);
-        placeLog(level, x, y - 1, z + 2, config, Direction.Axis.Y);
-        placeLog(level, x - 1, y + height - 4, z - 1, config, Direction.Axis.Y);
-        placeLog(level, x + 1, y + height - 4, z + 1, config, Direction.Axis.Y);
-        placeLog(level, x - 1, y + height - 4, z + 1, config, Direction.Axis.Y);
-        placeLog(level, x + 1, y + height - 4, z - 1, config, Direction.Axis.Y);
-        if (random.nextInt(3) == 0) {
-            placeLog(level, x - 1, y + height - 5, z - 1, config, Direction.Axis.Y);
+        if (random.nextInt(3) != 0) {
+            placeLog(level, x + 1, y + 1, z - 1, config, placedLogs, Direction.Axis.Y);
         }
+        placeLog(level, x - 2, y, z, config, placedLogs, Direction.Axis.X);
+        placeLog(level, x + 2, y, z, config, placedLogs, Direction.Axis.X);
+        placeLog(level, x, y, z - 2, config, placedLogs, Direction.Axis.Z);
+        placeLog(level, x, y, z + 2, config, placedLogs, Direction.Axis.Z);
+        placeLog(level, x - 2, y - 1, z, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x + 2, y - 1, z, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x, y - 1, z - 2, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x, y - 1, z + 2, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x - 1, y + height - 4, z - 1, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x + 1, y + height - 4, z + 1, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x - 1, y + height - 4, z + 1, config, placedLogs, Direction.Axis.Y);
+        placeLog(level, x + 1, y + height - 4, z - 1, config, placedLogs, Direction.Axis.Y);
         if (random.nextInt(3) == 0) {
-            placeLog(level, x + 1, y + height - 5, z + 1, config, Direction.Axis.Y);
-        }
-        if (random.nextInt(3) == 0) {
-            placeLog(level, x - 1, y + height - 5, z + 1, config, Direction.Axis.Y);
+            placeLog(level, x - 1, y + height - 5, z - 1, config, placedLogs, Direction.Axis.Y);
         }
         if (random.nextInt(3) == 0) {
-            placeLog(level, x + 1, y + height - 5, z - 1, config, Direction.Axis.Y);
+            placeLog(level, x + 1, y + height - 5, z + 1, config, placedLogs, Direction.Axis.Y);
         }
-        placeLog(level, x - 2, y + height - 4, z, config, Direction.Axis.X);
-        placeLog(level, x + 2, y + height - 4, z, config, Direction.Axis.X);
-        placeLog(level, x, y + height - 4, z - 2, config, Direction.Axis.Z);
-        placeLog(level, x, y + height - 4, z + 2, config, Direction.Axis.Z);
+        if (random.nextInt(3) == 0) {
+            placeLog(level, x - 1, y + height - 5, z + 1, config, placedLogs, Direction.Axis.Y);
+        }
+        if (random.nextInt(3) == 0) {
+            placeLog(level, x + 1, y + height - 5, z - 1, config, placedLogs, Direction.Axis.Y);
+        }
+        placeLog(level, x - 2, y + height - 4, z, config, placedLogs, Direction.Axis.X);
+        placeLog(level, x + 2, y + height - 4, z, config, placedLogs, Direction.Axis.X);
+        placeLog(level, x, y + height - 4, z - 2, config, placedLogs, Direction.Axis.Z);
+        placeLog(level, x, y + height - 4, z + 2, config, placedLogs, Direction.Axis.Z);
 
+        TreeLeafUpdater.run(level, placedLogs, placedLeaves);
         config.flower().ifPresent(flower -> generateFlowers(level, random, origin, flower));
         return true;
     }
 
     private static void placeLog(WorldGenLevel level, int x, int y, int z,
-                                 SilverwoodTreeConfig config, Direction.Axis axis) {
+                                 SilverwoodTreeConfig config, Set<BlockPos> placedLogs, Direction.Axis axis) {
         BlockPos pos = new BlockPos(x, y, z);
         BlockState existing = level.getBlockState(pos);
         if (existing.isAir() || existing.is(BlockTags.LEAVES) || existing.canBeReplaced()) {
@@ -154,6 +160,7 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                 state = state.setValue(RotatedPillarBlock.AXIS, axis);
             }
             level.setBlock(pos, state, PLACE_FLAGS);
+            placedLogs.add(pos);
         }
     }
 

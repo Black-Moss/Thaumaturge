@@ -37,6 +37,8 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> CINDERPEARL = key("cinderpearl");
 
     private static final int MAGIC_FOREST_TREE_COUNT = 2;
+    private static final float MAGIC_FOREST_EXTRA_TREE_CHANCE = 0.1F;
+    private static final int MAGIC_FOREST_EXTRA_TREE_COUNT = 1;
     private static final int GREATWOOD_RARITY = 25;
     private static final int GREATWOOD_RARE_RARITY = 125;
     private static final int SILVERWOOD_RARITY = 80;
@@ -72,7 +74,8 @@ public final class TCPlacedFeatures {
 
         context.register(TREES_MAGIC_FOREST, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_TREES),
-                List.of(CountPlacement.of(MAGIC_FOREST_TREE_COUNT),
+                List.of(PlacementUtils.countExtra(MAGIC_FOREST_TREE_COUNT,
+                                MAGIC_FOREST_EXTRA_TREE_CHANCE, MAGIC_FOREST_EXTRA_TREE_COUNT),
                         InSquarePlacement.spread(),
                         PlacementUtils.HEIGHTMAP_OCEAN_FLOOR,
                         BiomeFilter.biome())));
