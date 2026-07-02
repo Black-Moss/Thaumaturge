@@ -245,10 +245,10 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
         }
 
         private boolean validTreeLocation() {
-            BlockState soil = level.getBlockState(basePos.below());
+            /*BlockState soil = level.getBlockState(basePos.below());
             if (!soil.is(BlockTags.DIRT) && !soil.is(Blocks.FARMLAND)) {
                 return false;
-            }
+            }*/
             int clearance = checkBlockLine(basePos, basePos.above(heightLimit - 1));
             if (clearance == -1) {
                 return true;
