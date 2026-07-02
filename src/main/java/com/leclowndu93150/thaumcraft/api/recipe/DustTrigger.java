@@ -9,8 +9,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
-public interface DustTrigger extends Recipe<DustTriggerInput> {
-    Optional<ResearchGate> researchGate();
+public interface DustTrigger extends Recipe<DustTriggerInput>, ResearchGated{
 
     default List<BlockPos> sparkle(Level level, Player player, BlockPos pos, DustTriggerPlacement placement) {
         return List.of(pos);

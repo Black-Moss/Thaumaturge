@@ -5,7 +5,7 @@
     "id": "thaumcraft:crucible"
   },
   "research": {
-    "entry": "thaumcraft:unlockalchemy",
+    "entry": "thaumcraft:unlock_alchemy",
     "stage": 1
   }
 }

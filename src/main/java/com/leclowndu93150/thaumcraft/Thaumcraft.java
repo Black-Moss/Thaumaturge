@@ -31,6 +31,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,8 @@ public final class Thaumcraft {
         TCDamageTypes.register(modBus);
         TCMobEffects.register(modBus);
         TCTheorycraft.register(modBus);
+
+        NeoForge.EVENT_BUS.addListener(TCRecipeTypes::registerSynchronizedRecipes);
 
         container.registerConfig(ModConfig.Type.COMMON, ThaumcraftCommonConfig.SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, ThaumcraftClientConfig.SPEC);

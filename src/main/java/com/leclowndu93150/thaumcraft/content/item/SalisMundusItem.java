@@ -1,12 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.item;
 
 import com.leclowndu93150.thaumcraft.Thaumcraft;
-import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerPlacement;
-import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerFx;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
@@ -66,7 +63,7 @@ public final class SalisMundusItem extends Item {
         }
         RecipeHolder<DustTrigger> holder = match.get();
         DustTrigger trigger = holder.value();
-        if (!hasResearch(player, trigger)) {
+        if (!trigger.doesPassGate(player)) {
             Thaumcraft.LOGGER.debug("Salis Mundus trigger {} blocked by research gate {}",
                     holder.id(), trigger.researchGate().orElse(null));
             return InteractionResult.PASS;
@@ -100,18 +97,5 @@ public final class SalisMundusItem extends Item {
         level.playSound(null, pos, TCSounds.DUST.get(), SoundSource.PLAYERS, 0.33F,
                 1.0F + (float) level.getRandom().nextGaussian() * 0.05F);
         return InteractionResult.SUCCESS;
-    }
-
-    private static boolean hasResearch(Player player, DustTrigger trigger) {
-        Optional<ResearchGate> gate = trigger.researchGate();
-        if (gate.isEmpty()) {
-            return true;
-        }
-        ResearchGate g = gate.get();
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        boolean known = g.stage().isPresent()
-                ? knowledge.isResearchKnown(g.entry(), g.stage().get())
-                : knowledge.isResearchKnown(g.entry());
-        return g.negate() != known;
     }
 }

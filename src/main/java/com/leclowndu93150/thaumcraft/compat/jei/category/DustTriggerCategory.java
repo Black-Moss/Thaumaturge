@@ -2,34 +2,47 @@ package com.leclowndu93150.thaumcraft.compat.jei.category;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumcraft.compat.jei.drawables.AlphaDrawable;
+import com.leclowndu93150.thaumcraft.compat.jei.utils.ResearchUtils;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSimpleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerTagRecipe;
+import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeHolderType;
 import mezz.jei.api.recipe.types.IRecipeType;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<DustTrigger>> {
-    public static final Identifier UID = Identifier.fromNamespaceAndPath(TCIds.MODID, "dust_trigger");
-    public static final IRecipeHolderType<DustTrigger> RECIPE_TYPE = IRecipeHolderType.create(UID);
+    public static final IRecipeHolderType<DustTrigger> RECIPE_TYPE = IRecipeHolderType.create(TCRecipeTypes.DUST_TRIGGER.get());
 
     private static final int WIDTH = 144;
     private static final int HEIGHT = 54;
@@ -42,6 +55,8 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
     private static final int RESULT_SLOT_Y = 18;
 
     private final IDrawable icon;
+
+    private final IDrawable resultIcon = new AlphaDrawable(Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"),41,7,30,30);
 
     public DustTriggerCategory(IGuiHelper guiHelper) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(TCItems.SALIS_MUNDUS.get()));
@@ -78,7 +93,6 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<DustTrigger> holder, IFocusGroup focuses) {
-        builder.setShapeless();
 
         Component usage = Component.translatable("jei.thaumcraft.dust_trigger.usage");
         builder.addSlot(RecipeIngredientRole.INPUT, DUST_SLOT_X + 1, DUST_SLOT_Y + 1)
@@ -123,6 +137,31 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
             }
         }
         return stacks;
+    }
+
+    @Override
+    public void draw(RecipeHolder<DustTrigger> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+        resultIcon.draw(guiGraphics,RESULT_SLOT_X - 6, RESULT_SLOT_Y - 6);
+
+        Font font = Minecraft.getInstance().font;
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(2);
+        guiGraphics.text(font,"+",(((DUST_SLOT_X + 16) + TARGET_SLOT_X) / 2 - 5) / 2,20/2, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
+        guiGraphics.text(font,"=",(((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 5) / 2,20/2, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
+        guiGraphics.pose().popMatrix();
+
+        boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
+        if (!doesPassGate) guiGraphics.item(Items.BARRIER.getDefaultInstance(),((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 8,20);
+
+    }
+
+    @Override
+    public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<DustTrigger> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+        Optional<ResearchGate> gate = recipe.value().researchGate();
+        boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
+        if (!doesPassGate && mouseX > (double) ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 8 && mouseX < (double) ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 +10 && mouseY > 20 && mouseY < 36){
+            tooltip.addAll(ResearchUtils.generateMissingResearchList(gate.get()));
+        }
     }
 
     private static @Nullable TagKey<Block> targetTag(DustTrigger recipe) {

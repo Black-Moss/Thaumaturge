@@ -48,17 +48,17 @@ import org.jspecify.annotations.Nullable;
 
 public class JarItemSpecialRenderer implements SpecialModelRenderer<AspectInstance> {
 
-    private final TextureAtlasSprite sprite;
+    private final BakingContext context;
 
-    public JarItemSpecialRenderer(TextureAtlasSprite sprite) {
-        this.sprite = sprite;
+    public JarItemSpecialRenderer(BakingContext context) {
+        this.context = context;
     }
 
     @Override
     public void submit(@Nullable AspectInstance aspectInstance, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, int i1, boolean b, int i2) {
         if (aspectInstance == null) return;
         // Render the essentia inside the jar using the sprite and aspectInstance
-        JarRenderer.submitFluid(aspectInstance.amount(), aspectInstance.aspect().value().color(), lightCoords,sprite,poseStack,submitNodeCollector);
+        JarRenderer.submitFluid(aspectInstance.amount(), aspectInstance.aspect().value().color(), lightCoords,context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE),poseStack,submitNodeCollector);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class JarItemSpecialRenderer implements SpecialModelRenderer<AspectInstan
 
         @Override
         public @Nullable SpecialModelRenderer<AspectInstance> bake(BakingContext bakingContext) {
-            return new JarItemSpecialRenderer(bakingContext.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE));
+            return new JarItemSpecialRenderer(bakingContext);
         }
 
         @Override

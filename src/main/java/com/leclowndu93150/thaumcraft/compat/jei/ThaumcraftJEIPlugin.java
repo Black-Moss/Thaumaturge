@@ -2,23 +2,29 @@ package com.leclowndu93150.thaumcraft.compat.jei;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
-import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.aspect.*;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGated;
+import com.leclowndu93150.thaumcraft.client.recipes.TCClientRecipes;
 import com.leclowndu93150.thaumcraft.compat.jei.category.AspectCompositionCategory;
+import com.leclowndu93150.thaumcraft.compat.jei.category.AspectFromStacksCategory;
+import com.leclowndu93150.thaumcraft.compat.jei.category.CrucibleCategory;
 import com.leclowndu93150.thaumcraft.compat.jei.category.DustTriggerCategory;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientHelper;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
+import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
+import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
+import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
 import com.mojang.serialization.Codec;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
@@ -26,28 +32,34 @@ import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IModIngredientRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 @JeiPlugin
 public final class ThaumcraftJEIPlugin implements IModPlugin {
     private static final Identifier PLUGIN_UID = Identifier.fromNamespaceAndPath(TCIds.MODID, "jei_plugin");
+
+    /*public static Map<IRecipeType<?>,List<RecipeHolder<?>>> searchAffectedRecipes;
+    public static IJeiRuntime runtime;*/
 
     public ThaumcraftJEIPlugin() {}
 
@@ -84,13 +96,12 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         Registry<IAspect> registry = registryOpt.get();
         List<Holder<IAspect>> all = new ArrayList<>(registry.size());
         registry.listElements().forEach(all::add);
-        Codec<Holder<IAspect>> codec = RegistryFixedCodec.create(IAspect.REGISTRY_KEY);
         registration.register(
                 AspectIngredientType.INSTANCE,
-                all,
+                all.stream().sorted(Comparator.comparingInt(e->clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getId(e.getKey()))).sorted(Comparator.comparing(h->!h.value().isPrimal())).map(aspect->new AspectInstance(aspect,1)).toList(),
                 AspectIngredientHelper.INSTANCE,
                 AspectIngredientRenderer.INSTANCE,
-                codec
+                AspectInstance.CODEC
         );
     }
 
@@ -98,21 +109,47 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IJeiHelpers helpers = registration.getJeiHelpers();
         List<IRecipeCategory<?>> categories = new ArrayList<>(2);
+        categories.add(new CrucibleCategory(helpers.getGuiHelper()));
         categories.add(new DustTriggerCategory(helpers.getGuiHelper()));
         categories.add(new AspectCompositionCategory(helpers.getGuiHelper(), pickIconAspect()));
+        categories.add(new AspectFromStacksCategory(helpers.getGuiHelper()));
         registration.addRecipeCategories(categories.toArray(new IRecipeCategory<?>[0]));
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get());
         registerAspectCompositions(registration);
-        registerDustTriggers(registration);
+        addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get());
         registerAspectInfoPages(registration);
+        registerAspectFromStacksPages(registration);
     }
+
+  /*  @Override
+    public  void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        runtime = jeiRuntime;
+        if (ThaumcraftClientConfig.hideRecipesIfMissingResearch()) hideUnresearchedRecipes(jeiRuntime);
+    }
+
+    private <I extends RecipeInput, R extends Recipe<I> & ResearchGated> void hideUnresearchedRecipes(IJeiRuntime runtime){
+        searchAffectedRecipes = new HashMap<>();
+        for (RecipeType<@NonNull R> type : new RecipeType[]{TCRecipeTypes.DUST_TRIGGER.get(),TCRecipeTypes.CRUCIBLE.get()}) {
+            RecipeMap recipes = TCClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, type);
+            List<RecipeHolder<@NonNull R>> holders = List.copyOf(recipes.byType(type));
+            Identifier uid = BuiltInRegistries.RECIPE_TYPE.getKey(type);
+            List<RecipeHolder<@NonNull R>> hided = holders.stream().filter(r->!r.value().doesPassGate(Minecraft.getInstance().player)).toList();
+            IRecipeHolderType<@NonNull R> jeiType = (IRecipeHolderType<R>) runtime.getRecipeManager().getRecipeType(uid).get();
+            runtime.getRecipeManager().hideRecipes(jeiType,hided);
+            searchAffectedRecipes.put(jeiType,List.copyOf(holders));
+        }
+    }*/
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addCraftingStation(DustTriggerCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
+        registration.addCraftingStation(CrucibleCategory.RECIPE_TYPE, TCItems.CRUCIBLE.get());
+        registration.addCraftingStation(AspectCompositionCategory.RECIPE_TYPE, TCItems.THAUMONOMICON.get());
+        registration.addCraftingStation(AspectFromStacksCategory.RECIPE_TYPE, TCItems.THAUMONOMICON.get());
     }
 
     private static void registerAspectCompositions(IRecipeRegistration registration) {
@@ -130,31 +167,6 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         registration.addRecipes(AspectCompositionCategory.RECIPE_TYPE, compositions);
     }
 
-    private static void registerDustTriggers(IRecipeRegistration registration) {
-        Minecraft mc = Minecraft.getInstance();
-        ClientLevel level = mc.level;
-        if (level == null) {
-            return;
-        }
-        if (!(level.recipeAccess() instanceof RecipeManager manager)) {
-            return;
-        }
-        RecipeType<DustTrigger> type = TCRecipeTypes.DUST_TRIGGER.get();
-        List<RecipeHolder<DustTrigger>> triggers = new ArrayList<>();
-        for (RecipeHolder<?> holder : manager.getRecipes()) {
-            if (holder.value().getType() != type) {
-                continue;
-            }
-            if (!(holder.value() instanceof DustTrigger)) {
-                continue;
-            }
-            @SuppressWarnings("unchecked")
-            RecipeHolder<DustTrigger> cast = (RecipeHolder<DustTrigger>) holder;
-            triggers.add(cast);
-        }
-        registration.addRecipes(DustTriggerCategory.RECIPE_TYPE, triggers);
-    }
-
     private static void registerAspectInfoPages(IRecipeRegistration registration) {
         RegistryAccess registryAccess = clientRegistryAccess();
         if (registryAccess == null) {
@@ -167,9 +179,48 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         Registry<IAspect> registry = registryOpt.get();
         registry.listElements().forEach(holder -> {
             Component description = AspectComponents.description(holder);
-            registration.addIngredientInfo(holder, AspectIngredientType.INSTANCE, description);
+            registration.addIngredientInfo(new AspectInstance(holder,1), AspectIngredientType.INSTANCE, description);
         });
     }
+
+
+    private static void registerAspectFromStacksPages(IRecipeRegistration registration) {
+        List<AspectFromStacksCategory.Wrapper> wrappers = new ArrayList<>();
+        Map<ItemStack, AspectList> index = new HashMap<>();
+        Map<Holder<IAspect>, List<ItemStack>> invertedIndex = new HashMap<>();
+
+        registration.getIngredientManager()
+                .getAllIngredients(VanillaTypes.ITEM_STACK)
+                .forEach(stack -> {
+                    AspectList aspectList = AspectIndexHolder.get().of(stack);
+                    index.put(stack,aspectList);
+                    aspectList.entries().forEach(instance -> {
+                        invertedIndex
+                                .computeIfAbsent(instance.aspect(), k -> new ArrayList<>())
+                                .add(stack);
+                    });
+                });
+
+        invertedIndex.entrySet().stream().sorted(Comparator.comparingInt(e->clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getId(e.getKey().getKey()))).sorted(Comparator.comparing(e->!clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(e.getKey().getKey()).value().isPrimal())).forEach((e)->{
+            Holder<IAspect> aspect = e.getKey();
+            List<ItemStack> stacks = e.getValue().stream()
+                    .map(it-> it.copyWithCount(index.get(it).amountOf(aspect)))
+                    .filter(Objects::nonNull)
+                    .filter(Predicate.not(ItemStack::isEmpty))
+                    .sorted(Comparator.comparing(ItemStack::getCount).reversed())
+                    .toList();
+
+            int start = 0;
+            while (start < stacks.size()){
+                wrappers.add(new AspectFromStacksCategory.Wrapper(aspect,stacks.subList(start,Math.min(start+36,stacks.size()))));
+                start+=36;
+            }
+        });
+
+        registration.addRecipes(AspectFromStacksCategory.RECIPE_TYPE,wrappers);
+
+    }
+
 
     private static Holder<IAspect> pickIconAspect() {
         RegistryAccess registryAccess = clientRegistryAccess();
@@ -190,7 +241,13 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         return null;
     }
 
-    private static RegistryAccess clientRegistryAccess() {
+    private <I extends RecipeInput, R extends Recipe<I>> void addTypedRecipes(IRecipeRegistration registration, IRecipeType<RecipeHolder<R>> type, RecipeType<R> vanillaType){
+        RecipeMap recipes = TCClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, vanillaType);
+        List<RecipeHolder<R>> holders = List.copyOf(recipes.byType(vanillaType));
+        registration.addRecipes(type, holders);
+    }
+
+    public static RegistryAccess clientRegistryAccess() {
         Minecraft mc = Minecraft.getInstance();
         ClientLevel level = mc.level;
         if (level != null) {

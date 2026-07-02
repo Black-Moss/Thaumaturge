@@ -1,15 +1,8 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.content.entity.EntityBottleTaint;
-import com.leclowndu93150.thaumcraft.content.entity.EntityFallingTaint;
-import com.leclowndu93150.thaumcraft.content.entity.EntityTaintCrawler;
-import com.leclowndu93150.thaumcraft.content.entity.EntityTaintSeed;
-import com.leclowndu93150.thaumcraft.content.entity.EntityTaintSeedPrime;
-import com.leclowndu93150.thaumcraft.content.entity.EntityTaintSwarm;
-import com.leclowndu93150.thaumcraft.content.entity.EntityTaintacle;
-import com.leclowndu93150.thaumcraft.content.entity.EntityTaintacleSmall;
-import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
+import com.leclowndu93150.thaumcraft.content.entity.*;
+
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -82,6 +75,14 @@ public final class TCEntities {
                     .sized(0.25F, 0.25F)
                     .clientTrackingRange(8)
                     .updateInterval(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntitySpecialItem>> SPECIAL_ITEM = register(
+            "special_item",
+            () -> EntityType.Builder.<EntitySpecialItem>of(EntitySpecialItem::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .eyeHeight(0.2125F)
+                    .clientTrackingRange(8)
+                    .updateInterval(20));
 
     private TCEntities() {}
 

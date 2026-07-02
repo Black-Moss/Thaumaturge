@@ -6,10 +6,10 @@ import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.platform.DestFactor;
 import com.mojang.blaze3d.platform.SourceFactor;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
@@ -47,6 +47,16 @@ public final class TCRenderPipelines {
             .withDepthStencilState(ALWAYS_NO_WRITE)
             .build();
 
+    public static final RenderPipeline SPARKLE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/sparkle"))
+            .withVertexShader("core/rendertype_lightning")
+            .withFragmentShader("core/rendertype_lightning")
+            .withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING))
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES)
+            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+            .withCull(false)
+            .build();
+
     public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder()
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
             .withVertexShader("core/position_tex_color")
@@ -63,6 +73,7 @@ public final class TCRenderPipelines {
         event.registerPipeline(FX_ADDITIVE_NO_DEPTH);
         event.registerPipeline(FX_TRANSLUCENT_NO_DEPTH);
         event.registerPipeline(GUI_TEXTURED_ADDITIVE);
+        event.registerPipeline(SPARKLE);
     }
 
     private TCRenderPipelines() {}

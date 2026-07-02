@@ -3,7 +3,12 @@ package com.leclowndu93150.thaumcraft.server.command;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
+import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
+import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
+import com.leclowndu93150.thaumcraft.content.research.ResearchRegistration;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.TheorycraftManager;
@@ -18,11 +23,14 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceKeyArgument;
+import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -47,6 +55,8 @@ public final class TCCommands {
 
     private static final SuggestionProvider<CommandSourceStack> PARTICLE_NAMES =
             (ctx, builder) -> SharedSuggestionProvider.suggest(ParticleDemos.DEMOS.keySet(), builder);
+
+    private static final DynamicCommandExceptionType ERROR_INVALID_GATE = new DynamicCommandExceptionType((value) -> Component.literal("Unknown Research Entry : " + value));
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
@@ -101,8 +111,57 @@ public final class TCCommands {
                 .then(Commands.literal("tree").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("greatwood").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.GREATWOOD_TREE)))
                         .then(Commands.literal("silverwood").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.SILVERWOOD_TREE)))
-                        .then(Commands.literal("magic").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.BIG_MAGIC_TREE))));
+                        .then(Commands.literal("magic").executes(ctx -> placeFeature(ctx, TCConfiguredFeatures.BIG_MAGIC_TREE))))
+                .then(Commands.literal("research").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("grant")
+                                .then(Commands.argument("entry", ResourceKeyArgument.key(IResearchEntry.REGISTRY_KEY)).executes(TCCommands::grantGate)))
+                        .then(Commands.literal("revoke")
+                                .then(Commands.argument("entry", ResourceKeyArgument.key(IResearchEntry.REGISTRY_KEY)).executes(TCCommands::revokeGate))));
         event.getDispatcher().register(tc);
+    }
+
+    private static int revokeGate(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ResourceKey<IResearchEntry> key = ResourceKeyArgument.getRegistryKey(ctx, "entry", IResearchEntry.REGISTRY_KEY,ERROR_INVALID_GATE);
+            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+            if (knowledge.removeResearch(key.identifier())) {
+                knowledge.sync(player);
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        String.format("Revoked research %s ", key.identifier())), false);
+                return Command.SINGLE_SUCCESS;
+            } else {
+                ctx.getSource().sendFailure(Component.literal("Failed to revoke research entry"));
+                return 0;
+            }
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int grantGate(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            BlockPos pos = player.blockPosition();
+            ResourceKey<IResearchEntry> key = ResourceKeyArgument.getRegistryKey(ctx, "entry", IResearchEntry.REGISTRY_KEY,ERROR_INVALID_GATE);
+            Holder<IResearchEntry> holder = level.registryAccess()
+                    .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+                    .getOrThrow(key);
+            if (ResearchManager.complete(player,key.identifier())) {
+                ResearchManager.setStage(player,key.identifier(),holder.value().stages().size());
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        String.format("Unlocked research %s ", key.identifier())), false);
+                return Command.SINGLE_SUCCESS;
+            } else {
+                ctx.getSource().sendFailure(Component.literal("Failed to grant research entry"));
+                return 0;
+            }
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
     }
 
     private static int auraInfo(CommandContext<CommandSourceStack> ctx) {

@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
@@ -28,6 +29,12 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "research_table",
                     () -> new BlockEntityType<>(BlockEntityResearchTable::new, Set.of(TCBlocks.RESEARCH_TABLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityCrucible>> CRUCIBLE =
+            BLOCK_ENTITIES.register(
+                    "crucible",
+                    () -> new BlockEntityType<>(BlockEntityCrucible::new, Set.of(TCBlocks.CRUCIBLE.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJar>> JAR =

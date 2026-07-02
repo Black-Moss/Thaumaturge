@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.content.crucible.BlockCrucible;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStairsTC;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStonePorous;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStoneTC;
@@ -197,6 +198,16 @@ public final class TCBlocks {
                         if (s.getValue(BlockTaintFibre.GROWTH2) || s.getValue(BlockTaintFibre.GROWTH4)) return 6;
                         return 0;
                     })
+    );
+
+    public static final DeferredBlock<BlockCrucible> CRUCIBLE = BLOCKS.registerBlock(
+            "crucible",
+            BlockCrucible::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F,20.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
     );
 
     private static BlockBehaviour.Properties taintBlockProps(BlockBehaviour.Properties props) {

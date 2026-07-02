@@ -2,11 +2,16 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
+import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class TCRecipeTypes {
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
@@ -20,9 +25,22 @@ public final class TCRecipeTypes {
                 }
             });
 
+    public static final DeferredHolder<RecipeType<?>, RecipeType<CrucibleRecipe>> CRUCIBLE =
+            RECIPE_TYPES.register("crucible", () -> new RecipeType<CrucibleRecipe>() {
+                @Override
+                public String toString() {
+                    return "thaumcraft:crucible";
+                }
+            });
+
     private TCRecipeTypes() {}
 
     public static void register(IEventBus modBus) {
         RECIPE_TYPES.register(modBus);
+    }
+
+    public static void registerSynchronizedRecipes(OnDatapackSyncEvent event){
+        List<RecipeType<?>> types = RECIPE_TYPES.getEntries().stream().map(DeferredHolder::get).collect(Collectors.toUnmodifiableList());
+        event.sendRecipes(types);
     }
 }

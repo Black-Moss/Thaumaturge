@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumcraft.content.research;
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
@@ -13,7 +15,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.NeoForge;
+import org.jetbrains.annotations.Nullable;
 
 public final class ResearchManager {
     private ResearchManager() {}
@@ -95,6 +99,15 @@ public final class ResearchManager {
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         knowledge.applyAutoUnlock(player.registryAccess());
         knowledge.sync(player);
+    }
+
+    public static boolean doesPassGate(Player player, @Nullable ResearchGate gate) {
+        if (gate == null) return true;
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        boolean known = gate.stage().isPresent()
+                ? knowledge.isResearchKnown(gate.entry(), gate.stage().get())
+                : knowledge.isResearchKnown(gate.entry());
+        return gate.negate() != known;
     }
 
     public static IPlayerKnowledge of(ServerPlayer player) {

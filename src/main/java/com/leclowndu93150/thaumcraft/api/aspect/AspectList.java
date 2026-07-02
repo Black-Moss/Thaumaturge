@@ -45,6 +45,9 @@ public final class AspectList {
             list -> DataResult.success(list.entries())
     );
 
+    /** Non-Empty Codec; serializes as a non-empty JSON array of {@link AspectInstance}. */
+    public static final Codec<AspectList> NON_EMPTY_CODEC = CODEC.validate(list-> list.isEmpty() ? DataResult.error(()-> "Aspect List must not be empty", EMPTY) : DataResult.success(list));
+
     /** Network codec; preserves order. */
     public static final StreamCodec<RegistryFriendlyByteBuf, AspectList> STREAM_CODEC =
             AspectInstance.STREAM_CODEC

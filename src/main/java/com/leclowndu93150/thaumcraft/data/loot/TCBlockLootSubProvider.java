@@ -40,6 +40,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
     @Override
     protected void generate() {
         dropSelf(TCBlocks.RESEARCH_TABLE.get());
+        dropSelf(TCBlocks.CRUCIBLE.get());
         add(TCBlocks.JAR_NORMAL.get(), jarLootTable(TCBlocks.JAR_NORMAL.get()));
         add(TCBlocks.JAR_VOID.get(), jarLootTable(TCBlocks.JAR_VOID.get()));
         dropSelf(TCBlocks.TUBE.get());

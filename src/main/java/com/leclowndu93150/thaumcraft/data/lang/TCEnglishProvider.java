@@ -143,12 +143,14 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("button.thaumcraft.complete_theory", "Complete Theory");
         add("button.thaumcraft.scrap_theory", "Scrap Theory");
         add("block.thaumcraft.research_table", "Research Table");
+        add("block.thaumcraft.crucible", "Crucible");
         add("block.thaumcraft.jar_normal", "Warded Jar");
         add("block.thaumcraft.jar_void", "Void Jar");
         add("item.thaumcraft.thaumonomicon", "Thaumonomicon");
         add("item.thaumcraft.jar_brace", "Jar Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");
+        add("item.thaumcraft.nugget_quartz", "Quartz Sliver");
         add("tooltip.thaumcraft.salis_mundus.desc", "Magical dust that triggers transmutations when applied to certain blocks.");
         add("subtitles.thaumcraft.jar", "Jar clinks");
         add("subtitles.thaumcraft.creak", "Tube creaks");
@@ -189,7 +191,7 @@ public final class TCEnglishProvider extends LanguageProvider {
                 "Your first studies of the arcane begin here. Gather scribing paper and start recording your observations.");
         researchEntry("unlock_auromancy", "The Aura",
                 "The world is suffused with vis, the raw energy of magic. Tap into it through glowing motes.");
-        researchEntry("unlock_alchemy", "Alchemical Reactions",
+        researchEntry("unlock_alchemy", "Discovering Alchemy",
                 "Strange ingredients yield stranger results when combined under the right conditions.");
         researchEntry("unlock_artifice", "Mechanical Aid",
                 "Redstone and clever construction can carry your thaumic experiments far beyond mortal hands.");
@@ -236,11 +238,14 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.aspect.unknown", "Unknown Aspect");
         add("tc.addendumtext", "§oAddendum %1$s§r");
 
+        add("jei.thaumcraft.category.crucible", "Crucible");
         add("jei.thaumcraft.category.dust_trigger", "Salis Mundus Trigger");
         add("jei.thaumcraft.category.aspect_composition", "Aspect Composition");
+        add("jei.thaumcraft.category.aspect_from_stacks", "Aspect from ItemStack");
         add("jei.thaumcraft.dust_trigger.usage", "Right-click the target block with Salis Mundus to trigger this transmutation.");
         add("jei.thaumcraft.dust_trigger.target.tag", "Any block in tag %1$s");
         add("jei.thaumcraft.dust_trigger.target.multiblock", "Multiblock blueprint: %1$s");
+        add("jei.thaumcraft.research.missing_research", "Missing research: ");
         add("tooltip.thaumcraft.aspects.header", "Aspects:");
 
         TCLangBCrystals.register(this);

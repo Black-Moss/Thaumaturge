@@ -15,6 +15,7 @@ import net.minecraft.client.data.models.ModelProvider;
 import net.minecraft.client.data.models.MultiVariant;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
+import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
@@ -42,6 +43,7 @@ public final class TCModelProvider extends ModelProvider {
         registerJar(blockModels, itemModels, TCBlocks.JAR_NORMAL.get(), "jar_normal");
         registerJar(blockModels, itemModels, TCBlocks.JAR_VOID.get(), "jar_void");
         TubeModels.register(blockModels);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.JAR_BRACE.get(), ModelTemplates.FLAT_ITEM);
@@ -62,6 +64,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.GOGGLES_REVEALING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.THAUMOMETER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
         TCBlocksAOresModels.register(blockModels, itemModels);
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
