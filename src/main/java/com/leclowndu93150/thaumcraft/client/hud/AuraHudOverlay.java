@@ -78,10 +78,13 @@ public final class AuraHudOverlay implements GuiLayer {
         }
         ClientAuraCache.tick();
         ChunkPos pos = ChunkPos.containing(player.blockPosition());
-        if (ClientAuraCache.shouldRefresh(pos)) {
+        if (ClientAuraCache.shouldRequest(pos)) {
             ClientPacketDistributor.sendToServer(new ServerboundRequestAuraChunkPayload(pos.x(), pos.z()));
         }
         ClientAuraCache.Snapshot snap = ClientAuraCache.get(pos);
+        if (snap == null) {
+            snap = ClientAuraCache.latest();
+        }
         if (snap == null) {
             return;
         }
