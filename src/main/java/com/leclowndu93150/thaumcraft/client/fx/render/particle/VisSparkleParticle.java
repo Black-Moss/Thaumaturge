@@ -8,10 +8,7 @@ import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
-@OnlyIn(Dist.CLIENT)
 public final class VisSparkleParticle extends SingleQuadParticle {
     private final double targetX;
     private final double targetY;
@@ -103,7 +100,6 @@ public final class VisSparkleParticle extends SingleQuadParticle {
         return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<VisSparkleData> {
         private final SpriteSet sprites;
 

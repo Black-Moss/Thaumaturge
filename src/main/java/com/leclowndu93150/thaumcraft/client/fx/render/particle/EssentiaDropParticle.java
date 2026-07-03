@@ -8,11 +8,8 @@ import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Vector3f;
 
-@OnlyIn(Dist.CLIENT)
 public final class EssentiaDropParticle extends SingleQuadParticle {
     private final float baseAlpha;
     private final float baseScale;
@@ -61,7 +58,6 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
         return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<EssentiaDropParticleData> {
         private final SpriteSet sprites;
 

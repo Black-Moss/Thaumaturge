@@ -17,11 +17,8 @@ import net.minecraft.client.resources.model.geometry.UnbakedGeometry;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.client.resources.model.sprite.TextureSlots;
 import net.minecraft.resources.Identifier;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 
-@OnlyIn(Dist.CLIENT)
 public final class TCObjGeometry implements UnbakedGeometry {
     private static final float CENTER_OFFSET = 0.5F;
 

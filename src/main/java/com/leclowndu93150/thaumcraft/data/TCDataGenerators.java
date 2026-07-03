@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumcraft.data.datamap.AuraModifierProvider;
 import com.leclowndu93150.thaumcraft.data.datamap.EntityAspectsProvider;
 import com.leclowndu93150.thaumcraft.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCBlockLootSubProvider;
+import com.leclowndu93150.thaumcraft.data.loot.TCEntityLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.model.TCModelProvider;
 import com.leclowndu93150.thaumcraft.data.recipe.TCRecipeProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCBiomeTagsProvider;
@@ -63,10 +64,15 @@ public final class TCDataGenerators {
         event.createProvider((output, lookupProvider) -> new LootTableProvider(
                 output,
                 Set.of(),
-                List.of(new LootTableProvider.SubProviderEntry(
-                        TCBlockLootSubProvider::new,
-                        LootContextParamSets.BLOCK
-                )),
+                List.of(
+                        new LootTableProvider.SubProviderEntry(
+                                TCBlockLootSubProvider::new,
+                                LootContextParamSets.BLOCK
+                        ),
+                        new LootTableProvider.SubProviderEntry(
+                                TCEntityLootSubProvider::new,
+                                LootContextParamSets.ENTITY
+                        )),
                 lookupProvider
         ));
     }

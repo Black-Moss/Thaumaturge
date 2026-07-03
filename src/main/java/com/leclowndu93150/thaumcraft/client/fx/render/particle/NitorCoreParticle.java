@@ -14,11 +14,8 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 
-@OnlyIn(Dist.CLIENT)
 public final class NitorCoreParticle extends SingleQuadParticle {
     private static final int LIFETIME = 10;
     private static final float QUAD_RADIUS = 0.1F;
@@ -96,7 +93,6 @@ public final class NitorCoreParticle extends SingleQuadParticle {
         return this.quadSize * QUAD_RADIUS;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<NitorCoreData> {
         private final SpriteSet sprites;
 

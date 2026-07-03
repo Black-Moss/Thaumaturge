@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintSeedModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintacleModel;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
@@ -25,11 +26,16 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.TAINTACLE_SMALL,
                 () -> TaintacleModel.createLayer(TaintacleModel.TAINTACLE_SMALL_LENGTH));
         event.registerLayerDefinition(TCModelLayers.TAINT_SEED, TaintSeedModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.FIRE_BAT, FireBatModel::createLayer);
     }
 
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(TCEntities.WISP.get(), WispRenderer::new);
+        event.registerEntityRenderer(TCEntities.BRAINY_ZOMBIE.get(), BrainyZombieRenderer::new);
+        event.registerEntityRenderer(TCEntities.GIANT_BRAINY_ZOMBIE.get(), BrainyZombieRenderer::new);
+        event.registerEntityRenderer(TCEntities.FIRE_BAT.get(), FireBatRenderer::new);
+        event.registerEntityRenderer(TCEntities.MIND_SPIDER.get(), MindSpiderRenderer::new);
         event.registerEntityRenderer(TCEntities.THAUMIC_SLIME.get(), ThaumicSlimeRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_CRAWLER.get(), TaintCrawlerRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_SEED.get(),

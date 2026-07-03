@@ -9,11 +9,8 @@ import com.leclowndu93150.thaumcraft.client.fx.render.manager.BeamManager;
 import com.leclowndu93150.thaumcraft.client.fx.render.manager.BoreVoidStreamManager;
 import com.leclowndu93150.thaumcraft.client.fx.render.manager.EssentiaStreamManager;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-@OnlyIn(Dist.CLIENT)
 public final class FXStreamClientHandler {
     private FXStreamClientHandler() {}
 

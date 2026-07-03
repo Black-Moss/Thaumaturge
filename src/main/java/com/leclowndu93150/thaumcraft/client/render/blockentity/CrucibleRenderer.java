@@ -13,11 +13,8 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.jspecify.annotations.Nullable;
 
-@OnlyIn(Dist.CLIENT)
 public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCrucible, CrucibleRenderState> {
 
     public CrucibleRenderer(BlockEntityRendererProvider.Context context) {

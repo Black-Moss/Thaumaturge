@@ -27,11 +27,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.jspecify.annotations.Nullable;
 
-@OnlyIn(Dist.CLIENT)
 public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, JarRenderState> {
     private static final Identifier BRINE_TEXTURE = Identifier.fromNamespaceAndPath("thaumcraft", "textures/entity/jarbrine.png");
     private static final Identifier LABEL_TEXTURE = Identifier.fromNamespaceAndPath("thaumcraft", "textures/entity/label.png");

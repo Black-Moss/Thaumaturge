@@ -14,10 +14,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
-@OnlyIn(Dist.CLIENT)
 public final class BoltParticle extends SingleQuadParticle {
     private static final int GRID = 64;
     private static final int FRAME_START = 512;
@@ -152,7 +149,6 @@ public final class BoltParticle extends SingleQuadParticle {
         return this.width * BEAD_SIZE_FACTOR;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<BoltData> {
         private final SpriteSet sprites;
 

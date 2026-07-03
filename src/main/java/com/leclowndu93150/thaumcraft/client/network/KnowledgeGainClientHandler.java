@@ -6,11 +6,8 @@ import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-@OnlyIn(Dist.CLIENT)
 public final class KnowledgeGainClientHandler {
     private static final int BASE_DURATION_TICKS = 40;
     private static final int EXTRA_DURATION_SPREAD = 20;

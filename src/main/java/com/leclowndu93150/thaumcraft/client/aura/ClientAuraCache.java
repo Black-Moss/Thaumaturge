@@ -3,11 +3,8 @@ package com.leclowndu93150.thaumcraft.client.aura;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.world.level.ChunkPos;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.jspecify.annotations.Nullable;
 
-@OnlyIn(Dist.CLIENT)
 public final class ClientAuraCache {
     private static final Map<Long, Snapshot> ENTRIES = new ConcurrentHashMap<>();
     private static final Map<Long, Long> REQUESTS = new ConcurrentHashMap<>();

@@ -16,11 +16,8 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4fc;
 
-@OnlyIn(Dist.CLIENT)
 public final class WispRenderer extends EntityRenderer<WispEntity, WispRenderState> {
     private static final Identifier NODES = TCIds.rl("textures/misc/auranodes.png");
 

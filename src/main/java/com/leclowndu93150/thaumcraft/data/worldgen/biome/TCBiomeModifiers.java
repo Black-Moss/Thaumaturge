@@ -27,8 +27,12 @@ public final class TCBiomeModifiers {
     public static final ResourceKey<BiomeModifier> ADD_SILVERWOOD = key("add_silverwood");
     public static final ResourceKey<BiomeModifier> ADD_CINDERPEARL = key("add_cinderpearl");
     public static final ResourceKey<BiomeModifier> ADD_NETHER_WISPS = key("add_nether_wisps");
+    public static final ResourceKey<BiomeModifier> ADD_NETHER_FIREBATS = key("add_nether_firebats");
+    public static final ResourceKey<BiomeModifier> ADD_OVERWORLD_BRAINY_ZOMBIES = key("add_overworld_brainy_zombies");
 
     private static final int NETHER_WISP_WEIGHT = 5;
+    private static final int NETHER_FIREBAT_WEIGHT = 10;
+    private static final int OVERWORLD_BRAINY_ZOMBIE_WEIGHT = 10;
 
     private TCBiomeModifiers() {}
 
@@ -77,6 +81,18 @@ public final class TCBiomeModifiers {
                 biomes.getOrThrow(BiomeTags.IS_NETHER),
                 WeightedList.<MobSpawnSettings.SpawnerData>builder()
                         .add(new MobSpawnSettings.SpawnerData(TCEntities.WISP.get(), 1, 1), NETHER_WISP_WEIGHT)
+                        .build()));
+
+        context.register(ADD_NETHER_FIREBATS, new BiomeModifiers.AddSpawnsBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_NETHER),
+                WeightedList.<MobSpawnSettings.SpawnerData>builder()
+                        .add(new MobSpawnSettings.SpawnerData(TCEntities.FIRE_BAT.get(), 1, 2), NETHER_FIREBAT_WEIGHT)
+                        .build()));
+
+        context.register(ADD_OVERWORLD_BRAINY_ZOMBIES, new BiomeModifiers.AddSpawnsBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_OVERWORLD),
+                WeightedList.<MobSpawnSettings.SpawnerData>builder()
+                        .add(new MobSpawnSettings.SpawnerData(TCEntities.BRAINY_ZOMBIE.get(), 1, 1), OVERWORLD_BRAINY_ZOMBIE_WEIGHT)
                         .build()));
     }
 }

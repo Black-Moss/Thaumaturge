@@ -39,7 +39,16 @@ public final class TCLangTaint {
         provider.add("entity.thaumcraft.falling_taint", "Falling Taint");
         provider.add("entity.thaumcraft.bottle_taint", "Bottle of Tainted Goo");
         provider.add("entity.thaumcraft.wisp", "Wisp");
+        provider.add("entity.thaumcraft.brainy_zombie", "Angry Zombie");
+        provider.add("entity.thaumcraft.giant_brainy_zombie", "Furious Zombie");
+        provider.add("entity.thaumcraft.firebat", "Firebat");
+        provider.add("entity.thaumcraft.mind_spider", "Mind Spider");
+        provider.add("item.thaumcraft.brain", "Zombie Brain");
 
+        provider.add("item.thaumcraft.brainy_zombie_spawn_egg", "Angry Zombie Spawn Egg");
+        provider.add("item.thaumcraft.giant_brainy_zombie_spawn_egg", "Furious Zombie Spawn Egg");
+        provider.add("item.thaumcraft.firebat_spawn_egg", "Firebat Spawn Egg");
+        provider.add("item.thaumcraft.mind_spider_spawn_egg", "Mind Spider Spawn Egg");
         provider.add("item.thaumcraft.wisp_spawn_egg", "Wisp Spawn Egg");
         provider.add("item.thaumcraft.thaumic_slime_spawn_egg", "Thaumic Slime Spawn Egg");
         provider.add("item.thaumcraft.taint_crawler_spawn_egg", "Taint Crawler Spawn Egg");
