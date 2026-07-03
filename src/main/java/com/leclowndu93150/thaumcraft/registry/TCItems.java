@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
+import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
+import com.leclowndu93150.thaumcraft.content.item.CelestialNotesItem;
 import com.leclowndu93150.thaumcraft.content.item.LabelItem;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.content.item.PrimordialPearlItem;
@@ -13,7 +15,9 @@ import com.leclowndu93150.thaumcraft.content.item.equipment.GogglesItem;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -215,6 +219,11 @@ public final class TCItems {
             ScribingToolsItem::new,
             props -> props.stacksTo(1).durability(SCRIBING_TOOLS_DURABILITY)
     );
+
+    public static final DeferredItem<CelestialNotesItem> CELESTIAL_NOTES = ITEMS.registerItem(
+            "celestial_notes",
+            CelestialNotesItem::new,
+            props -> props.component(TCDataComponents.CELESTIAL_BODY.get(), CelestialBody.SUN));
 
     // 
 

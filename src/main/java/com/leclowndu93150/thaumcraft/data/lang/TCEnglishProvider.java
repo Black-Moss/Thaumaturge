@@ -6,7 +6,9 @@ import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangCStone;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDTrees;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangFMetals;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangHContainers;
+import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangGTools;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangMAuraHud;
+import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangNScanning;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangTaint;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
@@ -255,6 +257,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         TCLangMAuraHud.register(this);
         TCLangHContainers.register(this);
         TCLangTaint.register(this);
+        TCLangGTools.register(this);
+        TCLangNScanning.register(this);
     }
 
     private void aspect(String tag, String name, String description) {

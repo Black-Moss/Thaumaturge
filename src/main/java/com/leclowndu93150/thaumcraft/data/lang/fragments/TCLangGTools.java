@@ -8,6 +8,5 @@ public final class TCLangGTools {
     public static void register(LanguageProvider provider) {
         provider.add("item.thaumcraft.thaumometer", "Thaumometer");
         provider.add("item.thaumcraft.scribing_tools", "Scribing Tools");
-        provider.add("item.thaumcraft.thaumometer.scan.todo", "Scanning is not yet wired");
     }
 }

@@ -1,0 +1,141 @@
+{
+    "loader": "thaumcraft:obj",
+    "model": "thaumcraft:models/obj/scanner.obj",
+    "flip_v": true,
+    "textures": {
+        "body": "thaumcraft:item/scanner",
+        "pane": {
+            "sprite": "thaumcraft:item/scanscreen",
+            "force_translucent": true
+        },
+        "particle": "thaumcraft:item/scanner"
+    },
+    "display": {
+        "firstperson_righthand": {
+            "translation": [
+                -0.96,
+                0.096,
+                -6.4
+            ],
+            "rotation": [
+                90,
+                0,
+                0
+            ]
+        },
+        "firstperson_lefthand": {
+            "translation": [
+                -16.96,
+                0.096,
+                -6.4
+            ],
+            "rotation": [
+                90,
+                0,
+                0
+            ]
+        },
+        "thirdperson_righthand": {
+            "translation": [
+                -1.6,
+                1.6,
+                0
+            ],
+            "rotation": [
+                90,
+                0,
+                -90
+            ],
+            "scale": [
+                0.2,
+                0.2,
+                0.2
+            ]
+        },
+        "thirdperson_lefthand": {
+            "translation": [
+                -1.6,
+                0,
+                1.6
+            ],
+            "rotation": [
+                90,
+                0,
+                -90
+            ],
+            "scale": [
+                0.2,
+                0.2,
+                0.2
+            ]
+        },
+        "gui": {
+            "translation": [
+                0,
+                0,
+                -2.8
+            ],
+            "rotation": [
+                90,
+                0,
+                0
+            ],
+            "scale": [
+                0.35,
+                0.35,
+                0.35
+            ]
+        },
+        "ground": {
+            "translation": [
+                0,
+                3.2,
+                0
+            ],
+            "rotation": [
+                90,
+                0,
+                0
+            ],
+            "scale": [
+                0.2,
+                0.2,
+                0.2
+            ]
+        },
+        "fixed": {
+            "translation": [
+                0,
+                0,
+                0.48
+            ],
+            "rotation": [
+                -90,
+                0,
+                0
+            ],
+            "scale": [
+                0.4,
+                0.4,
+                0.4
+            ]
+        },
+        "head": {
+            "translation": [
+                0,
+                0,
+                0
+            ],
+            "rotation": [
+                90,
+                0,
+                0
+            ],
+            "scale": [
+                0.45,
+                0.45,
+                0.45
+            ]
+        }
+    }
+}

@@ -21,7 +21,9 @@ public final class TCEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<ThaumicSlime>> THAUMIC_SLIME = register(
             "thaumic_slime",
             () -> EntityType.Builder.of(ThaumicSlime::new, MobCategory.MONSTER)
-                    .sized(2.04F, 2.04F)
+                    .sized(0.52F, 0.52F)
+                    .eyeHeight(0.325F)
+                    .spawnDimensionsScale(4.0F)
                     .clientTrackingRange(8)
                     .updateInterval(3));
 

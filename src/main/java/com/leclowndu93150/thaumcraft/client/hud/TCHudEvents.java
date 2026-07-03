@@ -14,5 +14,6 @@ public final class TCHudEvents {
     @SubscribeEvent
     public static void registerLayers(RegisterGuiLayersEvent event) {
         event.registerAbove(VanillaGuiLayers.EXPERIENCE_LEVEL, TCIds.rl("aura_hud"), new AuraHudOverlay());
+        event.registerAbove(VanillaGuiLayers.EXPERIENCE_LEVEL, TCIds.rl("knowledge_gain"), new KnowledgeGainOverlay());
     }
 }

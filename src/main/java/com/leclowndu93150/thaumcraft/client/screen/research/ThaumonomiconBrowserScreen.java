@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.client.render.research.ConnectorRenderer;
+import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
 import com.leclowndu93150.thaumcraft.client.render.research.EntryIconRenderer;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCScreen;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
@@ -34,6 +35,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -645,8 +647,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             boolean hasWarp = entryHasWarp(node.entry);
             boolean newResearch = knowledge.hasResearchFlag(node.id, ResearchFlag.RESEARCH);
             boolean newPage = knowledge.hasResearchFlag(node.id, ResearchFlag.PAGE);
-            ItemStack icon = resolveDisplayIcon(node);
-            EntryIconRenderer.render(graphics, iconX, iconY, node.entry, iconStatus, icon, hasWarp, newResearch, newPage, tickCount);
+            Object icon = resolveDisplayIcon(node);
+            EntryIconRenderer.render(graphics, iconX, iconY, node.entry, iconStatus, icon, hasWarp, newResearch, newPage);
             if (mouseX >= START_X
                     && mouseY >= START_Y
                     && mouseX < START_X + screenX
@@ -660,8 +662,17 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         }
     }
 
-    private ItemStack resolveDisplayIcon(EntryNode node) {
+    private Object resolveDisplayIcon(EntryNode node) {
         long ticks = tickCount;
+        List<ResearchIcon> icons = node.entry.icons();
+        if (!icons.isEmpty()) {
+            ResearchIcon icon = icons.get((int) (ticks / 20L % icons.size()));
+            if (icon.texture()) {
+                return icon.id();
+            }
+            Item item = BuiltInRegistries.ITEM.getValue(icon.id());
+            return new ItemStack(item);
+        }
         List<? extends IResearchStage> stages = node.entry.stages();
         if (stages.isEmpty()) return ItemStack.EMPTY;
         for (IResearchStage stage : stages) {

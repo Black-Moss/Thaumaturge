@@ -3,9 +3,11 @@ package com.leclowndu93150.thaumcraft.data.fragments;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.TCIds;
+import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.renderer.block.dispatch.Variant;
@@ -16,6 +18,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public final class TCBlocksDTreesModels {
+    private static final int FOLIAGE_DEFAULT_COLOR = 0x48B518;
+
     private TCBlocksDTreesModels() {}
 
     public static void register(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
@@ -27,6 +31,9 @@ public final class TCBlocksDTreesModels {
         simpleCube(blockModels, TCBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
         simpleCube(blockModels, TCBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
         simpleCube(blockModels, TCBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
+        itemModels.itemModelOutput.accept(TCBlocks.LEAVES_GREATWOOD.get().asItem(), ItemModelUtils.tintedModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/leaves_greatwood"),
+                new Constant(FOLIAGE_DEFAULT_COLOR)));
         log(blockModels, TCBlocks.LOG_GREATWOOD.get(), "log_greatwood", "log_greatwood_horizontal");
         log(blockModels, TCBlocks.LOG_SILVERWOOD.get(), "log_silverwood", "log_silverwood_horizontal");
     }

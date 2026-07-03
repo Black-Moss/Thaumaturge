@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.data.damagetype.TCDamageTypeBootstrap;
 import com.leclowndu93150.thaumcraft.data.datamap.AuraModifierProvider;
+import com.leclowndu93150.thaumcraft.data.datamap.EntityAspectsProvider;
 import com.leclowndu93150.thaumcraft.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCBlockLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.model.TCModelProvider;
@@ -53,6 +54,7 @@ public final class TCDataGenerators {
         event.createProvider(TCModelProvider::new);
         event.createProvider(TCRecipeProvider.Runner::new);
         event.createProvider(AuraModifierProvider::new);
+        event.createProvider(EntityAspectsProvider::new);
 
         event.createBlockAndItemTags(TCBlockTagsProvider::new, TCItemTagsProvider::new);
         event.createProvider(TCDamageTypeTagsProvider::new);

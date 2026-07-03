@@ -3,7 +3,10 @@ package com.leclowndu93150.thaumcraft.server.command;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
+import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
@@ -11,12 +14,14 @@ import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.content.research.ResearchRegistration;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
+import com.leclowndu93150.thaumcraft.network.ClientboundKnowledgeGainPayload;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.TheorycraftManager;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
+import java.util.Optional;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -47,6 +52,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
@@ -116,8 +122,60 @@ public final class TCCommands {
                         .then(Commands.literal("grant")
                                 .then(Commands.argument("entry", ResourceKeyArgument.key(IResearchEntry.REGISTRY_KEY)).executes(TCCommands::grantGate)))
                         .then(Commands.literal("revoke")
-                                .then(Commands.argument("entry", ResourceKeyArgument.key(IResearchEntry.REGISTRY_KEY)).executes(TCCommands::revokeGate))));
+                                .then(Commands.argument("entry", ResourceKeyArgument.key(IResearchEntry.REGISTRY_KEY)).executes(TCCommands::revokeGate)))
+                        .then(Commands.literal("reset").executes(TCCommands::resetResearch))
+                        .then(Commands.literal("all").executes(TCCommands::grantAllResearch)));
         event.getDispatcher().register(tc);
+    }
+
+    private static int resetResearch(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+            int cleared = knowledge.researchList().size();
+            knowledge.clear();
+            ResearchManager.applyAutoUnlock(player);
+            knowledge.sync(player);
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    String.format("Reset %d research entries and all knowledge", cleared)), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int grantAllResearch(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+            int granted = 0;
+            for (Holder.Reference<IResearchEntry> entry
+                    : player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList()) {
+                Identifier id = entry.key().identifier();
+                if (knowledge.isResearchComplete(id)) {
+                    continue;
+                }
+                if (ResearchManager.complete(player, id)) {
+                    ResearchManager.setStage(player, id, entry.value().stages().size());
+                    granted++;
+                    Optional<ResourceKey<IResearchCategory>> category = entry.value().category().unwrapKey();
+                    PacketDistributor.sendToPlayer(player,
+                            new ClientboundKnowledgeGainPayload(KnowledgeType.OBSERVATION, category));
+                }
+            }
+            for (Holder.Reference<IAspect> aspect
+                    : player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()) {
+                ResearchManager.unlock(player, ScanKeys.aspect(aspect.key()));
+            }
+            int total = granted;
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    String.format("Granted %d research entries and all aspect discoveries", total)), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
     }
 
     private static int revokeGate(CommandContext<CommandSourceStack> ctx) {

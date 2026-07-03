@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
@@ -972,7 +973,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private boolean knowsAspect(Holder<IAspect> aspect) {
-        return true;
+        if (minecraft == null || minecraft.player == null) return false;
+        return aspect.unwrapKey()
+                .map(key -> KnowledgeAccess.of(minecraft.player).isResearchKnown(ScanKeys.aspect(key)))
+                .orElse(false);
     }
 
     private AspectList knownAspects() {

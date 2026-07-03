@@ -27,24 +27,28 @@ public final class TCRenderPipelines {
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_additive"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
             .withDepthStencilState(TEST_NO_WRITE)
+            .withCull(false)
             .build();
 
     public static final RenderPipeline FX_TRANSLUCENT = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_translucent"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(TEST_NO_WRITE)
+            .withCull(false)
             .build();
 
     public static final RenderPipeline FX_ADDITIVE_NO_DEPTH = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_additive_no_depth"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
             .withDepthStencilState(ALWAYS_NO_WRITE)
+            .withCull(false)
             .build();
 
     public static final RenderPipeline FX_TRANSLUCENT_NO_DEPTH = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_translucent_no_depth"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(ALWAYS_NO_WRITE)
+            .withCull(false)
             .build();
 
     public static final RenderPipeline SPARKLE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
@@ -57,13 +61,9 @@ public final class TCRenderPipelines {
             .withCull(false)
             .build();
 
-    public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder()
+    public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
-            .withVertexShader("core/position_tex_color")
-            .withFragmentShader("core/position_tex_color")
-            .withSampler("Sampler0")
-            .withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING))
-            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+            .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
             .build();
 
     @SubscribeEvent

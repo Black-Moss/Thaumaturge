@@ -3,11 +3,13 @@ package com.leclowndu93150.thaumcraft.data.model;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
+import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import com.leclowndu93150.thaumcraft.data.fragments.*;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.EssentiaCrystalModelGenerator;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
@@ -15,13 +17,18 @@ import net.minecraft.client.data.models.ModelProvider;
 import net.minecraft.client.data.models.MultiVariant;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
+import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.client.renderer.item.CompositeModel;
 import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+import net.minecraft.client.renderer.item.SelectItemModel;
 import net.minecraft.client.renderer.item.SpecialModelWrapper;
+import net.minecraft.client.renderer.item.properties.select.ComponentContents;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
@@ -29,6 +36,7 @@ import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,6 +54,8 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.itemModelOutput.accept(TCItems.THAUMOMETER.get(),
+                ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/thaumometer")));
         itemModels.generateFlatItem(TCItems.JAR_BRACE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.LABEL.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.BOTTLE_TAINT.get(), ModelTemplates.FLAT_ITEM);
@@ -62,8 +72,8 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.TUBE_ONEWAY.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE_BUFFER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.GOGGLES_REVEALING.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(TCItems.THAUMOMETER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
+        registerCelestialNotes(itemModels);
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
         TCBlocksAOresModels.register(blockModels, itemModels);
         CrystalBlockstateGenerator.register(blockModels);
@@ -75,6 +85,19 @@ public final class TCModelProvider extends ModelProvider {
         TCBlocksEPlantsModels.register(blockModels, itemModels);
         TCBlocksTaintModels.register(blockModels, itemModels);
         TCItemsHContainersModels.register(itemModels);
+    }
+
+    private void registerCelestialNotes(ItemModelGenerators itemModels) {
+        List<SelectItemModel.SwitchCase<CelestialBody>> cases = new ArrayList<>();
+        for (CelestialBody body : CelestialBody.values()) {
+            Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/celestial_notes_" + body.getSerializedName());
+            ModelTemplates.FLAT_ITEM.create(model, TextureMapping.layer0(new Material(model)), itemModels.modelOutput);
+            cases.add(ItemModelUtils.when(body, ItemModelUtils.plainModel(model)));
+        }
+        Identifier fallback = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/celestial_notes_sun");
+        itemModels.itemModelOutput.accept(TCItems.CELESTIAL_NOTES.get(),
+                ItemModelUtils.select(new ComponentContents<>(TCDataComponents.CELESTIAL_BODY.get()),
+                        ItemModelUtils.plainModel(fallback), cases));
     }
 
     private void registerJar(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName) {

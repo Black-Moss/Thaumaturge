@@ -17,16 +17,18 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 @OnlyIn(Dist.CLIENT)
 public final class BlockRunesParticle extends SingleQuadParticle {
     private static final int GRID = 64;
-    private static final int RUNE_BASE = 224;
+    private static final int RUNE_ROW = 6;
     private static final int RUNE_COUNT = 16;
     private static final float QUAD_RADIUS = 0.3F;
+    private static final float FACE_OFFSET = -0.51F;
     private static final int EMISSIVE_LIGHT = 0x00F000F0;
 
-    private final int runeIndex;
+    private final int runeColumn;
     private final float rotationY;
     private final double offsetX;
     private final double offsetY;
@@ -49,7 +51,7 @@ public final class BlockRunesParticle extends SingleQuadParticle {
         this.gCol = data.g();
         this.bCol = data.b();
         this.lifetime = 3 * Math.max(1, data.duration());
-        this.runeIndex = this.random.nextInt(RUNE_COUNT) + RUNE_BASE;
+        this.runeColumn = this.random.nextInt(RUNE_COUNT);
         this.rotationY = this.random.nextInt(4) * 90.0F;
         if (data.variant()) {
             this.offsetX = 0.0;
@@ -92,11 +94,10 @@ public final class BlockRunesParticle extends SingleQuadParticle {
         float dz = (float)(Mth.lerp((double)partialTickTime, this.zo, this.z) - pos.z());
         Quaternionf rot = new Quaternionf();
         rot.rotateY((float)Math.toRadians(this.rotationY));
-        rot.rotateZ((float)Math.toRadians(90.0));
-        float zPlanar = -0.51F;
-        float worldX = dx + (float)this.offsetX;
-        float worldY = dy + (float)this.offsetY;
-        float worldZ = dz + zPlanar;
+        Vector3f offset = rot.transform(new Vector3f((float)-this.offsetY, (float)this.offsetX, FACE_OFFSET));
+        float worldX = dx + offset.x();
+        float worldY = dy + offset.y();
+        float worldZ = dz + offset.z();
         float halfAlpha = this.currentAlpha / 2.0F;
         int color = ARGB.colorFromFloat(halfAlpha, this.rCol, this.gCol, this.bCol);
         renderState.add(
@@ -110,27 +111,27 @@ public final class BlockRunesParticle extends SingleQuadParticle {
 
     @Override
     protected float getU0() {
-        return (this.runeIndex % GRID) * (1.0F / GRID);
+        return this.runeColumn * (1.0F / GRID);
     }
 
     @Override
     protected float getU1() {
-        return (this.runeIndex % GRID) * (1.0F / GRID) + (1.0F / GRID);
+        return this.runeColumn * (1.0F / GRID) + (1.0F / GRID);
     }
 
     @Override
     protected float getV0() {
-        return (this.runeIndex / GRID) * (1.0F / GRID);
+        return RUNE_ROW * (1.0F / GRID);
     }
 
     @Override
     protected float getV1() {
-        return (this.runeIndex / GRID) * (1.0F / GRID) + (1.0F / GRID);
+        return RUNE_ROW * (1.0F / GRID) + (1.0F / GRID);
     }
 
     @Override
     public SingleQuadParticle.Layer getLayer() {
-        return TCParticleLayer.TRANSLUCENT;
+        return TCParticleLayer.ADDITIVE;
     }
 
     @Override

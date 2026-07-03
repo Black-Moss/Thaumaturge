@@ -16,5 +16,6 @@ public final class PlantBlockColors {
     @SubscribeEvent
     public static void onRegisterBlockColors(RegisterColorHandlersEvent.BlockTintSources event) {
         event.register(List.of(BlockTintSources.grassBlock()), TCBlocks.GRASS_AMBIENT.get());
+        event.register(List.of(BlockTintSources.foliage()), TCBlocks.LEAVES_GREATWOOD.get());
     }
 }

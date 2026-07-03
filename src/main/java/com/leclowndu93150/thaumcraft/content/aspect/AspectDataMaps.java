@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -18,10 +19,17 @@ public final class AspectDataMaps {
             AspectList.CODEC
     ).synced(AspectList.CODEC, false).build();
 
+    public static final DataMapType<EntityType<?>, AspectList> ENTITY_ASPECTS = DataMapType.builder(
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "entity_aspects"),
+            Registries.ENTITY_TYPE,
+            AspectList.CODEC
+    ).synced(AspectList.CODEC, false).build();
+
     private AspectDataMaps() {}
 
     @SubscribeEvent
     public static void onRegister(RegisterDataMapTypesEvent event) {
         event.register(BASE_ASPECTS);
+        event.register(ENTITY_ASPECTS);
     }
 }

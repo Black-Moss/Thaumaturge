@@ -36,6 +36,32 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.METAL_VOID_BLOCK.get())
                 .add(TCBlocks.METAL_INFUSED_BLOCK.get());
 
+        tag(BlockTags.LOGS_THAT_BURN)
+                .add(TCBlocks.LOG_GREATWOOD.get())
+                .add(TCBlocks.LOG_SILVERWOOD.get());
+
+        tag(BlockTags.LEAVES)
+                .add(TCBlocks.LEAVES_GREATWOOD.get())
+                .add(TCBlocks.LEAVES_SILVERWOOD.get());
+
+        tag(BlockTags.SAPLINGS)
+                .add(TCBlocks.SAPLING_GREATWOOD.get())
+                .add(TCBlocks.SAPLING_SILVERWOOD.get());
+
+        tag(BlockTags.PLANKS)
+                .add(TCBlocks.PLANK_GREATWOOD.get())
+                .add(TCBlocks.PLANK_SILVERWOOD.get());
+
+        tag(BlockTags.MINEABLE_WITH_AXE)
+                .add(TCBlocks.LOG_GREATWOOD.get())
+                .add(TCBlocks.LOG_SILVERWOOD.get())
+                .add(TCBlocks.PLANK_GREATWOOD.get())
+                .add(TCBlocks.PLANK_SILVERWOOD.get());
+
+        tag(BlockTags.MINEABLE_WITH_HOE)
+                .add(TCBlocks.LEAVES_GREATWOOD.get())
+                .add(TCBlocks.LEAVES_SILVERWOOD.get());
+
         tag(TCBlockTags.CRUCIBLE_HEAT_SOURCES)
                 .add(Blocks.LAVA)
                 .add(Blocks.FIRE)

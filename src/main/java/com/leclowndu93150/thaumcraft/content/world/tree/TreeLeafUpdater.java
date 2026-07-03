@@ -10,6 +10,7 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -24,14 +25,33 @@ public final class TreeLeafUpdater {
 
     private TreeLeafUpdater() {}
 
-    public static void run(WorldGenLevel level, Set<BlockPos> logs, Set<BlockPos> leaves) {
+    public static void run(WorldGenLevel level, Set<BlockPos> logs, Set<BlockPos> leaves, Set<BlockPos> freshLeaves) {
         if (logs.isEmpty() && leaves.isEmpty()) {
             return;
         }
         BoundingBox.encapsulatingPositions(Iterables.concat(logs, leaves)).ifPresent(bounds -> {
             DiscreteVoxelShape shape = computeDistances(level, bounds, logs);
+            pruneUnreachableLeaves(level, freshLeaves);
             StructureTemplate.updateShapeAtEdge(level, 3, shape, bounds.minX(), bounds.minY(), bounds.minZ());
         });
+    }
+
+    public static BlockState carryDistance(BlockState replacement, BlockState previous) {
+        OptionalInt distance = LeavesBlock.getOptionalDistanceAt(previous);
+        if (distance.isPresent() && replacement.hasProperty(BlockStateProperties.DISTANCE)) {
+            return replacement.setValue(BlockStateProperties.DISTANCE, distance.getAsInt());
+        }
+        return replacement;
+    }
+
+    private static void pruneUnreachableLeaves(WorldGenLevel level, Set<BlockPos> freshLeaves) {
+        for (BlockPos pos : freshLeaves) {
+            BlockState state = level.getBlockState(pos);
+            OptionalInt distance = LeavesBlock.getOptionalDistanceAt(state);
+            if (distance.isPresent() && distance.getAsInt() == MAX_LEAF_DISTANCE) {
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), PLACE_FLAGS);
+            }
+        }
     }
 
     private static DiscreteVoxelShape computeDistances(WorldGenLevel level, BoundingBox bounds, Set<BlockPos> logs) {

@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
+import com.leclowndu93150.thaumcraft.content.item.CelestialNotesItem;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import net.minecraft.core.Holder;
@@ -30,6 +32,9 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SALIS_MUNDUS.get());
                         output.accept(TCItems.THAUMOMETER.get());
                         output.accept(TCItems.SCRIBING_TOOLS.get());
+                        for (CelestialBody body : CelestialBody.values()) {
+                            output.accept(CelestialNotesItem.stackOf(body));
+                        }
                         output.accept(TCItems.GOGGLES_REVEALING.get());
                         output.accept(TCItems.LABEL.get());
                         output.accept(TCItems.RESEARCH_TABLE.get());

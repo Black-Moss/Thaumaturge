@@ -45,6 +45,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
         private final BlockPos origin;
         private final Set<BlockPos> placedLogs = new HashSet<>();
         private final Set<BlockPos> placedLeaves = new HashSet<>();
+        private final Set<BlockPos> freshLeaves = new HashSet<>();
         private final int[] basePos = new int[3];
         private int heightLimit;
         private int height;
@@ -89,7 +90,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
             if (config.spiderChance() > 0.0F && rand.nextFloat() < config.spiderChance()) {
                 generateSpiderNest();
             }
-            TreeLeafUpdater.run(level, placedLogs, placedLeaves);
+            TreeLeafUpdater.run(level, placedLogs, placedLeaves, freshLeaves);
             return true;
         }
 
@@ -199,8 +200,11 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
                         cursor[coordB] = center[coordB] + db;
                         BlockPos pos = new BlockPos(cursor[0], cursor[1], cursor[2]);
                         BlockState state = level.getBlockState(pos);
-                        if (state.isAir() || state.is(config.leaves())) {
+                        if (state.isAir()) {
                             level.setBlock(pos, block.defaultBlockState(), PLACE_FLAGS);
+                            placedLeaves.add(pos);
+                            freshLeaves.add(pos);
+                        } else if (state.is(config.leaves())) {
                             placedLeaves.add(pos);
                         }
                     }
@@ -303,7 +307,9 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
 
         private void generateLeaves() {
             for (int[] node : leafNodes) {
-                generateLeafNode(node[0], node[1], node[2]);
+                if (leafNodeNeedsBase(node[3] - basePos[1])) {
+                    generateLeafNode(node[0], node[1], node[2]);
+                }
             }
         }
 

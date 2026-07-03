@@ -68,6 +68,7 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
 
         Set<BlockPos> placedLogs = new HashSet<>();
         Set<BlockPos> placedLeaves = new HashSet<>();
+        Set<BlockPos> freshLeaves = new HashSet<>();
         int canopyStart = y + height - 5;
         int canopyEnd = y + height + 3 + random.nextInt(3);
         for (int cy = canopyStart; cy <= canopyEnd; cy++) {
@@ -80,9 +81,19 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                     double dist = dx * dx + dy * dy + dz * dz;
                     BlockPos pos = new BlockPos(cx, cy, cz);
                     BlockState state = level.getBlockState(pos);
-                    if (dist < 10 + random.nextInt(8) && (state.isAir() || state.canBeReplaced() || state.is(BlockTags.LEAVES))) {
-                        level.setBlock(pos, config.leaves().defaultBlockState(), PLACE_FLAGS);
-                        placedLeaves.add(pos);
+                    if (dist < 10 + random.nextInt(8)) {
+                        if (state.is(config.leaves())) {
+                            placedLeaves.add(pos);
+                        } else if (state.is(BlockTags.LEAVES)) {
+                            level.setBlock(pos,
+                                    TreeLeafUpdater.carryDistance(config.leaves().defaultBlockState(), state),
+                                    PLACE_FLAGS);
+                            placedLeaves.add(pos);
+                        } else if (state.isAir() || state.canBeReplaced()) {
+                            level.setBlock(pos, config.leaves().defaultBlockState(), PLACE_FLAGS);
+                            placedLeaves.add(pos);
+                            freshLeaves.add(pos);
+                        }
                     }
                 }
             }
@@ -145,7 +156,7 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         placeLog(level, x, y + height - 4, z - 2, config, placedLogs, Direction.Axis.Z);
         placeLog(level, x, y + height - 4, z + 2, config, placedLogs, Direction.Axis.Z);
 
-        TreeLeafUpdater.run(level, placedLogs, placedLeaves);
+        TreeLeafUpdater.run(level, placedLogs, placedLeaves, freshLeaves);
         config.flower().ifPresent(flower -> generateFlowers(level, random, origin, flower));
         return true;
     }

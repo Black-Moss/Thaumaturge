@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftAccess;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.content.aura.AuraHelperBindings;
+import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
+import com.leclowndu93150.thaumcraft.content.research.scan.ScanBindings;
 import com.leclowndu93150.thaumcraft.content.taint.TaintApiBindings;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
@@ -69,5 +71,6 @@ public final class Thaumcraft {
         TheorycraftAccess.bind(player -> player.getData(TCAttachments.RESEARCH_TABLE));
         AuraHelper.bind(new AuraHelperBindings());
         TaintApi.bind(new TaintApiBindings());
+        ScanningManager.bind(new ScanBindings());
     }
 }

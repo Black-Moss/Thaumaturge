@@ -88,4 +88,15 @@ public interface IResearchEntry {
     default boolean hasMeta(ResearchEntryMeta flag) {
         return meta().contains(flag);
     }
+
+    /**
+     * Icons displayed on this entry's node in the Thaumonomicon. The browser cycles through the
+     * list over time; when empty, the node falls back to an icon derived from the first stage's
+     * item requirements.
+     *
+     * @return the icons, never null, possibly empty
+     */
+    default List<ResearchIcon> icons() {
+        return List.of();
+    }
 }

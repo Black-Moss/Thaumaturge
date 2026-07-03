@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumcraft.content.research.theorycraft.cards.CardNota
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.cards.CardPonder;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.cards.CardReject;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.cards.CardRethink;
+import com.leclowndu93150.thaumcraft.content.research.theorycraft.cards.CardCelestial;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.cards.CardStudy;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -38,6 +39,7 @@ public final class TCTheorycraft {
     public static final DeferredHolder<CardFactory, CardFactory> CARD_RETHINK = CARDS.register("rethink", () -> CardRethink::new);
     public static final DeferredHolder<CardFactory, CardFactory> CARD_REJECT = CARDS.register("reject", () -> CardReject::new);
     public static final DeferredHolder<CardFactory, CardFactory> CARD_EXPERIMENTATION = CARDS.register("experimentation", () -> CardExperimentation::new);
+    public static final DeferredHolder<CardFactory, CardFactory> CARD_CELESTIAL = CARDS.register("celestial", () -> CardCelestial::new);
 
     static {
         CARDS.makeRegistry(builder -> builder.sync(false));

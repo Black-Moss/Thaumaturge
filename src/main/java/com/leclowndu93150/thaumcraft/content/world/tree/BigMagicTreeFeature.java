@@ -45,6 +45,7 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
         private final BlockPos basePos;
         private final Set<BlockPos> placedLogs = new HashSet<>();
         private final Set<BlockPos> placedLeaves = new HashSet<>();
+        private final Set<BlockPos> freshLeaves = new HashSet<>();
         private int heightLimit;
         private int height;
         private List<FoliageNode> foliageCoords;
@@ -65,7 +66,7 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
             generateLeaves();
             generateTrunk();
             generateLeafNodeBases();
-            TreeLeafUpdater.run(level, placedLogs, placedLeaves);
+            TreeLeafUpdater.run(level, placedLogs, placedLeaves, freshLeaves);
             return true;
         }
 
@@ -115,8 +116,16 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
                     if (Math.pow(Math.abs(dx) + 0.5, 2.0) + Math.pow(Math.abs(dz) + 0.5, 2.0) <= radius * radius) {
                         BlockPos pos = center.offset(dx, 0, dz);
                         BlockState state = level.getBlockState(pos);
-                        if (state.isAir() || state.is(BlockTags.LEAVES)) {
+                        if (state.isAir()) {
                             level.setBlock(pos, config.leaves().defaultBlockState(), PLACE_FLAGS);
+                            placedLeaves.add(pos);
+                            freshLeaves.add(pos);
+                        } else if (state.is(BlockTags.LEAVES)) {
+                            if (!state.is(config.leaves())) {
+                                level.setBlock(pos,
+                                        TreeLeafUpdater.carryDistance(config.leaves().defaultBlockState(), state),
+                                        PLACE_FLAGS);
+                            }
                             placedLeaves.add(pos);
                         }
                     }
@@ -195,7 +204,9 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
 
         private void generateLeaves() {
             for (FoliageNode node : foliageCoords) {
-                generateLeafNode(node.pos());
+                if (leafNodeNeedsBase(node.branchBase() - basePos.getY())) {
+                    generateLeafNode(node.pos());
+                }
             }
         }
 

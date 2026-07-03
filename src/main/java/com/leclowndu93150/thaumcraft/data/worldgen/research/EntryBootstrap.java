@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
+import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.api.research.TCResearchCategories;
 import com.leclowndu93150.thaumcraft.content.research.ResearchEntry;
@@ -28,6 +29,8 @@ public final class EntryBootstrap {
     private EntryBootstrap() {}
 
     private static final Identifier ROOT_BASICS = id("basics_root");
+    private static final Identifier CELESTIAL_SCANNING = id("celestial_scanning");
+    private static final Identifier FLUX = id("flux");
     private static final Identifier UNLOCK_AUROMANCY = id("unlock_auromancy");
     private static final Identifier UNLOCK_ALCHEMY = id("unlock_alchemy");
     private static final Identifier UNLOCK_ARTIFICE = id("unlock_artifice");
@@ -136,6 +139,65 @@ public final class EntryBootstrap {
                         List.of(reward(KnowledgeType.THEORY, basics, 4)),
                         List.of(),
                         4)));
+
+        register(ctx, CELESTIAL_SCANNING, basics, 4, 1,
+                Set.of(ROOT_BASICS),
+                meta(ResearchEntryMeta.ROUND),
+                stages(stage(
+                        "research.thaumcraft.celestial_scanning.stage_0",
+                        List.of(),
+                        List.of(req(Items.PAPER, 1)),
+                        List.of(),
+                        List.of(reward(KnowledgeType.OBSERVATION, basics, 2)),
+                        List.of(),
+                        0)),
+                researchTexture("r_celestial"));
+
+        register(ctx, FLUX, basics, -4, -2,
+                Set.of(),
+                meta(ResearchEntryMeta.ROUND, ResearchEntryMeta.HIDDEN),
+                stages(stage(
+                        "research.thaumcraft.flux.stage_0",
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        0)),
+                researchTexture("r_flux"));
+
+        registerScanEntries(ctx, basics);
+    }
+
+    private static void registerScanEntries(BootstrapContext<IResearchEntry> ctx, Holder<IResearchCategory> basics) {
+        scanEntry(ctx, basics, "wisp", -7, 0, "r_wisp");
+        scanEntry(ctx, basics, "pech", -8, 0, "r_pech");
+        scanEntry(ctx, basics, "thaumic_slime", -9, 0, "r_thaumslime");
+        scanEntry(ctx, basics, "firebat", -10, 0, "r_firebat");
+        scanEntry(ctx, basics, "taint_seed", -7, 1, "r_taintseed");
+        scanEntry(ctx, basics, "taint_crawler", -8, 1, "r_taintcrawler");
+        scanEntry(ctx, basics, "taintacle", -9, 1, "r_taintacle");
+        scanEntry(ctx, basics, "taint_swarm", -10, 1, "r_taintswarm");
+        scanEntry(ctx, basics, "cultist", -7, 2, "r_cultist");
+        scanEntry(ctx, basics, "brainy_zombie", -8, 2, "r_angryzombie");
+        scanEntry(ctx, basics, "eldritch_guardian", -9, 2, "r_eldritchguardian");
+        scanEntry(ctx, basics, "eldritch_crab", -10, 2, "r_crab");
+    }
+
+    private static void scanEntry(BootstrapContext<IResearchEntry> ctx, Holder<IResearchCategory> basics,
+                                  String entityPath, int column, int row, String iconName) {
+        register(ctx, id("scanned/entity/thaumcraft/" + entityPath), basics, column, row,
+                Set.of(),
+                meta(ResearchEntryMeta.HEX, ResearchEntryMeta.HIDDEN),
+                stages(stage(
+                        "research.thaumcraft.scanned/entity/thaumcraft/" + entityPath + ".stage_0",
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        0)),
+                researchTexture(iconName));
     }
 
     private static void registerAuromancy(BootstrapContext<IResearchEntry> ctx, Holder<IResearchCategory> auromancy) {
@@ -283,6 +345,20 @@ public final class EntryBootstrap {
             Set<ResearchEntryMeta> meta,
             List<IResearchStage> stages
     ) {
+        register(ctx, id, category, column, row, parents, meta, stages, List.of());
+    }
+
+    private static void register(
+            BootstrapContext<IResearchEntry> ctx,
+            Identifier id,
+            Holder<IResearchCategory> category,
+            int column,
+            int row,
+            Set<Identifier> parents,
+            Set<ResearchEntryMeta> meta,
+            List<IResearchStage> stages,
+            List<ResearchIcon> icons
+    ) {
         String nameKey = "research.thaumcraft." + id.getPath() + ".title";
         ResearchEntry entry = new ResearchEntry(
                 category,
@@ -292,8 +368,13 @@ public final class EntryBootstrap {
                 column,
                 row,
                 stages,
-                meta.isEmpty() ? EnumSet.noneOf(ResearchEntryMeta.class) : EnumSet.copyOf(meta));
+                meta.isEmpty() ? EnumSet.noneOf(ResearchEntryMeta.class) : EnumSet.copyOf(meta),
+                icons);
         ctx.register(ResourceKey.create(IResearchEntry.REGISTRY_KEY, id), entry);
+    }
+
+    private static List<ResearchIcon> researchTexture(String name) {
+        return List.of(ResearchIcon.ofTexture(id("textures/research/" + name + ".png")));
     }
 
     private static ResearchStage stage(

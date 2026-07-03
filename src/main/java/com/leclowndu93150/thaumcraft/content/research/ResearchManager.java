@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.content.research;
 
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.network.ClientboundKnowledgeGainPayload;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
@@ -17,6 +18,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public final class ResearchManager {
@@ -41,6 +43,7 @@ public final class ResearchManager {
         if (entry == null) return false;
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         if (!knowledge.isResearchKnown(research)) return false;
+        if (knowledge.isResearchComplete(research)) return false;
         int currentStage = knowledge.researchStage(research);
         int totalStages = entry.stages().size();
         if (currentStage >= totalStages) return false;
@@ -90,8 +93,14 @@ public final class ResearchManager {
         if (NeoForge.EVENT_BUS.post(event).isCanceled()) return false;
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         ResourceKey<IResearchCategory> key = category == null ? null : category.unwrapKey().orElse(null);
+        int pointsBefore = knowledge.knowledge(type, key);
         boolean changed = knowledge.addKnowledge(type, key, amount);
         if (changed) knowledge.sync(player);
+        int pointsGained = knowledge.knowledge(type, key) - pointsBefore;
+        for (int point = 0; point < pointsGained; point++) {
+            PacketDistributor.sendToPlayer(player,
+                    new ClientboundKnowledgeGainPayload(type, Optional.ofNullable(key)));
+        }
         return changed;
     }
 
@@ -134,7 +143,7 @@ public final class ResearchManager {
         }
     }
 
-    private static void applyWarp(ServerPlayer player, int amount) {
+    public static void applyWarp(ServerPlayer player, int amount) {
     }
 
     private static Optional<IResearchEntry> entry(ServerPlayer player, Identifier research) {

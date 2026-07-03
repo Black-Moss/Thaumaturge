@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
+import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -23,7 +24,8 @@ public record ResearchEntry(
         int column,
         int row,
         List<IResearchStage> stages,
-        Set<ResearchEntryMeta> meta
+        Set<ResearchEntryMeta> meta,
+        List<ResearchIcon> icons
 ) implements IResearchEntry {
     public static final Codec<ResearchEntry> DIRECT_CODEC = RecordCodecBuilder.<ResearchEntry>create(instance -> instance.group(
             RegistryFixedCodec.create(IResearchCategory.REGISTRY_KEY).fieldOf("category").forGetter(ResearchEntry::category),
@@ -33,7 +35,8 @@ public record ResearchEntry(
             Codec.INT.fieldOf("column").forGetter(ResearchEntry::column),
             Codec.INT.fieldOf("row").forGetter(ResearchEntry::row),
             ResearchStage.CODEC.listOf().fieldOf("stages").forGetter(e -> e.stages().stream().map(s -> (ResearchStage) s).toList()),
-            ResearchEntryMeta.CODEC.listOf().optionalFieldOf("meta", List.of()).forGetter(e -> List.copyOf(e.meta()))
+            ResearchEntryMeta.CODEC.listOf().optionalFieldOf("meta", List.of()).forGetter(e -> List.copyOf(e.meta())),
+            ResearchIcon.CODEC.listOf().optionalFieldOf("icons", List.of()).forGetter(ResearchEntry::icons)
     ).apply(instance, ResearchEntry::create)).validate(ResearchEntry::validate);
 
     public static final Codec<IResearchEntry> CODEC = DIRECT_CODEC.xmap(e -> (IResearchEntry) e, ResearchEntry::ofInterface);
@@ -46,7 +49,8 @@ public record ResearchEntry(
             int column,
             int row,
             List<ResearchStage> stages,
-            List<ResearchEntryMeta> meta
+            List<ResearchEntryMeta> meta,
+            List<ResearchIcon> icons
     ) {
         return new ResearchEntry(
                 category,
@@ -56,7 +60,8 @@ public record ResearchEntry(
                 column,
                 row,
                 List.copyOf(stages),
-                meta.isEmpty() ? EnumSet.noneOf(ResearchEntryMeta.class) : EnumSet.copyOf(meta)
+                meta.isEmpty() ? EnumSet.noneOf(ResearchEntryMeta.class) : EnumSet.copyOf(meta),
+                List.copyOf(icons)
         );
     }
 
@@ -79,7 +84,8 @@ public record ResearchEntry(
                 entry.column(),
                 entry.row(),
                 entry.stages(),
-                entry.meta()
+                entry.meta(),
+                entry.icons()
         );
     }
 }

@@ -7,14 +7,12 @@ import com.leclowndu93150.thaumcraft.content.fx.data.FluxGooDropletData;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.mixin.world.entity.monster.SlimeAccessor;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
-import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -177,26 +175,6 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
         if (this.getSize() > 1) {
             this.spawnAtLocation(level, EssentiaCrystalFactory.of(level.registryAccess(), TCAspects.VITIUM));
         }
-    }
-
-    @Override
-    protected SoundEvent getJumpSound() {
-        return TCSounds.GORE.get();
-    }
-
-    @Override
-    protected SoundEvent getSquishSound() {
-        return TCSounds.GORE.get();
-    }
-
-    @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return TCSounds.GORE.get();
-    }
-
-    @Override
-    protected SoundEvent getDeathSound() {
-        return TCSounds.GORE.get();
     }
 
     @Override

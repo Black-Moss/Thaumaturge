@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
+import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -31,6 +32,11 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("aspect_filter", builder -> builder
                     .persistent(ResourceKey.codec(IAspect.REGISTRY_KEY))
                     .networkSynchronized(ResourceKey.streamCodec(IAspect.REGISTRY_KEY)));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CelestialBody>> CELESTIAL_BODY =
+            DATA_COMPONENTS.registerComponentType("celestial_body", builder -> builder
+                    .persistent(CelestialBody.CODEC)
+                    .networkSynchronized(CelestialBody.STREAM_CODEC));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<AspectInstance>> CRYSTAL_ASPECT =
             DATA_COMPONENTS.registerComponentType("crystal_aspect", builder -> builder
