@@ -27,6 +27,7 @@ import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintRock;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintSoil;
 import com.leclowndu93150.thaumcraft.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumcraft.content.taint.flux.FluxGooRefs;
+import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbench;
 import com.leclowndu93150.thaumcraft.content.world.crystal.BlockCrystal;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockGrassAmbient;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantCinderpearl;
@@ -62,6 +63,27 @@ public final class TCBlocks {
                     .sound(SoundType.WOOD)
                     .noOcclusion()
     );
+
+    public static final DeferredBlock<BlockArcaneWorkbench> ARCANE_WORKBENCH = BLOCKS.registerBlock(
+            "arcane_workbench",
+            BlockArcaneWorkbench::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F,5.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockCrucible> CRUCIBLE = BLOCKS.registerBlock(
+            "crucible",
+            BlockCrucible::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F,20.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+    );
+
 
     public static final DeferredBlock<BlockJar> JAR_NORMAL = BLOCKS.registerBlock(
             "jar_normal",
@@ -198,16 +220,6 @@ public final class TCBlocks {
                         if (s.getValue(BlockTaintFibre.GROWTH2) || s.getValue(BlockTaintFibre.GROWTH4)) return 6;
                         return 0;
                     })
-    );
-
-    public static final DeferredBlock<BlockCrucible> CRUCIBLE = BLOCKS.registerBlock(
-            "crucible",
-            BlockCrucible::new,
-            props -> props
-                    .mapColor(MapColor.METAL)
-                    .strength(2.0F,20.0F)
-                    .sound(SoundType.METAL)
-                    .noOcclusion()
     );
 
     private static BlockBehaviour.Properties taintBlockProps(BlockBehaviour.Properties props) {

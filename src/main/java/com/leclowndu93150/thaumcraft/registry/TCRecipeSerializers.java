@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSimpleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerTagRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneShapedCraftingRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneShapelessCraftingRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.neoforged.bus.api.IEventBus;
@@ -26,6 +28,13 @@ public final class TCRecipeSerializers {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CrucibleRecipe>> CRUCIBLE =
             RECIPE_SERIALIZERS.register("crucible", () -> CrucibleRecipe.SERIALIZER);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArcaneShapedCraftingRecipe>> ARCANE_SHAPED =
+            RECIPE_SERIALIZERS.register("arcane_workbench_shaped", () -> ArcaneShapedCraftingRecipe.SERIALIZER);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArcaneShapelessCraftingRecipe>> ARCANE_SHAPELESS =
+            RECIPE_SERIALIZERS.register("arcane_workbench_shapeless", () -> ArcaneShapelessCraftingRecipe.SERIALIZER);
+
 
 
     private TCRecipeSerializers() {}

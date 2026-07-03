@@ -20,7 +20,7 @@ public record AspectInstance(Holder<IAspect> aspect, int amount) {
     /** Codec used in datapack JSON. References aspects by their registry id. */
     public static final Codec<AspectInstance> CODEC = RecordCodecBuilder.create(builder -> builder.group(
             RegistryFixedCodec.create(IAspect.REGISTRY_KEY).fieldOf("aspect").forGetter(AspectInstance::aspect),
-            Codec.intRange(1, Integer.MAX_VALUE).fieldOf("amount").forGetter(AspectInstance::amount)
+            Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("amount",1).forGetter(AspectInstance::amount)
     ).apply(builder, AspectInstance::new));
 
     /** Network codec. Syncs the holder by registry id, not by value. */

@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceKey;
@@ -52,5 +53,10 @@ public class CrucibleRecipeBuilder extends SimpleRecipeBuilder {
                 Optional.ofNullable(gate));
 
         output.accept(key, recipe, this.advancementBuilder.build(output, key, this.category));
+    }
+
+    @Override
+    public ResourceKey<Recipe<?>> defaultId() {
+        return ResourceKey.create(Registries.RECIPE, result.typeHolder().unwrapKey().orElseThrow().identifier().withPrefix("crucible/"));
     }
 }

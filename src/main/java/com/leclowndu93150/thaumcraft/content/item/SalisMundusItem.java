@@ -1,11 +1,13 @@
 package com.leclowndu93150.thaumcraft.content.item;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerPlacement;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerFx;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.List;
@@ -24,9 +26,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
 
+@EventBusSubscriber(modid = TCIds.MODID)
 public final class SalisMundusItem extends Item {
     private static final int SWAP_DELAY_TICKS = 50;
 
@@ -38,9 +45,6 @@ public final class SalisMundusItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
         if (player == null) {
-            return InteractionResult.PASS;
-        }
-        if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
         Level level = context.getLevel();
@@ -97,5 +101,19 @@ public final class SalisMundusItem extends Item {
         level.playSound(null, pos, TCSounds.DUST.get(), SoundSource.PLAYERS, 0.33F,
                 1.0F + (float) level.getRandom().nextGaussian() * 0.05F);
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public boolean doesSneakBypassUse(ItemStack stack, LevelReader level, BlockPos pos, Player player) {
+        return true;
+    }
+
+    @SubscribeEvent
+    public static void allowUseOnCraftingTable(UseItemOnBlockEvent event){
+        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK) return;
+        if (!event.getItemStack().is(TCItems.SALIS_MUNDUS)) return;
+        if (event.getPlayer() == null) return;
+        if (!event.getPlayer().isCrouching()) return;
+        event.cancelWithResult(InteractionResult.PASS);
     }
 }

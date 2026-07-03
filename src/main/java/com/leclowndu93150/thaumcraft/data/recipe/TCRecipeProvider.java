@@ -7,6 +7,8 @@ import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.CrucibleRecipeBuilder;
+import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapedRecipeBuilder;
+import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapelessRecipeBuilder;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 
@@ -35,6 +37,7 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
+        buildArcaneWorkbenchRecipes();
         buildCrucibleRecipes();
         shaped(RecipeCategory.MISC, TCItems.JAR_BRACE.get(), 2)
                 .define('N', Items.IRON_NUGGET)
@@ -112,13 +115,34 @@ public final class TCRecipeProvider extends RecipeProvider {
                     .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_alchemy"), Optional.of(1),false))
                     .aspect(aspect,2)
                     .unlockedBy("has",has(TCItems.NUGGET_QUARTZ))
-                    .save(output, aspect.getKey().identifier().getPath() + "_vis_crystal");
+                    .save(output, TCIds.MODID + ":crucible/vis_crystal/"+ aspect.getKey().identifier().getPath());
         });
+    }
+
+    private void buildArcaneWorkbenchRecipes(){
+        arcaneShaped(new ItemStackTemplate(TCItems.THAUMOMETER),20)
+                .allAspects()
+                .pattern(" G ")
+                .pattern("GPG")
+                .pattern(" G ")
+                .define('G',Tags.Items.INGOTS_GOLD)
+                .define('P',Tags.Items.GLASS_PANES)
+                .unlockedBy("has",has(Tags.Items.INGOTS_GOLD))
+                .save(output);
     }
 
     private Holder<IAspect> getAspect(ResourceKey<IAspect> key){
         return registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(key);
     }
+
+    private ArcaneWorkbenchShapedRecipeBuilder arcaneShaped(ItemStackTemplate result, int vis){
+        return new ArcaneWorkbenchShapedRecipeBuilder(RecipeCategory.MISC,result,items, registries.lookupOrThrow(IAspect.REGISTRY_KEY),vis);
+    }
+
+    private ArcaneWorkbenchShapelessRecipeBuilder arcaneShapeless(ItemStackTemplate result, int vis){
+        return new ArcaneWorkbenchShapelessRecipeBuilder(RecipeCategory.MISC,result,registries.lookupOrThrow(IAspect.REGISTRY_KEY), vis,items);
+    }
+
 
     public static final class Runner extends RecipeProvider.Runner {
         public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {

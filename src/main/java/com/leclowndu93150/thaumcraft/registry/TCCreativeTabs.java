@@ -38,6 +38,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.GOGGLES_REVEALING.get());
                         output.accept(TCItems.LABEL.get());
                         output.accept(TCItems.RESEARCH_TABLE.get());
+                        output.accept(TCItems.ARCANE_WORKBENCH.get());
                         output.accept(TCItems.CRUCIBLE.get());
                         output.accept(TCItems.JAR_NORMAL.get());
                         output.accept(TCItems.JAR_VOID.get());
