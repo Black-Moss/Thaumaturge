@@ -14,12 +14,9 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-@OnlyIn(Dist.CLIENT)
 public final class BlockRunesParticle extends SingleQuadParticle {
     private static final int GRID = 64;
     private static final int RUNE_ROW = 6;
@@ -139,7 +136,6 @@ public final class BlockRunesParticle extends SingleQuadParticle {
         return QUAD_RADIUS * this.baseScale;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<BlockRunesData> {
         private final SpriteSet sprites;
 

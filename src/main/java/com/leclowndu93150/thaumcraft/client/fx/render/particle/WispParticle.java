@@ -12,10 +12,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
-@OnlyIn(Dist.CLIENT)
 public final class WispParticle extends SingleQuadParticle {
     private static final float BASE_ALPHA = 0.2F;
     private static final float MAX_DIST_SQ = 1024.0F;
@@ -82,7 +79,6 @@ public final class WispParticle extends SingleQuadParticle {
         return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<WispData> {
         private final SpriteSet sprites;
 

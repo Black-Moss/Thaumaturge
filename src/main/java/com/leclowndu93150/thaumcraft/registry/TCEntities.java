@@ -18,6 +18,38 @@ public final class TCEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(Registries.ENTITY_TYPE, TCIds.MODID);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityBrainyZombie>> BRAINY_ZOMBIE = register(
+            "brainy_zombie",
+            () -> EntityType.Builder.of(EntityBrainyZombie::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.95F)
+                    .eyeHeight(1.74F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityGiantBrainyZombie>> GIANT_BRAINY_ZOMBIE = register(
+            "giant_brainy_zombie",
+            () -> EntityType.Builder.of(EntityGiantBrainyZombie::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.95F)
+                    .eyeHeight(1.74F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityMindSpider>> MIND_SPIDER = register(
+            "mind_spider",
+            () -> EntityType.Builder.of(EntityMindSpider::new, MobCategory.MONSTER)
+                    .sized(0.7F, 0.5F)
+                    .eyeHeight(0.45F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityFireBat>> FIRE_BAT = register(
+            "firebat",
+            () -> EntityType.Builder.of(EntityFireBat::new, MobCategory.MONSTER)
+                    .sized(0.5F, 0.9F)
+                    .fireImmune()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
     public static final DeferredHolder<EntityType<?>, EntityType<WispEntity>> WISP = register(
             "wisp",
             () -> EntityType.Builder.of(WispEntity::new, MobCategory.MONSTER)

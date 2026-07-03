@@ -91,6 +91,10 @@ public final class EntityAspectsProvider extends DataMapProvider {
         add(b, TCEntities.TAINT_SEED_PRIME.get(), list(TCAspects.VITIUM, 25, TCAspects.AURAM, 15, TCAspects.HERBA, 5));
         add(b, TCEntities.TAINTACLE_SMALL.get(), list(TCAspects.VITIUM, 5, TCAspects.BESTIA, 5));
         add(b, TCEntities.TAINT_SWARM.get(), list(TCAspects.VITIUM, 15, TCAspects.AER, 5));
+        add(b, TCEntities.FIRE_BAT.get(), list(TCAspects.BESTIA, 5, TCAspects.VOLATUS, 5, TCAspects.IGNIS, 10));
+        add(b, TCEntities.MIND_SPIDER.get(), list(TCAspects.VITIUM, 5, TCAspects.IGNIS, 5));
+        add(b, TCEntities.BRAINY_ZOMBIE.get(), list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 10, TCAspects.COGNITIO, 5, TCAspects.AVERSIO, 5));
+        add(b, TCEntities.GIANT_BRAINY_ZOMBIE.get(), list(TCAspects.EXANIMIS, 25, TCAspects.HUMANUS, 15, TCAspects.COGNITIO, 5, TCAspects.AVERSIO, 10));
     }
 
     private void add(Builder<AspectList, EntityType<?>> b, EntityType<?> type, AspectList value) {

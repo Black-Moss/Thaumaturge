@@ -1,14 +1,15 @@
 package com.leclowndu93150.thaumcraft.content.entity.ai;
 
-import com.leclowndu93150.thaumcraft.content.entity.WispEntity;
 import java.util.EnumSet;
+import java.util.function.BooleanSupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-public final class WispRandomFloatGoal extends Goal {
+public final class FlyingWanderGoal extends Goal {
     private static final int HORIZONTAL_SPREAD = 7;
     private static final int VERTICAL_SPREAD = 6;
     private static final int VERTICAL_BIAS = 2;
@@ -17,24 +18,31 @@ public final class WispRandomFloatGoal extends Goal {
     private static final int MAX_SURFACE_CLEARANCE = 8;
     private static final int PICK_ATTEMPTS = 10;
 
-    private final WispEntity wisp;
+    private final Mob mob;
+    private final boolean clampToSurface;
+    private final BooleanSupplier canWander;
 
-    public WispRandomFloatGoal(WispEntity wisp) {
-        this.wisp = wisp;
+    public FlyingWanderGoal(Mob mob, boolean clampToSurface, BooleanSupplier canWander) {
+        this.mob = mob;
+        this.clampToSurface = clampToSurface;
+        this.canWander = canWander;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
     @Override
     public boolean canUse() {
-        MoveControl moveControl = wisp.getMoveControl();
+        if (!canWander.getAsBoolean()) {
+            return false;
+        }
+        MoveControl moveControl = mob.getMoveControl();
         if (!moveControl.hasWanted()) {
             return true;
         }
-        double dx = moveControl.getWantedX() - wisp.getX();
-        double dy = moveControl.getWantedY() - wisp.getY();
-        double dz = moveControl.getWantedZ() - wisp.getZ();
+        double dx = moveControl.getWantedX() - mob.getX();
+        double dy = moveControl.getWantedY() - mob.getY();
+        double dz = moveControl.getWantedZ() - mob.getZ();
         double distSq = dx * dx + dy * dy + dz * dz;
-        return distSq < ARRIVE_DISTANCE_SQ || wisp.getRandom().nextInt(reducedTickDelay(REPICK_ONE_IN)) == 0;
+        return distSq < ARRIVE_DISTANCE_SQ || mob.getRandom().nextInt(reducedTickDelay(REPICK_ONE_IN)) == 0;
     }
 
     @Override
@@ -44,14 +52,14 @@ public final class WispRandomFloatGoal extends Goal {
 
     @Override
     public void start() {
-        RandomSource random = wisp.getRandom();
+        RandomSource random = mob.getRandom();
         for (int attempt = 0; attempt < PICK_ATTEMPTS; attempt++) {
             BlockPos candidate = BlockPos.containing(
-                    wisp.getX() + random.nextInt(HORIZONTAL_SPREAD) - random.nextInt(HORIZONTAL_SPREAD),
-                    wisp.getY() + random.nextInt(VERTICAL_SPREAD) - VERTICAL_BIAS,
-                    wisp.getZ() + random.nextInt(HORIZONTAL_SPREAD) - random.nextInt(HORIZONTAL_SPREAD));
+                    mob.getX() + random.nextInt(HORIZONTAL_SPREAD) - random.nextInt(HORIZONTAL_SPREAD),
+                    mob.getY() + random.nextInt(VERTICAL_SPREAD) - VERTICAL_BIAS,
+                    mob.getZ() + random.nextInt(HORIZONTAL_SPREAD) - random.nextInt(HORIZONTAL_SPREAD));
             if (isValidWaypoint(candidate)) {
-                wisp.getMoveControl().setWantedPosition(
+                mob.getMoveControl().setWantedPosition(
                         candidate.getX() + 0.5, candidate.getY() + 0.1, candidate.getZ() + 0.5, 1.0);
                 return;
             }
@@ -59,13 +67,16 @@ public final class WispRandomFloatGoal extends Goal {
     }
 
     private boolean isValidWaypoint(BlockPos pos) {
-        if (!wisp.level().isEmptyBlock(pos)) {
+        if (!mob.level().isEmptyBlock(pos)) {
             return false;
         }
-        if (pos.getY() <= wisp.level().getMinY()) {
+        if (pos.getY() <= mob.level().getMinY()) {
             return false;
         }
-        int surface = wisp.level().getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX(), pos.getZ());
+        if (!clampToSurface) {
+            return true;
+        }
+        int surface = mob.level().getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX(), pos.getZ());
         return pos.getY() <= surface + MAX_SURFACE_CLEARANCE;
     }
 }

@@ -14,11 +14,8 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 
-@OnlyIn(Dist.CLIENT)
 public final class FXFireMoteParticle extends SingleQuadParticle {
     private static final int GRID = 64;
     private static final int CELL = 7;
@@ -132,7 +129,6 @@ public final class FXFireMoteParticle extends SingleQuadParticle {
         return this.quadSize * 0.1F;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<FireMoteData> {
         private final SpriteSet sprites;
 

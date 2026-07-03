@@ -6,8 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 public final class BlockEntityNitor extends BlockEntity {
     private int count = 0;
@@ -16,7 +14,6 @@ public final class BlockEntityNitor extends BlockEntity {
         super(TCBlockEntities.NITOR.get(), pos, state);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityNitor be) {
         if (!level.isClientSide()) return;
         if (!(state.getBlock() instanceof BlockNitor nitor)) return;

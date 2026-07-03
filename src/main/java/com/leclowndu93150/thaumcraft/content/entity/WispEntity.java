@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.IEntityAspectSource;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
-import com.leclowndu93150.thaumcraft.content.entity.ai.WispRandomFloatGoal;
+import com.leclowndu93150.thaumcraft.content.entity.ai.FlyingWanderGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.WispZapGoal;
 import com.leclowndu93150.thaumcraft.content.fx.WispFx;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
@@ -75,7 +75,7 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(5, new WispRandomFloatGoal(this));
+        this.goalSelector.addGoal(5, new FlyingWanderGoal(this, true, () -> true));
         this.goalSelector.addGoal(7, new Ghast.GhastLookGoal(this));
         this.goalSelector.addGoal(7, new WispZapGoal(this));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));

@@ -10,11 +10,8 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.resources.Identifier;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 
-@OnlyIn(Dist.CLIENT)
 public final class CrystalUnbakedModel implements CustomUnbakedBlockStateModel {
     public static final CrystalUnbakedModel INSTANCE = new CrystalUnbakedModel();
     public static final MapCodec<CrystalUnbakedModel> CODEC = MapCodec.unit(INSTANCE);

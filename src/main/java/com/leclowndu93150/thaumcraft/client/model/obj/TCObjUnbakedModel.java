@@ -6,13 +6,10 @@ import com.google.gson.JsonParseException;
 import net.minecraft.client.resources.model.geometry.UnbakedGeometry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.model.AbstractUnbakedModel;
 import net.neoforged.neoforge.client.model.StandardModelParameters;
 import net.neoforged.neoforge.client.model.UnbakedModelLoader;
 
-@OnlyIn(Dist.CLIENT)
 public final class TCObjUnbakedModel extends AbstractUnbakedModel {
     private final TCObjGeometry geometry;
 

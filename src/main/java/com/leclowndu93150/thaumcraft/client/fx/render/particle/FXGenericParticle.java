@@ -16,11 +16,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 
-@OnlyIn(Dist.CLIENT)
 public final class FXGenericParticle extends SingleQuadParticle {
     private static final float DEG_TO_RAD = (float)(Math.PI / 180.0);
 
@@ -303,7 +300,6 @@ public final class FXGenericParticle extends SingleQuadParticle {
         return out;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static final class Provider implements ParticleProvider<FXGenericData> {
         private final SpriteSet sprites;
 

@@ -3,11 +3,8 @@ package com.leclowndu93150.thaumcraft.client.fx.network;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-@OnlyIn(Dist.CLIENT)
 public final class SpawnParticleClientHandler {
     private SpawnParticleClientHandler() {}
 

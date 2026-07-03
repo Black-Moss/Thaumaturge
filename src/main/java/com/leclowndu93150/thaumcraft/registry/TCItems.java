@@ -24,6 +24,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
@@ -103,6 +108,24 @@ public final class TCItems {
             ItemBottleTaint::new,
             props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
 
+    public static final DeferredItem<Item> BRAIN = ITEMS.registerItem(
+            "brain",
+            Item::new,
+            props -> props
+                    .food(new FoodProperties(4, 0.2F, true),
+                            Consumables.defaultFood()
+                                    .onConsume(new ApplyStatusEffectsConsumeEffect(
+                                            new MobEffectInstance(MobEffects.HUNGER, 30, 0), 0.8F))
+                                    .build()));
+
+    public static final DeferredItem<SpawnEggItem> BRAINY_ZOMBIE_SPAWN_EGG =
+            registerSpawnEgg("brainy_zombie_spawn_egg", TCEntities.BRAINY_ZOMBIE);
+    public static final DeferredItem<SpawnEggItem> GIANT_BRAINY_ZOMBIE_SPAWN_EGG =
+            registerSpawnEgg("giant_brainy_zombie_spawn_egg", TCEntities.GIANT_BRAINY_ZOMBIE);
+    public static final DeferredItem<SpawnEggItem> FIREBAT_SPAWN_EGG =
+            registerSpawnEgg("firebat_spawn_egg", TCEntities.FIRE_BAT);
+    public static final DeferredItem<SpawnEggItem> MIND_SPIDER_SPAWN_EGG =
+            registerSpawnEgg("mind_spider_spawn_egg", TCEntities.MIND_SPIDER);
     public static final DeferredItem<SpawnEggItem> WISP_SPAWN_EGG =
             registerSpawnEgg("wisp_spawn_egg", TCEntities.WISP);
     public static final DeferredItem<SpawnEggItem> THAUMIC_SLIME_SPAWN_EGG =

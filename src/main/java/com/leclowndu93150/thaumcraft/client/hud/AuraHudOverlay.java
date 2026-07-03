@@ -17,12 +17,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.gui.GuiLayer;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
-@OnlyIn(Dist.CLIENT)
 public final class AuraHudOverlay implements GuiLayer {
     private static final Identifier HUD = TCIds.rl("textures/gui/hud.png");
     private static final int TEX_SIZE = 256;

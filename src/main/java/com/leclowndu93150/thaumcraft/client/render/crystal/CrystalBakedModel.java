@@ -17,12 +17,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import org.joml.Matrix4f;
 
-@OnlyIn(Dist.CLIENT)
 public final class CrystalBakedModel implements DynamicBlockStateModel {
     private static final List<Integer> PART_INDICES = List.of(0, 1, 2, 3, 4, 5, 6, 7);
     private static final Direction[] FACES = Direction.values();
