@@ -148,6 +148,17 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('I', Tags.Items.INGOTS_IRON)
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.GOGGLES_REVEALING),50)
+                .pattern("LBL")
+                .pattern("L L")
+                .pattern("MBM")
+                .define('L',Tags.Items.LEATHERS)
+                .define('B',TCItems.INGOT_BRASS)
+                .define('M',TCItems.THAUMOMETER)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_artifice"),Optional.of(1),false))
+                .unlockedBy("has",has(TCItems.THAUMOMETER))
+                .save(output);
     }
 
     private Holder<IAspect> getAspect(ResourceKey<IAspect> key) {

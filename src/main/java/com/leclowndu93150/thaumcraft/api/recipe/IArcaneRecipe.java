@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumcraft.api.recipe;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingInput;
+import com.leclowndu93150.thaumcraft.registry.TCAttributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -17,7 +19,7 @@ public interface IArcaneRecipe extends ResearchGated, Recipe<ArcaneCraftingInput
     int getBaseVis();
 
     default int getReducedVis(Player player){
-        return getBaseVis();
+        return getBaseVis() * (100 - GogglesAccess.totalVisDiscount(player)) / 100;
     }
 
     AspectList getCrystals();

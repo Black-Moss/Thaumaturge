@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.client.screen.workbench;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCContainerScreen;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
@@ -31,9 +32,11 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
         int requiredVis = 0;
         IArcaneRecipe recipe = ThaumcraftCraftingManager.findMatchingArcaneRecipe(minecraft.level,menu.getCraftingInventory().asArcaneCraftInput(), minecraft.player);
         AspectList aspects = AspectList.EMPTY;
+        int discountPercentage = 0;
         if (recipe != null && recipe.doesPassGate(minecraft.player)) {
             requiredVis = recipe.getReducedVis(minecraft.player);
             aspects = recipe.getCrystals();
+            discountPercentage = GogglesAccess.totalVisDiscount(minecraft.player);
         }
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
@@ -64,7 +67,7 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + 168, y + 38);
             graphics.pose().scale(0.5f);
-            Component required = Component.translatable("gui.thaumcraft.arcane_workbench.required_vis", requiredVis);
+            Component required = discountPercentage > 0 ? Component.translatable("gui.thaumcraft.arcane_workbench.required_vis_discount",requiredVis,discountPercentage) : Component.translatable("gui.thaumcraft.arcane_workbench.required_vis", requiredVis);
             int requiredWidth = font.width(required) / 2;
             graphics.text(font, required, -requiredWidth, 0, 0xFF000000 | 12648447, false);
             graphics.pose().popMatrix();

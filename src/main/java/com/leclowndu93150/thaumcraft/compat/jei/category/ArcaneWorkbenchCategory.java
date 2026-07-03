@@ -159,6 +159,7 @@ public final class ArcaneWorkbenchCategory implements IRecipeCategory<RecipeHold
     }
 
     private void layoutCrystals(IRecipeLayoutBuilder builder, AspectList crystals) {
+        if (crystals.isEmpty()) return;
         int index = 0;
         List<AspectInstance> aspects = crystals.entries().stream().sorted(Comparator.comparingInt(k->MenuArcaneWorkbench.PRIMAL_ORDER.indexOf(k.aspect().getKey()))).toList();
         for (int i = 0; i < 6; i++) {

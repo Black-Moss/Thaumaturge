@@ -157,9 +157,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.jar_brace", "Jar Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");
+        add("tooltip.thaumcraft.salis_mundus.desc", "Magical dust that triggers transmutations when applied to certain blocks.");
         add("item.thaumcraft.nugget_quartz", "Quartz Sliver");
         add("item.thaumcraft.vis_resonator", "Vis Resonator");
-        add("tooltip.thaumcraft.salis_mundus.desc", "Magical dust that triggers transmutations when applied to certain blocks.");
+        add("attributes.thaumcraft.vis_discount", "Vis Discount");
         add("subtitles.thaumcraft.jar", "Jar clinks");
         add("subtitles.thaumcraft.creak", "Tube creaks");
         add("subtitles.thaumcraft.key", "Filter clicks");
