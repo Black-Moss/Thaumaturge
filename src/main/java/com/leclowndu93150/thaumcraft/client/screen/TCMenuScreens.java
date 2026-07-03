@@ -1,7 +1,8 @@
-package com.leclowndu93150.thaumcraft.client.screen.research.menu;
+package com.leclowndu93150.thaumcraft.client.screen;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.screen.research.ResearchTableScreen;
+import com.leclowndu93150.thaumcraft.client.screen.workbench.ArcaneWorkbenchScreen;
 import com.leclowndu93150.thaumcraft.registry.TCMenus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -15,5 +16,6 @@ public final class TCMenuScreens {
     @SubscribeEvent
     public static void onRegister(RegisterMenuScreensEvent event) {
         event.register(TCMenus.RESEARCH_TABLE.get(), ResearchTableScreen::new);
+        event.register(TCMenus.ARCANE_WORKBENCH.get(), ArcaneWorkbenchScreen::new);
     }
 }

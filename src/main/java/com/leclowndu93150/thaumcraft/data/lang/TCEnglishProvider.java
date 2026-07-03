@@ -141,10 +141,14 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("gui.thaumcraft.research_table.draw", "Draw");
         add("gui.thaumcraft.research_table.play", "Play");
         add("gui.thaumcraft.research_table.complete", "Complete Research");
+        add("gui.thaumcraft.arcane_workbench.vis_available", "%s available");
+        add("gui.thaumcraft.arcane_workbench.required_vis", "%s vis");
+        add("gui.thaumcraft.arcane_workbench.required_vis_discount", "%s vis (%s% discount)");
         add("button.thaumcraft.create_theory", "Create Theory");
         add("button.thaumcraft.complete_theory", "Complete Theory");
         add("button.thaumcraft.scrap_theory", "Scrap Theory");
         add("block.thaumcraft.research_table", "Research Table");
+        add("block.thaumcraft.arcane_workbench", "Arcane Workbench");
         add("block.thaumcraft.crucible", "Crucible");
         add("block.thaumcraft.jar_normal", "Warded Jar");
         add("block.thaumcraft.jar_void", "Void Jar");
@@ -240,6 +244,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.aspect.unknown", "Unknown Aspect");
         add("tc.addendumtext", "§oAddendum %1$s§r");
 
+        add("jei.thaumcraft.category.arcane_workbench", "Arcane Workbench");
+        add("jei.thaumcraft.arcane_workbench.vis_cost", "Vis Cost");
         add("jei.thaumcraft.category.crucible", "Crucible");
         add("jei.thaumcraft.category.dust_trigger", "Salis Mundus Trigger");
         add("jei.thaumcraft.category.aspect_composition", "Aspect Composition");

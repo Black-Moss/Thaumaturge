@@ -14,6 +14,8 @@ import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.leclowndu93150.thaumcraft.content.workbench.BlockEntityArcaneWorkbench;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -29,6 +31,12 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "research_table",
                     () -> new BlockEntityType<>(BlockEntityResearchTable::new, Set.of(TCBlocks.RESEARCH_TABLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityArcaneWorkbench>> ARCANE_WORKBENCH =
+            BLOCK_ENTITIES.register(
+                    "arcane_workbench",
+                    () -> new BlockEntityType<>(BlockEntityArcaneWorkbench::new, Set.of(TCBlocks.ARCANE_WORKBENCH.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityCrucible>> CRUCIBLE =

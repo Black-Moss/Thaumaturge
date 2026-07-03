@@ -1,0 +1,86 @@
+package com.leclowndu93150.thaumcraft.content.workbench;
+
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.aura.AuraManager;
+import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
+
+@EventBusSubscriber(modid = TCIds.MODID)
+public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvider {
+    public int auraVis = 0;
+
+    private final InventoryArcaneWorkbench inventory = new InventoryArcaneWorkbench() {
+        @Override
+        public void setChanged() {
+            super.setChanged();
+            BlockEntityArcaneWorkbench.this.setChanged();
+        }
+    };
+
+    public BlockEntityArcaneWorkbench(BlockPos worldPosition, BlockState blockState) {
+        super(TCBlockEntities.ARCANE_WORKBENCH.get(), worldPosition, blockState);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+            Capabilities.Item.BLOCK,
+            TCBlockEntities.ARCANE_WORKBENCH.get(),
+            (be, side) -> VanillaContainerWrapper.of(be.getInventory())
+        );
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, inventory.getItems());
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        ContainerHelper.loadAllItems(input, inventory.getItems());
+        inventory.setChanged();
+    }
+
+    public InventoryArcaneWorkbench getInventory() {
+        return inventory;
+    }
+
+    public void refreshAura() {
+        if (level != null && !level.isClientSide()) {
+            auraVis = (int) AuraManager.getVis(level, getBlockPos());
+        }
+    }
+
+    public void spendAura(int vis) {
+        if (level != null && !level.isClientSide()) {
+            AuraManager.drainVis(level, getBlockPos(), vis, false);
+        }
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("block.thaumcraft.arcane_workbench");
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return new MenuArcaneWorkbench(containerId, inventory, this);
+    }
+}

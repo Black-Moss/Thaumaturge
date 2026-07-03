@@ -2,7 +2,9 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
+import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
@@ -30,6 +32,14 @@ public final class TCRecipeTypes {
                 @Override
                 public String toString() {
                     return "thaumcraft:crucible";
+                }
+            });
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<ArcaneCraftingRecipe>> ARCANE =
+            RECIPE_TYPES.register("arcane_workbench", () -> new RecipeType<ArcaneCraftingRecipe>() {
+                @Override
+                public String toString() {
+                    return "thaumcraft:arcane_workbench";
                 }
             });
 

@@ -6,6 +6,7 @@ import net.minecraft.resources.Identifier;
 public final class TCScreenTextures {
     public static final int TEX_SIZE = 256;
 
+    public static final Identifier ARCANE_WORKBENCH = gui("arcane_workbench.png");
     public static final Identifier GUI_BASE = gui("gui_base.png");
     public static final Identifier RESEARCH_BROWSER = gui("gui_research_browser.png");
     public static final Identifier RESEARCH_BOOK = gui("gui_researchbook.png");
