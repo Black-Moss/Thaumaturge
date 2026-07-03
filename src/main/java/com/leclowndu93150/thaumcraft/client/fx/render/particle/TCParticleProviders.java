@@ -18,6 +18,7 @@ public final class TCParticleProviders {
         event.registerSpriteSet(TCParticles.NITOR_CORE.get(), NitorCoreParticle.Provider::new);
         event.registerSpriteSet(TCParticles.VENT.get(), VentParticle.Provider::new);
         event.registerSpriteSet(TCParticles.BLOCK_RUNES.get(), BlockRunesParticle.Provider::new);
+        event.registerSpriteSet(TCParticles.BOLT.get(), BoltParticle.Provider::new);
         event.registerSpriteSet(TCParticles.SMOKE_SPIRAL.get(), SmokeSpiralParticle.Provider::new);
         event.registerSpriteSet(TCParticles.VIS_SPARKLE.get(), VisSparkleParticle.Provider::new);
         event.registerSpriteSet(TCParticles.WISP.get(), WispParticle.Provider::new);

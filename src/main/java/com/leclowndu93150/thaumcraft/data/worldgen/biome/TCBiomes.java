@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.data.worldgen.biome;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
+import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
@@ -72,6 +73,7 @@ public final class TCBiomes {
         mobs.addSpawn(MobCategory.MONSTER, 3, new MobSpawnSettings.SpawnerData(EntityType.WITCH, 1, 1));
         mobs.addSpawn(MobCategory.MONSTER, 3, new MobSpawnSettings.SpawnerData(EntityType.ENDERMAN, 1, 1));
         mobs.addSpawn(MobCategory.MONSTER, 1, new MobSpawnSettings.SpawnerData(EntityType.VEX, 1, 1));
+        mobs.addSpawn(MobCategory.MONSTER, 20, new MobSpawnSettings.SpawnerData(TCEntities.WISP.get(), 1, 2));
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(placed, carvers);
         globalGeneration(generation);
@@ -109,6 +111,7 @@ public final class TCBiomes {
         mobs.addSpawn(MobCategory.AMBIENT, 3, new MobSpawnSettings.SpawnerData(EntityType.BAT, 1, 1));
         mobs.addSpawn(MobCategory.MONSTER, 8, new MobSpawnSettings.SpawnerData(EntityType.WITCH, 1, 1));
         mobs.addSpawn(MobCategory.MONSTER, 4, new MobSpawnSettings.SpawnerData(EntityType.ENDERMAN, 1, 1));
+        mobs.addSpawn(MobCategory.MONSTER, 3, new MobSpawnSettings.SpawnerData(TCEntities.WISP.get(), 1, 1));
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(placed, carvers);
         globalGeneration(generation);

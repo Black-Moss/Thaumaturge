@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.data.worldgen.biome;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
+import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCTags;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
@@ -9,7 +10,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.neoforged.neoforge.common.world.BiomeModifier;
@@ -23,6 +26,9 @@ public final class TCBiomeModifiers {
     public static final ResourceKey<BiomeModifier> ADD_GREATWOOD_RARE = key("add_greatwood_rare");
     public static final ResourceKey<BiomeModifier> ADD_SILVERWOOD = key("add_silverwood");
     public static final ResourceKey<BiomeModifier> ADD_CINDERPEARL = key("add_cinderpearl");
+    public static final ResourceKey<BiomeModifier> ADD_NETHER_WISPS = key("add_nether_wisps");
+
+    private static final int NETHER_WISP_WEIGHT = 5;
 
     private TCBiomeModifiers() {}
 
@@ -66,5 +72,11 @@ public final class TCBiomeModifiers {
                 biomes.getOrThrow(TCTags.HAS_CINDERPEARL),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.CINDERPEARL)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
+
+        context.register(ADD_NETHER_WISPS, new BiomeModifiers.AddSpawnsBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_NETHER),
+                WeightedList.<MobSpawnSettings.SpawnerData>builder()
+                        .add(new MobSpawnSettings.SpawnerData(TCEntities.WISP.get(), 1, 1), NETHER_WISP_WEIGHT)
+                        .build()));
     }
 }

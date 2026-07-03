@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.aspect;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.aspect.IEntityAspectSource;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -9,6 +10,9 @@ public final class EntityAspects {
     private EntityAspects() {}
 
     public static AspectList of(Entity entity) {
+        if (entity instanceof IEntityAspectSource source) {
+            return source.entityAspects();
+        }
         return of(entity.getType());
     }
 

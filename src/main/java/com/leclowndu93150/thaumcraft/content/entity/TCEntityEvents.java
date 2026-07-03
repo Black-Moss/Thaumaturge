@@ -2,16 +2,27 @@ package com.leclowndu93150.thaumcraft.content.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
+import net.minecraft.world.entity.SpawnPlacementTypes;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class TCEntityEvents {
     private TCEntityEvents() {}
 
     @SubscribeEvent
+    public static void onSpawnPlacements(RegisterSpawnPlacementsEvent event) {
+        event.register(TCEntities.WISP.get(), SpawnPlacementTypes.NO_RESTRICTIONS,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WispEntity::checkWispSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+    }
+
+    @SubscribeEvent
     public static void onAttributes(EntityAttributeCreationEvent event) {
+        event.put(TCEntities.WISP.get(), WispEntity.createAttributes().build());
         event.put(TCEntities.THAUMIC_SLIME.get(), ThaumicSlime.createAttributes().build());
         event.put(TCEntities.TAINT_CRAWLER.get(), EntityTaintCrawler.createAttributes().build());
         event.put(TCEntities.TAINT_SEED.get(), EntityTaintSeed.createAttributes().build());

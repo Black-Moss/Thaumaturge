@@ -18,6 +18,13 @@ public final class TCEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(Registries.ENTITY_TYPE, TCIds.MODID);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<WispEntity>> WISP = register(
+            "wisp",
+            () -> EntityType.Builder.of(WispEntity::new, MobCategory.MONSTER)
+                    .sized(0.9F, 0.9F)
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
     public static final DeferredHolder<EntityType<?>, EntityType<ThaumicSlime>> THAUMIC_SLIME = register(
             "thaumic_slime",
             () -> EntityType.Builder.of(ThaumicSlime::new, MobCategory.MONSTER)

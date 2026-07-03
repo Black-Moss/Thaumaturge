@@ -29,6 +29,7 @@ public final class TCEntityRenderers {
 
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(TCEntities.WISP.get(), WispRenderer::new);
         event.registerEntityRenderer(TCEntities.THAUMIC_SLIME.get(), ThaumicSlimeRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_CRAWLER.get(), TaintCrawlerRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_SEED.get(),

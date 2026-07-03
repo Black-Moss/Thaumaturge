@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.network.AspectIndexClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.AuraSnapshotClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.KnowledgeGainClientHandler;
+import com.leclowndu93150.thaumcraft.client.network.WispZapClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.FXStreamClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
@@ -124,6 +125,11 @@ public final class TCPayloads {
                 ClientboundKnowledgeGainPayload.TYPE,
                 ClientboundKnowledgeGainPayload.STREAM_CODEC,
                 (payload, context) -> KnowledgeGainClientHandler.handle(payload, context)
+        );
+        registrar.playToClient(
+                ClientboundWispZapPayload.TYPE,
+                ClientboundWispZapPayload.STREAM_CODEC,
+                (payload, context) -> WispZapClientHandler.handle(payload, context)
         );
     }
 }

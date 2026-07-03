@@ -101,6 +101,8 @@ public final class TCItems {
             ItemBottleTaint::new,
             props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
 
+    public static final DeferredItem<SpawnEggItem> WISP_SPAWN_EGG =
+            registerSpawnEgg("wisp_spawn_egg", TCEntities.WISP);
     public static final DeferredItem<SpawnEggItem> THAUMIC_SLIME_SPAWN_EGG =
             registerSpawnEgg("thaumic_slime_spawn_egg", TCEntities.THAUMIC_SLIME);
     public static final DeferredItem<SpawnEggItem> TAINT_CRAWLER_SPAWN_EGG =

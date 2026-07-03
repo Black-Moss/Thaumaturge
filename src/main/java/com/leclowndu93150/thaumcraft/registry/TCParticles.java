@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.fx.data.BlockRunesData;
+import com.leclowndu93150.thaumcraft.content.fx.data.BoltData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreParticlesData;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.EssentiaDropParticleData;
@@ -127,6 +128,19 @@ public final class TCParticles {
                 @Override
                 public StreamCodec<? super RegistryFriendlyByteBuf, WispData> streamCodec() {
                     return WispData.STREAM_CODEC;
+                }
+            });
+
+    public static final DeferredHolder<ParticleType<?>, ParticleType<BoltData>> BOLT =
+            PARTICLES.register("bolt", () -> new ParticleType<BoltData>(false) {
+                @Override
+                public MapCodec<BoltData> codec() {
+                    return BoltData.CODEC;
+                }
+
+                @Override
+                public StreamCodec<? super RegistryFriendlyByteBuf, BoltData> streamCodec() {
+                    return BoltData.STREAM_CODEC;
                 }
             });
 
