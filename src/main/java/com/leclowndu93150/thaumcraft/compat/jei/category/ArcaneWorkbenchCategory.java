@@ -162,12 +162,15 @@ public final class ArcaneWorkbenchCategory implements IRecipeCategory<RecipeHold
         int index = 0;
         List<AspectInstance> aspects = crystals.entries().stream().sorted(Comparator.comparingInt(k->MenuArcaneWorkbench.PRIMAL_ORDER.indexOf(k.aspect().getKey()))).toList();
         for (int i = 0; i < 6; i++) {
-            IRecipeSlotBuilder slot = builder.addInputSlot(CRYSTAL_X, CRYSTAL_Y + index * CRYSTAL_SPACING);
-            if (Objects.equals(aspects.get(index).aspect().getKey(), MenuArcaneWorkbench.PRIMAL_ORDER.get(i))) {
+            boolean isAdded = Objects.equals(aspects.get(index).aspect().getKey(), MenuArcaneWorkbench.PRIMAL_ORDER.get(i));
+            if (isAdded) {
+                IRecipeSlotBuilder slot = builder.addInputSlot(CRYSTAL_X, CRYSTAL_Y + index * CRYSTAL_SPACING);
                 AspectInstance instance = aspects.get(index);
                 slot.add(EssentiaCrystalFactory.of(instance.aspect(), instance.amount()));
                 index++;
                 if (index >= aspects.size()) break;
+            } else {
+                builder.addInputSlot(OUTPUT_X,OUTPUT_Y);
             }
         }
     }

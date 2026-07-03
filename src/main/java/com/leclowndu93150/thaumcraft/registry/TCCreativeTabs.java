@@ -8,6 +8,8 @@ import com.leclowndu93150.thaumcraft.content.item.CelestialNotesItem;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -17,6 +19,8 @@ import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.Comparator;
 
 public final class TCCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
@@ -32,6 +36,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SALIS_MUNDUS.get());
                         output.accept(TCItems.THAUMOMETER.get());
                         output.accept(TCItems.SCRIBING_TOOLS.get());
+                        output.accept(TCItems.VIS_RESONATOR.get());
                         for (CelestialBody body : CelestialBody.values()) {
                             output.accept(CelestialNotesItem.stackOf(body));
                         }
@@ -40,6 +45,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.RESEARCH_TABLE.get());
                         output.accept(TCItems.ARCANE_WORKBENCH.get());
                         output.accept(TCItems.CRUCIBLE.get());
+                        output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());
                         output.accept(TCItems.JAR_NORMAL.get());
                         output.accept(TCItems.JAR_VOID.get());
                         output.accept(TCItems.JAR_BRACE.get());
@@ -86,11 +92,12 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PLANT_CINDERPEARL.get());
                         output.accept(TCItems.PLANT_VISHROOM.get());
                         output.accept(TCItems.GRASS_AMBIENT.get());
-                        for (Holder<IAspect> aspect : parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()){
+                        HolderLookup.RegistryLookup<IAspect> aspectRegistry = parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY);
+                        for (Holder<IAspect> aspect : aspectRegistry.listElements().sorted(Comparator.comparing(h->!h.value().isPrimal())).toList()){
                             output.accept(EssentiaCrystalFactory.of(aspect));
                         }
                         output.accept(TCItems.PHIAL.get());
-                        for (Holder<IAspect> aspect : parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()){
+                        for (Holder<IAspect> aspect : aspectRegistry.listElements().sorted(Comparator.comparing(h->!h.value().isPrimal())).toList()){
                             output.accept(PhialItem.makeFilled(aspect));
                         }
                         output.accept(TCItems.PRIMORDIAL_PEARL.get());
