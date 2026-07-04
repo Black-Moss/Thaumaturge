@@ -65,7 +65,7 @@ public final class GogglesWorldOverlay {
         }
 
         boolean spaceAbove = mc.level.getBlockState(pos.above()).isAir();
-        Direction dir = spaceAbove ? Direction.UP : hit.getDirection();
+        Direction dir = spaceAbove ? Direction.UP : mc.player.getDirection().getOpposite();
         double y = pos.getY() + (spaceAbove ? SPACE_ABOVE_LIFT : 0.0F);
         drawTags(event.getPoseStack(), mc, pos.getX(), y, pos.getZ(), aspects, dir);
     }

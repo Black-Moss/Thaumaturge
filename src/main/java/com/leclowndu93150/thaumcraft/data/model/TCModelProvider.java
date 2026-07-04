@@ -4,6 +4,8 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
+import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEssentiaTransport;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import com.leclowndu93150.thaumcraft.data.fragments.*;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
@@ -16,6 +18,8 @@ import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
 import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.blockstates.ConditionBuilder;
+import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.ItemModelUtils;
@@ -40,6 +44,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +69,10 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
+        registerAlembic(blockModels, itemModels, TCBlocks.ALEMBIC.get());
+        registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_BASIC.get(), "smelter_basic");
+        registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_THAUMIUM.get(), "smelter_thaumium");
+        registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_VOID.get(), "smelter_void");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.itemModelOutput.accept(TCItems.THAUMOMETER.get(),
@@ -169,26 +178,12 @@ public final class TCModelProvider extends ModelProvider {
     }
 
     private void registerJar(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName) {
-        MultiVariant empty = variantOf(modelName);
-        MultiVariant fill25 = variantOf(modelName + "_25");
-        MultiVariant fill50 = variantOf(modelName + "_50");
-        MultiVariant fill75 = variantOf(modelName + "_75");
-        MultiVariant fill100 = variantOf(modelName + "_100");
-        PropertyDispatch<MultiVariant> fillLevels = PropertyDispatch.initial(BlockJar.FILL_LEVEL)
-                .select(0, empty)
-                .select(1, fill25)
-                .select(2, fill50)
-                .select(3, fill75)
-                .select(4, fill100);
-        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
-                .select(Direction.NORTH, BlockModelGenerators.NOP)
-                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
-                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
-                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(
-                MultiVariantGenerator.dispatch(block, empty)/*.with(fillLevels)*/.with(rotations)
+                BlockModelGenerators.createSimpleBlock(
+                        block,
+                        BlockModelGenerators.plainVariant(TCIds.rl("block/" + modelName))
+                )
         );
-
         itemModels.itemModelOutput.accept(block.asItem(), new CompositeModel.Unbaked(
                 List.of(
                         new CuboidItemModelWrapper.Unbaked(
@@ -204,6 +199,59 @@ public final class TCModelProvider extends ModelProvider {
                 ),
                 Optional.empty()
         ));
+    }
+
+    private void registerAlembic(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block) {
+
+        MultiVariant coreVariant = variantOf("alembic");
+        MultiPartGenerator generator = MultiPartGenerator.multiPart(block).with(coreVariant);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BooleanProperty property = BlockEssentiaTransport.propertyFor(direction);
+            Variant rotated = applyRotation(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/alembic_bore")), direction);
+            MultiVariant variant = new MultiVariant(WeightedList.of(rotated));
+            generator = generator.with(new ConditionBuilder().term(property, true), variant);
+        }
+        blockModels.blockStateOutput.accept(generator);
+
+        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/alembic"),
+                Optional.empty(),
+                List.of()
+        ));
+
+    }
+
+    private static Variant applyRotation(Variant base, Direction direction) {
+        VariantMutator mutator = switch (direction) {
+            case DOWN -> BlockModelGenerators.NOP;
+            case UP -> BlockModelGenerators.X_ROT_180;
+            case NORTH -> BlockModelGenerators.X_ROT_270;
+            case SOUTH -> BlockModelGenerators.X_ROT_90;
+            case WEST -> BlockModelGenerators.X_ROT_270.then(BlockModelGenerators.Y_ROT_270);
+            case EAST -> BlockModelGenerators.X_ROT_270.then(BlockModelGenerators.Y_ROT_90);
+        };
+        return mutator.apply(base);
+    }
+
+    private void registerSmelter(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName) {
+        MultiVariant off = variantOf(modelName+"_off");
+        MultiVariant on = variantOf(modelName + "_on");
+        PropertyDispatch<MultiVariant> lit = PropertyDispatch.initial(BlockSmelter.LIT)
+                .select(false, off)
+                .select(true, on);
+        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(block).with(lit).with(rotations)
+        );
+
+        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName + "_off"), Optional.empty(), List.of()));
+
+
+
     }
 
     private MultiVariant variantOf(String modelName) {

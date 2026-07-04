@@ -1,12 +1,14 @@
-package com.leclowndu93150.thaumcraft.content.essentia.jar;
+package com.leclowndu93150.thaumcraft.content.essentia.smeltery;
 
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.*;
+import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.content.aspect.Aspect;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.flow.EssentiaFlowHandler;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.mojang.serialization.Codec;
@@ -33,8 +35,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
-public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, IAspectSource {
-    public static final int CAPACITY = 250;
+public class BlockEntityAlembic extends BlockEntity implements IEssentiaTransport, IAspectContainer {
+    public static final int CAPACITY = 128;
     private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = ResourceKey.codec(IAspect.REGISTRY_KEY);
 
     private @Nullable ResourceKey<IAspect> aspect;
@@ -42,14 +44,9 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     private int amount;
     private int tickCount;
     private Direction facing = Direction.DOWN;
-    private boolean braced;
 
-    public BlockEntityJar(BlockPos pos, BlockState state) {
-        this(TCBlockEntities.JAR.get(), pos, state);
-    }
-
-    protected BlockEntityJar(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+    public BlockEntityAlembic(BlockPos pos, BlockState state) {
+        super(TCBlockEntities.ALEMBIC.get(), pos, state);
     }
 
     public @Nullable ResourceKey<IAspect> aspectKey() {
@@ -64,12 +61,6 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         return amount;
     }
 
-    public void setBraced(boolean braced) {
-        this.braced = braced;
-        setChanged();
-        syncToClient();
-    }
-
     public void setAspectFilter(@Nullable ResourceKey<IAspect> filter) {
         this.aspectFilter = filter;
         setChanged();
@@ -79,27 +70,6 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     public void setAspectFromLabel(@Nullable ResourceKey<IAspect> aspect) {
         if (this.amount > 0) return;
         this.aspect = aspect;
-        setChanged();
-        syncToClient();
-    }
-
-    public void clearAspectIfEmpty() {
-        if (amount <= 0 && aspectFilter == null) {
-            aspect = null;
-            amount = 0;
-            setChanged();
-            syncToClient();
-        }
-    }
-
-    public void emptyJar() {
-        if (level != null && !level.isClientSide() && amount > 0 && aspectFilter == null) {
-            AuraHelper.addFlux(level, getBlockPos(), amount);
-        }
-        if (aspectFilter == null) {
-            aspect = null;
-        }
-        amount = 0;
         setChanged();
         syncToClient();
     }
@@ -119,47 +89,42 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         syncToClient();
     }
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityJar jar) {
-        jar.tickCount++;
-        if (jar.tickCount % 5 != 0) return;
-        if (!jar.shouldFillFromAbove()) return;
-        jar.fillJar();
-    }
+    protected static boolean processAlembics(Level level, BlockPos pos, Holder<IAspect> aspectHolder){
+        int deep = 1;
+        while (true){
+            BlockEntity be = level.getBlockEntity(pos.above(deep));
+            if (be == null || !(be instanceof BlockEntityAlembic)) {
+                deep = 1;
+                while (true){
+                    be = level.getBlockEntity(pos.above(deep));
+                    if (be == null || !(be instanceof BlockEntityAlembic)) {
+                        return false;
+                    }
+                    BlockEntityAlembic alembic = (BlockEntityAlembic)be;
+                    if ((alembic.aspectFilter == null || Objects.equals(alembic.aspectFilter,aspectHolder.getKey())) && alembic.doAddToContainer(aspectHolder.getKey(), 1) == 0) {
+                        return true;
+                    }
+                    deep++;
+                }
+            }
 
-    protected boolean shouldFillFromAbove() {
-        return amount < CAPACITY;
-    }
+            BlockEntityAlembic alembic = (BlockEntityAlembic)be;
+            if (alembic.amount > 0 && Objects.equals(alembic.aspect,aspectHolder.getKey()) && alembic.doAddToContainer(aspectHolder.getKey(),1)==0) {
+                return true;
+            }
 
-    private void fillJar() {
-        if (level == null) return;
-        BlockPos above = getBlockPos().above();
-        IEssentiaTransport ic = EssentiaFlowHandler.transport(level, above, Direction.DOWN);
-        if (ic == null) return;
-        if (!ic.canOutputTo(Direction.DOWN)) return;
-        Holder<IAspect> ta = null;
-        if (aspectFilter != null) {
-            ta = EssentiaTransportHelper.resolve(level, aspectFilter);
-        } else if (aspect != null && amount > 0) {
-            ta = EssentiaTransportHelper.resolve(level, aspect);
-        } else if (ic.getEssentiaAmount(Direction.DOWN) > 0
-                && ic.getSuctionAmount(Direction.DOWN) < getSuctionAmount(Direction.UP)
-                && getSuctionAmount(Direction.UP) >= ic.getMinimumSuction()) {
-            ta = ic.getEssentiaType(Direction.DOWN);
+            deep++;
         }
-        if (ta == null) return;
-        if (ic.getSuctionAmount(Direction.DOWN) >= getSuctionAmount(Direction.UP)) return;
-        int taken = ic.takeEssentia(ta, 1, Direction.DOWN);
-        if (taken <= 0) return;
-        ResourceKey<IAspect> key = ta.unwrapKey().orElse(null);
-        if (key == null) return;
-        doAddToContainer(key, taken);
     }
+
+
 
     protected void syncToClient() {
         if (level == null || level.isClientSide()) return;
         BlockState current = getBlockState();
         level.sendBlockUpdated(getBlockPos(), current, current, 3);
     }
+
 
     protected int doAddToContainer(ResourceKey<IAspect> incoming, int requested) {
         if (requested == 0) return 0;
@@ -205,17 +170,17 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     @Override
     public boolean isConnectable(Direction face) {
-        return face == Direction.UP;
+        return face != facing && face != Direction.DOWN;
     }
 
     @Override
     public boolean canInputFrom(Direction face) {
-        return face == Direction.UP;
+        return false;
     }
 
     @Override
     public boolean canOutputTo(Direction face) {
-        return face == Direction.UP;
+        return face != facing && face != Direction.DOWN;
     }
 
     @Override
@@ -223,19 +188,17 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     @Override
     public Holder<IAspect> getSuctionType(Direction face) {
-        ResourceKey<IAspect> target = aspectFilter != null ? aspectFilter : aspect;
-        return target == null ? null : EssentiaTransportHelper.resolve(level, target);
+        return null;
     }
 
     @Override
     public int getSuctionAmount(Direction face) {
-        if (amount >= CAPACITY) return 0;
-        return aspectFilter != null ? 64 : 32;
+        return 0;
     }
 
     @Override
     public int getMinimumSuction() {
-        return aspectFilter != null ? 64 : 32;
+        return 0;
     }
 
     @Override
@@ -248,10 +211,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     @Override
     public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canInputFrom(face)) return 0;
-        ResourceKey<IAspect> key = aspect == null ? null : aspect.unwrapKey().orElse(null);
-        if (key == null) return 0;
-        return amount - doAddToContainer(key, amount);
+        return 0;
     }
 
     @Override
@@ -271,7 +231,6 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         aspectFilter = input.read("AspectFilter", ASPECT_KEY_CODEC).orElse(null);
         amount = input.getIntOr("Amount", 0);
         facing = input.read("Facing",Direction.CODEC).orElse(Direction.DOWN);
-        braced = input.getBooleanOr("Braced",false);
     }
 
     @Override
@@ -281,7 +240,6 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         if (aspectFilter != null) output.store("AspectFilter", ASPECT_KEY_CODEC, aspectFilter);
         output.putInt("Amount", amount);
         output.store("Facing",Direction.CODEC,facing);
-        output.putBoolean("Braced", braced);
     }
 
     @Override
@@ -398,8 +356,4 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         return Objects.equals(this.aspect, aspect.getKey()) ? this.amount : 0;
     }
 
-    @Override
-    public boolean isBlocked() {
-        return braced;
-    }
 }

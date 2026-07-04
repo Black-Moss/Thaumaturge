@@ -12,6 +12,8 @@ import com.leclowndu93150.thaumcraft.content.decor.BlockStonePorous;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStoneTC;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJarVoid;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockAlembic;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTube;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeBuffer;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeFilter;
@@ -40,7 +42,7 @@ import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantVishroom;
 import com.leclowndu93150.thaumcraft.content.world.tree.BlockLeavesTC;
 import com.leclowndu93150.thaumcraft.content.world.tree.BlockSaplingTC;
 import com.leclowndu93150.thaumcraft.content.world.tree.TCTreeGrowers;
-import com.leclowndu93150.thaumcraft.registry.TCSoundTypes;
+
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.resources.ResourceKey;
@@ -49,6 +51,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
@@ -96,6 +99,53 @@ public final class TCBlocks {
                     .strength(1.25F,10.0F)
                     .sound(SoundType.WOOD)
                     .noOcclusion()
+                    .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<BlockAlembic> ALEMBIC = BLOCKS.registerBlock(
+            "alembic",
+            BlockAlembic::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2F,20.0F)
+                    .sound(SoundType.WOOD)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+    );
+
+    public static final DeferredBlock<BlockSmelter> SMELTER_BASIC = BLOCKS.registerBlock(
+            "smelter_basic",
+            BlockSmelter::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2F,20.0F)
+                    .sound(SoundType.METAL)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .requiresCorrectToolForDrops()
+                    .lightLevel(bs->bs.getValue(BlockSmelter.LIT) ? 13 : 0)
+    );
+
+    public static final DeferredBlock<BlockSmelter> SMELTER_THAUMIUM = BLOCKS.registerBlock(
+            "smelter_thaumium",
+            BlockSmelter::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2F,20.0F)
+                    .sound(SoundType.METAL)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .requiresCorrectToolForDrops()
+                    .lightLevel(bs->bs.getValue(BlockSmelter.LIT) ? 13 : 0)
+    );
+
+    public static final DeferredBlock<BlockSmelter> SMELTER_VOID = BLOCKS.registerBlock(
+            "smelter_void",
+            BlockSmelter::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2F,20.0F)
+                    .sound(SoundType.METAL)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .requiresCorrectToolForDrops()
+                    .lightLevel(bs->bs.getValue(BlockSmelter.LIT) ? 13 : 0)
     );
 
 

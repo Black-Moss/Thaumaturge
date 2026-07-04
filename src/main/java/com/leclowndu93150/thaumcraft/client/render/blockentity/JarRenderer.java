@@ -25,6 +25,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -40,10 +41,10 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     public static final float FLUID_BASE_Y = 1.0F / 16.0F;
     public static final float FLUID_MAX_HEIGHT = 10.0F / 16.0F;
 
-    private static final float BRACE_MIN_XZ = 4.5F / 16.0F;
-    private static final float BRACE_MAX_XZ = 11.5F / 16.0F;
-    private static final float BRACE_BOTTOM_Y = 11.5F / 16.0F;
-    private static final float BRACE_TOP_Y = 14.5F / 16.0F;
+    private static final float BRACE_MIN_XZ = 5F / 16.0F;
+    private static final float BRACE_MAX_XZ = 11.25F / 16.0F;
+    private static final float BRACE_BOTTOM_Y = 12F / 16.0F;
+    private static final float BRACE_TOP_Y = 14.25F / 16.0F;
     private static final float BRACE_STRETCH = 1.001F;
 
     private static final float LID_EXT_MIN_XZ = (8.0F - 2.0F * 0.9F) / 16.0F;
@@ -68,14 +69,9 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     ) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
         state.amount = blockEntity.amount();
-        state.braced = blockEntity.isBraced();
+        state.braced = blockEntity.isBlocked();
         state.hasFilter = blockEntity.aspectFilterKey() != null;
-        var blockState = blockEntity.getBlockState();
-        if (blockState.hasProperty(BlockJar.FACING)) {
-            state.facing = blockState.getValue(BlockJar.FACING);
-        } else {
-            state.facing = Direction.NORTH;
-        }
+        state.facing = blockEntity.facing();
         Level level = blockEntity.getLevel();
         state.aspectColor = -1;
         state.filterTexture = null;
@@ -196,15 +192,19 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
         Direction facing = state.facing;
         poseStack.pushPose();
         poseStack.translate(0.5, 0.5, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
-        poseStack.translate(0.0, 0.0, -0.5 + 0.001);
+        if (facing.getAxis() == Direction.Axis.Z) poseStack.mulPose(Axis.YP.rotationDegrees(180));
+        poseStack.mulPose(Axis.YP.rotationDegrees(facing.toYRot()));
+        poseStack.translate(0.0, -0.1, -0.315 - 0.001);
+        float rot = (state.blockPos.getX() + state.facing.ordinal()) % 4 - 2;
+        poseStack.mulPose(Axis.ZN.rotationDegrees(rot));
         int light = state.lightCoords;
         Identifier labelTex = LABEL_TEXTURE;
         RenderType labelType = RenderTypes.entityCutout(labelTex);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180));
         collector.submitCustomGeometry(poseStack, labelType, (pose, buffer) -> labelQuad(buffer, pose, light));
         if (state.filterTexture != null) {
             poseStack.pushPose();
-            poseStack.translate(0.0, 0.0, -0.001);
+            poseStack.translate(0.0, 0.0, 0.001);
             int filterColor = state.filterColor;
             Identifier aspectTex = state.filterTexture;
             RenderType aspectType = RenderTypes.entityTranslucent(aspectTex);
@@ -215,7 +215,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     }
 
     private static void labelQuad(VertexConsumer buffer, PoseStack.Pose pose, int light) {
-        float s = 0.18F;
+        float s = 0.25F;
         int white = 0xFFFFFFFF;
         addVertex(buffer, pose, -s, -s, 0.0F, 0.0F, 1.0F, white, light, 0.0F, 0.0F, -1.0F);
         addVertex(buffer, pose, s, -s, 0.0F, 1.0F, 1.0F, white, light, 0.0F, 0.0F, -1.0F);
@@ -224,7 +224,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     }
 
     private static void aspectIconQuad(VertexConsumer buffer, PoseStack.Pose pose, int color, int light) {
-        float s = 0.12F;
+        float s = 0.19F;
         addVertex(buffer, pose, -s, -s, 0.0F, 0.0F, 1.0F, color, light, 0.0F, 0.0F, -1.0F);
         addVertex(buffer, pose, s, -s, 0.0F, 1.0F, 1.0F, color, light, 0.0F, 0.0F, -1.0F);
         addVertex(buffer, pose, s, s, 0.0F, 1.0F, 0.0F, color, light, 0.0F, 0.0F, -1.0F);
@@ -242,7 +242,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
             float maxZ = maxX;
             float bottom = BRACE_BOTTOM_Y;
             float top = BRACE_TOP_Y;
-            cuboid(buffer, pose, minX, bottom, minZ, maxX, top, maxZ, color, light);
+            braceCuboid(buffer, pose, minX, bottom, minZ, maxX, top, maxZ, color, light);
         });
     }
 
@@ -258,6 +258,44 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
         });
     }
 
+    private static void braceCuboid(
+            VertexConsumer buffer,
+            PoseStack.Pose pose,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ,
+            int color,
+            int light
+    ) {
+        addVertex(buffer, pose, minX, maxY, minZ, 38/64F, 24/32F, color, light, 0.0F, 1.0F, 0.0F);
+        addVertex(buffer, pose, minX, maxY, maxZ, 38/64F, 30/32F, color, light, 0.0F, 1.0F, 0.0F);
+        addVertex(buffer, pose, maxX, maxY, maxZ, 44/64F, 30/32F, color, light, 0.0F, 1.0F, 0.0F);
+        addVertex(buffer, pose, maxX, maxY, minZ, 44/64F, 24/32F, color, light, 0.0F, 1.0F, 0.0F);
+
+        addVertex(buffer, pose, minX, minY, minZ, 32/64F, 1.0F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, minX, maxY, minZ, 32/64F, 30/32F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, maxX, maxY, minZ, 38/64F, 30/32F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, maxX, minY, minZ, 38/64F, 1.0F, color, light, 0.0F, 0.0F, -1.0F);
+
+        addVertex(buffer, pose, maxX, minY, maxZ, 50/64F, 1.0F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, maxX, maxY, maxZ, 50/64F, 30/32F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, minX, maxY, maxZ, 44/64F, 30/32F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, minX, minY, maxZ, 44/64F, 1.0F, color, light, 0.0F, 0.0F, 1.0F);
+
+        addVertex(buffer, pose, minX, minY, maxZ, 38/64F, 1.0F, color, light, -1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, minX, maxY, maxZ, 38/64F, 30/32F, color, light, -1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, minX, maxY, minZ, 44/64F, 30/32F, color, light, -1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, minX, minY, minZ, 44/64F, 1.0F, color, light, -1.0F, 0.0F, 0.0F);
+
+        addVertex(buffer, pose, maxX, minY, minZ, 56/64F, 1.0F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, maxY, minZ, 56/64F, 30/32F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, maxY, maxZ, 50/64F, 30/32F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, minY, maxZ, 50/64F, 1.0F, color, light, 1.0F, 0.0F, 0.0F);
+    }
+
     private static void cuboid(
             VertexConsumer buffer,
             PoseStack.Pose pose,
@@ -270,34 +308,25 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
             int color,
             int light
     ) {
-        addVertex(buffer, pose, minX, maxY, minZ, 0.0F, 0.0F, color, light, 0.0F, 1.0F, 0.0F);
-        addVertex(buffer, pose, minX, maxY, maxZ, 0.0F, 1.0F, color, light, 0.0F, 1.0F, 0.0F);
-        addVertex(buffer, pose, maxX, maxY, maxZ, 1.0F, 1.0F, color, light, 0.0F, 1.0F, 0.0F);
-        addVertex(buffer, pose, maxX, maxY, minZ, 1.0F, 0.0F, color, light, 0.0F, 1.0F, 0.0F);
 
-        addVertex(buffer, pose, minX, minY, minZ, 0.0F, 0.0F, color, light, 0.0F, -1.0F, 0.0F);
-        addVertex(buffer, pose, maxX, minY, minZ, 1.0F, 0.0F, color, light, 0.0F, -1.0F, 0.0F);
-        addVertex(buffer, pose, maxX, minY, maxZ, 1.0F, 1.0F, color, light, 0.0F, -1.0F, 0.0F);
-        addVertex(buffer, pose, minX, minY, maxZ, 0.0F, 1.0F, color, light, 0.0F, -1.0F, 0.0F);
+        addVertex(buffer, pose, minX, minY, minZ, 0.0F, 29/32F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, minX, maxY, minZ, 0.0F, 27/32F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, maxX, maxY, minZ, 4/64F, 27/32F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, maxX, minY, minZ, 4/64F, 29/32F, color, light, 0.0F, 0.0F, -1.0F);
 
-        addVertex(buffer, pose, minX, minY, minZ, 0.0F, 1.0F, color, light, 0.0F, 0.0F, -1.0F);
-        addVertex(buffer, pose, minX, maxY, minZ, 0.0F, 0.0F, color, light, 0.0F, 0.0F, -1.0F);
-        addVertex(buffer, pose, maxX, maxY, minZ, 1.0F, 0.0F, color, light, 0.0F, 0.0F, -1.0F);
-        addVertex(buffer, pose, maxX, minY, minZ, 1.0F, 1.0F, color, light, 0.0F, 0.0F, -1.0F);
+        addVertex(buffer, pose, maxX, minY, maxZ, 8/64F, 29/32F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, maxX, maxY, maxZ, 8/64F, 27/32F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, minX, maxY, maxZ, 12/64F, 27/32F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, minX, minY, maxZ, 12/64F, 29/32F, color, light, 0.0F, 0.0F, 1.0F);
 
-        addVertex(buffer, pose, maxX, minY, maxZ, 0.0F, 1.0F, color, light, 0.0F, 0.0F, 1.0F);
-        addVertex(buffer, pose, maxX, maxY, maxZ, 0.0F, 0.0F, color, light, 0.0F, 0.0F, 1.0F);
-        addVertex(buffer, pose, minX, maxY, maxZ, 1.0F, 0.0F, color, light, 0.0F, 0.0F, 1.0F);
-        addVertex(buffer, pose, minX, minY, maxZ, 1.0F, 1.0F, color, light, 0.0F, 0.0F, 1.0F);
+        addVertex(buffer, pose, minX, minY, maxZ, 4/64F, 29/32F, color, light, -1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, minX, maxY, maxZ, 4/64F, 27/32F, color, light, -1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, minX, maxY, minZ, 8/64F, 27/32F, color, light, -1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, minX, minY, minZ, 8/64F, 29/32F, color, light, -1.0F, 0.0F, 0.0F);
 
-        addVertex(buffer, pose, minX, minY, maxZ, 0.0F, 1.0F, color, light, -1.0F, 0.0F, 0.0F);
-        addVertex(buffer, pose, minX, maxY, maxZ, 0.0F, 0.0F, color, light, -1.0F, 0.0F, 0.0F);
-        addVertex(buffer, pose, minX, maxY, minZ, 1.0F, 0.0F, color, light, -1.0F, 0.0F, 0.0F);
-        addVertex(buffer, pose, minX, minY, minZ, 1.0F, 1.0F, color, light, -1.0F, 0.0F, 0.0F);
-
-        addVertex(buffer, pose, maxX, minY, minZ, 0.0F, 1.0F, color, light, 1.0F, 0.0F, 0.0F);
-        addVertex(buffer, pose, maxX, maxY, minZ, 0.0F, 0.0F, color, light, 1.0F, 0.0F, 0.0F);
-        addVertex(buffer, pose, maxX, maxY, maxZ, 1.0F, 0.0F, color, light, 1.0F, 0.0F, 0.0F);
-        addVertex(buffer, pose, maxX, minY, maxZ, 1.0F, 1.0F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, minY, minZ, 12/64F, 29/32F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, maxY, minZ, 12/64F, 27/32F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, maxY, maxZ, 16/64F, 27/32F, color, light, 1.0F, 0.0F, 0.0F);
+        addVertex(buffer, pose, maxX, minY, maxZ, 16/64F, 29/32F, color, light, 1.0F, 0.0F, 0.0F);
     }
 }

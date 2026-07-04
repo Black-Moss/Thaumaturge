@@ -152,10 +152,14 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.arcane_workbench", "Arcane Workbench");
         add("block.thaumcraft.arcane_workbench_charger", "Workbench Charger");
         add("block.thaumcraft.crucible", "Crucible");
+        add("block.thaumcraft.alembic", "Arcane Alembic");
+        add("block.thaumcraft.smelter_basic", "Essentia Smeltery");
+        add("block.thaumcraft.smelter_thaumium", "Thaumium Essentia Smeltery");
+        add("block.thaumcraft.smelter_void", "Void Metal Essentia Smeltery");
         add("block.thaumcraft.jar_normal", "Warded Jar");
         add("block.thaumcraft.jar_void", "Void Jar");
         add("item.thaumcraft.thaumonomicon", "Thaumonomicon");
-        add("item.thaumcraft.jar_brace", "Jar Brace");
+        add("item.thaumcraft.jar_brace", "Brass Lid Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");
         add("tooltip.thaumcraft.salis_mundus.desc", "Magical dust that triggers transmutations when applied to certain blocks.");
