@@ -215,6 +215,7 @@ public final class TCBlocks {
                     .noCollision()
                     .strength(100.0F)
                     .pushReaction(PushReaction.DESTROY)
+                    .sound(TCSoundTypes.GORE.get())
                     .noLootTable()
                     .liquid()
                     .randomTicks()
@@ -292,6 +293,7 @@ public final class TCBlocks {
                 .mapColor(MapColor.COLOR_PURPLE)
                 .strength(10.0F, 100.0F)
                 .sound(TCSoundTypes.GORE.get())
+                .noOcclusion()
                 .randomTicks();
     }
 

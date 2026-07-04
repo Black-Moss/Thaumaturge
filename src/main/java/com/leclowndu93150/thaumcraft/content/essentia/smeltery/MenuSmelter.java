@@ -1,9 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.smeltery;
 
-import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCMenus;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -38,8 +36,7 @@ public final class MenuSmelter extends AbstractContainerMenu {
     private final BlockPos pos;
 
     public MenuSmelter(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        BlockPos pos = buf.readBlockPos();
-        this(containerId, playerInventory, new ItemStacksResourceHandler(SLOT_COUNT), ContainerLevelAccess.create(Minecraft.getInstance().level, pos),pos);
+        this(containerId, playerInventory, new ItemStacksResourceHandler(SLOT_COUNT), ContainerLevelAccess.NULL, buf.readBlockPos());
     }
 
     public MenuSmelter(int containerId, Inventory playerInventory, BlockEntitySmelter blockEntity) {

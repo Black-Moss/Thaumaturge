@@ -2,6 +2,9 @@ package com.leclowndu93150.thaumcraft.content.research;
 
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
+import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
+import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.network.ClientboundKnowledgeGainPayload;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
@@ -144,6 +147,16 @@ public final class ResearchManager {
     }
 
     public static void applyWarp(ServerPlayer player, int amount) {
+        if (amount <= 0 || ThaumcraftCommonConfig.WUSS_MODE.get()) {
+            return;
+        }
+        if (amount > 1) {
+            int normal = amount / 2;
+            WarpHelper.addWarp(player, normal, WarpType.NORMAL);
+            WarpHelper.addWarp(player, amount - normal, WarpType.PERMANENT);
+        } else {
+            WarpHelper.addWarp(player, amount, WarpType.PERMANENT);
+        }
     }
 
     private static Optional<IResearchEntry> entry(ServerPlayer player, Identifier research) {

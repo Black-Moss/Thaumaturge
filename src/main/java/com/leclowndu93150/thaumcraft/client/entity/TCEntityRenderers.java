@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.client.model.entity.TCBannerModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintSeedModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintacleModel;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -34,6 +35,8 @@ public final class TCEntityRenderers {
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(TCEntities.WISP.get(), WispRenderer::new);
+        event.registerEntityRenderer(TCEntities.FLUX_RIFT.get(), FluxRiftRenderer::new);
+        event.registerEntityRenderer(TCEntities.CAUSALITY_COLLAPSER.get(), ThrownItemRenderer::new);
         event.registerEntityRenderer(TCEntities.BRAINY_ZOMBIE.get(), BrainyZombieRenderer::new);
         event.registerEntityRenderer(TCEntities.GIANT_BRAINY_ZOMBIE.get(), BrainyZombieRenderer::new);
         event.registerEntityRenderer(TCEntities.FIRE_BAT.get(), FireBatRenderer::new);

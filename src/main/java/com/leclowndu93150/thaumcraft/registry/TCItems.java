@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
+import com.leclowndu93150.thaumcraft.content.item.CausalityCollapserItem;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import com.leclowndu93150.thaumcraft.content.item.CelestialNotesItem;
 import com.leclowndu93150.thaumcraft.content.item.LabelItem;
@@ -45,6 +46,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.StandingAndWallBlockItem;
+import com.leclowndu93150.thaumcraft.content.equipment.RobeArmorItem;
+import com.leclowndu93150.thaumcraft.content.equipment.TCMaterials;
+import com.leclowndu93150.thaumcraft.content.equipment.VoidGearItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
@@ -126,6 +131,52 @@ public final class TCItems {
             props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
 
     public static final DeferredItem<Item> VIS_RESONATOR = ITEMS.registerSimpleItem("vis_resonator");
+
+
+    public static final DeferredItem<Item> THAUMIUM_SWORD = ITEMS.registerItem("thaumium_sword",
+            Item::new, props -> props.sword(TCMaterials.TOOL_THAUMIUM, 3.0F, -2.4F));
+    public static final DeferredItem<Item> THAUMIUM_PICKAXE = ITEMS.registerItem("thaumium_pickaxe",
+            Item::new, props -> props.pickaxe(TCMaterials.TOOL_THAUMIUM, 1.0F, -2.8F));
+    public static final DeferredItem<Item> THAUMIUM_AXE = ITEMS.registerItem("thaumium_axe",
+            Item::new, props -> props.axe(TCMaterials.TOOL_THAUMIUM, 4.5F, -3.0F));
+    public static final DeferredItem<Item> THAUMIUM_SHOVEL = ITEMS.registerItem("thaumium_shovel",
+            Item::new, props -> props.shovel(TCMaterials.TOOL_THAUMIUM, 1.5F, -3.0F));
+    public static final DeferredItem<Item> THAUMIUM_HOE = ITEMS.registerItem("thaumium_hoe",
+            Item::new, props -> props.hoe(TCMaterials.TOOL_THAUMIUM, -3.0F, 0.0F));
+    public static final DeferredItem<Item> THAUMIUM_HELM = ITEMS.registerItem("thaumium_helm",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.HELMET));
+    public static final DeferredItem<Item> THAUMIUM_CHEST = ITEMS.registerItem("thaumium_chest",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.CHESTPLATE));
+    public static final DeferredItem<Item> THAUMIUM_LEGS = ITEMS.registerItem("thaumium_legs",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.LEGGINGS));
+    public static final DeferredItem<Item> THAUMIUM_BOOTS = ITEMS.registerItem("thaumium_boots",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.BOOTS));
+
+    public static final DeferredItem<VoidGearItem> VOID_SWORD = ITEMS.registerItem("void_sword",
+            VoidGearItem::new, props -> props.sword(TCMaterials.TOOL_VOID, 3.0F, -2.4F));
+    public static final DeferredItem<VoidGearItem> VOID_PICKAXE = ITEMS.registerItem("void_pickaxe",
+            VoidGearItem::new, props -> props.pickaxe(TCMaterials.TOOL_VOID, 1.0F, -2.8F));
+    public static final DeferredItem<VoidGearItem> VOID_AXE = ITEMS.registerItem("void_axe",
+            VoidGearItem::new, props -> props.axe(TCMaterials.TOOL_VOID, 4.0F, -3.0F));
+    public static final DeferredItem<VoidGearItem> VOID_SHOVEL = ITEMS.registerItem("void_shovel",
+            VoidGearItem::new, props -> props.shovel(TCMaterials.TOOL_VOID, 1.5F, -3.0F));
+    public static final DeferredItem<VoidGearItem> VOID_HOE = ITEMS.registerItem("void_hoe",
+            VoidGearItem::new, props -> props.hoe(TCMaterials.TOOL_VOID, -3.0F, 0.0F));
+    public static final DeferredItem<VoidGearItem> VOID_HELM = ITEMS.registerItem("void_helm",
+            VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.HELMET));
+    public static final DeferredItem<VoidGearItem> VOID_CHEST = ITEMS.registerItem("void_chest",
+            VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.CHESTPLATE));
+    public static final DeferredItem<VoidGearItem> VOID_LEGS = ITEMS.registerItem("void_legs",
+            VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.LEGGINGS));
+    public static final DeferredItem<VoidGearItem> VOID_BOOTS = ITEMS.registerItem("void_boots",
+            VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.BOOTS));
+
+    public static final DeferredItem<RobeArmorItem> CLOTH_CHEST = ITEMS.registerItem("cloth_chest",
+            props -> new RobeArmorItem(3, props), props -> props.humanoidArmor(TCMaterials.ARMOR_ROBES, ArmorType.CHESTPLATE));
+    public static final DeferredItem<RobeArmorItem> CLOTH_LEGS = ITEMS.registerItem("cloth_legs",
+            props -> new RobeArmorItem(3, props), props -> props.humanoidArmor(TCMaterials.ARMOR_ROBES, ArmorType.LEGGINGS));
+    public static final DeferredItem<RobeArmorItem> CLOTH_BOOTS = ITEMS.registerItem("cloth_boots",
+            props -> new RobeArmorItem(2, props), props -> props.humanoidArmor(TCMaterials.ARMOR_ROBES, ArmorType.BOOTS));
 
     public static final DeferredItem<Item> BRAIN = ITEMS.registerItem(
             "brain",
@@ -310,6 +361,16 @@ public final class TCItems {
             "phial",
             PhialItem::new
     );
+
+    public static final DeferredItem<CausalityCollapserItem> CAUSALITY_COLLAPSER = ITEMS.registerItem(
+            "causality_collapser",
+            CausalityCollapserItem::new,
+            props -> props.stacksTo(16));
+
+    public static final DeferredItem<Item> VOID_SEED = ITEMS.registerItem(
+            "void_seed",
+            Item::new,
+            props -> props.rarity(Rarity.UNCOMMON));
 
     public static final DeferredItem<PrimordialPearlItem> PRIMORDIAL_PEARL = ITEMS.registerItem(
             "primordial_pearl",

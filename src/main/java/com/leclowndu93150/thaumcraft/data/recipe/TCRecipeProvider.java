@@ -24,6 +24,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.CustomCraftingRecipeBuilder;
+import net.minecraft.world.item.crafting.DyeRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
@@ -58,6 +60,7 @@ public final class TCRecipeProvider extends RecipeProvider {
     protected void buildRecipes() {
         buildArcaneWorkbenchRecipes();
         buildBannerRecipes();
+        buildGearRecipes();
         buildCrucibleRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
@@ -273,6 +276,76 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .save(output);
     }
 
+
+    private void buildGearRecipes() {
+        toolRecipes("thaumium", TCItemTags.INGOTS_THAUMIUM,
+                TCItems.THAUMIUM_SWORD.get(), TCItems.THAUMIUM_PICKAXE.get(), TCItems.THAUMIUM_AXE.get(),
+                TCItems.THAUMIUM_SHOVEL.get(), TCItems.THAUMIUM_HOE.get());
+        toolRecipes("void", TCItemTags.INGOTS_VOID_METAL,
+                TCItems.VOID_SWORD.get(), TCItems.VOID_PICKAXE.get(), TCItems.VOID_AXE.get(),
+                TCItems.VOID_SHOVEL.get(), TCItems.VOID_HOE.get());
+        armorRecipes("thaumium", TCItemTags.INGOTS_THAUMIUM,
+                TCItems.THAUMIUM_HELM.get(), TCItems.THAUMIUM_CHEST.get(),
+                TCItems.THAUMIUM_LEGS.get(), TCItems.THAUMIUM_BOOTS.get());
+        armorRecipes("void", TCItemTags.INGOTS_VOID_METAL,
+                TCItems.VOID_HELM.get(), TCItems.VOID_CHEST.get(),
+                TCItems.VOID_LEGS.get(), TCItems.VOID_BOOTS.get());
+        robeDyeRecipe(TCItems.CLOTH_CHEST.get());
+        robeDyeRecipe(TCItems.CLOTH_LEGS.get());
+        robeDyeRecipe(TCItems.CLOTH_BOOTS.get());
+    }
+
+    private void robeDyeRecipe(Item target) {
+        CustomCraftingRecipeBuilder.customCrafting(RecipeCategory.MISC,
+                        (commonInfo, bookInfo) -> new DyeRecipe(commonInfo, bookInfo,
+                                Ingredient.of(target), tag(ItemTags.DYES), new ItemStackTemplate(target)))
+                .unlockedBy(getHasName(target), has(target))
+                .group("cloth_robes")
+                .save(output, TCIds.MODID + ":" + BuiltInRegistries.ITEM.getKey(target).getPath() + "_dyed");
+    }
+
+    private void toolRecipes(String name, TagKey<Item> ingot, Item sword, Item pickaxe, Item axe, Item shovel, Item hoe) {
+        shaped(RecipeCategory.COMBAT, sword)
+                .pattern("I").pattern("I").pattern("S")
+                .define('I', ingot).define('S', Tags.Items.RODS_WOODEN)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.TOOLS, pickaxe)
+                .pattern("III").pattern(" S ").pattern(" S ")
+                .define('I', ingot).define('S', Tags.Items.RODS_WOODEN)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.TOOLS, axe)
+                .pattern("II").pattern("IS").pattern(" S")
+                .define('I', ingot).define('S', Tags.Items.RODS_WOODEN)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.TOOLS, shovel)
+                .pattern("I").pattern("S").pattern("S")
+                .define('I', ingot).define('S', Tags.Items.RODS_WOODEN)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.TOOLS, hoe)
+                .pattern("II").pattern(" S").pattern(" S")
+                .define('I', ingot).define('S', Tags.Items.RODS_WOODEN)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+    }
+
+    private void armorRecipes(String name, TagKey<Item> ingot, Item helm, Item chest, Item legs, Item boots) {
+        shaped(RecipeCategory.COMBAT, helm)
+                .pattern("III").pattern("I I")
+                .define('I', ingot)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.COMBAT, chest)
+                .pattern("I I").pattern("III").pattern("III")
+                .define('I', ingot)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.COMBAT, legs)
+                .pattern("III").pattern("I I").pattern("I I")
+                .define('I', ingot)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.COMBAT, boots)
+                .pattern("I I").pattern("I I")
+                .define('I', ingot)
+                .unlockedBy("has_ingot", has(ingot)).save(output);
+    }
+
     private void buildBannerRecipes() {
         for (DyeColor dye : DyeColor.values()) {
             arcaneShaped(new ItemStackTemplate(TCItems.BANNERS.get(dye).get()), 10)
@@ -323,6 +396,13 @@ public final class TCRecipeProvider extends RecipeProvider {
                     .unlockedBy("has", has(TCItemTags.NUGGETS_QUARTZ))
                     .save(output, TCIds.MODID + ":crucible/vis_crystal/" + aspect.getKey().identifier().getPath());
         });
+
+        new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC, new ItemStackTemplate(TCItems.INGOT_VOID.get()), Ingredient.of(TCItems.VOID_SEED.get()))
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .aspect(TCAspects.METALLUM, 10)
+                .aspect(TCAspects.VITIUM, 5)
+                .unlockedBy("has", has(TCItems.VOID_SEED.get()))
+                .save(output, TCIds.MODID + ":crucible/void_ingot");
 
         clusterRecipe(TCItems.CLUSTER_IRON,Tags.Items.ORES_IRON);
         clusterRecipe(TCItems.CLUSTER_GOLD,Tags.Items.ORES_GOLD);

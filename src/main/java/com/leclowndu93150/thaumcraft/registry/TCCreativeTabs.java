@@ -143,6 +143,29 @@ public final class TCCreativeTabs {
                         for (Holder<IAspect> aspect : aspectRegistry.listElements().sorted(Comparator.comparing(h->!h.value().isPrimal())).toList()){
                             output.accept(PhialItem.makeFilled(aspect));
                         }
+                        output.accept(TCItems.THAUMIUM_SWORD.get());
+                        output.accept(TCItems.THAUMIUM_PICKAXE.get());
+                        output.accept(TCItems.THAUMIUM_AXE.get());
+                        output.accept(TCItems.THAUMIUM_SHOVEL.get());
+                        output.accept(TCItems.THAUMIUM_HOE.get());
+                        output.accept(TCItems.THAUMIUM_HELM.get());
+                        output.accept(TCItems.THAUMIUM_CHEST.get());
+                        output.accept(TCItems.THAUMIUM_LEGS.get());
+                        output.accept(TCItems.THAUMIUM_BOOTS.get());
+                        output.accept(TCItems.VOID_SWORD.get());
+                        output.accept(TCItems.VOID_PICKAXE.get());
+                        output.accept(TCItems.VOID_AXE.get());
+                        output.accept(TCItems.VOID_SHOVEL.get());
+                        output.accept(TCItems.VOID_HOE.get());
+                        output.accept(TCItems.VOID_HELM.get());
+                        output.accept(TCItems.VOID_CHEST.get());
+                        output.accept(TCItems.VOID_LEGS.get());
+                        output.accept(TCItems.VOID_BOOTS.get());
+                        output.accept(TCItems.CLOTH_CHEST.get());
+                        output.accept(TCItems.CLOTH_LEGS.get());
+                        output.accept(TCItems.CLOTH_BOOTS.get());
+                        output.accept(TCItems.VOID_SEED.get());
+                        output.accept(TCItems.CAUSALITY_COLLAPSER.get());
                         output.accept(TCItems.PRIMORDIAL_PEARL.get());
                         output.accept(TCItems.BRAIN.get());
                         output.accept(TCItems.WISP_SPAWN_EGG.get());
@@ -151,6 +174,13 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.FIREBAT_SPAWN_EGG.get());
                         output.accept(TCItems.MIND_SPIDER_SPAWN_EGG.get());
                         output.accept(TCItems.THAUMIC_SLIME_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINT_ROCK.get());
+                        output.accept(TCItems.TAINT_SOIL.get());
+                        output.accept(TCItems.TAINT_CRUST.get());
+                        output.accept(TCItems.TAINT_GEYSER.get());
+                        output.accept(TCItems.TAINT_LOG.get());
+                        output.accept(TCItems.TAINT_FEATURE.get());
+                        output.accept(TCItems.TAINT_FIBRE.get());
                         output.accept(TCItems.TAINT_CRAWLER_SPAWN_EGG.get());
                         output.accept(TCItems.TAINTACLE_SPAWN_EGG.get());
                         output.accept(TCItems.TAINT_SWARM_SPAWN_EGG.get());

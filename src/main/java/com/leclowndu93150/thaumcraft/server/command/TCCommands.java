@@ -3,6 +3,15 @@ package com.leclowndu93150.thaumcraft.server.command;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
+import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
+import com.leclowndu93150.thaumcraft.api.warp.WarpType;
+import com.leclowndu93150.thaumcraft.content.warp.WarpEvents;
+import com.leclowndu93150.thaumcraft.content.entity.EntityFluxRift;
+import net.minecraft.world.phys.Vec3;
+import com.leclowndu93150.thaumcraft.registry.TCAttachments;
+import java.util.Arrays;
+import java.util.Locale;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
@@ -61,6 +70,13 @@ public final class TCCommands {
 
     private static final SuggestionProvider<CommandSourceStack> PARTICLE_NAMES =
             (ctx, builder) -> SharedSuggestionProvider.suggest(ParticleDemos.DEMOS.keySet(), builder);
+    private static final int DEFAULT_RIFT_SIZE = 20;
+    private static final int COMMAND_MAX_RIFT_SIZE = 500;
+    private static final double RIFT_SPAWN_DISTANCE = 6.0;
+
+    private static final SuggestionProvider<CommandSourceStack> WARP_TYPES =
+            (ctx, builder) -> SharedSuggestionProvider.suggest(
+                    Arrays.stream(WarpType.values()).map(t -> t.name().toLowerCase(Locale.ROOT)), builder);
 
     private static final DynamicCommandExceptionType ERROR_INVALID_GATE = new DynamicCommandExceptionType((value) -> Component.literal("Unknown Research Entry : " + value));
 
@@ -92,9 +108,27 @@ public final class TCCommands {
                         .then(Commands.literal("taint_swarm").executes(ctx -> spawnEntity(ctx, "taint_swarm")))
                         .then(Commands.literal("taintacle").executes(ctx -> spawnEntity(ctx, "taintacle")))
                         .then(Commands.literal("taintacle_small").executes(ctx -> spawnEntity(ctx, "taintacle_small"))))
+                .then(Commands.literal("rift").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .executes(ctx -> spawnRift(ctx, DEFAULT_RIFT_SIZE))
+                        .then(Commands.argument("size", IntegerArgumentType.integer(1, COMMAND_MAX_RIFT_SIZE))
+                                .executes(ctx -> spawnRift(ctx, IntegerArgumentType.getInteger(ctx, "size")))))
                 .then(Commands.literal("crystal")
                         .then(Commands.argument("aspect", StringArgumentType.word())
                                 .executes(TCCommands::giveCrystal)))
+                .then(Commands.literal("warp").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("info").executes(TCCommands::warpInfo))
+                        .then(Commands.literal("add")
+                                .then(Commands.argument("type", StringArgumentType.word())
+                                        .suggests(WARP_TYPES)
+                                        .then(Commands.argument("amount", IntegerArgumentType.integer(1, 500))
+                                                .executes(ctx -> warpModify(ctx, false)))))
+                        .then(Commands.literal("remove")
+                                .then(Commands.argument("type", StringArgumentType.word())
+                                        .suggests(WARP_TYPES)
+                                        .then(Commands.argument("amount", IntegerArgumentType.integer(1, 500))
+                                                .executes(ctx -> warpModify(ctx, true)))))
+                        .then(Commands.literal("clear").executes(TCCommands::warpClear))
+                        .then(Commands.literal("event").executes(TCCommands::warpEvent)))
                 .then(Commands.literal("aura").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("info").executes(TCCommands::auraInfo))
                         .then(Commands.literal("vis")
@@ -216,6 +250,64 @@ public final class TCCommands {
                 ctx.getSource().sendFailure(Component.literal("Failed to grant research entry"));
                 return 0;
             }
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int warpInfo(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            IPlayerWarp warp = WarpHelper.getWarp(player);
+            ctx.getSource().sendSuccess(() -> Component.literal(String.format(
+                    "Warp: permanent %d, normal %d, temporary %d, counter %d",
+                    warp.get(WarpType.PERMANENT), warp.get(WarpType.NORMAL),
+                    warp.get(WarpType.TEMPORARY), warp.getCounter())), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int warpModify(CommandContext<CommandSourceStack> ctx, boolean remove) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            WarpType type = WarpType.valueOf(StringArgumentType.getString(ctx, "type").toUpperCase(Locale.ROOT));
+            int amount = IntegerArgumentType.getInteger(ctx, "amount");
+            WarpHelper.addWarp(player, remove ? -amount : amount, type);
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    (remove ? "Removed " : "Added ") + amount + " " + type + " warp"), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (IllegalArgumentException e) {
+            ctx.getSource().sendFailure(Component.literal("Unknown warp type"));
+            return 0;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int warpClear(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            WarpHelper.getWarp(player).clear();
+            player.syncData(TCAttachments.WARP);
+            ctx.getSource().sendSuccess(() -> Component.literal("Warp cleared"), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int warpEvent(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            WarpEvents.checkWarpEvent(player);
+            ctx.getSource().sendSuccess(() -> Component.literal("Warp event check rolled"), false);
+            return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
             return 0;
@@ -344,6 +436,28 @@ public final class TCCommands {
                 return 0;
             }
             player.addEffect(new MobEffectInstance(effect, 600, 0, true, true, true));
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int spawnRift(CommandContext<CommandSourceStack> ctx, int size) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            EntityFluxRift rift = TCEntities.FLUX_RIFT.get().create(level, EntitySpawnReason.COMMAND);
+            if (rift == null) {
+                ctx.getSource().sendFailure(Component.literal("Failed to create rift"));
+                return 0;
+            }
+            Vec3 pos = player.getEyePosition().add(player.getLookAngle().scale(RIFT_SPAWN_DISTANCE));
+            rift.setRiftSeed(level.getRandom().nextInt());
+            rift.snapTo(pos.x, pos.y, pos.z, level.getRandom().nextInt(360), 0.0F);
+            rift.setRiftSize(size);
+            level.addFreshEntity(rift);
+            ctx.getSource().sendSuccess(() -> Component.literal("Spawned flux rift (size " + size + ")"), false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

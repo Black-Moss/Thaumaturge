@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandle
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
 import com.leclowndu93150.thaumcraft.client.network.RecipeDisplayClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.TubeEventClientHandler;
+import com.leclowndu93150.thaumcraft.client.warp.WarpFXClientHandler;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -110,6 +111,11 @@ public final class TCPayloads {
                 ServerboundRequestAuraChunkPayload.TYPE,
                 ServerboundRequestAuraChunkPayload.STREAM_CODEC,
                 ServerboundRequestAuraChunkHandler::handle
+        );
+        registrar.playToClient(
+                ClientboundWarpFXPayload.TYPE,
+                ClientboundWarpFXPayload.STREAM_CODEC,
+                (payload, context) -> WarpFXClientHandler.handle(payload, context)
         );
         registrar.playToClient(
                 ClientboundAuraSnapshotPayload.TYPE,

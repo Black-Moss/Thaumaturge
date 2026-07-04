@@ -115,6 +115,21 @@ public final class TCEntities {
                     .notInPeaceful()
                     .clientTrackingRange(8));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCausalityCollapser>> CAUSALITY_COLLAPSER = register(
+            "causality_collapser",
+            () -> EntityType.Builder.<EntityCausalityCollapser>of(EntityCausalityCollapser::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityFluxRift>> FLUX_RIFT = register(
+            "flux_rift",
+            () -> EntityType.Builder.<EntityFluxRift>of(EntityFluxRift::new, MobCategory.MISC)
+                    .sized(2.0F, 2.0F)
+                    .fireImmune()
+                    .clientTrackingRange(10)
+                    .updateInterval(20));
+
     public static final DeferredHolder<EntityType<?>, EntityType<EntityFallingTaint>> FALLING_TAINT = register(
             "falling_taint",
             () -> EntityType.Builder.<EntityFallingTaint>of(EntityFallingTaint::new, MobCategory.MISC)

@@ -1,7 +1,12 @@
 {
-    "parent": "block/cube_column",
+    "parent": "block/cube",
     "textures": {
-        "side": "thaumcraft:block/taint_log",
-        "end": "thaumcraft:block/taint_log_top"
+        "particle": "thaumcraft:block/taint_log_top",
+        "up": "thaumcraft:block/taint_log_top",
+        "down": "thaumcraft:block/taint_log_top",
+        "north": "thaumcraft:block/taint_log_0",
+        "south": "thaumcraft:block/taint_log_0",
+        "east": "thaumcraft:block/taint_log_0",
+        "west": "thaumcraft:block/taint_log_0"
     }
 }

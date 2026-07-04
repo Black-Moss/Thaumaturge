@@ -61,6 +61,29 @@ public final class TCRenderPipelines {
             .withCull(false)
             .build();
 
+    public static final RenderPipeline RIFT_GLOW = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow"))
+            .withShaderDefine("PORTAL_LAYERS", 4)
+            .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
+            .withDepthStencilState(TEST_NO_WRITE)
+            .withCull(false)
+            .build();
+
+    public static final RenderPipeline RIFT_GLOW_NO_DEPTH = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow_no_depth"))
+            .withShaderDefine("PORTAL_LAYERS", 4)
+            .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
+            .withDepthStencilState(ALWAYS_NO_WRITE)
+            .withCull(false)
+            .build();
+
+    public static final RenderPipeline RIFT_SOLID = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_solid"))
+            .withShaderDefine("PORTAL_LAYERS", 15)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withCull(false)
+            .build();
+
     public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
@@ -69,6 +92,9 @@ public final class TCRenderPipelines {
     @SubscribeEvent
     static void register(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(FX_ADDITIVE);
+        event.registerPipeline(RIFT_GLOW);
+        event.registerPipeline(RIFT_GLOW_NO_DEPTH);
+        event.registerPipeline(RIFT_SOLID);
         event.registerPipeline(FX_TRANSLUCENT);
         event.registerPipeline(FX_ADDITIVE_NO_DEPTH);
         event.registerPipeline(FX_TRANSLUCENT_NO_DEPTH);

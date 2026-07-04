@@ -18,7 +18,7 @@ public final class TCLangTaint {
         provider.add("block.thaumcraft.taint_fibre", "Taint Fibre");
 
         provider.add("effect.thaumcraft.vis_exhaust", "Vis Exhaust");
-        provider.add("effect.thaumcraft.infectious_vis_exhaust", "Infectious Vis Exhaust");
+        provider.add("effect.thaumcraft.infectious_vis_exhaust", "Flux Phage");
         provider.add("effect.thaumcraft.flux_taint", "Flux Taint");
 
         provider.add("death.attack.thaumcraft.taint", "%1$s was tainted");

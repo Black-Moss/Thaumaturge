@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.content.aura.AuraData;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.ResearchTableData;
+import com.leclowndu93150.thaumcraft.content.warp.WarpData;
 import java.util.function.Supplier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -32,6 +33,13 @@ public final class TCAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AuraData>> AURA =
             register("aura", () -> AttachmentType.builder(AuraData::new)
                     .serialize(AuraData.CODEC)
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<WarpData>> WARP =
+            register("warp", () -> AttachmentType.builder(WarpData::new)
+                    .serialize(WarpData.CODEC)
+                    .sync((holder, to) -> holder == to, WarpData.STREAM_CODEC)
+                    .copyOnDeath()
                     .build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<DustTriggerSwapQueue>> DUST_TRIGGER_QUEUE =

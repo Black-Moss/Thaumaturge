@@ -15,6 +15,7 @@ import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import net.minecraft.client.color.item.Constant;
+import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
@@ -56,6 +57,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class TCModelProvider extends ModelProvider {
+    private static final int ROBES_UNDYED_ARGB = 0xFF6A3880;
+
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(
             Optional.of(Identifier.withDefaultNamespace("item/generated")),
             Optional.empty(),
@@ -135,8 +138,32 @@ public final class TCModelProvider extends ModelProvider {
         registerCandles(blockModels, itemModels);
         registerBanners(blockModels, itemModels);
         itemModels.generateFlatItem(TCItems.TALLOW.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_SWORD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_PICKAXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_AXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_SHOVEL.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_HOE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_SWORD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_PICKAXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_AXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_SHOVEL.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_HOE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_HELM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_CHEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_LEGS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMIUM_BOOTS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_HELM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_CHEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_LEGS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.VOID_BOOTS.get(), ModelTemplates.FLAT_ITEM);
+        registerRobeItem(itemModels, TCItems.CLOTH_CHEST.get(), "cloth_chest");
+        registerRobeItem(itemModels, TCItems.CLOTH_LEGS.get(), "cloth_legs");
+        registerRobeItem(itemModels, TCItems.CLOTH_BOOTS.get(), "cloth_boots");
+
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
 
+        itemModels.generateFlatItem(TCItems.VOID_SEED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CAUSALITY_COLLAPSER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.CLUSTER_IRON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.CLUSTER_GOLD.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.CLUSTER_COPPER.get(), ModelTemplates.FLAT_ITEM);
@@ -330,6 +357,14 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Constant(rgb)));
     }
 
+
+    private static void registerRobeItem(ItemModelGenerators itemModels, Item item, String name) {
+        Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name);
+        Material baseTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name));
+        Material overTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name + "_over"));
+        ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, TextureMapping.layered(baseTex, overTex), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Dye(ROBES_UNDYED_ARGB)));
+    }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {
         Identifier textureId = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + textureName);

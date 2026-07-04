@@ -3,7 +3,9 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aura.BiomeAspects;
 import com.leclowndu93150.thaumcraft.api.aura.BiomeAuraModifier;
+import com.leclowndu93150.thaumcraft.api.warp.ItemWarp;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,11 +26,18 @@ public final class TCDataMaps {
             BiomeAspects.CODEC
     ).build();
 
+    public static final DataMapType<Item, ItemWarp> ITEM_WARP = DataMapType.builder(
+            TCIds.rl("warp"),
+            Registries.ITEM,
+            ItemWarp.CODEC
+    ).synced(ItemWarp.CODEC, false).build();
+
     private TCDataMaps() {}
 
     @SubscribeEvent
     public static void onRegister(RegisterDataMapTypesEvent event) {
         event.register(BIOME_AURA_MODIFIER);
         event.register(BIOME_ASPECTS);
+        event.register(ITEM_WARP);
     }
 }

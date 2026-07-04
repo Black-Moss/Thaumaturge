@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectContainer;
+import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
@@ -268,9 +269,15 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
         if (tank.getAmountAsInt(0) > 0 || total > 0){
             tank.set(0, FluidResource.EMPTY,0);
             AuraHelper.polluteAura(level,getBlockPos(),total * 0.25f, true);
-            int fluxAmount = 0;//aspects.amountOf(Aspect.)
+            int fluxAmount = 0;
+            for (AspectInstance entry : aspects.entries()) {
+                if (entry.aspect().is(TCAspects.VITIUM)) {
+                    fluxAmount = entry.amount();
+                    break;
+                }
+            }
             if (fluxAmount > 0)
-                AuraHelper.polluteAura(level,getBlockPos(), fluxAmount * 0.75f, true);
+                AuraHelper.polluteAura(level,getBlockPos(), fluxAmount * 0.75f, false);
             this.aspects = AspectList.EMPTY;
             level.blockEvent(getBlockPos(),getBlockState().getBlock(),2, 5);
             setChanged();
@@ -283,7 +290,7 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
         if (!aspects.isEmpty()){
             Holder<IAspect> randAspect = aspects.entries().get(level.getRandom().nextInt(aspects.size())).aspect();
             aspects = aspects.reduce(randAspect,1);
-            AuraHelper.polluteAura(level,getBlockPos(),0.25f,true);
+            AuraHelper.polluteAura(level,getBlockPos(),randAspect.is(TCAspects.VITIUM) ? 1.0f : 0.25f,true);
         }
         setChanged();
         syncToClient();
