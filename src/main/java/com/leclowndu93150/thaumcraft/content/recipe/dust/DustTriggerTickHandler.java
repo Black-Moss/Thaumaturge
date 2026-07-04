@@ -17,11 +17,30 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class DustTriggerTickHandler {
     private DustTriggerTickHandler() {}
+
+    @SubscribeEvent
+    public static void onChunkLoad(ChunkEvent.Load event) {
+        if (!(event.getLevel() instanceof ServerLevel level) || !(event.getChunk() instanceof LevelChunk chunk)) {
+            return;
+        }
+        if (!chunk.hasData(TCAttachments.DUST_TRIGGER_QUEUE.get())) {
+            return;
+        }
+        DustTriggerSwapQueue queue = chunk.getData(TCAttachments.DUST_TRIGGER_QUEUE.get());
+        if (queue.isEmpty()) {
+            return;
+        }
+        DustTriggerSwapQueue.markChunkActive(level, chunk.getPos());
+        for (PendingSwap entry : queue.entries()) {
+            DustTriggerSwapQueue.markBlocked(level, entry.pos());
+        }
+    }
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
@@ -71,7 +90,7 @@ public final class DustTriggerTickHandler {
 
     private static void complete(ServerLevel level, PendingSwap entry) {
         BlockPos pos = entry.pos();
-        if (level.getBlockState(pos) != entry.originalState()) {
+        if (!level.getBlockState(pos).is(entry.originalState().getBlock())) {
             DustTriggerSwapQueue.clearBlocked(level, pos);
             return;
         }

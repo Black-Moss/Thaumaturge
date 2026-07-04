@@ -21,8 +21,6 @@ import org.jspecify.annotations.Nullable;
 
 public class BlockInfernalFurnace extends BaseEntityBlock {
 
-    public static boolean ignore = false;
-
     private static final MapCodec<BlockInfernalFurnace> CODEC = simpleCodec(BlockInfernalFurnace::new);
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -48,36 +46,30 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
     }
 
     protected static void destroyFurnace(LevelAccessor level, BlockPos pos, BlockState state, BlockPos startpos) {
-        if (!ignore && !level.isClientSide()) {
-            ignore = true;
-
-            for (int a = -1; a <= 1; a++) {
-                for (int b = -1; b <= 1; b++) {
-                    for (int c = -1; c <= 1; c++) {
-                        if (pos.offset(a, b, c) != startpos) {
-                            BlockState bs = level.getBlockState(pos.offset(a, b, c));
-                            if (bs.is(TCBlocks.NETHER_BRICKS_PLACEHOLDER)) {
-                                level.setBlock(pos.offset(a, b, c), Blocks.NETHER_BRICKS.defaultBlockState(),BlockInfernalFurnace.UPDATE_ALL);
-                            }
-
-                            if (bs.is(TCBlocks.OBSIDIAN_PLACEHOLDER)) {
-                                level.setBlock(pos.offset(a, b, c), Blocks.OBSIDIAN.defaultBlockState(),BlockInfernalFurnace.UPDATE_ALL);
-                            }
-                        }
+        if (level.isClientSide()) {
+            return;
+        }
+        for (int a = -1; a <= 1; a++) {
+            for (int b = -1; b <= 1; b++) {
+                for (int c = -1; c <= 1; c++) {
+                    BlockPos shellPos = pos.offset(a, b, c);
+                    if (shellPos.equals(startpos)) {
+                        continue;
+                    }
+                    BlockState bs = level.getBlockState(shellPos);
+                    if (bs.is(TCBlocks.NETHER_BRICKS_PLACEHOLDER)) {
+                        level.setBlock(shellPos, Blocks.NETHER_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
+                    } else if (bs.is(TCBlocks.OBSIDIAN_PLACEHOLDER)) {
+                        level.setBlock(shellPos, Blocks.OBSIDIAN.defaultBlockState(), Block.UPDATE_ALL);
                     }
                 }
             }
-
-            if (level.isEmptyBlock(pos.relative(state.getValue(FACING).getOpposite()))) {
-                if (level instanceof ServerLevel slevel)
-                    slevel.setBlockAndUpdate(pos.relative(state.getValue(FACING).getOpposite()), Blocks.IRON_BARS.defaultBlockState());
-                else
-                    level.setBlock(pos.relative(state.getValue(FACING).getOpposite()), Blocks.IRON_BARS.defaultBlockState(), BlockInfernalFurnace.UPDATE_ALL);
-            }
-
-            level.setBlock(pos, Blocks.LAVA.defaultBlockState(), BlockInfernalFurnace.UPDATE_ALL);
-            ignore = false;
         }
+        BlockPos barsPos = pos.relative(state.getValue(FACING).getOpposite());
+        if (level.isEmptyBlock(barsPos) && !barsPos.equals(startpos)) {
+            level.setBlock(barsPos, Blocks.IRON_BARS.defaultBlockState(), Block.UPDATE_ALL);
+        }
+        level.setBlock(pos, Blocks.LAVA.defaultBlockState(), Block.UPDATE_ALL);
     }
 
     @Override

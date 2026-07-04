@@ -15,13 +15,12 @@ public final class MultiblockMatcher {
     private MultiblockMatcher() {}
 
     public static @Nullable DustTriggerPlacement find(Level level, BlockPos clicked, Blueprint blueprint) {
-        int xs = blueprint.xSize();
         int ys = blueprint.ySize();
-        int zs = blueprint.zSize();
+        int horizontal = Math.max(blueprint.xSize(), blueprint.zSize());
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int yy = -ys; yy <= 0; yy++) {
-            for (int xx = -xs; xx <= 0; xx++) {
-                for (int zz = -zs; zz <= 0; zz++) {
+            for (int xx = -horizontal; xx <= 0; xx++) {
+                for (int zz = -horizontal; zz <= 0; zz++) {
                     cursor.set(clicked.getX() + xx, clicked.getY() + yy, clicked.getZ() + zz);
                     Direction facing = fitMultiblock(level, cursor, blueprint);
                     if (facing != null) {

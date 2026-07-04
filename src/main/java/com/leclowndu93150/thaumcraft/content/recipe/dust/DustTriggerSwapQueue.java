@@ -86,6 +86,10 @@ public final class DustTriggerSwapQueue {
         return new HashSet<>(set);
     }
 
+    public static void markChunkActive(ServerLevel level, ChunkPos pos) {
+        ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(pos);
+    }
+
     public static void markChunkClear(ServerLevel level, ChunkPos pos) {
         Set<ChunkPos> set = ACTIVE.get(level.dimension());
         if (set != null) {

@@ -30,7 +30,7 @@ public class BlockPlaceholder extends Block {
 
     @Override
     public void destroy(LevelAccessor level, BlockPos pos, BlockState state) {
-        if ((state.is(TCBlocks.NETHER_BRICKS_PLACEHOLDER) || state.is(TCBlocks.OBSIDIAN_PLACEHOLDER)) && !BlockInfernalFurnace.ignore && !level.isClientSide()){
+        if ((state.is(TCBlocks.NETHER_BRICKS_PLACEHOLDER) || state.is(TCBlocks.OBSIDIAN_PLACEHOLDER)) && !level.isClientSide()){
             destroyFor:
             for (int x = -1; x <= 1; x++){
                 for (int y = -1; y <= 1; y++) {

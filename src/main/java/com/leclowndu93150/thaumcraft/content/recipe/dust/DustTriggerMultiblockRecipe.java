@@ -31,7 +31,6 @@ import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jspecify.annotations.Nullable;
@@ -183,10 +182,10 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
             } else {
                 facing = placementFacing;
             }
-            if (placed.hasProperty(HorizontalDirectionalBlock.FACING)) {
-                placed = placed.setValue(HorizontalDirectionalBlock.FACING, facing);
-            } else if (placed.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            if (placed.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
                 placed = placed.setValue(BlockStateProperties.HORIZONTAL_FACING, facing);
+            } else if (placed.hasProperty(BlockStateProperties.FACING)) {
+                placed = placed.setValue(BlockStateProperties.FACING, facing);
             }
             DustTriggerSwapQueue.enqueuePlace(level, pos, original, placed, delay);
             return;
