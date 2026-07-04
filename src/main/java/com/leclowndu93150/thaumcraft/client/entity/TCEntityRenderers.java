@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.TCBannerModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintSeedModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintacleModel;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
@@ -27,6 +28,7 @@ public final class TCEntityRenderers {
                 () -> TaintacleModel.createLayer(TaintacleModel.TAINTACLE_SMALL_LENGTH));
         event.registerLayerDefinition(TCModelLayers.TAINT_SEED, TaintSeedModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.FIRE_BAT, FireBatModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.TC_BANNER, TCBannerModel::createLayer);
     }
 
     @SubscribeEvent

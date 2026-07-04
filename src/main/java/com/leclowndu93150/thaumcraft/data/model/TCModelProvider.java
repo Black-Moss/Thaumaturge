@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
@@ -19,16 +20,20 @@ import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.client.renderer.item.CompositeModel;
 import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.SelectItemModel;
 import net.minecraft.client.renderer.item.SpecialModelWrapper;
+import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.renderer.item.properties.select.ComponentContents;
 import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
@@ -41,6 +46,11 @@ import java.util.List;
 import java.util.Optional;
 
 public final class TCModelProvider extends ModelProvider {
+    private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(
+            Optional.of(Identifier.withDefaultNamespace("item/generated")),
+            Optional.empty(),
+            TextureSlot.LAYER0, TextureSlot.LAYER1, TextureSlot.LAYER2);
+
     public TCModelProvider(PackOutput output) {
         super(output, TCIds.MODID);
     }
@@ -83,6 +93,9 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.GOGGLES_REVEALING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
         registerCelestialNotes(itemModels);
+        registerCandles(blockModels, itemModels);
+        registerBanners(blockModels, itemModels);
+        itemModels.generateFlatItem(TCItems.TALLOW.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
         TCBlocksAOresModels.register(blockModels, itemModels);
         CrystalBlockstateGenerator.register(blockModels);
@@ -96,11 +109,57 @@ public final class TCModelProvider extends ModelProvider {
         TCItemsHContainersModels.register(itemModels);
     }
 
+    private void registerBanners(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/tc_banner");
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
+        Material stand = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/banner_stand"));
+        Material cloth = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/banner_cloth"));
+        Material symbol = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/banner_symbol"));
+        Identifier dyedItemModel = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/banner_dyed");
+        Identifier cultistItemModel = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/banner_cultist");
+        THREE_LAYERED_ITEM.create(dyedItemModel,
+                TextureMapping.layered(stand, cloth, symbol), itemModels.modelOutput);
+        ModelTemplates.TWO_LAYERED_ITEM.create(cultistItemModel,
+                TextureMapping.layered(stand, new Material(cultistItemModel)), itemModels.modelOutput);
+        for (DyeColor dye : DyeColor.values()) {
+            blockModels.blockStateOutput.accept(
+                    BlockModelGenerators.createSimpleBlock(TCBlocks.BANNERS.get(dye).get(), variant));
+            blockModels.blockStateOutput.accept(
+                    BlockModelGenerators.createSimpleBlock(TCBlocks.WALL_BANNERS.get(dye).get(), variant));
+            int tint = 0xFF000000 | dye.getMapColor().col;
+            itemModels.itemModelOutput.accept(TCItems.BANNERS.get(dye).get(),
+                    ItemModelUtils.tintedModel(dyedItemModel,
+                            new Constant(0xFFFFFFFF),
+                            new Constant(tint),
+                            new AspectFilterTint(dye.getMapColor().col)));
+        }
+        blockModels.blockStateOutput.accept(
+                BlockModelGenerators.createSimpleBlock(TCBlocks.BANNER_CRIMSON_CULT.get(), variant));
+        blockModels.blockStateOutput.accept(
+                BlockModelGenerators.createSimpleBlock(TCBlocks.WALL_BANNER_CRIMSON_CULT.get(), variant));
+        itemModels.itemModelOutput.accept(TCItems.BANNER_CRIMSON_CULT.get(),
+                ItemModelUtils.plainModel(cultistItemModel));
+    }
+
+    private void registerCandles(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/candle");
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
+        for (DyeColor dye : DyeColor.values()) {
+            Block candle = TCBlocks.CANDLES.get(dye).get();
+            blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(candle, variant));
+            int tint = 0xFF000000 | dye.getMapColor().col;
+            itemModels.itemModelOutput.accept(candle.asItem(),
+                    ItemModelUtils.tintedModel(model, new Constant(tint)));
+        }
+    }
+
     private void registerCelestialNotes(ItemModelGenerators itemModels) {
+        Material sheet = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/celestial_notes_sheet"));
         List<SelectItemModel.SwitchCase<CelestialBody>> cases = new ArrayList<>();
         for (CelestialBody body : CelestialBody.values()) {
             Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/celestial_notes_" + body.getSerializedName());
-            ModelTemplates.FLAT_ITEM.create(model, TextureMapping.layer0(new Material(model)), itemModels.modelOutput);
+            ModelTemplates.TWO_LAYERED_ITEM.create(model,
+                    TextureMapping.layered(sheet, new Material(model)), itemModels.modelOutput);
             cases.add(ItemModelUtils.when(body, ItemModelUtils.plainModel(model)));
         }
         Identifier fallback = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/celestial_notes_sun");

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -38,6 +39,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
@@ -154,6 +156,38 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> ORE_AMBER = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_AMBER);
     public static final DeferredItem<BlockItem> ORE_CINNABAR = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_CINNABAR);
     public static final DeferredItem<BlockItem> ORE_QUARTZ = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_QUARTZ);
+
+    public static final DeferredItem<Item> TALLOW = ITEMS.registerSimpleItem("tallow");
+
+    public static final Map<DyeColor, DeferredItem<BlockItem>> CANDLES = new EnumMap<>(DyeColor.class);
+
+    static {
+        for (DyeColor dye : DyeColor.values()) {
+            CANDLES.put(dye, ITEMS.registerSimpleBlockItem(TCBlocks.CANDLES.get(dye)));
+        }
+    }
+
+    public static final Map<DyeColor, DeferredItem<StandingAndWallBlockItem>> BANNERS = new EnumMap<>(DyeColor.class);
+
+    static {
+        for (DyeColor dye : DyeColor.values()) {
+            BANNERS.put(dye, ITEMS.registerItem(
+                    "banner_" + dye.getName(),
+                    props -> new StandingAndWallBlockItem(
+                            TCBlocks.BANNERS.get(dye).get(),
+                            TCBlocks.WALL_BANNERS.get(dye).get(),
+                            Direction.DOWN,
+                            props.stacksTo(16).useBlockDescriptionPrefix())));
+        }
+    }
+
+    public static final DeferredItem<StandingAndWallBlockItem> BANNER_CRIMSON_CULT = ITEMS.registerItem(
+            "banner_crimson_cult",
+            props -> new StandingAndWallBlockItem(
+                    TCBlocks.BANNER_CRIMSON_CULT.get(),
+                    TCBlocks.WALL_BANNER_CRIMSON_CULT.get(),
+                    Direction.DOWN,
+                    props.stacksTo(16).useBlockDescriptionPrefix()));
 
     public static final Map<DyeColor, DeferredItem<BlockItem>> NITORS = new EnumMap<>(DyeColor.class);
 

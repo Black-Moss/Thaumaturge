@@ -13,6 +13,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.flag.FeatureFlags;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -23,6 +25,14 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 public final class TCBlockLootSubProvider extends BlockLootSubProvider {
+    private LootTable.Builder bannerTable(ItemLike item) {
+        return LootTable.lootTable()
+                .withPool(this.applyExplosionCondition(item, LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .add(LootItem.lootTableItem(item)
+                                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)))));
+    }
+
     private final HolderLookup.Provider lookupProvider;
 
     public TCBlockLootSubProvider(HolderLookup.Provider lookupProvider) {
@@ -39,6 +49,13 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
+        for (DyeColor dye : DyeColor.values()) {
+            dropSelf(TCBlocks.CANDLES.get(dye).get());
+            add(TCBlocks.BANNERS.get(dye).get(), bannerTable(TCItems.BANNERS.get(dye).get()));
+            add(TCBlocks.WALL_BANNERS.get(dye).get(), bannerTable(TCItems.BANNERS.get(dye).get()));
+        }
+        add(TCBlocks.BANNER_CRIMSON_CULT.get(), bannerTable(TCItems.BANNER_CRIMSON_CULT.get()));
+        add(TCBlocks.WALL_BANNER_CRIMSON_CULT.get(), bannerTable(TCItems.BANNER_CRIMSON_CULT.get()));
         dropSelf(TCBlocks.RESEARCH_TABLE.get());
         dropSelf(TCBlocks.ARCANE_WORKBENCH.get());
         dropSelf(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());

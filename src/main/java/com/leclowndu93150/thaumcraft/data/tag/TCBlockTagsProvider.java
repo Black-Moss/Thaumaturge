@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.data.tag;
 
 import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import com.leclowndu93150.thaumcraft.registry.TCTags;
 import com.leclowndu93150.thaumcraft.TCIds;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -18,6 +19,22 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
+        tag(TCTags.INFUSION_STABILISERS)
+                .add(Blocks.SKELETON_SKULL)
+                .add(Blocks.SKELETON_WALL_SKULL)
+                .add(Blocks.WITHER_SKELETON_SKULL)
+                .add(Blocks.WITHER_SKELETON_WALL_SKULL)
+                .add(Blocks.ZOMBIE_HEAD)
+                .add(Blocks.ZOMBIE_WALL_HEAD)
+                .add(Blocks.PLAYER_HEAD)
+                .add(Blocks.PLAYER_WALL_HEAD)
+                .add(Blocks.CREEPER_HEAD)
+                .add(Blocks.CREEPER_WALL_HEAD)
+                .add(Blocks.DRAGON_HEAD)
+                .add(Blocks.DRAGON_WALL_HEAD)
+                .add(Blocks.PIGLIN_HEAD)
+                .add(Blocks.PIGLIN_WALL_HEAD);
+
         tag(BlockTags.BEACON_BASE_BLOCKS)
                 .add(TCBlocks.METAL_THAUMIUM_BLOCK.get())
                 .add(TCBlocks.METAL_BRASS_BLOCK.get())

@@ -61,6 +61,14 @@ public final class TCCreativeTabs {
                         for (DyeColor dye : DyeColor.values()) {
                             output.accept(TCItems.NITORS.get(dye).get());
                         }
+                        output.accept(TCItems.TALLOW.get());
+                        for (DyeColor dye : DyeColor.values()) {
+                            output.accept(TCItems.BANNERS.get(dye).get());
+                        }
+                        output.accept(TCItems.BANNER_CRIMSON_CULT.get());
+                        for (DyeColor dye : DyeColor.values()) {
+                            output.accept(TCItems.CANDLES.get(dye).get());
+                        }
                         output.accept(TCItems.AMBER.get());
                         output.accept(TCItems.CINNABAR.get());
                         output.accept(TCItems.CRYSTAL_AER.get());

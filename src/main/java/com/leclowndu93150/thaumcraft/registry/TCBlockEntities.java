@@ -16,6 +16,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.leclowndu93150.thaumcraft.content.workbench.BlockEntityArcaneWorkbench;
+import com.leclowndu93150.thaumcraft.content.decor.banner.BlockEntityBanner;
+import java.util.HashSet;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -26,6 +29,23 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class TCBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TCIds.MODID);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityBanner>> BANNER =
+            BLOCK_ENTITIES.register(
+                    "banner",
+                    () -> new BlockEntityType<>(BlockEntityBanner::new, bannerBlocks())
+            );
+
+    private static Set<Block> bannerBlocks() {
+        Set<Block> blocks = new HashSet<>();
+        for (DyeColor dye : DyeColor.values()) {
+            blocks.add(TCBlocks.BANNERS.get(dye).get());
+            blocks.add(TCBlocks.WALL_BANNERS.get(dye).get());
+        }
+        blocks.add(TCBlocks.BANNER_CRIMSON_CULT.get());
+        blocks.add(TCBlocks.WALL_BANNER_CRIMSON_CULT.get());
+        return blocks;
+    }
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityResearchTable>> RESEARCH_TABLE =
             BLOCK_ENTITIES.register(

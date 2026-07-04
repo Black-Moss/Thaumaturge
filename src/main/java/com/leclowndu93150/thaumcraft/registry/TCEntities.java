@@ -23,6 +23,7 @@ public final class TCEntities {
             () -> EntityType.Builder.of(EntityBrainyZombie::new, MobCategory.MONSTER)
                     .sized(0.6F, 1.95F)
                     .eyeHeight(1.74F)
+                    .notInPeaceful()
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
@@ -31,6 +32,7 @@ public final class TCEntities {
             () -> EntityType.Builder.of(EntityGiantBrainyZombie::new, MobCategory.MONSTER)
                     .sized(0.6F, 1.95F)
                     .eyeHeight(1.74F)
+                    .notInPeaceful()
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
@@ -39,6 +41,7 @@ public final class TCEntities {
             () -> EntityType.Builder.of(EntityMindSpider::new, MobCategory.MONSTER)
                     .sized(0.7F, 0.5F)
                     .eyeHeight(0.45F)
+                    .notInPeaceful()
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
@@ -47,6 +50,7 @@ public final class TCEntities {
             () -> EntityType.Builder.of(EntityFireBat::new, MobCategory.MONSTER)
                     .sized(0.5F, 0.9F)
                     .fireImmune()
+                    .notInPeaceful()
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
@@ -54,6 +58,7 @@ public final class TCEntities {
             "wisp",
             () -> EntityType.Builder.of(WispEntity::new, MobCategory.MONSTER)
                     .sized(0.9F, 0.9F)
+                    .notInPeaceful()
                     .clientTrackingRange(10)
                     .updateInterval(3));
 
@@ -63,6 +68,7 @@ public final class TCEntities {
                     .sized(0.52F, 0.52F)
                     .eyeHeight(0.325F)
                     .spawnDimensionsScale(4.0F)
+                    .notInPeaceful()
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
@@ -71,36 +77,42 @@ public final class TCEntities {
             () -> EntityType.Builder.of(EntityTaintCrawler::new, MobCategory.MONSTER)
                     .sized(0.5F, 0.4F)
                     .eyeHeight(0.1F)
+                    .notInPeaceful()
                     .clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSeed>> TAINT_SEED = register(
             "taint_seed",
             () -> EntityType.Builder.of(EntityTaintSeed::new, MobCategory.MONSTER)
                     .sized(1.5F, 1.25F)
+                    .notInPeaceful()
                     .clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSeedPrime>> TAINT_SEED_PRIME = register(
             "taint_seed_prime",
             () -> EntityType.Builder.of(EntityTaintSeedPrime::new, MobCategory.MONSTER)
                     .sized(2.0F, 2.0F)
+                    .notInPeaceful()
                     .clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSwarm>> TAINT_SWARM = register(
             "taint_swarm",
             () -> EntityType.Builder.of(EntityTaintSwarm::new, MobCategory.MONSTER)
                     .sized(2.0F, 2.0F)
+                    .notInPeaceful()
                     .clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintacle>> TAINTACLE = register(
             "taintacle",
             () -> EntityType.Builder.of(EntityTaintacle::new, MobCategory.MONSTER)
                     .sized(0.8F, 3.0F)
+                    .notInPeaceful()
                     .clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintacleSmall>> TAINTACLE_SMALL = register(
             "taintacle_small",
             () -> EntityType.Builder.of(EntityTaintacleSmall::new, MobCategory.MONSTER)
                     .sized(0.22F, 1.0F)
+                    .notInPeaceful()
                     .clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityFallingTaint>> FALLING_TAINT = register(

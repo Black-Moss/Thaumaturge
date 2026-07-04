@@ -1,6 +1,9 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.decor.BlockCandle;
+import com.leclowndu93150.thaumcraft.content.decor.banner.BannerStandingBlock;
+import com.leclowndu93150.thaumcraft.content.decor.banner.BannerWallBlock;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockCrucible;
@@ -292,6 +295,63 @@ public final class TCBlocks {
                     () -> nitorProps(dye)
             ));
         }
+    }
+
+    public static final Map<DyeColor, DeferredBlock<BlockCandle>> CANDLES = new EnumMap<>(DyeColor.class);
+
+    static {
+        for (DyeColor dye : DyeColor.values()) {
+            CANDLES.put(dye, BLOCKS.registerBlock(
+                    "candle_" + dye.getName(),
+                    props -> new BlockCandle(dye, props),
+                    () -> candleProps(dye)
+            ));
+        }
+    }
+
+    public static final Map<DyeColor, DeferredBlock<BannerStandingBlock>> BANNERS = new EnumMap<>(DyeColor.class);
+    public static final Map<DyeColor, DeferredBlock<BannerWallBlock>> WALL_BANNERS = new EnumMap<>(DyeColor.class);
+
+    static {
+        for (DyeColor dye : DyeColor.values()) {
+            BANNERS.put(dye, BLOCKS.registerBlock(
+                    "banner_" + dye.getName(),
+                    props -> new BannerStandingBlock(dye, props),
+                    () -> bannerProps(dye)
+            ));
+            WALL_BANNERS.put(dye, BLOCKS.registerBlock(
+                    "wall_banner_" + dye.getName(),
+                    props -> new BannerWallBlock(dye, props),
+                    () -> bannerProps(dye)
+            ));
+        }
+    }
+
+    public static final DeferredBlock<BannerStandingBlock> BANNER_CRIMSON_CULT = BLOCKS.registerBlock(
+            "banner_crimson_cult",
+            props -> new BannerStandingBlock(null, props),
+            () -> bannerProps(null));
+
+    public static final DeferredBlock<BannerWallBlock> WALL_BANNER_CRIMSON_CULT = BLOCKS.registerBlock(
+            "wall_banner_crimson_cult",
+            props -> new BannerWallBlock(null, props),
+            () -> bannerProps(null));
+
+    private static BlockBehaviour.Properties bannerProps(DyeColor dye) {
+        BlockBehaviour.Properties props = BlockBehaviour.Properties.of()
+                .strength(1.0F)
+                .sound(SoundType.WOOD)
+                .noOcclusion();
+        return dye == null ? props.mapColor(MapColor.COLOR_RED) : props.mapColor(dye.getMapColor());
+    }
+
+    private static BlockBehaviour.Properties candleProps(DyeColor dye) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(dye.getMapColor())
+                .strength(0.1F)
+                .sound(SoundType.WOOL)
+                .lightLevel(state -> 14)
+                .noOcclusion();
     }
 
     private static BlockBehaviour.Properties nitorProps(DyeColor dye) {

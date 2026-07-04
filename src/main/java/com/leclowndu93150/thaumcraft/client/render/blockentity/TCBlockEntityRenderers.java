@@ -16,5 +16,6 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.JAR.get(), JarRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.JAR_VOID.get(), JarRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.CRUCIBLE.get(), CrucibleRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.BANNER.get(), BannerRenderer::new);
     }
 }
