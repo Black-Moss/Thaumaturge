@@ -77,6 +77,8 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> SMELTER_VOID = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_VOID);
 
+    public static final DeferredItem<BlockItem> INFERNAL_FURNACE = ITEMS.registerSimpleBlockItem(TCBlocks.INFERNAL_FURNACE);
+
     public static final DeferredItem<BlockItem> JAR_NORMAL = registerSimpleBlockItem(TCBlocks.JAR_NORMAL, JarItem::new);
 
     public static final DeferredItem<BlockItem> JAR_VOID = registerSimpleBlockItem(TCBlocks.JAR_VOID,JarItem::new);

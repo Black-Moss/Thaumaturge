@@ -124,5 +124,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.METAL_THAUMIUM_BLOCK.get());
         dropSelf(TCBlocks.METAL_VOID_BLOCK.get());
         dropSelf(TCBlocks.AMBER_BLOCK.get());
+        dropOther(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), Blocks.NETHER_BRICKS);
+        dropOther(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), Blocks.OBSIDIAN);
     }
 }

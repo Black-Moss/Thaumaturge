@@ -20,6 +20,8 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeFilter;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeOneway;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeRestrict;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeValve;
+import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockInfernalFurnace;
+import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockPlaceholder;
 import com.leclowndu93150.thaumcraft.content.metal.BlockMetalTC;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockResearchTable;
@@ -45,6 +47,10 @@ import com.leclowndu93150.thaumcraft.content.world.tree.TCTreeGrowers;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
@@ -734,6 +740,37 @@ public final class TCBlocks {
                     .strength(4.0F, 10.0F)
                     .sound(SoundType.METAL)
                     .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<BlockPlaceholder> OBSIDIAN_PLACEHOLDER = BLOCKS.registerBlock(
+            "placeholder_obsidian",
+            BlockPlaceholder::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.5F, 3600000.0F)
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<BlockPlaceholder> NETHER_BRICKS_PLACEHOLDER = BLOCKS.registerBlock(
+            "placeholder_nether_bricks",
+            BlockPlaceholder::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.5F, 3600000.0F)
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<BlockInfernalFurnace> INFERNAL_FURNACE = BLOCKS.registerBlock(
+            "infernal_furnace",
+            BlockInfernalFurnace::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.5F, 3600000.0F)
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()
+                    .noLootTable()
     );
 
 
