@@ -7,7 +7,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 
-public final class TCTags {
+public final class TCBiomeTags {
     public static final TagKey<Item> CANDLES = item("candles");
     public static final TagKey<Block> INFUSION_STABILISERS = block("infusion_stabilisers");
 
@@ -28,5 +28,5 @@ public final class TCTags {
         return TagKey.create(Registries.BIOME, TCIds.rl(path));
     }
 
-    private TCTags() {}
+    private TCBiomeTags() {}
 }

@@ -1,17 +1,13 @@
 package com.leclowndu93150.thaumcraft.content.infusion;
 
 import com.leclowndu93150.thaumcraft.api.infusion.IInfusionStabiliser;
-import com.leclowndu93150.thaumcraft.registry.TCTags;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.*;
 
 public final class InfusionStabilitySurvey {
     private static final int HORIZONTAL_RANGE = 8;
@@ -76,7 +72,7 @@ public final class InfusionStabilitySurvey {
 
     public static boolean isStabiliser(Level level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        if (state.is(TCTags.INFUSION_STABILISERS)) {
+        if (state.is(TCBlockTags.INFUSION_STABILISERS)) {
             return true;
         }
         return state.getBlock() instanceof IInfusionStabiliser stabiliser

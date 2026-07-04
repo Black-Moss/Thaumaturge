@@ -1,4 +1,5 @@
 {
+    "parent": "block/block",
     "textures": {
         "particle": "thaumcraft:block/research_table_top",
         "top": "thaumcraft:block/research_table_top",

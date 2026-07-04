@@ -14,6 +14,7 @@ import com.leclowndu93150.thaumcraft.data.model.crystal.EssentiaCrystalModelGene
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
+import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
@@ -39,9 +40,12 @@ import net.minecraft.client.renderer.item.properties.select.ComponentContents;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -49,6 +53,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public final class TCModelProvider extends ModelProvider {
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(
@@ -102,16 +107,55 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.GOGGLES_REVEALING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
         registerCelestialNotes(itemModels);
+
+        for (DyeColor dye : DyeColor.values()) {
+            registerNitor(blockModels, itemModels, dye);
+        }
+
+        // Resources
+        blockModels.createTrivialCube(TCBlocks.ORE_AMBER.get());
+        blockModels.createTrivialCube(TCBlocks.ORE_CINNABAR.get());
+        blockModels.createTrivialCube(TCBlocks.ORE_QUARTZ.get());
+
+        blockModels.createTrivialCube(TCBlocks.METAL_BRASS_BLOCK.get());
+        blockModels.createTrivialCube(TCBlocks.METAL_THAUMIUM_BLOCK.get());
+        blockModels.createTrivialCube(TCBlocks.METAL_VOID_BLOCK.get());
+        blockModels.createTrivialCube(TCBlocks.AMBER_BLOCK.get());
+
+        itemModels.generateFlatItem(TCItems.INGOT_THAUMIUM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.INGOT_BRASS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.INGOT_VOID.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.AMBER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.QUICKSILVER.get(), ModelTemplates.FLAT_ITEM);
+
+        itemModels.generateFlatItem(TCItems.NUGGET_THAUMIUM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.NUGGET_BRASS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.NUGGET_VOID.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.NUGGET_QUICKSILVER.get(), ModelTemplates.FLAT_ITEM);
         registerCandles(blockModels, itemModels);
         registerBanners(blockModels, itemModels);
         itemModels.generateFlatItem(TCItems.TALLOW.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
-        TCBlocksAOresModels.register(blockModels, itemModels);
+
+        itemModels.generateFlatItem(TCItems.CLUSTER_IRON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_GOLD.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_COPPER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_SILVER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_LEAD.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_TIN.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_CINNABAR.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLUSTER_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
+
+        itemModels.generateFlatItem(TCItems.PLATE_IRON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.PLATE_THAUMIUM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.PLATE_BRASS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.PLATE_VOID.get(), ModelTemplates.FLAT_ITEM);
+
+
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
         EssentiaCrystalModelGenerator.register(itemModels);
         TCBlocksCStoneModels.register(blockModels);
-        TCBlocksFMetalsModels.register(blockModels, itemModels);
         TCBlocksDTreesModels.register(blockModels, itemModels);
         TCBlocksEPlantsModels.register(blockModels, itemModels);
         TCBlocksTaintModels.register(blockModels, itemModels);
@@ -269,4 +313,30 @@ public final class TCModelProvider extends ModelProvider {
                 .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.RESEARCH_TABLE.get(), variant).with(rotations));
     }
+
+    private static void registerNitor(BlockModelGenerators blockModels, ItemModelGenerators itemModels, DyeColor dye) {
+        var block = TCBlocks.NITORS.get(dye).get();
+        Identifier empty = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/empty");
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(empty)));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+
+        var item = TCItems.NITORS.get(dye).get();
+        Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/nitor_" + dye.getName());
+        Material baseTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor"));
+        Material coreTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor_core"));
+        TextureMapping textures = TextureMapping.layered(baseTex, coreTex);
+        ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, textures, itemModels.modelOutput);
+        int rgb = dye.getTextureDiffuseColor() & 0xFFFFFF;
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Constant(rgb)));
+    }
+
+
+    private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {
+        Identifier textureId = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + textureName);
+        Material texture = new Material(textureId);
+        Identifier modelId = ModelTemplates.CUBE_ALL.create(block, TextureMapping.cube(texture), blockModels.modelOutput);
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(modelId)));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+    }
+
 }

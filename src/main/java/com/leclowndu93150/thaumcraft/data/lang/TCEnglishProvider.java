@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangBCrystals;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangCStone;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDTrees;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDecor;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangFMetals;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangHContainers;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangGTools;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangMAuraHud;
@@ -163,7 +162,6 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");
         add("tooltip.thaumcraft.salis_mundus.desc", "Magical dust that triggers transmutations when applied to certain blocks.");
-        add("item.thaumcraft.nugget_quartz", "Quartz Sliver");
         add("item.thaumcraft.vis_resonator", "Vis Resonator");
         add("attributes.thaumcraft.vis_discount", "Vis Discount");
         add("subtitles.thaumcraft.jar", "Jar clinks");
@@ -179,9 +177,6 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.tube_oneway", "One-Way Essentia Tube");
         add("block.thaumcraft.tube_buffer", "Essentia Buffer");
 
-        add("block.thaumcraft.ore_amber", "Amber Bearing Stone");
-        add("block.thaumcraft.ore_cinnabar", "Cinnabar Ore");
-        add("block.thaumcraft.ore_quartz", "Quartz Ore");
         add("block.thaumcraft.nitor_white", "White Nitor");
         add("block.thaumcraft.nitor_orange", "Orange Nitor");
         add("block.thaumcraft.nitor_magenta", "Magenta Nitor");
@@ -198,8 +193,6 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.nitor_green", "Green Nitor");
         add("block.thaumcraft.nitor_red", "Red Nitor");
         add("block.thaumcraft.nitor_black", "Black Nitor");
-        add("item.thaumcraft.amber", "Amber");
-        add("item.thaumcraft.cinnabar", "Native Cinnabar Cluster");
 
         researchEntry("basics_root", "Thaumaturgy",
                 "Your first studies of the arcane begin here. Gather scribing paper and start recording your observations.");
@@ -264,9 +257,45 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jei.thaumcraft.research.missing_research", "Missing research: ");
         add("tooltip.thaumcraft.aspects.header", "Aspects:");
 
+        // Resources
+        add("block.thaumcraft.ore_amber", "Amber Bearing Stone");
+        add("block.thaumcraft.ore_cinnabar", "Cinnabar Ore");
+        add("block.thaumcraft.ore_quartz", "Quartz Ore");
+
+        add("block.thaumcraft.metal_thaumium", "Thaumium Block");
+        add("block.thaumcraft.metal_brass", "Alchemical Brass Block");
+        add("block.thaumcraft.metal_void", "Void Metal Block");
+        add("block.thaumcraft.amber_block", "Amber Block");
+
+        add("item.thaumcraft.quicksilver", "Quicksilver");
+        add("item.thaumcraft.amber", "Amber");
+        add("item.thaumcraft.ingot_thaumium", "Thaumium Ingot");
+        add("item.thaumcraft.ingot_brass", "Alchemical Brass Ingot");
+        add("item.thaumcraft.ingot_void", "Void Metal Ingot");
+
+        add("item.thaumcraft.nugget_quartz", "Quartz Sliver");
+        add("item.thaumcraft.nugget_quicksilver", "Quicksilver Drop");
+        add("item.thaumcraft.nugget_thaumium", "Thaumium Nugget");
+        add("item.thaumcraft.nugget_brass", "Alchemical Brass Nugget");
+        add("item.thaumcraft.nugget_void", "Void Metal Nugget");
+
+        add("item.thaumcraft.plate_iron", "Iron Plate");
+        add("item.thaumcraft.plate_brass", "Alchemical Brass Plate");
+        add("item.thaumcraft.plate_thaumium", "Thaumium Plate");
+        add("item.thaumcraft.plate_void", "Void Metal Plate");
+
+        add("item.thaumcraft.cluster_iron", "Native Iron Cluster");
+        add("item.thaumcraft.cluster_gold", "Native Gold Cluster");
+        add("item.thaumcraft.cluster_copper", "Native Copper Cluster");
+        add("item.thaumcraft.cluster_silver", "Native Silver Cluster");
+        add("item.thaumcraft.cluster_lead", "Native Lead Cluster");
+        add("item.thaumcraft.cluster_tin", "Native Tin Cluster");
+        add("item.thaumcraft.cluster_cinnabar", "Native Cinnabar Cluster");
+        add("item.thaumcraft.cluster_quartz", "Native Quartz Cluster");
+
+
         TCLangBCrystals.register(this);
         TCLangCStone.register(this);
-        TCLangFMetals.register(this);
         TCLangDTrees.register(this);
         TCLangMAuraHud.register(this);
         TCLangHContainers.register(this);

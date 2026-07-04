@@ -4,6 +4,7 @@
   "package": "com.leclowndu93150.thaumcraft.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "data.recipes.RecipeProviderAccessor",
     "world.entity.item.ItemEntityAccessor",
     "world.entity.monster.SlimeAccessor"
   ],

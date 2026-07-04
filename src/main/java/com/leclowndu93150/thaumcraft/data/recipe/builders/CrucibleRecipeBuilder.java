@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -19,13 +20,27 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class CrucibleRecipeBuilder extends SimpleRecipeBuilder {
+    private final HolderGetter<IAspect> aspectsGetter;
     private final Ingredient catalyst;
     private @Nullable ResearchGate gate;
     private AspectList aspects = AspectList.EMPTY;
 
-    public CrucibleRecipeBuilder(RecipeCategory category, ItemStackTemplate result, Ingredient catalyst) {
+    public CrucibleRecipeBuilder(HolderGetter<IAspect> aspectsGetter, RecipeCategory category, ItemStackTemplate result, Ingredient catalyst) {
         super(result, category);
+        this.aspectsGetter = aspectsGetter;
         this.catalyst = catalyst;
+    }
+
+    public CrucibleRecipeBuilder aspect(ResourceKey<IAspect> aspect) {
+        return aspect(aspect,1);
+    }
+
+    public CrucibleRecipeBuilder aspect(ResourceKey<IAspect> aspect, int amount) {
+        return aspect(aspectsGetter.getOrThrow(aspect), amount);
+    }
+
+    public CrucibleRecipeBuilder aspect(Holder<IAspect> aspect) {
+        return aspect(aspect,1);
     }
 
     public CrucibleRecipeBuilder aspect(Holder<IAspect> aspect, int amount) {

@@ -698,9 +698,9 @@ public final class TCBlocks {
             "metal_thaumium",
             BlockMetalTC::new,
             props -> props
-                    .mapColor(MapColor.METAL)
+                    .mapColor(MapColor.COLOR_ORANGE)
                     .strength(4.0F, 10.0F)
-                    .sound(SoundType.METAL)
+                    .sound(SoundType.AMETHYST)
                     .requiresCorrectToolForDrops()
     );
 
@@ -724,9 +724,9 @@ public final class TCBlocks {
                     .requiresCorrectToolForDrops()
     );
 
-    public static final DeferredBlock<BlockMetalTC> METAL_INFUSED_BLOCK = BLOCKS.registerBlock(
-            "metal_infused",
-            BlockMetalTC::new,
+    public static final DeferredBlock<Block> AMBER_BLOCK = BLOCKS.registerBlock(
+            "amber_block",
+            Block::new,
             props -> props
                     .mapColor(MapColor.METAL)
                     .strength(4.0F, 10.0F)

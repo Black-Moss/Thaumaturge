@@ -9,18 +9,18 @@ import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Comparator;
+import java.util.Optional;
 
 public final class TCCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
@@ -59,9 +59,42 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.TUBE_FILTER.get());
                         output.accept(TCItems.TUBE_ONEWAY.get());
                         output.accept(TCItems.TUBE_BUFFER.get());
+
+
                         output.accept(TCItems.ORE_AMBER.get());
                         output.accept(TCItems.ORE_CINNABAR.get());
                         output.accept(TCItems.ORE_QUARTZ.get());
+                        output.accept(TCItems.AMBER_BLOCK);
+                        output.accept(TCItems.METAL_BRASS_BLOCK);
+                        output.accept(TCItems.METAL_THAUMIUM_BLOCK);
+                        output.accept(TCItems.METAL_VOID_BLOCK);
+
+                        output.accept(TCItems.QUICKSILVER.get());
+                        output.accept(TCItems.AMBER.get());
+                        output.accept(TCItems.INGOT_BRASS.get());
+                        output.accept(TCItems.INGOT_THAUMIUM.get());
+                        output.accept(TCItems.INGOT_VOID.get());
+
+                        output.accept(TCItems.NUGGET_QUARTZ.get());
+                        output.accept(TCItems.NUGGET_QUICKSILVER.get());
+                        output.accept(TCItems.NUGGET_BRASS.get());
+                        output.accept(TCItems.NUGGET_THAUMIUM.get());
+                        output.accept(TCItems.NUGGET_VOID.get());
+
+                        output.accept(TCItems.PLATE_IRON.get());
+                        output.accept(TCItems.PLATE_BRASS.get());
+                        output.accept(TCItems.PLATE_THAUMIUM.get());
+                        output.accept(TCItems.PLATE_VOID.get());
+
+                        output.accept(TCItems.CLUSTER_IRON.get());
+                        output.accept(TCItems.CLUSTER_GOLD.get());
+                        output.accept(TCItems.CLUSTER_COPPER.get());
+                        addIfTag(parameters,output,TCItemTags.INGOTS_TIN,TCItems.CLUSTER_TIN.get());
+                        addIfTag(parameters,output,TCItemTags.INGOTS_SILVER,TCItems.CLUSTER_SILVER.get());
+                        addIfTag(parameters,output,TCItemTags.INGOTS_LEAD,TCItems.CLUSTER_LEAD.get());
+                        output.accept(TCItems.CLUSTER_CINNABAR.get());
+                        output.accept(TCItems.CLUSTER_QUARTZ.get());
+
                         for (DyeColor dye : DyeColor.values()) {
                             output.accept(TCItems.NITORS.get(dye).get());
                         }
@@ -73,8 +106,6 @@ public final class TCCreativeTabs {
                         for (DyeColor dye : DyeColor.values()) {
                             output.accept(TCItems.CANDLES.get(dye).get());
                         }
-                        output.accept(TCItems.AMBER.get());
-                        output.accept(TCItems.CINNABAR.get());
                         output.accept(TCItems.CRYSTAL_AER.get());
                         output.accept(TCItems.CRYSTAL_IGNIS.get());
                         output.accept(TCItems.CRYSTAL_AQUA.get());
@@ -128,6 +159,14 @@ public final class TCCreativeTabs {
                     })
                     .build()
     );
+
+            private static void addIfTag(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output, TagKey<Item> tag, Item item) {
+                Optional<HolderSet.Named<Item>> tagOpt = parameters.holders().get(tag);
+                if (tagOpt.isPresent()){
+                    if (tagOpt.get().stream().findAny().isPresent())
+                        output.accept(item);
+                }
+            }
 
     private TCCreativeTabs() {}
 

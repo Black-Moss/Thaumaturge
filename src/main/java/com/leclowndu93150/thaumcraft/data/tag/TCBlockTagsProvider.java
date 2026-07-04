@@ -1,16 +1,17 @@
 package com.leclowndu93150.thaumcraft.data.tag;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
-import com.leclowndu93150.thaumcraft.registry.TCTags;
-import com.leclowndu93150.thaumcraft.TCIds;
-import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.registries.DeferredHolder;
+
+import java.util.concurrent.CompletableFuture;
 
 public final class TCBlockTagsProvider extends BlockTagsProvider {
     public TCBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -19,7 +20,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
-        tag(TCTags.INFUSION_STABILISERS)
+        tag(TCBlockTags.INFUSION_STABILISERS)
                 .add(Blocks.SKELETON_SKULL)
                 .add(Blocks.SKELETON_WALL_SKULL)
                 .add(Blocks.WITHER_SKELETON_SKULL)
@@ -38,20 +39,17 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.BEACON_BASE_BLOCKS)
                 .add(TCBlocks.METAL_THAUMIUM_BLOCK.get())
                 .add(TCBlocks.METAL_BRASS_BLOCK.get())
-                .add(TCBlocks.METAL_VOID_BLOCK.get())
-                .add(TCBlocks.METAL_INFUSED_BLOCK.get());
+                .add(TCBlocks.METAL_VOID_BLOCK.get());
 
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(TCBlocks.METAL_THAUMIUM_BLOCK.get())
                 .add(TCBlocks.METAL_BRASS_BLOCK.get())
-                .add(TCBlocks.METAL_VOID_BLOCK.get())
-                .add(TCBlocks.METAL_INFUSED_BLOCK.get());
+                .add(TCBlocks.METAL_VOID_BLOCK.get());
 
         tag(BlockTags.NEEDS_IRON_TOOL)
                 .add(TCBlocks.METAL_THAUMIUM_BLOCK.get())
                 .add(TCBlocks.METAL_BRASS_BLOCK.get())
-                .add(TCBlocks.METAL_VOID_BLOCK.get())
-                .add(TCBlocks.METAL_INFUSED_BLOCK.get());
+                .add(TCBlocks.METAL_VOID_BLOCK.get());
 
         tag(BlockTags.LOGS_THAT_BURN)
                 .add(TCBlocks.LOG_GREATWOOD.get())
@@ -87,6 +85,17 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(Blocks.SOUL_CAMPFIRE)
                 .add(Blocks.MAGMA_BLOCK)
                 .addAll(TCBlocks.NITORS.values().stream().map(DeferredHolder::get));
+
+        tag(TCBlockTags.ORES_AMBER).add(TCBlocks.ORE_AMBER.get());
+        tag(TCBlockTags.ORES_CINNABAR).add(TCBlocks.ORE_CINNABAR.get());
+        tag(Tags.Blocks.ORES_QUARTZ).add(TCBlocks.ORE_QUARTZ.get());
+        tag(Tags.Blocks.ORES).addTags(TCBlockTags.ORES_AMBER,TCBlockTags.ORES_CINNABAR);
+
+        tag(TCBlockTags.STORAGE_BLOCKS_AMBER).add(TCBlocks.AMBER_BLOCK.get());
+        tag(TCBlockTags.STORAGE_BLOCKS_BRASS).add(TCBlocks.METAL_BRASS_BLOCK.get());
+        tag(TCBlockTags.STORAGE_BLOCKS_THAUMIUM).add(TCBlocks.METAL_THAUMIUM_BLOCK.get());
+        tag(TCBlockTags.STORAGE_BLOCKS_VOID_METAL).add(TCBlocks.METAL_VOID_BLOCK.get());
+        tag(Tags.Blocks.STORAGE_BLOCKS).addTags(TCBlockTags.STORAGE_BLOCKS_AMBER,TCBlockTags.STORAGE_BLOCKS_BRASS,TCBlockTags.STORAGE_BLOCKS_THAUMIUM,TCBlockTags.STORAGE_BLOCKS_VOID_METAL);
 
     }
 }

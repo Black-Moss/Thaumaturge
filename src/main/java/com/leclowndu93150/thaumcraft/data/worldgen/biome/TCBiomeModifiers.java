@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.data.worldgen.biome;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
-import com.leclowndu93150.thaumcraft.registry.TCTags;
+import com.leclowndu93150.thaumcraft.registry.TCBiomeTags;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
@@ -58,22 +58,22 @@ public final class TCBiomeModifiers {
                 GenerationStep.Decoration.UNDERGROUND_ORES));
 
         context.register(ADD_GREATWOOD, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(TCTags.HAS_GREATWOOD),
+                biomes.getOrThrow(TCBiomeTags.HAS_GREATWOOD),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.GREATWOOD_NATURAL)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
 
         context.register(ADD_GREATWOOD_RARE, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(TCTags.HAS_GREATWOOD_RARE),
+                biomes.getOrThrow(TCBiomeTags.HAS_GREATWOOD_RARE),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.GREATWOOD_NATURAL_RARE)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
 
         context.register(ADD_SILVERWOOD, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(TCTags.HAS_SILVERWOOD),
+                biomes.getOrThrow(TCBiomeTags.HAS_SILVERWOOD),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.SILVERWOOD_NATURAL)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
 
         context.register(ADD_CINDERPEARL, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(TCTags.HAS_CINDERPEARL),
+                biomes.getOrThrow(TCBiomeTags.HAS_CINDERPEARL),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.CINDERPEARL)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
 

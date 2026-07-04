@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.tag;
 
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
-import com.leclowndu93150.thaumcraft.registry.TCTags;
+import com.leclowndu93150.thaumcraft.registry.TCBiomeTags;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -18,14 +18,14 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
 
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
-        tag(TCTags.HAS_GREATWOOD)
+        tag(TCBiomeTags.HAS_GREATWOOD)
                 .add(Biomes.FOREST)
                 .add(Biomes.FLOWER_FOREST)
                 .add(Biomes.BIRCH_FOREST)
                 .add(Biomes.OLD_GROWTH_BIRCH_FOREST)
                 .add(Biomes.DARK_FOREST)
                 .add(TCBiomes.MAGICAL_FOREST);
-        tag(TCTags.HAS_GREATWOOD_RARE)
+        tag(TCBiomeTags.HAS_GREATWOOD_RARE)
                 .add(Biomes.TAIGA)
                 .add(Biomes.OLD_GROWTH_PINE_TAIGA)
                 .add(Biomes.OLD_GROWTH_SPRUCE_TAIGA)
@@ -35,9 +35,9 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
                 .add(Biomes.SUNFLOWER_PLAINS)
                 .add(Biomes.SWAMP)
                 .add(Biomes.MANGROVE_SWAMP);
-        tag(TCTags.HAS_SILVERWOOD)
+        tag(TCBiomeTags.HAS_SILVERWOOD)
                 .add(TCBiomes.MAGICAL_FOREST);
-        tag(TCTags.HAS_CINDERPEARL)
+        tag(TCBiomeTags.HAS_CINDERPEARL)
                 .add(Biomes.DESERT)
                 .add(Biomes.BADLANDS)
                 .add(Biomes.ERODED_BADLANDS)

@@ -33,14 +33,14 @@ public final class AspectContainerTooltipHandler {
         if (stack.isEmpty()) {
             return;
         }
-        if (!(stack.getItem() instanceof IEssentiaContainerItem)) {
+        if (!(stack.getItem() instanceof IEssentiaContainerItem container)) {
             return;
         }
 
         if (!shouldShow()) {
             return;
         }
-        AspectList aspects = AspectIndexHolder.get().of(stack);
+        AspectList aspects = container.getAspects(stack);
         if (aspects.isEmpty()) {
             return;
         }

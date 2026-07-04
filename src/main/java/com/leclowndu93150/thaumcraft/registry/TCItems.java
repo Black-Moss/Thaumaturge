@@ -27,8 +27,13 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
@@ -159,12 +164,7 @@ public final class TCItems {
         return ITEMS.registerItem(name, properties -> new SpawnEggItem(properties.spawnEgg(type.get())));
     }
 
-    // 
-
-    public static final DeferredItem<BlockItem> ORE_AMBER = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_AMBER);
-    public static final DeferredItem<BlockItem> ORE_CINNABAR = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_CINNABAR);
-    public static final DeferredItem<BlockItem> ORE_QUARTZ = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_QUARTZ);
-
+    //
     public static final DeferredItem<Item> TALLOW = ITEMS.registerSimpleItem("tallow");
 
     public static final Map<DyeColor, DeferredItem<BlockItem>> CANDLES = new EnumMap<>(DyeColor.class);
@@ -204,11 +204,6 @@ public final class TCItems {
             NITORS.put(dye, ITEMS.registerSimpleBlockItem(TCBlocks.NITORS.get(dye)));
         }
     }
-
-    public static final DeferredItem<Item> AMBER = ITEMS.registerSimpleItem("amber");
-    public static final DeferredItem<Item> CINNABAR = ITEMS.registerSimpleItem("cinnabar");
-
-    // 
 
     public static final DeferredItem<BlockItem> CRYSTAL_AER = ITEMS.registerSimpleBlockItem(TCBlocks.CRYSTAL_AER);
     public static final DeferredItem<BlockItem> CRYSTAL_IGNIS = ITEMS.registerSimpleBlockItem(TCBlocks.CRYSTAL_IGNIS);
@@ -251,31 +246,42 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> PLANT_VISHROOM = ITEMS.registerSimpleBlockItem(TCBlocks.PLANT_VISHROOM);
     public static final DeferredItem<BlockItem> GRASS_AMBIENT = ITEMS.registerSimpleBlockItem(TCBlocks.GRASS_AMBIENT);
 
-    // 
+    // RESOURCES | INGOTS
+
+    public static final DeferredItem<BlockItem> ORE_AMBER = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_AMBER);
+    public static final DeferredItem<BlockItem> ORE_CINNABAR = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_CINNABAR);
+    public static final DeferredItem<BlockItem> ORE_QUARTZ = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_QUARTZ);
 
     public static final DeferredItem<BlockItem> METAL_THAUMIUM_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_THAUMIUM_BLOCK);
     public static final DeferredItem<BlockItem> METAL_BRASS_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_BRASS_BLOCK);
     public static final DeferredItem<BlockItem> METAL_VOID_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_VOID_BLOCK);
-    public static final DeferredItem<BlockItem> METAL_INFUSED_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_INFUSED_BLOCK);
+    public static final DeferredItem<BlockItem> AMBER_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.AMBER_BLOCK);
 
-    public static final DeferredItem<Item> INGOT_THAUMIUM = ITEMS.registerSimpleItem("ingot_thaumium");
     public static final DeferredItem<Item> INGOT_BRASS = ITEMS.registerSimpleItem("ingot_brass");
+    public static final DeferredItem<Item> INGOT_THAUMIUM = ITEMS.registerSimpleItem("ingot_thaumium");
     public static final DeferredItem<Item> INGOT_VOID = ITEMS.registerSimpleItem("ingot_void");
-    public static final DeferredItem<Item> INGOT_INFUSED = ITEMS.registerSimpleItem("ingot_infused");
+    public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
+    public static final DeferredItem<Item> AMBER = ITEMS.registerSimpleItem("amber");
 
-    public static final DeferredItem<Item> NUGGET_THAUMIUM = ITEMS.registerSimpleItem("nugget_thaumium");
     public static final DeferredItem<Item> NUGGET_BRASS = ITEMS.registerSimpleItem("nugget_brass");
+    public static final DeferredItem<Item> NUGGET_THAUMIUM = ITEMS.registerSimpleItem("nugget_thaumium");
     public static final DeferredItem<Item> NUGGET_VOID = ITEMS.registerSimpleItem("nugget_void");
     public static final DeferredItem<Item> NUGGET_QUARTZ = ITEMS.registerSimpleItem("nugget_quartz");
+    public static final DeferredItem<Item> NUGGET_QUICKSILVER = ITEMS.registerSimpleItem("nugget_quicksilver");
+
+    public static final DeferredItem<Item> PLATE_IRON = ITEMS.registerSimpleItem("plate_iron");
+    public static final DeferredItem<Item> PLATE_BRASS = ITEMS.registerSimpleItem("plate_brass");
+    public static final DeferredItem<Item> PLATE_THAUMIUM = ITEMS.registerSimpleItem("plate_thaumium");
+    public static final DeferredItem<Item> PLATE_VOID = ITEMS.registerSimpleItem("plate_void");
 
     public static final DeferredItem<Item> CLUSTER_IRON = ITEMS.registerSimpleItem("cluster_iron");
     public static final DeferredItem<Item> CLUSTER_GOLD = ITEMS.registerSimpleItem("cluster_gold");
     public static final DeferredItem<Item> CLUSTER_COPPER = ITEMS.registerSimpleItem("cluster_copper");
+    public static final DeferredItem<Item> CLUSTER_TIN = ITEMS.registerSimpleItem("cluster_tin");
     public static final DeferredItem<Item> CLUSTER_SILVER = ITEMS.registerSimpleItem("cluster_silver");
     public static final DeferredItem<Item> CLUSTER_LEAD = ITEMS.registerSimpleItem("cluster_lead");
-    public static final DeferredItem<Item> CLUSTER_TIN = ITEMS.registerSimpleItem("cluster_tin");
-    public static final DeferredItem<Item> CLUSTER_THAUMIUM = ITEMS.registerSimpleItem("cluster_thaumium");
-    public static final DeferredItem<Item> CLUSTER_BRASS = ITEMS.registerSimpleItem("cluster_brass");
+    public static final DeferredItem<Item> CLUSTER_CINNABAR = ITEMS.registerSimpleItem("cluster_cinnabar");
+    public static final DeferredItem<Item> CLUSTER_QUARTZ = ITEMS.registerSimpleItem("cluster_quartz");
 
     // 
 
@@ -330,6 +336,15 @@ public final class TCItems {
                             Equippable.builder(EquipmentSlot.HEAD)
                                     .setEquipSound(SoundEvents.ARMOR_EQUIP_LEATHER)
                                     .setAsset(GOGGLES_REVEALING_ASSET)
+                                    .build()
+                    ).attributes(
+                            ItemAttributeModifiers.builder()
+                                    .add(Attributes.ARMOR,
+                                            new AttributeModifier(GOGGLES_REVEALING_ASSET.identifier(),1, AttributeModifier.Operation.ADD_VALUE),
+                                            EquipmentSlotGroup.HEAD)
+                                    .add(Attributes.ARMOR_TOUGHNESS,
+                                            new AttributeModifier(GOGGLES_REVEALING_ASSET.identifier(),1, AttributeModifier.Operation.ADD_VALUE),
+                                            EquipmentSlotGroup.HEAD)
                                     .build()
                     )
     );
