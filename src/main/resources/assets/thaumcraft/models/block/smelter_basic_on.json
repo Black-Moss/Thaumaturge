@@ -1,0 +1,6 @@
+{
+  "parent": "thaumcraft:block/smelter_basic_off",
+  "textures": {
+    "north": "thaumcraft:block/smelter_basic_front_on"
+  }
+}

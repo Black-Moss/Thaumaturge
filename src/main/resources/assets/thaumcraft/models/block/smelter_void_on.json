@@ -1,0 +1,6 @@
+{
+  "parent": "thaumcraft:block/smelter_void_off",
+  "textures": {
+    "north": "thaumcraft:block/smelter_void_front_on"
+  }
+}

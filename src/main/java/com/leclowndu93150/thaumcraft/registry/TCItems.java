@@ -57,6 +57,14 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> ARCANE_WORKBENCH_CHARGER = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_WORKBENCH_CHARGER);
 
+    public static final DeferredItem<BlockItem> ALEMBIC = ITEMS.registerSimpleBlockItem(TCBlocks.ALEMBIC);
+
+    public static final DeferredItem<BlockItem> SMELTER_BASIC = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_BASIC);
+
+    public static final DeferredItem<BlockItem> SMELTER_THAUMIUM = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_THAUMIUM);
+
+    public static final DeferredItem<BlockItem> SMELTER_VOID = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_VOID);
+
     public static final DeferredItem<BlockItem> JAR_NORMAL = registerSimpleBlockItem(TCBlocks.JAR_NORMAL, JarItem::new);
 
     public static final DeferredItem<BlockItem> JAR_VOID = registerSimpleBlockItem(TCBlocks.JAR_VOID,JarItem::new);

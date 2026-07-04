@@ -46,6 +46,10 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.ARCANE_WORKBENCH.get());
                         output.accept(TCItems.CRUCIBLE.get());
                         output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());
+                        output.accept(TCItems.ALEMBIC.get());
+                        output.accept(TCItems.SMELTER_BASIC.get());
+                        output.accept(TCItems.SMELTER_THAUMIUM.get());
+                        output.accept(TCItems.SMELTER_VOID.get());
                         output.accept(TCItems.JAR_NORMAL.get());
                         output.accept(TCItems.JAR_VOID.get());
                         output.accept(TCItems.JAR_BRACE.get());

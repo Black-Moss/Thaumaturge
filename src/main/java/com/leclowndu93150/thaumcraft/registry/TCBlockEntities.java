@@ -4,6 +4,8 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntityAlembic;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntitySmelter;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeBuffer;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeFilter;
@@ -43,6 +45,18 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "crucible",
                     () -> new BlockEntityType<>(BlockEntityCrucible::new, Set.of(TCBlocks.CRUCIBLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntitySmelter>> SMELTER =
+            BLOCK_ENTITIES.register(
+                    "smelter",
+                    () -> new BlockEntityType<>(BlockEntitySmelter::new, Set.of(TCBlocks.SMELTER_BASIC.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAlembic>> ALEMBIC =
+            BLOCK_ENTITIES.register(
+                    "alembic",
+                    () -> new BlockEntityType<>(BlockEntityAlembic::new, Set.of(TCBlocks.ALEMBIC.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJar>> JAR =

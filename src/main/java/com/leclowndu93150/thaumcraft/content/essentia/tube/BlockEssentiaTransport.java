@@ -11,6 +11,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -29,6 +30,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Arrays;
 
 public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     private static final int FLUX_VENT_COUNT = 5;
@@ -102,13 +105,14 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
         };
     }
 
-    protected BlockState recomputeConnections(BlockState state, LevelReader level, BlockPos pos) {
+    public static BlockState recomputeConnections(BlockState state, LevelReader level, BlockPos pos, Direction... ignored) {
         BlockState next = state;
         if (!(level instanceof Level lvl)) {
             return next;
         }
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (Direction direction : Direction.values()) {
+            if (Arrays.stream(ignored).anyMatch(d->d == direction)) continue;
             cursor.setWithOffset(pos, direction);
             boolean connect = canConnectTo(lvl, cursor.immutable(), direction.getOpposite());
             next = next.setValue(propertyFor(direction), connect);
@@ -116,7 +120,7 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
         return next;
     }
 
-    protected boolean canConnectTo(Level level, BlockPos neighbourPos, Direction faceFromNeighbour) {
+    public static boolean canConnectTo(Level level, BlockPos neighbourPos, Direction faceFromNeighbour) {
         IEssentiaTransport remote = level.getCapability(EssentiaCapabilities.TRANSPORT, neighbourPos, faceFromNeighbour);
         return remote != null && remote.isConnectable(faceFromNeighbour);
     }
@@ -137,6 +141,15 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
             return state.setValue(propertyFor(directionToNeighbour), connect);
         }
         return state;
+    }
+
+    @Override
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockState state = super.getStateForPlacement(context);
+        if (state == null) return null;
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        return recomputeConnections(state, level, pos);
     }
 
     @Override

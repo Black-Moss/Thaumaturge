@@ -43,6 +43,10 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.ARCANE_WORKBENCH.get());
         dropSelf(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());
         dropSelf(TCBlocks.CRUCIBLE.get());
+        dropSelf(TCBlocks.ALEMBIC.get());
+        dropSelf(TCBlocks.SMELTER_BASIC.get());
+        dropSelf(TCBlocks.SMELTER_THAUMIUM.get());
+        dropSelf(TCBlocks.SMELTER_VOID.get());
         add(TCBlocks.JAR_NORMAL.get(), jarLootTable(TCBlocks.JAR_NORMAL.get()));
         add(TCBlocks.JAR_VOID.get(), jarLootTable(TCBlocks.JAR_VOID.get()));
         dropSelf(TCBlocks.TUBE.get());
