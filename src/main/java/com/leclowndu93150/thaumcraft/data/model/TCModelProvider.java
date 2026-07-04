@@ -47,6 +47,7 @@ import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
@@ -74,6 +75,17 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
+        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(TCBlocks.INFERNAL_FURNACE.get(),variantOf("infernal_furnace")).with(rotations)
+        );
+
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.NETHER_BRICKS))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.OBSIDIAN))));
         registerAlembic(blockModels, itemModels, TCBlocks.ALEMBIC.get());
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_BASIC.get(), "smelter_basic");
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_THAUMIUM.get(), "smelter_thaumium");

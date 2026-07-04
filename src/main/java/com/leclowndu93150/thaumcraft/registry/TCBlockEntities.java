@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeFilter
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeOneway;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeRestrict;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeValve;
+import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockEntityInfernalFurnace;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import java.util.Set;
@@ -133,6 +134,13 @@ public final class TCBlockEntities {
                     () -> new BlockEntityType<>(BlockEntityNitor::new,
                             TCBlocks.NITORS.values().stream().map(b -> (Block) b.get()).collect(Collectors.toSet()))
             );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityInfernalFurnace>> INFERNAL_FURNACE =
+            BLOCK_ENTITIES.register(
+                    "infernal_furnace",
+                    () -> new BlockEntityType<>(BlockEntityInfernalFurnace::new, Set.of(TCBlocks.INFERNAL_FURNACE.get()))
+            );
+
 
     private TCBlockEntities() {}
 
