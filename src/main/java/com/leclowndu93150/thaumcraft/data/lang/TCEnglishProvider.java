@@ -149,6 +149,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("button.thaumcraft.scrap_theory", "Scrap Theory");
         add("block.thaumcraft.research_table", "Research Table");
         add("block.thaumcraft.arcane_workbench", "Arcane Workbench");
+        add("block.thaumcraft.arcane_workbench_charger", "Workbench Charger");
         add("block.thaumcraft.crucible", "Crucible");
         add("block.thaumcraft.jar_normal", "Warded Jar");
         add("block.thaumcraft.jar_void", "Void Jar");
@@ -156,8 +157,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.jar_brace", "Jar Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");
-        add("item.thaumcraft.nugget_quartz", "Quartz Sliver");
         add("tooltip.thaumcraft.salis_mundus.desc", "Magical dust that triggers transmutations when applied to certain blocks.");
+        add("item.thaumcraft.nugget_quartz", "Quartz Sliver");
+        add("item.thaumcraft.vis_resonator", "Vis Resonator");
+        add("attributes.thaumcraft.vis_discount", "Vis Discount");
         add("subtitles.thaumcraft.jar", "Jar clinks");
         add("subtitles.thaumcraft.creak", "Tube creaks");
         add("subtitles.thaumcraft.key", "Filter clicks");

@@ -5,16 +5,11 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
-import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.CrucibleRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapedRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapelessRecipeBuilder;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
-
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentPatch;
@@ -29,6 +24,9 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
+
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public final class TCRecipeProvider extends RecipeProvider {
     private TCRecipeProvider(HolderLookup.Provider provider, RecipeOutput output) {
@@ -95,52 +93,84 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_tube", has(TCItems.TUBE.get()))
                 .save(output);
 
-        shapeless(RecipeCategory.MISC,TCItems.NUGGET_QUARTZ,9)
+        shapeless(RecipeCategory.MISC, TCItems.NUGGET_QUARTZ, 9)
                 .requires(Tags.Items.GEMS_QUARTZ)
-                .unlockedBy("has",has(Tags.Items.GEMS_QUARTZ))
+                .unlockedBy("has", has(Tags.Items.GEMS_QUARTZ))
                 .save(output);
     }
 
-    private void buildCrucibleRecipes(){
+    private void buildCrucibleRecipes() {
         new CrucibleRecipeBuilder(RecipeCategory.MISC, new ItemStackTemplate(TCItems.NITORS.get(DyeColor.YELLOW).get()), Ingredient.of(Items.GLOWSTONE_DUST))
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_alchemy"), Optional.of(1),false))
-                .aspect(getAspect(TCAspects.POTENTIA),10)
-                .aspect(getAspect(TCAspects.IGNIS),10)
-                .aspect(getAspect(TCAspects.LUX),10)
-                .unlockedBy("has",has(Items.GLOWSTONE_DUST))
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .aspect(getAspect(TCAspects.POTENTIA), 10)
+                .aspect(getAspect(TCAspects.IGNIS), 10)
+                .aspect(getAspect(TCAspects.LUX), 10)
+                .unlockedBy("has", has(Items.GLOWSTONE_DUST))
                 .save(output);
 
-        registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspect->{
-            new CrucibleRecipeBuilder(RecipeCategory.MISC, new ItemStackTemplate(TCItems.ESSENTIA_CRYSTAL,1, DataComponentPatch.builder().set(TCDataComponents.CRYSTAL_ASPECT.get(),new AspectInstance(aspect,1)).build()), Ingredient.of(TCItems.NUGGET_QUARTZ))
-                    .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_alchemy"), Optional.of(1),false))
-                    .aspect(aspect,2)
-                    .unlockedBy("has",has(TCItems.NUGGET_QUARTZ))
-                    .save(output, TCIds.MODID + ":crucible/vis_crystal/"+ aspect.getKey().identifier().getPath());
+        registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspect -> {
+            new CrucibleRecipeBuilder(RecipeCategory.MISC, new ItemStackTemplate(TCItems.ESSENTIA_CRYSTAL, 1, DataComponentPatch.builder().set(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1)).build()), Ingredient.of(TCItems.NUGGET_QUARTZ))
+                    .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                    .aspect(aspect, 2)
+                    .unlockedBy("has", has(TCItems.NUGGET_QUARTZ))
+                    .save(output, TCIds.MODID + ":crucible/vis_crystal/" + aspect.getKey().identifier().getPath());
         });
     }
 
-    private void buildArcaneWorkbenchRecipes(){
-        arcaneShaped(new ItemStackTemplate(TCItems.THAUMOMETER),20)
+    private void buildArcaneWorkbenchRecipes() {
+        arcaneShaped(new ItemStackTemplate(TCItems.THAUMOMETER), 20)
                 .allAspects()
                 .pattern(" G ")
                 .pattern("GPG")
                 .pattern(" G ")
-                .define('G',Tags.Items.INGOTS_GOLD)
-                .define('P',Tags.Items.GLASS_PANES)
-                .unlockedBy("has",has(Tags.Items.INGOTS_GOLD))
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('P', Tags.Items.GLASS_PANES)
+                .unlockedBy("has", has(Tags.Items.INGOTS_GOLD))
+                .save(output);
+
+        arcaneShapeless(new ItemStackTemplate(TCItems.VIS_RESONATOR), 50)
+                .aspect(TCAspects.AER)
+                .aspect(TCAspects.AQUA)
+                .requires(Tags.Items.INGOTS_IRON)
+                .requires(Tags.Items.GEMS_QUARTZ)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_auromancy"),Optional.of(1),false))
+                .unlockedBy("has", has(Tags.Items.GEMS_QUARTZ))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.ARCANE_WORKBENCH_CHARGER), 200)
+                .aspect(TCAspects.AER, 2)
+                .aspect(TCAspects.ORDO, 2)
+                .pattern(" R ")
+                .pattern("P P")
+                .pattern("I I")
+                .define('R', TCItems.VIS_RESONATOR)
+                .define('P', TCItems.PLANK_GREATWOOD)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .unlockedBy("has", has(TCItems.VIS_RESONATOR))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.GOGGLES_REVEALING),50)
+                .pattern("LBL")
+                .pattern("L L")
+                .pattern("MBM")
+                .define('L',Tags.Items.LEATHERS)
+                .define('B',TCItems.INGOT_BRASS)
+                .define('M',TCItems.THAUMOMETER)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_artifice"),Optional.of(1),false))
+                .unlockedBy("has",has(TCItems.THAUMOMETER))
                 .save(output);
     }
 
-    private Holder<IAspect> getAspect(ResourceKey<IAspect> key){
+    private Holder<IAspect> getAspect(ResourceKey<IAspect> key) {
         return registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(key);
     }
 
-    private ArcaneWorkbenchShapedRecipeBuilder arcaneShaped(ItemStackTemplate result, int vis){
-        return new ArcaneWorkbenchShapedRecipeBuilder(RecipeCategory.MISC,result,items, registries.lookupOrThrow(IAspect.REGISTRY_KEY),vis);
+    private ArcaneWorkbenchShapedRecipeBuilder arcaneShaped(ItemStackTemplate result, int vis) {
+        return new ArcaneWorkbenchShapedRecipeBuilder(RecipeCategory.MISC, result, items, registries.lookupOrThrow(IAspect.REGISTRY_KEY), vis);
     }
 
-    private ArcaneWorkbenchShapelessRecipeBuilder arcaneShapeless(ItemStackTemplate result, int vis){
-        return new ArcaneWorkbenchShapelessRecipeBuilder(RecipeCategory.MISC,result,registries.lookupOrThrow(IAspect.REGISTRY_KEY), vis,items);
+    private ArcaneWorkbenchShapelessRecipeBuilder arcaneShapeless(ItemStackTemplate result, int vis) {
+        return new ArcaneWorkbenchShapelessRecipeBuilder(RecipeCategory.MISC, result, registries.lookupOrThrow(IAspect.REGISTRY_KEY), vis, items);
     }
 
 

@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumcraft.api.items;
 
+import com.leclowndu93150.thaumcraft.registry.TCAttributes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -64,8 +66,8 @@ public final class GogglesAccess {
     }
 
     /**
-     * Sums the vis discount percentages contributed by every piece of armor on the player.
-     * Each piece implementing {@link IVisDiscountGear} contributes its reported value.
+     * Sums the vis discount percentages contributed by ever held/worn item that has a modifier for the attribute {@link TCAttributes#VIS_DISCOUNT} by the player.
+     * Each piece implementing {@link IVisDiscountGear} automatically obtain an attribute modifier for the {@link TCAttributes#VIS_DISCOUNT} attribute.
      *
      * @param player the player to query; null returns zero
      * @return the total discount in whole percent units, never negative
@@ -74,16 +76,8 @@ public final class GogglesAccess {
         if (player == null) {
             return 0;
         }
-        int total = 0;
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            ItemStack stack = player.getItemBySlot(slot);
-            if (!stack.isEmpty() && stack.getItem() instanceof IVisDiscountGear g) {
-                int contribution = g.getVisDiscount(stack, player);
-                if (contribution > 0) {
-                    total += contribution;
-                }
-            }
-        }
-        return total;
+        AttributeInstance attribute = player.getAttribute(TCAttributes.VIS_DISCOUNT);
+        if (attribute == null) return 0;
+        return (int) (attribute.getValue() * 100);
     }
 }

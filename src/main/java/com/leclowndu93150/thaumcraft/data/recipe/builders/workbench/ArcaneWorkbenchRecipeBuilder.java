@@ -39,12 +39,25 @@ public abstract class ArcaneWorkbenchRecipeBuilder<R extends ArcaneWorkbenchReci
     }
 
     public R aspect(ResourceKey<IAspect> aspect) {
-        return aspect(aspectsGetter.getOrThrow(aspect));
+        return aspect(aspect,1);
+    }
+
+    public R aspect(ResourceKey<IAspect> aspect, int amount) {
+        return aspect(aspectsGetter.getOrThrow(aspect), amount);
     }
 
     public R aspect(Holder<IAspect> aspect) {
-        Preconditions.checkArgument(aspect.value().isPrimal(), "The aspect can only be a primal aspect !");
-        this.aspects = aspects.add(new AspectInstance(aspect,1));
+        return aspect(aspect,1);
+    }
+
+    public R aspect(Holder<IAspect> aspect, int amount) {
+        return aspect(new AspectInstance(aspect,amount));
+    }
+
+    public R aspect(AspectInstance instance) {
+        Preconditions.checkArgument(instance.aspect().value().isPrimal(), "The aspect can only be a primal aspect !");
+        Preconditions.checkArgument(instance.amount() > 0, "The amount of aspect must be positive !");
+        this.aspects = aspects.add(instance);
         return (R) this;
     }
 

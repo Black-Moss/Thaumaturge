@@ -1,0 +1,9 @@
+{
+  "loader": "thaumcraft:obj",
+  "parent": "block/block",
+  "model": "thaumcraft:models/obj/arcane_workbench_charger.obj",
+  "textures": {
+    "texture": "thaumcraft:block/arcane_workbench_charger",
+    "particle": "#texture"
+  }
+}

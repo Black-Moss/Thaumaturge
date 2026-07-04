@@ -28,6 +28,7 @@ import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintSoil;
 import com.leclowndu93150.thaumcraft.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumcraft.content.taint.flux.FluxGooRefs;
 import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbench;
+import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbenchCharger;
 import com.leclowndu93150.thaumcraft.content.world.crystal.BlockCrystal;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockGrassAmbient;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantCinderpearl;
@@ -83,6 +84,17 @@ public final class TCBlocks {
                     .sound(SoundType.METAL)
                     .noOcclusion()
     );
+
+    public static final DeferredBlock<BlockArcaneWorkbenchCharger> ARCANE_WORKBENCH_CHARGER = BLOCKS.registerBlock(
+            "arcane_workbench_charger",
+            BlockArcaneWorkbenchCharger::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(1.25F,10.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
 
 
     public static final DeferredBlock<BlockJar> JAR_NORMAL = BLOCKS.registerBlock(

@@ -20,7 +20,7 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
 
     public static Codec<AspectInstance> LIMITED_ASPECTS = AspectInstance.CODEC
             .validate(instance -> instance.amount() > 64 ? DataResult.error(() -> "The amount for '" + instance.aspect().getKey().identifier() + "' aspect must not exceed 64.") : DataResult.success(instance));
-    public static Codec<AspectList> PRIMAL_ASPECTS_CODEC = LIMITED_ASPECTS.listOf(1, 6).flatXmap(
+    public static Codec<AspectList> PRIMAL_ASPECTS_CODEC = LIMITED_ASPECTS.listOf(0, 6).flatXmap(
                     entries -> {
                         AspectList result = AspectList.EMPTY;
                         for (AspectInstance entry : entries) {
@@ -111,6 +111,7 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
 
     @Override
     public boolean matches(ArcaneCraftingInput input, Level level) {
+        if (aspects.isEmpty()) return true;
         if (input.getAspects().size() < aspects.size()) return false;
         for (AspectInstance instance : aspects.entries()) {
             if (input.getAspects().amountOf(instance.aspect()) < instance.amount()) return false;

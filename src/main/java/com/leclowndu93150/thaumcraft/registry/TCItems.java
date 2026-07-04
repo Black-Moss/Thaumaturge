@@ -55,6 +55,8 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> CRUCIBLE = ITEMS.registerSimpleBlockItem(TCBlocks.CRUCIBLE);
 
+    public static final DeferredItem<BlockItem> ARCANE_WORKBENCH_CHARGER = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_WORKBENCH_CHARGER);
+
     public static final DeferredItem<BlockItem> JAR_NORMAL = registerSimpleBlockItem(TCBlocks.JAR_NORMAL, JarItem::new);
 
     public static final DeferredItem<BlockItem> JAR_VOID = registerSimpleBlockItem(TCBlocks.JAR_VOID,JarItem::new);
@@ -107,6 +109,8 @@ public final class TCItems {
             "bottle_taint",
             ItemBottleTaint::new,
             props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<Item> VIS_RESONATOR = ITEMS.registerSimpleItem("vis_resonator");
 
     public static final DeferredItem<Item> BRAIN = ITEMS.registerItem(
             "brain",

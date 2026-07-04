@@ -53,7 +53,7 @@ public class ArcaneCraftingInput  implements RecipeInput {
                 boolean rowEmpty = true;
 
                 for(int x = 0; x < width; ++x) {
-                    ItemStack item = (ItemStack)items.get(x + y * width);
+                    ItemStack item = items.get(x + y * width);
                     if (!item.isEmpty()) {
                         left = Math.min(left, x);
                         right = Math.max(right, x);
@@ -73,13 +73,17 @@ public class ArcaneCraftingInput  implements RecipeInput {
                 if (newWidth == width && newHeight == height) {
                     return new ArcaneCraftingInput.Positioned(new ArcaneCraftingInput(width, height, items), left, top);
                 } else {
-                    List<ItemStack> newItems = new ArrayList(newWidth * newHeight);
+                    List<ItemStack> newItems = new ArrayList<>(newWidth * newHeight + 6);
 
                     for(int y = 0; y < newHeight; ++y) {
                         for(int xx = 0; xx < newWidth; ++xx) {
                             int index = xx + left + (y + top) * width;
-                            newItems.add((ItemStack)items.get(index));
+                            newItems.add(items.get(index));
                         }
+                    }
+
+                    for (int i = 9; i < 15; i++){
+                        newItems.add(items.get(i));
                     }
 
                     return new ArcaneCraftingInput.Positioned(new ArcaneCraftingInput(newWidth, newHeight, newItems), left, top);
@@ -101,8 +105,9 @@ public class ArcaneCraftingInput  implements RecipeInput {
     }
 
     public AspectList getAspects(){
-        if (items.size() < 10) return AspectList.EMPTY;
-        List<ItemStack> crystals = items.subList(9,items.size());
+        if (items.size() < 10 && height == 3 && width == 3) return AspectList.EMPTY;
+        if (items.size() - 6 < 0) return AspectList.EMPTY;
+        List<ItemStack> crystals = items.subList(items.size() - 6,items.size());
         List<AspectInstance> aspects = new ArrayList<>();
         for (ItemStack crystal : crystals) {
             if (crystal.is(TCItems.ESSENTIA_CRYSTAL) && crystal.has(TCDataComponents.CRYSTAL_ASPECT)){

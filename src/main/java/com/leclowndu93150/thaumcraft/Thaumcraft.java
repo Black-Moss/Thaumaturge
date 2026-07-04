@@ -11,24 +11,7 @@ import com.leclowndu93150.thaumcraft.content.taint.TaintApiBindings;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftServerConfig;
-import com.leclowndu93150.thaumcraft.registry.TCAttachments;
-import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
-import com.leclowndu93150.thaumcraft.registry.TCBlocks;
-import com.leclowndu93150.thaumcraft.registry.TCCreativeTabs;
-import com.leclowndu93150.thaumcraft.registry.TCDamageTypes;
-import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
-import com.leclowndu93150.thaumcraft.registry.TCEntities;
-import com.leclowndu93150.thaumcraft.registry.TCFeatures;
-import com.leclowndu93150.thaumcraft.registry.TCFluidTypes;
-import com.leclowndu93150.thaumcraft.registry.TCFluids;
-import com.leclowndu93150.thaumcraft.registry.TCItems;
-import com.leclowndu93150.thaumcraft.registry.TCMenus;
-import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
-import com.leclowndu93150.thaumcraft.registry.TCParticles;
-import com.leclowndu93150.thaumcraft.registry.TCRecipeSerializers;
-import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
-import com.leclowndu93150.thaumcraft.registry.TCSounds;
-import com.leclowndu93150.thaumcraft.registry.TCTheorycraft;
+import com.leclowndu93150.thaumcraft.registry.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -60,6 +43,7 @@ public final class Thaumcraft {
         TCDamageTypes.register(modBus);
         TCMobEffects.register(modBus);
         TCTheorycraft.register(modBus);
+        TCAttributes.register(modBus);
 
         NeoForge.EVENT_BUS.addListener(TCRecipeTypes::registerSynchronizedRecipes);
 
