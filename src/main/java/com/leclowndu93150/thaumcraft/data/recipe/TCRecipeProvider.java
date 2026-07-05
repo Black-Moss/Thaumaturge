@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.CrucibleRecipeBuilder;
+import com.leclowndu93150.thaumcraft.data.recipe.builders.InfusionRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapedRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapelessRecipeBuilder;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
@@ -289,6 +290,18 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
                 .save(output);
+
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.INGOT_THAUMIUM), Ingredient.of(Items.IRON_INGOT))
+                .component(Ingredient.of(TCItems.AMBER.get()))
+                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
+                .component(Ingredient.of(TCItems.AMBER.get()))
+                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
+                .aspect(TCAspects.METALLUM, 8)
+                .aspect(TCAspects.PRAECANTATIO, 8)
+                .instability(2)
+                .unlockedBy("has", has(Items.IRON_INGOT))
+                .save(output, TCIds.MODID + ":infusion/test_thaumium");
 
         arcaneShaped(new ItemStackTemplate(TCItems.PEDESTAL_ARCANE), 10)
                 .pattern("SSS")
