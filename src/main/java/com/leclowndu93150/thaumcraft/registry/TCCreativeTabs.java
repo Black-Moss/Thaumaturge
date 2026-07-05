@@ -168,6 +168,9 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PEDESTAL_ARCANE.get());
                         output.accept(TCItems.PEDESTAL_ANCIENT.get());
                         output.accept(TCItems.PEDESTAL_ELDRITCH.get());
+                        output.accept(TCItems.PILLAR_ARCANE.get());
+                        output.accept(TCItems.PILLAR_ANCIENT.get());
+                        output.accept(TCItems.PILLAR_ELDRITCH.get());
                         output.accept(TCItems.VOID_SEED.get());
                         output.accept(TCItems.CAUSALITY_COLLAPSER.get());
                         output.accept(TCItems.PRIMORDIAL_PEARL.get());
