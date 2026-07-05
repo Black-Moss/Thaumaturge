@@ -32,10 +32,7 @@ import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
-import net.minecraft.client.renderer.item.CompositeModel;
-import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
-import net.minecraft.client.renderer.item.SelectItemModel;
-import net.minecraft.client.renderer.item.SpecialModelWrapper;
+import net.minecraft.client.renderer.item.*;
 import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.renderer.item.properties.select.ComponentContents;
 import net.minecraft.client.resources.model.sprite.Material;
@@ -86,6 +83,12 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(
                 MultiVariantGenerator.dispatch(TCBlocks.INFERNAL_FURNACE.get(),variantOf("infernal_furnace")).with(rotations)
         );
+        itemModels.itemModelOutput.accept(TCItems.INFERNAL_FURNACE.get(),
+                new CuboidItemModelWrapper.Unbaked(
+                        Identifier.fromNamespaceAndPath(TCIds.MODID,"block/infernal_furnace"),
+                        Optional.empty(),
+                        List.of()
+                ), new ClientItem.Properties(true,true,1));
 
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.NETHER_BRICKS))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.OBSIDIAN))));
@@ -143,11 +146,14 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.AMBER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.QUICKSILVER.get(), ModelTemplates.FLAT_ITEM);
 
+        itemModels.generateFlatItem(TCItems.RARE_EARTH.get(), ModelTemplates.FLAT_ITEM);
+
         itemModels.generateFlatItem(TCItems.NUGGET_THAUMIUM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_BRASS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_VOID.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_QUICKSILVER.get(), ModelTemplates.FLAT_ITEM);
         registerInfusionAltar(blockModels, itemModels);
+
         registerCandles(blockModels, itemModels);
         registerBanners(blockModels, itemModels);
         itemModels.generateFlatItem(TCItems.TALLOW.get(), ModelTemplates.FLAT_ITEM);

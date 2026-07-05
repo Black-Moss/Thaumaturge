@@ -11,6 +11,11 @@ public final class TCItemTags {
     public static final TagKey<Item> WANDS = key("wands");
     public static final TagKey<Item> NITORS = key("nitors");
 
+    public static final TagKey<Item> RARE_EARTH_CHANCE_LOW = key("rare_earth_chance_low");
+    public static final TagKey<Item> RARE_EARTH_CHANCE_NORMAL = key("rare_earth_chance_normal");
+    public static final TagKey<Item> RARE_EARTH_CHANCE_HIGH = key("rare_earth_chance_high");
+    public static final TagKey<Item> CLUSTERS = key("clusters");
+
     public static final TagKey<Item> INGOTS_TIN = common("ingots/tin");
     public static final TagKey<Item> INGOTS_LEAD = common("ingots/lead");
     public static final TagKey<Item> INGOTS_SILVER = common("ingots/silver");
@@ -26,6 +31,9 @@ public final class TCItemTags {
     public static final TagKey<Item> NUGGETS_VOID_METAL = common("nuggets/void_metal");
     public static final TagKey<Item> NUGGETS_QUICKSILVER = common("nuggets/quicksilver");
     public static final TagKey<Item> NUGGETS_QUARTZ = common("nuggets/quartz");
+    public static final TagKey<Item> NUGGETS_TIN = common("nuggets/tin");
+    public static final TagKey<Item> NUGGETS_LEAD = common("nuggets/lead");
+    public static final TagKey<Item> NUGGETS_SILVER = common("nuggets/silver");
 
     public static final TagKey<Item> PLATES = common("plates");
     public static final TagKey<Item> PLATES_IRON = common("plates/iron");

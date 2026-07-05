@@ -69,5 +69,10 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         tag(TCItemTags.PLATES_VOID_METAL).add(TCItems.PLATE_VOID.get());
         tag(TCItemTags.PLATES).addTags(TCItemTags.PLATES_IRON,TCItemTags.PLATES_BRASS,TCItemTags.PLATES_THAUMIUM,TCItemTags.PLATES_VOID_METAL);
 
+        tag(TCItemTags.CLUSTERS).add(TCItems.CLUSTER_IRON.get(),TCItems.CLUSTER_COPPER.get(),TCItems.CLUSTER_GOLD.get(),TCItems.CLUSTER_QUARTZ.get(),TCItems.CLUSTER_CINNABAR.get(),TCItems.CLUSTER_QUARTZ.get(),TCItems.CLUSTER_LEAD.get(),TCItems.CLUSTER_SILVER.get(),TCItems.CLUSTER_TIN.get());
+        tag(TCItemTags.RARE_EARTH_CHANCE_HIGH).addTags(Tags.Items.ORES_NETHERITE_SCRAP,Tags.Items.ORES_DIAMOND,Tags.Items.ORES_EMERALD,TCItemTags.ORES_CINNABAR,TCItemTags.ORES_AMBER);
+        tag(TCItemTags.RARE_EARTH_CHANCE_NORMAL).addOptionalTag(TCItemTags.ORES_SILVER).addTags(Tags.Items.ORES_GOLD,TCItemTags.CLUSTERS);
+        tag(TCItemTags.RARE_EARTH_CHANCE_LOW).addOptionalTags(TCItemTags.ORES_TIN,TCItemTags.ORES_LEAD).addTags(Tags.Items.ORES_IRON,Tags.Items.ORES_COAL,Tags.Items.ORES_COPPER,Tags.Items.ORES_LAPIS,Tags.Items.ORES_REDSTONE, Tags.Items.ORES_QUARTZ);
+
     }
 }

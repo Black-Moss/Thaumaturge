@@ -2,13 +2,18 @@ package com.leclowndu93150.thaumcraft.content.infernalfurnace;
 
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -18,9 +23,16 @@ public class BlockPlaceholder extends Block {
         super(properties);
     }
 
-    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return state.getFluidState().isEmpty();
+    }
+
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.INVISIBLE;
+    }
+
+    protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1.0F;
     }
 
     @Override
@@ -47,4 +59,21 @@ public class BlockPlaceholder extends Block {
         }
         super.destroy(level, pos, state);
     }
+
+    @Override
+    protected boolean skipRendering(BlockState state, BlockState neighborState, Direction direction) {
+        return true;
+    }
+
+    @Override
+    protected VoxelShape getOcclusionShape(BlockState state) {
+        return Shapes.empty();
+    }
+
+    @Override
+    protected int getLightDampening(BlockState state) {
+        return 0;
+    }
+
+
 }

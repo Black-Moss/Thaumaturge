@@ -821,6 +821,7 @@ public final class TCBlocks {
                     .strength(2.5F, 3600000.0F)
                     .sound(SoundType.STONE)
                     .requiresCorrectToolForDrops()
+                    .noOcclusion()
                     .noLootTable()
     );
 
