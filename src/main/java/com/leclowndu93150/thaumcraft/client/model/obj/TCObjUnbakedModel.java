@@ -13,9 +13,9 @@ import net.neoforged.neoforge.client.model.UnbakedModelLoader;
 public final class TCObjUnbakedModel extends AbstractUnbakedModel {
     private final TCObjGeometry geometry;
 
-    public TCObjUnbakedModel(StandardModelParameters parameters, Identifier model, boolean flipV) {
+    public TCObjUnbakedModel(StandardModelParameters parameters, Identifier model, boolean flipV, boolean cornerSpace) {
         super(parameters);
-        this.geometry = new TCObjGeometry(model, flipV);
+        this.geometry = new TCObjGeometry(model, flipV, cornerSpace);
     }
 
     @Override
@@ -33,7 +33,8 @@ public final class TCObjUnbakedModel extends AbstractUnbakedModel {
             StandardModelParameters parameters = StandardModelParameters.parse(jsonObject, context);
             Identifier model = Identifier.parse(GsonHelper.getAsString(jsonObject, "model"));
             boolean flipV = GsonHelper.getAsBoolean(jsonObject, "flip_v", false);
-            return new TCObjUnbakedModel(parameters, model, flipV);
+            boolean cornerSpace = GsonHelper.getAsBoolean(jsonObject, "corner_space", false);
+            return new TCObjUnbakedModel(parameters, model, flipV, cornerSpace);
         }
     }
 }

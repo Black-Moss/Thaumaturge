@@ -6,12 +6,14 @@ import com.leclowndu93150.thaumcraft.client.network.AuraSnapshotClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.KnowledgeGainClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.WispZapClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.FXStreamClientHandler;
+import com.leclowndu93150.thaumcraft.client.fx.network.InfusionSourceClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
 import com.leclowndu93150.thaumcraft.client.network.RecipeDisplayClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.TubeEventClientHandler;
 import com.leclowndu93150.thaumcraft.client.warp.WarpFXClientHandler;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
+import com.leclowndu93150.thaumcraft.network.fx.ClientboundInfusionSourcePayload;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -126,6 +128,11 @@ public final class TCPayloads {
                 ClientboundFXStreamPayload.TYPE,
                 ClientboundFXStreamPayload.STREAM_CODEC,
                 (payload, context) -> FXStreamClientHandler.handle(payload, context)
+        );
+        registrar.playToClient(
+                ClientboundInfusionSourcePayload.TYPE,
+                ClientboundInfusionSourcePayload.STREAM_CODEC,
+                (payload, context) -> InfusionSourceClientHandler.handle(payload, context)
         );
         registrar.playToClient(
                 ClientboundKnowledgeGainPayload.TYPE,

@@ -24,10 +24,12 @@ public final class TCObjGeometry implements UnbakedGeometry {
 
     private final Identifier model;
     private final boolean flipV;
+    private final boolean cornerSpace;
 
-    public TCObjGeometry(Identifier model, boolean flipV) {
+    public TCObjGeometry(Identifier model, boolean flipV, boolean cornerSpace) {
         this.model = model;
         this.flipV = flipV;
+        this.cornerSpace = cornerSpace;
     }
 
     @Override
@@ -36,6 +38,9 @@ public final class TCObjGeometry implements UnbakedGeometry {
         Matrix4f transform = new Matrix4f()
                 .translate(CENTER_OFFSET, CENTER_OFFSET, CENTER_OFFSET)
                 .mul(modelState.transformation().getMatrix());
+        if (cornerSpace) {
+            transform.translate(-CENTER_OFFSET, -CENTER_OFFSET, -CENTER_OFFSET);
+        }
         QuadCollection.Builder builder = new QuadCollection.Builder();
         for (MeshPart part : mesh.parts()) {
             String slot = part.material() == null ? "" : part.material().name();

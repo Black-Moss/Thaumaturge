@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityPedestal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import it.unimi.dsi.fastutil.HashCommon;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -18,9 +19,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class PedestalRenderer implements BlockEntityRenderer<BlockEntityPedestal, PedestalRenderState> {
-    private static final float ITEM_SCALE = 0.5F;
-    private static final float ITEM_HEIGHT = 1.25F;
+    private static final float ITEM_SCALE = 1.25F;
+    private static final float ITEM_HEIGHT = 0.75F;
     private static final float SPIN_DEGREES_PER_TICK = 1.0F;
+    private static final float HOVER_LIFT = 0.1F;
+    private static final float GROUND_SCALE_LIFT_FACTOR = 0.25F;
 
     private final ItemModelResolver itemModelResolver;
 
@@ -46,8 +49,10 @@ public final class PedestalRenderer implements BlockEntityRenderer<BlockEntityPe
         itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.GROUND, pedestal.getLevel(),
                 null, HashCommon.long2int(pedestal.getBlockPos().asLong()));
         state.item = itemState;
-        long gameTime = pedestal.getLevel() == null ? 0L : pedestal.getLevel().getGameTime();
-        state.spin = (gameTime + partialTicks) * SPIN_DEGREES_PER_TICK;
+        state.groundLift = HOVER_LIFT + GROUND_SCALE_LIFT_FACTOR * (float) itemState.getModelBoundingBox().getYsize();
+        var viewEntity = Minecraft.getInstance().getCameraEntity();
+        float ticks = viewEntity == null ? partialTicks : viewEntity.tickCount + partialTicks;
+        state.spin = ticks % 360.0F * SPIN_DEGREES_PER_TICK;
     }
 
     @Override
@@ -57,8 +62,9 @@ public final class PedestalRenderer implements BlockEntityRenderer<BlockEntityPe
         }
         poseStack.pushPose();
         poseStack.translate(0.5F, ITEM_HEIGHT, 0.5F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.spin));
         poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
+        poseStack.mulPose(Axis.YP.rotationDegrees(state.spin));
+        poseStack.translate(0.0F, state.groundLift, 0.0F);
         state.item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
     }

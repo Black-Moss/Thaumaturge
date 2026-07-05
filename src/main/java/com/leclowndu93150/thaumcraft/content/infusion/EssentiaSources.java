@@ -44,11 +44,11 @@ public final class EssentiaSources {
                 be.setChanged();
                 TCParticleDispatch.spawnEssentiaStream(level,
                         Vec3.atCenterOf(sourcePos),
-                        Vec3.atCenterOf(center),
+                        Vec3.atCenterOf(center.below()),
                         aspect.value().color(),
                         0,
                         level.getRandom().nextInt(8),
-                        0.15F,
+                        0.1F,
                         fxExtendTicks,
                         0.0);
                 return true;

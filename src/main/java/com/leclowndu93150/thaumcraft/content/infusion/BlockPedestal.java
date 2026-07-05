@@ -25,9 +25,9 @@ public final class BlockPedestal extends BaseEntityBlock {
     public static final MapCodec<BlockPedestal> CODEC = simpleCodec(BlockPedestal::new);
 
     private static final VoxelShape SHAPE = Shapes.or(
-            Shapes.box(0.0, 0.0, 0.0, 1.0, 0.1875, 1.0),
-            Shapes.box(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125),
-            Shapes.box(0.0, 0.8125, 0.0, 1.0, 1.0, 1.0));
+            Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0),
+            Block.box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0),
+            Block.box(2.0, 12.0, 2.0, 14.0, 16.0, 14.0));
 
     public BlockPedestal(Properties properties) {
         super(properties);

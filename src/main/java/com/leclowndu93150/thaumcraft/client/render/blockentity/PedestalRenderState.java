@@ -7,4 +7,5 @@ import org.jspecify.annotations.Nullable;
 public final class PedestalRenderState extends BlockEntityRenderState {
     public @Nullable ItemStackRenderState item;
     public float spin;
+    public float groundLift;
 }

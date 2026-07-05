@@ -479,6 +479,7 @@ public final class TCBlocks {
                     .strength(-1.0F, 3600000.0F)
                     .sound(SoundType.STONE)
                     .noLootTable()
+                    .noOcclusion()
                     .lightLevel(s -> 15)
     );
 

@@ -140,9 +140,9 @@ public final class BoreStreamInstance implements IFXInstance {
             else if (i == 3) radii[i] = (this.particleScale + radii[i]) / 2.0;
             else if (i == 4) radii[i] = (this.particleScale + radii[i] * 2.0) / 3.0;
             float v2 = 1.0F - Mth.sin((c + this.age) / 2.0F) * 0.1F;
-            colours[i][0] = this.colorR * v2;
-            colours[i][1] = this.colorG * v2;
-            colours[i][2] = this.colorB * v2;
+            colours[i][0] = Math.min(1.0F, this.colorR * v2);
+            colours[i][1] = Math.min(1.0F, this.colorG * v2);
+            colours[i][2] = Math.min(1.0F, this.colorB * v2);
             colours[i][3] = 1.0F;
         }
         float startSlice = this.growing < 0 ? 0.0F : 0.075F * (this.age - this.growing + partialTick);

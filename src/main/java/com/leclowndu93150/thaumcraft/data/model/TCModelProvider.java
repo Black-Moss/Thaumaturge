@@ -384,11 +384,8 @@ public final class TCModelProvider extends ModelProvider {
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ANCIENT.get(), "pedestal_ancient");
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ELDRITCH.get(), "pedestal_eldritch");
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.INFUSION_MATRIX.get(), "infusion_matrix");
-        Identifier matrixItemModel = ModelTemplates.CUBE_ALL.create(
-                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/infusion_matrix_item"),
-                TextureMapping.cube(new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/infuser_normal"))),
-                itemModels.modelOutput);
-        itemModels.itemModelOutput.accept(TCBlocks.INFUSION_MATRIX.asItem(), ItemModelUtils.plainModel(matrixItemModel));
+        itemModels.itemModelOutput.accept(TCBlocks.INFUSION_MATRIX.asItem(), ItemModelUtils.plainModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/infusion_matrix")));
     }
 
     private static void registerPillar(BlockModelGenerators blockModels, ItemModelGenerators itemModels,

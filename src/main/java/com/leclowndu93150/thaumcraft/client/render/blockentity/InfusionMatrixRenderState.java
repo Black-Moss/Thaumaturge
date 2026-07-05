@@ -9,5 +9,7 @@ public final class InfusionMatrixRenderState extends BlockEntityRenderState {
     public float stability;
     public int craftTicks;
     public boolean active;
+    public boolean crafting;
+    public boolean fancyGraphics;
     public Identifier texture;
 }

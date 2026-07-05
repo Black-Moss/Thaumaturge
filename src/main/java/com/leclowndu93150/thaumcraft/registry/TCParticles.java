@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumcraft.content.fx.data.EssentiaDropParticleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FireMoteData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FluxGooDropletData;
+import com.leclowndu93150.thaumcraft.content.fx.data.InfusionCrumbsData;
 import com.leclowndu93150.thaumcraft.content.fx.data.NitorCoreData;
 import com.leclowndu93150.thaumcraft.content.fx.data.SmokeSpiralData;
 import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
@@ -154,6 +155,19 @@ public final class TCParticles {
                 @Override
                 public StreamCodec<? super RegistryFriendlyByteBuf, BoreParticlesData> streamCodec() {
                     return BoreParticlesData.STREAM_CODEC;
+                }
+            });
+
+    public static final DeferredHolder<ParticleType<?>, ParticleType<InfusionCrumbsData>> INFUSION_CRUMBS =
+            PARTICLES.register("infusion_crumbs", () -> new ParticleType<InfusionCrumbsData>(false) {
+                @Override
+                public MapCodec<InfusionCrumbsData> codec() {
+                    return InfusionCrumbsData.CODEC;
+                }
+
+                @Override
+                public StreamCodec<? super RegistryFriendlyByteBuf, InfusionCrumbsData> streamCodec() {
+                    return InfusionCrumbsData.STREAM_CODEC;
                 }
             });
 

@@ -84,6 +84,28 @@ public final class TCRenderPipelines {
             .withCull(false)
             .build();
 
+    public static final RenderPipeline SPARKLE_CULLED = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/sparkle_culled"))
+            .withVertexShader("core/rendertype_lightning")
+            .withFragmentShader("core/rendertype_lightning")
+            .withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING))
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES)
+            .withDepthStencilState(TEST_NO_WRITE)
+            .build();
+
+    public static final RenderPipeline ENTITY_ADDITIVE_EMISSIVE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_additive_emissive"))
+            .withVertexShader("core/entity")
+            .withFragmentShader("core/entity")
+            .withShaderDefine("EMISSIVE")
+            .withShaderDefine("NO_OVERLAY")
+            .withShaderDefine("NO_CARDINAL_LIGHTING")
+            .withSampler("Sampler0")
+            .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
+            .withDepthStencilState(TEST_NO_WRITE)
+            .build();
+
     public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
@@ -100,6 +122,8 @@ public final class TCRenderPipelines {
         event.registerPipeline(FX_TRANSLUCENT_NO_DEPTH);
         event.registerPipeline(GUI_TEXTURED_ADDITIVE);
         event.registerPipeline(SPARKLE);
+        event.registerPipeline(SPARKLE_CULLED);
+        event.registerPipeline(ENTITY_ADDITIVE_EMISSIVE);
     }
 
     private TCRenderPipelines() {}

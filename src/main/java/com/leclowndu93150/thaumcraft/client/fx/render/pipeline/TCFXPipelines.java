@@ -33,4 +33,13 @@ public final class TCFXPipelines {
                 .withCull(false)
                 .build();
     }
+
+    public static RenderPipeline translucentTextured(Identifier location) {
+        return RenderPipeline.builder(BASE)
+                .withLocation(location)
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+                .withCull(false)
+                .build();
+    }
 }

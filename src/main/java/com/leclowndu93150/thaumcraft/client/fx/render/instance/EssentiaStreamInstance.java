@@ -153,30 +153,30 @@ public final class EssentiaStreamInstance implements IFXInstance {
         double[][] points = new double[n][3];
         float[][] colours = new float[n][4];
         double[] radii = new double[n];
-        for (int i = 0; i < n; i++) {
-            int c = n - 1 - i;
-            Quat v = this.vecs.get(i);
+        int c = n;
+        for (Quat v : this.vecs) {
+            c--;
             float variance = 1.0F + Mth.sin((c + this.age) / 3.0F) * 0.2F;
             float xx = Mth.sin((c + this.age) / 6.0F) * 0.03F;
             float yy = Mth.sin((c + this.age) / 7.0F) * 0.03F;
             float zz = Mth.sin((c + this.age) / 8.0F) * 0.03F;
-            points[i][0] = v.x + xx;
-            points[i][1] = v.y + yy;
-            points[i][2] = v.z + zz;
-            radii[i] = v.s * variance;
+            points[c][0] = v.x + xx;
+            points[c][1] = v.y + yy;
+            points[c][2] = v.z + zz;
+            radii[c] = v.s * variance;
             if (c > n - 10) {
-                radii[i] *= Mth.cos((float)((c - (n - 12)) / 10.0F * (Math.PI / 2.0)));
+                radii[c] *= Mth.cos((float)((c - (n - 12)) / 10.0F * (Math.PI / 2.0)));
             }
-            if (i == 0)      radii[i] = 0.0;
-            else if (i == 1) radii[i] = 0.0;
-            else if (i == 2) radii[i] = (this.particleScale * 0.5F + radii[i]) / 2.0;
-            else if (i == 3) radii[i] = (this.particleScale + radii[i]) / 2.0;
-            else if (i == 4) radii[i] = (this.particleScale + radii[i] * 2.0) / 3.0;
+            if (c == 0)      radii[c] = 0.0;
+            else if (c == 1) radii[c] = 0.0;
+            else if (c == 2) radii[c] = (this.particleScale * 0.5F + radii[c]) / 2.0;
+            else if (c == 3) radii[c] = (this.particleScale + radii[c]) / 2.0;
+            else if (c == 4) radii[c] = (this.particleScale + radii[c] * 2.0) / 3.0;
             float v2 = 1.0F - Mth.sin((c + this.age) / 2.0F) * 0.1F;
-            colours[i][0] = this.colorR * v2;
-            colours[i][1] = this.colorG * v2;
-            colours[i][2] = this.colorB * v2;
-            colours[i][3] = 1.0F;
+            colours[c][0] = Math.min(1.0F, this.colorR * v2);
+            colours[c][1] = Math.min(1.0F, this.colorG * v2);
+            colours[c][2] = Math.min(1.0F, this.colorB * v2);
+            colours[c][3] = 1.0F;
         }
         float startSlice = this.growing < 0 ? 0.0F : 0.075F * (this.age - this.growing + partialTick);
         return new Snapshot(points, colours, radii, this.startX, this.startY, this.startZ, 0.075F, startSlice);

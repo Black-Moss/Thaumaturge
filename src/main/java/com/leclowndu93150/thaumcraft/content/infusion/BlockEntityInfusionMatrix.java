@@ -3,6 +3,16 @@ package com.leclowndu93150.thaumcraft.content.infusion;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.items.IGogglesDisplayExtended;
+import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
+import com.leclowndu93150.thaumcraft.content.fx.data.InfusionCrumbsData;
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.BlockItem;
 import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -37,28 +47,35 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityInfusionMatrix extends BlockEntity {
+public final class BlockEntityInfusionMatrix extends BlockEntity implements IGogglesDisplayExtended {
     public static final float STABILITY_CAP = 25.0F;
     private static final float STABILITY_FLOOR = -100.0F;
     private static final int IDLE_VALIDATE_INTERVAL = 100;
     private static final int CRAFT_VALIDATE_INTERVAL = 20;
     private static final int ITEM_PULL_TICKS = 5;
+    private static final int FINISH_GRACE_CYCLES = 2;
     private static final int INSTABILITY_ROLL_BOUND = 1500;
     private static final float MIN_COST_MULT = 0.5F;
     private static final float ESSENTIA_STARVE_PENALTY = 0.25F;
     private static final int ESSENTIA_FX_RANGE_TICKS = 12;
 
+    private static final DecimalFormat STABILITY_FORMAT = new DecimalFormat("#######.##");
+    private static final String STABILITY_LANG_PREFIX = "gui.thaumcraft.infusion.stability.";
+
     private boolean active;
     private float stability;
+    private float stabilityReplenish;
     private @Nullable InfusionCraftJob job;
     private int count;
     private int itemPullCountdown;
+    private int finishGrace;
     private boolean checkSurroundings = true;
     private @Nullable MatrixEnvironment environment;
     private final EssentiaSources essentiaSources = new EssentiaSources(this.worldPosition);
 
     public float clientStartUp;
     public int clientCraftTicks;
+    private final Map<BlockPos, Integer> clientSourceFX = new HashMap<>();
 
     public BlockEntityInfusionMatrix(BlockPos pos, BlockState state) {
         super(TCBlockEntities.INFUSION_MATRIX.get(), pos, state);
@@ -95,6 +112,11 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
             checkSurroundings = false;
             environment = MatrixEnvironment.survey(level, worldPosition);
             essentiaSources.invalidate();
+            if (stabilityReplenish != environment.stabilityReplenish()) {
+                stabilityReplenish = environment.stabilityReplenish();
+                setChanged();
+                syncToClient();
+            }
         }
         return environment;
     }
@@ -218,7 +240,10 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
             return;
         }
         if (job.ingredients().isEmpty()) {
-            finishCraft(level);
+            if (finishGrace++ >= FINISH_GRACE_CYCLES) {
+                finishGrace = 0;
+                finishCraft(level);
+            }
             return;
         }
         pullIngredientCycle(level, env);
@@ -239,6 +264,35 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
             return 6.0F;
         }
         return stability > -25.0F ? 7.0F : 8.0F;
+    }
+
+    private String stabilityTierKey() {
+        if (stability > STABILITY_CAP / 2.0F) {
+            return "very_stable";
+        }
+        if (stability >= 0.0F) {
+            return "stable";
+        }
+        return stability > -25.0F ? "unstable" : "very_unstable";
+    }
+
+    @Override
+    public Component[] getIGogglesText() {
+        Component tier = Component.translatable(STABILITY_LANG_PREFIX + stabilityTierKey())
+                .withStyle(ChatFormatting.BOLD);
+        Component gain = Component.literal(STABILITY_FORMAT.format(stabilityReplenish) + " ")
+                .append(Component.translatable(STABILITY_LANG_PREFIX + "gain"))
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC);
+        float lpc = lossPerCycle();
+        if (lpc == 0.0F) {
+            return new Component[]{tier, gain};
+        }
+        Component loss = Component.translatable(STABILITY_LANG_PREFIX + "range")
+                .append(Component.literal(STABILITY_FORMAT.format(lpc) + " ")
+                        .append(Component.translatable(STABILITY_LANG_PREFIX + "loss"))
+                        .withStyle(ChatFormatting.ITALIC))
+                .withStyle(ChatFormatting.RED);
+        return new Component[]{tier, gain, loss};
     }
 
     private boolean catalystStillPresent(ServerLevel level) {
@@ -351,9 +405,12 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
 
     private void tickClient() {
         if (isCrafting()) {
-            clientCraftTicks = Math.min(clientCraftTicks + 1, 50);
+            if (clientCraftTicks == 0 && level != null) {
+                level.playLocalSound(worldPosition, TCSounds.INFUSERSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F, false);
+            }
+            clientCraftTicks++;
         } else if (clientCraftTicks > 0) {
-            clientCraftTicks = Math.max(0, clientCraftTicks - 2);
+            clientCraftTicks = Math.min(50, Math.max(0, clientCraftTicks - 2));
         }
         if (active && clientStartUp < 1.0F) {
             clientStartUp = Math.min(1.0F, clientStartUp + Math.max(clientStartUp / 10.0F, 0.001F));
@@ -363,6 +420,66 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
                 clientStartUp = 0.0F;
             }
         }
+        tickClientSourceFX();
+    }
+
+    public void addClientSourceFX(BlockPos source, int ticks) {
+        clientSourceFX.put(source.immutable(), ticks);
+    }
+
+    private void tickClientSourceFX() {
+        if (clientSourceFX.isEmpty() || level == null) {
+            return;
+        }
+        RandomSource rand = level.getRandom();
+        Iterator<Map.Entry<BlockPos, Integer>> it = clientSourceFX.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<BlockPos, Integer> entry = it.next();
+            if (entry.getValue() <= 0) {
+                it.remove();
+                continue;
+            }
+            BlockPos loc = entry.getKey();
+            if (level.getBlockEntity(loc) instanceof BlockEntityPedestal pedestal) {
+                ItemStack stack = pedestal.getItem();
+                if (!stack.isEmpty()) {
+                    spawnPullFX(rand, loc, stack);
+                }
+                entry.setValue(entry.getValue() - 1);
+            } else {
+                entry.setValue(0);
+            }
+        }
+    }
+
+    private void spawnPullFX(RandomSource rand, BlockPos loc, ItemStack stack) {
+        double tx = worldPosition.getX() + 0.5;
+        double ty = worldPosition.getY() - 0.5;
+        double tz = worldPosition.getZ() + 0.5;
+        if (rand.nextInt(3) == 0) {
+            level.addParticle(new BoreSparkleData(tx, ty, tz,
+                            0.4F + rand.nextFloat() * 0.2F, 0.2F, 0.6F + rand.nextFloat() * 0.3F),
+                    loc.getX() + rand.nextFloat(), loc.getY() + rand.nextFloat() + 1.0F, loc.getZ() + rand.nextFloat(),
+                    0.0, 0.0, 0.0);
+            return;
+        }
+        ItemStackTemplate template = new ItemStackTemplate(stack.getItem());
+        if (stack.getItem() instanceof BlockItem) {
+            for (int a = 0; a < 4; a++) {
+                level.addParticle(new InfusionCrumbsData(template, tx, ty, tz, 0.0, 0.0, 0.0),
+                        loc.getX() + rand.nextFloat(), loc.getY() + rand.nextFloat() + 1.0F, loc.getZ() + rand.nextFloat(),
+                        0.0, 0.0, 0.0);
+            }
+        } else {
+            for (int a = 0; a < 4; a++) {
+                level.addParticle(new InfusionCrumbsData(template, tx, ty, tz,
+                                rand.nextGaussian() * 0.03F, rand.nextGaussian() * 0.03F, rand.nextGaussian() * 0.03F),
+                        loc.getX() + 0.4F + rand.nextFloat() * 0.2F,
+                        loc.getY() + 1.23F + rand.nextFloat() * 0.2F,
+                        loc.getZ() + 0.4F + rand.nextFloat() * 0.2F,
+                        0.0, 0.0, 0.0);
+            }
+        }
     }
 
     @Override
@@ -370,6 +487,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
         super.saveAdditional(output);
         output.putBoolean("Active", active);
         output.putFloat("Stability", stability);
+        output.putFloat("Replenish", stabilityReplenish);
         if (job != null) {
             output.store("Job", InfusionCraftJob.CODEC, job);
         }
@@ -380,6 +498,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity {
         super.loadAdditional(input);
         active = input.getBooleanOr("Active", false);
         stability = input.getFloatOr("Stability", 0.0F);
+        stabilityReplenish = input.getFloatOr("Replenish", 0.0F);
         job = input.read("Job", InfusionCraftJob.CODEC).orElse(null);
     }
 
