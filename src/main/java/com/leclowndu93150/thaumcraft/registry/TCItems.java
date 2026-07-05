@@ -316,6 +316,8 @@ public final class TCItems {
     public static final DeferredItem<Item> QUICKSILVER = ITEMS.registerSimpleItem("quicksilver");
     public static final DeferredItem<Item> AMBER = ITEMS.registerSimpleItem("amber");
 
+    public static final DeferredItem<Item> RARE_EARTH = ITEMS.registerSimpleItem("rare_earth");
+
     public static final DeferredItem<Item> NUGGET_BRASS = ITEMS.registerSimpleItem("nugget_brass");
     public static final DeferredItem<Item> NUGGET_THAUMIUM = ITEMS.registerSimpleItem("nugget_thaumium");
     public static final DeferredItem<Item> NUGGET_VOID = ITEMS.registerSimpleItem("nugget_void");

@@ -10,8 +10,6 @@ import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
-import java.util.List;
-import java.util.Optional;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -33,12 +31,24 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
 
+import java.util.List;
+import java.util.Optional;
+
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class SalisMundusItem extends Item {
     private static final int SWAP_DELAY_TICKS = 50;
 
     public SalisMundusItem(Item.Properties properties) {
         super(properties);
+    }
+
+    @SubscribeEvent
+    public static void allowUseOnCraftingTable(UseItemOnBlockEvent event) {
+        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK) return;
+        if (!event.getItemStack().is(TCItems.SALIS_MUNDUS)) return;
+        if (event.getPlayer() == null) return;
+        if (!event.getPlayer().isCrouching()) return;
+        event.cancelWithResult(InteractionResult.PASS);
     }
 
     @Override
@@ -80,8 +90,9 @@ public final class SalisMundusItem extends Item {
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
+        DustTriggerPlacement placement = null;
         if (trigger.isMultiblock()) {
-            DustTriggerPlacement placement = trigger.findPlacement(input);
+            placement = trigger.findPlacement(input);
             if (placement == null) {
                 return InteractionResult.PASS;
             }
@@ -94,7 +105,7 @@ public final class SalisMundusItem extends Item {
         if (player instanceof ServerPlayer serverPlayer) {
             Vec3 hitWorld = context.getClickLocation();
             DustTriggerFx.emitUseBurst(serverLevel, serverPlayer, context.getHand(), pos);
-            DustTriggerFx.emitTriggerSparkles(serverLevel, serverPlayer, pos, trigger, hitWorld);
+            DustTriggerFx.emitTriggerSparkles(serverLevel, serverPlayer, pos, trigger, hitWorld, placement);
             serverPlayer.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
             CriteriaTriggers.RECIPE_CRAFTED.trigger(serverPlayer, holder.id(), List.of(consumed));
         }
@@ -106,14 +117,5 @@ public final class SalisMundusItem extends Item {
     @Override
     public boolean doesSneakBypassUse(ItemStack stack, LevelReader level, BlockPos pos, Player player) {
         return true;
-    }
-
-    @SubscribeEvent
-    public static void allowUseOnCraftingTable(UseItemOnBlockEvent event){
-        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK) return;
-        if (!event.getItemStack().is(TCItems.SALIS_MUNDUS)) return;
-        if (event.getPlayer() == null) return;
-        if (!event.getPlayer().isCrouching()) return;
-        event.cancelWithResult(InteractionResult.PASS);
     }
 }

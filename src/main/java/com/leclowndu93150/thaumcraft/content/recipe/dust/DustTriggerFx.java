@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
 public final class DustTriggerFx {
     private static final int BURST_COUNT = 50;
@@ -64,8 +65,8 @@ public final class DustTriggerFx {
         }
     }
 
-    public static void emitTriggerSparkles(ServerLevel level, ServerPlayer player, BlockPos triggerPos, DustTrigger trigger, Vec3 hitStart) {
-        List<BlockPos> sparkles = trigger.sparkle(level, player, triggerPos, DustTriggerPlacement.origin());
+    public static void emitTriggerSparkles(ServerLevel level, ServerPlayer player, BlockPos triggerPos, DustTrigger trigger, Vec3 hitStart, @Nullable DustTriggerPlacement placement) {
+        List<BlockPos> sparkles = trigger.sparkle(level, player, triggerPos, placement == null ? DustTriggerPlacement.origin() : placement);
         if (sparkles == null || sparkles.isEmpty()) {
             return;
         }
