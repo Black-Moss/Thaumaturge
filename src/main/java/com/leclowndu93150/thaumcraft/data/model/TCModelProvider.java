@@ -147,6 +147,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.NUGGET_BRASS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_VOID.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_QUICKSILVER.get(), ModelTemplates.FLAT_ITEM);
+        registerInfusionAltar(blockModels, itemModels);
         registerCandles(blockModels, itemModels);
         registerBanners(blockModels, itemModels);
         itemModels.generateFlatItem(TCItems.TALLOW.get(), ModelTemplates.FLAT_ITEM);
@@ -369,6 +370,44 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Constant(rgb)));
     }
 
+
+    private static void registerInfusionAltar(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        PropertyDispatch<VariantMutator> facing = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
+        registerPillar(blockModels, itemModels, TCBlocks.PILLAR_ARCANE.get(), "pillar_arcane", facing);
+        registerPillar(blockModels, itemModels, TCBlocks.PILLAR_ANCIENT.get(), "pillar_ancient", facing);
+        registerPillar(blockModels, itemModels, TCBlocks.PILLAR_ELDRITCH.get(), "pillar_eldritch", facing);
+        registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ARCANE.get(), "pedestal_arcane");
+        registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ANCIENT.get(), "pedestal_ancient");
+        registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ELDRITCH.get(), "pedestal_eldritch");
+        registerSimpleWithItem(blockModels, itemModels, TCBlocks.INFUSION_MATRIX.get(), "infusion_matrix");
+        Identifier matrixItemModel = ModelTemplates.CUBE_ALL.create(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/infusion_matrix_item"),
+                TextureMapping.cube(new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/infuser_normal"))),
+                itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCBlocks.INFUSION_MATRIX.asItem(), ItemModelUtils.plainModel(matrixItemModel));
+    }
+
+    private static void registerPillar(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
+                                       Block block, String modelName, PropertyDispatch<VariantMutator> facing) {
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName);
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant).with(facing));
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
+    }
+
+    private static void registerSimpleWithItem(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
+                                               Block block, String modelName) {
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName);
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+        if (block != TCBlocks.INFUSION_MATRIX.get()) {
+            itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
+        }
+    }
 
     private static void registerRobeItem(ItemModelGenerators itemModels, Item item, String name) {
         Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name);

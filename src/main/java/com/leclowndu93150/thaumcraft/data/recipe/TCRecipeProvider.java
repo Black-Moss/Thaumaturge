@@ -61,6 +61,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildArcaneWorkbenchRecipes();
         buildBannerRecipes();
         buildGearRecipes();
+        buildInfusionAltarRecipes();
         buildCrucibleRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
@@ -276,6 +277,29 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .save(output);
     }
 
+
+    private void buildInfusionAltarRecipes() {
+        arcaneShaped(new ItemStackTemplate(TCItems.INFUSION_MATRIX), 150)
+                .allAspects()
+                .pattern("S S")
+                .pattern(" N ")
+                .pattern("S S")
+                .define('S', TCItems.STONE_ARCANE_BRICK)
+                .define('N', TCItemTags.NITORS)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false))
+                .unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.PEDESTAL_ARCANE), 10)
+                .pattern("SSS")
+                .pattern(" B ")
+                .pattern("SSS")
+                .define('S', TCItems.STONE_ARCANE)
+                .define('B', TCItems.STONE_ARCANE)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.STONE_ARCANE))
+                .save(output);
+    }
 
     private void buildGearRecipes() {
         toolRecipes("thaumium", TCItemTags.INGOTS_THAUMIUM,

@@ -190,6 +190,10 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
             DustTriggerSwapQueue.enqueuePlace(level, pos, original, placed, delay);
             return;
         }
+        if (target instanceof BlueprintTarget.StateTarget stateTarget) {
+            DustTriggerSwapQueue.enqueuePlace(level, pos, original, stateTarget.state(), delay);
+            return;
+        }
         if (target instanceof BlueprintTarget.StackTarget stackTarget) {
             DustTriggerSwapQueue.enqueueDrop(level, pos, original, stackTarget.stack(), delay);
         }

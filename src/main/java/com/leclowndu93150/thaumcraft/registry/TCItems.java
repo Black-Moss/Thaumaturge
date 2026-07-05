@@ -364,6 +364,14 @@ public final class TCItems {
             PhialItem::new
     );
 
+    public static final DeferredItem<BlockItem> INFUSION_MATRIX = ITEMS.registerSimpleBlockItem(TCBlocks.INFUSION_MATRIX);
+    public static final DeferredItem<BlockItem> PEDESTAL_ARCANE = ITEMS.registerSimpleBlockItem(TCBlocks.PEDESTAL_ARCANE);
+    public static final DeferredItem<BlockItem> PEDESTAL_ANCIENT = ITEMS.registerSimpleBlockItem(TCBlocks.PEDESTAL_ANCIENT);
+    public static final DeferredItem<BlockItem> PEDESTAL_ELDRITCH = ITEMS.registerSimpleBlockItem(TCBlocks.PEDESTAL_ELDRITCH);
+    public static final DeferredItem<BlockItem> PILLAR_ARCANE = ITEMS.registerSimpleBlockItem(TCBlocks.PILLAR_ARCANE);
+    public static final DeferredItem<BlockItem> PILLAR_ANCIENT = ITEMS.registerSimpleBlockItem(TCBlocks.PILLAR_ANCIENT);
+    public static final DeferredItem<BlockItem> PILLAR_ELDRITCH = ITEMS.registerSimpleBlockItem(TCBlocks.PILLAR_ELDRITCH);
+
     public static final DeferredItem<CausalityCollapserItem> CAUSALITY_COLLAPSER = ITEMS.registerItem(
             "causality_collapser",
             CausalityCollapserItem::new,

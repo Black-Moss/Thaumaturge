@@ -13,6 +13,8 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeOneway
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeRestrict;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeValve;
 import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockEntityInfernalFurnace;
+import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityInfusionMatrix;
+import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityPedestal;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import java.util.Set;
@@ -139,6 +141,19 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "infernal_furnace",
                     () -> new BlockEntityType<>(BlockEntityInfernalFurnace::new, Set.of(TCBlocks.INFERNAL_FURNACE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityInfusionMatrix>> INFUSION_MATRIX =
+            BLOCK_ENTITIES.register(
+                    "infusion_matrix",
+                    () -> new BlockEntityType<>(BlockEntityInfusionMatrix::new, Set.of(TCBlocks.INFUSION_MATRIX.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityPedestal>> PEDESTAL =
+            BLOCK_ENTITIES.register(
+                    "pedestal",
+                    () -> new BlockEntityType<>(BlockEntityPedestal::new,
+                            Set.of(TCBlocks.PEDESTAL_ARCANE.get(), TCBlocks.PEDESTAL_ANCIENT.get(), TCBlocks.PEDESTAL_ELDRITCH.get()))
             );
 
     private TCBlockEntities() {}

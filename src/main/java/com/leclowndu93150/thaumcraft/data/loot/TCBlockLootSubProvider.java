@@ -126,5 +126,11 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.AMBER_BLOCK.get());
         dropOther(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), Blocks.NETHER_BRICKS);
         dropOther(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), Blocks.OBSIDIAN);
+        dropSelf(TCBlocks.PEDESTAL_ARCANE.get());
+        dropSelf(TCBlocks.PEDESTAL_ANCIENT.get());
+        dropSelf(TCBlocks.PEDESTAL_ELDRITCH.get());
+        dropSelf(TCBlocks.PILLAR_ARCANE.get());
+        dropSelf(TCBlocks.PILLAR_ANCIENT.get());
+        dropSelf(TCBlocks.PILLAR_ELDRITCH.get());
     }
 }

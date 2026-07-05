@@ -1,0 +1,10 @@
+{
+  "loader": "thaumcraft:obj",
+  "parent": "block/block",
+  "model": "thaumcraft:models/obj/pillar.obj",
+  "flip_v": true,
+  "textures": {
+    "texture": "thaumcraft:block/pillar_ancient",
+    "particle": "thaumcraft:block/pillar_ancient"
+  }
+}

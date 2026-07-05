@@ -1,0 +1,152 @@
+{
+  "x_size": 3,
+  "y_size": 3,
+  "z_size": 3,
+  "cells": [
+    {},
+    {},
+    {},
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:infusion_matrix"
+        }
+      }
+    },
+    {},
+    {},
+    {},
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "air"
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "air"
+        }
+      }
+    },
+    {},
+    {},
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "air"
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "air"
+        }
+      }
+    },
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "state",
+          "state": {
+            "Name": "thaumcraft:pillar_arcane",
+            "Properties": {
+              "facing": "east"
+            }
+          }
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "state",
+          "state": {
+            "Name": "thaumcraft:pillar_arcane",
+            "Properties": {
+              "facing": "north"
+            }
+          }
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:pedestal_arcane"
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "state",
+          "state": {
+            "Name": "thaumcraft:pillar_arcane",
+            "Properties": {
+              "facing": "south"
+            }
+          }
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "thaumcraft:stone_arcane"
+        },
+        "target": {
+          "type": "state",
+          "state": {
+            "Name": "thaumcraft:pillar_arcane",
+            "Properties": {
+              "facing": "west"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

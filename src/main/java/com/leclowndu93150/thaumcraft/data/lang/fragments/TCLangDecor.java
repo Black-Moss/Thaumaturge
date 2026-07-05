@@ -43,6 +43,14 @@ public final class TCLangDecor {
         provider.add("entity.thaumcraft.flux_rift", "Flux Rift");
         provider.add("item.thaumcraft.void_seed", "Void Seed");
         provider.add("item.thaumcraft.causality_collapser", "Causality Collapser");
+        provider.add("block.thaumcraft.infusion_matrix", "Runic Matrix");
+        provider.add("block.thaumcraft.pedestal_arcane", "Arcane Pedestal");
+        provider.add("block.thaumcraft.pedestal_ancient", "Ancient Pedestal");
+        provider.add("block.thaumcraft.pedestal_eldritch", "Eldritch Pedestal");
+        provider.add("block.thaumcraft.pillar_arcane", "Arcane Pillar");
+        provider.add("block.thaumcraft.pillar_ancient", "Ancient Pillar");
+        provider.add("block.thaumcraft.pillar_eldritch", "Eldritch Pillar");
+        provider.add("gui.thaumcraft.infusion.instability", "Instability: %s");
         provider.add("entity.thaumcraft.causality_collapser", "Causality Collapser");
         provider.add("item.thaumcraft.thaumium_sword", "Thaumium Sword");
         provider.add("item.thaumcraft.thaumium_pickaxe", "Thaumium Pickaxe");

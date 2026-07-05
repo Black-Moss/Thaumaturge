@@ -13,6 +13,8 @@ public final class TCBlockEntityRenderers {
 
     @SubscribeEvent
     public static void onRegister(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(TCBlockEntities.INFUSION_MATRIX.get(), InfusionMatrixRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.PEDESTAL.get(), PedestalRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.JAR.get(), JarRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.JAR_VOID.get(), JarRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.CRUCIBLE.get(), CrucibleRenderer::new);

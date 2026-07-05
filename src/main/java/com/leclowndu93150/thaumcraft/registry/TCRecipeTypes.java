@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
+import com.leclowndu93150.thaumcraft.content.infusion.InfusionRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipe;
 import net.minecraft.core.registries.Registries;
@@ -24,6 +25,14 @@ public final class TCRecipeTypes {
                 @Override
                 public String toString() {
                     return "thaumcraft:dust_trigger";
+                }
+            });
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<InfusionRecipe>> INFUSION =
+            RECIPE_TYPES.register("infusion", () -> new RecipeType<InfusionRecipe>() {
+                @Override
+                public String toString() {
+                    return "thaumcraft:infusion";
                 }
             });
 

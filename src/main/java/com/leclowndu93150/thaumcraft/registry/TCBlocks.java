@@ -1,6 +1,9 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.infusion.BlockInfusionMatrix;
+import com.leclowndu93150.thaumcraft.content.infusion.BlockPedestal;
+import com.leclowndu93150.thaumcraft.content.infusion.BlockPillar;
 import com.leclowndu93150.thaumcraft.content.decor.BlockCandle;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerStandingBlock;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerWallBlock;
@@ -294,6 +297,24 @@ public final class TCBlocks {
                     })
     );
 
+    private static BlockBehaviour.Properties pedestalProps(BlockBehaviour.Properties props) {
+        return props
+                .mapColor(MapColor.STONE)
+                .strength(2.0F, 17.5F)
+                .sound(SoundType.STONE)
+                .noOcclusion()
+                .requiresCorrectToolForDrops();
+    }
+
+    private static BlockBehaviour.Properties pillarProps(BlockBehaviour.Properties props) {
+        return props
+                .mapColor(MapColor.STONE)
+                .strength(2.0F, 17.5F)
+                .sound(SoundType.STONE)
+                .noOcclusion()
+                .requiresCorrectToolForDrops();
+    }
+
     private static BlockBehaviour.Properties taintBlockProps(BlockBehaviour.Properties props) {
         return props
                 .mapColor(MapColor.COLOR_PURPLE)
@@ -449,6 +470,35 @@ public final class TCBlocks {
     }
 
     // 
+
+    public static final DeferredBlock<BlockInfusionMatrix> INFUSION_MATRIX = BLOCKS.registerBlock(
+            "infusion_matrix",
+            BlockInfusionMatrix::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(-1.0F, 3600000.0F)
+                    .sound(SoundType.STONE)
+                    .noLootTable()
+                    .lightLevel(s -> 15)
+    );
+
+    public static final DeferredBlock<BlockPedestal> PEDESTAL_ARCANE = BLOCKS.registerBlock(
+            "pedestal_arcane", BlockPedestal::new, TCBlocks::pedestalProps);
+
+    public static final DeferredBlock<BlockPedestal> PEDESTAL_ANCIENT = BLOCKS.registerBlock(
+            "pedestal_ancient", BlockPedestal::new, TCBlocks::pedestalProps);
+
+    public static final DeferredBlock<BlockPedestal> PEDESTAL_ELDRITCH = BLOCKS.registerBlock(
+            "pedestal_eldritch", BlockPedestal::new, TCBlocks::pedestalProps);
+
+    public static final DeferredBlock<BlockPillar> PILLAR_ARCANE = BLOCKS.registerBlock(
+            "pillar_arcane", BlockPillar::new, TCBlocks::pillarProps);
+
+    public static final DeferredBlock<BlockPillar> PILLAR_ANCIENT = BLOCKS.registerBlock(
+            "pillar_ancient", BlockPillar::new, TCBlocks::pillarProps);
+
+    public static final DeferredBlock<BlockPillar> PILLAR_ELDRITCH = BLOCKS.registerBlock(
+            "pillar_eldritch", BlockPillar::new, TCBlocks::pillarProps);
 
     public static final DeferredBlock<BlockStoneTC> STONE_ARCANE = BLOCKS.registerBlock(
             "stone_arcane",

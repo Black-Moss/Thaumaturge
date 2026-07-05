@@ -11,6 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public sealed interface BlueprintTarget {
     Codec<BlueprintTarget> CODEC = Kind.CODEC.dispatch("type", BlueprintTarget::kind, k -> k.codec);
@@ -37,7 +38,8 @@ public sealed interface BlueprintTarget {
         KEEP("keep", Keep.CODEC_INSTANCE, Keep.STREAM_CODEC_INSTANCE),
         AIR("air", Air.CODEC_INSTANCE, Air.STREAM_CODEC_INSTANCE),
         BLOCK("block", BlockTarget.CODEC_INSTANCE, BlockTarget.STREAM_CODEC_INSTANCE),
-        STACK("stack", StackTarget.CODEC_INSTANCE, StackTarget.STREAM_CODEC_INSTANCE);
+        STACK("stack", StackTarget.CODEC_INSTANCE, StackTarget.STREAM_CODEC_INSTANCE),
+        STATE("state", StateTarget.CODEC_INSTANCE, StateTarget.STREAM_CODEC_INSTANCE);
 
         public static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
 
@@ -106,6 +108,29 @@ public sealed interface BlueprintTarget {
         @Override
         public Kind kind() {
             return Kind.BLOCK;
+        }
+    }
+
+    record StateTarget(BlockState state) implements BlueprintTarget {
+        static final MapCodec<StateTarget> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
+                BlockState.CODEC.fieldOf("state").forGetter(StateTarget::state)
+        ).apply(i, StateTarget::new));
+
+        static final StreamCodec<RegistryFriendlyByteBuf, StateTarget> STREAM_CODEC_INSTANCE = new StreamCodec<>() {
+            @Override
+            public StateTarget decode(RegistryFriendlyByteBuf buf) {
+                return new StateTarget(Block.BLOCK_STATE_REGISTRY.byId(buf.readVarInt()));
+            }
+
+            @Override
+            public void encode(RegistryFriendlyByteBuf buf, StateTarget value) {
+                buf.writeVarInt(Block.BLOCK_STATE_REGISTRY.getId(value.state));
+            }
+        };
+
+        @Override
+        public Kind kind() {
+            return Kind.STATE;
         }
     }
 

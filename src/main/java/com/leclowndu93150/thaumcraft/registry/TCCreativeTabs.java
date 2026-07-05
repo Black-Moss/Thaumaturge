@@ -164,6 +164,10 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.CLOTH_CHEST.get());
                         output.accept(TCItems.CLOTH_LEGS.get());
                         output.accept(TCItems.CLOTH_BOOTS.get());
+                        output.accept(TCItems.INFUSION_MATRIX.get());
+                        output.accept(TCItems.PEDESTAL_ARCANE.get());
+                        output.accept(TCItems.PEDESTAL_ANCIENT.get());
+                        output.accept(TCItems.PEDESTAL_ELDRITCH.get());
                         output.accept(TCItems.VOID_SEED.get());
                         output.accept(TCItems.CAUSALITY_COLLAPSER.get());
                         output.accept(TCItems.PRIMORDIAL_PEARL.get());

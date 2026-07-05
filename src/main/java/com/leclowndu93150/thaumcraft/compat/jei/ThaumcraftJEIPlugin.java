@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumcraft.compat.jei.category.ArcaneWorkbenchCategory
 import com.leclowndu93150.thaumcraft.compat.jei.category.AspectCompositionCategory;
 import com.leclowndu93150.thaumcraft.compat.jei.category.AspectFromStacksCategory;
 import com.leclowndu93150.thaumcraft.compat.jei.category.CrucibleCategory;
+import com.leclowndu93150.thaumcraft.compat.jei.category.InfusionCategory;
 import com.leclowndu93150.thaumcraft.compat.jei.category.DustTriggerCategory;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientHelper;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientRenderer;
@@ -111,6 +112,7 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         List<IRecipeCategory<?>> categories = new ArrayList<>(2);
         categories.add(new ArcaneWorkbenchCategory(helpers.getGuiHelper()));
         categories.add(new CrucibleCategory(helpers.getGuiHelper()));
+        categories.add(new InfusionCategory(helpers.getGuiHelper()));
         categories.add(new DustTriggerCategory(helpers.getGuiHelper()));
         categories.add(new AspectCompositionCategory(helpers.getGuiHelper(), pickIconAspect()));
         categories.add(new AspectFromStacksCategory(helpers.getGuiHelper()));
@@ -121,6 +123,7 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         addTypedRecipes(registration,ArcaneWorkbenchCategory.RECIPE_TYPE,TCRecipeTypes.ARCANE.get());
         addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get());
+        addTypedRecipes(registration,InfusionCategory.RECIPE_TYPE,TCRecipeTypes.INFUSION.get());
         registerAspectCompositions(registration);
         addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get());
         registerAspectInfoPages(registration);
