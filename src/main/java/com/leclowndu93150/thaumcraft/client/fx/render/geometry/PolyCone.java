@@ -44,7 +44,7 @@ public final class PolyCone {
         double[] negZ = {0.0, 0.0, 0.0};
 
         int i = 0;
-        int inext = 1;
+        int inext = 0;
         double[] diff = new double[3];
         inext = findNonDegeneratePoint(inext, npoints, diff, pointArray);
         double len = vecLen(diff);
