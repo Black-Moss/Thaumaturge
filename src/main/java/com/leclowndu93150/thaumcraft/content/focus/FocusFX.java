@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -29,8 +30,14 @@ public final class FocusFX {
         for (FocusEffect effect : effects) {
             parts.add(effect.getKey());
         }
+        Vec3 motion = halfDirection.add(casterVelocity(focusPackage));
         send(level, new ClientboundFocusImpactPayload(source.x, source.y, source.z,
-                (float) halfDirection.x, (float) halfDirection.y, (float) halfDirection.z, true, parts));
+                (float) motion.x, (float) motion.y, (float) motion.z, true, parts));
+    }
+
+    private static Vec3 casterVelocity(FocusPackage focusPackage) {
+        LivingEntity caster = focusPackage.getCaster();
+        return caster == null ? Vec3.ZERO : caster.getKnownMovement();
     }
 
     private static void send(ServerLevel level, ClientboundFocusImpactPayload payload) {
