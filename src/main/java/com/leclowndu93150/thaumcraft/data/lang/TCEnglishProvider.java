@@ -249,11 +249,12 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jei.thaumcraft.arcane_workbench.vis_cost", "Vis Cost");
         add("jei.thaumcraft.category.crucible", "Crucible");
         add("jei.thaumcraft.category.dust_trigger", "Salis Mundus Trigger");
+        add("jei.thaumcraft.category.multiblock_dust_trigger", "Multiblock Trigger");
         add("jei.thaumcraft.category.aspect_composition", "Aspect Composition");
         add("jei.thaumcraft.category.aspect_from_stacks", "Aspect from ItemStack");
         add("jei.thaumcraft.dust_trigger.usage", "Right-click the target block with Salis Mundus to trigger this transmutation.");
         add("jei.thaumcraft.dust_trigger.target.tag", "Any block in tag %1$s");
-        add("jei.thaumcraft.dust_trigger.target.multiblock", "Multiblock blueprint: %1$s");
+        add("jei.thaumcraft.dust_trigger.target.multiblock", "Right-click any block of the multiblock to trigger this transmutation.");
         add("jei.thaumcraft.research.missing_research", "Missing research: ");
         add("tooltip.thaumcraft.aspects.header", "Aspects:");
 

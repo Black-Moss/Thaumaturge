@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.leclowndu93150.thaumcraft.mixin",
+  "plugin": "com.leclowndu93150.thaumcraft.TCMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "data.recipes.RecipeProviderAccessor",
@@ -9,6 +10,8 @@
     "world.entity.monster.SlimeAccessor"
   ],
   "client": [
+    "client.gui.GuiGraphicsExtractorAccessor",
+    "jei.RecipeLayoutMixin"
   ],
   "injectors": {
     "defaultRequire": 1

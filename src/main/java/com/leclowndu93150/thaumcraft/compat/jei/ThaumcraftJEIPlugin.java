@@ -6,18 +6,16 @@ import com.leclowndu93150.thaumcraft.api.aspect.*;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGated;
 import com.leclowndu93150.thaumcraft.client.recipes.TCClientRecipes;
-import com.leclowndu93150.thaumcraft.compat.jei.category.ArcaneWorkbenchCategory;
-import com.leclowndu93150.thaumcraft.compat.jei.category.AspectCompositionCategory;
-import com.leclowndu93150.thaumcraft.compat.jei.category.AspectFromStacksCategory;
-import com.leclowndu93150.thaumcraft.compat.jei.category.CrucibleCategory;
-import com.leclowndu93150.thaumcraft.compat.jei.category.InfusionCategory;
-import com.leclowndu93150.thaumcraft.compat.jei.category.DustTriggerCategory;
+import com.leclowndu93150.thaumcraft.compat.jei.category.*;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientHelper;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSimpleRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerTagRecipe;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -123,16 +121,18 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         categories.add(new DustTriggerCategory(helpers.getGuiHelper()));
         categories.add(new AspectCompositionCategory(helpers.getGuiHelper(), pickIconAspect()));
         categories.add(new AspectFromStacksCategory(helpers.getGuiHelper()));
+        categories.add(new MultiblockCategory(helpers.getGuiHelper()));
         registration.addRecipeCategories(categories.toArray(new IRecipeCategory<?>[0]));
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        addTypedRecipes(registration,ArcaneWorkbenchCategory.RECIPE_TYPE,TCRecipeTypes.ARCANE.get());
-        addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get());
-        addTypedRecipes(registration,InfusionCategory.RECIPE_TYPE,TCRecipeTypes.INFUSION.get());
+        addTypedRecipes(registration,ArcaneWorkbenchCategory.RECIPE_TYPE,TCRecipeTypes.ARCANE.get(), null);
+        addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get(), null);
+        addTypedRecipes(registration,InfusionCategory.RECIPE_TYPE,TCRecipeTypes.INFUSION.get(), null);
         registerAspectCompositions(registration);
-        addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get());
+        addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerSimpleRecipe || r.value() instanceof DustTriggerTagRecipe);
+        addTypedRecipes(registration,MultiblockCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerMultiblockRecipe);
         registerAspectInfoPages(registration);
         registerAspectFromStacksPages(registration);
     }
@@ -160,7 +160,9 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addCraftingStation(RecipeTypes.CRAFTING, TCItems.ARCANE_WORKBENCH.get());
         registration.addCraftingStation(ArcaneWorkbenchCategory.RECIPE_TYPE, TCItems.ARCANE_WORKBENCH.get());
+        registration.addCraftingStation(InfusionCategory.RECIPE_TYPE, TCItems.INFUSION_MATRIX.get());
         registration.addCraftingStation(DustTriggerCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
+        registration.addCraftingStation(MultiblockCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
         registration.addCraftingStation(CrucibleCategory.RECIPE_TYPE, TCItems.CRUCIBLE.get());
         registration.addCraftingStation(AspectCompositionCategory.RECIPE_TYPE, TCItems.THAUMONOMICON.get());
         registration.addCraftingStation(AspectFromStacksCategory.RECIPE_TYPE, TCItems.THAUMONOMICON.get());
@@ -261,9 +263,12 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         return null;
     }
 
-    private <I extends RecipeInput, R extends Recipe<I>> void addTypedRecipes(IRecipeRegistration registration, IRecipeType<RecipeHolder<R>> type, RecipeType<R> vanillaType){
+    private <I extends RecipeInput, R extends Recipe<I>> void addTypedRecipes(IRecipeRegistration registration, IRecipeType<RecipeHolder<R>> type, RecipeType<R> vanillaType, @Nullable Predicate<RecipeHolder<R>> filter){
         RecipeMap recipes = TCClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, vanillaType);
         List<RecipeHolder<R>> holders = List.copyOf(recipes.byType(vanillaType));
+        if (filter != null) {
+            holders = holders.stream().filter(filter).toList();
+        }
         registration.addRecipes(type, holders);
     }
 

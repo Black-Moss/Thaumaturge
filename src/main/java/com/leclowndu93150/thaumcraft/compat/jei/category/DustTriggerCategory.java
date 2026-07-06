@@ -114,11 +114,6 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
                     "jei.thaumcraft.dust_trigger.target.tag",
                     Component.literal("#" + tag.location()));
             targetSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(tagLabel));
-        } else if (recipe instanceof DustTriggerMultiblockRecipe multi) {
-            Component blueprintLabel = Component.translatable(
-                    "jei.thaumcraft.dust_trigger.target.multiblock",
-                    Component.literal(multi.blueprintId().toString()));
-            targetSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(blueprintLabel));
         }
 
         ItemStack result = resultStack(recipe);
@@ -171,7 +166,7 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
         return null;
     }
 
-    private static ItemStack resultStack(DustTrigger recipe) {
+    static ItemStack resultStack(DustTrigger recipe) {
         if (recipe instanceof DustTriggerSimpleRecipe simple) {
             return simple.result();
         }
