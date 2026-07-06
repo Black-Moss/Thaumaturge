@@ -136,6 +136,7 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         Vec3 previous = new Vec3(this.xOld, this.yOld, this.zOld);
         Vec3 motion = this.getDeltaMovement();
         if (this.focusPackage != null) {
+            this.focusPackage.bindLevel(this.level());
             FocusEngine.runFocusPackage(this.focusPackage,
                     new Trajectory[]{new Trajectory(previous, motion.normalize())},
                     new HitResult[]{reported});

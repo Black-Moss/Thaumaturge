@@ -273,22 +273,68 @@ public class FocusPackage implements IFocusElement {
     public FocusPackage copy(LivingEntity caster) {
         Tag tag = CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow(IllegalStateException::new);
         FocusPackage copy = CODEC.parse(NbtOps.INSTANCE, tag).getOrThrow(IllegalStateException::new);
-        copy.level = caster.level();
-        copy.caster = caster;
-        copy.casterUUID = caster.getUUID();
+        copy.bindCaster(caster);
         return copy;
     }
 
     /**
-     * Binds this package to its caster's level and, when the first node is an unconfigured
-     * {@link FocusMediumRoot}, aims it from the caster.
+     * Binds this package, its nested packages, and every split branch to the caster and its
+     * level, then aims the leading {@link FocusMediumRoot} from the caster. A root is
+     * inserted first when the package does not start with one.
      *
      * @param caster the casting entity
      */
     public void initialize(LivingEntity caster) {
+        bindCaster(caster);
+        synchronized (nodes) {
+            if (nodes.isEmpty()) {
+                return;
+            }
+            if (!(nodes.get(0) instanceof FocusMediumRoot)) {
+                nodes.add(0, new FocusMediumRoot());
+            }
+            if (nodes.get(0) instanceof FocusMediumRoot root && root.supplyTargets() == null) {
+                root.setupFromCaster(caster);
+            }
+        }
+    }
+
+    private void bindCaster(LivingEntity caster) {
+        this.caster = caster;
+        this.casterUUID = caster.getUUID();
         this.level = caster.level();
-        if (!nodes.isEmpty() && nodes.get(0) instanceof FocusMediumRoot root && root.supplyTargets() == null) {
-            root.setupFromCaster(caster);
+        synchronized (nodes) {
+            for (IFocusElement element : nodes) {
+                if (element instanceof FocusPackage nested) {
+                    nested.bindCaster(caster);
+                } else if (element instanceof FocusModSplit split) {
+                    for (FocusPackage branch : split.getSplitPackages()) {
+                        branch.bindCaster(caster);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Binds this package, its nested packages, and every split branch to a level. Carriers
+     * that reload a package from disk call this before executing it; the caster then resolves
+     * lazily from the stored id.
+     *
+     * @param level the level the package executes in
+     */
+    public void bindLevel(Level level) {
+        this.level = level;
+        synchronized (nodes) {
+            for (IFocusElement element : nodes) {
+                if (element instanceof FocusPackage nested) {
+                    nested.bindLevel(level);
+                } else if (element instanceof FocusModSplit split) {
+                    for (FocusPackage branch : split.getSplitPackages()) {
+                        branch.bindLevel(level);
+                    }
+                }
+            }
         }
     }
 
