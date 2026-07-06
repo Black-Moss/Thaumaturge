@@ -29,6 +29,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class FX {
     static final double DEFAULT_RADIUS = 64.0;
+    private static final int SLASH_START_FRAME = 342;
+    private static final int SLASH_FRAME_COUNT = 9;
 
     private FX() {}
 
@@ -126,6 +128,54 @@ public final class FX {
     static void spawn(ServerLevel level, ParticleOptions data, double x, double y, double z) {
         PacketDistributor.sendToPlayersNear(level, null, x, y, z, DEFAULT_RADIUS,
                 new ClientboundSpawnParticlePayload(data, x, y, z));
+    }
+
+    public static void scanGlyph(ServerLevel level, double x, double y, double z, int color, int delay) {
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8) & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+        float brightness = (r + g + b) / 3.0F;
+        FXGenericData data = FXGenericData.builder()
+                .maxAge(44)
+                .color(r, g, b)
+                .alpha(0.0F, 1.0F, 0.8F, 0.0F)
+                .particles(240, 15, 1)
+                .grid(16)
+                .loop(true)
+                .scale(9.0F)
+                .layer(brightness < 0.25F ? 3 : 2)
+                .rotation(0.0F, 0.0F)
+                .delay(delay)
+                .build();
+        spawn(level, data, x, y, z);
+    }
+
+    public static void slash(ServerLevel level, double x, double y, double z, double x2, double y2, double z2, int duration) {
+        RandomSource rand = level.getRandom();
+        double dx = x2 - x;
+        double dy = y2 - y;
+        double dz = z2 - z;
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        float yaw = 0.0F;
+        float pitch = 0.0F;
+        if (horizontal >= 1.0E-7) {
+            yaw = (float) (Mth.atan2(dz, dx) * 180.0 / Math.PI) - 90.0F;
+            pitch = (float) (-(Mth.atan2(dy, horizontal) * 180.0 / Math.PI));
+        }
+        float roll = (float) (rand.nextGaussian() * 20.0);
+        FXGenericData data = FXGenericData.builder()
+                .motion(dx / duration, dy / duration, dz / duration)
+                .maxAge(duration)
+                .color(1.0F, 1.0F, 1.0F)
+                .alpha(0.0F, 0.5F, 0.375F, 0.25F, 0.125F, 0.0F)
+                .scale(0.5F, 1.5F)
+                .grid(32)
+                .particles(SLASH_START_FRAME, SLASH_FRAME_COUNT, 1)
+                .angles(yaw, pitch)
+                .rotation(roll * Mth.DEG_TO_RAD, 0.0F)
+                .layer(0)
+                .build();
+        spawn(level, data, x, y, z);
     }
 
     public static final class Bamf {

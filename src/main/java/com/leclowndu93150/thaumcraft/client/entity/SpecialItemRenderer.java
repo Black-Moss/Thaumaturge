@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.client.entity;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -16,7 +17,8 @@ import net.minecraft.world.phys.AABB;
 import org.joml.Matrix4fc;
 
 public final class SpecialItemRenderer extends ItemEntityRenderer {
-    private static final int CONE_COUNT = 10;
+    private static final int CONE_COUNT_FANCY = 10;
+    private static final int CONE_COUNT_FAST = 5;
     private static final float ROTATION_SPEED = 1.0F / 500.0F;
     private static final float SCALE_UP_TICKS = 10.0F;
 
@@ -40,10 +42,11 @@ public final class SpecialItemRenderer extends ItemEntityRenderer {
             float rotationProgress = state.ageInTicks * ROTATION_SPEED;
             float ageScale = Math.min(state.ageInTicks, SCALE_UP_TICKS) / SCALE_UP_TICKS;
 
+            int coneCount = Minecraft.getInstance().options.cutoutLeaves().get() ? CONE_COUNT_FANCY : CONE_COUNT_FAST;
             poseStack.pushPose();
             poseStack.translate(0.0F, bob + minOffsetY, 0.0F);
             sparkleRandom.setSeed(187L);
-            for (int i = 0; i < CONE_COUNT; i++) {
+            for (int i = 0; i < coneCount; i++) {
                 float rx1 = sparkleRandom.nextFloat() * 360.0F;
                 float ry1 = sparkleRandom.nextFloat() * 360.0F;
                 float rz1 = sparkleRandom.nextFloat() * 360.0F;

@@ -161,6 +161,7 @@ public final class TCModelProvider extends ModelProvider {
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.FOCAL_MANIPULATOR.get(), "focal_manipulator");
         registerInvisibleBlock(blockModels, TCBlocks.HOLE.get());
         registerInvisibleBlock(blockModels, TCBlocks.EFFECT_SAP.get());
+        registerInvisibleBlock(blockModels, TCBlocks.EFFECT_GLIMMER.get());
 
         registerCandles(blockModels, itemModels);
         registerBanners(blockModels, itemModels);

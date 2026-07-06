@@ -17,8 +17,9 @@ import net.minecraft.world.item.crafting.RecipeManager;
  * world state, time, or random sources. Returning {@link Optional#empty()} signals that this
  * contributor has nothing to say about the given item, allowing later contributors to try.
  *
- * <p>Built-in contributors include the vanilla crafting recipe walker. Phase 6 and Phase 7
- * will add the crucible and infusion contributors.
+ * <p>Built-in contributors cover the crucible, infusion, and crafting recipe types, in that
+ * priority order. The crafting walker also handles arcane workbench recipes, adding a magic
+ * component derived from their vis cost.
  *
  * @since 1.0.0
  */

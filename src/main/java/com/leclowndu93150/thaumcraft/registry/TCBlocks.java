@@ -16,6 +16,7 @@ import com.leclowndu93150.thaumcraft.content.crucible.BlockCrucible;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStairsTC;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStonePorous;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStoneTC;
+import com.leclowndu93150.thaumcraft.content.equipment.BlockEffectGlimmer;
 import com.leclowndu93150.thaumcraft.content.focus.BlockEffectSap;
 import com.leclowndu93150.thaumcraft.content.focus.BlockHole;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
@@ -913,6 +914,20 @@ public final class TCBlocks {
                     .noOcclusion()
                     .lightLevel(state -> 7)
                     .randomTicks()
+                    .noLootTable()
+                    .pushReaction(PushReaction.DESTROY)
+    );
+
+    public static final DeferredBlock<BlockEffectGlimmer> EFFECT_GLIMMER = BLOCKS.registerBlock(
+            "effect_glimmer",
+            BlockEffectGlimmer::new,
+            props -> props
+                    .mapColor(MapColor.NONE)
+                    .strength(0.0F, 999.0F)
+                    .replaceable()
+                    .noCollision()
+                    .noOcclusion()
+                    .lightLevel(state -> 15)
                     .noLootTable()
                     .pushReaction(PushReaction.DESTROY)
     );

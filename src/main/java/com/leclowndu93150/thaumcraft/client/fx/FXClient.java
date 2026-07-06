@@ -37,6 +37,20 @@ public final class FXClient {
         spawn(data, x, y, z, 0.0, 0.0, 0.0);
     }
 
+    public static void followingBubble(Level level, double x, double y, double z) {
+        RandomSource rand = level.getRandom();
+        FXGenericData data = FXGenericData.builder()
+                .maxAge(15 + rand.nextInt(10))
+                .scale(rand.nextFloat() * 0.3F + 0.3F)
+                .color(0.33F, 0.33F, 1.0F)
+                .random(0.002F, 0.002F, 0.002F)
+                .gravity(-0.001F)
+                .particle(Sprites.CRUCIBLE_BUBBLE.start())
+                .finalFrames(65, 66, 66)
+                .build();
+        spawn(data, x, y, z, 0.0, 0.0, 0.0);
+    }
+
     public static void nitorCore(Level level, double x, double y, double z, double vx, double vy, double vz, int color) {
         float cr = ((color >> 16) & 0xFF) / 255.0F;
         float cg = ((color >> 8) & 0xFF) / 255.0F;
