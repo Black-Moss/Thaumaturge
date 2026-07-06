@@ -18,7 +18,7 @@ public final class FocusFX {
 
     public static void impact(ServerLevel level, Vec3 hit, Identifier partKey) {
         send(level, new ClientboundFocusImpactPayload(hit.x, hit.y, hit.z,
-                0.0F, 0.0F, 0.0F, false, List.of(partKey)));
+                0.0F, 0.0F, 0.0F, false, ClientboundFocusImpactPayload.NO_CASTER, List.of(partKey)));
     }
 
     public static void burst(ServerLevel level, Vec3 source, Vec3 halfDirection, FocusPackage focusPackage) {
@@ -30,14 +30,10 @@ public final class FocusFX {
         for (FocusEffect effect : effects) {
             parts.add(effect.getKey());
         }
-        Vec3 motion = halfDirection.add(casterVelocity(focusPackage));
-        send(level, new ClientboundFocusImpactPayload(source.x, source.y, source.z,
-                (float) motion.x, (float) motion.y, (float) motion.z, true, parts));
-    }
-
-    private static Vec3 casterVelocity(FocusPackage focusPackage) {
         LivingEntity caster = focusPackage.getCaster();
-        return caster == null ? Vec3.ZERO : caster.getKnownMovement();
+        int casterId = caster != null ? caster.getId() : ClientboundFocusImpactPayload.NO_CASTER;
+        send(level, new ClientboundFocusImpactPayload(source.x, source.y, source.z,
+                (float) halfDirection.x, (float) halfDirection.y, (float) halfDirection.z, true, casterId, parts));
     }
 
     private static void send(ServerLevel level, ClientboundFocusImpactPayload payload) {
