@@ -63,5 +63,6 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.FALLING_TAINT.get(), FallingTaintRenderer::new);
         event.registerEntityRenderer(TCEntities.BOTTLE_TAINT.get(), BottleTaintRenderer::new);
         event.registerEntityRenderer(TCEntities.SPECIAL_ITEM.get(), SpecialItemRenderer::new);
+        event.registerEntityRenderer(TCEntities.ALUMENTUM.get(), EmptyEntityRenderer::new);
     }
 }

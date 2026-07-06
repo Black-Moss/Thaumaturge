@@ -15,6 +15,7 @@ import com.leclowndu93150.thaumcraft.content.item.SalisMundusItem;
 import com.leclowndu93150.thaumcraft.content.item.ScribingToolsItem;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumcraft.content.item.equipment.GogglesItem;
+import com.leclowndu93150.thaumcraft.content.misc.alumentum.ItemAlumentum;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
@@ -260,6 +261,9 @@ public final class TCItems {
             NITORS.put(dye, ITEMS.registerSimpleBlockItem(TCBlocks.NITORS.get(dye)));
         }
     }
+    public static final DeferredItem<ItemAlumentum> ALUMENTUM = ITEMS.registerItem(
+            "alumentum",
+            ItemAlumentum::new);
 
     public static final DeferredItem<BlockItem> CRYSTAL_AER = ITEMS.registerSimpleBlockItem(TCBlocks.CRYSTAL_AER);
     public static final DeferredItem<BlockItem> CRYSTAL_IGNIS = ITEMS.registerSimpleBlockItem(TCBlocks.CRYSTAL_IGNIS);

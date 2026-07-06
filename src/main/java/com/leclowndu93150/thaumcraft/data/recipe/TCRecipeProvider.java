@@ -508,6 +508,13 @@ public final class TCRecipeProvider extends RecipeProvider {
         clusterRecipe(TCItems.CLUSTER_LEAD,TCItemTags.ORES_LEAD);
         clusterRecipe(TCItems.CLUSTER_CINNABAR,TCItemTags.ORES_CINNABAR);
         clusterRecipe(TCItems.CLUSTER_QUARTZ,Tags.Items.ORES_QUARTZ);
+
+        new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC,new ItemStackTemplate(TCItems.ALUMENTUM), Ingredient.of(items.getOrThrow(ItemTags.COALS)))
+                .aspect(TCAspects.IGNIS, 10)
+                .aspect(TCAspects.POTENTIA, 10)
+                .aspect(TCAspects.PERDITIO, 5)
+                .unlockedBy("has",has(ItemTags.COALS))
+                .save(output);
     }
 
     private void clusterRecipe(ItemLike cluster, TagKey<Item> oreTag){

@@ -125,6 +125,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.TUBE_BUFFER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.GOGGLES_REVEALING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ALUMENTUM.get(), ModelTemplates.FLAT_ITEM);
         registerCelestialNotes(itemModels);
 
         for (DyeColor dye : DyeColor.values()) {

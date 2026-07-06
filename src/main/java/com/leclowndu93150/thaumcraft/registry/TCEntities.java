@@ -4,6 +4,8 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.entity.*;
 
 import java.util.function.Supplier;
+
+import com.leclowndu93150.thaumcraft.content.misc.alumentum.ThrownAlumentum;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -180,6 +182,13 @@ public final class TCEntities {
                     .sized(0.25F, 0.25F)
                     .eyeHeight(0.2125F)
                     .clientTrackingRange(8)
+                    .updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ThrownAlumentum>> ALUMENTUM = register(
+            "thrown_alumentum",
+            () -> EntityType.Builder.<ThrownAlumentum>of(ThrownAlumentum::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(64)
                     .updateInterval(20));
 
     private TCEntities() {}

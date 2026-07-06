@@ -113,7 +113,7 @@ public final class FX {
                 .build();
     }
 
-    static void spawn(ServerLevel level, FXGenericData data, double x, double y, double z) {
+    public static void spawn(ServerLevel level, FXGenericData data, double x, double y, double z) {
         PacketDistributor.sendToPlayersNear(level, null, x, y, z, DEFAULT_RADIUS,
                 new ClientboundSpawnParticlePayload(data, x, y, z));
     }

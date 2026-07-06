@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.BellowsHelper;
 import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -190,7 +191,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
                     ItemStack fuel = inventory.getResource(1).toStack(inventory.getAmountAsInt(1));
                     ItemStack copy = fuel.copy();
                     if (!fuel.isEmpty()){
-                        if (false /*Todo check for ALUMENTUM*/)
+                        if (fuel.is(TCItems.ALUMENTUM))
                             this.speedBoost = true;
 
                         Item item = fuel.getItem();
@@ -231,8 +232,8 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
 
         if (dirty) {
             setChanged();
-            syncToClient();
         }
+        syncToClient();
     }
 
     private void smeltItem() {

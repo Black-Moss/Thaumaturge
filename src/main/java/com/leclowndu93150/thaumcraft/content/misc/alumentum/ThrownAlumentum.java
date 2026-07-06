@@ -1,0 +1,97 @@
+package com.leclowndu93150.thaumcraft.content.misc.alumentum;
+
+import java.util.Objects;
+import java.util.Optional;
+
+import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.registry.TCEntities;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.chicken.Chicken;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+
+public class ThrownAlumentum extends ThrowableItemProjectile {
+
+    public ThrownAlumentum(EntityType<? extends ThrownAlumentum> type, Level level) {
+        super(type, level);
+    }
+
+    public ThrownAlumentum(Level level, LivingEntity mob, ItemStack itemStack) {
+        super(TCEntities.ALUMENTUM.get(), mob, level, itemStack);
+    }
+
+    public ThrownAlumentum(Level level, double x, double y, double z, ItemStack itemStack) {
+        super(TCEntities.ALUMENTUM.get(), x, y, z, level, itemStack);
+    }
+
+    @Override
+    public void shoot(double xd, double yd, double zd, float pow, float uncertainty) {
+        super.shoot(xd, yd, zd, 0.75F, uncertainty);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!level().isClientSide()){
+            for (int i = 0; i < 3; i++) {
+                double coeff = i / 3.0;
+                FX.alumentum((ServerLevel) level(),new Vec3(
+                        (float)(this.xOld + (this.getX() - this.xOld) * coeff),
+                        (float)(this.yOld + (this.getY() - this.yOld) * coeff) + this.getBbHeight() / 2.0F,
+                        (float)(this.zOld + (this.getZ() - this.zOld) * coeff)
+                )).motion(0.0125F * (this.random.nextFloat() - 0.5F),
+                        0.0125F * (this.random.nextFloat() - 0.5F),
+                        0.0125F * (this.random.nextFloat() - 0.5F)
+                ).color(
+                        this.random.nextFloat() * 0.2F,
+                        this.random.nextFloat() * 0.1F,
+                        this.random.nextFloat() * 0.1F
+                ).alpha(0.5F).scale(4.0F).send();
+
+                FX.spawn((ServerLevel) level(), FXGenericData.builder()
+                                .grid(16)
+                                .color(1.0F, 1.0F, 1.0F)
+                                .alpha(0.7F)
+                                .maxAge(8)
+                                .layer(1)
+                                .particles(448,8,1)
+                                .loop(false)
+                                .scale(0.3F)
+                                .motion(0.0, 0.0, 0.0)
+                                .build(),getX() + level().getRandom().nextGaussian() * 0.2F,
+                        getY() + level().getRandom().nextGaussian() * 0.2F,
+                        getZ() + level().getRandom().nextGaussian() * 0.2F
+                );
+            }
+        }
+    }
+
+    protected void onHit(HitResult hitResult) {
+        super.onHit(hitResult);
+        if (!this.level().isClientSide()) {
+            this.level().explode(this, this.getX(), this.getY(), this.getZ(), 1.1F, Level.ExplosionInteraction.TNT);
+            this.discard();
+        }
+
+    }
+
+    protected Item getDefaultItem() {
+        return Items.EGG;
+    }
+}
