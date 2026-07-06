@@ -14,18 +14,26 @@ import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class TCKeybinds {
+    public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(TCIds.rl("main"));
     public static final KeyMapping OPEN_THAUMONOMICON = new KeyMapping(
             "key.thaumcraft.thaumonomicon",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_N,
-            KeyMapping.Category.MISC
+            CATEGORY
     );
+    public static final KeyMapping CHANGE_FOCUS =
+            new KeyMapping("key.thaumcraft.change_focus", GLFW.GLFW_KEY_F, CATEGORY);
+    public static final KeyMapping MISC_TOGGLE =
+            new KeyMapping("key.thaumcraft.misc_toggle", GLFW.GLFW_KEY_G, CATEGORY);
 
     private TCKeybinds() {}
 
     @SubscribeEvent
     public static void onRegisterMappings(RegisterKeyMappingsEvent event) {
+        event.registerCategory(CATEGORY);
         event.register(OPEN_THAUMONOMICON);
+        event.register(CHANGE_FOCUS);
+        event.register(MISC_TOGGLE);
     }
 
     @SubscribeEvent

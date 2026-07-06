@@ -1,9 +1,5 @@
 {
     "ambientocclusion": false,
-    "textures": {
-        "particle": "thaumcraft:item/caster_basic",
-        "skin": "thaumcraft:item/caster_basic"
-    },
     "elements": [
         {
             "from": [6, 1.5, 6],

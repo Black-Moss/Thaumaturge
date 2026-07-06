@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusBlockPicker;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.IInteractWithCaster;
+import com.leclowndu93150.thaumcraft.api.items.IArchitect;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,9 +30,10 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.HitResult;
 import org.jspecify.annotations.Nullable;
 
-public class ItemCaster extends Item implements ICaster {
+public class ItemCaster extends Item implements ICaster, IArchitect {
     public static final int AREA_SINGLE_CHUNK = 0;
     public static final int AREA_CROSS_CHUNKS = 1;
     public static final int AREA_NINE_CHUNKS = 2;
@@ -219,6 +222,42 @@ public class ItemCaster extends Item implements ICaster {
             }
         }
         return InteractionResult.PASS;
+    }
+
+    private @Nullable IArchitect architectElement(ItemStack stack) {
+        FocusPackage core = ItemFocus.getPackage(getFocusStack(stack));
+        if (core == null) {
+            return null;
+        }
+        for (IFocusElement element : core.getNodes()) {
+            if (element instanceof IArchitect architect) {
+                return architect;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public @Nullable HitResult getArchitectMOP(ItemStack stack, Level level, LivingEntity caster) {
+        IArchitect architect = architectElement(stack);
+        return architect == null ? null : architect.getArchitectMOP(stack, level, caster);
+    }
+
+    @Override
+    public boolean useBlockHighlight(ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public List<BlockPos> getArchitectBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+        IArchitect architect = architectElement(stack);
+        return architect == null ? List.of() : architect.getArchitectBlocks(stack, level, pos, side, player);
+    }
+
+    @Override
+    public boolean showAxis(ItemStack stack, Level level, Player player, Direction side, EnumAxis axis) {
+        IArchitect architect = architectElement(stack);
+        return architect != null && architect.showAxis(stack, level, player, side, axis);
     }
 
     @Override

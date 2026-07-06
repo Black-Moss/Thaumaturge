@@ -6,6 +6,9 @@ public final class TCLangCasters {
     private TCLangCasters() {}
 
     public static void register(LanguageProvider provider) {
+        provider.add("key.category.thaumcraft.main", "Thaumcraft");
+        provider.add("key.thaumcraft.change_focus", "Change Caster Focus");
+        provider.add("key.thaumcraft.misc_toggle", "Misc Caster Toggle");
         provider.add("item.thaumcraft.caster_basic", "Caster's Gauntlet");
         provider.add("item.thaumcraft.focus_1", "Blank Lesser Focus");
         provider.add("item.thaumcraft.focus_2", "Blank Advanced Focus");

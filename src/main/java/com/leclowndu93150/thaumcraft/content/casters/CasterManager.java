@@ -1,8 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.casters;
 
+import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
+import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
+import com.leclowndu93150.thaumcraft.api.items.IArchitect;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
+import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.TreeMap;
@@ -20,8 +24,11 @@ public final class CasterManager {
     private static final float SWAP_SOUND_VOLUME = 0.3F;
     private static final float SWAP_SOUND_PITCH = 1.0F;
     private static final float REMOVE_SOUND_PITCH = 0.9F;
-    private static final int DEFAULT_AREA_SIZE = 3;
-    private static final int DEFAULT_AREA_DIM = 0;
+    private static final int DEFAULT_AREA_SIZE = CasterArea.DEFAULT_SIZE;
+    private static final int AREA_DIM_ALL = 0;
+    private static final int AREA_DIM_X = 1;
+    private static final int AREA_DIM_Z = 2;
+    private static final int AREA_DIM_Y = 3;
 
     private CasterManager() {}
 
@@ -99,20 +106,87 @@ public final class CasterManager {
         }
     }
 
+    public static void toggleMisc(ItemStack casterStack, Level level, Player player, int mod) {
+        if (!(casterStack.getItem() instanceof ICaster caster)) {
+            return;
+        }
+        FocusPackage core = ItemFocus.getPackage(caster.getFocusStack(casterStack));
+        if (core == null || !containsArchitect(core)) {
+            return;
+        }
+        int dim = getAreaDim(casterStack);
+        if (mod == 0) {
+            int areaX = getAreaX(casterStack);
+            int areaY = getAreaY(casterStack);
+            int areaZ = getAreaZ(casterStack);
+            int max = getAreaSize(casterStack);
+            switch (dim) {
+                case AREA_DIM_ALL -> {
+                    areaX++;
+                    areaZ++;
+                    areaY++;
+                }
+                case AREA_DIM_X -> areaX++;
+                case AREA_DIM_Z -> areaZ++;
+                case AREA_DIM_Y -> areaY++;
+                default -> {}
+            }
+            if (areaX > max) {
+                areaX = 0;
+            }
+            if (areaZ > max) {
+                areaZ = 0;
+            }
+            if (areaY > max) {
+                areaY = 0;
+            }
+            setArea(casterStack, new CasterArea(areaX, areaY, areaZ, dim));
+        }
+        if (mod == 1) {
+            if (++dim > AREA_DIM_Y) {
+                dim = AREA_DIM_ALL;
+            }
+            CasterArea area = area(casterStack);
+            setArea(casterStack, new CasterArea(area.x(), area.y(), area.z(), dim));
+        }
+    }
+
+    private static boolean containsArchitect(FocusPackage core) {
+        for (IFocusElement element : core.getNodes()) {
+            if (element instanceof IArchitect) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static CasterArea area(ItemStack stack) {
+        CasterArea area = stack.get(TCDataComponents.CASTER_AREA.get());
+        return area == null ? CasterArea.DEFAULT : area;
+    }
+
+    private static void setArea(ItemStack stack, CasterArea area) {
+        stack.set(TCDataComponents.CASTER_AREA.get(), area);
+    }
+
+    private static int getAreaSize(ItemStack stack) {
+        return stack.getItem() instanceof ICaster ? DEFAULT_AREA_SIZE : 0;
+    }
+
     public static int getAreaDim(ItemStack stack) {
-        return DEFAULT_AREA_DIM;
+        return area(stack).dim();
     }
 
     public static int getAreaX(ItemStack stack) {
-        return DEFAULT_AREA_SIZE;
+        return Math.min(area(stack).x(), getAreaSize(stack));
     }
 
     public static int getAreaY(ItemStack stack) {
-        return DEFAULT_AREA_SIZE;
+        return Math.min(area(stack).y(), getAreaSize(stack));
     }
 
     public static int getAreaZ(ItemStack stack) {
-        return DEFAULT_AREA_SIZE;
+        return Math.min(area(stack).z(), getAreaSize(stack));
     }
 
     public static boolean isOnCooldown(LivingEntity entity) {

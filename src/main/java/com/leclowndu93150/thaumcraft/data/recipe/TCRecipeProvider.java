@@ -534,6 +534,19 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(Tags.Items.INGOTS_GOLD))
                 .save(output);
 
+        arcaneShaped(new ItemStackTemplate(TCItems.CASTER_BASIC), 100)
+                .allAspects()
+                .pattern("III")
+                .pattern("LRL")
+                .pattern("LTL")
+                .define('I', TCItemTags.PLATES_IRON)
+                .define('L', Items.LEATHER)
+                .define('R', TCItems.VIS_RESONATOR)
+                .define('T', TCItems.THAUMOMETER)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(2), false))
+                .unlockedBy("has", has(TCItems.VIS_RESONATOR))
+                .save(output);
+
         arcaneShapeless(new ItemStackTemplate(TCItems.VIS_RESONATOR), 50)
                 .aspect(TCAspects.AER)
                 .aspect(TCAspects.AQUA)

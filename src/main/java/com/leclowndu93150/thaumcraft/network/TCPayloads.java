@@ -156,5 +156,15 @@ public final class TCPayloads {
                 ClientboundFocusImpactPayload.STREAM_CODEC,
                 (payload, context) -> FocusImpactClientHandler.handle(payload, context)
         );
+        registrar.playToServer(
+                ServerboundFocusChangePayload.TYPE,
+                ServerboundFocusChangePayload.STREAM_CODEC,
+                ServerboundFocusChangePayload::handle
+        );
+        registrar.playToServer(
+                ServerboundCasterKeyPayload.TYPE,
+                ServerboundCasterKeyPayload.STREAM_CODEC,
+                ServerboundCasterKeyPayload::handle
+        );
     }
 }

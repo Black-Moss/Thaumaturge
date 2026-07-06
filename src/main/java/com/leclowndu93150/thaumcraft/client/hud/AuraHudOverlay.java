@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.client.aura.ClientAuraCache;
+import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumcraft.network.ServerboundRequestAuraChunkPayload;
 import java.text.DecimalFormat;
@@ -58,6 +59,7 @@ public final class AuraHudOverlay implements GuiLayer {
     private static final int FLUX_RIPPLE_TINT = 0x80B266FF;
     private static final int VIS_TEXT_COLOR = 0xFFEEAAFF;
     private static final int FLUX_TEXT_COLOR = 0xFFAA11BB;
+    private static final int CASTER_HUD_SHIFT = 33;
 
     private static final DecimalFormat AMOUNT_FORMAT = new DecimalFormat("#######.#");
 
@@ -84,6 +86,12 @@ public final class AuraHudOverlay implements GuiLayer {
         }
         if (snap == null) {
             return;
+        }
+
+        boolean shifted = CasterHudOverlay.isVisible(mc) && !ThaumcraftClientConfig.dialBottom();
+        if (shifted) {
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(0.0F, CASTER_HUD_SHIFT);
         }
 
         float partial = deltaTracker.getGameTimeDeltaPartialTick(false);
@@ -137,6 +145,10 @@ public final class AuraHudOverlay implements GuiLayer {
         graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
                 HUD_X + NEEDLE_X, Math.round(needleStart), NEEDLE_U, NEEDLE_V,
                 NEEDLE_W, NEEDLE_H, NEEDLE_W, NEEDLE_H, TEX_SIZE, TEX_SIZE);
+
+        if (shifted) {
+            graphics.pose().popMatrix();
+        }
     }
 
     private static void drawAmount(GuiGraphicsExtractor graphics, String text, float y, int color) {

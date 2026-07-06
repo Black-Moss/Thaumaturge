@@ -236,7 +236,6 @@ public final class TCEnglishProvider extends LanguageProvider {
         researchEntry("eldritch_warning", "Eldritch Whispers",
                 "The voices you hear are not your own. They are not new, either.");
         add("key.thaumcraft.thaumonomicon", "Open Thaumonomicon");
-        add("key.categories.thaumcraft", "Thaumcraft");
         add("gui.thaumcraft.entry.advance", "Mark As Read");
         add("tc.stage.complete", "Complete");
         add("tc.stage.hold", "Completing...");

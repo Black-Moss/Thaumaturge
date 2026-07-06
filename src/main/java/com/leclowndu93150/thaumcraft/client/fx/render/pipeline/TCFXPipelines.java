@@ -42,4 +42,13 @@ public final class TCFXPipelines {
                 .withCull(false)
                 .build();
     }
+
+    public static RenderPipeline additiveTexturedNoDepth(Identifier location) {
+        return RenderPipeline.builder(BASE)
+                .withLocation(location)
+                .withColorTargetState(new ColorTargetState(new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE)))
+                .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
+                .withCull(false)
+                .build();
+    }
 }

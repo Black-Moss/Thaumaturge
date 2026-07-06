@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
+import com.leclowndu93150.thaumcraft.content.casters.CasterArea;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import net.minecraft.core.component.DataComponentType;
@@ -56,6 +57,11 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("socketed_focus", builder -> builder
                     .persistent(ItemStackTemplate.CODEC)
                     .networkSynchronized(ItemStackTemplate.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CasterArea>> CASTER_AREA =
+            DATA_COMPONENTS.registerComponentType("caster_area", builder -> builder
+                    .persistent(CasterArea.CODEC)
+                    .networkSynchronized(CasterArea.STREAM_CODEC));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockState>> PICKED_BLOCK =
             DATA_COMPONENTS.registerComponentType("picked_block", builder -> builder

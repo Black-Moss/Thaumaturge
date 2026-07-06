@@ -424,8 +424,16 @@ public final class TCModelProvider extends ModelProvider {
     }
 
     private static void registerCasters(ItemModelGenerators itemModels) {
+        ItemModel.Unbaked bare = ItemModelUtils.plainModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/caster_basic_model"));
+        ItemModel.Unbaked socketed = ItemModelUtils.tintedModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/caster_basic_focus_model"),
+                new Constant(0xFFFFFF), new FocusColorTint());
         itemModels.itemModelOutput.accept(TCItems.CASTER_BASIC.get(),
-                ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/caster_basic")));
+                ItemModelUtils.conditional(
+                        ItemModelUtils.hasComponent(TCDataComponents.SOCKETED_FOCUS.get()),
+                        socketed,
+                        bare));
         registerFocusItem(itemModels, TCItems.FOCUS_1.get());
         registerFocusItem(itemModels, TCItems.FOCUS_2.get());
         registerFocusItem(itemModels, TCItems.FOCUS_3.get());

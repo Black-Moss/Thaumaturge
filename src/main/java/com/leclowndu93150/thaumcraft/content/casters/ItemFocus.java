@@ -17,6 +17,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import org.jspecify.annotations.Nullable;
@@ -49,6 +50,16 @@ public class ItemFocus extends Item {
 
     public static int getFocusColor(ItemStack focusStack) {
         FocusPackage core = getPackage(focusStack);
+        if (core == null) {
+            ItemStackTemplate socketed = focusStack.get(TCDataComponents.SOCKETED_FOCUS.get());
+            if (socketed != null) {
+                core = socketed.get(TCDataComponents.FOCUS_PACKAGE.get());
+            }
+        }
+        return getFocusColor(core);
+    }
+
+    public static int getFocusColor(@Nullable FocusPackage core) {
         if (core == null) {
             return WHITE;
         }

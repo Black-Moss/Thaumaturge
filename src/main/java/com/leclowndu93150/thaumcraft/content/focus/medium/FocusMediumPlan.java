@@ -8,8 +8,10 @@ import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
+import com.leclowndu93150.thaumcraft.api.items.IArchitect;
 import com.leclowndu93150.thaumcraft.content.casters.CasterManager;
 import com.leclowndu93150.thaumcraft.content.focus.FocusRayTrace;
+import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,7 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-public final class FocusMediumPlan extends FocusMedium {
+public final class FocusMediumPlan extends FocusMedium implements IArchitect {
     private static final Identifier KEY = TCIds.rl("plan");
 
     private static final int COMPLEXITY = 4;
@@ -77,7 +79,7 @@ public final class FocusMediumPlan extends FocusMedium {
                 if (target.getType() != HitResult.Type.BLOCK) {
                     continue;
                 }
-                List<BlockPos> found = getPlanBlocks(casterStack, getPackage().getLevel(),
+                List<BlockPos> found = getArchitectBlocks(casterStack, getPackage().getLevel(),
                         target.getBlockPos(), target.getDirection(), player);
                 found.sort(Comparator.comparingDouble(p -> p.distSqr(target.getBlockPos())));
                 for (BlockPos p : found) {
@@ -98,7 +100,43 @@ public final class FocusMediumPlan extends FocusMedium {
         return ItemStack.EMPTY;
     }
 
-    private List<BlockPos> getPlanBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+    @Override
+    public @Nullable HitResult getArchitectMOP(ItemStack stack, Level level, LivingEntity caster) {
+        Vec3 start = caster.position().add(0.0, caster.getEyeHeight(), 0.0);
+        Vec3 end = caster.getLookAngle().scale(PLAN_RANGE).add(start);
+        return FocusRayTrace.clipBlocks(level, caster, start, end);
+    }
+
+    @Override
+    public boolean useBlockHighlight(ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public boolean showAxis(ItemStack stack, Level level, Player player, Direction side, EnumAxis axis) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        int dim = CasterManager.getAreaDim(stack);
+        if (getSettingValue("method") == METHOD_FULL) {
+            return switch (axis) {
+                case Y -> dim == 0 || dim == 3;
+                case Z -> dim == 0 || dim == 2;
+                case X -> dim == 0 || dim == 1;
+            };
+        }
+        return switch (side.getAxis()) {
+            case Y -> axis == EnumAxis.X && (dim == 0 || dim == 1)
+                    || axis == EnumAxis.Z && (dim == 0 || dim == 2);
+            case Z -> axis == EnumAxis.Y && (dim == 0 || dim == 1)
+                    || axis == EnumAxis.X && (dim == 0 || dim == 2);
+            case X -> axis == EnumAxis.Y && (dim == 0 || dim == 1)
+                    || axis == EnumAxis.Z && (dim == 0 || dim == 2);
+        };
+    }
+
+    @Override
+    public List<BlockPos> getArchitectBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
         List<BlockPos> out = new ArrayList<>();
         if (stack.isEmpty()) {
             return out;
