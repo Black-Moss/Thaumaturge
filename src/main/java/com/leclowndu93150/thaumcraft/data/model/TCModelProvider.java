@@ -99,6 +99,21 @@ public final class TCModelProvider extends ModelProvider {
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_VOID.get(), "smelter_void");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.FABRIC.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MIRRORED_GLASS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.FILTER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MECHANISM_SIMPLE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MECHANISM_COMPLEX.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MORPHIC_RESONATOR.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.BATH_SALTS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SANITY_SOAP.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHUNK_BEEF.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHUNK_CHICKEN.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHUNK_PORK.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHUNK_FISH.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHUNK_RABBIT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHUNK_MUTTON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.TRIPLE_MEAT_TREAT.get(), ModelTemplates.FLAT_ITEM);
         itemModels.itemModelOutput.accept(TCItems.THAUMOMETER.get(),
                 ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/thaumometer")));
         itemModels.generateFlatItem(TCItems.JAR_BRACE.get(), ModelTemplates.FLAT_ITEM);

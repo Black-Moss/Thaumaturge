@@ -16,6 +16,12 @@ import com.leclowndu93150.thaumcraft.content.item.ScribingToolsItem;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumcraft.content.item.equipment.GogglesItem;
 import com.leclowndu93150.thaumcraft.content.misc.alumentum.ItemAlumentum;
+import com.leclowndu93150.thaumcraft.content.warp.ItemSanitySoap;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
@@ -264,6 +270,39 @@ public final class TCItems {
     public static final DeferredItem<ItemAlumentum> ALUMENTUM = ITEMS.registerItem(
             "alumentum",
             ItemAlumentum::new);
+
+    public static final DeferredItem<Item> FABRIC = ITEMS.registerSimpleItem("fabric");
+    public static final DeferredItem<Item> MIRRORED_GLASS = ITEMS.registerSimpleItem("mirrored_glass");
+    public static final DeferredItem<Item> FILTER = ITEMS.registerSimpleItem("filter");
+    public static final DeferredItem<Item> MECHANISM_SIMPLE = ITEMS.registerSimpleItem("mechanism_simple");
+    public static final DeferredItem<Item> MECHANISM_COMPLEX = ITEMS.registerSimpleItem("mechanism_complex");
+    public static final DeferredItem<Item> MORPHIC_RESONATOR = ITEMS.registerSimpleItem("morphic_resonator");
+    public static final DeferredItem<Item> BATH_SALTS = ITEMS.registerSimpleItem("bath_salts");
+    public static final DeferredItem<ItemSanitySoap> SANITY_SOAP = ITEMS.registerItem(
+            "sanity_soap",
+            ItemSanitySoap::new);
+
+    public static final DeferredItem<Item> CHUNK_BEEF = registerChunk("chunk_beef");
+    public static final DeferredItem<Item> CHUNK_CHICKEN = registerChunk("chunk_chicken");
+    public static final DeferredItem<Item> CHUNK_PORK = registerChunk("chunk_pork");
+    public static final DeferredItem<Item> CHUNK_FISH = registerChunk("chunk_fish");
+    public static final DeferredItem<Item> CHUNK_RABBIT = registerChunk("chunk_rabbit");
+    public static final DeferredItem<Item> CHUNK_MUTTON = registerChunk("chunk_mutton");
+
+    public static final DeferredItem<Item> TRIPLE_MEAT_TREAT = ITEMS.registerItem(
+            "triple_meat_treat",
+            props -> new Item(props.food(
+                    new FoodProperties.Builder().nutrition(6).saturationModifier(0.8F).alwaysEdible().build(),
+                    Consumables.defaultFood()
+                            .onConsume(new ApplyStatusEffectsConsumeEffect(
+                                    new MobEffectInstance(MobEffects.REGENERATION, 100, 0), 0.66F))
+                            .build())));
+
+    private static DeferredItem<Item> registerChunk(String id) {
+        return ITEMS.registerItem(id, props -> new Item(props.food(
+                new FoodProperties.Builder().nutrition(1).saturationModifier(0.3F).build(),
+                Consumables.defaultFood().consumeSeconds(0.5F).build())));
+    }
 
     public static final DeferredItem<BlockItem> CRYSTAL_AER = ITEMS.registerSimpleBlockItem(TCBlocks.CRYSTAL_AER);
     public static final DeferredItem<BlockItem> CRYSTAL_IGNIS = ITEMS.registerSimpleBlockItem(TCBlocks.CRYSTAL_IGNIS);

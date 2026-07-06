@@ -37,6 +37,10 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
             tag(TCItemTags.NITORS).add(TCItems.NITORS.get(dye).get());
         }
 
+        tag(TCItemTags.MEAT_CHUNKS).add(TCItems.CHUNK_BEEF.get(), TCItems.CHUNK_CHICKEN.get(),
+                TCItems.CHUNK_PORK.get(), TCItems.CHUNK_FISH.get(), TCItems.CHUNK_RABBIT.get(),
+                TCItems.CHUNK_MUTTON.get());
+
         copy(TCBlockTags.ORES_AMBER, TCItemTags.ORES_AMBER);
         copy(TCBlockTags.ORES_CINNABAR, TCItemTags.ORES_CINNABAR);
         tag(Tags.Items.ORES_QUARTZ).add(TCItems.ORE_QUARTZ.get());

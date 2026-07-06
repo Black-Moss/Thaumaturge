@@ -67,6 +67,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildFocalManipulatorRecipe();
         buildCrucibleRecipes();
         buildFocusRecipes();
+        buildIngredientRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
                 .requires(TCItems.PHIAL)
@@ -428,6 +429,122 @@ public final class TCRecipeProvider extends RecipeProvider {
 
 
 
+
+    private void buildIngredientRecipes() {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.FABRIC), 5)
+                .pattern(" S ")
+                .pattern("SCS")
+                .pattern(" S ")
+                .define('S', Tags.Items.STRINGS)
+                .define('C', ItemTags.WOOL)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
+                .unlockedBy("has", has(Tags.Items.STRINGS))
+                .save(output);
+
+        clothRecipe(TCItems.CLOTH_CHEST.get(), "I I", "III", "III");
+        clothRecipe(TCItems.CLOTH_LEGS.get(), "III", "I I", "I I");
+        clothRecipe(TCItems.CLOTH_BOOTS.get(), "I I", "I I", null);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.MECHANISM_SIMPLE), 10)
+                .aspect(TCAspects.IGNIS)
+                .aspect(TCAspects.AQUA)
+                .pattern(" B ")
+                .pattern("ISI")
+                .pattern(" B ")
+                .define('B', TCItemTags.PLATES_BRASS)
+                .define('I', TCItemTags.PLATES_IRON)
+                .define('S', Tags.Items.RODS_WOODEN)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItemTags.PLATES_BRASS))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.MECHANISM_COMPLEX), 50)
+                .aspect(TCAspects.IGNIS)
+                .aspect(TCAspects.AQUA)
+                .pattern(" M ")
+                .pattern("TQT")
+                .pattern(" M ")
+                .define('T', TCItemTags.PLATES_THAUMIUM)
+                .define('Q', Items.PISTON)
+                .define('M', TCItems.MECHANISM_SIMPLE)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        arcaneShapeless(new ItemStackTemplate(TCItems.MIRRORED_GLASS), 50)
+                .aspect(TCAspects.AQUA)
+                .aspect(TCAspects.ORDO)
+                .requires(TCItems.QUICKSILVER)
+                .requires(Tags.Items.GLASS_PANES)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.QUICKSILVER))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.FILTER.get(), 2), 15)
+                .aspect(TCAspects.AQUA)
+                .pattern("GWG")
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('W', TCItems.PLANK_SILVERWOOD)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.PLANK_SILVERWOOD))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.MORPHIC_RESONATOR), 50)
+                .aspect(TCAspects.AER)
+                .aspect(TCAspects.IGNIS)
+                .pattern(" G ")
+                .pattern("BSB")
+                .pattern(" G ")
+                .define('G', Tags.Items.GLASS_PANES)
+                .define('B', TCItemTags.PLATES_BRASS)
+                .define('S', TCItems.NUGGET_QUICKSILVER)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItemTags.PLATES_BRASS))
+                .save(output);
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.BATH_SALTS),
+                Ingredient.of(TCItems.SALIS_MUNDUS))
+                .aspect(TCAspects.COGNITIO, 40)
+                .aspect(TCAspects.AER, 40)
+                .aspect(TCAspects.ORDO, 40)
+                .aspect(TCAspects.VICTUS, 40)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.SALIS_MUNDUS))
+                .save(output);
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.SANITY_SOAP),
+                Ingredient.of(Items.ROTTEN_FLESH))
+                .aspect(TCAspects.COGNITIO, 75)
+                .aspect(TCAspects.ALIENIS, 50)
+                .aspect(TCAspects.ORDO, 75)
+                .aspect(TCAspects.VICTUS, 50)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .unlockedBy("has", has(Items.ROTTEN_FLESH))
+                .save(output);
+
+        shapeless(RecipeCategory.FOOD, TCItems.TRIPLE_MEAT_TREAT)
+                .requires(TCItemTags.MEAT_CHUNKS)
+                .requires(TCItemTags.MEAT_CHUNKS)
+                .requires(TCItemTags.MEAT_CHUNKS)
+                .requires(Items.SUGAR)
+                .unlockedBy("has", has(TCItemTags.MEAT_CHUNKS))
+                .save(output);
+    }
+
+    private void clothRecipe(Item result, String row1, String row2, String row3) {
+        ArcaneWorkbenchShapedRecipeBuilder builder = arcaneShaped(new ItemStackTemplate(result), 100)
+                .pattern(row1)
+                .pattern(row2);
+        if (row3 != null) {
+            builder.pattern(row3);
+        }
+        builder.define('I', TCItems.FABRIC)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.FABRIC))
+                .save(output);
+    }
 
     private void buildFocusRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);

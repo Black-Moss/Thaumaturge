@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.Block;
 public final class TCItemTags {
     public static final TagKey<Item> WANDS = key("wands");
     public static final TagKey<Item> NITORS = key("nitors");
+    public static final TagKey<Item> MEAT_CHUNKS = key("meat_chunks");
 
     public static final TagKey<Item> RARE_EARTH_CHANCE_LOW = key("rare_earth_chance_low");
     public static final TagKey<Item> RARE_EARTH_CHANCE_NORMAL = key("rare_earth_chance_normal");
