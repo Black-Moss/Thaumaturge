@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 
 public class EntitySpecialItem extends ItemEntity {
@@ -37,5 +38,10 @@ public class EntitySpecialItem extends ItemEntity {
             setDeltaMovement(getDeltaMovement().add(0,0.04,0));
             super.tick();
         }
+    }
+
+    @Override
+    public boolean ignoreExplosion(Explosion explosion) {
+        return true;
     }
 }

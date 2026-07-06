@@ -8,11 +8,13 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.content.casters.CasterArea;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
+import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantments;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
@@ -67,6 +69,16 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("picked_block", builder -> builder
                     .persistent(BlockState.CODEC)
                     .networkSynchronized(ByteBufCodecs.fromCodec(BlockState.CODEC)));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CHARGE =
+            DATA_COMPONENTS.registerComponentType("charge", builder -> builder
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<InfusionEnchantments>> INFUSION_ENCHANTMENTS =
+            DATA_COMPONENTS.registerComponentType("infusion_enchantments", builder -> builder
+                    .persistent(InfusionEnchantments.CODEC)
+                    .networkSynchronized(InfusionEnchantments.STREAM_CODEC));
 
     private TCDataComponents() {}
 

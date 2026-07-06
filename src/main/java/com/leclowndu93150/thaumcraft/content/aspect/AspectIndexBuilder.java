@@ -5,9 +5,11 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspectIndex;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectRecipeContributor;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
@@ -16,11 +18,14 @@ import net.minecraft.world.item.crafting.RecipeManager;
 
 public final class AspectIndexBuilder {
     public static final int MAX_AMOUNT_PER_ASPECT = 500;
+    private static final int MAX_RECURSION_DEPTH = 100;
 
     private static final List<IAspectRecipeContributor> CONTRIBUTORS = new ArrayList<>();
 
     static {
-        CONTRIBUTORS.add(new VanillaCraftingAspectContributor());
+        CONTRIBUTORS.add(new CrucibleAspectContributor());
+        CONTRIBUTORS.add(new InfusionAspectContributor());
+        CONTRIBUTORS.add(new CraftingAspectContributor());
     }
 
     private AspectIndexBuilder() {}
@@ -30,31 +35,11 @@ public final class AspectIndexBuilder {
     }
 
     public static AspectIndex build(RecipeManager recipes, HolderLookup.Provider registries) {
-        Map<Item, AspectList> derived = new HashMap<>(collectBase());
-        IAspectIndex partial = new MapBackedIndex(derived);
-
-        boolean progressed;
-        int pass = 0;
-        int maxPasses = 8;
-        do {
-            progressed = false;
-            for (Item item : BuiltInRegistries.ITEM) {
-                if (derived.containsKey(item)) {
-                    continue;
-                }
-                for (IAspectRecipeContributor contributor : CONTRIBUTORS) {
-                    Optional<AspectList> result = contributor.derive(item, recipes, registries, partial);
-                    if (result.isPresent() && !result.get().isEmpty()) {
-                        derived.put(item, cap(result.get()));
-                        progressed = true;
-                        break;
-                    }
-                }
-            }
-            pass++;
-        } while (progressed && pass < maxPasses);
-
-        return AspectIndex.of(derived);
+        RecursiveIndex index = new RecursiveIndex(collectBase(), recipes, registries);
+        for (Item item : BuiltInRegistries.ITEM) {
+            index.resolve(item);
+        }
+        return AspectIndex.of(index.resolved());
     }
 
     private static Map<Item, AspectList> collectBase() {
@@ -77,16 +62,57 @@ public final class AspectIndexBuilder {
         return result;
     }
 
-    private record MapBackedIndex(Map<Item, AspectList> map) implements IAspectIndex {
+    private static final class RecursiveIndex implements IAspectIndex {
+        private final Map<Item, AspectList> resolved;
+        private final Set<Item> computed = new HashSet<>();
+        private final Set<Item> visiting = new HashSet<>();
+        private final RecipeManager recipes;
+        private final HolderLookup.Provider registries;
+
+        RecursiveIndex(Map<Item, AspectList> base, RecipeManager recipes, HolderLookup.Provider registries) {
+            this.resolved = new HashMap<>(base);
+            this.computed.addAll(base.keySet());
+            this.recipes = recipes;
+            this.registries = registries;
+        }
+
+        Map<Item, AspectList> resolved() {
+            return resolved;
+        }
+
+        AspectList resolve(Item item) {
+            if (computed.contains(item)) {
+                return resolved.getOrDefault(item, AspectList.EMPTY);
+            }
+            if (visiting.contains(item) || visiting.size() >= MAX_RECURSION_DEPTH) {
+                return AspectList.EMPTY;
+            }
+            visiting.add(item);
+            try {
+                for (IAspectRecipeContributor contributor : CONTRIBUTORS) {
+                    Optional<AspectList> result = contributor.derive(item, recipes, registries, this);
+                    if (result.isPresent() && !result.get().isEmpty()) {
+                        AspectList capped = cap(result.get());
+                        resolved.put(item, capped);
+                        computed.add(item);
+                        return capped;
+                    }
+                }
+                computed.add(item);
+            } finally {
+                visiting.remove(item);
+            }
+            return AspectList.EMPTY;
+        }
+
         @Override
         public AspectList of(Item item) {
-            AspectList result = map.get(item);
-            return result == null ? AspectList.EMPTY : result;
+            return resolve(item);
         }
 
         @Override
         public AspectList of(ItemStack stack) {
-            return of(stack.getItem());
+            return resolve(stack.getItem());
         }
     }
 }

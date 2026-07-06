@@ -184,6 +184,14 @@ public final class TCEntities {
                     .clientTrackingRange(8)
                     .updateInterval(20));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityFollowingItem>> FOLLOWING_ITEM = register(
+            "following_item",
+            () -> EntityType.Builder.<EntityFollowingItem>of(EntityFollowingItem::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .eyeHeight(0.2125F)
+                    .clientTrackingRange(8)
+                    .updateInterval(20));
+
     public static final DeferredHolder<EntityType<?>, EntityType<ThrownAlumentum>> ALUMENTUM = register(
             "thrown_alumentum",
             () -> EntityType.Builder.<ThrownAlumentum>of(ThrownAlumentum::new, MobCategory.MISC)
