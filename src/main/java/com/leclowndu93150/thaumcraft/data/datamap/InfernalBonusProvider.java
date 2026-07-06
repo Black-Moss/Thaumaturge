@@ -8,6 +8,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
@@ -37,6 +38,16 @@ public final class InfernalBonusProvider extends DataMapProvider {
         addConditional(b,TCItemTags.ORES_LEAD, new NotCondition(new TagEmptyCondition<>(TCItemTags.NUGGETS_LEAD)),InfernalBonus.builder(items,TCItemTags.NUGGETS_LEAD).chance(0.33F).build());
         addConditional(b,TCItemTags.ORES_SILVER, new NotCondition(new TagEmptyCondition<>(TCItemTags.NUGGETS_SILVER)),InfernalBonus.builder(items,TCItemTags.NUGGETS_SILVER).chance(0.33F).build());
         addConditional(b,TCItemTags.ORES_TIN, new NotCondition(new TagEmptyCondition<>(TCItemTags.NUGGETS_TIN)),InfernalBonus.builder(items,TCItemTags.NUGGETS_TIN).chance(0.33F).build());
+
+        add(b, Items.BEEF, InfernalBonus.builder(TCItems.CHUNK_BEEF).chance(0.33F).build());
+        add(b, Items.CHICKEN, InfernalBonus.builder(TCItems.CHUNK_CHICKEN).chance(0.33F).build());
+        add(b, Items.PORKCHOP, InfernalBonus.builder(TCItems.CHUNK_PORK).chance(0.33F).build());
+        add(b, Items.COD, InfernalBonus.builder(TCItems.CHUNK_FISH).chance(0.33F).build());
+        add(b, Items.SALMON, InfernalBonus.builder(TCItems.CHUNK_FISH).chance(0.33F).build());
+        add(b, Items.TROPICAL_FISH, InfernalBonus.builder(TCItems.CHUNK_FISH).chance(0.33F).build());
+        add(b, Items.PUFFERFISH, InfernalBonus.builder(TCItems.CHUNK_FISH).chance(0.33F).build());
+        add(b, Items.RABBIT, InfernalBonus.builder(TCItems.CHUNK_RABBIT).chance(0.33F).build());
+        add(b, Items.MUTTON, InfernalBonus.builder(TCItems.CHUNK_MUTTON).chance(0.33F).build());
 
         add(b, TCItemTags.RARE_EARTH_CHANCE_HIGH, InfernalBonus.builder(TCItems.RARE_EARTH).chance(0.025F).build());
         add(b, TCItemTags.RARE_EARTH_CHANCE_NORMAL, InfernalBonus.builder(TCItems.RARE_EARTH).chance(0.02F).build());

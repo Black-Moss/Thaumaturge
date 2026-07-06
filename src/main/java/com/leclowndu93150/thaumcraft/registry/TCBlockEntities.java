@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntitySmelter;
+import com.leclowndu93150.thaumcraft.content.spa.BlockEntitySpa;
 import com.leclowndu93150.thaumcraft.content.focus.BlockEntityHole;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeBuffer;
@@ -76,6 +77,12 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "crucible",
                     () -> new BlockEntityType<>(BlockEntityCrucible::new, Set.of(TCBlocks.CRUCIBLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntitySpa>> SPA =
+            BLOCK_ENTITIES.register(
+                    "spa",
+                    () -> new BlockEntityType<>(BlockEntitySpa::new, Set.of(TCBlocks.SPA.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntitySmelter>> SMELTER =

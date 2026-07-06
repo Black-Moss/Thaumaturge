@@ -38,6 +38,8 @@ import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintGeyser;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintLog;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintRock;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintSoil;
+import com.leclowndu93150.thaumcraft.content.spa.BlockPurifyingFluid;
+import com.leclowndu93150.thaumcraft.content.spa.BlockSpa;
 import com.leclowndu93150.thaumcraft.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumcraft.content.taint.flux.FluxGooRefs;
 import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbench;
@@ -241,6 +243,30 @@ public final class TCBlocks {
                     .noLootTable()
                     .liquid()
                     .randomTicks()
+    );
+
+    public static final DeferredBlock<BlockPurifyingFluid> PURIFYING_FLUID = BLOCKS.registerBlock(
+            "purifying_fluid",
+            props -> new BlockPurifyingFluid(TCFluids.PURIFYING_SOURCE.get(), props),
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .replaceable()
+                    .noCollision()
+                    .strength(100.0F)
+                    .pushReaction(PushReaction.DESTROY)
+                    .lightLevel(state -> 5)
+                    .noLootTable()
+                    .liquid()
+    );
+
+    public static final DeferredBlock<BlockSpa> SPA = BLOCKS.registerBlock(
+            "spa",
+            BlockSpa::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.0F, 10.0F)
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()
     );
 
     public static final DeferredBlock<BlockTaintRock> TAINT_ROCK = BLOCKS.registerBlock(

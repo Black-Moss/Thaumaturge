@@ -31,11 +31,7 @@ public final class FluxTaintEffect extends MobEffect {
             mob.heal(HEAL);
             return true;
         }
-        if (mob.is(EntityTypeTags.UNDEAD)) {
-            mob.heal(HEAL);
-            return true;
-        }
-        if (mob instanceof Player || mob.getMaxHealth() > 1.0F) {
+        if (!mob.is(EntityTypeTags.UNDEAD)) {
             mob.hurt(TCDamageSources.taint(level), DAMAGE);
         }
         return true;

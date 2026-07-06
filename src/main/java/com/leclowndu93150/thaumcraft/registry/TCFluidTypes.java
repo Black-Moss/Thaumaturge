@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.spa.PurifyingFluidType;
 import com.leclowndu93150.thaumcraft.content.taint.flux.FluxGooFluidType;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Rarity;
@@ -30,6 +31,16 @@ public final class TCFluidTypes {
                     .sound(SoundActions.BUCKET_EMPTY, TCSounds.GORE.get())
                     .sound(SoundActions.FLUID_VAPORIZE, SoundEvents.FIRE_EXTINGUISH)
                     .rarity(Rarity.UNCOMMON)));
+
+    public static final DeferredHolder<FluidType, PurifyingFluidType> PURIFYING = FLUID_TYPES.register(
+            "purifying",
+            () -> new PurifyingFluidType(FluidType.Properties.create()
+                    .descriptionId("fluid_type.thaumcraft.purifying")
+                    .lightLevel(5)
+                    .canConvertToSource(false)
+                    .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
+                    .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY)
+                    .rarity(Rarity.RARE)));
 
     private TCFluidTypes() {}
 

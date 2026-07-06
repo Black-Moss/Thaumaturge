@@ -91,6 +91,23 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PLATE_THAUMIUM.get());
                         output.accept(TCItems.PLATE_VOID.get());
 
+                        output.accept(TCItems.FABRIC.get());
+                        output.accept(TCItems.MIRRORED_GLASS.get());
+                        output.accept(TCItems.FILTER.get());
+                        output.accept(TCItems.MECHANISM_SIMPLE.get());
+                        output.accept(TCItems.MECHANISM_COMPLEX.get());
+                        output.accept(TCItems.MORPHIC_RESONATOR.get());
+                        output.accept(TCItems.SPA.get());
+                        output.accept(TCItems.BATH_SALTS.get());
+                        output.accept(TCItems.SANITY_SOAP.get());
+                        output.accept(TCItems.CHUNK_BEEF.get());
+                        output.accept(TCItems.CHUNK_CHICKEN.get());
+                        output.accept(TCItems.CHUNK_PORK.get());
+                        output.accept(TCItems.CHUNK_FISH.get());
+                        output.accept(TCItems.CHUNK_RABBIT.get());
+                        output.accept(TCItems.CHUNK_MUTTON.get());
+                        output.accept(TCItems.TRIPLE_MEAT_TREAT.get());
+
                         output.accept(TCItems.CLUSTER_IRON.get());
                         output.accept(TCItems.CLUSTER_GOLD.get());
                         output.accept(TCItems.CLUSTER_COPPER.get());
