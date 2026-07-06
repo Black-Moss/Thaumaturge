@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.casters.BlockFocalManipulator;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelterAux;
+import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelterVent;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockInfusionMatrix;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPedestal;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPillar;
@@ -173,6 +175,28 @@ public final class TCBlocks {
                     .lightLevel(bs->bs.getValue(BlockSmelter.LIT) ? 13 : 0)
     );
 
+    public static final DeferredBlock<BlockSmelterAux> SMELTER_AUX = BLOCKS.registerBlock(
+            "smelter_aux",
+            BlockSmelterAux::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(1F,20.0F)
+                    .sound(SoundType.METAL)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .noOcclusion()
+                    .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<BlockSmelterVent> SMELTER_VENT = BLOCKS.registerBlock(
+            "smelter_vent",
+            BlockSmelterVent::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(1F,20.0F)
+                    .sound(SoundType.METAL)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .requiresCorrectToolForDrops()
+    );
 
 
     public static final DeferredBlock<BlockJar> JAR_NORMAL = BLOCKS.registerBlock(

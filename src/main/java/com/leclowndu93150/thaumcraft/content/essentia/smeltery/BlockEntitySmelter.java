@@ -38,6 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -169,7 +170,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
                 if (getBlockState().getValue(BlockSmelter.FACING) != dir){
                     BlockPos pos = getBlockPos().relative(dir);
                     BlockState state = level.getBlockState(pos);
-                    if (/*TODO checks when auxiliary are created: state.getBlock() instanceof Auxiliary && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == dir.getOpposite()*/ false){
+                    if (state.getBlock() instanceof BlockSmelterAux && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == dir.getOpposite()){
                         for (AspectInstance instance : aspects.entries()){
                             if (instance.amount() > 0 && BlockEntityAlembic.processAlembics(level,getBlockPos().relative(dir),instance.aspect())){
                                 takeAspect(instance.aspect(), 1);
@@ -262,8 +263,8 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
                 for (Direction dir : Direction.Plane.HORIZONTAL){
                     if (getBlockState().getValue(BlockSmelter.FACING) != dir){
                         BlockPos pos = getBlockPos().relative(dir);
-                        BlockState state = level.getBlockState(pos);
-                        if (/*TODO checks when auxiliary are created: state.getBlock() instanceof Vent && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == dir.getOpposite()*/ level.getRandom().nextFloat() < 1/3F && false){
+                            BlockState state = level.getBlockState(pos);
+                        if (state.getBlock() instanceof BlockSmelterVent && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == dir.getOpposite() && level.getRandom().nextFloat() < 1/3F){
                             level.playSound(null,getBlockPos().getX() + 0.5D + dir.getStepX(), getBlockPos().getY() + 0.5D, getBlockPos().getZ() + 0.5D + dir.getStepZ(), SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.25F, 2.6F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.8F);
                             for (int i = 0; i < 4; i++){
                                 float fx = 0.1F - this.level.getRandom().nextFloat() * 0.2F;

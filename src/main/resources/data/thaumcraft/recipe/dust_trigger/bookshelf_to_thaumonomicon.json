@@ -1,6 +1,6 @@
 {
-  "type": "thaumcraft:dust_trigger_simple",
-  "target": "minecraft:bookshelf",
+  "type": "thaumcraft:dust_trigger_tag",
+  "target_tag": "c:bookshelves",
   "result": {
     "id": "thaumcraft:thaumonomicon"
   },

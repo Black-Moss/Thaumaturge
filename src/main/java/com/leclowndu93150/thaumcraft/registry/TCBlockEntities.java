@@ -88,7 +88,7 @@ public final class TCBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntitySmelter>> SMELTER =
             BLOCK_ENTITIES.register(
                     "smelter",
-                    () -> new BlockEntityType<>(BlockEntitySmelter::new, Set.of(TCBlocks.SMELTER_BASIC.get()))
+                    () -> new BlockEntityType<>(BlockEntitySmelter::new, Set.of(TCBlocks.SMELTER_BASIC.get(),TCBlocks.SMELTER_THAUMIUM.get(),TCBlocks.SMELTER_VOID.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAlembic>> ALEMBIC =

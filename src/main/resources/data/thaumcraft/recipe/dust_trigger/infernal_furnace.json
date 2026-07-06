@@ -3,5 +3,9 @@
   "blueprint": "thaumcraft:infernal_furnace",
   "result": {
     "id": "thaumcraft:infernal_furnace"
+  },
+  "research": {
+    "entry": "thaumcraft:arcane_workbench",
+    "stage": 1
   }
 }
