@@ -29,8 +29,4 @@ public final class GogglesItem extends Item implements IGoggles, IRevealer, IVis
         return 5;
     }
 
-    @Override
-    public EquipmentSlotGroup getAppliedSlot(ItemStack stack) {
-        return EquipmentSlotGroup.HEAD;
-    }
 }

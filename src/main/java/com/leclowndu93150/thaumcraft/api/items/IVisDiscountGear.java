@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.api.items;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -24,9 +25,15 @@ public interface IVisDiscountGear {
 
     /**
      * Returns the group of equipment slots in which the Attribute Modifier should apply
+     * The equipment slot group is determined by the {@link DataComponents#EQUIPPABLE} component of the item stack. If the item stack does not have an equippable component, the attribute modifier will apply to any equipment slot.
      *
      * @param stack  the worn stack
      * @return the equipment slot group in which the attribute modifier should apply
      */
-    default EquipmentSlotGroup getAppliedSlot(ItemStack stack) { return EquipmentSlotGroup.ANY; }
+    default EquipmentSlotGroup getAppliedSlot(ItemStack stack) {
+        if (stack.has(DataComponents.EQUIPPABLE)){
+            return EquipmentSlotGroup.bySlot(stack.get(DataComponents.EQUIPPABLE).slot());
+        }
+        return EquipmentSlotGroup.ANY;
+    }
 }
