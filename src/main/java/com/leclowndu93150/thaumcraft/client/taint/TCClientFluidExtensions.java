@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.block.FluidModel;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class TCClientFluidExtensions {
-    private static final int PURIFYING_TINT = 0xFFEEAA;
+    private static final int PURIFYING_TINT = 0x77FFEEAA;
 
     private TCClientFluidExtensions() {}
 
