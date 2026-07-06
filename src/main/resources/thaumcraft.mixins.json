@@ -11,8 +11,8 @@
   ],
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",
+    "client.renderer.GameRendererInvoker",
     "jei.RecipeLayoutMixin"
-    "client.renderer.GameRendererInvoker"
   ],
   "injectors": {
     "defaultRequire": 1
