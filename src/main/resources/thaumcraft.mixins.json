@@ -9,6 +9,7 @@
     "world.entity.monster.SlimeAccessor"
   ],
   "client": [
+    "client.renderer.GameRendererInvoker"
   ],
   "injectors": {
     "defaultRequire": 1
