@@ -8,7 +8,10 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import java.util.function.Function;
 
 public final class FireBatModel extends EntityModel<FireBatRenderState> {
     private static final int TEXTURE_SIZE = 64;
@@ -26,6 +29,16 @@ public final class FireBatModel extends EntityModel<FireBatRenderState> {
 
     public FireBatModel(ModelPart root) {
         super(root);
+        this.head = root.getChild("head");
+        this.body = root.getChild("body");
+        this.rightWing = this.body.getChild("right_wing");
+        this.leftWing = this.body.getChild("left_wing");
+        this.rightWingTip = this.rightWing.getChild("right_wing_tip");
+        this.leftWingTip = this.leftWing.getChild("left_wing_tip");
+    }
+
+    public FireBatModel(ModelPart root, Function<Identifier, RenderType> renderType) {
+        super(root, renderType);
         this.head = root.getChild("head");
         this.body = root.getChild("body");
         this.rightWing = this.body.getChild("right_wing");

@@ -57,6 +57,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         generateResources();
 
         dropSelf(TCBlocks.RESEARCH_TABLE.get());
+        dropSelf(TCBlocks.FOCAL_MANIPULATOR.get());
         dropSelf(TCBlocks.ARCANE_WORKBENCH.get());
         dropSelf(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());
         dropSelf(TCBlocks.CRUCIBLE.get());

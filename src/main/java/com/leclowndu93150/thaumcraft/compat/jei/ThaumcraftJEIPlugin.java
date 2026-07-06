@@ -29,7 +29,9 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.leclowndu93150.thaumcraft.client.screen.casters.FocalManipulatorScreen;
 import mezz.jei.api.IModPlugin;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
@@ -104,6 +106,11 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
                 AspectIngredientRenderer.INSTANCE,
                 AspectInstance.CODEC
         );
+    }
+
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGuiContainerHandler(FocalManipulatorScreen.class, new FocalManipulatorGuiHandler());
     }
 
     @Override

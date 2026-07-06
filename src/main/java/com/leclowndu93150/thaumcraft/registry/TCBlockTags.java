@@ -20,6 +20,8 @@ public final class TCBlockTags {
 
     public static final TagKey<Block> INFUSION_STABILISERS = key("infusion_stabilisers");
 
+    public static final TagKey<Block> PORTABLE_HOLE_BLACKLIST = key("portable_hole_blacklist");
+
     private TCBlockTags() {}
 
     private static TagKey<Block> key(String path) {

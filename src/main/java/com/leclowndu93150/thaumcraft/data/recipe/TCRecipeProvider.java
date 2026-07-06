@@ -47,6 +47,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.NotCondition;
 import net.neoforged.neoforge.common.conditions.TagEmptyCondition;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -63,7 +64,9 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildBannerRecipes();
         buildGearRecipes();
         buildInfusionAltarRecipes();
+        buildFocalManipulatorRecipe();
         buildCrucibleRecipes();
+        buildFocusRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
                 .requires(TCItems.PHIAL)
@@ -279,6 +282,23 @@ public final class TCRecipeProvider extends RecipeProvider {
     }
 
 
+    private void buildFocalManipulatorRecipe() {
+        arcaneShaped(new ItemStackTemplate(TCItems.FOCAL_MANIPULATOR), 100)
+                .aspect(TCAspects.TERRA, 1)
+                .aspect(TCAspects.AQUA, 1)
+                .pattern("ISI")
+                .pattern("BRB")
+                .pattern("GTG")
+                .define('I', Items.IRON_INGOT)
+                .define('S', TCItems.STONE_ARCANE)
+                .define('B', TCItems.STONE_ARCANE)
+                .define('R', TCItems.VIS_RESONATOR)
+                .define('G', Items.GOLD_INGOT)
+                .define('T', TCItems.RESEARCH_TABLE)
+                .unlockedBy("has", has(TCItems.VIS_RESONATOR))
+                .save(output);
+    }
+
     private void buildInfusionAltarRecipes() {
         arcaneShaped(new ItemStackTemplate(TCItems.INFUSION_MATRIX), 150)
                 .allAspects()
@@ -408,6 +428,45 @@ public final class TCRecipeProvider extends RecipeProvider {
 
 
 
+
+    private void buildFocusRecipes() {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.FOCUS_1.get()),
+                DataComponentIngredient.of(TCDataComponents.CRYSTAL_ASPECT.get(),
+                        new AspectInstance(aspects.getOrThrow(TCAspects.ORDO), 1), TCItems.ESSENTIA_CRYSTAL.get()))
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false))
+                .aspect(TCAspects.VITREUS, 20)
+                .aspect(TCAspects.PRAECANTATIO, 10)
+                .aspect(TCAspects.AURAM, 5)
+                .unlockedBy("has", has(TCItems.ESSENTIA_CRYSTAL.get()))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.FOCUS_2.get()),
+                Ingredient.of(TCItems.FOCUS_1.get()))
+                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_DIAMOND)))
+                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
+                .component(Ingredient.of(Items.ENDER_PEARL))
+                .aspect(TCAspects.PRAECANTATIO, 25)
+                .aspect(TCAspects.ORDO, 50)
+                .instability(3)
+                .unlockedBy("has", has(TCItems.FOCUS_1.get()))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.FOCUS_3.get()),
+                Ingredient.of(TCItems.FOCUS_2.get()))
+                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
+                .component(Ingredient.of(TCItems.PRIMORDIAL_PEARL.get()))
+                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
+                .component(Ingredient.of(Items.NETHER_STAR))
+                .aspect(TCAspects.PRAECANTATIO, 25)
+                .aspect(TCAspects.ORDO, 50)
+                .aspect(TCAspects.VACUOS, 100)
+                .instability(5)
+                .unlockedBy("has", has(TCItems.FOCUS_2.get()))
+                .save(output);
+    }
 
     private void buildCrucibleRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);

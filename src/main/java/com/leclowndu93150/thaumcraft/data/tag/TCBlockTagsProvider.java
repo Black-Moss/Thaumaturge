@@ -94,6 +94,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(Tags.Blocks.ORES_QUARTZ).add(TCBlocks.ORE_QUARTZ.get());
         tag(Tags.Blocks.ORES).addTags(TCBlockTags.ORES_AMBER,TCBlockTags.ORES_CINNABAR);
 
+        tag(TCBlockTags.PORTABLE_HOLE_BLACKLIST);
+
         tag(TCBlockTags.STORAGE_BLOCKS_AMBER).add(TCBlocks.AMBER_BLOCK.get());
         tag(TCBlockTags.STORAGE_BLOCKS_BRASS).add(TCBlocks.METAL_BRASS_BLOCK.get());
         tag(TCBlockTags.STORAGE_BLOCKS_THAUMIUM).add(TCBlocks.METAL_THAUMIUM_BLOCK.get());

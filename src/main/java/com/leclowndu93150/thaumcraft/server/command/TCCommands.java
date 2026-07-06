@@ -3,6 +3,13 @@ package com.leclowndu93150.thaumcraft.server.command;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
+import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
+import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
+import com.leclowndu93150.thaumcraft.api.casters.ICaster;
+import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
+import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
+import com.leclowndu93150.thaumcraft.registry.TCFocusElements;
 import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
@@ -78,6 +85,10 @@ public final class TCCommands {
             (ctx, builder) -> SharedSuggestionProvider.suggest(
                     Arrays.stream(WarpType.values()).map(t -> t.name().toLowerCase(Locale.ROOT)), builder);
 
+    private static final SuggestionProvider<CommandSourceStack> FOCUS_ELEMENTS =
+            (ctx, builder) -> SharedSuggestionProvider.suggest(
+                    TCFocusElements.registry().keySet().stream().map(Identifier::toString), builder);
+
     private static final DynamicCommandExceptionType ERROR_INVALID_GATE = new DynamicCommandExceptionType((value) -> Component.literal("Unknown Research Entry : " + value));
 
     @SubscribeEvent
@@ -115,6 +126,11 @@ public final class TCCommands {
                 .then(Commands.literal("crystal")
                         .then(Commands.argument("aspect", StringArgumentType.word())
                                 .executes(TCCommands::giveCrystal)))
+                .then(Commands.literal("focus").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
+                                .then(Commands.argument("elements", StringArgumentType.greedyString())
+                                        .suggests(FOCUS_ELEMENTS)
+                                        .executes(TCCommands::giveFocus))))
                 .then(Commands.literal("warp").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("info").executes(TCCommands::warpInfo))
                         .then(Commands.literal("add")
@@ -494,6 +510,61 @@ public final class TCCommands {
             }
             level.addFreshEntity(entity);
             ctx.getSource().sendSuccess(() -> Component.literal("Spawned " + name), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int giveFocus(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            int tier = IntegerArgumentType.getInteger(ctx, "tier");
+            String[] tokens = StringArgumentType.getString(ctx, "elements").trim().split("\\s+");
+            FocusPackage core = new FocusPackage(player);
+            int complexity = 0;
+            for (String token : tokens) {
+                Identifier id = token.contains(":")
+                        ? Identifier.parse(token)
+                        : Identifier.fromNamespaceAndPath(TCIds.MODID, token);
+                IFocusElement element = FocusEngine.getElement(id);
+                if (element == null) {
+                    ctx.getSource().sendFailure(Component.literal("Unknown focus element: " + id));
+                    return 0;
+                }
+                if (element instanceof FocusNode node) {
+                    complexity += node.getComplexity();
+                }
+                core.addNode(element);
+            }
+            core.setComplexity(complexity);
+            ItemFocus focusItem = switch (tier) {
+                case 1 -> TCItems.FOCUS_1.get();
+                case 2 -> TCItems.FOCUS_2.get();
+                default -> TCItems.FOCUS_3.get();
+            };
+            ItemStack focusStack = new ItemStack(focusItem);
+            ItemFocus.setPackage(focusStack, core);
+            int finalComplexity = complexity;
+            if (complexity > focusItem.getMaxComplexity()) {
+                ctx.getSource().sendSuccess(() -> Component.literal("Warning: complexity " + finalComplexity
+                        + " exceeds tier cap " + focusItem.getMaxComplexity()), false);
+            }
+            ItemStack held = player.getMainHandItem();
+            if (held.getItem() instanceof ICaster caster) {
+                ItemStack previous = caster.getFocusStack(held);
+                if (!previous.isEmpty()) {
+                    player.getInventory().add(previous);
+                }
+                caster.setFocus(held, focusStack);
+                ctx.getSource().sendSuccess(() -> Component.literal("Socketed focus (complexity "
+                        + finalComplexity + ") into held caster"), false);
+            } else {
+                player.getInventory().add(focusStack);
+                ctx.getSource().sendSuccess(() -> Component.literal("Gave focus (complexity "
+                        + finalComplexity + ")"), false);
+            }
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
+import com.leclowndu93150.thaumcraft.content.casters.ItemCaster;
+import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.content.item.CausalityCollapserItem;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import com.leclowndu93150.thaumcraft.content.item.CelestialNotesItem;
@@ -61,6 +63,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class TCItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TCIds.MODID);
 
+    public static final DeferredItem<BlockItem> FOCAL_MANIPULATOR = ITEMS.registerSimpleBlockItem(TCBlocks.FOCAL_MANIPULATOR);
     public static final DeferredItem<BlockItem> RESEARCH_TABLE = ITEMS.registerSimpleBlockItem(TCBlocks.RESEARCH_TABLE);
 
     public static final DeferredItem<BlockItem> ARCANE_WORKBENCH = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_WORKBENCH);
@@ -373,6 +376,30 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> PILLAR_ARCANE = ITEMS.registerSimpleBlockItem(TCBlocks.PILLAR_ARCANE);
     public static final DeferredItem<BlockItem> PILLAR_ANCIENT = ITEMS.registerSimpleBlockItem(TCBlocks.PILLAR_ANCIENT);
     public static final DeferredItem<BlockItem> PILLAR_ELDRITCH = ITEMS.registerSimpleBlockItem(TCBlocks.PILLAR_ELDRITCH);
+
+    public static final int FOCUS_LESSER_COMPLEXITY = 15;
+    public static final int FOCUS_ADVANCED_COMPLEXITY = 25;
+    public static final int FOCUS_GREATER_COMPLEXITY = 50;
+
+    public static final DeferredItem<ItemCaster> CASTER_BASIC = ITEMS.registerItem(
+            "caster_basic",
+            props -> new ItemCaster(props, ItemCaster.AREA_SINGLE_CHUNK),
+            props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<ItemFocus> FOCUS_1 = ITEMS.registerItem(
+            "focus_1",
+            props -> new ItemFocus(props, FOCUS_LESSER_COMPLEXITY),
+            props -> props.stacksTo(1).rarity(Rarity.RARE));
+
+    public static final DeferredItem<ItemFocus> FOCUS_2 = ITEMS.registerItem(
+            "focus_2",
+            props -> new ItemFocus(props, FOCUS_ADVANCED_COMPLEXITY),
+            props -> props.stacksTo(1).rarity(Rarity.RARE));
+
+    public static final DeferredItem<ItemFocus> FOCUS_3 = ITEMS.registerItem(
+            "focus_3",
+            props -> new ItemFocus(props, FOCUS_GREATER_COMPLEXITY),
+            props -> props.stacksTo(1).rarity(Rarity.RARE));
 
     public static final DeferredItem<CausalityCollapserItem> CAUSALITY_COLLAPSER = ITEMS.registerItem(
             "causality_collapser",

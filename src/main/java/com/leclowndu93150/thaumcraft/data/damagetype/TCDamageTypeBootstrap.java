@@ -18,5 +18,7 @@ public final class TCDamageTypeBootstrap {
                 new DamageType("thaumcraft.swarm", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F, DamageEffects.HURT));
         context.register(TCDamageTypes.DISSOLVE,
                 new DamageType("thaumcraft.dissolve", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.0F, DamageEffects.HURT));
+        context.register(TCDamageTypes.FOCUS_FIRE,
+                new DamageType("thaumcraft.focus_fire", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F, DamageEffects.BURNING));
     }
 }

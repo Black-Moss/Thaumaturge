@@ -88,6 +88,31 @@ public final class FX {
     public static FluxFume fluxFume(ServerLevel level, Vec3 pos) { return new FluxFume(level, pos); }
     public static FluxFume fluxFume(ServerLevel level, BlockPos pos) { return new FluxFume(level, Vec3.atCenterOf(pos)); }
 
+    public static FireMoteData fireMoteData(RandomSource rand, double vx, double vy, double vz,
+                                            float r, float g, float b, float alpha, float scale) {
+        boolean translucent = rand.nextBoolean();
+        return new FireMoteData(vx, vy, vz, r, g, b, alpha, translucent ? scale / 3.0F : scale, translucent);
+    }
+
+    public static FXGenericData focusCloudData(RandomSource rand, double vx, double vy, double vz, int color) {
+        float cr = ((color >> 16) & 0xFF) / 255.0F;
+        float cg = ((color >> 8) & 0xFF) / 255.0F;
+        float cb = (color & 0xFF) / 255.0F;
+        return FXGenericData.builder()
+                .motion(vx, vy, vz)
+                .maxAge(20 + rand.nextInt(10))
+                .color(cr, cg, cb)
+                .alpha(0.0F, 0.66F, 0.0F)
+                .grid(Sprites.SMOKE_MIST_4.grid())
+                .particles(Sprites.SMOKE_MIST_4.start() + rand.nextInt(Sprites.SMOKE_MIST_4.num()), 1, 1)
+                .scale(5.0F + rand.nextFloat(), 10.0F + rand.nextFloat())
+                .layer(0)
+                .slowDown(0.99)
+                .wind(0.001)
+                .rotation(rand.nextFloat(), rand.nextBoolean() ? -0.25F : 0.25F)
+                .build();
+    }
+
     static void spawn(ServerLevel level, FXGenericData data, double x, double y, double z) {
         PacketDistributor.sendToPlayersNear(level, null, x, y, z, DEFAULT_RADIUS,
                 new ClientboundSpawnParticlePayload(data, x, y, z));
@@ -558,9 +583,7 @@ public final class FX {
         public FireMote scale(float scale) { this.scale = scale; return this; }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            boolean bb = rand.nextBoolean();
-            FireMoteData data = new FireMoteData(vx, vy, vz, r, g, b, alpha, bb ? scale / 3.0F : scale, bb);
+            FireMoteData data = fireMoteData(level.getRandom(), vx, vy, vz, r, g, b, alpha, scale);
             spawnFireMote(level, data, pos.x, pos.y, pos.z);
         }
     }
@@ -772,23 +795,7 @@ public final class FX {
         public FocusCloud color(int color) { this.color = color; return this; }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            float cr = ((color >> 16) & 0xFF) / 255.0F;
-            float cg = ((color >> 8) & 0xFF) / 255.0F;
-            float cb = (color & 0xFF) / 255.0F;
-            FXGenericData data = FXGenericData.builder()
-                    .motion(vx, vy, vz)
-                    .maxAge(20 + rand.nextInt(10))
-                    .color(cr, cg, cb)
-                    .alpha(0.0F, 0.66F, 0.0F)
-                    .grid(Sprites.SMOKE_MIST_4.grid())
-                    .particles(Sprites.SMOKE_MIST_4.start() + rand.nextInt(Sprites.SMOKE_MIST_4.num()), 1, 1)
-                    .scale(5.0F + rand.nextFloat(), 10.0F + rand.nextFloat())
-                    .layer(0)
-                    .slowDown(0.99)
-                    .wind(0.001)
-                    .rotation(rand.nextFloat(), rand.nextBoolean() ? -0.25F : 0.25F)
-                    .build();
+            FXGenericData data = focusCloudData(level.getRandom(), vx, vy, vz, color);
             spawn(level, data, pos.x, pos.y, pos.z);
         }
     }

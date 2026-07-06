@@ -1,11 +1,13 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.casters.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntitySmelter;
+import com.leclowndu93150.thaumcraft.content.focus.BlockEntityHole;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeBuffer;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeFilter;
@@ -51,6 +53,12 @@ public final class TCBlockEntities {
         blocks.add(TCBlocks.WALL_BANNER_CRIMSON_CULT.get());
         return blocks;
     }
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityFocalManipulator>> FOCAL_MANIPULATOR =
+            BLOCK_ENTITIES.register(
+                    "focal_manipulator",
+                    () -> new BlockEntityType<>(BlockEntityFocalManipulator::new, Set.of(TCBlocks.FOCAL_MANIPULATOR.get()))
+            );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityResearchTable>> RESEARCH_TABLE =
             BLOCK_ENTITIES.register(
@@ -154,6 +162,12 @@ public final class TCBlockEntities {
                     "pedestal",
                     () -> new BlockEntityType<>(BlockEntityPedestal::new,
                             Set.of(TCBlocks.PEDESTAL_ARCANE.get(), TCBlocks.PEDESTAL_ANCIENT.get(), TCBlocks.PEDESTAL_ELDRITCH.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityHole>> HOLE =
+            BLOCK_ENTITIES.register(
+                    "hole",
+                    () -> new BlockEntityType<>(BlockEntityHole::new, Set.of(TCBlocks.HOLE.get()))
             );
 
     private TCBlockEntities() {}

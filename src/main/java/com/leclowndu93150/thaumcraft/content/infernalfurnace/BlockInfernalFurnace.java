@@ -12,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
@@ -28,6 +29,20 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public class BlockInfernalFurnace extends BaseEntityBlock {
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityInfernalFurnace furnace) {
+            for (int i = 0; i < furnace.inventory().size(); i++) {
+                var resource = furnace.inventory().getResource(i);
+                int amount = furnace.inventory().getAmountAsInt(i);
+                if (!resource.isEmpty() && amount > 0) {
+                    Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, resource.toStack(amount));
+                }
+            }
+        }
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+    }
+
 
     private static final MapCodec<BlockInfernalFurnace> CODEC = simpleCodec(BlockInfernalFurnace::new);
 

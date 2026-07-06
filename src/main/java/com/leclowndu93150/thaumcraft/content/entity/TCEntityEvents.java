@@ -41,5 +41,6 @@ public final class TCEntityEvents {
         event.put(TCEntities.TAINT_SWARM.get(), EntityTaintSwarm.createAttributes().build());
         event.put(TCEntities.TAINTACLE.get(), EntityTaintacle.createAttributes().build());
         event.put(TCEntities.TAINTACLE_SMALL.get(), EntityTaintacleSmall.createAttributes().build());
+        event.put(TCEntities.SPELL_BAT.get(), EntitySpellBat.createAttributes().build());
     }
 }

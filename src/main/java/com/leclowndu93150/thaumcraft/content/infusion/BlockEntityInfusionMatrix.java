@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.infusion;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumcraft.api.items.IGogglesDisplayExtended;
 import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.InfusionCrumbsData;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -34,6 +36,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -47,7 +50,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityInfusionMatrix extends BlockEntity implements IGogglesDisplayExtended {
+public final class BlockEntityInfusionMatrix extends BlockEntity implements IGogglesDisplayExtended, IInteractWithCaster {
     public static final float STABILITY_CAP = 25.0F;
     private static final float STABILITY_FLOOR = -100.0F;
     private static final int IDLE_VALIDATE_INTERVAL = 100;
@@ -156,6 +159,14 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
                     .gravity(-0.03F)
                     .send();
         }
+    }
+
+    @Override
+    public boolean onCasterRightClick(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, InteractionHand hand) {
+        if (level instanceof ServerLevel serverLevel) {
+            onRightClick(serverLevel, player);
+        }
+        return true;
     }
 
     public void onRightClick(ServerLevel level, Player player) {

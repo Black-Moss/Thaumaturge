@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.aura.AuraData;
+import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues;
+import com.leclowndu93150.thaumcraft.content.entity.FocusCloudCooldowns;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.theorycraft.ResearchTableData;
@@ -46,6 +48,15 @@ public final class TCAttachments {
             register("dust_trigger_queue", () -> AttachmentType.builder(DustTriggerSwapQueue::new)
                     .serialize(DustTriggerSwapQueue.CODEC)
                     .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CASTER_COOLDOWN =
+            register("caster_cooldown", () -> AttachmentType.builder(() -> 0L).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<FocusCloudCooldowns>> FOCUS_CLOUD_COOLDOWNS =
+            register("focus_cloud_cooldowns", () -> AttachmentType.builder(FocusCloudCooldowns::new).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<BlockWorkQueues>> BLOCK_WORK_QUEUES =
+            register("block_work_queues", () -> AttachmentType.builder(BlockWorkQueues::new).build());
 
     private TCAttachments() {}
 

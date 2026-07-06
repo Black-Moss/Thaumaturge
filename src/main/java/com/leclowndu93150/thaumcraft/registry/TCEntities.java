@@ -144,6 +144,36 @@ public final class TCEntities {
                     .clientTrackingRange(8)
                     .updateInterval(10));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityFocusProjectile>> FOCUS_PROJECTILE = register(
+            "focus_projectile",
+            () -> EntityType.Builder.<EntityFocusProjectile>of(EntityFocusProjectile::new, MobCategory.MISC)
+                    .sized(0.15F, 0.15F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityFocusCloud>> FOCUS_CLOUD = register(
+            "focus_cloud",
+            () -> EntityType.Builder.<EntityFocusCloud>of(EntityFocusCloud::new, MobCategory.MISC)
+                    .sized(1.0F, 0.5F)
+                    .fireImmune()
+                    .clientTrackingRange(10)
+                    .updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityFocusMine>> FOCUS_MINE = register(
+            "focus_mine",
+            () -> EntityType.Builder.<EntityFocusMine>of(EntityFocusMine::new, MobCategory.MISC)
+                    .sized(0.15F, 0.15F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntitySpellBat>> SPELL_BAT = register(
+            "spell_bat",
+            () -> EntityType.Builder.<EntitySpellBat>of(EntitySpellBat::new, MobCategory.MONSTER)
+                    .sized(0.5F, 0.9F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
     public static final DeferredHolder<EntityType<?>, EntityType<EntitySpecialItem>> SPECIAL_ITEM = register(
             "special_item",
             () -> EntityType.Builder.<EntitySpecialItem>of(EntitySpecialItem::new, MobCategory.MISC)

@@ -22,6 +22,7 @@ public final class TCDamageTypes {
     public static final ResourceKey<DamageType> TENTACLE = key("tentacle");
     public static final ResourceKey<DamageType> SWARM = key("swarm");
     public static final ResourceKey<DamageType> DISSOLVE = key("dissolve");
+    public static final ResourceKey<DamageType> FOCUS_FIRE = key("focus_fire");
 
     private TCDamageTypes() {}
 

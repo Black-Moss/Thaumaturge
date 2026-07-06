@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
+import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
@@ -153,6 +154,9 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.NUGGET_VOID.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.NUGGET_QUICKSILVER.get(), ModelTemplates.FLAT_ITEM);
         registerInfusionAltar(blockModels, itemModels);
+        registerSimpleWithItem(blockModels, itemModels, TCBlocks.FOCAL_MANIPULATOR.get(), "focal_manipulator");
+        registerInvisibleBlock(blockModels, TCBlocks.HOLE.get());
+        registerInvisibleBlock(blockModels, TCBlocks.EFFECT_SAP.get());
 
         registerCandles(blockModels, itemModels);
         registerBanners(blockModels, itemModels);
@@ -178,6 +182,7 @@ public final class TCModelProvider extends ModelProvider {
         registerRobeItem(itemModels, TCItems.CLOTH_CHEST.get(), "cloth_chest");
         registerRobeItem(itemModels, TCItems.CLOTH_LEGS.get(), "cloth_legs");
         registerRobeItem(itemModels, TCItems.CLOTH_BOOTS.get(), "cloth_boots");
+        registerCasters(itemModels);
 
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
 
@@ -360,6 +365,12 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.RESEARCH_TABLE.get(), variant).with(rotations));
     }
 
+    private static void registerInvisibleBlock(BlockModelGenerators blockModels, Block block) {
+        Identifier empty = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/empty");
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(empty)));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+    }
+
     private static void registerNitor(BlockModelGenerators blockModels, ItemModelGenerators itemModels, DyeColor dye) {
         var block = TCBlocks.NITORS.get(dye).get();
         Identifier empty = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/empty");
@@ -410,6 +421,20 @@ public final class TCModelProvider extends ModelProvider {
         if (block != TCBlocks.INFUSION_MATRIX.get()) {
             itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
         }
+    }
+
+    private static void registerCasters(ItemModelGenerators itemModels) {
+        itemModels.itemModelOutput.accept(TCItems.CASTER_BASIC.get(),
+                ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/caster_basic")));
+        registerFocusItem(itemModels, TCItems.FOCUS_1.get());
+        registerFocusItem(itemModels, TCItems.FOCUS_2.get());
+        registerFocusItem(itemModels, TCItems.FOCUS_3.get());
+    }
+
+    private static void registerFocusItem(ItemModelGenerators itemModels, Item item) {
+        Identifier model = ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(item),
+                TextureMapping.layer0(item), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(model, new FocusColorTint()));
     }
 
     private static void registerRobeItem(ItemModelGenerators itemModels, Item item, String name) {

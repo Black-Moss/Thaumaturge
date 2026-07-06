@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.casters.BlockFocalManipulator;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockInfusionMatrix;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPedestal;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPillar;
@@ -13,6 +14,8 @@ import com.leclowndu93150.thaumcraft.content.crucible.BlockCrucible;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStairsTC;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStonePorous;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStoneTC;
+import com.leclowndu93150.thaumcraft.content.focus.BlockEffectSap;
+import com.leclowndu93150.thaumcraft.content.focus.BlockHole;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJarVoid;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockAlembic;
@@ -69,6 +72,16 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class TCBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TCIds.MODID);
+
+    public static final DeferredBlock<BlockFocalManipulator> FOCAL_MANIPULATOR = BLOCKS.registerBlock(
+            "focal_manipulator",
+            BlockFocalManipulator::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.0F, 20.0F)
+                    .sound(SoundType.STONE)
+                    .noOcclusion()
+    );
 
     public static final DeferredBlock<BlockResearchTable> RESEARCH_TABLE = BLOCKS.registerBlock(
             "research_table",
@@ -825,6 +838,34 @@ public final class TCBlocks {
                     .noLootTable()
     );
 
+
+    public static final DeferredBlock<BlockHole> HOLE = BLOCKS.registerBlock(
+            "hole",
+            BlockHole::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(-1.0F, 6000000.0F)
+                    .sound(SoundType.WOOL)
+                    .lightLevel(state -> 10)
+                    .noOcclusion()
+                    .noLootTable()
+                    .pushReaction(PushReaction.BLOCK)
+    );
+
+    public static final DeferredBlock<BlockEffectSap> EFFECT_SAP = BLOCKS.registerBlock(
+            "effect_sap",
+            BlockEffectSap::new,
+            props -> props
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(0.0F, 999.0F)
+                    .replaceable()
+                    .noCollision()
+                    .noOcclusion()
+                    .lightLevel(state -> 7)
+                    .randomTicks()
+                    .noLootTable()
+                    .pushReaction(PushReaction.DESTROY)
+    );
 
     private TCBlocks() {}
 

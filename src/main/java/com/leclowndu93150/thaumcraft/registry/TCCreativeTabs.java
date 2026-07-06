@@ -41,8 +41,13 @@ public final class TCCreativeTabs {
                             output.accept(CelestialNotesItem.stackOf(body));
                         }
                         output.accept(TCItems.GOGGLES_REVEALING.get());
+                        output.accept(TCItems.CASTER_BASIC.get());
+                        output.accept(TCItems.FOCUS_1.get());
+                        output.accept(TCItems.FOCUS_2.get());
+                        output.accept(TCItems.FOCUS_3.get());
                         output.accept(TCItems.LABEL.get());
                         output.accept(TCItems.RESEARCH_TABLE.get());
+                        output.accept(TCItems.FOCAL_MANIPULATOR.get());
                         output.accept(TCItems.ARCANE_WORKBENCH.get());
                         output.accept(TCItems.CRUCIBLE.get());
                         output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());

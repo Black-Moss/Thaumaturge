@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.client.network.AuraSnapshotClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.KnowledgeGainClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.WispZapClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.FXStreamClientHandler;
+import com.leclowndu93150.thaumcraft.client.fx.network.FocusImpactClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.InfusionSourceClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
@@ -13,6 +14,7 @@ import com.leclowndu93150.thaumcraft.client.network.RecipeDisplayClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.TubeEventClientHandler;
 import com.leclowndu93150.thaumcraft.client.warp.WarpFXClientHandler;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
+import com.leclowndu93150.thaumcraft.network.fx.ClientboundFocusImpactPayload;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundInfusionSourcePayload;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -143,6 +145,16 @@ public final class TCPayloads {
                 ClientboundWispZapPayload.TYPE,
                 ClientboundWispZapPayload.STREAM_CODEC,
                 (payload, context) -> WispZapClientHandler.handle(payload, context)
+        );
+        registrar.playToServer(
+                ServerboundFocusDataPayload.TYPE,
+                ServerboundFocusDataPayload.STREAM_CODEC,
+                ServerboundFocusDataPayload::handle
+        );
+        registrar.playToClient(
+                ClientboundFocusImpactPayload.TYPE,
+                ClientboundFocusImpactPayload.STREAM_CODEC,
+                (payload, context) -> FocusImpactClientHandler.handle(payload, context)
         );
     }
 }

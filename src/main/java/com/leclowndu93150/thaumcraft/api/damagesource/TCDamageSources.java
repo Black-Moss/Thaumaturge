@@ -52,6 +52,14 @@ public final class TCDamageSources {
         return source(level, TCDamageTypes.DISSOLVE);
     }
 
+    /**
+     * Produces a {@link DamageSource} for the fire focus effect: fire-typed indirect projectile
+     * damage attributed to the caster.
+     */
+    public static DamageSource focusFire(Level level, @Nullable Entity direct, @Nullable Entity caster) {
+        return new DamageSource(holder(level, TCDamageTypes.FOCUS_FIRE), direct, caster);
+    }
+
     private static DamageSource source(Level level, ResourceKey<DamageType> key) {
         return new DamageSource(holder(level, key));
     }

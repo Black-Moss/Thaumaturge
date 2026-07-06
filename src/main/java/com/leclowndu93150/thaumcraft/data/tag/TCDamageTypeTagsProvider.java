@@ -28,5 +28,7 @@ public final class TCDamageTypeTagsProvider extends DamageTypeTagsProvider {
         tag(DamageTypeTags.WITCH_RESISTANT_TO).add(TCDamageTypes.TAINT);
         tag(DamageTypeTags.WITHER_IMMUNE_TO).add(TCDamageTypes.TAINT);
         tag(IS_MAGIC).add(TCDamageTypes.TAINT);
+        tag(DamageTypeTags.IS_FIRE).add(TCDamageTypes.FOCUS_FIRE);
+        tag(DamageTypeTags.IS_PROJECTILE).add(TCDamageTypes.FOCUS_FIRE);
     }
 }

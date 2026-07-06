@@ -56,6 +56,10 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.TAINTACLE_SMALL.get(),
                 context -> new TaintacleRenderer(context, TCModelLayers.TAINTACLE_SMALL,
                         TaintacleModel.TAINTACLE_SMALL_LENGTH, TAINTACLE_SMALL_SHADOW));
+        event.registerEntityRenderer(TCEntities.FOCUS_PROJECTILE.get(), FocusProjectileRenderer::new);
+        event.registerEntityRenderer(TCEntities.FOCUS_CLOUD.get(), NoModelRenderer::new);
+        event.registerEntityRenderer(TCEntities.FOCUS_MINE.get(), NoModelRenderer::new);
+        event.registerEntityRenderer(TCEntities.SPELL_BAT.get(), SpellBatRenderer::new);
         event.registerEntityRenderer(TCEntities.FALLING_TAINT.get(), FallingTaintRenderer::new);
         event.registerEntityRenderer(TCEntities.BOTTLE_TAINT.get(), BottleTaintRenderer::new);
         event.registerEntityRenderer(TCEntities.SPECIAL_ITEM.get(), SpecialItemRenderer::new);

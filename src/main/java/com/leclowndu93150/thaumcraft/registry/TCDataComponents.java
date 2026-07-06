@@ -4,12 +4,16 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -42,6 +46,21 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("crystal_aspect", builder -> builder
                     .persistent(AspectInstance.CODEC)
                     .networkSynchronized(AspectInstance.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<FocusPackage>> FOCUS_PACKAGE =
+            DATA_COMPONENTS.registerComponentType("focus_package", builder -> builder
+                    .persistent(FocusPackage.CODEC)
+                    .networkSynchronized(FocusPackage.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemStackTemplate>> SOCKETED_FOCUS =
+            DATA_COMPONENTS.registerComponentType("socketed_focus", builder -> builder
+                    .persistent(ItemStackTemplate.CODEC)
+                    .networkSynchronized(ItemStackTemplate.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockState>> PICKED_BLOCK =
+            DATA_COMPONENTS.registerComponentType("picked_block", builder -> builder
+                    .persistent(BlockState.CODEC)
+                    .networkSynchronized(ByteBufCodecs.fromCodec(BlockState.CODEC)));
 
     private TCDataComponents() {}
 
