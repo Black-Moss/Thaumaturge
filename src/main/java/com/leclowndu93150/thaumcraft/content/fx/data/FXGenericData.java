@@ -13,6 +13,7 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
 
     public record Motion(
             double vx, double vy, double vz,
+            double driftX, double driftY, double driftZ,
             int maxAge,
             int delay,
             float gravity,
@@ -24,6 +25,9 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
                 Codec.DOUBLE.fieldOf("vx").forGetter(Motion::vx),
                 Codec.DOUBLE.fieldOf("vy").forGetter(Motion::vy),
                 Codec.DOUBLE.fieldOf("vz").forGetter(Motion::vz),
+                Codec.DOUBLE.optionalFieldOf("drift_x", 0.0).forGetter(Motion::driftX),
+                Codec.DOUBLE.optionalFieldOf("drift_y", 0.0).forGetter(Motion::driftY),
+                Codec.DOUBLE.optionalFieldOf("drift_z", 0.0).forGetter(Motion::driftZ),
                 Codec.INT.fieldOf("max_age").forGetter(Motion::maxAge),
                 Codec.INT.fieldOf("delay").forGetter(Motion::delay),
                 Codec.FLOAT.fieldOf("gravity").forGetter(Motion::gravity),
@@ -37,11 +41,13 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
         public static final StreamCodec<RegistryFriendlyByteBuf, Motion> STREAM_CODEC = StreamCodec.of(
                 (buf, m) -> {
                     buf.writeDouble(m.vx); buf.writeDouble(m.vy); buf.writeDouble(m.vz);
+                    buf.writeDouble(m.driftX); buf.writeDouble(m.driftY); buf.writeDouble(m.driftZ);
                     buf.writeVarInt(m.maxAge); buf.writeVarInt(m.delay);
                     buf.writeFloat(m.gravity); buf.writeDouble(m.slowDown); buf.writeDouble(m.windScale);
                     buf.writeFloat(m.randomX); buf.writeFloat(m.randomY); buf.writeFloat(m.randomZ);
                 },
                 buf -> new Motion(
+                        buf.readDouble(), buf.readDouble(), buf.readDouble(),
                         buf.readDouble(), buf.readDouble(), buf.readDouble(),
                         buf.readVarInt(), buf.readVarInt(),
                         buf.readFloat(), buf.readDouble(), buf.readDouble(),
@@ -162,6 +168,9 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
     public double vx() { return motion.vx; }
     public double vy() { return motion.vy; }
     public double vz() { return motion.vz; }
+    public double driftX() { return motion.driftX; }
+    public double driftY() { return motion.driftY; }
+    public double driftZ() { return motion.driftZ; }
     public int maxAge() { return motion.maxAge; }
     public int delay() { return motion.delay; }
     public float gravity() { return motion.gravity; }
@@ -243,6 +252,7 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
 
     public static final class Builder {
         private double vx, vy, vz;
+        private double driftX, driftY, driftZ;
         private int maxAge = 20;
         private int delay = 0;
         private float rStart = 1.0F, gStart = 1.0F, bStart = 1.0F;
@@ -264,6 +274,7 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
         private int targetEntityId = Behavior.NO_ENTITY;
 
         public Builder motion(double vx, double vy, double vz) { this.vx = vx; this.vy = vy; this.vz = vz; return this; }
+        public Builder drift(double dx, double dy, double dz) { this.driftX = dx; this.driftY = dy; this.driftZ = dz; return this; }
         public Builder maxAge(int maxAge) { this.maxAge = maxAge; return this; }
         public Builder delay(int delay) { this.delay = delay; return this; }
         public Builder color(float r, float g, float b) { this.rStart = r; this.gStart = g; this.bStart = b; this.rEnd = r; this.gEnd = g; this.bEnd = b; return this; }
@@ -287,7 +298,7 @@ public record FXGenericData(Motion motion, Visual visual, Behavior behavior) imp
         public Builder targetEntity(int id) { this.targetEntityId = id; return this; }
 
         public FXGenericData build() {
-            Motion m = new Motion(vx, vy, vz, maxAge, delay, gravity, slowDown, windScale, randomX, randomY, randomZ);
+            Motion m = new Motion(vx, vy, vz, driftX, driftY, driftZ, maxAge, delay, gravity, slowDown, windScale, randomX, randomY, randomZ);
             Visual v = new Visual(rStart, gStart, bStart, rEnd, gEnd, bEnd, alpha, scale, gridSize,
                     startParticle, numParticles, particleInc, loop, layer, finalFrames, flipped);
             Behavior b = new Behavior(rotationStart, rotationSpeed, angled, angleYaw, anglePitch, targetEntityId);

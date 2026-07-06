@@ -51,6 +51,9 @@ public final class FXGenericParticle extends SingleQuadParticle {
     private float prevRoll;
     private float roll;
     private int delayRemaining;
+    private final double driftX;
+    private final double driftY;
+    private final double driftZ;
     private final int targetEntityId;
     private Entity targetEntity;
 
@@ -64,6 +67,9 @@ public final class FXGenericParticle extends SingleQuadParticle {
         this.xd = data.vx();
         this.yd = data.vy();
         this.zd = data.vz();
+        this.driftX = data.driftX();
+        this.driftY = data.driftY();
+        this.driftZ = data.driftZ();
         this.hasPhysics = false;
         this.gridSize = Math.max(1, data.gridSize());
         this.startParticle = data.startParticle();
@@ -132,7 +138,7 @@ public final class FXGenericParticle extends SingleQuadParticle {
         }
         this.roll += (float)Math.PI * this.rotationSpeedRad * 2.0F;
         this.yd -= 0.04 * this.gravity;
-        this.move(this.xd, this.yd, this.zd);
+        this.move(this.xd + this.driftX, this.yd + this.driftY, this.zd + this.driftZ);
         this.xd *= this.slowDownFactor;
         this.yd *= this.slowDownFactor;
         this.zd *= this.slowDownFactor;

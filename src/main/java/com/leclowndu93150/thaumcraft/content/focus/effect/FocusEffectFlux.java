@@ -74,11 +74,13 @@ public final class FocusEffectFlux extends FocusEffect {
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
         FXGenericData data = FXGenericData.builder()
                 .motion(mx + level.getRandom().nextGaussian() * 0.01,
                         my + level.getRandom().nextGaussian() * 0.01,
                         mz + level.getRandom().nextGaussian() * 0.01)
+                .drift(dx, dy, dz)
                 .maxAge((int) (15.0F + 10.0F * level.getRandom().nextFloat()))
                 .color(0.25F + level.getRandom().nextFloat() * 0.25F, 0.0F,
                         0.25F + level.getRandom().nextFloat() * 0.25F)

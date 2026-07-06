@@ -50,7 +50,8 @@ public abstract class FocusEffect extends FocusNode {
     }
 
     /**
-     * Spawns this effect's travel or impact particles. Called on the client only.
+     * Spawns this effect's travel or impact particles without carrier drift. Called on the
+     * client only.
      *
      * @param level the client level
      * @param x     the particle x position
@@ -60,7 +61,30 @@ public abstract class FocusEffect extends FocusNode {
      * @param my    the particle y motion
      * @param mz    the particle z motion
      */
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public final void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+        renderParticleFX(level, x, y, z, mx, my, mz, 0.0, 0.0, 0.0);
+    }
+
+    /**
+     * Spawns this effect's travel or impact particles. Called on the client only.
+     *
+     * <p>The drift is a carrier velocity the particle applies every tick of its life,
+     * unaffected by its own friction or gravity. Cast bursts pass the caster's velocity here
+     * so the flash keeps pace with a moving caster.
+     *
+     * @param level the client level
+     * @param x     the particle x position
+     * @param y     the particle y position
+     * @param z     the particle z position
+     * @param mx    the particle x motion
+     * @param my    the particle y motion
+     * @param mz    the particle z motion
+     * @param dx    the per-tick x drift
+     * @param dy    the per-tick y drift
+     * @param dz    the per-tick z drift
+     */
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
     }
 
     /**

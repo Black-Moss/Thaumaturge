@@ -105,9 +105,11 @@ public final class FocusEffectFrost extends FocusEffect {
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
         FXGenericData data = FXGenericData.builder()
                 .motion(mx, my, mz)
+                .drift(dx, dy, dz)
                 .maxAge(40 + level.getRandom().nextInt(40))
                 .alpha(1.0F, 0.0F)
                 .particles(8, 1, 1)

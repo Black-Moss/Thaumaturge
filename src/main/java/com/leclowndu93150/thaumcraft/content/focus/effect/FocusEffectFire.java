@@ -96,9 +96,11 @@ public final class FocusEffectFire extends FocusEffect {
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
         FXGenericData data = FXGenericData.builder()
                 .motion(mx, my, mz)
+                .drift(dx, dy, dz)
                 .gravity(-0.2F)
                 .maxAge(10)
                 .alpha(0.7F)

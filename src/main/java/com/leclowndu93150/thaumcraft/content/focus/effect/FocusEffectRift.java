@@ -108,9 +108,11 @@ public final class FocusEffectRift extends FocusEffect {
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
         FXGenericData data = FXGenericData.builder()
                 .motion(mx, my, mz)
+                .drift(dx, dy, dz)
                 .maxAge(16 + level.getRandom().nextInt(16))
                 .particles(PARTICLE_START_BASE + level.getRandom().nextInt(16), 1, 1)
                 .slowDown(0.75)

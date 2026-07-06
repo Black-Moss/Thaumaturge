@@ -91,10 +91,12 @@ public final class FocusEffectBreak extends FocusEffect {
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
         int q = level.getRandom().nextInt(4);
         FXGenericData data = FXGenericData.builder()
                 .motion(mx, my, mz)
+                .drift(dx, dy, dz)
                 .maxAge(6 + level.getRandom().nextInt(6))
                 .particles(PARTICLE_START_BASE + q * 3, 3, 1)
                 .slowDown(0.8)

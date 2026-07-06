@@ -50,9 +50,10 @@ public final class FocusImpactClientHandler {
             for (int a = 0; a < amount; a++) {
                 if (payload.burst()) {
                     effect.renderParticleFX(level, origin.x, origin.y, origin.z,
-                            payload.mx() + casterVelocity.x + rand.nextGaussian() / BURST_JITTER_DIVISOR,
-                            payload.my() + casterVelocity.y + rand.nextGaussian() / BURST_JITTER_DIVISOR,
-                            payload.mz() + casterVelocity.z + rand.nextGaussian() / BURST_JITTER_DIVISOR);
+                            payload.mx() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
+                            payload.my() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
+                            payload.mz() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
+                            casterVelocity.x, casterVelocity.y, casterVelocity.z);
                 } else {
                     effect.renderParticleFX(level, origin.x, origin.y, origin.z,
                             rand.nextGaussian() * IMPACT_SPREAD,

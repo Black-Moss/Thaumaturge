@@ -86,10 +86,12 @@ public final class FocusEffectAir extends FocusEffect {
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz) {
+    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
+            double dx, double dy, double dz) {
         float s = (float) (2.0 + level.getRandom().nextGaussian() * 0.5);
         FXGenericData data = FXGenericData.builder()
                 .motion(mx, my, mz)
+                .drift(dx, dy, dz)
                 .gravity(-0.1F)
                 .maxAge(20 + level.getRandom().nextInt(10))
                 .alpha(0.5F, 0.0F)
