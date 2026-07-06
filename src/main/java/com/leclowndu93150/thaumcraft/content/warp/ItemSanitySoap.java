@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.warp;
 import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.core.particles.ParticleTypes;
@@ -71,6 +72,9 @@ public class ItemSanitySoap extends Item {
             IPlayerWarp warp = WarpHelper.getWarp(player);
             int amount = 1;
             if (player.hasEffect(TCMobEffects.WARP_WARD)) {
+                amount++;
+            }
+            if (level.getBlockState(player.blockPosition()).is(TCBlocks.PURIFYING_FLUID.get())) {
                 amount++;
             }
             if (warp.get(WarpType.NORMAL) > 0) {

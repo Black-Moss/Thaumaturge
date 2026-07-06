@@ -172,6 +172,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.morphic_resonator", "Morphic Resonator");
         add("item.thaumcraft.bath_salts", "Bath Salts");
         add("item.thaumcraft.sanity_soap", "Sanity Soap");
+        add("block.thaumcraft.spa", "Arcane Spa");
+        add("block.thaumcraft.purifying_fluid", "Purifying Fluid");
+        add("fluid_type.thaumcraft.purifying", "Purifying Fluid");
+        add("gui.thaumcraft.spa.mix.true", "Mix with ingredient");
+        add("gui.thaumcraft.spa.mix.false", "Use just the fluid");
         add("item.thaumcraft.chunk_beef", "Beef Nugget");
         add("item.thaumcraft.chunk_chicken", "Chicken Nugget");
         add("item.thaumcraft.chunk_pork", "Pork Nugget");

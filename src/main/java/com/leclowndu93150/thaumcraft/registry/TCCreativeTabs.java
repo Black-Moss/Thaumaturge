@@ -97,6 +97,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.MECHANISM_SIMPLE.get());
                         output.accept(TCItems.MECHANISM_COMPLEX.get());
                         output.accept(TCItems.MORPHIC_RESONATOR.get());
+                        output.accept(TCItems.SPA.get());
                         output.accept(TCItems.BATH_SALTS.get());
                         output.accept(TCItems.SANITY_SOAP.get());
                         output.accept(TCItems.CHUNK_BEEF.get());

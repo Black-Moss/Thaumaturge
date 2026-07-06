@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.MenuSmelter;
+import com.leclowndu93150.thaumcraft.content.spa.MenuSpa;
 import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
 import net.minecraft.core.registries.Registries;
@@ -24,6 +25,9 @@ public final class TCMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuArcaneWorkbench>> ARCANE_WORKBENCH =
             MENUS.register("arcane_workbench", () -> IMenuTypeExtension.create(MenuArcaneWorkbench::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuSpa>> SPA =
+            MENUS.register("spa", () -> IMenuTypeExtension.create(MenuSpa::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuSmelter>> SMELTER =
             MENUS.register("smelter", () -> IMenuTypeExtension.create(MenuSmelter::new));

@@ -433,6 +433,20 @@ public final class TCRecipeProvider extends RecipeProvider {
     private void buildIngredientRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
 
+        arcaneShaped(new ItemStackTemplate(TCItems.SPA), 50)
+                .aspect(TCAspects.AQUA)
+                .pattern("QIQ")
+                .pattern("SJS")
+                .pattern("SPS")
+                .define('Q', Items.QUARTZ_BLOCK)
+                .define('I', Items.IRON_BARS)
+                .define('S', TCItems.STONE_ARCANE)
+                .define('J', TCItems.JAR_NORMAL)
+                .define('P', TCItems.MECHANISM_SIMPLE)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.FABRIC), 5)
                 .pattern(" S ")
                 .pattern("SCS")

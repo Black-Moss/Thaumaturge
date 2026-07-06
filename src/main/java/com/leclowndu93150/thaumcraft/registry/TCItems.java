@@ -267,6 +267,8 @@ public final class TCItems {
             NITORS.put(dye, ITEMS.registerSimpleBlockItem(TCBlocks.NITORS.get(dye)));
         }
     }
+    public static final DeferredItem<BlockItem> SPA = ITEMS.registerSimpleBlockItem(TCBlocks.SPA);
+
     public static final DeferredItem<ItemAlumentum> ALUMENTUM = ITEMS.registerItem(
             "alumentum",
             ItemAlumentum::new);

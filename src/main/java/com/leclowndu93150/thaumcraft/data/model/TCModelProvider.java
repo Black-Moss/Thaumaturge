@@ -198,6 +198,7 @@ public final class TCModelProvider extends ModelProvider {
         registerRobeItem(itemModels, TCItems.CLOTH_CHEST.get(), "cloth_chest");
         registerRobeItem(itemModels, TCItems.CLOTH_LEGS.get(), "cloth_legs");
         registerRobeItem(itemModels, TCItems.CLOTH_BOOTS.get(), "cloth_boots");
+        registerSpa(blockModels, itemModels);
         registerCasters(itemModels);
 
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
@@ -437,6 +438,23 @@ public final class TCModelProvider extends ModelProvider {
         if (block != TCBlocks.INFUSION_MATRIX.get()) {
             itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
         }
+    }
+
+
+    private static void registerSpa(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Identifier spaModel = ModelTemplates.CUBE_BOTTOM_TOP.create(
+                ModelLocationUtils.getModelLocation(TCBlocks.SPA.get()),
+                new TextureMapping()
+                        .put(TextureSlot.SIDE, new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/spa_side")))
+                        .put(TextureSlot.TOP, new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/spa_top")))
+                        .put(TextureSlot.BOTTOM, new Material(Identifier.withDefaultNamespace("block/furnace_top"))),
+                blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.SPA.get(),
+                new MultiVariant(WeightedList.of(new Variant(spaModel)))));
+        itemModels.itemModelOutput.accept(TCItems.SPA.get(), ItemModelUtils.plainModel(spaModel));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.PURIFYING_FLUID.get(),
+                new MultiVariant(WeightedList.of(new Variant(
+                        Identifier.fromNamespaceAndPath(TCIds.MODID, "block/purifying_fluid"))))));
     }
 
     private static void registerCasters(ItemModelGenerators itemModels) {
