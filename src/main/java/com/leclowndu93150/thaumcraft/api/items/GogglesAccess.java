@@ -1,11 +1,14 @@
 package com.leclowndu93150.thaumcraft.api.items;
 
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
 import com.leclowndu93150.thaumcraft.registry.TCAttributes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.ModList;
 
 /**
  * Static accessor for detecting goggles, revealers, and vis-discount gear worn by an entity.
@@ -28,6 +31,9 @@ public final class GogglesAccess {
     public static boolean wearsGoggles(LivingEntity entity) {
         if (entity == null) {
             return false;
+        }
+        if (ModList.get().isLoaded(TCIds.CURIOS)) {
+            if (ThaumcraftCuriosCompat.checkForGoggles(entity)) return true;
         }
         ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
         if (head.isEmpty()) {

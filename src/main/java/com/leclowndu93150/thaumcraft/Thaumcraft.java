@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftAccess;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
+import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
 import com.leclowndu93150.thaumcraft.content.aura.AuraHelperBindings;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumcraft.content.research.scan.ScanBindings;
@@ -17,6 +18,7 @@ import com.leclowndu93150.thaumcraft.config.ThaumcraftServerConfig;
 import com.leclowndu93150.thaumcraft.registry.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
@@ -62,5 +64,8 @@ public final class Thaumcraft {
         WarpHelper.bind(new WarpManager.Bindings());
         ScanningManager.bind(new ScanBindings());
         FocusEngine.bindRegistry(TCFocusElements.registry());
+
+        if (ModList.get().isLoaded(TCIds.CURIOS))
+            ThaumcraftCuriosCompat.init(modBus);
     }
 }

@@ -4,6 +4,7 @@ import net.minecraft.resources.Identifier;
 
 public final class TCIds {
     public static final String MODID = "thaumcraft";
+    public static final String CURIOS = "curios";
 
     private TCIds() {}
 
