@@ -80,7 +80,7 @@ public final class MenuSmelter extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return AbstractContainerMenu.stillValid(access, player, TCBlocks.SMELTER_BASIC.get());
+        return AbstractContainerMenu.stillValid(access, player, TCBlocks.SMELTER_BASIC.get()) || AbstractContainerMenu.stillValid(access, player, TCBlocks.SMELTER_THAUMIUM.get()) || AbstractContainerMenu.stillValid(access, player, TCBlocks.SMELTER_VOID.get());
     }
 
     @Override

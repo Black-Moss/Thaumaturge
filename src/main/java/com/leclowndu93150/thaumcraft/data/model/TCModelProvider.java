@@ -76,27 +76,15 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
-        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
-                .select(Direction.NORTH, BlockModelGenerators.NOP)
-                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
-                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
-                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
-        blockModels.blockStateOutput.accept(
-                MultiVariantGenerator.dispatch(TCBlocks.INFERNAL_FURNACE.get(),variantOf("infernal_furnace")).with(rotations)
-        );
-        itemModels.itemModelOutput.accept(TCItems.INFERNAL_FURNACE.get(),
-                new CuboidItemModelWrapper.Unbaked(
-                        Identifier.fromNamespaceAndPath(TCIds.MODID,"block/infernal_furnace"),
-                        Optional.empty(),
-                        List.of()
-                ), new ClientItem.Properties(true,true,1));
-
+        horizontalBlock(blockModels, itemModels, TCBlocks.INFERNAL_FURNACE.get(), "infernal_furnace",true);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.NETHER_BRICKS))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.OBSIDIAN))));
         registerAlembic(blockModels, itemModels, TCBlocks.ALEMBIC.get());
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_BASIC.get(), "smelter_basic");
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_THAUMIUM.get(), "smelter_thaumium");
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_VOID.get(), "smelter_void");
+        horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
+        horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FABRIC.get(), ModelTemplates.FLAT_ITEM);
@@ -228,6 +216,28 @@ public final class TCModelProvider extends ModelProvider {
         TCBlocksEPlantsModels.register(blockModels, itemModels);
         TCBlocksTaintModels.register(blockModels, itemModels);
         TCItemsHContainersModels.register(itemModels);
+    }
+
+    private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName){
+        horizontalBlock(blockModels, itemModels, block, modelName, false);
+
+    }
+    private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName,boolean oversizedInGui){
+        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(block,variantOf(modelName)).with(rotations)
+        );
+        itemModels.itemModelOutput.accept(block.asItem(),
+                new CuboidItemModelWrapper.Unbaked(
+                        Identifier.fromNamespaceAndPath(TCIds.MODID,"block/"+modelName),
+                        Optional.empty(),
+                        List.of()
+                ), new ClientItem.Properties(true,oversizedInGui,1));
+
     }
 
     private void registerBanners(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {

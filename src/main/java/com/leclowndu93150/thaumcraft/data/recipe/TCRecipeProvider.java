@@ -724,7 +724,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("PBP")
                 .pattern("GFG")
                 .define('G',TCItems.PLANK_GREATWOOD)
-                .define('F',Items.HOPPER)
+                .define('F',TCItems.FILTER)
                 .define('P', TCItemTags.PLATES_BRASS)
                 .define('B',Items.BUCKET)
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"essentia_smelter"),Optional.of(1),false))
@@ -815,7 +815,7 @@ public final class TCRecipeProvider extends RecipeProvider {
 
         arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_FILTER),10)
                 .requires(TCItems.TUBE)
-                .requires(Items.HOPPER)
+                .requires(TCItems.FILTER)
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
                 .unlockedBy("has",has(TCItems.TUBE))
                 .save(output);
@@ -838,6 +838,35 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('R',TCItems.TUBE_RESTRICT)
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
                 .unlockedBy("has",has(TCItems.TUBE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.SMELTER_AUX),100)
+                .aspect(TCAspects.AER)
+                .aspect(TCAspects.TERRA)
+                .pattern("PVP")
+                .pattern("BCB")
+                .pattern("ILI")
+                .define('P',TCItems.PLANK_GREATWOOD)
+                .define('V',TCItems.TUBE_FILTER)
+                .define('B',TCItemTags.PLATES_BRASS)
+                .define('I',TCItemTags.PLATES_IRON)
+                .define('C',TCItems.TUBE_RESTRICT /*TODO Alchemical Construct*/)
+                .define('L',TCItems.TUBE_RESTRICT /*TODO Arcane Bellows*/)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"improved_essentia_smelting"),Optional.of(1),false))
+                .unlockedBy("has",has(TCItems.TUBE_RESTRICT/*TODO Arcane Bellows*/))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.SMELTER_VENT),150)
+                .aspect(TCAspects.AER)
+                .pattern("IBI")
+                .pattern("FCF")
+                .pattern("IBI")
+                .define('F',TCItems.FILTER)
+                .define('B',TCItemTags.PLATES_BRASS)
+                .define('I',TCItemTags.PLATES_IRON)
+                .define('C',TCItems.TUBE_RESTRICT /*TODO Alchemical Construct*/)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"improved_essentia_smelting_2"),Optional.of(1),false))
+                .unlockedBy("has",has(TCItems.TUBE_RESTRICT/*TODO Alchemical Construct*/))
                 .save(output);
     }
 

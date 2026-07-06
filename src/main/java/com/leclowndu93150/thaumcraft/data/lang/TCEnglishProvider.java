@@ -156,6 +156,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.smelter_basic", "Essentia Smeltery");
         add("block.thaumcraft.smelter_thaumium", "Thaumium Essentia Smeltery");
         add("block.thaumcraft.smelter_void", "Void Metal Essentia Smeltery");
+        add("block.thaumcraft.smelter_aux", "Auxiliary Slurry Pump");
+        add("block.thaumcraft.smelter_vent", "Auxiliary Venting Port");
         add("block.thaumcraft.jar_normal", "Warded Jar");
         add("block.thaumcraft.jar_void", "Void Jar");
         add("item.thaumcraft.thaumonomicon", "Thaumonomicon");

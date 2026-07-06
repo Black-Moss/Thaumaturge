@@ -66,6 +66,8 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.SMELTER_BASIC.get());
         dropSelf(TCBlocks.SMELTER_THAUMIUM.get());
         dropSelf(TCBlocks.SMELTER_VOID.get());
+        dropSelf(TCBlocks.SMELTER_AUX.get());
+        dropSelf(TCBlocks.SMELTER_VENT.get());
         add(TCBlocks.JAR_NORMAL.get(), jarLootTable(TCBlocks.JAR_NORMAL.get()));
         add(TCBlocks.JAR_VOID.get(), jarLootTable(TCBlocks.JAR_VOID.get()));
         dropSelf(TCBlocks.TUBE.get());
