@@ -51,6 +51,8 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.ARCANE_WORKBENCH.get());
                         output.accept(TCItems.CRUCIBLE.get());
                         output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());
+                        output.accept(TCItems.ALCHEMICAL_CONSTRUCT.get());
+                        output.accept(TCItems.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
                         output.accept(TCItems.ALEMBIC.get());
                         output.accept(TCItems.SMELTER_BASIC.get());
                         output.accept(TCItems.SMELTER_THAUMIUM.get());

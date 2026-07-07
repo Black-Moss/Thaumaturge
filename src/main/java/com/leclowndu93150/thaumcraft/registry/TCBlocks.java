@@ -815,7 +815,27 @@ public final class TCBlocks {
                     .randomTicks()
     );
 
-    // 
+    //
+
+    public static final DeferredBlock<BlockMetalTC> ALCHEMICAL_CONSTRUCT = BLOCKS.registerBlock(
+            "alchemical_construct",
+            BlockMetalTC::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(4.0F, 10.0F)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<BlockMetalTC> ADVANCED_ALCHEMICAL_CONSTRUCT = BLOCKS.registerBlock(
+            "advanced_alchemical_construct",
+            BlockMetalTC::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(4.0F, 10.0F)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()
+    );
 
     public static final DeferredBlock<BlockMetalTC> METAL_THAUMIUM_BLOCK = BLOCKS.registerBlock(
             "metal_thaumium",

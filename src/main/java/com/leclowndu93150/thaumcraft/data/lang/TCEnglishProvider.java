@@ -145,7 +145,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("gui.thaumcraft.research_table.complete", "Complete Research");
         add("gui.thaumcraft.arcane_workbench.vis_available", "%s available");
         add("gui.thaumcraft.arcane_workbench.required_vis", "%s vis");
-        add("gui.thaumcraft.arcane_workbench.required_vis_discount", "%s vis (%s% discount)");
+        add("gui.thaumcraft.arcane_workbench.required_vis_discount", "%s vis (%s%% discount)");
         add("button.thaumcraft.create_theory", "Create Theory");
         add("button.thaumcraft.complete_theory", "Complete Theory");
         add("button.thaumcraft.scrap_theory", "Scrap Theory");
@@ -285,6 +285,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.ore_amber", "Amber Bearing Stone");
         add("block.thaumcraft.ore_cinnabar", "Cinnabar Ore");
         add("block.thaumcraft.ore_quartz", "Quartz Ore");
+
+        add("block.thaumcraft.alchemical_construct", "Alchemical Construct");
+        add("block.thaumcraft.advanced_alchemical_construct", "Advanced Alchemical Construct");
 
         add("block.thaumcraft.metal_thaumium", "Thaumium Block");
         add("block.thaumcraft.metal_brass", "Alchemical Brass Block");

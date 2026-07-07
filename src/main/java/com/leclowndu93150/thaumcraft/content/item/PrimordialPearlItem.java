@@ -1,8 +1,14 @@
 package com.leclowndu93150.thaumcraft.content.item;
 
+import com.leclowndu93150.thaumcraft.registry.TCItems;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import org.jspecify.annotations.Nullable;
 
 public final class PrimordialPearlItem extends Item {
     public static final int MAX_DAMAGE = 8;
@@ -12,6 +18,15 @@ public final class PrimordialPearlItem extends Item {
 
     public PrimordialPearlItem(Item.Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public @Nullable ItemStackTemplate getCraftingRemainder(ItemInstance instance) {
+        if (instance.getOrDefault(DataComponents.DAMAGE,0) + 1 >= MAX_DAMAGE) {
+            return null;
+        }
+        return new ItemStackTemplate(TCItems.PRIMORDIAL_PEARL, DataComponentPatch.builder()
+                .set(DataComponents.DAMAGE,instance.getOrDefault(DataComponents.DAMAGE,0)+1).build());
     }
 
     @Override

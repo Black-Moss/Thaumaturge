@@ -140,6 +140,9 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.createTrivialCube(TCBlocks.ORE_CINNABAR.get());
         blockModels.createTrivialCube(TCBlocks.ORE_QUARTZ.get());
 
+        blockModels.createTrivialCube(TCBlocks.ALCHEMICAL_CONSTRUCT.get());
+        blockModels.createTrivialCube(TCBlocks.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
+
         blockModels.createTrivialCube(TCBlocks.METAL_BRASS_BLOCK.get());
         blockModels.createTrivialCube(TCBlocks.METAL_THAUMIUM_BLOCK.get());
         blockModels.createTrivialCube(TCBlocks.METAL_VOID_BLOCK.get());

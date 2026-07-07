@@ -357,6 +357,9 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> ORE_CINNABAR = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_CINNABAR);
     public static final DeferredItem<BlockItem> ORE_QUARTZ = ITEMS.registerSimpleBlockItem(TCBlocks.ORE_QUARTZ);
 
+    public static final DeferredItem<BlockItem> ALCHEMICAL_CONSTRUCT = ITEMS.registerSimpleBlockItem(TCBlocks.ALCHEMICAL_CONSTRUCT);
+    public static final DeferredItem<BlockItem> ADVANCED_ALCHEMICAL_CONSTRUCT = ITEMS.registerSimpleBlockItem(TCBlocks.ADVANCED_ALCHEMICAL_CONSTRUCT);
+
     public static final DeferredItem<BlockItem> METAL_THAUMIUM_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_THAUMIUM_BLOCK);
     public static final DeferredItem<BlockItem> METAL_BRASS_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_BRASS_BLOCK);
     public static final DeferredItem<BlockItem> METAL_VOID_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.METAL_VOID_BLOCK);

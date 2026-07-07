@@ -171,7 +171,7 @@ public final class ArcaneWorkbenchCategory implements IRecipeCategory<RecipeHold
                 index++;
                 if (index >= aspects.size()) break;
             } else {
-                builder.addInputSlot(OUTPUT_X,OUTPUT_Y);
+                builder.addInputSlot(BARRIER_X,BARRIER_Y);
             }
         }
     }
