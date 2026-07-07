@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.api.warp.ItemWarp;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
+import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCDataMaps;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.ChatFormatting;
@@ -60,6 +61,7 @@ public final class WarpManager {
         if (mapped != null) {
             warp += mapped.amount();
         }
+        warp += stack.getOrDefault(TCDataComponents.STACK_WARP.get(), 0);
         return warp;
     }
 

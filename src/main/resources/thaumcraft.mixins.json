@@ -6,6 +6,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "data.recipes.RecipeProviderAccessor",
+    "server.network.ServerGamePacketListenerImplAccessor",
     "world.entity.item.ItemEntityAccessor",
     "world.entity.monster.SlimeAccessor"
   ],

@@ -7,6 +7,8 @@ import com.leclowndu93150.thaumcraft.compat.jei.drawables.AlphaDrawable;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
 import com.leclowndu93150.thaumcraft.compat.jei.utils.ResearchUtils;
+import com.leclowndu93150.thaumcraft.api.recipe.IInfusionRecipe;
+import com.leclowndu93150.thaumcraft.content.infusion.InfusionEnchantmentRecipe;
 import com.leclowndu93150.thaumcraft.content.infusion.InfusionRecipe;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
@@ -36,10 +38,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-public final class InfusionCategory implements IRecipeCategory<RecipeHolder<InfusionRecipe>> {
+public final class InfusionCategory<R extends Recipe<?> & IInfusionRecipe> implements IRecipeCategory<RecipeHolder<R>> {
     public static final IRecipeHolderType<InfusionRecipe> RECIPE_TYPE = IRecipeHolderType.create(TCRecipeTypes.INFUSION.get());
+    public static final IRecipeHolderType<InfusionEnchantmentRecipe> ENCHANTMENT_RECIPE_TYPE = IRecipeHolderType.create(TCRecipeTypes.INFUSION_ENCHANTMENT.get());
 
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png");
@@ -69,19 +73,23 @@ public final class InfusionCategory implements IRecipeCategory<RecipeHolder<Infu
 
     private static final IDrawable BACKGROUND = new AlphaDrawable(TEXTURE, 413, 154, 86, 86, 40, 44, 30, 30);
     private final IDrawable icon;
+    private final IRecipeHolderType<R> recipeType;
+    private final Component title;
 
-    public InfusionCategory(IGuiHelper guiHelper) {
+    public InfusionCategory(IGuiHelper guiHelper, IRecipeHolderType<R> recipeType, String titleKey) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(TCItems.INFUSION_MATRIX.get()));
+        this.recipeType = recipeType;
+        this.title = Component.translatable(titleKey);
     }
 
     @Override
-    public IRecipeType<RecipeHolder<InfusionRecipe>> getRecipeType() {
-        return RECIPE_TYPE;
+    public IRecipeType<RecipeHolder<R>> getRecipeType() {
+        return recipeType;
     }
 
     @Override
     public Component getTitle() {
-        return Component.translatable("recipe.type.infusion");
+        return title;
     }
 
     @Override
@@ -100,9 +108,9 @@ public final class InfusionCategory implements IRecipeCategory<RecipeHolder<Infu
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<InfusionRecipe> holder, IFocusGroup focuses) {
-        InfusionRecipe recipe = holder.value();
-        builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).add(recipe.rawResult());
+    public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<R> holder, IFocusGroup focuses) {
+        R recipe = holder.value();
+        builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).add(recipe.resultItem());
         builder.addInputSlot(CATALYST_X, CATALYST_Y).add(recipe.catalyst());
         float currentRotation = -90.0F;
         for (Ingredient ingredient : holder.value().components()) {
@@ -126,7 +134,7 @@ public final class InfusionCategory implements IRecipeCategory<RecipeHolder<Infu
     }
 
     @Override
-    public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<InfusionRecipe> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<R> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
         Optional<ResearchGate> gate = recipe.value().researchGate();
         boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
         if (!doesPassGate && gate.isPresent() && mouseX > 92 && mouseX < 108 && mouseY > 9 && mouseY < 25) {
@@ -135,7 +143,7 @@ public final class InfusionCategory implements IRecipeCategory<RecipeHolder<Infu
     }
 
     @Override
-    public void draw(RecipeHolder<InfusionRecipe> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+    public void draw(RecipeHolder<R> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         Font font = Minecraft.getInstance().font;
         Component header = Component.translatable("recipe.type.infusion");
         BACKGROUND.draw(guiGraphics);

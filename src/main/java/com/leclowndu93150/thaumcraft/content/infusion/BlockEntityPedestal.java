@@ -11,16 +11,21 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public final class BlockEntityPedestal extends BlockEntity {
+public class BlockEntityPedestal extends BlockEntity {
     private ItemStack item = ItemStack.EMPTY;
 
     public BlockEntityPedestal(BlockPos pos, BlockState state) {
         super(TCBlockEntities.PEDESTAL.get(), pos, state);
+    }
+
+    protected BlockEntityPedestal(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     public ItemStack getItem() {
@@ -47,7 +52,7 @@ public final class BlockEntityPedestal extends BlockEntity {
         item = input.read("Item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
     }
 
-    private void syncToClient() {
+    protected final void syncToClient() {
         if (level == null || level.isClientSide()) {
             return;
         }

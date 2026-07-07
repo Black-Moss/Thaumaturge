@@ -18,16 +18,22 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class PedestalRenderer implements BlockEntityRenderer<BlockEntityPedestal, PedestalRenderState> {
+public final class PedestalRenderer<T extends BlockEntityPedestal> implements BlockEntityRenderer<T, PedestalRenderState> {
     private static final float ITEM_SCALE = 1.25F;
     private static final float ITEM_HEIGHT = 0.75F;
     private static final float SPIN_DEGREES_PER_TICK = 1.0F;
     private static final float VOXEL = 1.0F / 16.0F;
 
     private final ItemModelResolver itemModelResolver;
+    private final float itemScale;
 
     public PedestalRenderer(BlockEntityRendererProvider.Context context) {
+        this(context, ITEM_SCALE);
+    }
+
+    public PedestalRenderer(BlockEntityRendererProvider.Context context, float itemScale) {
         this.itemModelResolver = context.itemModelResolver();
+        this.itemScale = itemScale;
     }
 
     @Override
@@ -36,7 +42,7 @@ public final class PedestalRenderer implements BlockEntityRenderer<BlockEntityPe
     }
 
     @Override
-    public void extractRenderState(BlockEntityPedestal pedestal, PedestalRenderState state, float partialTicks,
+    public void extractRenderState(T pedestal, PedestalRenderState state, float partialTicks,
                                    Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(pedestal, state, partialTicks, cameraPosition, breakProgress);
         ItemStack stack = pedestal.getItem();
@@ -61,7 +67,7 @@ public final class PedestalRenderer implements BlockEntityRenderer<BlockEntityPe
         }
         poseStack.pushPose();
         poseStack.translate(0.5F, ITEM_HEIGHT, 0.5F);
-        poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
+        poseStack.scale(itemScale, itemScale, itemScale);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.spin));
         poseStack.translate(0.0F, state.groundLift, 0.0F);
         state.item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);

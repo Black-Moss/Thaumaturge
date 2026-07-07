@@ -18,6 +18,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTubeValve;
 import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockEntityInfernalFurnace;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityInfusionMatrix;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityPedestal;
+import com.leclowndu93150.thaumcraft.content.aura.BlockEntityRechargePedestal;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import java.util.Set;
@@ -169,6 +170,12 @@ public final class TCBlockEntities {
                     "pedestal",
                     () -> new BlockEntityType<>(BlockEntityPedestal::new,
                             Set.of(TCBlocks.PEDESTAL_ARCANE.get(), TCBlocks.PEDESTAL_ANCIENT.get(), TCBlocks.PEDESTAL_ELDRITCH.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityRechargePedestal>> RECHARGE_PEDESTAL =
+            BLOCK_ENTITIES.register(
+                    "recharge_pedestal",
+                    () -> new BlockEntityType<>(BlockEntityRechargePedestal::new, Set.of(TCBlocks.RECHARGE_PEDESTAL.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityHole>> HOLE =

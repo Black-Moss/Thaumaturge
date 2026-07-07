@@ -7,7 +7,6 @@ import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -75,29 +74,6 @@ public final class InfusionRecipe implements Recipe<InfusionInput>, IInfusionRec
             return false;
         }
         return matchComponents(input.components()) != null;
-    }
-
-    public List<ItemStack> matchComponents(List<ItemStack> available) {
-        if (available.size() != components.size()) {
-            return null;
-        }
-        List<ItemStack> remaining = new ArrayList<>(available);
-        List<ItemStack> consumed = new ArrayList<>(components.size());
-        for (Ingredient component : components) {
-            ItemStack found = null;
-            for (ItemStack candidate : remaining) {
-                if (component.test(candidate)) {
-                    found = candidate;
-                    break;
-                }
-            }
-            if (found == null) {
-                return null;
-            }
-            remaining.remove(found);
-            consumed.add(found.copyWithCount(1));
-        }
-        return consumed;
     }
 
     @Override

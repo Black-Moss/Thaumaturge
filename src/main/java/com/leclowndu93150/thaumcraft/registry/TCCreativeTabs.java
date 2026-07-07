@@ -1,6 +1,9 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
+import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
+import net.minecraft.world.item.ItemStack;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
@@ -187,6 +190,27 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.VOID_CHEST.get());
                         output.accept(TCItems.VOID_LEGS.get());
                         output.accept(TCItems.VOID_BOOTS.get());
+                        ItemStack elementalSword = new ItemStack(TCItems.ELEMENTAL_SWORD.get());
+                        InfusionEnchantmentHelper.add(elementalSword, InfusionEnchantment.ARCING, 2);
+                        output.accept(elementalSword);
+                        ItemStack elementalPickaxe = new ItemStack(TCItems.ELEMENTAL_PICKAXE.get());
+                        InfusionEnchantmentHelper.add(elementalPickaxe, InfusionEnchantment.REFINING, 1);
+                        InfusionEnchantmentHelper.add(elementalPickaxe, InfusionEnchantment.SOUNDING, 2);
+                        output.accept(elementalPickaxe);
+                        ItemStack elementalAxe = new ItemStack(TCItems.ELEMENTAL_AXE.get());
+                        InfusionEnchantmentHelper.add(elementalAxe, InfusionEnchantment.BURROWING, 1);
+                        InfusionEnchantmentHelper.add(elementalAxe, InfusionEnchantment.COLLECTOR, 1);
+                        output.accept(elementalAxe);
+                        ItemStack elementalShovel = new ItemStack(TCItems.ELEMENTAL_SHOVEL.get());
+                        InfusionEnchantmentHelper.add(elementalShovel, InfusionEnchantment.DESTRUCTIVE, 1);
+                        output.accept(elementalShovel);
+                        output.accept(TCItems.ELEMENTAL_HOE.get());
+                        ItemStack primalCrusher = new ItemStack(TCItems.PRIMAL_CRUSHER.get());
+                        InfusionEnchantmentHelper.add(primalCrusher, InfusionEnchantment.DESTRUCTIVE, 1);
+                        InfusionEnchantmentHelper.add(primalCrusher, InfusionEnchantment.REFINING, 1);
+                        output.accept(primalCrusher);
+                        output.accept(TCItems.RECHARGE_PEDESTAL.get());
+                        output.accept(TCItems.TRAVELLER_BOOTS.get());
                         output.accept(TCItems.CLOTH_CHEST.get());
                         output.accept(TCItems.CLOTH_LEGS.get());
                         output.accept(TCItems.CLOTH_BOOTS.get());

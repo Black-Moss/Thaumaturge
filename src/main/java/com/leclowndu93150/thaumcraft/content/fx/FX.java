@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -130,7 +131,7 @@ public final class FX {
                 new ClientboundSpawnParticlePayload(data, x, y, z));
     }
 
-    public static void scanGlyph(ServerLevel level, double x, double y, double z, int color, int delay) {
+    public static void scanGlyph(ServerPlayer viewer, double x, double y, double z, int color, int delay) {
         float r = ((color >> 16) & 0xFF) / 255.0F;
         float g = ((color >> 8) & 0xFF) / 255.0F;
         float b = (color & 0xFF) / 255.0F;
@@ -147,7 +148,7 @@ public final class FX {
                 .rotation(0.0F, 0.0F)
                 .delay(delay)
                 .build();
-        spawn(level, data, x, y, z);
+        PacketDistributor.sendToPlayer(viewer, new ClientboundSpawnParticlePayload(data, x, y, z));
     }
 
     public static void slash(ServerLevel level, double x, double y, double z, double x2, double y2, double z2, int duration) {
@@ -167,7 +168,7 @@ public final class FX {
                 .motion(dx / duration, dy / duration, dz / duration)
                 .maxAge(duration)
                 .color(1.0F, 1.0F, 1.0F)
-                .alpha(0.0F, 0.5F, 0.375F, 0.25F, 0.125F, 0.0F)
+                .alpha(0.0F, 0.5F, 0.3F, 0.2F, 0.1F, 0.0F)
                 .scale(0.5F, 1.5F)
                 .grid(32)
                 .particles(SLASH_START_FRAME, SLASH_FRAME_COUNT, 1)

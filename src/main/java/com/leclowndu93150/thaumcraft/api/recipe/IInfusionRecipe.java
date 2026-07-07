@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.api.recipe;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -37,4 +38,35 @@ public interface IInfusionRecipe extends ResearchGated {
      * @return a copy of the crafting result
      */
     ItemStack resultItem();
+
+    /**
+     * Matches the available pedestal stacks against {@link #components()}, one stack per
+     * component, order-insensitive.
+     *
+     * @param available the stacks present on the surrounding pedestals
+     * @return single-count copies of the matched stacks in component order, or {@code null}
+     *         when the stacks do not satisfy the components exactly
+     */
+    default List<ItemStack> matchComponents(List<ItemStack> available) {
+        if (available.size() != components().size()) {
+            return null;
+        }
+        List<ItemStack> remaining = new ArrayList<>(available);
+        List<ItemStack> consumed = new ArrayList<>(components().size());
+        for (Ingredient component : components()) {
+            ItemStack found = null;
+            for (ItemStack candidate : remaining) {
+                if (component.test(candidate)) {
+                    found = candidate;
+                    break;
+                }
+            }
+            if (found == null) {
+                return null;
+            }
+            remaining.remove(found);
+            consumed.add(found.copyWithCount(1));
+        }
+        return consumed;
+    }
 }

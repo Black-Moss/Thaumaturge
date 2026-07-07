@@ -117,7 +117,8 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         List<IRecipeCategory<?>> categories = new ArrayList<>(2);
         categories.add(new ArcaneWorkbenchCategory(helpers.getGuiHelper()));
         categories.add(new CrucibleCategory(helpers.getGuiHelper()));
-        categories.add(new InfusionCategory(helpers.getGuiHelper()));
+        categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.RECIPE_TYPE, "recipe.type.infusion"));
+        categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.ENCHANTMENT_RECIPE_TYPE, "recipe.type.infusion_enchantment"));
         categories.add(new DustTriggerCategory(helpers.getGuiHelper()));
         categories.add(new AspectCompositionCategory(helpers.getGuiHelper(), pickIconAspect()));
         categories.add(new AspectFromStacksCategory(helpers.getGuiHelper()));
@@ -130,6 +131,7 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         addTypedRecipes(registration,ArcaneWorkbenchCategory.RECIPE_TYPE,TCRecipeTypes.ARCANE.get(), null);
         addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get(), null);
         addTypedRecipes(registration,InfusionCategory.RECIPE_TYPE,TCRecipeTypes.INFUSION.get(), null);
+        addTypedRecipes(registration,InfusionCategory.ENCHANTMENT_RECIPE_TYPE,TCRecipeTypes.INFUSION_ENCHANTMENT.get(), null);
         registerAspectCompositions(registration);
         addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerSimpleRecipe || r.value() instanceof DustTriggerTagRecipe);
         addTypedRecipes(registration,MultiblockCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerMultiblockRecipe);
@@ -161,6 +163,7 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         registration.addCraftingStation(RecipeTypes.CRAFTING, TCItems.ARCANE_WORKBENCH.get());
         registration.addCraftingStation(ArcaneWorkbenchCategory.RECIPE_TYPE, TCItems.ARCANE_WORKBENCH.get());
         registration.addCraftingStation(InfusionCategory.RECIPE_TYPE, TCItems.INFUSION_MATRIX.get());
+        registration.addCraftingStation(InfusionCategory.ENCHANTMENT_RECIPE_TYPE, TCItems.INFUSION_MATRIX.get());
         registration.addCraftingStation(DustTriggerCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
         registration.addCraftingStation(MultiblockCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
         registration.addCraftingStation(CrucibleCategory.RECIPE_TYPE, TCItems.CRUCIBLE.get());

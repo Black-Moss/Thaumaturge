@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.client.fx;
 import com.leclowndu93150.thaumcraft.content.fx.data.BlockRunesData;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import com.leclowndu93150.thaumcraft.content.fx.data.NitorCoreData;
+import com.leclowndu93150.thaumcraft.content.fx.data.SmokeSpiralData;
 import com.leclowndu93150.thaumcraft.content.fx.helper.Sprites;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -35,6 +36,14 @@ public final class FXClient {
                 .gravity(0.01F)
                 .build();
         spawn(data, x, y, z, 0.0, 0.0, 0.0);
+    }
+
+    public static void smokeSpiral(Level level, double x, double y, double z,
+                                   float radius, int start, int minY, int color) {
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8) & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+        level.addParticle(new SmokeSpiralData(radius, start, minY, r, g, b), x, y, z, 0.0, 0.0, 0.0);
     }
 
     public static void followingBubble(Level level, double x, double y, double z) {

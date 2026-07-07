@@ -21,6 +21,8 @@ public final class EnchantMining {
     private static final int LOG_UPDATE_RADIUS = 3;
     private static final int LOG_UPDATE_DELAY_BASE = 50;
     private static final int LOG_UPDATE_DELAY_RANGE = 75;
+    private static final int SEARCH_LIMIT_HORIZONTAL = 24;
+    private static final int SEARCH_LIMIT_VERTICAL = 48;
 
     private EnchantMining() {}
 
@@ -39,7 +41,7 @@ public final class EnchantMining {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         level.levelEvent(null, LEVEL_EVENT_BLOCK_BREAK, pos, Block.getId(state));
         boolean removed = level.removeBlock(pos, false);
-        if (removed && !player.hasInfiniteMaterials()) {
+        if (removed && !player.hasInfiniteMaterials() && player.hasCorrectToolForDrops(state)) {
             Block.dropResources(state, level, pos, blockEntity, player, player.getMainHandItem());
         }
         return removed;
@@ -72,6 +74,11 @@ public final class EnchantMining {
                 for (int yy = reach; yy >= -reach && !advanced; yy--) {
                     for (int zz = -reach; zz <= reach && !advanced; zz++) {
                         BlockPos candidate = best.offset(xx, yy, zz);
+                        if (Math.abs(candidate.getX() - origin.getX()) > SEARCH_LIMIT_HORIZONTAL
+                                || Math.abs(candidate.getY() - origin.getY()) > SEARCH_LIMIT_VERTICAL
+                                || Math.abs(candidate.getZ() - origin.getZ()) > SEARCH_LIMIT_HORIZONTAL) {
+                            return best;
+                        }
                         BlockState state = level.getBlockState(candidate);
                         boolean same = state.is(block.getBlock());
                         if (same && state.getDestroySpeed(level, candidate) >= 0.0F) {

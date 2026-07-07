@@ -9,17 +9,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-public final class VoidGearItem extends Item implements IWarpingGear {
+public class VoidGearItem extends Item implements IWarpingGear {
     private static final int REPAIR_INTERVAL_TICKS = 20;
-    private static final int GEAR_WARP = 1;
+    static final int VOID_GEAR_WARP = 1;
 
     public VoidGearItem(Properties properties) {
         super(properties);
     }
 
-    @Override
-    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
-        super.inventoryTick(stack, level, entity, slot);
+    static void selfRepairTick(ItemStack stack, Entity entity) {
         if (entity instanceof LivingEntity
                 && stack.isDamaged()
                 && entity.tickCount % REPAIR_INTERVAL_TICKS == 0) {
@@ -28,7 +26,13 @@ public final class VoidGearItem extends Item implements IWarpingGear {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
+        super.inventoryTick(stack, level, entity, slot);
+        selfRepairTick(stack, entity);
+    }
+
+    @Override
     public int getWarp(ItemStack stack, LivingEntity wearer) {
-        return GEAR_WARP;
+        return VOID_GEAR_WARP;
     }
 }

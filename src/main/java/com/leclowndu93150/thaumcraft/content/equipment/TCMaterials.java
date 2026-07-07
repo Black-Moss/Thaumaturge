@@ -21,8 +21,11 @@ public final class TCMaterials {
             BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 150, 8.0F, 3.0F, 10, TCItemTags.INGOTS_VOID_METAL);
     public static final ToolMaterial TOOL_ELEMENTAL = new ToolMaterial(
             BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 1500, 9.0F, 3.0F, 18, TCItemTags.INGOTS_THAUMIUM);
+    public static final ToolMaterial TOOL_PRIMAL_VOID = new ToolMaterial(
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 500, 8.0F, 4.0F, 20, TCItemTags.INGOTS_VOID_METAL);
 
     public static final ResourceKey<EquipmentAsset> ASSET_THAUMIUM = asset("thaumium");
+    public static final ResourceKey<EquipmentAsset> ASSET_TRAVELLER = asset("traveller");
     public static final ResourceKey<EquipmentAsset> ASSET_ROBES = asset("robes");
     public static final ResourceKey<EquipmentAsset> ASSET_VOID = asset("void");
     public static final ResourceKey<EquipmentAsset> ASSET_VOID_ROBE = asset("void_robe");
@@ -37,6 +40,9 @@ public final class TCMaterials {
     public static final ArmorMaterial ARMOR_ROBES = new ArmorMaterial(
             25, defense(1, 2, 3, 1), 25, SoundEvents.ARMOR_EQUIP_LEATHER,
             1.0F, 0.0F, ItemTags.WOOL, ASSET_ROBES);
+    public static final ArmorMaterial ARMOR_TRAVELLER = new ArmorMaterial(
+            25, defense(1, 2, 3, 1), 25, SoundEvents.ARMOR_EQUIP_LEATHER,
+            1.0F, 0.0F, Tags.Items.LEATHERS, ASSET_TRAVELLER);
     public static final ArmorMaterial ARMOR_VOID = new ArmorMaterial(
             10, defense(3, 6, 8, 3), 10, SoundEvents.ARMOR_EQUIP_CHAIN,
             1.0F, 0.0F, TCItemTags.INGOTS_VOID_METAL, ASSET_VOID);

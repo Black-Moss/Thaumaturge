@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -25,6 +26,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -50,7 +53,9 @@ public final class InfusionEnchantmentEvents {
     private static final float REFINING_CHANCE_PER_LEVEL = 0.125F;
     private static final int SOUNDING_DAMAGE = 5;
     private static final float ARCING_DAMAGE_FRACTION = 0.5F;
+    private static final int SLASH_LIFE = 8;
     private static final int GLIMMER_LIGHT_THRESHOLD = 10;
+    private static final float TC_QUARTZ_NUGGET_CHANCE = 0.05F;
 
     private static final ThreadLocal<Boolean> DESTRUCTIVE_RECURSION = ThreadLocal.withInitial(() -> false);
 
@@ -76,27 +81,35 @@ public final class InfusionEnchantmentEvents {
             if (count >= rank) {
                 break;
             }
-            if (other.isRemoved() || other.getId() == target.getId() || other == player || !other.isAlive()) {
+            if (other.isRemoved() || other.getId() == target.getId() || !other.isAlive() || isFriendly(player, other)) {
                 continue;
             }
-            if (!(other instanceof LivingEntity living)) {
+            if (!(other instanceof Mob living)) {
                 continue;
             }
             float damage = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
-            player.attack(living);
             if (living.hurtServer(level, level.damageSources().playerAttack(player), damage * ARCING_DAMAGE_FRACTION)) {
                 EnchantmentHelper.doPostAttackEffects(level, living, level.damageSources().playerAttack(player));
                 float yaw = player.getYRot() * ((float) Math.PI / 180.0F);
                 living.push(-Mth.sin(yaw) * 0.5F, 0.1, Mth.cos(yaw) * 0.5F);
                 FX.slash(level, target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(),
-                        living.getX(), living.getY() + living.getBbHeight() / 2.0, living.getZ(), 5);
+                        living.getX(), living.getY() + living.getBbHeight() / 2.0, living.getZ(), SLASH_LIFE);
                 count++;
             }
         }
         if (count > 0) {
             level.playSound(null, player.getX(), player.getY(), player.getZ(), TCSounds.WIND.get(), SoundSource.PLAYERS,
                     1.0F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+            FX.slash(level, player.getX(), player.getY() + player.getBbHeight() / 2.0, player.getZ(),
+                    target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(), SLASH_LIFE);
         }
+    }
+
+    private static boolean isFriendly(Player source, Entity target) {
+        if (source.getRootVehicle() == target.getRootVehicle() || source.isAlliedTo(target)) {
+            return true;
+        }
+        return target instanceof OwnableEntity ownable && source == ownable.getOwner();
     }
 
     @SubscribeEvent
@@ -113,7 +126,9 @@ public final class InfusionEnchantmentEvents {
             ServerLevel level = (ServerLevel) event.getLevel();
             level.playSound(null, event.getPos().getX() + 0.5, event.getPos().getY() + 0.5, event.getPos().getZ() + 0.5,
                     TCSounds.WANDFAIL.get(), SoundSource.BLOCKS, 0.2F, 0.2F + level.getRandom().nextFloat() * 0.2F);
-            SoundingScan.perform(level, event.getPos(), rank);
+            if (player instanceof ServerPlayer serverPlayer) {
+                SoundingScan.perform(level, serverPlayer, event.getPos(), rank);
+            }
         }
     }
 
@@ -152,11 +167,8 @@ public final class InfusionEnchantmentEvents {
             return;
         }
         ItemStack held = player.getMainHandItem();
-        boolean silk = EnchantmentHelper.getItemEnchantmentLevel(
-                level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                        .getOrThrow(Enchantments.SILK_TOUCH), held) > 0;
 
-        if (InfusionEnchantmentHelper.has(held, InfusionEnchantment.REFINING) && !silk) {
+        if (InfusionEnchantmentHelper.has(held, InfusionEnchantment.REFINING)) {
             int fortune = 1 + InfusionEnchantmentHelper.level(held, InfusionEnchantment.REFINING);
             float chance = fortune * REFINING_CHANCE_PER_LEVEL;
             Item cluster = RefiningResults.clusterFor(state);
@@ -201,7 +213,7 @@ public final class InfusionEnchantmentEvents {
                         }
                         BlockPos offset = pos.offset(xx, yy, zz);
                         BlockState neighbour = level.getBlockState(offset);
-                        if (neighbour.getDestroySpeed(level, offset) >= 0.0F && held.isCorrectToolForDrops(neighbour)) {
+                        if (neighbour.getDestroySpeed(level, offset) >= 0.0F && held.getDestroySpeed(neighbour) > 1.0F) {
                             held.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
                             EnchantMining.harvestBlock(level, player, offset, false);
                         }
@@ -298,6 +310,7 @@ public final class InfusionEnchantmentEvents {
                 || state.is(BlockTags.LAPIS_ORES) && roll < 0.01F
                 || state.is(BlockTags.COAL_ORES) && roll < 0.001F
                 || state.is(BlockTags.REDSTONE_ORES) && roll < 0.01F
+                || state.is(TCBlocks.ORE_QUARTZ.get()) && roll < TC_QUARTZ_NUGGET_CHANCE
                 || state.is(Tags.Blocks.ORES_QUARTZ) && roll < 0.01F
                 || state.is(TCBlockTags.ORES_AMBER) && roll < 0.05F;
         if (rare) {

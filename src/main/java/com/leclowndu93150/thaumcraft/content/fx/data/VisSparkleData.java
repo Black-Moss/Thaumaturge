@@ -9,12 +9,19 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
-public record VisSparkleData(double tx, double ty, double tz) implements ParticleOptions {
+public record VisSparkleData(double tx, double ty, double tz, int color) implements ParticleOptions {
+    public static final int DEFAULT_COLOR = -1;
+
+    public VisSparkleData(double tx, double ty, double tz) {
+        this(tx, ty, tz, DEFAULT_COLOR);
+    }
+
     public static final MapCodec<VisSparkleData> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                     Codec.DOUBLE.fieldOf("tx").forGetter(VisSparkleData::tx),
                     Codec.DOUBLE.fieldOf("ty").forGetter(VisSparkleData::ty),
-                    Codec.DOUBLE.fieldOf("tz").forGetter(VisSparkleData::tz)
+                    Codec.DOUBLE.fieldOf("tz").forGetter(VisSparkleData::tz),
+                    Codec.INT.optionalFieldOf("color", DEFAULT_COLOR).forGetter(VisSparkleData::color)
             ).apply(instance, VisSparkleData::new)
     );
 
@@ -23,8 +30,9 @@ public record VisSparkleData(double tx, double ty, double tz) implements Particl
                 buf.writeDouble(data.tx);
                 buf.writeDouble(data.ty);
                 buf.writeDouble(data.tz);
+                buf.writeInt(data.color);
             },
-            buf -> new VisSparkleData(buf.readDouble(), buf.readDouble(), buf.readDouble())
+            buf -> new VisSparkleData(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt())
     );
 
     @Override

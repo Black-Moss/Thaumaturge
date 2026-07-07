@@ -179,6 +179,13 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.VOID_AXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModels.generateFlatItem(TCItems.VOID_SHOVEL.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModels.generateFlatItem(TCItems.VOID_HOE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.ELEMENTAL_SWORD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.ELEMENTAL_PICKAXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.ELEMENTAL_AXE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.ELEMENTAL_SHOVEL.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.ELEMENTAL_HOE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.PRIMAL_CRUSHER.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.TRAVELLER_BOOTS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.THAUMIUM_HELM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.THAUMIUM_CHEST.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.THAUMIUM_LEGS.get(), ModelTemplates.FLAT_ITEM);
@@ -429,6 +436,7 @@ public final class TCModelProvider extends ModelProvider {
         registerPillar(blockModels, itemModels, TCBlocks.PILLAR_ANCIENT.get(), "pillar_ancient", facing);
         registerPillar(blockModels, itemModels, TCBlocks.PILLAR_ELDRITCH.get(), "pillar_eldritch", facing);
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ARCANE.get(), "pedestal_arcane");
+        registerSimpleWithItem(blockModels, itemModels, TCBlocks.RECHARGE_PEDESTAL.get(), "recharge_pedestal");
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ANCIENT.get(), "pedestal_ancient");
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.PEDESTAL_ELDRITCH.get(), "pedestal_eldritch");
         registerSimpleWithItem(blockModels, itemModels, TCBlocks.INFUSION_MATRIX.get(), "infusion_matrix");

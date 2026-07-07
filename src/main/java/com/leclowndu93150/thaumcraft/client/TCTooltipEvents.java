@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumcraft.client;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.items.IRechargable;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
+import com.leclowndu93150.thaumcraft.api.items.RechargeAccess;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
 import java.util.Map;
@@ -34,6 +36,12 @@ public final class TCTooltipEvents {
         if (warp > 0) {
             event.getToolTip().add(1, Component.translatable("item.thaumcraft.warping")
                     .withStyle(ChatFormatting.DARK_PURPLE));
+        }
+        if (event.getItemStack().getItem() instanceof IRechargable rechargable) {
+            event.getToolTip().add(1, Component.translatable("tooltip.thaumcraft.charge",
+                            RechargeAccess.getCharge(event.getItemStack()),
+                            rechargable.getMaxCharge(event.getItemStack(), event.getEntity()))
+                    .withStyle(ChatFormatting.AQUA));
         }
     }
 }

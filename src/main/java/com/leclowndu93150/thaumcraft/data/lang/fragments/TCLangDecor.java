@@ -45,6 +45,7 @@ public final class TCLangDecor {
         provider.add("item.thaumcraft.causality_collapser", "Causality Collapser");
         provider.add("block.thaumcraft.infusion_matrix", "Runic Matrix");
         provider.add("block.thaumcraft.pedestal_arcane", "Arcane Pedestal");
+        provider.add("block.thaumcraft.recharge_pedestal", "Recharge Pedestal");
         provider.add("block.thaumcraft.pedestal_ancient", "Ancient Pedestal");
         provider.add("block.thaumcraft.pedestal_eldritch", "Eldritch Pedestal");
         provider.add("block.thaumcraft.pillar_arcane", "Infusion Pillar");
@@ -83,6 +84,13 @@ public final class TCLangDecor {
         provider.add("item.thaumcraft.void_chest", "Void Chestplate");
         provider.add("item.thaumcraft.void_legs", "Void Greaves");
         provider.add("item.thaumcraft.void_boots", "Void Boots");
+        provider.add("item.thaumcraft.elemental_sword", "Sword of the Zephyr");
+        provider.add("item.thaumcraft.elemental_pickaxe", "Pickaxe of the Core");
+        provider.add("item.thaumcraft.elemental_axe", "Axe of the Stream");
+        provider.add("item.thaumcraft.elemental_shovel", "Shovel of the Earthmover");
+        provider.add("item.thaumcraft.elemental_hoe", "Hoe of Growth");
+        provider.add("item.thaumcraft.primal_crusher", "Primal Crusher");
+        provider.add("item.thaumcraft.traveller_boots", "Boots of the Traveller");
         provider.add("item.thaumcraft.cloth_chest", "Apprentice's Robes");
         provider.add("item.thaumcraft.cloth_legs", "Apprentice's Leggings");
         provider.add("item.thaumcraft.cloth_boots", "Apprentice's Boots");

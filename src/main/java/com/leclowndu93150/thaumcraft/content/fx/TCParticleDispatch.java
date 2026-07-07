@@ -33,6 +33,11 @@ public final class TCParticleDispatch {
         broadcast(level, data, origin);
     }
 
+    public static void spawnVisSparkle(ServerLevel level, Vec3 origin, Vec3 target, int color) {
+        VisSparkleData data = new VisSparkleData(target.x, target.y, target.z, color);
+        broadcast(level, data, origin);
+    }
+
     public static void spawnArc(ServerLevel level, Vec3 from, Vec3 to, int color, float gravityHint) {
         ClientboundFXStreamPayload payload = ClientboundFXStreamPayload.arc(
                 from.x, from.y, from.z, to.x, to.y, to.z, color, gravityHint);

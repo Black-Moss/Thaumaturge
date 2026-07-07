@@ -18,6 +18,7 @@ public final class OreScanColors {
     private static final int C_DIAMOND = 6155509;
     private static final int C_EMERALD = 1564002;
     private static final int C_QUARTZ = 15064789;
+    private static final int C_COPPER = 16620629;
     private static final int C_AMBER = 16626469;
     private static final int C_CINNABAR = 10159368;
 
@@ -32,6 +33,7 @@ public final class OreScanColors {
             new Entry(Tags.Blocks.ORES_DIAMOND, C_DIAMOND),
             new Entry(Tags.Blocks.ORES_EMERALD, C_EMERALD),
             new Entry(Tags.Blocks.ORES_QUARTZ, C_QUARTZ),
+            new Entry(Tags.Blocks.ORES_COPPER, C_COPPER),
             new Entry(TCBlockTags.ORES_AMBER, C_AMBER),
             new Entry(TCBlockTags.ORES_CINNABAR, C_CINNABAR)
     );

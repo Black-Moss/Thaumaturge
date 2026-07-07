@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelterAux;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelterVent;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockInfusionMatrix;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPedestal;
+import com.leclowndu93150.thaumcraft.content.aura.BlockRechargePedestal;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPillar;
 import com.leclowndu93150.thaumcraft.content.decor.BlockCandle;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerStandingBlock;
@@ -549,6 +550,9 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockPedestal> PEDESTAL_ARCANE = BLOCKS.registerBlock(
             "pedestal_arcane", BlockPedestal::new, TCBlocks::pedestalProps);
+
+    public static final DeferredBlock<BlockRechargePedestal> RECHARGE_PEDESTAL = BLOCKS.registerBlock(
+            "recharge_pedestal", BlockRechargePedestal::new, TCBlocks::pedestalProps);
 
     public static final DeferredBlock<BlockPedestal> PEDESTAL_ANCIENT = BLOCKS.registerBlock(
             "pedestal_ancient", BlockPedestal::new, TCBlocks::pedestalProps);

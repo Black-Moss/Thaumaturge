@@ -80,6 +80,21 @@ public final class TCDataComponents {
                     .persistent(InfusionEnchantments.CODEC)
                     .networkSynchronized(InfusionEnchantments.STREAM_CODEC));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STACK_WARP =
+            DATA_COMPONENTS.registerComponentType("warp", builder -> builder
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> TOOL_ORIENTATION =
+            DATA_COMPONENTS.registerComponentType("tool_orientation", builder -> builder
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ENERGY =
+            DATA_COMPONENTS.registerComponentType("energy", builder -> builder
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     private TCDataComponents() {}
 
     public static void register(IEventBus modBus) {

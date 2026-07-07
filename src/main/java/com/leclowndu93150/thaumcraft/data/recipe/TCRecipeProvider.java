@@ -6,7 +6,10 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
+import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantments;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.CrucibleRecipeBuilder;
+import com.leclowndu93150.thaumcraft.data.recipe.builders.InfusionEnchantmentRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.InfusionRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapedRecipeBuilder;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.workbench.ArcaneWorkbenchShapelessRecipeBuilder;
@@ -49,6 +52,7 @@ import net.neoforged.neoforge.common.conditions.NotCondition;
 import net.neoforged.neoforge.common.conditions.TagEmptyCondition;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,6 +68,10 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildBannerRecipes();
         buildGearRecipes();
         buildInfusionAltarRecipes();
+        buildInfusionEnchantmentRecipes();
+        buildElementalToolRecipes();
+        buildTravellerBootsRecipe();
+        buildRechargePedestalRecipe();
         buildFocalManipulatorRecipe();
         buildCrucibleRecipes();
         buildFocusRecipes();
@@ -333,6 +341,184 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE))
                 .save(output);
+    }
+
+    private void buildElementalToolRecipes() {
+        ResearchGate gate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                enchantedTool(TCItems.ELEMENTAL_AXE.get(),
+                        Map.of(InfusionEnchantment.COLLECTOR, 1, InfusionEnchantment.BURROWING, 1)),
+                Ingredient.of(TCItems.THAUMIUM_AXE.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AQUA.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AQUA.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get()))
+                .component(Ingredient.of(TCItems.PLANK_GREATWOOD.get()))
+                .aspect(TCAspects.AQUA, 60)
+                .aspect(TCAspects.HERBA, 30)
+                .instability(1)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_AXE))
+                .save(output);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                enchantedTool(TCItems.ELEMENTAL_PICKAXE.get(),
+                        Map.of(InfusionEnchantment.REFINING, 1, InfusionEnchantment.SOUNDING, 2)),
+                Ingredient.of(TCItems.THAUMIUM_PICKAXE.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_IGNIS.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_IGNIS.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get()))
+                .component(Ingredient.of(TCItems.PLANK_GREATWOOD.get()))
+                .aspect(TCAspects.IGNIS, 30)
+                .aspect(TCAspects.METALLUM, 30)
+                .aspect(TCAspects.SENSUS, 30)
+                .instability(1)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_PICKAXE))
+                .save(output);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT,
+                enchantedTool(TCItems.ELEMENTAL_SWORD.get(), Map.of(InfusionEnchantment.ARCING, 2)),
+                Ingredient.of(TCItems.THAUMIUM_SWORD.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get()))
+                .component(Ingredient.of(TCItems.PLANK_GREATWOOD.get()))
+                .aspect(TCAspects.AER, 30)
+                .aspect(TCAspects.MOTUS, 30)
+                .aspect(TCAspects.AVERSIO, 30)
+                .instability(1)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_SWORD))
+                .save(output);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                enchantedTool(TCItems.ELEMENTAL_SHOVEL.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1)),
+                Ingredient.of(TCItems.THAUMIUM_SHOVEL.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_TERRA.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_TERRA.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get()))
+                .component(Ingredient.of(TCItems.PLANK_GREATWOOD.get()))
+                .aspect(TCAspects.TERRA, 60)
+                .aspect(TCAspects.FABRICO, 30)
+                .instability(1)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_SHOVEL))
+                .save(output);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                new ItemStackTemplate(TCItems.ELEMENTAL_HOE.get()),
+                Ingredient.of(TCItems.THAUMIUM_HOE.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_ORDO.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_PERDITIO.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get()))
+                .component(Ingredient.of(TCItems.PLANK_GREATWOOD.get()))
+                .aspect(TCAspects.ORDO, 30)
+                .aspect(TCAspects.HERBA, 30)
+                .aspect(TCAspects.PERDITIO, 30)
+                .instability(1)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_HOE))
+                .save(output);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                enchantedTool(TCItems.PRIMAL_CRUSHER.get(),
+                        Map.of(InfusionEnchantment.DESTRUCTIVE, 1, InfusionEnchantment.REFINING, 1)),
+                Ingredient.of(TCItems.PRIMORDIAL_PEARL.get()))
+                .component(Ingredient.of(TCItems.VOID_PICKAXE.get()))
+                .component(Ingredient.of(TCItems.VOID_SHOVEL.get()))
+                .component(Ingredient.of(TCItems.ELEMENTAL_PICKAXE.get()))
+                .component(Ingredient.of(TCItems.ELEMENTAL_SHOVEL.get()))
+                .aspect(TCAspects.TERRA, 75)
+                .aspect(TCAspects.INSTRUMENTUM, 75)
+                .aspect(TCAspects.PERDITIO, 50)
+                .aspect(TCAspects.VACUOS, 50)
+                .aspect(TCAspects.AVERSIO, 50)
+                .aspect(TCAspects.ALIENIS, 50)
+                .aspect(TCAspects.DESIDERIUM, 50)
+                .instability(6)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.PRIMORDIAL_PEARL))
+                .save(output);
+    }
+
+    private void buildRechargePedestalRecipe() {
+        arcaneShaped(new ItemStackTemplate(TCItems.RECHARGE_PEDESTAL), 100)
+                .aspect(TCAspects.AER, 1)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern(" R ")
+                .pattern("DID")
+                .pattern("SSS")
+                .define('R', TCItems.VIS_RESONATOR)
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('I', Tags.Items.INGOTS_GOLD)
+                .define('S', Tags.Items.STONES)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(2), false))
+                .unlockedBy("has", has(TCItems.VIS_RESONATOR))
+                .save(output);
+    }
+
+    private void buildTravellerBootsRecipe() {
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.TRAVELLER_BOOTS.get()),
+                Ingredient.of(Items.LEATHER_BOOTS))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(Items.FEATHER))
+                .component(Ingredient.of(items.getOrThrow(ItemTags.FISHES)))
+                .aspect(TCAspects.VOLATUS, 100)
+                .aspect(TCAspects.MOTUS, 100)
+                .instability(1)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false))
+                .unlockedBy("has", has(Items.LEATHER_BOOTS))
+                .save(output);
+    }
+
+    private static ItemStackTemplate enchantedTool(Item item, Map<InfusionEnchantment, Integer> enchantments) {
+        DataComponentPatch patch = DataComponentPatch.builder()
+                .set(TCDataComponents.INFUSION_ENCHANTMENTS.get(), new InfusionEnchantments(enchantments))
+                .build();
+        return new ItemStackTemplate(item, patch);
+    }
+
+    private void buildInfusionEnchantmentRecipes() {
+        infusionEnchantment(InfusionEnchantment.BURROWING, Items.WOODEN_PICKAXE, Ingredient.of(Items.RABBIT_FOOT))
+                .aspect(TCAspects.SENSUS, 80)
+                .aspect(TCAspects.TERRA, 150)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.COLLECTOR, Items.STONE_AXE, Ingredient.of(Items.LEAD))
+                .aspect(TCAspects.DESIDERIUM, 80)
+                .aspect(TCAspects.AQUA, 100)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.DESTRUCTIVE, Items.STONE_PICKAXE, Ingredient.of(Items.TNT))
+                .aspect(TCAspects.AVERSIO, 200)
+                .aspect(TCAspects.PERDITIO, 250)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.REFINING, Items.IRON_PICKAXE, Ingredient.of(TCItems.SALIS_MUNDUS.get()))
+                .aspect(TCAspects.ORDO, 80)
+                .aspect(TCAspects.PERMUTATIO, 60)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.SOUNDING, Items.GOLDEN_PICKAXE, Ingredient.of(Items.MAP))
+                .aspect(TCAspects.SENSUS, 40)
+                .aspect(TCAspects.IGNIS, 60)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.ARCING, Items.WOODEN_SWORD, Ingredient.of(Items.REDSTONE_BLOCK))
+                .aspect(TCAspects.POTENTIA, 40)
+                .aspect(TCAspects.AER, 60)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.ESSENCE, Items.STONE_SWORD, Ingredient.of(TCItems.ESSENTIA_CRYSTAL.get()))
+                .aspect(TCAspects.BESTIA, 40)
+                .aspect(TCAspects.VITIUM, 60)
+                .save(output);
+        infusionEnchantment(InfusionEnchantment.LAMPLIGHT, Items.GOLDEN_PICKAXE, Ingredient.of(items.getOrThrow(TCItemTags.NITORS)))
+                .aspect(TCAspects.LUX, 80)
+                .aspect(TCAspects.AER, 20)
+                .save(output);
+    }
+
+    private InfusionEnchantmentRecipeBuilder infusionEnchantment(InfusionEnchantment enchantment,
+                                                                 Item displayCatalyst, Ingredient signature) {
+        return new InfusionEnchantmentRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY),
+                enchantment, Ingredient.of(displayCatalyst))
+                .component(Ingredient.of(Items.ENCHANTED_BOOK))
+                .component(signature)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false));
     }
 
     private void buildGearRecipes() {

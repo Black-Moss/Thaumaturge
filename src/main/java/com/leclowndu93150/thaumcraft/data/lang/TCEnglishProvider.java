@@ -136,6 +136,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("recipe.type.arcane.shapeless", "Arcane Workbench (Shapeless)");
         add("recipe.type.crucible", "Crucible");
         add("recipe.type.infusion", "Arcane Infusion");
+        add("recipe.type.infusion_enchantment", "Infusion Enchantment");
+        add("tooltip.thaumcraft.charge", "Vis: %s / %s");
         add("recipe.type.construct", "Mystical Construct");
         add("wandtable.text1", "Vis Cost");
         add("gui.thaumcraft.research_table.title", "Research Table");

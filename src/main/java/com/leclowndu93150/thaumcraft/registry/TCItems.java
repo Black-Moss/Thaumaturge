@@ -55,9 +55,18 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.StandingAndWallBlockItem;
+import com.leclowndu93150.thaumcraft.content.equipment.ElementalAxeItem;
+import com.leclowndu93150.thaumcraft.content.equipment.ElementalHoeItem;
+import com.leclowndu93150.thaumcraft.content.equipment.ElementalPickaxeItem;
+import com.leclowndu93150.thaumcraft.content.equipment.ElementalShovelItem;
+import com.leclowndu93150.thaumcraft.content.equipment.ElementalSwordItem;
+import com.leclowndu93150.thaumcraft.content.equipment.PrimalCrusherItem;
 import com.leclowndu93150.thaumcraft.content.equipment.RobeArmorItem;
 import com.leclowndu93150.thaumcraft.content.equipment.TCMaterials;
+import com.leclowndu93150.thaumcraft.content.equipment.TravellerBootsItem;
 import com.leclowndu93150.thaumcraft.content.equipment.VoidGearItem;
+import com.leclowndu93150.thaumcraft.content.equipment.VoidHoeItem;
+import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
@@ -157,8 +166,8 @@ public final class TCItems {
             Item::new, props -> props.axe(TCMaterials.TOOL_THAUMIUM, 4.5F, -3.0F));
     public static final DeferredItem<Item> THAUMIUM_SHOVEL = ITEMS.registerItem("thaumium_shovel",
             Item::new, props -> props.shovel(TCMaterials.TOOL_THAUMIUM, 1.5F, -3.0F));
-    public static final DeferredItem<Item> THAUMIUM_HOE = ITEMS.registerItem("thaumium_hoe",
-            Item::new, props -> props.hoe(TCMaterials.TOOL_THAUMIUM, -3.0F, 0.0F));
+    public static final DeferredItem<HoeItem> THAUMIUM_HOE = ITEMS.registerItem("thaumium_hoe",
+            props -> new HoeItem(TCMaterials.TOOL_THAUMIUM, -3.0F, 0.0F, props));
     public static final DeferredItem<Item> THAUMIUM_HELM = ITEMS.registerItem("thaumium_helm",
             Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.HELMET));
     public static final DeferredItem<Item> THAUMIUM_CHEST = ITEMS.registerItem("thaumium_chest",
@@ -176,8 +185,8 @@ public final class TCItems {
             VoidGearItem::new, props -> props.axe(TCMaterials.TOOL_VOID, 4.0F, -3.0F));
     public static final DeferredItem<VoidGearItem> VOID_SHOVEL = ITEMS.registerItem("void_shovel",
             VoidGearItem::new, props -> props.shovel(TCMaterials.TOOL_VOID, 1.5F, -3.0F));
-    public static final DeferredItem<VoidGearItem> VOID_HOE = ITEMS.registerItem("void_hoe",
-            VoidGearItem::new, props -> props.hoe(TCMaterials.TOOL_VOID, -3.0F, 0.0F));
+    public static final DeferredItem<VoidHoeItem> VOID_HOE = ITEMS.registerItem("void_hoe",
+            props -> new VoidHoeItem(TCMaterials.TOOL_VOID, -3.0F, 0.0F, props));
     public static final DeferredItem<VoidGearItem> VOID_HELM = ITEMS.registerItem("void_helm",
             VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.HELMET));
     public static final DeferredItem<VoidGearItem> VOID_CHEST = ITEMS.registerItem("void_chest",
@@ -186,6 +195,28 @@ public final class TCItems {
             VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.LEGGINGS));
     public static final DeferredItem<VoidGearItem> VOID_BOOTS = ITEMS.registerItem("void_boots",
             VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.BOOTS));
+
+    public static final DeferredItem<ElementalSwordItem> ELEMENTAL_SWORD = ITEMS.registerItem("elemental_sword",
+            ElementalSwordItem::new, props -> props.sword(TCMaterials.TOOL_ELEMENTAL, 3.0F, -2.4F).rarity(Rarity.RARE));
+    public static final DeferredItem<ElementalPickaxeItem> ELEMENTAL_PICKAXE = ITEMS.registerItem("elemental_pickaxe",
+            ElementalPickaxeItem::new, props -> props.pickaxe(TCMaterials.TOOL_ELEMENTAL, 1.0F, -2.8F).rarity(Rarity.RARE));
+    public static final DeferredItem<ElementalAxeItem> ELEMENTAL_AXE = ITEMS.registerItem("elemental_axe",
+            ElementalAxeItem::new, props -> props.axe(TCMaterials.TOOL_ELEMENTAL, 5.0F, -3.0F).rarity(Rarity.RARE));
+    public static final DeferredItem<ElementalShovelItem> ELEMENTAL_SHOVEL = ITEMS.registerItem("elemental_shovel",
+            ElementalShovelItem::new, props -> props.shovel(TCMaterials.TOOL_ELEMENTAL, 1.5F, -3.0F).rarity(Rarity.RARE));
+    public static final DeferredItem<ElementalHoeItem> ELEMENTAL_HOE = ITEMS.registerItem("elemental_hoe",
+            props -> new ElementalHoeItem(TCMaterials.TOOL_ELEMENTAL, -3.0F, 0.0F, props),
+            props -> props.rarity(Rarity.RARE));
+    public static final DeferredItem<PrimalCrusherItem> PRIMAL_CRUSHER = ITEMS.registerItem("primal_crusher",
+            PrimalCrusherItem::new, props -> props.pickaxe(TCMaterials.TOOL_PRIMAL_VOID, 3.5F, -2.8F).rarity(Rarity.RARE));
+
+    public static final DeferredItem<BlockItem> RECHARGE_PEDESTAL = ITEMS.registerSimpleBlockItem(TCBlocks.RECHARGE_PEDESTAL);
+
+    public static final DeferredItem<TravellerBootsItem> TRAVELLER_BOOTS = ITEMS.registerItem("traveller_boots",
+            TravellerBootsItem::new, props -> props
+                    .humanoidArmor(TCMaterials.ARMOR_TRAVELLER, ArmorType.BOOTS)
+                    .durability(350)
+                    .rarity(Rarity.RARE));
 
     public static final DeferredItem<RobeArmorItem> CLOTH_CHEST = ITEMS.registerItem("cloth_chest",
             props -> new RobeArmorItem(3, props), props -> props.humanoidArmor(TCMaterials.ARMOR_ROBES, ArmorType.CHESTPLATE));

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class SoundingScan {
@@ -18,7 +19,7 @@ public final class SoundingScan {
 
     private SoundingScan() {}
 
-    public static void perform(ServerLevel level, BlockPos source, int soundingLevel) {
+    public static void perform(ServerLevel level, ServerPlayer viewer, BlockPos source, int soundingLevel) {
         int range = RANGE_BASE + soundingLevel * RANGE_PER_LEVEL;
         Set<BlockPos> ores = new HashSet<>();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -50,7 +51,7 @@ public final class SoundingScan {
             cy /= group.size();
             cz /= group.size();
             double distance = Math.sqrt(source.distToCenterSqr(cx, cy, cz));
-            FX.scanGlyph(level, cx, cy, cz, color, (int) (distance * DELAY_PER_DISTANCE));
+            FX.scanGlyph(viewer, cx, cy, cz, color, (int) (distance * DELAY_PER_DISTANCE));
         }
     }
 

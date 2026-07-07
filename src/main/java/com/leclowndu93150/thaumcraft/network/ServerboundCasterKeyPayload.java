@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.network;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.content.casters.CasterManager;
+import com.leclowndu93150.thaumcraft.content.equipment.ElementalShovelItem;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -25,6 +26,10 @@ public record ServerboundCasterKeyPayload(int mod) implements CustomPacketPayloa
     public static void handle(ServerboundCasterKeyPayload payload, IPayloadContext ctx) {
         Player player = ctx.player();
         ItemStack main = player.getMainHandItem();
+        if (main.getItem() instanceof ElementalShovelItem) {
+            ElementalShovelItem.cycleOrientation(main);
+            return;
+        }
         if (main.getItem() instanceof ICaster) {
             CasterManager.toggleMisc(main, player.level(), player, payload.mod());
             return;

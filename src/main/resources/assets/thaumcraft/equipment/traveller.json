@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "thaumcraft:traveller"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "thaumcraft:traveller"
+      }
+    ]
+  }
+}

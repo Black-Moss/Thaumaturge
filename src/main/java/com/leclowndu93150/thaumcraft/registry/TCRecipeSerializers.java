@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.infusion.InfusionEnchantmentRecipe;
 import com.leclowndu93150.thaumcraft.content.infusion.InfusionRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
@@ -29,6 +30,9 @@ public final class TCRecipeSerializers {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<InfusionRecipe>> INFUSION =
             RECIPE_SERIALIZERS.register("infusion", () -> InfusionRecipe.SERIALIZER);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<InfusionEnchantmentRecipe>> INFUSION_ENCHANTMENT =
+            RECIPE_SERIALIZERS.register("infusion_enchantment", () -> InfusionEnchantmentRecipe.SERIALIZER);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CrucibleRecipe>> CRUCIBLE =
             RECIPE_SERIALIZERS.register("crucible", () -> CrucibleRecipe.SERIALIZER);

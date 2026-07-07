@@ -204,26 +204,45 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
             return;
         }
         InfusionInput input = new InfusionInput(catalyst, components);
+        float costMult = Math.max(MIN_COST_MULT, env.costMult());
         Optional<RecipeHolder<InfusionRecipe>> match = level.recipeAccess()
                 .getRecipeFor(TCRecipeTypes.INFUSION.get(), input, level)
                 .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
-        if (match.isEmpty()) {
+        if (match.isPresent()) {
+            InfusionRecipe recipe = match.get().value();
+            job = new InfusionCraftJob(recipe.matchComponents(components),
+                    scaleByEnvironment(recipe.aspects(), costMult), recipe.resultItem(),
+                    catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
+            level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+            setChanged();
+            syncToClient();
             return;
         }
-        InfusionRecipe recipe = match.get().value();
-        float costMult = Math.max(MIN_COST_MULT, env.costMult());
+        Optional<RecipeHolder<InfusionEnchantmentRecipe>> enchantMatch = level.recipeAccess()
+                .getRecipeFor(TCRecipeTypes.INFUSION_ENCHANTMENT.get(), input, level)
+                .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
+        if (enchantMatch.isEmpty()) {
+            return;
+        }
+        InfusionEnchantmentRecipe recipe = enchantMatch.get().value();
+        job = new InfusionCraftJob(recipe.matchComponents(components),
+                scaleByEnvironment(recipe.scaledAspects(catalyst), costMult),
+                recipe.enchantedResult(catalyst, level.getRandom()),
+                catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
+        level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+        setChanged();
+        syncToClient();
+    }
+
+    private static AspectList scaleByEnvironment(AspectList aspects, float costMult) {
         AspectList scaled = AspectList.EMPTY;
-        for (AspectInstance instance : recipe.aspects().entries()) {
+        for (AspectInstance instance : aspects.entries()) {
             int amount = (int) (instance.amount() * costMult);
             if (amount > 0) {
                 scaled = scaled.add(instance.aspect(), amount);
             }
         }
-        job = new InfusionCraftJob(recipe.matchComponents(components), scaled, recipe.resultItem(),
-                catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
-        level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-        setChanged();
-        syncToClient();
+        return scaled;
     }
 
     private void craftCycle(ServerLevel level, MatrixEnvironment env, int countDelay) {
