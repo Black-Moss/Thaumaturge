@@ -120,7 +120,7 @@ public final class BlockBreakerEngine {
         }
     }
 
-    private static void harvestBlock(ServerLevel level, Player player, BlockPos pos, boolean silk, int fortune) {
+    public static void harvestBlock(ServerLevel level, Player player, BlockPos pos, boolean silk, int fortune) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }

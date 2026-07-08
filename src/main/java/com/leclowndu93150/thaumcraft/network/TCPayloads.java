@@ -9,6 +9,8 @@ import com.leclowndu93150.thaumcraft.client.fx.network.FXStreamClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.FocusImpactClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.InfusionSourceClientHandler;
 import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandler;
+import com.leclowndu93150.thaumcraft.client.golem.GolemPressClientHandler;
+import com.leclowndu93150.thaumcraft.client.golem.SealClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
 import com.leclowndu93150.thaumcraft.client.network.RecipeDisplayClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.TubeEventClientHandler;
@@ -40,6 +42,21 @@ public final class TCPayloads {
                 ClientboundOpenThaumonomiconPayload.TYPE,
                 ClientboundOpenThaumonomiconPayload.STREAM_CODEC,
                 (payload, context) -> OpenThaumonomiconHandler.handle(payload, context)
+        );
+        registrar.playToClient(
+                ClientboundSealPayload.TYPE,
+                ClientboundSealPayload.STREAM_CODEC,
+                (payload, context) -> SealClientHandler.handle(payload, context)
+        );
+        registrar.playToClient(
+                ClientboundGolemPressStuffPayload.TYPE,
+                ClientboundGolemPressStuffPayload.STREAM_CODEC,
+                (payload, context) -> GolemPressClientHandler.handle(payload, context)
+        );
+        registrar.playToServer(
+                ServerboundGolemPressPayload.TYPE,
+                ServerboundGolemPressPayload.STREAM_CODEC,
+                ServerboundGolemPressHandler::handle
         );
         registrar.playToServer(
                 ServerboundAdvanceStagePayload.TYPE,

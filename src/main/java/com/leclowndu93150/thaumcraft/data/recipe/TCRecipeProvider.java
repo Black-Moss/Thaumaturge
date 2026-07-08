@@ -3,7 +3,9 @@ package com.leclowndu93150.thaumcraft.data.recipe;
 import com.google.common.collect.ImmutableList;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
@@ -54,6 +56,9 @@ import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
+import net.neoforged.neoforge.registries.DeferredItem;
+import com.leclowndu93150.thaumcraft.content.golem.ItemSealPlacer;
 import java.util.concurrent.CompletableFuture;
 
 public final class TCRecipeProvider extends RecipeProvider {
@@ -76,6 +81,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildCrucibleRecipes();
         buildFocusRecipes();
         buildIngredientRecipes();
+        buildGolemancyRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
                 .requires(TCItems.PHIAL)
@@ -704,6 +710,16 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(TCItemTags.PLATES_BRASS))
                 .save(output);
 
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.BOTTLE_TAINT),
+                DataComponentIngredient.of(TCDataComponents.ASPECTS.get(),
+                        AspectList.of(new AspectInstance(aspects.getOrThrow(TCAspects.VITIUM), PhialItem.BASE_AMOUNT)),
+                        TCItems.PHIAL.get()))
+                .aspect(TCAspects.VITIUM, 30)
+                .aspect(TCAspects.AQUA, 30)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .unlockedBy("has", has(TCItems.PHIAL.get()))
+                .save(output);
+
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.BATH_SALTS),
                 Ingredient.of(TCItems.SALIS_MUNDUS))
                 .aspect(TCAspects.COGNITIO, 40)
@@ -1086,6 +1102,178 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private Holder<IAspect> getAspect(ResourceKey<IAspect> key) {
         return registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(key);
+    }
+
+
+    private void buildGolemancyRecipes() {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        ResearchGate gate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
+
+        shaped(RecipeCategory.TOOLS, TCItems.GOLEM_BELL.get())
+                .pattern(" QQ")
+                .pattern(" QQ")
+                .pattern("S  ")
+                .define('S', Tags.Items.RODS_WOODEN)
+                .define('Q', Tags.Items.GEMS_QUARTZ)
+                .unlockedBy("has", has(Tags.Items.GEMS_QUARTZ))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.MIND_CLOCKWORK), 25)
+                .aspect(TCAspects.IGNIS, 1)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern(" P ")
+                .pattern("PGP")
+                .pattern("BCB")
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .define('B', TCItems.PLATE_BRASS)
+                .define('P', Tags.Items.GLASS_PANES)
+                .define('C', Items.COMPARATOR)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.MIND_BIOTHAUMIC), Ingredient.of(TCItems.MIND_CLOCKWORK.get()))
+                .component(Ingredient.of(TCItems.BRAIN.get()))
+                .component(Ingredient.of(TCItems.MECHANISM_COMPLEX.get()))
+                .aspect(TCAspects.COGNITIO, 50)
+                .aspect(TCAspects.MACHINA, 25)
+                .instability(4)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.MIND_CLOCKWORK))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.MODULE_VISION), 50)
+                .aspect(TCAspects.AQUA, 1)
+                .pattern("B B")
+                .pattern("E E")
+                .pattern("PGP")
+                .define('B', Items.GLASS_BOTTLE)
+                .define('E', Items.FERMENTED_SPIDER_EYE)
+                .define('P', TCItems.PLATE_BRASS)
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.MODULE_AGGRESSION), 50)
+                .aspect(TCAspects.IGNIS, 1)
+                .pattern(" R ")
+                .pattern("RTR")
+                .pattern("PGP")
+                .define('R', Tags.Items.GLASS_PANES)
+                .define('T', Items.BLAZE_POWDER)
+                .define('P', TCItems.PLATE_BRASS)
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.LEVITATOR), 35)
+                .aspect(TCAspects.AER, 1)
+                .pattern("WIW")
+                .pattern("BNB")
+                .pattern("WGW")
+                .define('I', TCItems.PLATE_THAUMIUM)
+                .define('N', TCItemTags.NITORS)
+                .define('W', ItemTags.PLANKS)
+                .define('B', TCItems.PLATE_IRON)
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        arcaneShapeless(new ItemStackTemplate(TCItems.SEAL_BLANK.get(), 3), 20)
+                .aspect(TCAspects.AER, 1)
+                .requires(Items.CLAY_BALL)
+                .requires(TCItems.TALLOW.get())
+                .requires(Tags.Items.DYES_RED)
+                .requires(TCItemTags.NITORS)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.TALLOW))
+                .save(output);
+
+        sealCrucible(aspects, gate, TCItems.SEAL_PICKUP, TCItems.SEAL_BLANK,
+                builder -> builder.aspect(TCAspects.DESIDERIUM, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_PICKUP_ADVANCED, TCItems.SEAL_PICKUP,
+                builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_FILL, TCItems.SEAL_BLANK,
+                builder -> builder.aspect(TCAspects.AVERSIO, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_FILL_ADVANCED, TCItems.SEAL_FILL,
+                builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_EMPTY, TCItems.SEAL_BLANK,
+                builder -> builder.aspect(TCAspects.VACUOS, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_EMPTY_ADVANCED, TCItems.SEAL_EMPTY,
+                builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_PROVIDER, TCItems.SEAL_EMPTY_ADVANCED,
+                builder -> builder.aspect(TCAspects.PERMUTATIO, 10).aspect(TCAspects.DESIDERIUM, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_STOCK, TCItems.SEAL_FILL,
+                builder -> builder.aspect(TCAspects.COGNITIO, 10).aspect(TCAspects.DESIDERIUM, 10));
+        sealCrucible(aspects, gate, TCItems.SEAL_GUARD, TCItems.SEAL_BLANK,
+                builder -> builder.aspect(TCAspects.AVERSIO, 20).aspect(TCAspects.PRAEMUNIO, 20));
+        sealCrucible(aspects, gate, TCItems.SEAL_GUARD_ADVANCED, TCItems.SEAL_GUARD,
+                builder -> builder.aspect(TCAspects.SENSUS, 20).aspect(TCAspects.COGNITIO, 20));
+        sealCrucible(aspects, gate, TCItems.SEAL_LUMBER, TCItems.SEAL_BREAKER,
+                builder -> builder.aspect(TCAspects.HERBA, 40).aspect(TCAspects.SENSUS, 20));
+        sealCrucible(aspects, gate, TCItems.SEAL_USE, TCItems.SEAL_BLANK,
+                builder -> builder.aspect(TCAspects.FABRICO, 20).aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 20));
+        sealCrucible(aspects, gate, TCItems.SEAL_BREAKER_ADVANCED, TCItems.SEAL_BREAKER,
+                builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10).aspect(TCAspects.INSTRUMENTUM, 20));
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.SEAL_HARVEST), Ingredient.of(TCItems.SEAL_BLANK.get()))
+                .component(Ingredient.of(Items.WHEAT_SEEDS))
+                .component(Ingredient.of(Items.PUMPKIN_SEEDS))
+                .component(Ingredient.of(Items.MELON_SEEDS))
+                .component(Ingredient.of(Items.BEETROOT_SEEDS))
+                .component(Ingredient.of(Items.SUGAR_CANE))
+                .component(Ingredient.of(Items.CACTUS))
+                .aspect(TCAspects.HERBA, 10)
+                .aspect(TCAspects.SENSUS, 10)
+                .aspect(TCAspects.HUMANUS, 10)
+                .instability(0)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.SEAL_BLANK))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.SEAL_BUTCHER), Ingredient.of(TCItems.SEAL_GUARD.get()))
+                .component(Ingredient.of(Items.LEATHER))
+                .component(tag(ItemTags.WOOL))
+                .component(Ingredient.of(Items.RABBIT_HIDE))
+                .component(Ingredient.of(Items.PORKCHOP))
+                .component(Ingredient.of(Items.MUTTON))
+                .component(Ingredient.of(Items.BEEF))
+                .aspect(TCAspects.BESTIA, 10)
+                .aspect(TCAspects.SENSUS, 10)
+                .aspect(TCAspects.HUMANUS, 10)
+                .instability(0)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.SEAL_GUARD))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.SEAL_BREAKER), Ingredient.of(TCItems.SEAL_BLANK.get()))
+                .component(Ingredient.of(Items.GOLDEN_AXE))
+                .component(Ingredient.of(Items.GOLDEN_PICKAXE))
+                .component(Ingredient.of(Items.GOLDEN_SHOVEL))
+                .aspect(TCAspects.INSTRUMENTUM, 10)
+                .aspect(TCAspects.PERDITIO, 10)
+                .aspect(TCAspects.HUMANUS, 10)
+                .instability(1)
+                .gate(gate)
+                .unlockedBy("has", has(TCItems.SEAL_BLANK))
+                .save(output);
+    }
+
+    private void sealCrucible(HolderLookup<IAspect> aspects, ResearchGate gate,
+                              DeferredItem<ItemSealPlacer> result, DeferredItem<ItemSealPlacer> catalyst,
+                              UnaryOperator<CrucibleRecipeBuilder> configure) {
+        configure.apply(new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC,
+                        new ItemStackTemplate(result), Ingredient.of(catalyst.get()))
+                        .gate(gate))
+                .unlockedBy("has", has(catalyst))
+                .save(output);
     }
 
     private ArcaneWorkbenchShapedRecipeBuilder arcaneShaped(ItemStackTemplate result, int vis) {

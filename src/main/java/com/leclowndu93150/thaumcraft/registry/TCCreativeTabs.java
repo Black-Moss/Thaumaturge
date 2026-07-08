@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
+import com.leclowndu93150.thaumcraft.content.golem.GolemProperties;
 import net.minecraft.world.item.ItemStack;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
@@ -210,6 +211,44 @@ public final class TCCreativeTabs {
                         InfusionEnchantmentHelper.add(primalCrusher, InfusionEnchantment.REFINING, 1);
                         output.accept(primalCrusher);
                         output.accept(TCItems.RECHARGE_PEDESTAL.get());
+                        output.accept(TCItems.LEVITATOR.get());
+                        output.accept(TCItems.MIND_CLOCKWORK.get());
+                        output.accept(TCItems.MIND_BIOTHAUMIC.get());
+                        output.accept(TCItems.MODULE_VISION.get());
+                        output.accept(TCItems.MODULE_AGGRESSION.get());
+                        output.accept(TCItems.GOLEM_BELL.get());
+                        output.accept(TCItems.SEAL_BLANK.get());
+                        output.accept(TCItems.SEAL_PICKUP.get());
+                        output.accept(TCItems.SEAL_PICKUP_ADVANCED.get());
+                        output.accept(TCItems.SEAL_FILL.get());
+                        output.accept(TCItems.SEAL_FILL_ADVANCED.get());
+                        output.accept(TCItems.SEAL_EMPTY.get());
+                        output.accept(TCItems.SEAL_EMPTY_ADVANCED.get());
+                        output.accept(TCItems.SEAL_HARVEST.get());
+                        output.accept(TCItems.SEAL_BUTCHER.get());
+                        output.accept(TCItems.SEAL_GUARD.get());
+                        output.accept(TCItems.SEAL_GUARD_ADVANCED.get());
+                        output.accept(TCItems.SEAL_LUMBER.get());
+                        output.accept(TCItems.SEAL_BREAKER.get());
+                        output.accept(TCItems.SEAL_BREAKER_ADVANCED.get());
+                        output.accept(TCItems.SEAL_USE.get());
+                        output.accept(TCItems.SEAL_PROVIDER.get());
+                        output.accept(TCItems.SEAL_STOCK.get());
+                        output.accept(golemPlacer(GolemProperties.createDefault()));
+                        GolemProperties smartFine = GolemProperties.createDefault();
+                        smartFine.setHead(TCGolemParts.HEAD_SMART.get());
+                        smartFine.setArms(TCGolemParts.ARMS_FINE.get());
+                        output.accept(golemPlacer(smartFine));
+                        GolemProperties ironClaws = GolemProperties.createDefault();
+                        ironClaws.setMaterial(TCGolemParts.IRON.get());
+                        ironClaws.setHead(TCGolemParts.HEAD_SMART.get());
+                        ironClaws.setArms(TCGolemParts.ARMS_CLAWS.get());
+                        output.accept(golemPlacer(ironClaws));
+                        GolemProperties thaumiumBreakers = GolemProperties.createDefault();
+                        thaumiumBreakers.setMaterial(TCGolemParts.THAUMIUM.get());
+                        thaumiumBreakers.setHead(TCGolemParts.HEAD_SMART.get());
+                        thaumiumBreakers.setArms(TCGolemParts.ARMS_BREAKERS.get());
+                        output.accept(golemPlacer(thaumiumBreakers));
                         output.accept(TCItems.TRAVELLER_BOOTS.get());
                         output.accept(TCItems.CLOTH_CHEST.get());
                         output.accept(TCItems.CLOTH_LEGS.get());
@@ -231,6 +270,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.FIREBAT_SPAWN_EGG.get());
                         output.accept(TCItems.MIND_SPIDER_SPAWN_EGG.get());
                         output.accept(TCItems.THAUMIC_SLIME_SPAWN_EGG.get());
+                        output.accept(TCItems.BOTTLE_TAINT.get());
                         output.accept(TCItems.TAINT_ROCK.get());
                         output.accept(TCItems.TAINT_SOIL.get());
                         output.accept(TCItems.TAINT_CRUST.get());
@@ -254,6 +294,12 @@ public final class TCCreativeTabs {
                         output.accept(item);
                 }
             }
+
+    private static ItemStack golemPlacer(GolemProperties props) {
+        ItemStack stack = new ItemStack(TCItems.GOLEM_PLACER.get());
+        stack.set(TCDataComponents.GOLEM_PROPERTIES.get(), props);
+        return stack;
+    }
 
     private TCCreativeTabs() {}
 

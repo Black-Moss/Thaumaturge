@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.MenuSmelter;
+import com.leclowndu93150.thaumcraft.content.golem.press.MenuGolemBuilder;
+import com.leclowndu93150.thaumcraft.content.golem.seals.MenuSealBase;
 import com.leclowndu93150.thaumcraft.content.spa.MenuSpa;
 import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
@@ -31,6 +33,12 @@ public final class TCMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuSmelter>> SMELTER =
             MENUS.register("smelter", () -> IMenuTypeExtension.create(MenuSmelter::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuGolemBuilder>> GOLEM_BUILDER =
+            MENUS.register("golem_builder", () -> IMenuTypeExtension.create(MenuGolemBuilder::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuSealBase>> SEAL =
+            MENUS.register("seal", () -> IMenuTypeExtension.create(MenuSealBase::new));
 
     private TCMenus() {}
 

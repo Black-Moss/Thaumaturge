@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumcraft;
 
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
+import com.leclowndu93150.thaumcraft.api.golems.GolemHelper;
+import com.leclowndu93150.thaumcraft.content.golem.GolemBindings;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftAccess;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
@@ -50,6 +52,9 @@ public final class Thaumcraft {
         TCTheorycraft.register(modBus);
         TCAttributes.register(modBus);
         TCFocusElements.register(modBus);
+        TCGolemParts.register(modBus);
+        TCSeals.register(modBus);
+        TCEntityDataSerializers.register(modBus);
 
         NeoForge.EVENT_BUS.addListener(TCRecipeTypes::registerSynchronizedRecipes);
 
@@ -63,6 +68,7 @@ public final class Thaumcraft {
         TaintApi.bind(new TaintApiBindings());
         WarpHelper.bind(new WarpManager.Bindings());
         ScanningManager.bind(new ScanBindings());
+        GolemHelper.bind(new GolemBindings());
         FocusEngine.bindRegistry(TCFocusElements.registry());
 
         if (ModList.get().isLoaded(TCIds.CURIOS))

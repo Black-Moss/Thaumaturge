@@ -3,6 +3,9 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.aura.AuraData;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues;
+import com.leclowndu93150.thaumcraft.content.golem.seals.SealWorldIndex;
+import com.leclowndu93150.thaumcraft.content.golem.seals.SealsChunkData;
+import com.leclowndu93150.thaumcraft.content.golem.tasks.GolemTasks;
 import com.leclowndu93150.thaumcraft.content.entity.FocusCloudCooldowns;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
@@ -57,6 +60,17 @@ public final class TCAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<BlockWorkQueues>> BLOCK_WORK_QUEUES =
             register("block_work_queues", () -> AttachmentType.builder(BlockWorkQueues::new).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<SealsChunkData>> SEALS =
+            register("seals", () -> AttachmentType.builder(SealsChunkData::new)
+                    .serialize(SealsChunkData.CODEC)
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<SealWorldIndex>> SEAL_INDEX =
+            register("seal_index", () -> AttachmentType.builder(SealWorldIndex::new).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<GolemTasks>> GOLEM_TASKS =
+            register("golem_tasks", () -> AttachmentType.builder(GolemTasks::new).build());
 
     private TCAttachments() {}
 

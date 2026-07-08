@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.data.model;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
+import com.leclowndu93150.thaumcraft.client.color.GolemMaterialTint;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
@@ -199,6 +200,7 @@ public final class TCModelProvider extends ModelProvider {
         registerRobeItem(itemModels, TCItems.CLOTH_BOOTS.get(), "cloth_boots");
         registerSpa(blockModels, itemModels);
         registerCasters(itemModels);
+        registerGolemancy(blockModels, itemModels);
 
         itemModels.generateFlatItem(TCItems.NUGGET_QUARTZ.get(), ModelTemplates.FLAT_ITEM);
 
@@ -477,6 +479,61 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.PURIFYING_FLUID.get(),
                 new MultiVariant(WeightedList.of(new Variant(
                         Identifier.fromNamespaceAndPath(TCIds.MODID, "block/purifying_fluid"))))));
+    }
+
+    private static void registerGolemancy(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        itemModels.generateFlatItem(TCItems.MIND_CLOCKWORK.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MIND_BIOTHAUMIC.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MODULE_VISION.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.MODULE_AGGRESSION.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GOLEM_BELL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_BLANK.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_PICKUP.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_PICKUP_ADVANCED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_FILL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_FILL_ADVANCED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_EMPTY.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_EMPTY_ADVANCED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_HARVEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_BUTCHER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_GUARD.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_GUARD_ADVANCED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_LUMBER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_BREAKER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_BREAKER_ADVANCED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_USE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_PROVIDER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SEAL_STOCK.get(), ModelTemplates.FLAT_ITEM);
+
+        Identifier golemModel = ModelTemplates.FLAT_ITEM.create(
+                ModelLocationUtils.getModelLocation(TCItems.GOLEM_PLACER.get()),
+                TextureMapping.layer0(TCItems.GOLEM_PLACER.get()), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCItems.GOLEM_PLACER.get(),
+                ItemModelUtils.tintedModel(golemModel, new GolemMaterialTint()));
+
+        PropertyDispatch<VariantMutator> levitatorFacing = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.UP, BlockModelGenerators.NOP)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180)
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180))
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
+        Identifier levitatorOn = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/levitator_on");
+        Identifier levitatorOff = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/levitator_off");
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.LEVITATOR.get())
+                .with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
+                        .select(true, new MultiVariant(WeightedList.of(new Variant(levitatorOn))))
+                        .select(false, new MultiVariant(WeightedList.of(new Variant(levitatorOff)))))
+                .with(levitatorFacing));
+        itemModels.itemModelOutput.accept(TCItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
+
+        registerInvisibleBlock(blockModels, TCBlocks.GOLEM_BUILDER.get());
+        itemModels.itemModelOutput.accept(TCItems.GOLEM_BUILDER.get(), ItemModelUtils.plainModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/empty")));
+        registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_IRON_BARS.get());
+        registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_CAULDRON.get());
+        registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_ANVIL.get());
+        registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_SMITHING_TABLE.get());
     }
 
     private static void registerCasters(ItemModelGenerators itemModels) {

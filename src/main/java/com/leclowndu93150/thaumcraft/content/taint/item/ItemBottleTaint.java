@@ -9,13 +9,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public final class ItemBottleTaint extends Item {
-    private static final float THROW_POWER = 1.2F;
+    private static final float THROW_PITCH_OFFSET = -5.0F;
+    private static final float THROW_POWER = 0.66F;
     private static final float THROW_UNCERTAINTY = 1.0F;
 
     public ItemBottleTaint(Properties properties) {
@@ -26,12 +26,11 @@ public final class ItemBottleTaint extends Item {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS,
+                SoundEvents.EGG_THROW, SoundSource.PLAYERS,
                 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
         if (level instanceof ServerLevel serverLevel) {
-            Projectile.ProjectileFactory<ThrowableItemProjectile> factory =
-                    (sl, ent, st) -> new EntityBottleTaint(sl, ent);
-            Projectile.spawnProjectileFromRotation(factory, serverLevel, stack, player, -20.0F, THROW_POWER, THROW_UNCERTAINTY);
+            Projectile.spawnProjectileFromRotation(EntityBottleTaint::new,
+                    serverLevel, stack, player, THROW_PITCH_OFFSET, THROW_POWER, THROW_UNCERTAINTY);
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         if (!player.getAbilities().instabuild) {

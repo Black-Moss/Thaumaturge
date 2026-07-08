@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.golem.GolemDartRenderer;
+import com.leclowndu93150.thaumcraft.client.golem.GolemRenderer;
 import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.MatrixCubeModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TCBannerModel;
@@ -66,5 +68,7 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.SPECIAL_ITEM.get(), SpecialItemRenderer::new);
         event.registerEntityRenderer(TCEntities.FOLLOWING_ITEM.get(), ItemEntityRenderer::new);
         event.registerEntityRenderer(TCEntities.ALUMENTUM.get(), EmptyEntityRenderer::new);
+        event.registerEntityRenderer(TCEntities.THAUMCRAFT_GOLEM.get(), GolemRenderer::new);
+        event.registerEntityRenderer(TCEntities.GOLEM_DART.get(), GolemDartRenderer::new);
     }
 }

@@ -1,0 +1,76 @@
+{
+  "x_size": 2,
+  "y_size": 2,
+  "z_size": 2,
+  "cells": [
+    {},
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "minecraft:iron_bars"
+        },
+        "target": {
+          "type": "block",
+          "block": "thaumcraft:placeholder_iron_bars"
+        }
+      }
+    },
+    {},
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "minecraft:cauldron"
+        },
+        "target": {
+          "type": "block",
+          "block": "thaumcraft:placeholder_cauldron"
+        }
+      }
+    },
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "minecraft:anvil"
+        },
+        "target": {
+          "type": "block",
+          "block": "thaumcraft:placeholder_anvil"
+        }
+      }
+    },
+    {
+      "part": {
+        "source": {
+          "type": "state",
+          "state": {
+            "Name": "minecraft:piston",
+            "Properties": {
+              "extended": "false",
+              "facing": "up"
+            }
+          }
+        },
+        "target": {
+          "type": "block",
+          "block": "thaumcraft:golem_builder"
+        }
+      }
+    },
+    {
+      "part": {
+        "source": {
+          "type": "block",
+          "block": "minecraft:smithing_table"
+        },
+        "target": {
+          "type": "block",
+          "block": "thaumcraft:placeholder_smithing_table"
+        }
+      }
+    }
+  ]
+}

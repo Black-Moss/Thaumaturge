@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.infernalfurnace;
 
+import com.leclowndu93150.thaumcraft.content.golem.press.BlockGolemBuilder;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -52,6 +53,22 @@ public class BlockPlaceholder extends Block {
                         if (offsetState.is(TCBlocks.INFERNAL_FURNACE)) {
                             BlockInfernalFurnace.destroyFurnace(level, offsetPos, offsetState, pos);
                             break destroyFor;
+                        }
+                    }
+                }
+            }
+        }
+        if (!level.isClientSide()
+                && (state.is(TCBlocks.PLACEHOLDER_IRON_BARS) || state.is(TCBlocks.PLACEHOLDER_ANVIL)
+                || state.is(TCBlocks.PLACEHOLDER_CAULDRON) || state.is(TCBlocks.PLACEHOLDER_SMITHING_TABLE))) {
+            restoreGolemPress:
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    for (int z = -1; z <= 1; z++) {
+                        BlockPos offsetPos = pos.offset(x, y, z);
+                        if (level.getBlockState(offsetPos).is(TCBlocks.GOLEM_BUILDER)) {
+                            BlockGolemBuilder.restoreStructure(level, offsetPos, pos);
+                            break restoreGolemPress;
                         }
                     }
                 }

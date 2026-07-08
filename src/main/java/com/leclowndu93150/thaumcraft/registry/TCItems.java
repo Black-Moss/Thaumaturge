@@ -56,6 +56,9 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.StandingAndWallBlockItem;
 import com.leclowndu93150.thaumcraft.content.equipment.ElementalAxeItem;
+import com.leclowndu93150.thaumcraft.content.golem.ItemGolemBell;
+import com.leclowndu93150.thaumcraft.content.golem.ItemGolemPlacer;
+import com.leclowndu93150.thaumcraft.content.golem.ItemSealPlacer;
 import com.leclowndu93150.thaumcraft.content.equipment.ElementalHoeItem;
 import com.leclowndu93150.thaumcraft.content.equipment.ElementalPickaxeItem;
 import com.leclowndu93150.thaumcraft.content.equipment.ElementalShovelItem;
@@ -153,7 +156,7 @@ public final class TCItems {
     public static final DeferredItem<ItemBottleTaint> BOTTLE_TAINT = ITEMS.registerItem(
             "bottle_taint",
             ItemBottleTaint::new,
-            props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
+            props -> props.stacksTo(8).rarity(Rarity.UNCOMMON));
 
     public static final DeferredItem<Item> VIS_RESONATOR = ITEMS.registerSimpleItem("vis_resonator");
 
@@ -211,6 +214,38 @@ public final class TCItems {
             PrimalCrusherItem::new, props -> props.pickaxe(TCMaterials.TOOL_PRIMAL_VOID, 3.5F, -2.8F).rarity(Rarity.RARE));
 
     public static final DeferredItem<BlockItem> RECHARGE_PEDESTAL = ITEMS.registerSimpleBlockItem(TCBlocks.RECHARGE_PEDESTAL);
+
+    public static final DeferredItem<BlockItem> LEVITATOR = ITEMS.registerSimpleBlockItem(TCBlocks.LEVITATOR);
+
+    public static final DeferredItem<BlockItem> GOLEM_BUILDER = ITEMS.registerSimpleBlockItem(TCBlocks.GOLEM_BUILDER);
+
+    public static final DeferredItem<ItemGolemPlacer> GOLEM_PLACER = ITEMS.registerItem(
+            "golem", ItemGolemPlacer::new);
+    public static final DeferredItem<ItemGolemBell> GOLEM_BELL = ITEMS.registerItem(
+            "golem_bell", ItemGolemBell::new, props -> props.stacksTo(1));
+
+    public static final DeferredItem<ItemSealPlacer> SEAL_BLANK = sealItem("seal_blank", null);
+    public static final DeferredItem<ItemSealPlacer> SEAL_PICKUP = sealItem("seal_pickup", "pickup");
+    public static final DeferredItem<ItemSealPlacer> SEAL_PICKUP_ADVANCED = sealItem("seal_pickup_advanced", "pickup_advanced");
+    public static final DeferredItem<ItemSealPlacer> SEAL_FILL = sealItem("seal_fill", "fill");
+    public static final DeferredItem<ItemSealPlacer> SEAL_FILL_ADVANCED = sealItem("seal_fill_advanced", "fill_advanced");
+    public static final DeferredItem<ItemSealPlacer> SEAL_EMPTY = sealItem("seal_empty", "empty");
+    public static final DeferredItem<ItemSealPlacer> SEAL_EMPTY_ADVANCED = sealItem("seal_empty_advanced", "empty_advanced");
+    public static final DeferredItem<ItemSealPlacer> SEAL_HARVEST = sealItem("seal_harvest", "harvest");
+    public static final DeferredItem<ItemSealPlacer> SEAL_BUTCHER = sealItem("seal_butcher", "butcher");
+    public static final DeferredItem<ItemSealPlacer> SEAL_GUARD = sealItem("seal_guard", "guard");
+    public static final DeferredItem<ItemSealPlacer> SEAL_GUARD_ADVANCED = sealItem("seal_guard_advanced", "guard_advanced");
+    public static final DeferredItem<ItemSealPlacer> SEAL_LUMBER = sealItem("seal_lumber", "lumber");
+    public static final DeferredItem<ItemSealPlacer> SEAL_BREAKER = sealItem("seal_breaker", "breaker");
+    public static final DeferredItem<ItemSealPlacer> SEAL_BREAKER_ADVANCED = sealItem("seal_breaker_advanced", "breaker_advanced");
+    public static final DeferredItem<ItemSealPlacer> SEAL_USE = sealItem("seal_use", "use");
+    public static final DeferredItem<ItemSealPlacer> SEAL_PROVIDER = sealItem("seal_provider", "provider");
+    public static final DeferredItem<ItemSealPlacer> SEAL_STOCK = sealItem("seal_stock", "stock");
+
+    private static DeferredItem<ItemSealPlacer> sealItem(String id, String sealPath) {
+        return ITEMS.registerItem(id, props -> new ItemSealPlacer(
+                sealPath == null ? null : TCIds.rl(sealPath), props));
+    }
 
     public static final DeferredItem<TravellerBootsItem> TRAVELLER_BOOTS = ITEMS.registerItem("traveller_boots",
             TravellerBootsItem::new, props -> props
@@ -313,6 +348,10 @@ public final class TCItems {
     public static final DeferredItem<Item> FILTER = ITEMS.registerSimpleItem("filter");
     public static final DeferredItem<Item> MECHANISM_SIMPLE = ITEMS.registerSimpleItem("mechanism_simple");
     public static final DeferredItem<Item> MECHANISM_COMPLEX = ITEMS.registerSimpleItem("mechanism_complex");
+    public static final DeferredItem<Item> MIND_CLOCKWORK = ITEMS.registerSimpleItem("mind_clockwork");
+    public static final DeferredItem<Item> MIND_BIOTHAUMIC = ITEMS.registerSimpleItem("mind_biothaumic");
+    public static final DeferredItem<Item> MODULE_VISION = ITEMS.registerSimpleItem("module_vision");
+    public static final DeferredItem<Item> MODULE_AGGRESSION = ITEMS.registerSimpleItem("module_aggression");
     public static final DeferredItem<Item> MORPHIC_RESONATOR = ITEMS.registerSimpleItem("morphic_resonator");
     public static final DeferredItem<Item> BATH_SALTS = ITEMS.registerSimpleItem("bath_salts");
     public static final DeferredItem<ItemSanitySoap> SANITY_SOAP = ITEMS.registerItem(

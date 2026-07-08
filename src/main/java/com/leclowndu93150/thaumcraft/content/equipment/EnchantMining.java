@@ -47,7 +47,7 @@ public final class EnchantMining {
         return removed;
     }
 
-    public static void breakFurthest(ServerLevel level, BlockPos origin, BlockState block, Player player) {
+    public static boolean breakFurthest(ServerLevel level, BlockPos origin, BlockState block, Player player) {
         int reach = isLog(level, origin) ? 2 : 1;
         BlockPos furthest = findFurthest(level, origin, block, reach);
         boolean worked = harvestBlock(level, player, furthest, true);
@@ -62,6 +62,7 @@ public final class EnchantMining {
                 }
             }
         }
+        return worked;
     }
 
     private static BlockPos findFurthest(ServerLevel level, BlockPos origin, BlockState block, int reach) {

@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumcraft.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumcraft.content.casters.CasterArea;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantments;
+import com.leclowndu93150.thaumcraft.content.golem.GolemProperties;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -92,6 +93,16 @@ public final class TCDataComponents {
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ENERGY =
             DATA_COMPONENTS.registerComponentType("energy", builder -> builder
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GolemProperties>> GOLEM_PROPERTIES =
+            DATA_COMPONENTS.registerComponentType("golem_properties", builder -> builder
+                    .persistent(GolemProperties.CODEC)
+                    .networkSynchronized(GolemProperties.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> GOLEM_XP =
+            DATA_COMPONENTS.registerComponentType("golem_xp", builder -> builder
                     .persistent(ExtraCodecs.NON_NEGATIVE_INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
 

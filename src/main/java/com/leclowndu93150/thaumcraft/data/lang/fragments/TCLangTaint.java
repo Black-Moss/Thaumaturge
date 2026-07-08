@@ -38,6 +38,7 @@ public final class TCLangTaint {
         provider.add("entity.thaumcraft.taintacle_small", "Lesser Taintacle");
         provider.add("entity.thaumcraft.falling_taint", "Falling Taint");
         provider.add("entity.thaumcraft.bottle_taint", "Bottle of Tainted Goo");
+        provider.add("item.thaumcraft.bottle_taint", "Bottle of Taint");
         provider.add("entity.thaumcraft.wisp", "Wisp");
         provider.add("entity.thaumcraft.brainy_zombie", "Angry Zombie");
         provider.add("entity.thaumcraft.giant_brainy_zombie", "Furious Zombie");

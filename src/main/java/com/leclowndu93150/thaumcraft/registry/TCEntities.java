@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.content.entity.*;
 
 import java.util.function.Supplier;
 
+import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
 import com.leclowndu93150.thaumcraft.content.misc.alumentum.ThrownAlumentum;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -198,6 +199,21 @@ public final class TCEntities {
                     .sized(0.25F, 0.25F)
                     .clientTrackingRange(64)
                     .updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityGolemDart>> GOLEM_DART = register(
+            "golem_dart",
+            () -> EntityType.Builder.<EntityGolemDart>of(EntityGolemDart::new, MobCategory.MISC)
+                    .sized(0.2F, 0.2F)
+                    .clientTrackingRange(4)
+                    .updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityThaumcraftGolem>> THAUMCRAFT_GOLEM = register(
+            "golem",
+            () -> EntityType.Builder.<EntityThaumcraftGolem>of(EntityThaumcraftGolem::new, MobCategory.MISC)
+                    .sized(0.4F, 0.9F)
+                    .eyeHeight(0.7F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
 
     private TCEntities() {}
 

@@ -153,6 +153,8 @@ public final class WavefrontObject {
         int slash = prefix.lastIndexOf('/');
         prefix = slash >= 0 ? prefix.substring(0, slash + 1) : "";
         Identifier mtlLocation = Identifier.fromNamespaceAndPath(parent.getNamespace(), prefix + path);
-        this.materialLibrary.loadFromResource(resources, mtlLocation);
+        if (resources.getResource(mtlLocation).isPresent()) {
+            this.materialLibrary.loadFromResource(resources, mtlLocation);
+        }
     }
 }

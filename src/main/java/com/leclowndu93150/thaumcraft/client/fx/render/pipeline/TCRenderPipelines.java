@@ -106,6 +106,19 @@ public final class TCRenderPipelines {
             .withDepthStencilState(TEST_NO_WRITE)
             .build();
 
+    public static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_translucent_no_depth"))
+            .withVertexShader("core/entity")
+            .withFragmentShader("core/entity")
+            .withShaderDefine("NO_OVERLAY")
+            .withShaderDefine("NO_CARDINAL_LIGHTING")
+            .withSampler("Sampler0")
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
+            .withDepthStencilState(ALWAYS_NO_WRITE)
+            .withCull(false)
+            .build();
+
     public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
@@ -124,6 +137,7 @@ public final class TCRenderPipelines {
         event.registerPipeline(SPARKLE);
         event.registerPipeline(SPARKLE_CULLED);
         event.registerPipeline(ENTITY_ADDITIVE_EMISSIVE);
+        event.registerPipeline(ENTITY_TRANSLUCENT_NO_DEPTH);
     }
 
     private TCRenderPipelines() {}

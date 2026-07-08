@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumcraft.client.screen;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.screen.casters.FocalManipulatorScreen;
+import com.leclowndu93150.thaumcraft.client.screen.golem.GolemBuilderScreen;
+import com.leclowndu93150.thaumcraft.client.screen.golem.SealScreen;
 import com.leclowndu93150.thaumcraft.client.screen.pip.BlockPreviewRenderState;
 import com.leclowndu93150.thaumcraft.client.screen.pip.BlockPreviewRenderer;
 import com.leclowndu93150.thaumcraft.client.screen.research.ResearchTableScreen;
@@ -24,6 +26,8 @@ public final class TCMenuScreens {
         event.register(TCMenus.SMELTER.get(), SmelterScreen::new);
         event.register(TCMenus.SPA.get(), SpaScreen::new);
         event.register(TCMenus.FOCAL_MANIPULATOR.get(), FocalManipulatorScreen::new);
+        event.register(TCMenus.GOLEM_BUILDER.get(), GolemBuilderScreen::new);
+        event.register(TCMenus.SEAL.get(), SealScreen::new);
     }
 
     @SubscribeEvent

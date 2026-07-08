@@ -33,6 +33,8 @@ import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockTubeValve;
 import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockInfernalFurnace;
 import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockPlaceholder;
 import com.leclowndu93150.thaumcraft.content.metal.BlockMetalTC;
+import com.leclowndu93150.thaumcraft.content.device.BlockLevitator;
+import com.leclowndu93150.thaumcraft.content.golem.press.BlockGolemBuilder;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockResearchTable;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintCrust;
@@ -362,6 +364,14 @@ public final class TCBlocks {
                     })
     );
 
+    private static BlockBehaviour.Properties pressPlaceholderProps(BlockBehaviour.Properties props) {
+        return props
+                .mapColor(MapColor.STONE)
+                .strength(2.5F, 3600000.0F)
+                .sound(SoundType.STONE)
+                .noLootTable();
+    }
+
     private static BlockBehaviour.Properties pedestalProps(BlockBehaviour.Properties props) {
         return props
                 .mapColor(MapColor.STONE)
@@ -553,6 +563,38 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockRechargePedestal> RECHARGE_PEDESTAL = BLOCKS.registerBlock(
             "recharge_pedestal", BlockRechargePedestal::new, TCBlocks::pedestalProps);
+
+    public static final DeferredBlock<BlockLevitator> LEVITATOR = BLOCKS.registerBlock(
+            "levitator",
+            BlockLevitator::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 20.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockGolemBuilder> GOLEM_BUILDER = BLOCKS.registerBlock(
+            "golem_builder",
+            BlockGolemBuilder::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.0F, 20.0F)
+                    .sound(SoundType.STONE)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_IRON_BARS = BLOCKS.registerBlock(
+            "placeholder_iron_bars", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
+
+    public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_CAULDRON = BLOCKS.registerBlock(
+            "placeholder_cauldron", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
+
+    public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_ANVIL = BLOCKS.registerBlock(
+            "placeholder_anvil", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
+
+    public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_SMITHING_TABLE = BLOCKS.registerBlock(
+            "placeholder_smithing_table", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
 
     public static final DeferredBlock<BlockPedestal> PEDESTAL_ANCIENT = BLOCKS.registerBlock(
             "pedestal_ancient", BlockPedestal::new, TCBlocks::pedestalProps);

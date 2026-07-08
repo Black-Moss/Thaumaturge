@@ -19,6 +19,8 @@ import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockEntityInfernal
 import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityInfusionMatrix;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityPedestal;
 import com.leclowndu93150.thaumcraft.content.aura.BlockEntityRechargePedestal;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityLevitator;
+import com.leclowndu93150.thaumcraft.content.golem.press.BlockEntityGolemBuilder;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import java.util.Set;
@@ -176,6 +178,18 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "recharge_pedestal",
                     () -> new BlockEntityType<>(BlockEntityRechargePedestal::new, Set.of(TCBlocks.RECHARGE_PEDESTAL.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityLevitator>> LEVITATOR =
+            BLOCK_ENTITIES.register(
+                    "levitator",
+                    () -> new BlockEntityType<>(BlockEntityLevitator::new, Set.of(TCBlocks.LEVITATOR.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityGolemBuilder>> GOLEM_BUILDER =
+            BLOCK_ENTITIES.register(
+                    "golem_builder",
+                    () -> new BlockEntityType<>(BlockEntityGolemBuilder::new, Set.of(TCBlocks.GOLEM_BUILDER.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityHole>> HOLE =

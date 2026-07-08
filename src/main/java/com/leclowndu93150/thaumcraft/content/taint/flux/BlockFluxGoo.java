@@ -4,18 +4,22 @@ import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockFluxGoo extends LiquidBlock {
     public static final MapCodec<LiquidBlock> CODEC = simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
 
-    private static final int REPLACEABLE_AMOUNT_THRESHOLD = 4;
+    private static final int REPLACEABLE_AMOUNT_THRESHOLD = 5;
     private static final int AMBIENT_FUME_DENOMINATOR = 44;
     private static final int FUME_GRID = 64;
     private static final int FUME_PARTICLE_INDEX = 64;
@@ -54,7 +58,7 @@ public final class BlockFluxGoo extends LiquidBlock {
                     .motion(0.0, 0.0, 0.0)
                     .maxAge(maxAge)
                     .color(FUME_R, FUME_G, FUME_B)
-                    .alpha(FUME_ALPHA, 0.0F)
+                    .alpha(FUME_ALPHA, FUME_ALPHA)
                     .grid(FUME_GRID)
                     .particle(FUME_PARTICLE_INDEX)
                     .finalFrames(FUME_FINAL_FRAME_A, FUME_FINAL_FRAME_B)
@@ -66,5 +70,10 @@ public final class BlockFluxGoo extends LiquidBlock {
                     .build();
             level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
         }
+    }
+
+    @Override
+    public ItemStack pickupBlock(@Nullable LivingEntity user, LevelAccessor level, BlockPos pos, BlockState state) {
+        return ItemStack.EMPTY;
     }
 }

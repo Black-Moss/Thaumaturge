@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
@@ -42,5 +43,6 @@ public final class TCEntityEvents {
         event.put(TCEntities.TAINTACLE.get(), EntityTaintacle.createAttributes().build());
         event.put(TCEntities.TAINTACLE_SMALL.get(), EntityTaintacleSmall.createAttributes().build());
         event.put(TCEntities.SPELL_BAT.get(), EntitySpellBat.createAttributes().build());
+        event.put(TCEntities.THAUMCRAFT_GOLEM.get(), EntityThaumcraftGolem.createAttributes().build());
     }
 }

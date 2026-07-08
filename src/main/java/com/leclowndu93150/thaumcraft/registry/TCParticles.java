@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumcraft.content.fx.data.VisSparkleData;
 import com.leclowndu93150.thaumcraft.content.fx.data.WispData;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -209,6 +210,9 @@ public final class TCParticles {
                     return FluxGooDropletData.STREAM_CODEC;
                 }
             });
+
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> TAINT_SPLOSION =
+            PARTICLES.register("taint_splosion", () -> new SimpleParticleType(false));
 
     private TCParticles() {}
 
