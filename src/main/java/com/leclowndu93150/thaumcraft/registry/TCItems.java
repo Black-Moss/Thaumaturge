@@ -23,6 +23,7 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBrainItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
 import java.util.ArrayList;
@@ -157,6 +158,21 @@ public final class TCItems {
             "bottle_taint",
             ItemBottleTaint::new,
             props -> props.stacksTo(8).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<BlockItem> ARCANE_EAR = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_EAR);
+    public static final DeferredItem<BlockItem> ARCANE_EAR_TOGGLE = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_EAR_TOGGLE);
+    public static final DeferredItem<BlockItem> LAMP_ARCANE = ITEMS.registerSimpleBlockItem(TCBlocks.LAMP_ARCANE);
+    public static final DeferredItem<BlockItem> LAMP_GROWTH = ITEMS.registerSimpleBlockItem(TCBlocks.LAMP_GROWTH);
+    public static final DeferredItem<BlockItem> LAMP_FERTILITY = ITEMS.registerSimpleBlockItem(TCBlocks.LAMP_FERTILITY);
+    public static final DeferredItem<BlockItem> CENTRIFUGE = ITEMS.registerSimpleBlockItem(TCBlocks.CENTRIFUGE);
+    public static final DeferredItem<BlockItem> HUNGRY_CHEST = ITEMS.registerSimpleBlockItem(TCBlocks.HUNGRY_CHEST);
+    public static final DeferredItem<BlockItem> MATRIX_SPEED = ITEMS.registerSimpleBlockItem(TCBlocks.MATRIX_SPEED);
+    public static final DeferredItem<BlockItem> MATRIX_COST = ITEMS.registerSimpleBlockItem(TCBlocks.MATRIX_COST);
+    public static final DeferredItem<BlockItem> VIS_BATTERY = ITEMS.registerSimpleBlockItem(TCBlocks.VIS_BATTERY);
+    public static final DeferredItem<BlockItem> DIOPTRA = ITEMS.registerSimpleBlockItem(TCBlocks.DIOPTRA);
+    public static final DeferredItem<JarBrainItem> JAR_BRAIN = ITEMS.registerItem(
+            "jar_brain",
+            props -> new JarBrainItem(TCBlocks.JAR_BRAIN.get(), props.useBlockDescriptionPrefix()));
 
     public static final DeferredItem<Item> VIS_RESONATOR = ITEMS.registerSimpleItem("vis_resonator");
 

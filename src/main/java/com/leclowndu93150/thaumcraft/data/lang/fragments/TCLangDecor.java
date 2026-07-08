@@ -8,6 +8,18 @@ public final class TCLangDecor {
     private TCLangDecor() {}
 
     public static void register(LanguageProvider provider) {
+        provider.add("block.thaumcraft.dioptra", "Thaumic Dioptra");
+        provider.add("block.thaumcraft.vis_battery", "Vis Battery");
+        provider.add("block.thaumcraft.matrix_speed", "Infusion Speed Stone");
+        provider.add("block.thaumcraft.matrix_cost", "Infusion Cost Stone");
+        provider.add("block.thaumcraft.jar_brain", "Brain in a Jar");
+        provider.add("block.thaumcraft.arcane_ear", "Arcane Ear");
+        provider.add("block.thaumcraft.arcane_ear_toggle", "Arcane Ear (Toggle)");
+        provider.add("block.thaumcraft.lamp_arcane", "Arcane Lamp");
+        provider.add("block.thaumcraft.lamp_growth", "Lamp of Growth");
+        provider.add("block.thaumcraft.lamp_fertility", "Lamp of Fertility");
+        provider.add("block.thaumcraft.centrifuge", "Essentia Centrifuge");
+        provider.add("block.thaumcraft.hungry_chest", "Hungry Chest");
         provider.add("item.thaumcraft.tallow", "Magic Tallow");
         provider.add("item.thaumcraft.warping", "Warping");
         provider.add("effect.thaumcraft.thaumarhia", "Thaumorrhea");

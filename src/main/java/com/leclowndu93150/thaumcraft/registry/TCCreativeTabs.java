@@ -66,12 +66,14 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.JAR_NORMAL.get());
                         output.accept(TCItems.JAR_VOID.get());
                         output.accept(TCItems.JAR_BRACE.get());
+                        output.accept(TCItems.JAR_BRAIN.get());
                         output.accept(TCItems.TUBE.get());
                         output.accept(TCItems.TUBE_VALVE.get());
                         output.accept(TCItems.TUBE_RESTRICT.get());
                         output.accept(TCItems.TUBE_FILTER.get());
                         output.accept(TCItems.TUBE_ONEWAY.get());
                         output.accept(TCItems.TUBE_BUFFER.get());
+                        output.accept(TCItems.CENTRIFUGE.get());
 
 
                         output.accept(TCItems.ORE_AMBER.get());
@@ -212,6 +214,14 @@ public final class TCCreativeTabs {
                         output.accept(primalCrusher);
                         output.accept(TCItems.RECHARGE_PEDESTAL.get());
                         output.accept(TCItems.LEVITATOR.get());
+                        output.accept(TCItems.DIOPTRA.get());
+                        output.accept(TCItems.ARCANE_EAR.get());
+                        output.accept(TCItems.ARCANE_EAR_TOGGLE.get());
+                        output.accept(TCItems.LAMP_ARCANE.get());
+                        output.accept(TCItems.LAMP_GROWTH.get());
+                        output.accept(TCItems.LAMP_FERTILITY.get());
+                        output.accept(TCItems.HUNGRY_CHEST.get());
+                        output.accept(TCItems.VIS_BATTERY.get());
                         output.accept(TCItems.MIND_CLOCKWORK.get());
                         output.accept(TCItems.MIND_BIOTHAUMIC.get());
                         output.accept(TCItems.MODULE_VISION.get());
@@ -260,6 +270,8 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PILLAR_ARCANE.get());
                         output.accept(TCItems.PILLAR_ANCIENT.get());
                         output.accept(TCItems.PILLAR_ELDRITCH.get());
+                        output.accept(TCItems.MATRIX_SPEED.get());
+                        output.accept(TCItems.MATRIX_COST.get());
                         output.accept(TCItems.VOID_SEED.get());
                         output.accept(TCItems.CAUSALITY_COLLAPSER.get());
                         output.accept(TCItems.PRIMORDIAL_PEARL.get());

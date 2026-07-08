@@ -21,6 +21,10 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
     private static final float ELDRITCH_PILLAR_STABILITY_BONUS = 0.2F;
     private static final float ELDRITCH_PEDESTAL_COST_PENALTY = 0.0025F;
     private static final float ANCIENT_PEDESTAL_COST_BONUS = 0.01F;
+    private static final int MATRIX_SPEED_CYCLE_BONUS = 1;
+    private static final float MATRIX_SPEED_COST_PENALTY = 0.01F;
+    private static final int MATRIX_COST_CYCLE_PENALTY = 1;
+    private static final float MATRIX_COST_COST_BONUS = 0.02F;
 
     public static MatrixEnvironment survey(Level level, BlockPos matrixPos) {
         List<BlockPos> pedestals = new ArrayList<>();
@@ -54,6 +58,18 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
                 cycleTime -= ELDRITCH_PILLAR_CYCLE_BONUS;
                 costMult += ELDRITCH_PILLAR_COST_PENALTY;
                 stabilityReplenish += ELDRITCH_PILLAR_STABILITY_BONUS;
+            }
+        }
+        int[] xm = {-1, 1, 1, -1};
+        int[] zm = {-1, -1, 1, 1};
+        for (int a = 0; a < 4; a++) {
+            Block corner = level.getBlockState(matrixPos.offset(xm[a], -3, zm[a])).getBlock();
+            if (corner == TCBlocks.MATRIX_SPEED.get()) {
+                cycleTime -= MATRIX_SPEED_CYCLE_BONUS;
+                costMult += MATRIX_SPEED_COST_PENALTY;
+            } else if (corner == TCBlocks.MATRIX_COST.get()) {
+                cycleTime += MATRIX_COST_CYCLE_PENALTY;
+                costMult -= MATRIX_COST_COST_BONUS;
             }
         }
         for (BlockPos pedestal : pedestals) {

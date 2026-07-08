@@ -106,6 +106,11 @@ public final class TCDataComponents {
                     .persistent(ExtraCodecs.NON_NEGATIVE_INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STORED_XP =
+            DATA_COMPONENTS.registerComponentType("stored_xp", builder -> builder
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     private TCDataComponents() {}
 
     public static void register(IEventBus modBus) {

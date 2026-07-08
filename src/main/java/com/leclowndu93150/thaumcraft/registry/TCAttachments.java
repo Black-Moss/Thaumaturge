@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import net.minecraft.core.BlockPos;
 import com.leclowndu93150.thaumcraft.content.aura.AuraData;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues;
 import com.leclowndu93150.thaumcraft.content.golem.seals.SealWorldIndex;
@@ -16,6 +17,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public final class TCAttachments {
@@ -71,6 +75,9 @@ public final class TCAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<GolemTasks>> GOLEM_TASKS =
             register("golem_tasks", () -> AttachmentType.builder(GolemTasks::new).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Set<BlockPos>>> EAR_INDEX =
+            register("ear_index", () -> AttachmentType.<Set<BlockPos>>builder(() -> ConcurrentHashMap.newKeySet()).build());
 
     private TCAttachments() {}
 

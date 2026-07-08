@@ -10,6 +10,9 @@ public final class TCModelLayers {
     public static final ModelLayerLocation FIRE_BAT = new ModelLayerLocation(TCIds.rl("fire_bat"), "main");
     public static final ModelLayerLocation TC_BANNER = new ModelLayerLocation(TCIds.rl("tc_banner"), "main");
     public static final ModelLayerLocation MATRIX_CUBE = new ModelLayerLocation(TCIds.rl("matrix_cube"), "main");
+    public static final ModelLayerLocation BRAIN = new ModelLayerLocation(TCIds.rl("brain"), "main");
+    public static final ModelLayerLocation JAR_BRINE = new ModelLayerLocation(TCIds.rl("jar_brine"), "main");
+    public static final ModelLayerLocation CENTRIFUGE = new ModelLayerLocation(TCIds.rl("centrifuge"), "main");
 
     private TCModelLayers() {}
 }

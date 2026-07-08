@@ -20,6 +20,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
+        tag(TCBlockTags.LAMP_GROWTH_BLACKLIST);
         tag(TCBlockTags.INFUSION_STABILISERS)
                 .add(Blocks.SKELETON_SKULL)
                 .add(Blocks.SKELETON_WALL_SKULL)

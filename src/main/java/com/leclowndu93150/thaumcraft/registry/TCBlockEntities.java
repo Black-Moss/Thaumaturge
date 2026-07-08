@@ -3,7 +3,15 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.casters.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockEntityCrucible;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityArcaneEar;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityDioptra;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityHungryChest;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityLampArcane;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityLampFertility;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityLampGrowth;
+import com.leclowndu93150.thaumcraft.content.essentia.BlockEntityCentrifuge;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarBrain;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockEntitySmelter;
@@ -104,6 +112,55 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "jar",
                     () -> new BlockEntityType<>(BlockEntityJar::new, Set.of(TCBlocks.JAR_NORMAL.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarBrain>> JAR_BRAIN =
+            BLOCK_ENTITIES.register(
+                    "jar_brain",
+                    () -> new BlockEntityType<>(BlockEntityJarBrain::new, Set.of(TCBlocks.JAR_BRAIN.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityArcaneEar>> ARCANE_EAR =
+            BLOCK_ENTITIES.register(
+                    "arcane_ear",
+                    () -> new BlockEntityType<>(BlockEntityArcaneEar::new,
+                            Set.of(TCBlocks.ARCANE_EAR.get(), TCBlocks.ARCANE_EAR_TOGGLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityLampArcane>> LAMP_ARCANE =
+            BLOCK_ENTITIES.register(
+                    "lamp_arcane",
+                    () -> new BlockEntityType<>(BlockEntityLampArcane::new, Set.of(TCBlocks.LAMP_ARCANE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityLampGrowth>> LAMP_GROWTH =
+            BLOCK_ENTITIES.register(
+                    "lamp_growth",
+                    () -> new BlockEntityType<>(BlockEntityLampGrowth::new, Set.of(TCBlocks.LAMP_GROWTH.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityLampFertility>> LAMP_FERTILITY =
+            BLOCK_ENTITIES.register(
+                    "lamp_fertility",
+                    () -> new BlockEntityType<>(BlockEntityLampFertility::new, Set.of(TCBlocks.LAMP_FERTILITY.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityCentrifuge>> CENTRIFUGE =
+            BLOCK_ENTITIES.register(
+                    "centrifuge",
+                    () -> new BlockEntityType<>(BlockEntityCentrifuge::new, Set.of(TCBlocks.CENTRIFUGE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityHungryChest>> HUNGRY_CHEST =
+            BLOCK_ENTITIES.register(
+                    "hungry_chest",
+                    () -> new BlockEntityType<>(BlockEntityHungryChest::new, Set.of(TCBlocks.HUNGRY_CHEST.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityDioptra>> DIOPTRA =
+            BLOCK_ENTITIES.register(
+                    "dioptra",
+                    () -> new BlockEntityType<>(BlockEntityDioptra::new, Set.of(TCBlocks.DIOPTRA.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarVoid>> JAR_VOID =

@@ -46,6 +46,15 @@ import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintRock;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintSoil;
 import com.leclowndu93150.thaumcraft.content.spa.BlockPurifyingFluid;
 import com.leclowndu93150.thaumcraft.content.spa.BlockSpa;
+import com.leclowndu93150.thaumcraft.content.device.BlockArcaneEar;
+import com.leclowndu93150.thaumcraft.content.device.BlockDioptra;
+import com.leclowndu93150.thaumcraft.content.device.BlockHungryChest;
+import com.leclowndu93150.thaumcraft.content.device.BlockLampArcane;
+import com.leclowndu93150.thaumcraft.content.device.BlockLampFertility;
+import com.leclowndu93150.thaumcraft.content.device.BlockLampGrowth;
+import com.leclowndu93150.thaumcraft.content.essentia.BlockCentrifuge;
+import com.leclowndu93150.thaumcraft.content.device.BlockVisBattery;
+import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJarBrain;
 import com.leclowndu93150.thaumcraft.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumcraft.content.taint.flux.FluxGooRefs;
 import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbench;
@@ -71,6 +80,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -682,6 +692,116 @@ public final class TCBlocks {
             props -> new BlockStairsTC(STONE_ANCIENT.get().defaultBlockState(), props),
             TCBlocks::stoneProps
     );
+
+    public static final DeferredBlock<BlockStoneTC> MATRIX_SPEED = BLOCKS.registerBlock(
+            "matrix_speed",
+            props -> new BlockStoneTC(props, false),
+            TCBlocks::stoneProps
+    );
+
+    public static final DeferredBlock<BlockStoneTC> MATRIX_COST = BLOCKS.registerBlock(
+            "matrix_cost",
+            props -> new BlockStoneTC(props, false),
+            TCBlocks::stoneProps
+    );
+
+    public static final DeferredBlock<BlockVisBattery> VIS_BATTERY = BLOCKS.registerBlock(
+            "vis_battery",
+            BlockVisBattery::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(0.5F)
+                    .sound(SoundType.STONE)
+                    .randomTicks()
+                    .lightLevel(state -> state.getValue(BlockVisBattery.CHARGE))
+    );
+
+    public static final DeferredBlock<BlockDioptra> DIOPTRA = BLOCKS.registerBlock(
+            "dioptra",
+            BlockDioptra::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.0F, 10.0F)
+                    .sound(SoundType.STONE)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockJarBrain> JAR_BRAIN = BLOCKS.registerBlock(
+            "jar_brain",
+            BlockJarBrain::new,
+            props -> props
+                    .mapColor(MapColor.NONE)
+                    .strength(0.3F)
+                    .sound(TCSoundTypes.JAR.get())
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockArcaneEar> ARCANE_EAR = BLOCKS.registerBlock(
+            "arcane_ear",
+            props -> new BlockArcaneEar(false, props),
+            TCBlocks::earProps
+    );
+
+    public static final DeferredBlock<BlockArcaneEar> ARCANE_EAR_TOGGLE = BLOCKS.registerBlock(
+            "arcane_ear_toggle",
+            props -> new BlockArcaneEar(true, props),
+            TCBlocks::earProps
+    );
+
+    public static final DeferredBlock<BlockLampArcane> LAMP_ARCANE = BLOCKS.registerBlock(
+            "lamp_arcane",
+            BlockLampArcane::new,
+            TCBlocks::lampProps
+    );
+
+    public static final DeferredBlock<BlockLampGrowth> LAMP_GROWTH = BLOCKS.registerBlock(
+            "lamp_growth",
+            BlockLampGrowth::new,
+            TCBlocks::lampProps
+    );
+
+    public static final DeferredBlock<BlockLampFertility> LAMP_FERTILITY = BLOCKS.registerBlock(
+            "lamp_fertility",
+            BlockLampFertility::new,
+            TCBlocks::lampProps
+    );
+
+    public static final DeferredBlock<BlockCentrifuge> CENTRIFUGE = BLOCKS.registerBlock(
+            "centrifuge",
+            BlockCentrifuge::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 10.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockHungryChest> HUNGRY_CHEST = BLOCKS.registerBlock(
+            "hungry_chest",
+            BlockHungryChest::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
+    private static BlockBehaviour.Properties earProps() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.WOOD)
+                .strength(1.0F)
+                .sound(SoundType.WOOD)
+                .noOcclusion();
+    }
+
+    private static BlockBehaviour.Properties lampProps() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(1.0F)
+                .sound(SoundType.METAL)
+                .noOcclusion()
+                .lightLevel(state -> state.getValue(BlockStateProperties.ENABLED) ? 15 : 0);
+    }
 
     private static BlockBehaviour.Properties stoneProps() {
         return BlockBehaviour.Properties.of()

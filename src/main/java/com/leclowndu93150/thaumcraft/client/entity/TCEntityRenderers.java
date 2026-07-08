@@ -5,6 +5,9 @@ import com.leclowndu93150.thaumcraft.client.golem.GolemDartRenderer;
 import com.leclowndu93150.thaumcraft.client.golem.GolemRenderer;
 import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.MatrixCubeModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.BrainModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.CentrifugeModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.JarBrineModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TCBannerModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintSeedModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintacleModel;
@@ -34,6 +37,9 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.TAINT_SEED, TaintSeedModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.FIRE_BAT, FireBatModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.TC_BANNER, TCBannerModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.BRAIN, BrainModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.JAR_BRINE, JarBrineModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.CENTRIFUGE, CentrifugeModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.MATRIX_CUBE, MatrixCubeModel::createLayer);
     }
 

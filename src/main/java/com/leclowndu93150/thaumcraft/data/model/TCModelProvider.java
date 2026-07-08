@@ -1,9 +1,13 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
 import com.leclowndu93150.thaumcraft.client.color.GolemMaterialTint;
+import com.leclowndu93150.thaumcraft.client.model.CentrifugeItemSpecialRenderer;
+import net.minecraft.client.renderer.special.ChestSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.JarBrainItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
@@ -73,6 +77,9 @@ public final class TCModelProvider extends ModelProvider {
         registerResearchTable(blockModels);
         registerJar(blockModels, itemModels, TCBlocks.JAR_NORMAL.get(), "jar_normal");
         registerJar(blockModels, itemModels, TCBlocks.JAR_VOID.get(), "jar_void");
+        registerJarBrain(blockModels, itemModels);
+        registerAuraDevices(blockModels, itemModels);
+        registerNoiseDevices(blockModels, itemModels);
         TubeModels.register(blockModels);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
@@ -564,6 +571,115 @@ public final class TCModelProvider extends ModelProvider {
         Material overTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name + "_over"));
         ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, TextureMapping.layered(baseTex, overTex), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Dye(ROBES_UNDYED_ARGB)));
+    }
+
+
+
+    private void registerJarBrain(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        blockModels.blockStateOutput.accept(
+                BlockModelGenerators.createSimpleBlock(
+                        TCBlocks.JAR_BRAIN.get(),
+                        BlockModelGenerators.plainVariant(TCIds.rl("block/jar_normal"))
+                )
+        );
+        itemModels.itemModelOutput.accept(TCBlocks.JAR_BRAIN.get().asItem(), new CompositeModel.Unbaked(
+                List.of(
+                        new CuboidItemModelWrapper.Unbaked(
+                                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/jar_normal"),
+                                Optional.empty(),
+                                List.of()
+                        ),
+                        new SpecialModelWrapper.Unbaked(
+                                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/jar_normal"),
+                                Optional.empty(),
+                                new JarBrainItemSpecialRenderer.Unbaked()
+                        )
+                ),
+                Optional.empty()
+        ));
+    }
+
+    private void registerNoiseDevices(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        PropertyDispatch<VariantMutator> wallMount = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.UP, BlockModelGenerators.NOP)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180)
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180))
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
+        registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.ARCANE_EAR.get(),
+                "arcane_ear_on", "arcane_ear_off", wallMount);
+        registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.ARCANE_EAR_TOGGLE.get(),
+                "arcane_ear_toggle_on", "arcane_ear_toggle_off", wallMount);
+
+        PropertyDispatch<VariantMutator> hangMount = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.DOWN, BlockModelGenerators.NOP)
+                .select(Direction.UP, BlockModelGenerators.X_ROT_180)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
+        registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.LAMP_ARCANE.get(),
+                "lamp_arcane_on", "lamp_arcane_off", hangMount);
+        registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.LAMP_GROWTH.get(),
+                "lamp_growth_on", "lamp_growth_off", hangMount);
+        registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.LAMP_FERTILITY.get(),
+                "lamp_fertility_on", "lamp_fertility_off", hangMount);
+
+        registerInvisibleBlock(blockModels, TCBlocks.CENTRIFUGE.get());
+        itemModels.itemModelOutput.accept(TCItems.CENTRIFUGE.get(), new SpecialModelWrapper.Unbaked(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/centrifuge_base"),
+                Optional.empty(),
+                new CentrifugeItemSpecialRenderer.Unbaked()
+        ));
+
+        registerInvisibleBlock(blockModels, TCBlocks.HUNGRY_CHEST.get());
+        itemModels.itemModelOutput.accept(TCItems.HUNGRY_CHEST.get(), new SpecialModelWrapper.Unbaked(
+                Identifier.withDefaultNamespace("item/chest"),
+                Optional.empty(),
+                new ChestSpecialRenderer.Unbaked(TCIds.rl("hungry"))
+        ));
+    }
+
+    private void registerEnabledFacingDevice(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
+                                             Block block, String onModel, String offModel,
+                                             PropertyDispatch<VariantMutator> facing) {
+        Identifier on = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + onModel);
+        Identifier off = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + offModel);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
+                .with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
+                        .select(true, new MultiVariant(WeightedList.of(new Variant(on))))
+                        .select(false, new MultiVariant(WeightedList.of(new Variant(off)))))
+                .with(facing));
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(off));
+    }
+
+    private void registerAuraDevices(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        blockModels.createTrivialCube(TCBlocks.MATRIX_SPEED.get());
+        blockModels.createTrivialCube(TCBlocks.MATRIX_COST.get());
+
+        Identifier[] batteryModels = new Identifier[5];
+        for (int i = 0; i < 5; i++) {
+            Identifier textureId = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/vis_battery_" + i);
+            batteryModels[i] = ModelTemplates.CUBE_ALL.create(
+                    Identifier.fromNamespaceAndPath(TCIds.MODID, "block/vis_battery_" + i),
+                    TextureMapping.cube(new Material(textureId)), blockModels.modelOutput);
+        }
+        PropertyDispatch<MultiVariant> chargeDispatch = PropertyDispatch.initial(BlockVisBattery.CHARGE)
+                .generate(charge -> {
+                    int tier = charge == 0 ? 0 : charge >= 10 ? 4 : (charge + 2) / 3;
+                    return new MultiVariant(WeightedList.of(new Variant(batteryModels[tier])));
+                });
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.VIS_BATTERY.get()).with(chargeDispatch));
+        itemModels.itemModelOutput.accept(TCItems.VIS_BATTERY.get(), ItemModelUtils.plainModel(batteryModels[0]));
+
+        Identifier dioptraOn = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/dioptra_on");
+        Identifier dioptraOff = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/dioptra_off");
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.DIOPTRA.get())
+                .with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
+                        .select(true, new MultiVariant(WeightedList.of(new Variant(dioptraOn))))
+                        .select(false, new MultiVariant(WeightedList.of(new Variant(dioptraOff))))));
+        itemModels.itemModelOutput.accept(TCItems.DIOPTRA.get(), ItemModelUtils.plainModel(dioptraOn));
     }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {

@@ -1,0 +1,8 @@
+{
+  "sources": [
+    {
+      "type": "single",
+      "resource": "thaumcraft:entity/chest/hungry"
+    }
+  ]
+}
