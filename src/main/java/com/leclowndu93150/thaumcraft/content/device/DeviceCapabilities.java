@@ -35,5 +35,45 @@ public final class DeviceCapabilities {
                 TCBlockEntities.HUNGRY_CHEST.get(),
                 (be, side) -> VanillaContainerWrapper.of(be)
         );
+        event.registerBlockEntity(
+                Capabilities.Fluid.BLOCK,
+                TCBlockEntities.EVERFULL_URN.get(),
+                (be, side) -> be.getTank()
+        );
+        event.registerBlockEntity(
+                Capabilities.Energy.BLOCK,
+                TCBlockEntities.VIS_GENERATOR.get(),
+                (be, side) -> side == be.outputFace() ? be : null
+        );
+        event.registerBlockEntity(
+                EssentiaCapabilities.TRANSPORT,
+                TCBlockEntities.ESSENTIA_PORT.get(),
+                (be, side) -> be
+        );
+        event.registerBlockEntity(
+                EssentiaCapabilities.TRANSPORT,
+                TCBlockEntities.CONDENSER.get(),
+                (be, side) -> be
+        );
+        event.registerBlockEntity(
+                Capabilities.Item.BLOCK,
+                TCBlockEntities.VOID_SIPHON.get(),
+                (be, side) -> be.output()
+        );
+        event.registerBlockEntity(
+                EssentiaCapabilities.TRANSPORT,
+                TCBlockEntities.THAUMATORIUM.get(),
+                (be, side) -> be
+        );
+        event.registerBlockEntity(
+                EssentiaCapabilities.TRANSPORT,
+                TCBlockEntities.THAUMATORIUM_TOP.get(),
+                (be, side) -> be
+        );
+        event.registerBlockEntity(
+                Capabilities.Item.BLOCK,
+                TCBlockEntities.THAUMATORIUM.get(),
+                (be, side) -> be.catalyst()
+        );
     }
 }

@@ -28,6 +28,9 @@ public final class TCMenuScreens {
         event.register(TCMenus.FOCAL_MANIPULATOR.get(), FocalManipulatorScreen::new);
         event.register(TCMenus.GOLEM_BUILDER.get(), GolemBuilderScreen::new);
         event.register(TCMenus.SEAL.get(), SealScreen::new);
+        event.register(TCMenus.VOID_SIPHON.get(), VoidSiphonScreen::new);
+        event.register(TCMenus.THAUMATORIUM.get(), ThaumatoriumScreen::new);
+        event.register(TCMenus.PECH.get(), PechScreen::new);
     }
 
     @SubscribeEvent

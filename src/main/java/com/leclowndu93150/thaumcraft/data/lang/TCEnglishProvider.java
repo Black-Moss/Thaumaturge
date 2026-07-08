@@ -7,6 +7,8 @@ import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangCasters;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangCStone;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDTrees;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDecor;
+import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangEPlants;
+import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangEldritch;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangEnchantments;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangHContainers;
 import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangGTools;
@@ -327,6 +329,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         TCLangBCrystals.register(this);
         TCLangCStone.register(this);
         TCLangDTrees.register(this);
+        TCLangEPlants.register(this);
         TCLangMAuraHud.register(this);
         TCLangHContainers.register(this);
         TCLangTaint.register(this);
@@ -336,6 +339,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         TCLangCasters.register(this);
         TCLangEnchantments.register(this);
         TCLangGolemancy.register(this);
+        TCLangEldritch.register(this);
     }
 
     private void aspect(String tag, String name, String description) {

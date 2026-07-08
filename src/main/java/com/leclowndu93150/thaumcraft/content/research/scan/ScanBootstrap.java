@@ -8,6 +8,8 @@ import com.leclowndu93150.thaumcraft.api.research.scan.ScanEntity;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanItem;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanItemTag;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
+import com.leclowndu93150.thaumcraft.content.entity.EntityCultist;
+import com.leclowndu93150.thaumcraft.content.entity.EntityInhabitedZombie;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -102,5 +104,9 @@ public final class ScanBootstrap {
         ScanningManager.addScannableThing(new ScanItemTag(TCIds.rl("f_matiron"), Tags.Items.STORAGE_BLOCKS_IRON));
         ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matbrass"), new ItemStack(TCItems.INGOT_BRASS.get())));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matbrass"), TCBlocks.METAL_BRASS_BLOCK.get()));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("scanned/entity/thaumcraft/cultist"),
+                EntityCultist.class, true));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("scanned/entity/thaumcraft/eldritch_crab"),
+                EntityInhabitedZombie.class, true));
     }
 }

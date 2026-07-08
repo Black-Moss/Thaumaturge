@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.network;
 
+import com.leclowndu93150.thaumcraft.client.screen.ThaumatoriumClientHandler;
+
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.network.AspectIndexClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.AuraSnapshotClientHandler;
@@ -53,6 +55,14 @@ public final class TCPayloads {
                 ClientboundGolemPressStuffPayload.STREAM_CODEC,
                 (payload, context) -> GolemPressClientHandler.handle(payload, context)
         );
+                registrar.playToClient(
+                ClientboundThaumatoriumRecipesPayload.TYPE,
+                ClientboundThaumatoriumRecipesPayload.STREAM_CODEC,
+                ThaumatoriumClientHandler::handle);
+        registrar.playToServer(
+                ServerboundThaumatoriumTogglePayload.TYPE,
+                ServerboundThaumatoriumTogglePayload.STREAM_CODEC,
+                ServerboundThaumatoriumToggleHandler::handle);
         registrar.playToServer(
                 ServerboundGolemPressPayload.TYPE,
                 ServerboundGolemPressPayload.STREAM_CODEC,

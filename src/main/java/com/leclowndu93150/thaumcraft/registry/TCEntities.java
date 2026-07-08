@@ -207,6 +207,82 @@ public final class TCEntities {
                     .clientTrackingRange(4)
                     .updateInterval(20));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityPech>> PECH = register(
+            "pech",
+            () -> EntityType.Builder.of(EntityPech::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F)
+                    .eyeHeight(1.188F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchCrab>> ELDRITCH_CRAB = register(
+            "eldritch_crab",
+            () -> EntityType.Builder.of(EntityEldritchCrab::new, MobCategory.MONSTER)
+                    .sized(0.8F, 0.6F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityInhabitedZombie>> INHABITED_ZOMBIE = register(
+            "inhabited_zombie",
+            () -> EntityType.Builder.of(EntityInhabitedZombie::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.95F)
+                    .eyeHeight(1.74F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchGuardian>> ELDRITCH_GUARDIAN = register(
+            "eldritch_guardian",
+            () -> EntityType.Builder.of(EntityEldritchGuardian::new, MobCategory.MONSTER)
+                    .sized(0.8F, 2.25F)
+                    .eyeHeight(2.1F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistKnight>> CULTIST_KNIGHT = register(
+            "cultist_knight",
+            () -> EntityType.Builder.of(EntityCultistKnight::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F)
+                    .eyeHeight(1.62F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistCleric>> CULTIST_CLERIC = register(
+            "cultist_cleric",
+            () -> EntityType.Builder.of(EntityCultistCleric::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F)
+                    .eyeHeight(1.62F)
+                    .notInPeaceful()
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalLesser>> CULTIST_PORTAL_LESSER = register(
+            "cultist_portal_lesser",
+            () -> EntityType.Builder.of(EntityCultistPortalLesser::new, MobCategory.MONSTER)
+                    .sized(1.5F, 3.0F)
+                    .fireImmune()
+                    .notInPeaceful()
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchOrb>> ELDRITCH_ORB = register(
+            "eldritch_orb",
+            () -> EntityType.Builder.<EntityEldritchOrb>of(EntityEldritchOrb::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityGolemOrb>> GOLEM_ORB = register(
+            "golem_orb",
+            () -> EntityType.Builder.<EntityGolemOrb>of(EntityGolemOrb::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10));
+
     public static final DeferredHolder<EntityType<?>, EntityType<EntityThaumcraftGolem>> THAUMCRAFT_GOLEM = register(
             "golem",
             () -> EntityType.Builder.<EntityThaumcraftGolem>of(EntityThaumcraftGolem::new, MobCategory.MISC)

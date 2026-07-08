@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumcraft.api.items.IVisDiscountGear;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -19,6 +21,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class TCAttributes {
+    private static final double DEFAULT_TAINTED_ATTACK = 2.0;
 
     public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(BuiltInRegistries.ATTRIBUTE,TCIds.MODID);
 
@@ -28,6 +31,20 @@ public final class TCAttributes {
             0,
             1
     ).setSyncable(true));
+
+    public static final Holder<Attribute> CHAMPION_MOD = ATTRIBUTES.register("champion_mod", () -> new RangedAttribute(
+            "attributes.thaumcraft.champion_mod",
+            -2.0,
+            -2.0,
+            100.0
+    ).setSyncable(true));
+
+    public static final Holder<Attribute> TAINTED_MOD = ATTRIBUTES.register("tainted_mod", () -> new RangedAttribute(
+            "attributes.thaumcraft.tainted_mod",
+            0.0,
+            0.0,
+            1.0
+    ));
 
     private TCAttributes(){}
 
@@ -52,5 +69,14 @@ public final class TCAttributes {
     @SubscribeEvent
     public static void onAttributesCreated(EntityAttributeModificationEvent event){
         event.add(EntityType.PLAYER, VIS_DISCOUNT);
+        for (EntityType<? extends LivingEntity> type : event.getTypes()) {
+            if (type != EntityType.PLAYER) {
+                event.add(type, CHAMPION_MOD);
+                event.add(type, TAINTED_MOD);
+                if (!event.has(type, Attributes.ATTACK_DAMAGE)) {
+                    event.add(type, Attributes.ATTACK_DAMAGE, DEFAULT_TAINTED_ATTACK);
+                }
+            }
+        }
     }
 }

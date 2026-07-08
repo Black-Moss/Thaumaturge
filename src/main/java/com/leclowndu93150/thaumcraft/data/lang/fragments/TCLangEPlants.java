@@ -9,7 +9,7 @@ public final class TCLangEPlants {
         provider.add("block.thaumcraft.shimmerleaf", "Shimmerleaf");
         provider.add("block.thaumcraft.cinderpearl", "Cinderpearl");
         provider.add("block.thaumcraft.vishroom", "Vishroom");
-        provider.add("block.thaumcraft.grass_ambient", "Enchanted Grass");
+        provider.add("block.thaumcraft.grass_ambient", "Ambient Grass Block");
         provider.add("biome.thaumcraft.magical_forest", "Magical Forest");
         provider.add("biome.thaumcraft.eerie", "Eerie");
         provider.add("biome.thaumcraft.eldritch", "Eldritch");

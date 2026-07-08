@@ -48,5 +48,24 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
                 .add(TCBiomes.ELDRITCH);
         tag(BiomeTags.IS_FOREST)
                 .add(TCBiomes.MAGICAL_FOREST);
+        tag(TCBiomeTags.IS_MAGICAL)
+                .add(TCBiomes.MAGICAL_FOREST)
+                .add(TCBiomes.EERIE);
+        tag(TCBiomeTags.IS_SPOOKY)
+                .add(Biomes.DARK_FOREST)
+                .add(TCBiomes.EERIE);
+        tag(TCBiomeTags.HAS_MOUND)
+                .add(Biomes.PLAINS)
+                .add(Biomes.SUNFLOWER_PLAINS)
+                .add(Biomes.FOREST)
+                .add(Biomes.FLOWER_FOREST)
+                .add(Biomes.BIRCH_FOREST)
+                .add(Biomes.OLD_GROWTH_BIRCH_FOREST)
+                .add(Biomes.DARK_FOREST)
+                .add(Biomes.TAIGA)
+                .add(Biomes.SAVANNA)
+                .add(Biomes.MEADOW)
+                .add(TCBiomes.MAGICAL_FOREST)
+                .add(TCBiomes.EERIE);
     }
 }

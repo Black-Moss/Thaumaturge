@@ -82,6 +82,18 @@ public final class TCModelProvider extends ModelProvider {
         registerNoiseDevices(blockModels, itemModels);
         TubeModels.register(blockModels);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_URN_COMMON.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_COMMON.get()))));
+        itemModels.itemModelOutput.accept(TCItems.LOOT_URN_COMMON.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_COMMON.get())));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_URN_UNCOMMON.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_UNCOMMON.get()))));
+        itemModels.itemModelOutput.accept(TCItems.LOOT_URN_UNCOMMON.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_UNCOMMON.get())));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_URN_RARE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_RARE.get()))));
+        itemModels.itemModelOutput.accept(TCItems.LOOT_URN_RARE.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_RARE.get())));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_CRATE_COMMON.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_COMMON.get()))));
+        itemModels.itemModelOutput.accept(TCItems.LOOT_CRATE_COMMON.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_COMMON.get())));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_CRATE_UNCOMMON.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_UNCOMMON.get()))));
+        itemModels.itemModelOutput.accept(TCItems.LOOT_CRATE_UNCOMMON.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_UNCOMMON.get())));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_CRATE_RARE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_RARE.get()))));
+        itemModels.itemModelOutput.accept(TCItems.LOOT_CRATE_RARE.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_RARE.get())));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
         horizontalBlock(blockModels, itemModels, TCBlocks.INFERNAL_FURNACE.get(), "infernal_furnace",true);
@@ -128,6 +140,25 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.BRAIN.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FIREBAT_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.MIND_SPIDER_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.PECH_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ELDRITCH_CRAB_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.INHABITED_ZOMBIE_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ELDRITCH_GUARDIAN_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CULTIST_KNIGHT_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CULTIST_CLERIC_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CULTIST_PORTAL_LESSER_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.LOOT_BAG_COMMON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.LOOT_BAG_UNCOMMON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.LOOT_BAG_RARE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.PECH_WAND.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_BLADE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_PLATE_HELM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_PLATE_CHEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_PLATE_LEGS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_BOOTS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_ROBE_HELM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_ROBE_CHEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_ROBE_LEGS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE_VALVE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.TUBE_RESTRICT.get(), ModelTemplates.FLAT_ITEM);
@@ -626,6 +657,60 @@ public final class TCModelProvider extends ModelProvider {
         registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.LAMP_FERTILITY.get(),
                 "lamp_fertility_on", "lamp_fertility_off", hangMount);
 
+        blockModels.blockStateOutput.accept(
+                BlockModelGenerators.createSimpleBlock(
+                        TCBlocks.EVERFULL_URN.get(),
+                        BlockModelGenerators.plainVariant(TCIds.rl("block/everfull_urn"))
+                )
+        );
+        itemModels.itemModelOutput.accept(TCItems.EVERFULL_URN.get(),
+                ItemModelUtils.plainModel(TCIds.rl("block/everfull_urn")));
+
+        PropertyDispatch<VariantMutator> deviceMount = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.UP, BlockModelGenerators.NOP)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180)
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180))
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
+        registerEnabledFacingDevice(blockModels, itemModels, TCBlocks.VIS_GENERATOR.get(),
+                "vis_generator", "vis_generator", deviceMount);
+        registerFacingDevice(blockModels, itemModels, TCBlocks.ESSENTIA_INPUT.get(), "essentia_input", deviceMount);
+        registerFacingDevice(blockModels, itemModels, TCBlocks.ESSENTIA_OUTPUT.get(), "essentia_output", deviceMount);
+
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CONDENSER.get(),
+                BlockModelGenerators.plainVariant(TCIds.rl("block/condenser"))));
+        itemModels.itemModelOutput.accept(TCItems.CONDENSER.get(), ItemModelUtils.plainModel(TCIds.rl("block/condenser")));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.STABILIZER.get(),
+                BlockModelGenerators.plainVariant(TCIds.rl("block/stabilizer"))));
+        itemModels.itemModelOutput.accept(TCItems.STABILIZER.get(), ItemModelUtils.plainModel(TCIds.rl("block/stabilizer")));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.VOID_SIPHON.get(),
+                BlockModelGenerators.plainVariant(TCIds.rl("block/void_siphon"))));
+        itemModels.itemModelOutput.accept(TCItems.VOID_SIPHON.get(), ItemModelUtils.plainModel(TCIds.rl("block/void_siphon")));
+        registerLattice(blockModels, itemModels, TCBlocks.CONDENSER_LATTICE.get(), "condenser_lattice_core");
+        registerLattice(blockModels, itemModels, TCBlocks.CONDENSER_LATTICE_DIRTY.get(), "condenser_lattice_core_dirty");
+        registerRelay(blockModels, itemModels);
+
+        Identifier thaumatoriumModel = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/thaumatorium");
+        PropertyDispatch<VariantMutator> thaumatoriumFacing = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.THAUMATORIUM.get(),
+                        new MultiVariant(WeightedList.of(new Variant(thaumatoriumModel))))
+                .with(thaumatoriumFacing));
+        itemModels.itemModelOutput.accept(TCItems.THAUMATORIUM.get(), ItemModelUtils.plainModel(thaumatoriumModel));
+        registerInvisibleBlock(blockModels, TCBlocks.THAUMATORIUM_TOP.get());
+        registerFacingDevice(blockModels, itemModels, TCBlocks.BRAIN_BOX.get(), "brain_box",
+                PropertyDispatch.modify(BlockStateProperties.FACING)
+                        .select(Direction.DOWN, BlockModelGenerators.NOP)
+                        .select(Direction.UP, BlockModelGenerators.X_ROT_180)
+                        .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90)
+                        .select(Direction.NORTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180))
+                        .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90))
+                        .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270)));
+
         registerInvisibleBlock(blockModels, TCBlocks.CENTRIFUGE.get());
         itemModels.itemModelOutput.accept(TCItems.CENTRIFUGE.get(), new SpecialModelWrapper.Unbaked(
                 Identifier.fromNamespaceAndPath(TCIds.MODID, "item/centrifuge_base"),
@@ -641,7 +726,56 @@ public final class TCModelProvider extends ModelProvider {
         ));
     }
 
-    private void registerEnabledFacingDevice(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
+
+
+    private void registerLattice(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String coreModel) {
+        Identifier side = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/condenser_lattice_side");
+        Identifier core = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + coreModel);
+        MultiPartGenerator generator = MultiPartGenerator.multiPart(block)
+                .with(new MultiVariant(WeightedList.of(new Variant(core))));
+        record LatticeFace(BooleanProperty property, VariantMutator mutator) {}
+        List<LatticeFace> faces = List.of(
+                new LatticeFace(BlockStateProperties.DOWN, BlockModelGenerators.NOP),
+                new LatticeFace(BlockStateProperties.UP, BlockModelGenerators.X_ROT_180),
+                new LatticeFace(BlockStateProperties.SOUTH, BlockModelGenerators.X_ROT_90),
+                new LatticeFace(BlockStateProperties.NORTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180)),
+                new LatticeFace(BlockStateProperties.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90)),
+                new LatticeFace(BlockStateProperties.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+        );
+        for (LatticeFace face : faces) {
+            generator = generator.with(BlockModelGenerators.condition().term(face.property(), true),
+                    new MultiVariant(WeightedList.of(new Variant(side))).with(face.mutator()));
+        }
+        blockModels.blockStateOutput.accept(generator);
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(core));
+    }
+
+    private void registerRelay(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Identifier on = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/redstone_relay_on");
+        Identifier off = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/redstone_relay_off");
+        PropertyDispatch<VariantMutator> facing = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.SOUTH, BlockModelGenerators.NOP)
+                .select(Direction.NORTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_90)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_270);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.REDSTONE_RELAY.get())
+                .with(PropertyDispatch.initial(BlockStateProperties.POWERED)
+                        .select(true, new MultiVariant(WeightedList.of(new Variant(on))))
+                        .select(false, new MultiVariant(WeightedList.of(new Variant(off)))))
+                .with(facing));
+        itemModels.itemModelOutput.accept(TCItems.REDSTONE_RELAY.get(), ItemModelUtils.plainModel(off));
+    }
+
+        private void registerFacingDevice(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
+                                      Block block, String modelName, PropertyDispatch<VariantMutator> facing) {
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                        new MultiVariant(WeightedList.of(new Variant(model))))
+                .with(facing));
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
+    }
+
+        private void registerEnabledFacingDevice(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
                                              Block block, String onModel, String offModel,
                                              PropertyDispatch<VariantMutator> facing) {
         Identifier on = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + onModel);

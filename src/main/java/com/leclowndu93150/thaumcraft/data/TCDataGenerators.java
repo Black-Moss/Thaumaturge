@@ -7,14 +7,17 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.compat.curio.data.TCCurioProvider;
 import com.leclowndu93150.thaumcraft.data.damagetype.TCDamageTypeBootstrap;
 import com.leclowndu93150.thaumcraft.data.datamap.AuraModifierProvider;
+import com.leclowndu93150.thaumcraft.data.datamap.ChampionWhitelistProvider;
 import com.leclowndu93150.thaumcraft.data.datamap.EntityAspectsProvider;
 import com.leclowndu93150.thaumcraft.data.datamap.InfernalBonusProvider;
 import com.leclowndu93150.thaumcraft.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCBlockLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCEntityLootSubProvider;
+import com.leclowndu93150.thaumcraft.data.loot.TCGameplayLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.model.TCModelProvider;
 import com.leclowndu93150.thaumcraft.data.recipe.TCRecipeProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCBiomeTagsProvider;
+import com.leclowndu93150.thaumcraft.data.tag.TCEntityTypeTagsProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCBlockTagsProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCDamageTypeTagsProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCItemTagsProvider;
@@ -23,6 +26,7 @@ import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomeModifiers;
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
+import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCStructureBootstrap;
 import com.leclowndu93150.thaumcraft.data.worldgen.research.CategoryBootstrap;
 import com.leclowndu93150.thaumcraft.data.worldgen.research.EntryBootstrap;
 import java.util.List;
@@ -50,6 +54,8 @@ public final class TCDataGenerators {
                 .add(Registries.CONFIGURED_FEATURE, TCConfiguredFeatures::bootstrap)
                 .add(Registries.PLACED_FEATURE, TCPlacedFeatures::bootstrap)
                 .add(Registries.BIOME, TCBiomes::bootstrap)
+                .add(Registries.STRUCTURE, TCStructureBootstrap::bootstrapStructures)
+                .add(Registries.STRUCTURE_SET, TCStructureBootstrap::bootstrapSets)
                 .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, TCBiomeModifiers::bootstrap);
         event.createDatapackRegistryObjects(registries);
 
@@ -58,12 +64,14 @@ public final class TCDataGenerators {
         event.createProvider(TCRecipeProvider.Runner::new);
         event.createProvider(AuraModifierProvider::new);
         event.createProvider(EntityAspectsProvider::new);
+        event.createProvider(ChampionWhitelistProvider::new);
         event.createProvider(InfernalBonusProvider::new);
         event.createProvider(TCCurioProvider::new);
 
         event.createBlockAndItemTags(TCBlockTagsProvider::new, TCItemTagsProvider::new);
         event.createProvider(TCDamageTypeTagsProvider::new);
         event.createProvider(TCBiomeTagsProvider::new);
+        event.createProvider(TCEntityTypeTagsProvider::new);
 
         event.createProvider((output, lookupProvider) -> new LootTableProvider(
                 output,
@@ -76,6 +84,10 @@ public final class TCDataGenerators {
                         new LootTableProvider.SubProviderEntry(
                                 TCEntityLootSubProvider::new,
                                 LootContextParamSets.ENTITY
+                        ),
+                        new LootTableProvider.SubProviderEntry(
+                                TCGameplayLootSubProvider::new,
+                                LootContextParamSets.CHEST
                         )),
                 lookupProvider
         ));

@@ -9,7 +9,16 @@ import com.leclowndu93150.thaumcraft.content.device.BlockEntityHungryChest;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityLampArcane;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityLampFertility;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityLampGrowth;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityCondenser;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityEverfullUrn;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityRedstoneRelay;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityStabilizer;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityVoidSiphon;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityVisGenerator;
 import com.leclowndu93150.thaumcraft.content.essentia.BlockEntityCentrifuge;
+import com.leclowndu93150.thaumcraft.content.essentia.BlockEntityEssentiaPort;
+import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.BlockEntityThaumatorium;
+import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.BlockEntityThaumatoriumTop;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarBrain;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJarVoid;
@@ -118,6 +127,61 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "jar_brain",
                     () -> new BlockEntityType<>(BlockEntityJarBrain::new, Set.of(TCBlocks.JAR_BRAIN.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityThaumatorium>> THAUMATORIUM =
+            BLOCK_ENTITIES.register(
+                    "thaumatorium",
+                    () -> new BlockEntityType<>(BlockEntityThaumatorium::new, Set.of(TCBlocks.THAUMATORIUM.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityThaumatoriumTop>> THAUMATORIUM_TOP =
+            BLOCK_ENTITIES.register(
+                    "thaumatorium_top",
+                    () -> new BlockEntityType<>(BlockEntityThaumatoriumTop::new, Set.of(TCBlocks.THAUMATORIUM_TOP.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityCondenser>> CONDENSER =
+            BLOCK_ENTITIES.register(
+                    "condenser",
+                    () -> new BlockEntityType<>(BlockEntityCondenser::new, Set.of(TCBlocks.CONDENSER.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityStabilizer>> STABILIZER =
+            BLOCK_ENTITIES.register(
+                    "stabilizer",
+                    () -> new BlockEntityType<>(BlockEntityStabilizer::new, Set.of(TCBlocks.STABILIZER.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityRedstoneRelay>> REDSTONE_RELAY =
+            BLOCK_ENTITIES.register(
+                    "redstone_relay",
+                    () -> new BlockEntityType<>(BlockEntityRedstoneRelay::new, Set.of(TCBlocks.REDSTONE_RELAY.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityVoidSiphon>> VOID_SIPHON =
+            BLOCK_ENTITIES.register(
+                    "void_siphon",
+                    () -> new BlockEntityType<>(BlockEntityVoidSiphon::new, Set.of(TCBlocks.VOID_SIPHON.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEverfullUrn>> EVERFULL_URN =
+            BLOCK_ENTITIES.register(
+                    "everfull_urn",
+                    () -> new BlockEntityType<>(BlockEntityEverfullUrn::new, Set.of(TCBlocks.EVERFULL_URN.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityVisGenerator>> VIS_GENERATOR =
+            BLOCK_ENTITIES.register(
+                    "vis_generator",
+                    () -> new BlockEntityType<>(BlockEntityVisGenerator::new, Set.of(TCBlocks.VIS_GENERATOR.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEssentiaPort>> ESSENTIA_PORT =
+            BLOCK_ENTITIES.register(
+                    "essentia_port",
+                    () -> new BlockEntityType<>(BlockEntityEssentiaPort::new,
+                            Set.of(TCBlocks.ESSENTIA_INPUT.get(), TCBlocks.ESSENTIA_OUTPUT.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityArcaneEar>> ARCANE_EAR =

@@ -13,6 +13,15 @@ public final class TCModelLayers {
     public static final ModelLayerLocation BRAIN = new ModelLayerLocation(TCIds.rl("brain"), "main");
     public static final ModelLayerLocation JAR_BRINE = new ModelLayerLocation(TCIds.rl("jar_brine"), "main");
     public static final ModelLayerLocation CENTRIFUGE = new ModelLayerLocation(TCIds.rl("centrifuge"), "main");
+    public static final ModelLayerLocation KNIGHT_ARMOR_HEAD = new ModelLayerLocation(TCIds.rl("knight_armor"), "head");
+    public static final ModelLayerLocation KNIGHT_ARMOR_CHEST = new ModelLayerLocation(TCIds.rl("knight_armor"), "chest");
+    public static final ModelLayerLocation KNIGHT_ARMOR_LEGS = new ModelLayerLocation(TCIds.rl("knight_armor"), "legs");
+    public static final ModelLayerLocation ROBE_ARMOR_HEAD = new ModelLayerLocation(TCIds.rl("robe_armor"), "head");
+    public static final ModelLayerLocation ROBE_ARMOR_CHEST = new ModelLayerLocation(TCIds.rl("robe_armor"), "chest");
+    public static final ModelLayerLocation ROBE_ARMOR_LEGS = new ModelLayerLocation(TCIds.rl("robe_armor"), "legs");
+    public static final ModelLayerLocation PECH = new ModelLayerLocation(TCIds.rl("pech"), "main");
+    public static final ModelLayerLocation ELDRITCH_CRAB = new ModelLayerLocation(TCIds.rl("eldritch_crab"), "main");
+    public static final ModelLayerLocation ELDRITCH_GUARDIAN = new ModelLayerLocation(TCIds.rl("eldritch_guardian"), "main");
 
     private TCModelLayers() {}
 }

@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -31,6 +32,17 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
                                 .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)))));
     }
 
+    private LootTable.Builder lootContainerTable(Block block, int rarity) {
+        return LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(this.hasSilkTouch())
+                        .add(LootItem.lootTableItem(block)))
+                .withPool(TreasureLootPools.treasurePool(lookupProvider, rarity,
+                                UniformGenerator.between(1.0F + rarity, 3.0F + rarity))
+                        .when(this.doesNotHaveSilkTouch()));
+    }
+
     private final HolderLookup.Provider lookupProvider;
 
     public TCBlockLootSubProvider(HolderLookup.Provider lookupProvider) {
@@ -55,6 +67,13 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         add(TCBlocks.BANNER_CRIMSON_CULT.get(), bannerTable(TCItems.BANNER_CRIMSON_CULT.get()));
         add(TCBlocks.WALL_BANNER_CRIMSON_CULT.get(), bannerTable(TCItems.BANNER_CRIMSON_CULT.get()));
         generateResources();
+
+        add(TCBlocks.LOOT_URN_COMMON.get(), lootContainerTable(TCBlocks.LOOT_URN_COMMON.get(), 0));
+        add(TCBlocks.LOOT_URN_UNCOMMON.get(), lootContainerTable(TCBlocks.LOOT_URN_UNCOMMON.get(), 1));
+        add(TCBlocks.LOOT_URN_RARE.get(), lootContainerTable(TCBlocks.LOOT_URN_RARE.get(), 2));
+        add(TCBlocks.LOOT_CRATE_COMMON.get(), lootContainerTable(TCBlocks.LOOT_CRATE_COMMON.get(), 0));
+        add(TCBlocks.LOOT_CRATE_UNCOMMON.get(), lootContainerTable(TCBlocks.LOOT_CRATE_UNCOMMON.get(), 1));
+        add(TCBlocks.LOOT_CRATE_RARE.get(), lootContainerTable(TCBlocks.LOOT_CRATE_RARE.get(), 2));
 
         dropSelf(TCBlocks.RESEARCH_TABLE.get());
         dropSelf(TCBlocks.SPA.get());
@@ -142,6 +161,18 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.LAMP_FERTILITY.get());
         dropSelf(TCBlocks.CENTRIFUGE.get());
         dropSelf(TCBlocks.HUNGRY_CHEST.get());
+        dropSelf(TCBlocks.EVERFULL_URN.get());
+        dropSelf(TCBlocks.VIS_GENERATOR.get());
+        dropSelf(TCBlocks.ESSENTIA_INPUT.get());
+        dropSelf(TCBlocks.ESSENTIA_OUTPUT.get());
+        dropSelf(TCBlocks.CONDENSER.get());
+        dropSelf(TCBlocks.CONDENSER_LATTICE.get());
+        dropSelf(TCBlocks.CONDENSER_LATTICE_DIRTY.get());
+        dropSelf(TCBlocks.STABILIZER.get());
+        dropSelf(TCBlocks.REDSTONE_RELAY.get());
+        dropSelf(TCBlocks.VOID_SIPHON.get());
+        dropOther(TCBlocks.THAUMATORIUM.get(), TCBlocks.ALCHEMICAL_CONSTRUCT.get());
+        dropSelf(TCBlocks.BRAIN_BOX.get());
         dropSelf(TCBlocks.VIS_BATTERY.get());
         dropSelf(TCBlocks.MATRIX_SPEED.get());
         dropSelf(TCBlocks.MATRIX_COST.get());

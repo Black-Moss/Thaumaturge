@@ -3,7 +3,12 @@ package com.leclowndu93150.thaumcraft.client.entity;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.golem.GolemDartRenderer;
 import com.leclowndu93150.thaumcraft.client.golem.GolemRenderer;
+import com.leclowndu93150.thaumcraft.client.model.entity.EldritchCrabModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.EldritchGuardianModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.PechModel;
+import com.leclowndu93150.thaumcraft.client.model.gear.KnightArmorModel;
+import com.leclowndu93150.thaumcraft.client.model.gear.RobeArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.MatrixCubeModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.BrainModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.CentrifugeModel;
@@ -41,6 +46,15 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.JAR_BRINE, JarBrineModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.CENTRIFUGE, CentrifugeModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.MATRIX_CUBE, MatrixCubeModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.PECH, PechModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.ELDRITCH_CRAB, EldritchCrabModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.ELDRITCH_GUARDIAN, EldritchGuardianModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_HEAD, KnightArmorModel::createHead);
+        event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_CHEST, KnightArmorModel::createChest);
+        event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_LEGS, KnightArmorModel::createLegs);
+        event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_HEAD, RobeArmorModel::createHead);
+        event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_CHEST, RobeArmorModel::createChest);
+        event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_LEGS, RobeArmorModel::createLegs);
     }
 
     @SubscribeEvent
@@ -76,5 +90,14 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.ALUMENTUM.get(), EmptyEntityRenderer::new);
         event.registerEntityRenderer(TCEntities.THAUMCRAFT_GOLEM.get(), GolemRenderer::new);
         event.registerEntityRenderer(TCEntities.GOLEM_DART.get(), GolemDartRenderer::new);
+        event.registerEntityRenderer(TCEntities.PECH.get(), PechRenderer::new);
+        event.registerEntityRenderer(TCEntities.ELDRITCH_CRAB.get(), EldritchCrabRenderer::new);
+        event.registerEntityRenderer(TCEntities.INHABITED_ZOMBIE.get(), InhabitedZombieRenderer::new);
+        event.registerEntityRenderer(TCEntities.ELDRITCH_GUARDIAN.get(), EldritchGuardianRenderer::new);
+        event.registerEntityRenderer(TCEntities.CULTIST_KNIGHT.get(), CultistRenderer::new);
+        event.registerEntityRenderer(TCEntities.CULTIST_CLERIC.get(), CultistRenderer::new);
+        event.registerEntityRenderer(TCEntities.CULTIST_PORTAL_LESSER.get(), CultistPortalRenderer::new);
+        event.registerEntityRenderer(TCEntities.ELDRITCH_ORB.get(), EldritchOrbRenderer::new);
+        event.registerEntityRenderer(TCEntities.GOLEM_ORB.get(), GolemOrbRenderer::new);
     }
 }

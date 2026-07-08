@@ -7,12 +7,15 @@
   "mixins": [
     "data.recipes.RecipeProviderAccessor",
     "server.network.ServerGamePacketListenerImplAccessor",
+    "world.entity.MobAccessor",
     "world.entity.item.ItemEntityAccessor",
     "world.entity.monster.SlimeAccessor"
   ],
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",
     "client.renderer.GameRendererInvoker",
+    "client.renderer.entity.LivingEntityRenderStateMixin",
+    "client.renderer.entity.LivingEntityRendererMixin",
     "jei.RecipeLayoutMixin"
   ],
   "injectors": {

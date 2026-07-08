@@ -95,6 +95,11 @@ public final class EntityAspectsProvider extends DataMapProvider {
         add(b, TCEntities.MIND_SPIDER.get(), list(TCAspects.VITIUM, 5, TCAspects.IGNIS, 5));
         add(b, TCEntities.BRAINY_ZOMBIE.get(), list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 10, TCAspects.COGNITIO, 5, TCAspects.AVERSIO, 5));
         add(b, TCEntities.GIANT_BRAINY_ZOMBIE.get(), list(TCAspects.EXANIMIS, 25, TCAspects.HUMANUS, 15, TCAspects.COGNITIO, 5, TCAspects.AVERSIO, 10));
+        add(b, TCEntities.PECH.get(), list(TCAspects.HUMANUS, 10, TCAspects.AURAM, 5, TCAspects.PERMUTATIO, 10, TCAspects.DESIDERIUM, 5));
+        add(b, TCEntities.ELDRITCH_GUARDIAN.get(), list(TCAspects.ALIENIS, 20, TCAspects.MORTUUS, 20, TCAspects.EXANIMIS, 20));
+        add(b, TCEntities.CULTIST_KNIGHT.get(), list(TCAspects.ALIENIS, 5, TCAspects.HUMANUS, 15, TCAspects.AVERSIO, 5));
+        add(b, TCEntities.CULTIST_CLERIC.get(), list(TCAspects.ALIENIS, 5, TCAspects.HUMANUS, 15, TCAspects.AVERSIO, 5));
+        add(b, TCEntities.ELDRITCH_CRAB.get(), list(TCAspects.ALIENIS, 10, TCAspects.BESTIA, 10, TCAspects.VINCULUM, 10));
     }
 
     private void add(Builder<AspectList, EntityType<?>> b, EntityType<?> type, AspectList value) {

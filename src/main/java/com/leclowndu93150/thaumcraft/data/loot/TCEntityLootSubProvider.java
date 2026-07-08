@@ -22,6 +22,8 @@ public final class TCEntityLootSubProvider extends EntityLootSubProvider {
     private static final float BRAIN_LOOTING_BONUS = 0.1F;
     private static final int GIANT_FLESH_ROLLS = 12;
     private static final float GIANT_FLESH_CHANCE = 0.5F;
+    private static final float CRAB_PEARL_CHANCE = 0.33F;
+    private static final float CRAB_PEARL_LOOTING_BONUS = 0.25F;
 
     public TCEntityLootSubProvider(HolderLookup.Provider registries) {
         super(FeatureFlags.REGISTRY.allFlags(), FeatureFlagSet.of(), registries);
@@ -49,6 +51,31 @@ public final class TCEntityLootSubProvider extends EntityLootSubProvider {
                                 .when(LootItemRandomChanceWithEnchantedBonusCondition
                                         .randomChanceAndLootingBoost(this.registries, GIANT_FLESH_CHANCE, 0.0F))))
                 .withPool(brainPool()));
+        add(TCEntities.PECH.get(), LootTable.lootTable()
+                .withPool(goldNuggetPool()));
+        add(TCEntities.CULTIST_KNIGHT.get(), LootTable.lootTable()
+                .withPool(goldNuggetPool()));
+        add(TCEntities.CULTIST_CLERIC.get(), LootTable.lootTable()
+                .withPool(goldNuggetPool()));
+        add(TCEntities.ELDRITCH_CRAB.get(), LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .add(LootItem.lootTableItem(Items.ENDER_PEARL))
+                        .when(LootItemKilledByPlayerCondition.killedByPlayer())
+                        .when(LootItemRandomChanceWithEnchantedBonusCondition
+                                .randomChanceAndLootingBoost(this.registries, CRAB_PEARL_CHANCE, CRAB_PEARL_LOOTING_BONUS))));
+        add(TCEntities.INHABITED_ZOMBIE.get(), LootTable.lootTable());
+        add(TCEntities.ELDRITCH_GUARDIAN.get(), LootTable.lootTable());
+        add(TCEntities.CULTIST_PORTAL_LESSER.get(), LootTable.lootTable());
+    }
+
+    private LootPool.Builder goldNuggetPool() {
+        return LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1))
+                .add(LootItem.lootTableItem(Items.GOLD_NUGGET)
+                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(0.0F, 2.0F)))
+                        .apply(EnchantedCountIncreaseFunction.lootingMultiplier(this.registries,
+                                UniformGenerator.between(0.0F, 1.0F))));
     }
 
     private LootPool.Builder fleshPool() {

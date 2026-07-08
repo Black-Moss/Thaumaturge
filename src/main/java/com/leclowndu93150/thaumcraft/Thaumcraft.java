@@ -37,6 +37,7 @@ public final class Thaumcraft {
         TCBlocks.register(modBus);
         TCItems.register(modBus);
         TCFeatures.register(modBus);
+        TCStructures.register(modBus);
         TCBlockEntities.register(modBus);
         TCEntities.register(modBus);
         TCMenus.register(modBus);

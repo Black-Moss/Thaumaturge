@@ -26,6 +26,24 @@ public final class TCEntityEvents {
         event.register(TCEntities.GIANT_BRAINY_ZOMBIE.get(), SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.PECH.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EntityPech::checkPechSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.ELDRITCH_CRAB.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.INHABITED_ZOMBIE.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EntityInhabitedZombie::checkInhabitedSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.ELDRITCH_GUARDIAN.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EntityEldritchGuardian::checkGuardianSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.CULTIST_KNIGHT.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkAnyLightMonsterSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.CULTIST_CLERIC.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkAnyLightMonsterSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
     @SubscribeEvent
@@ -44,5 +62,12 @@ public final class TCEntityEvents {
         event.put(TCEntities.TAINTACLE_SMALL.get(), EntityTaintacleSmall.createAttributes().build());
         event.put(TCEntities.SPELL_BAT.get(), EntitySpellBat.createAttributes().build());
         event.put(TCEntities.THAUMCRAFT_GOLEM.get(), EntityThaumcraftGolem.createAttributes().build());
+        event.put(TCEntities.PECH.get(), EntityPech.createAttributes().build());
+        event.put(TCEntities.ELDRITCH_CRAB.get(), EntityEldritchCrab.createAttributes().build());
+        event.put(TCEntities.INHABITED_ZOMBIE.get(), EntityInhabitedZombie.createAttributes().build());
+        event.put(TCEntities.ELDRITCH_GUARDIAN.get(), EntityEldritchGuardian.createAttributes().build());
+        event.put(TCEntities.CULTIST_KNIGHT.get(), EntityCultistKnight.createAttributes().build());
+        event.put(TCEntities.CULTIST_CLERIC.get(), EntityCultistCleric.createAttributes().build());
+        event.put(TCEntities.CULTIST_PORTAL_LESSER.get(), EntityCultistPortalLesser.createAttributes().build());
     }
 }

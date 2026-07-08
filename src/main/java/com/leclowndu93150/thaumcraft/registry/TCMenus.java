@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.MenuSmelter;
 import com.leclowndu93150.thaumcraft.content.golem.press.MenuGolemBuilder;
 import com.leclowndu93150.thaumcraft.content.golem.seals.MenuSealBase;
+import com.leclowndu93150.thaumcraft.content.pech.MenuPech;
 import com.leclowndu93150.thaumcraft.content.spa.MenuSpa;
 import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
@@ -11,6 +12,8 @@ import net.minecraft.core.registries.Registries;
 import com.leclowndu93150.thaumcraft.content.casters.MenuFocalManipulator;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
+import com.leclowndu93150.thaumcraft.content.device.MenuVoidSiphon;
+import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.MenuThaumatorium;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -37,8 +40,17 @@ public final class TCMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<MenuGolemBuilder>> GOLEM_BUILDER =
             MENUS.register("golem_builder", () -> IMenuTypeExtension.create(MenuGolemBuilder::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuThaumatorium>> THAUMATORIUM =
+            MENUS.register("thaumatorium", () -> IMenuTypeExtension.create(MenuThaumatorium::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuVoidSiphon>> VOID_SIPHON =
+            MENUS.register("void_siphon", () -> IMenuTypeExtension.create(MenuVoidSiphon::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<MenuSealBase>> SEAL =
             MENUS.register("seal", () -> IMenuTypeExtension.create(MenuSealBase::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuPech>> PECH =
+            MENUS.register("pech", () -> IMenuTypeExtension.create(MenuPech::new));
 
     private TCMenus() {}
 

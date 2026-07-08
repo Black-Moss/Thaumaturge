@@ -84,6 +84,8 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildGolemancyRecipes();
         buildAuraDeviceRecipes();
         buildNoiseDeviceRecipes();
+        buildEssentiaMachineRecipes();
+        buildFluxMachineRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
                 .requires(TCItems.PHIAL)
@@ -1450,6 +1452,157 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .instability(4)
                 .gate(infusionGate)
                 .unlockedBy("has", has(TCItems.LAMP_ARCANE.get()))
+                .save(output);
+    }
+
+
+    private void buildEssentiaMachineRecipes() {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
+        ResearchGate auromancyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false);
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.EVERFULL_URN),
+                Ingredient.of(Items.FLOWER_POT))
+                .aspect(TCAspects.AQUA, 30)
+                .aspect(TCAspects.FABRICO, 10)
+                .aspect(TCAspects.TERRA, 10)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(Items.FLOWER_POT))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.VIS_GENERATOR), 25)
+                .aspect(TCAspects.IGNIS, 1)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern("WSW")
+                .pattern("EPE")
+                .pattern("WRW")
+                .define('R', TCItems.VIS_RESONATOR)
+                .define('E', TCItems.NUGGET_BRASS)
+                .define('S', Items.REDSTONE)
+                .define('P', Items.PISTON)
+                .define('W', ItemTags.PLANKS)
+                .gate(auromancyGate)
+                .unlockedBy("has", has(TCItems.VIS_RESONATOR))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_INPUT), 100)
+                .aspect(TCAspects.AER, 1)
+                .aspect(TCAspects.AQUA, 1)
+                .pattern("BQB")
+                .pattern("IGI")
+                .define('I', TCItems.PLATE_IRON)
+                .define('B', TCItems.PLATE_BRASS)
+                .define('Q', Items.DISPENSER)
+                .define('G', TCItems.ALCHEMICAL_CONSTRUCT)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(TCItems.PLATE_BRASS))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_OUTPUT), 100)
+                .aspect(TCAspects.AER, 1)
+                .aspect(TCAspects.AQUA, 1)
+                .pattern("BQB")
+                .pattern("IGI")
+                .define('I', TCItems.PLATE_IRON)
+                .define('B', TCItems.PLATE_BRASS)
+                .define('Q', Items.HOPPER)
+                .define('G', TCItems.ALCHEMICAL_CONSTRUCT)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(TCItems.PLATE_BRASS))
+                .save(output);
+    }
+
+
+    private void buildFluxMachineRecipes() {
+        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
+        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
+        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.BRAIN_BOX), 50)
+                .aspect(TCAspects.TERRA, 1)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern("IAI")
+                .pattern("ABA")
+                .pattern("IAI")
+                .define('B', TCItems.MIND_CLOCKWORK)
+                .define('A', TCItems.AMBER)
+                .define('I', TCItems.PLATE_IRON)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(TCItems.MIND_CLOCKWORK))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.CONDENSER), 500)
+                .aspect(TCAspects.AER, 5)
+                .aspect(TCAspects.AQUA, 5)
+                .aspect(TCAspects.PERDITIO, 5)
+                .pattern("BCB")
+                .pattern("WMW")
+                .pattern("BTB")
+                .define('T', TCItems.TUBE)
+                .define('C', TCItems.MORPHIC_RESONATOR)
+                .define('W', ItemTags.PLANKS)
+                .define('M', TCItems.MECHANISM_COMPLEX)
+                .define('B', TCItems.PLATE_BRASS)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(TCItems.MORPHIC_RESONATOR))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.CONDENSER_LATTICE), 100)
+                .aspect(TCAspects.TERRA, 3)
+                .aspect(TCAspects.AER, 3)
+                .pattern("QTQ")
+                .pattern("QFQ")
+                .pattern("QTQ")
+                .define('T', TCItems.PLATE_THAUMIUM)
+                .define('F', TCItems.FILTER)
+                .define('Q', Items.QUARTZ)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(TCItems.FILTER))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.STABILIZER), 250)
+                .aspect(TCAspects.TERRA, 1)
+                .aspect(TCAspects.AQUA, 1)
+                .aspect(TCAspects.PERDITIO, 1)
+                .pattern("SRS")
+                .pattern("BVB")
+                .pattern("IMI")
+                .define('R', Items.REDSTONE_BLOCK)
+                .define('S', TCItems.STONE_ARCANE)
+                .define('B', TCItems.STONE_ARCANE)
+                .define('M', TCItems.MECHANISM_COMPLEX)
+                .define('V', TCItems.VIS_RESONATOR)
+                .define('I', TCItems.PLATE_IRON)
+                .gate(infusionGate)
+                .unlockedBy("has", has(TCItems.VIS_RESONATOR))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.REDSTONE_RELAY), 10)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern("TGT")
+                .pattern("SSS")
+                .define('T', Items.REDSTONE_TORCH)
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .define('S', Items.STONE_SLAB)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.VOID_SIPHON), Ingredient.of(TCItems.METAL_VOID_BLOCK.get()))
+                .component(Ingredient.of(TCItems.STONE_ARCANE.get()))
+                .component(Ingredient.of(TCItems.STONE_ARCANE.get()))
+                .component(Ingredient.of(TCItems.MECHANISM_COMPLEX.get()))
+                .component(Ingredient.of(TCItems.PLATE_BRASS.get()))
+                .component(Ingredient.of(TCItems.PLATE_BRASS.get()))
+                .component(Ingredient.of(Items.NETHER_STAR))
+                .aspect(TCAspects.ALIENIS, 50)
+                .aspect(TCAspects.PERDITIO, 50)
+                .aspect(TCAspects.VACUOS, 100)
+                .aspect(TCAspects.FABRICO, 50)
+                .instability(7)
+                .gate(infusionGate)
+                .unlockedBy("has", has(TCItems.METAL_VOID_BLOCK.get()))
                 .save(output);
     }
 

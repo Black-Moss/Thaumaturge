@@ -23,6 +23,7 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.WeightedPlacedFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.RandomFeatureConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.ReplaceBlockConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
@@ -55,7 +56,6 @@ public final class TCConfiguredFeatures {
     private static final int CRYSTAL_ATTEMPTS = 8;
     private static final int CRYSTAL_MAX_TOTAL = 64;
     private static final int CRYSTAL_BIOME_ASPECT_CHANCE = 3;
-    private static final int ORE_SIZE = 1;
     private static final int FLORA_GRASS_ATTEMPTS = 3;
     private static final int FLORA_VISHROOM_ATTEMPTS = 8;
 
@@ -112,15 +112,18 @@ public final class TCConfiguredFeatures {
 
         TagMatchTest stone = new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES);
         TagMatchTest deepslate = new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES);
-        context.register(ORE_CINNABAR, new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(List.of(
-                OreConfiguration.target(stone, TCBlocks.ORE_CINNABAR.get().defaultBlockState()),
-                OreConfiguration.target(deepslate, TCBlocks.ORE_CINNABAR.get().defaultBlockState())), ORE_SIZE)));
-        context.register(ORE_QUARTZ, new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(List.of(
-                OreConfiguration.target(stone, TCBlocks.ORE_QUARTZ.get().defaultBlockState()),
-                OreConfiguration.target(deepslate, TCBlocks.ORE_QUARTZ.get().defaultBlockState())), ORE_SIZE)));
-        context.register(ORE_AMBER, new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(List.of(
-                OreConfiguration.target(stone, TCBlocks.ORE_AMBER.get().defaultBlockState()),
-                OreConfiguration.target(deepslate, TCBlocks.ORE_AMBER.get().defaultBlockState())), ORE_SIZE)));
+        context.register(ORE_CINNABAR, new ConfiguredFeature<>(Feature.REPLACE_SINGLE_BLOCK,
+                new ReplaceBlockConfiguration(List.of(
+                        OreConfiguration.target(stone, TCBlocks.ORE_CINNABAR.get().defaultBlockState()),
+                        OreConfiguration.target(deepslate, TCBlocks.ORE_CINNABAR.get().defaultBlockState())))));
+        context.register(ORE_QUARTZ, new ConfiguredFeature<>(Feature.REPLACE_SINGLE_BLOCK,
+                new ReplaceBlockConfiguration(List.of(
+                        OreConfiguration.target(stone, TCBlocks.ORE_QUARTZ.get().defaultBlockState()),
+                        OreConfiguration.target(deepslate, TCBlocks.ORE_QUARTZ.get().defaultBlockState())))));
+        context.register(ORE_AMBER, new ConfiguredFeature<>(Feature.REPLACE_SINGLE_BLOCK,
+                new ReplaceBlockConfiguration(List.of(
+                        OreConfiguration.target(stone, TCBlocks.ORE_AMBER.get().defaultBlockState()),
+                        OreConfiguration.target(deepslate, TCBlocks.ORE_AMBER.get().defaultBlockState())))));
 
         context.register(CINDERPEARL_PATCH, new ConfiguredFeature<>(Feature.SIMPLE_BLOCK,
                 new SimpleBlockConfiguration(BlockStateProvider.simple(TCBlocks.PLANT_CINDERPEARL.get()))));

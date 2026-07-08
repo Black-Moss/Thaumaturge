@@ -52,7 +52,18 @@ import com.leclowndu93150.thaumcraft.content.device.BlockHungryChest;
 import com.leclowndu93150.thaumcraft.content.device.BlockLampArcane;
 import com.leclowndu93150.thaumcraft.content.device.BlockLampFertility;
 import com.leclowndu93150.thaumcraft.content.device.BlockLampGrowth;
+import com.leclowndu93150.thaumcraft.content.device.BlockCondenser;
+import com.leclowndu93150.thaumcraft.content.device.BlockCondenserLattice;
+import com.leclowndu93150.thaumcraft.content.device.BlockEverfullUrn;
+import com.leclowndu93150.thaumcraft.content.device.BlockRedstoneRelay;
+import com.leclowndu93150.thaumcraft.content.device.BlockStabilizer;
+import com.leclowndu93150.thaumcraft.content.device.BlockVoidSiphon;
+import com.leclowndu93150.thaumcraft.content.device.BlockVisGenerator;
 import com.leclowndu93150.thaumcraft.content.essentia.BlockCentrifuge;
+import com.leclowndu93150.thaumcraft.content.essentia.BlockEssentiaPort;
+import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.BlockBrainBox;
+import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.BlockThaumatorium;
+import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.BlockThaumatoriumTop;
 import com.leclowndu93150.thaumcraft.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJarBrain;
 import com.leclowndu93150.thaumcraft.content.taint.flux.BlockFluxGoo;
@@ -60,6 +71,7 @@ import com.leclowndu93150.thaumcraft.content.taint.flux.FluxGooRefs;
 import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbench;
 import com.leclowndu93150.thaumcraft.content.workbench.BlockArcaneWorkbenchCharger;
 import com.leclowndu93150.thaumcraft.content.world.crystal.BlockCrystal;
+import com.leclowndu93150.thaumcraft.content.world.mound.BlockLoot;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockGrassAmbient;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantCinderpearl;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantShimmerleaf;
@@ -786,6 +798,133 @@ public final class TCBlocks {
                     .noOcclusion()
     );
 
+    public static final DeferredBlock<BlockEverfullUrn> EVERFULL_URN = BLOCKS.registerBlock(
+            "everfull_urn",
+            BlockEverfullUrn::new,
+            props -> props
+                    .mapColor(MapColor.STONE)
+                    .strength(2.0F, 10.0F)
+                    .sound(SoundType.STONE)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockVisGenerator> VIS_GENERATOR = BLOCKS.registerBlock(
+            "vis_generator",
+            BlockVisGenerator::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(1.5F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockEssentiaPort> ESSENTIA_INPUT = BLOCKS.registerBlock(
+            "essentia_input",
+            props -> new BlockEssentiaPort(true, props),
+            TCBlocks::portProps
+    );
+
+    public static final DeferredBlock<BlockEssentiaPort> ESSENTIA_OUTPUT = BLOCKS.registerBlock(
+            "essentia_output",
+            props -> new BlockEssentiaPort(false, props),
+            TCBlocks::portProps
+    );
+
+    public static final DeferredBlock<BlockCondenser> CONDENSER = BLOCKS.registerBlock(
+            "condenser",
+            BlockCondenser::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 10.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockCondenserLattice> CONDENSER_LATTICE = BLOCKS.registerBlock(
+            "condenser_lattice",
+            props -> new BlockCondenserLattice(false, props),
+            props -> latticeProps().lightLevel(state -> 5)
+    );
+
+    public static final DeferredBlock<BlockCondenserLattice> CONDENSER_LATTICE_DIRTY = BLOCKS.registerBlock(
+            "condenser_lattice_dirty",
+            props -> new BlockCondenserLattice(true, props),
+            props -> latticeProps()
+    );
+
+    public static final DeferredBlock<BlockStabilizer> STABILIZER = BLOCKS.registerBlock(
+            "stabilizer",
+            BlockStabilizer::new,
+            props -> stoneProps().noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockRedstoneRelay> REDSTONE_RELAY = BLOCKS.registerBlock(
+            "redstone_relay",
+            BlockRedstoneRelay::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .instabreak()
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockVoidSiphon> VOID_SIPHON = BLOCKS.registerBlock(
+            "void_siphon",
+            BlockVoidSiphon::new,
+            props -> props
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(3.0F, 20.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockThaumatorium> THAUMATORIUM = BLOCKS.registerBlock(
+            "thaumatorium",
+            BlockThaumatorium::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(3.0F, 20.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockThaumatoriumTop> THAUMATORIUM_TOP = BLOCKS.registerBlock(
+            "thaumatorium_top",
+            BlockThaumatoriumTop::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(3.0F, 20.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+                    .noLootTable()
+    );
+
+    public static final DeferredBlock<BlockBrainBox> BRAIN_BOX = BLOCKS.registerBlock(
+            "brain_box",
+            BlockBrainBox::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(1.5F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+    );
+
+    private static BlockBehaviour.Properties latticeProps() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(0.5F, 5.0F)
+                .sound(SoundType.METAL)
+                .noOcclusion();
+    }
+
+    private static BlockBehaviour.Properties portProps() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(1.5F)
+                .sound(SoundType.METAL)
+                .noOcclusion();
+    }
+
     private static BlockBehaviour.Properties earProps() {
         return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.WOOD)
@@ -1117,6 +1256,30 @@ public final class TCBlocks {
                     .noLootTable()
                     .pushReaction(PushReaction.DESTROY)
     );
+
+    public static final DeferredBlock<BlockLoot> LOOT_URN_COMMON =
+            lootBlock("loot_urn_common", BlockLoot.LootType.COMMON, false);
+    public static final DeferredBlock<BlockLoot> LOOT_URN_UNCOMMON =
+            lootBlock("loot_urn_uncommon", BlockLoot.LootType.UNCOMMON, false);
+    public static final DeferredBlock<BlockLoot> LOOT_URN_RARE =
+            lootBlock("loot_urn_rare", BlockLoot.LootType.RARE, false);
+    public static final DeferredBlock<BlockLoot> LOOT_CRATE_COMMON =
+            lootBlock("loot_crate_common", BlockLoot.LootType.COMMON, true);
+    public static final DeferredBlock<BlockLoot> LOOT_CRATE_UNCOMMON =
+            lootBlock("loot_crate_uncommon", BlockLoot.LootType.UNCOMMON, true);
+    public static final DeferredBlock<BlockLoot> LOOT_CRATE_RARE =
+            lootBlock("loot_crate_rare", BlockLoot.LootType.RARE, true);
+
+    private static DeferredBlock<BlockLoot> lootBlock(String id, BlockLoot.LootType type, boolean crate) {
+        return BLOCKS.registerBlock(
+                id,
+                props -> new BlockLoot(type, crate, props),
+                props -> props
+                        .mapColor(crate ? MapColor.WOOD : MapColor.STONE)
+                        .strength(0.15F, 0.0F)
+                        .sound(crate ? SoundType.WOOD : TCSoundTypes.URN.get())
+                        .noOcclusion());
+    }
 
     private TCBlocks() {}
 

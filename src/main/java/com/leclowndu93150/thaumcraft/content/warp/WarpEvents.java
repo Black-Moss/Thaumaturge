@@ -106,7 +106,7 @@ public final class WarpEvents {
         } else if (eff <= 80) {
             applyEffect(player, TCMobEffects.UNNATURAL_HUNGER, 6000, ampFor(warp), "warp.thaumcraft.text.2");
         } else if (eff <= 88) {
-            spawnMist(player, 1);
+            GuardianSpawner.spawnPortal(player);
         } else if (eff <= 92) {
             suddenlySpiders(player, warp, true);
         } else {

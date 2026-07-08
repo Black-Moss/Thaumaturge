@@ -1,0 +1,10 @@
+{
+  "loader": "thaumcraft:obj",
+  "parent": "block/block",
+  "model": "thaumcraft:models/obj/thaumatorium.obj",
+  "textures": {
+    "texture": "thaumcraft:block/thaumatorium",
+    "particle": "#texture"
+  },
+  "corner_space": true
+}

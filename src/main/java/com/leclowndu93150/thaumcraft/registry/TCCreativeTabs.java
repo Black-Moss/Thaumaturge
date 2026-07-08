@@ -74,6 +74,10 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.TUBE_ONEWAY.get());
                         output.accept(TCItems.TUBE_BUFFER.get());
                         output.accept(TCItems.CENTRIFUGE.get());
+                        output.accept(TCItems.THAUMATORIUM.get());
+                        output.accept(TCItems.BRAIN_BOX.get());
+                        output.accept(TCItems.ESSENTIA_INPUT.get());
+                        output.accept(TCItems.ESSENTIA_OUTPUT.get());
 
 
                         output.accept(TCItems.ORE_AMBER.get());
@@ -221,6 +225,14 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.LAMP_GROWTH.get());
                         output.accept(TCItems.LAMP_FERTILITY.get());
                         output.accept(TCItems.HUNGRY_CHEST.get());
+                        output.accept(TCItems.EVERFULL_URN.get());
+                        output.accept(TCItems.VIS_GENERATOR.get());
+                        output.accept(TCItems.CONDENSER.get());
+                        output.accept(TCItems.CONDENSER_LATTICE.get());
+                        output.accept(TCItems.CONDENSER_LATTICE_DIRTY.get());
+                        output.accept(TCItems.STABILIZER.get());
+                        output.accept(TCItems.REDSTONE_RELAY.get());
+                        output.accept(TCItems.VOID_SIPHON.get());
                         output.accept(TCItems.VIS_BATTERY.get());
                         output.accept(TCItems.MIND_CLOCKWORK.get());
                         output.accept(TCItems.MIND_BIOTHAUMIC.get());
@@ -295,6 +307,31 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.TAINT_SWARM_SPAWN_EGG.get());
                         output.accept(TCItems.TAINT_SEED_SPAWN_EGG.get());
                         output.accept(TCItems.TAINT_SEED_PRIME_SPAWN_EGG.get());
+                        output.accept(TCItems.CRIMSON_BLADE.get());
+                        output.accept(TCItems.CRIMSON_PLATE_HELM.get());
+                        output.accept(TCItems.CRIMSON_PLATE_CHEST.get());
+                        output.accept(TCItems.CRIMSON_PLATE_LEGS.get());
+                        output.accept(TCItems.CRIMSON_BOOTS.get());
+                        output.accept(TCItems.CRIMSON_ROBE_HELM.get());
+                        output.accept(TCItems.CRIMSON_ROBE_CHEST.get());
+                        output.accept(TCItems.CRIMSON_ROBE_LEGS.get());
+                        output.accept(TCItems.PECH_WAND.get());
+                        output.accept(TCItems.LOOT_BAG_COMMON.get());
+                        output.accept(TCItems.LOOT_BAG_UNCOMMON.get());
+                        output.accept(TCItems.LOOT_BAG_RARE.get());
+                        output.accept(TCItems.LOOT_URN_COMMON.get());
+                        output.accept(TCItems.LOOT_URN_UNCOMMON.get());
+                        output.accept(TCItems.LOOT_URN_RARE.get());
+                        output.accept(TCItems.LOOT_CRATE_COMMON.get());
+                        output.accept(TCItems.LOOT_CRATE_UNCOMMON.get());
+                        output.accept(TCItems.LOOT_CRATE_RARE.get());
+                        output.accept(TCItems.PECH_SPAWN_EGG.get());
+                        output.accept(TCItems.ELDRITCH_CRAB_SPAWN_EGG.get());
+                        output.accept(TCItems.INHABITED_ZOMBIE_SPAWN_EGG.get());
+                        output.accept(TCItems.ELDRITCH_GUARDIAN_SPAWN_EGG.get());
+                        output.accept(TCItems.CULTIST_KNIGHT_SPAWN_EGG.get());
+                        output.accept(TCItems.CULTIST_CLERIC_SPAWN_EGG.get());
+                        output.accept(TCItems.CULTIST_PORTAL_LESSER_SPAWN_EGG.get());
                     })
                     .build()
     );

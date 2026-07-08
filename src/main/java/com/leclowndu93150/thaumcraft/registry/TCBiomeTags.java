@@ -23,6 +23,9 @@ public final class TCBiomeTags {
     public static final TagKey<Biome> HAS_GREATWOOD_RARE = biome("has_greatwood_rare");
     public static final TagKey<Biome> HAS_SILVERWOOD = biome("has_silverwood");
     public static final TagKey<Biome> HAS_CINDERPEARL = biome("has_cinderpearl");
+    public static final TagKey<Biome> HAS_MOUND = biome("has_structure/mound");
+    public static final TagKey<Biome> IS_MAGICAL = biome("is_magical");
+    public static final TagKey<Biome> IS_SPOOKY = biome("is_spooky");
 
     private static TagKey<Biome> biome(String path) {
         return TagKey.create(Registries.BIOME, TCIds.rl(path));

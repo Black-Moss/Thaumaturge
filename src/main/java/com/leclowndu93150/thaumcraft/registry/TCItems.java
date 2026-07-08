@@ -56,6 +56,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.StandingAndWallBlockItem;
+import com.leclowndu93150.thaumcraft.content.equipment.CrimsonBladeItem;
+import com.leclowndu93150.thaumcraft.content.pech.PechWandItem;
+import com.leclowndu93150.thaumcraft.content.world.mound.LootBagItem;
+import com.leclowndu93150.thaumcraft.content.equipment.CultistRobeItem;
 import com.leclowndu93150.thaumcraft.content.equipment.ElementalAxeItem;
 import com.leclowndu93150.thaumcraft.content.golem.ItemGolemBell;
 import com.leclowndu93150.thaumcraft.content.golem.ItemGolemPlacer;
@@ -159,6 +163,18 @@ public final class TCItems {
             ItemBottleTaint::new,
             props -> props.stacksTo(8).rarity(Rarity.UNCOMMON));
 
+    public static final DeferredItem<BlockItem> THAUMATORIUM = ITEMS.registerSimpleBlockItem(TCBlocks.THAUMATORIUM);
+    public static final DeferredItem<BlockItem> BRAIN_BOX = ITEMS.registerSimpleBlockItem(TCBlocks.BRAIN_BOX);
+    public static final DeferredItem<BlockItem> CONDENSER = ITEMS.registerSimpleBlockItem(TCBlocks.CONDENSER);
+    public static final DeferredItem<BlockItem> CONDENSER_LATTICE = ITEMS.registerSimpleBlockItem(TCBlocks.CONDENSER_LATTICE);
+    public static final DeferredItem<BlockItem> CONDENSER_LATTICE_DIRTY = ITEMS.registerSimpleBlockItem(TCBlocks.CONDENSER_LATTICE_DIRTY);
+    public static final DeferredItem<BlockItem> STABILIZER = ITEMS.registerSimpleBlockItem(TCBlocks.STABILIZER);
+    public static final DeferredItem<BlockItem> REDSTONE_RELAY = ITEMS.registerSimpleBlockItem(TCBlocks.REDSTONE_RELAY);
+    public static final DeferredItem<BlockItem> VOID_SIPHON = ITEMS.registerSimpleBlockItem(TCBlocks.VOID_SIPHON);
+    public static final DeferredItem<BlockItem> EVERFULL_URN = ITEMS.registerSimpleBlockItem(TCBlocks.EVERFULL_URN);
+    public static final DeferredItem<BlockItem> VIS_GENERATOR = ITEMS.registerSimpleBlockItem(TCBlocks.VIS_GENERATOR);
+    public static final DeferredItem<BlockItem> ESSENTIA_INPUT = ITEMS.registerSimpleBlockItem(TCBlocks.ESSENTIA_INPUT);
+    public static final DeferredItem<BlockItem> ESSENTIA_OUTPUT = ITEMS.registerSimpleBlockItem(TCBlocks.ESSENTIA_OUTPUT);
     public static final DeferredItem<BlockItem> ARCANE_EAR = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_EAR);
     public static final DeferredItem<BlockItem> ARCANE_EAR_TOGGLE = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_EAR_TOGGLE);
     public static final DeferredItem<BlockItem> LAMP_ARCANE = ITEMS.registerSimpleBlockItem(TCBlocks.LAMP_ARCANE);
@@ -228,6 +244,23 @@ public final class TCItems {
             props -> props.rarity(Rarity.RARE));
     public static final DeferredItem<PrimalCrusherItem> PRIMAL_CRUSHER = ITEMS.registerItem("primal_crusher",
             PrimalCrusherItem::new, props -> props.pickaxe(TCMaterials.TOOL_PRIMAL_VOID, 3.5F, -2.8F).rarity(Rarity.RARE));
+
+    public static final DeferredItem<CrimsonBladeItem> CRIMSON_BLADE = ITEMS.registerItem("crimson_blade",
+            CrimsonBladeItem::new, props -> props.sword(TCMaterials.TOOL_CRIMSON_VOID, 3.0F, -2.4F).rarity(Rarity.EPIC));
+    public static final DeferredItem<Item> CRIMSON_PLATE_HELM = ITEMS.registerItem("crimson_plate_helm",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_PLATE, ArmorType.HELMET).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> CRIMSON_PLATE_CHEST = ITEMS.registerItem("crimson_plate_chest",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_PLATE, ArmorType.CHESTPLATE).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> CRIMSON_PLATE_LEGS = ITEMS.registerItem("crimson_plate_legs",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_PLATE, ArmorType.LEGGINGS).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<CultistRobeItem> CRIMSON_BOOTS = ITEMS.registerItem("crimson_boots",
+            CultistRobeItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_BOOTS, ArmorType.BOOTS).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<CultistRobeItem> CRIMSON_ROBE_HELM = ITEMS.registerItem("crimson_robe_helm",
+            CultistRobeItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_ROBE, ArmorType.HELMET).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<CultistRobeItem> CRIMSON_ROBE_CHEST = ITEMS.registerItem("crimson_robe_chest",
+            CultistRobeItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_ROBE, ArmorType.CHESTPLATE).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<CultistRobeItem> CRIMSON_ROBE_LEGS = ITEMS.registerItem("crimson_robe_legs",
+            CultistRobeItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_ROBE, ArmorType.LEGGINGS).rarity(Rarity.UNCOMMON));
 
     public static final DeferredItem<BlockItem> RECHARGE_PEDESTAL = ITEMS.registerSimpleBlockItem(TCBlocks.RECHARGE_PEDESTAL);
 
@@ -308,6 +341,37 @@ public final class TCItems {
             registerSpawnEgg("taint_seed_spawn_egg", TCEntities.TAINT_SEED);
     public static final DeferredItem<SpawnEggItem> TAINT_SEED_PRIME_SPAWN_EGG =
             registerSpawnEgg("taint_seed_prime_spawn_egg", TCEntities.TAINT_SEED_PRIME);
+    public static final DeferredItem<SpawnEggItem> PECH_SPAWN_EGG =
+            registerSpawnEgg("pech_spawn_egg", TCEntities.PECH);
+    public static final DeferredItem<SpawnEggItem> ELDRITCH_CRAB_SPAWN_EGG =
+            registerSpawnEgg("eldritch_crab_spawn_egg", TCEntities.ELDRITCH_CRAB);
+    public static final DeferredItem<SpawnEggItem> INHABITED_ZOMBIE_SPAWN_EGG =
+            registerSpawnEgg("inhabited_zombie_spawn_egg", TCEntities.INHABITED_ZOMBIE);
+    public static final DeferredItem<SpawnEggItem> ELDRITCH_GUARDIAN_SPAWN_EGG =
+            registerSpawnEgg("eldritch_guardian_spawn_egg", TCEntities.ELDRITCH_GUARDIAN);
+    public static final DeferredItem<SpawnEggItem> CULTIST_KNIGHT_SPAWN_EGG =
+            registerSpawnEgg("cultist_knight_spawn_egg", TCEntities.CULTIST_KNIGHT);
+    public static final DeferredItem<SpawnEggItem> CULTIST_CLERIC_SPAWN_EGG =
+            registerSpawnEgg("cultist_cleric_spawn_egg", TCEntities.CULTIST_CLERIC);
+    public static final DeferredItem<SpawnEggItem> CULTIST_PORTAL_LESSER_SPAWN_EGG =
+            registerSpawnEgg("cultist_portal_lesser_spawn_egg", TCEntities.CULTIST_PORTAL_LESSER);
+
+    public static final DeferredItem<PechWandItem> PECH_WAND = ITEMS.registerItem("pech_wand",
+            PechWandItem::new, props -> props.rarity(Rarity.RARE));
+
+    public static final DeferredItem<LootBagItem> LOOT_BAG_COMMON = ITEMS.registerItem("loot_bag_common",
+            props -> new LootBagItem(TCLootTables.LOOT_BAG_COMMON, props.stacksTo(16)));
+    public static final DeferredItem<LootBagItem> LOOT_BAG_UNCOMMON = ITEMS.registerItem("loot_bag_uncommon",
+            props -> new LootBagItem(TCLootTables.LOOT_BAG_UNCOMMON, props.stacksTo(16).rarity(Rarity.UNCOMMON)));
+    public static final DeferredItem<LootBagItem> LOOT_BAG_RARE = ITEMS.registerItem("loot_bag_rare",
+            props -> new LootBagItem(TCLootTables.LOOT_BAG_RARE, props.stacksTo(16).rarity(Rarity.RARE)));
+
+    public static final DeferredItem<BlockItem> LOOT_URN_COMMON = ITEMS.registerSimpleBlockItem(TCBlocks.LOOT_URN_COMMON);
+    public static final DeferredItem<BlockItem> LOOT_URN_UNCOMMON = ITEMS.registerSimpleBlockItem(TCBlocks.LOOT_URN_UNCOMMON);
+    public static final DeferredItem<BlockItem> LOOT_URN_RARE = ITEMS.registerSimpleBlockItem(TCBlocks.LOOT_URN_RARE);
+    public static final DeferredItem<BlockItem> LOOT_CRATE_COMMON = ITEMS.registerSimpleBlockItem(TCBlocks.LOOT_CRATE_COMMON);
+    public static final DeferredItem<BlockItem> LOOT_CRATE_UNCOMMON = ITEMS.registerSimpleBlockItem(TCBlocks.LOOT_CRATE_UNCOMMON);
+    public static final DeferredItem<BlockItem> LOOT_CRATE_RARE = ITEMS.registerSimpleBlockItem(TCBlocks.LOOT_CRATE_RARE);
 
     private static DeferredItem<SpawnEggItem> registerSpawnEgg(String name, Supplier<? extends EntityType<?>> type) {
         return ITEMS.registerItem(name, properties -> new SpawnEggItem(properties.spawnEgg(type.get())));

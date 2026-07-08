@@ -23,6 +23,8 @@ public final class TCMaterials {
             BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 1500, 9.0F, 3.0F, 18, TCItemTags.INGOTS_THAUMIUM);
     public static final ToolMaterial TOOL_PRIMAL_VOID = new ToolMaterial(
             BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 500, 8.0F, 4.0F, 20, TCItemTags.INGOTS_VOID_METAL);
+    public static final ToolMaterial TOOL_CRIMSON_VOID = new ToolMaterial(
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL, 200, 8.0F, 3.5F, 20, TCItemTags.INGOTS_VOID_METAL);
 
     public static final ResourceKey<EquipmentAsset> ASSET_THAUMIUM = asset("thaumium");
     public static final ResourceKey<EquipmentAsset> ASSET_TRAVELLER = asset("traveller");
@@ -32,6 +34,7 @@ public final class TCMaterials {
     public static final ResourceKey<EquipmentAsset> ASSET_FORTRESS = asset("fortress");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_PLATE = asset("cultist_plate");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_ROBE = asset("cultist_robe");
+    public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_BOOTS = asset("cultist_boots");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_LEADER = asset("cultist_leader");
 
     public static final ArmorMaterial ARMOR_THAUMIUM = new ArmorMaterial(
@@ -58,6 +61,9 @@ public final class TCMaterials {
     public static final ArmorMaterial ARMOR_CULTIST_ROBE = new ArmorMaterial(
             17, defense(2, 4, 5, 2), 13, SoundEvents.ARMOR_EQUIP_CHAIN,
             0.0F, 0.0F, ItemTags.WOOL, ASSET_CULTIST_ROBE);
+    public static final ArmorMaterial ARMOR_CULTIST_BOOTS = new ArmorMaterial(
+            15, defense(2, 5, 6, 2), 9, SoundEvents.ARMOR_EQUIP_IRON,
+            0.0F, 0.0F, Tags.Items.INGOTS_IRON, ASSET_CULTIST_BOOTS);
     public static final ArmorMaterial ARMOR_CULTIST_LEADER = new ArmorMaterial(
             30, defense(3, 6, 7, 3), 20, SoundEvents.ARMOR_EQUIP_IRON,
             1.0F, 0.0F, Tags.Items.INGOTS_IRON, ASSET_CULTIST_LEADER);
