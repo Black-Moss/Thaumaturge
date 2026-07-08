@@ -158,7 +158,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.arcane_workbench", "Arcane Workbench");
         add("block.thaumcraft.arcane_workbench_charger", "Workbench Charger");
         add("block.thaumcraft.crucible", "Crucible");
+        add("block.thaumcraft.infernal_furnace", "Infernal Furnace");
         add("block.thaumcraft.alembic", "Arcane Alembic");
+        add("block.thaumcraft.bellows", "Arcane Bellows");
         add("block.thaumcraft.smelter_basic", "Essentia Smeltery");
         add("block.thaumcraft.smelter_thaumium", "Thaumium Essentia Smeltery");
         add("block.thaumcraft.smelter_void", "Void Metal Essentia Smeltery");
@@ -206,6 +208,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.tube_oneway", "One-Way Essentia Tube");
         add("block.thaumcraft.tube_buffer", "Essentia Buffer");
 
+        add("item.thaumcraft.alumentum", "Alumentum");
         add("block.thaumcraft.nitor_white", "White Nitor");
         add("block.thaumcraft.nitor_orange", "Orange Nitor");
         add("block.thaumcraft.nitor_magenta", "Magenta Nitor");
@@ -298,6 +301,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.metal_brass", "Alchemical Brass Block");
         add("block.thaumcraft.metal_void", "Void Metal Block");
         add("block.thaumcraft.amber_block", "Amber Block");
+
+        add("item.thaumcraft.rare_earth", "Rare Earth");
 
         add("item.thaumcraft.quicksilver", "Quicksilver");
         add("item.thaumcraft.amber", "Amber");

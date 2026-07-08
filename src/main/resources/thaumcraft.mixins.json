@@ -9,7 +9,8 @@
     "server.network.ServerGamePacketListenerImplAccessor",
     "world.entity.MobAccessor",
     "world.entity.item.ItemEntityAccessor",
-    "world.entity.monster.SlimeAccessor"
+    "world.entity.monster.SlimeAccessor",
+    "world.level.block.entity.AbstractFurnaceBlockEntityAccessor"
   ],
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",

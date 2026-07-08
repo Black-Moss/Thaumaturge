@@ -1102,6 +1102,18 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"void_essentia_smelter"),Optional.of(1),false))
                 .unlockedBy("has",has(TCItems.ALCHEMICAL_CONSTRUCT))
                 .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.BELLOWS),25)
+                .aspect(TCAspects.AER)
+                .pattern("PP ")
+                .pattern("LLI")
+                .pattern("PP ")
+                .define('P',ItemTags.PLANKS)
+                .define('L',Tags.Items.LEATHERS)
+                .define('I',Tags.Items.INGOTS_IRON)
+                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"arcane_bellows"),Optional.of(1),false))
+                .unlockedBy("has",has(Tags.Items.LEATHERS))
+                .save(output);
     }
 
     private Holder<IAspect> getAspect(ResourceKey<IAspect> key) {

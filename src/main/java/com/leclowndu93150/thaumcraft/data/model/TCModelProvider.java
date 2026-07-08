@@ -6,6 +6,9 @@ import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
 import com.leclowndu93150.thaumcraft.client.color.GolemMaterialTint;
 import com.leclowndu93150.thaumcraft.client.model.CentrifugeItemSpecialRenderer;
+import com.mojang.math.Axis;
+import com.mojang.math.Quadrant;
+import com.mojang.math.Transformation;
 import net.minecraft.client.renderer.special.ChestSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarBrainItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
@@ -54,6 +57,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,6 +104,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.NETHER_BRICKS))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.OBSIDIAN))));
         registerAlembic(blockModels, itemModels, TCBlocks.ALEMBIC.get());
+        registerBellows(blockModels, itemModels);
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_BASIC.get(), "smelter_basic");
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_THAUMIUM.get(), "smelter_thaumium");
         registerSmelter(blockModels, itemModels,TCBlocks.SMELTER_VOID.get(), "smelter_void");
@@ -271,7 +276,6 @@ public final class TCModelProvider extends ModelProvider {
 
     private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName){
         horizontalBlock(blockModels, itemModels, block, modelName, false);
-
     }
     private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName,boolean oversizedInGui){
         PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
@@ -288,6 +292,25 @@ public final class TCModelProvider extends ModelProvider {
                         Optional.empty(),
                         List.of()
                 ), new ClientItem.Properties(true,oversizedInGui,1));
+    }
+
+    private void registerBellows(BlockModelGenerators blockModels, ItemModelGenerators itemModels){
+        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.DOWN,BlockModelGenerators.X_ROT_90)
+                .select(Direction.UP,BlockModelGenerators.X_ROT_270)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(TCBlocks.BELLOWS.get(),variantOf("bellows")).with(rotations)
+        );
+        itemModels.itemModelOutput.accept(TCBlocks.BELLOWS.asItem(),
+                new CuboidItemModelWrapper.Unbaked(
+                        Identifier.fromNamespaceAndPath(TCIds.MODID,"item/bellows"),
+                        Optional.empty(),
+                        List.of()
+                ));
 
     }
 
@@ -489,7 +512,7 @@ public final class TCModelProvider extends ModelProvider {
         Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName);
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant).with(facing));
-        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model), new ClientItem.Properties(true, true, 1));
     }
 
     private static void registerSimpleWithItem(BlockModelGenerators blockModels, ItemModelGenerators itemModels,
@@ -700,7 +723,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.THAUMATORIUM.get(),
                         new MultiVariant(WeightedList.of(new Variant(thaumatoriumModel))))
                 .with(thaumatoriumFacing));
-        itemModels.itemModelOutput.accept(TCItems.THAUMATORIUM.get(), ItemModelUtils.plainModel(thaumatoriumModel));
+        itemModels.itemModelOutput.accept(TCItems.THAUMATORIUM.get(), new CuboidItemModelWrapper.Unbaked(thaumatoriumModel,Optional.of(new Transformation(new Matrix4f().translate(0,0,1).rotate(Axis.XP.rotationDegrees(270)))), List.of()), new ClientItem.Properties(true,true,1));
         registerInvisibleBlock(blockModels, TCBlocks.THAUMATORIUM_TOP.get());
         registerFacingDevice(blockModels, itemModels, TCBlocks.BRAIN_BOX.get(), "brain_box",
                 PropertyDispatch.modify(BlockStateProperties.FACING)

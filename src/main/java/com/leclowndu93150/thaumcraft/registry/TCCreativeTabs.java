@@ -34,7 +34,7 @@ public final class TCCreativeTabs {
             "thaumcraft",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.thaumcraft"))
-                    .icon(() -> new ItemStack(Items.BOOK))
+                    .icon(() -> new ItemStack(TCItems.THAUMONOMICON.get()))
                     .displayItems((parameters, output) -> {
                         output.accept(TCItems.THAUMONOMICON.get());
                         output.accept(TCItems.SALIS_MUNDUS.get());
@@ -51,21 +51,26 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.FOCUS_3.get());
                         output.accept(TCItems.LABEL.get());
                         output.accept(TCItems.RESEARCH_TABLE.get());
+                        output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());
                         output.accept(TCItems.FOCAL_MANIPULATOR.get());
                         output.accept(TCItems.ARCANE_WORKBENCH.get());
                         output.accept(TCItems.CRUCIBLE.get());
-                        output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());
                         output.accept(TCItems.ALCHEMICAL_CONSTRUCT.get());
                         output.accept(TCItems.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
+                        output.accept(TCItems.CENTRIFUGE.get());
+
                         output.accept(TCItems.ALEMBIC.get());
+                        output.accept(TCItems.BELLOWS.get());
                         output.accept(TCItems.SMELTER_BASIC.get());
                         output.accept(TCItems.SMELTER_THAUMIUM.get());
                         output.accept(TCItems.SMELTER_VOID.get());
                         output.accept(TCItems.SMELTER_AUX.get());
                         output.accept(TCItems.SMELTER_VENT.get());
+                        output.accept(TCItems.ESSENTIA_INPUT.get());
+                        output.accept(TCItems.ESSENTIA_OUTPUT.get());
+                        output.accept(TCItems.JAR_BRACE.get());
                         output.accept(TCItems.JAR_NORMAL.get());
                         output.accept(TCItems.JAR_VOID.get());
-                        output.accept(TCItems.JAR_BRACE.get());
                         output.accept(TCItems.JAR_BRAIN.get());
                         output.accept(TCItems.TUBE.get());
                         output.accept(TCItems.TUBE_VALVE.get());
@@ -73,12 +78,16 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.TUBE_FILTER.get());
                         output.accept(TCItems.TUBE_ONEWAY.get());
                         output.accept(TCItems.TUBE_BUFFER.get());
-                        output.accept(TCItems.CENTRIFUGE.get());
-                        output.accept(TCItems.THAUMATORIUM.get());
                         output.accept(TCItems.BRAIN_BOX.get());
-                        output.accept(TCItems.ESSENTIA_INPUT.get());
-                        output.accept(TCItems.ESSENTIA_OUTPUT.get());
 
+
+                        output.accept(TCItems.CRYSTAL_AER.get());
+                        output.accept(TCItems.CRYSTAL_IGNIS.get());
+                        output.accept(TCItems.CRYSTAL_AQUA.get());
+                        output.accept(TCItems.CRYSTAL_TERRA.get());
+                        output.accept(TCItems.CRYSTAL_ORDO.get());
+                        output.accept(TCItems.CRYSTAL_PERDITIO.get());
+                        output.accept(TCItems.CRYSTAL_VITIUM.get());
 
                         output.accept(TCItems.ORE_AMBER.get());
                         output.accept(TCItems.ORE_CINNABAR.get());
@@ -105,23 +114,6 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PLATE_THAUMIUM.get());
                         output.accept(TCItems.PLATE_VOID.get());
 
-                        output.accept(TCItems.FABRIC.get());
-                        output.accept(TCItems.MIRRORED_GLASS.get());
-                        output.accept(TCItems.FILTER.get());
-                        output.accept(TCItems.MECHANISM_SIMPLE.get());
-                        output.accept(TCItems.MECHANISM_COMPLEX.get());
-                        output.accept(TCItems.MORPHIC_RESONATOR.get());
-                        output.accept(TCItems.SPA.get());
-                        output.accept(TCItems.BATH_SALTS.get());
-                        output.accept(TCItems.SANITY_SOAP.get());
-                        output.accept(TCItems.CHUNK_BEEF.get());
-                        output.accept(TCItems.CHUNK_CHICKEN.get());
-                        output.accept(TCItems.CHUNK_PORK.get());
-                        output.accept(TCItems.CHUNK_FISH.get());
-                        output.accept(TCItems.CHUNK_RABBIT.get());
-                        output.accept(TCItems.CHUNK_MUTTON.get());
-                        output.accept(TCItems.TRIPLE_MEAT_TREAT.get());
-
                         output.accept(TCItems.CLUSTER_IRON.get());
                         output.accept(TCItems.CLUSTER_GOLD.get());
                         output.accept(TCItems.CLUSTER_COPPER.get());
@@ -131,24 +123,54 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.CLUSTER_CINNABAR.get());
                         output.accept(TCItems.CLUSTER_QUARTZ.get());
 
+                        output.accept(TCItems.CHUNK_BEEF.get());
+                        output.accept(TCItems.CHUNK_CHICKEN.get());
+                        output.accept(TCItems.CHUNK_PORK.get());
+                        output.accept(TCItems.CHUNK_FISH.get());
+                        output.accept(TCItems.CHUNK_RABBIT.get());
+                        output.accept(TCItems.CHUNK_MUTTON.get());
+                        output.accept(TCItems.TRIPLE_MEAT_TREAT.get());
+
+                        output.accept(TCItems.BRAIN.get());
+                        output.accept(TCItems.FABRIC.get());
+                        output.accept(TCItems.FILTER.get());
+                        output.accept(TCItems.MIRRORED_GLASS.get());
+                        output.accept(TCItems.MECHANISM_SIMPLE.get());
+                        output.accept(TCItems.MECHANISM_COMPLEX.get());
+                        output.accept(TCItems.MORPHIC_RESONATOR.get());
+                        output.accept(TCItems.VOID_SEED.get());
+                        output.accept(TCItems.CAUSALITY_COLLAPSER.get());
+                        output.accept(TCItems.PRIMORDIAL_PEARL.get());
+
+                        output.accept(TCItems.INFERNAL_FURNACE.get());
+                        output.accept(TCItems.THAUMATORIUM.get());
+                        output.accept(TCItems.INFUSION_MATRIX.get());
+                        output.accept(TCItems.PEDESTAL_ARCANE.get());
+                        output.accept(TCItems.PEDESTAL_ANCIENT.get());
+                        output.accept(TCItems.PEDESTAL_ELDRITCH.get());
+                        output.accept(TCItems.PILLAR_ARCANE.get());
+                        output.accept(TCItems.PILLAR_ANCIENT.get());
+                        output.accept(TCItems.PILLAR_ELDRITCH.get());
+                        output.accept(TCItems.MATRIX_SPEED.get());
+                        output.accept(TCItems.MATRIX_COST.get());
+
+                        output.accept(TCItems.SPA.get());
+                        output.accept(TCItems.BATH_SALTS.get());
+                        output.accept(TCItems.SANITY_SOAP.get());
+
+                        output.accept(TCItems.ALUMENTUM.get());
                         for (DyeColor dye : DyeColor.values()) {
                             output.accept(TCItems.NITORS.get(dye).get());
                         }
-                        output.accept(TCItems.TALLOW.get());
                         for (DyeColor dye : DyeColor.values()) {
                             output.accept(TCItems.BANNERS.get(dye).get());
                         }
                         output.accept(TCItems.BANNER_CRIMSON_CULT.get());
+                        output.accept(TCItems.TALLOW.get());
                         for (DyeColor dye : DyeColor.values()) {
                             output.accept(TCItems.CANDLES.get(dye).get());
                         }
-                        output.accept(TCItems.CRYSTAL_AER.get());
-                        output.accept(TCItems.CRYSTAL_IGNIS.get());
-                        output.accept(TCItems.CRYSTAL_AQUA.get());
-                        output.accept(TCItems.CRYSTAL_TERRA.get());
-                        output.accept(TCItems.CRYSTAL_ORDO.get());
-                        output.accept(TCItems.CRYSTAL_PERDITIO.get());
-                        output.accept(TCItems.CRYSTAL_VITIUM.get());
+
                         output.accept(TCItems.STONE_ARCANE.get());
                         output.accept(TCItems.STONE_ARCANE_BRICK.get());
                         output.accept(TCItems.STAIRS_ARCANE.get());
@@ -275,19 +297,6 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.CLOTH_CHEST.get());
                         output.accept(TCItems.CLOTH_LEGS.get());
                         output.accept(TCItems.CLOTH_BOOTS.get());
-                        output.accept(TCItems.INFUSION_MATRIX.get());
-                        output.accept(TCItems.PEDESTAL_ARCANE.get());
-                        output.accept(TCItems.PEDESTAL_ANCIENT.get());
-                        output.accept(TCItems.PEDESTAL_ELDRITCH.get());
-                        output.accept(TCItems.PILLAR_ARCANE.get());
-                        output.accept(TCItems.PILLAR_ANCIENT.get());
-                        output.accept(TCItems.PILLAR_ELDRITCH.get());
-                        output.accept(TCItems.MATRIX_SPEED.get());
-                        output.accept(TCItems.MATRIX_COST.get());
-                        output.accept(TCItems.VOID_SEED.get());
-                        output.accept(TCItems.CAUSALITY_COLLAPSER.get());
-                        output.accept(TCItems.PRIMORDIAL_PEARL.get());
-                        output.accept(TCItems.BRAIN.get());
                         output.accept(TCItems.WISP_SPAWN_EGG.get());
                         output.accept(TCItems.BRAINY_ZOMBIE_SPAWN_EGG.get());
                         output.accept(TCItems.GIANT_BRAINY_ZOMBIE_SPAWN_EGG.get());

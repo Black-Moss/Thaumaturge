@@ -95,7 +95,7 @@ public final class AspectFromStacksCategory implements IRecipeCategory<AspectFro
     @Override
     public void draw(Wrapper recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         resultSlot.draw(guiGraphics);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(TCIds.MODID,"textures/gui/gui_inner.png"),6,31,0,0,163,74,256,256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(TCIds.MODID,"textures/gui/gui_inner.png"),5,30,0,0,163,74,256,256);
     }
 
 

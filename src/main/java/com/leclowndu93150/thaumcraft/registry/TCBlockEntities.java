@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.casters.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockEntityCrucible;
+import com.leclowndu93150.thaumcraft.content.essentia.bellows.BlockEntityBellows;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityArcaneEar;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityDioptra;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityHungryChest;
@@ -116,6 +117,13 @@ public final class TCBlockEntities {
                     "alembic",
                     () -> new BlockEntityType<>(BlockEntityAlembic::new, Set.of(TCBlocks.ALEMBIC.get()))
             );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityBellows>> BELLOWS =
+            BLOCK_ENTITIES.register(
+                    "bellows",
+                    () -> new BlockEntityType<>(BlockEntityBellows::new, Set.of(TCBlocks.BELLOWS.get()))
+            );
+
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJar>> JAR =
             BLOCK_ENTITIES.register(

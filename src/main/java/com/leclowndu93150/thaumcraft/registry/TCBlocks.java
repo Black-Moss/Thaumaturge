@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.casters.BlockFocalManipulator;
+import com.leclowndu93150.thaumcraft.content.essentia.bellows.BlockBellows;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelterAux;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelterVent;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockInfusionMatrix;
@@ -161,6 +162,17 @@ public final class TCBlocks {
                     .mapColor(MapColor.WOOD)
                     .strength(2F,20.0F)
                     .sound(SoundType.WOOD)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+    );
+
+    public static final DeferredBlock<BlockBellows> BELLOWS = BLOCKS.registerBlock(
+            "bellows",
+            BlockBellows::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(1F,20.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
                     .instrument(NoteBlockInstrument.BASEDRUM)
     );
 

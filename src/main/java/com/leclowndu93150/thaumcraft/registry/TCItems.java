@@ -98,6 +98,8 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> ALEMBIC = ITEMS.registerSimpleBlockItem(TCBlocks.ALEMBIC);
 
+    public static final DeferredItem<BlockItem> BELLOWS = ITEMS.registerSimpleBlockItem(TCBlocks.BELLOWS);
+
     public static final DeferredItem<BlockItem> SMELTER_BASIC = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_BASIC);
 
     public static final DeferredItem<BlockItem> SMELTER_THAUMIUM = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_THAUMIUM);

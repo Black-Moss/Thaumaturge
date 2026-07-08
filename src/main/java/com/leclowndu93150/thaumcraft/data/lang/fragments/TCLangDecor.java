@@ -34,9 +34,6 @@ public final class TCLangDecor {
         provider.add("block.thaumcraft.thaumatorium_top", "Thaumatorium");
         provider.add("block.thaumcraft.brain_box", "Brain Box");
         provider.add("item.thaumcraft.tallow", "Magic Tallow");
-        provider.add("item.thaumcraft.alumentum", "Alumentum");
-        provider.add("item.thaumcraft.rare_earth", "Rare Earths");
-        provider.add("block.thaumcraft.infernal_furnace", "Infernal Furnace");
         provider.add("block.thaumcraft.placeholder_obsidian", "Infernal Furnace");
         provider.add("block.thaumcraft.placeholder_nether_bricks", "Infernal Furnace");
         provider.add("item.thaumcraft.warping", "Warping");

@@ -82,6 +82,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());
         dropSelf(TCBlocks.CRUCIBLE.get());
         dropSelf(TCBlocks.ALEMBIC.get());
+        dropSelf(TCBlocks.BELLOWS.get());
         dropSelf(TCBlocks.SMELTER_BASIC.get());
         dropSelf(TCBlocks.SMELTER_THAUMIUM.get());
         dropSelf(TCBlocks.SMELTER_VOID.get());
