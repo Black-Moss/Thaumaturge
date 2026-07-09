@@ -98,10 +98,10 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
         TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().get(LAVA_SPRITE);
         collector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(), (pose, buffer) -> {
             VertexConsumer wrapped = sprite.wrap(buffer);
-            lavaVertex(wrapped, pose, 0.0F, 0.0F, 1.0F, 1.0F);
-            lavaVertex(wrapped, pose, 1.0F, 0.0F, 0.0F, 1.0F);
-            lavaVertex(wrapped, pose, 1.0F, 1.0F, 0.0F, 0.0F);
-            lavaVertex(wrapped, pose, 0.0F, 1.0F, 1.0F, 0.0F);
+            lavaVertex(wrapped, pose, 0.0F, 0.0F, sprite.getU1(), sprite.getV1());
+            lavaVertex(wrapped, pose, 1.0F, 0.0F, sprite.getU0(), sprite.getV1());
+            lavaVertex(wrapped, pose, 1.0F, 1.0F, sprite.getU0(), sprite.getV0());
+            lavaVertex(wrapped, pose, 0.0F, 1.0F, sprite.getU1(), sprite.getV0());
         });
         poseStack.popPose();
     }
