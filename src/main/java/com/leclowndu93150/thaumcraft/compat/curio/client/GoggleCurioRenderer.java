@@ -36,11 +36,9 @@ import java.util.function.Function;
 
 public class GoggleCurioRenderer implements ICurioRenderer {
 
-    private final EquipmentAssetManager equipmentAssets;
     private final Function<LayerTextureKey, Identifier> layerTextureLookup;
 
-    public GoggleCurioRenderer(EquipmentAssetManager equipmentAssets) {
-        this.equipmentAssets = equipmentAssets;
+    public GoggleCurioRenderer() {
         this.layerTextureLookup = Util.memoize(key -> key.layer.getTextureLocation(key.layerType));
     }
 
@@ -48,7 +46,7 @@ public class GoggleCurioRenderer implements ICurioRenderer {
     public <S extends LivingEntityRenderState, M extends EntityModel<? super S>> void render(ItemStack stack, SlotContext slotContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int packedLight, S renderState, RenderLayerParent<S, M> renderLayerParent, EntityRendererProvider.Context context, float yRotation, float xRotation) {
         IClientItemExtensions extensions = IClientItemExtensions.of(stack);
         M model = (M) extensions.getGenericArmorModel(stack, EquipmentClientInfo.LayerType.HUMANOID, renderLayerParent.getModel());
-        List<EquipmentClientInfo.Layer> layers = this.equipmentAssets.get(ResourceKey.create(EquipmentAssets.ROOT_ID,Identifier.fromNamespaceAndPath(TCIds.MODID,"goggles"))).getLayers(EquipmentClientInfo.LayerType.HUMANOID);
+        List<EquipmentClientInfo.Layer> layers = context.getEquipmentAssets().get(ResourceKey.create(EquipmentAssets.ROOT_ID,Identifier.fromNamespaceAndPath(TCIds.MODID,"goggles"))).getLayers(EquipmentClientInfo.LayerType.HUMANOID);
         if (!layers.isEmpty()) {
             int dyeColor = extensions.getDefaultDyeColor(stack);
             boolean renderFoil = stack.hasFoil();
@@ -96,6 +94,6 @@ public class GoggleCurioRenderer implements ICurioRenderer {
         }
     }
 
-    private static record LayerTextureKey(EquipmentClientInfo.LayerType layerType, EquipmentClientInfo.Layer layer) {
+    private record LayerTextureKey(EquipmentClientInfo.LayerType layerType, EquipmentClientInfo.Layer layer) {
     }
 }

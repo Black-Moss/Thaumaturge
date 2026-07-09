@@ -10,7 +10,8 @@
     "world.entity.MobAccessor",
     "world.entity.item.ItemEntityAccessor",
     "world.entity.monster.SlimeAccessor",
-    "world.level.block.entity.AbstractFurnaceBlockEntityAccessor"
+    "world.level.block.entity.AbstractFurnaceBlockEntityAccessor",
+    "world.entity.ExperienceOrbAccessor"
   ],
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",

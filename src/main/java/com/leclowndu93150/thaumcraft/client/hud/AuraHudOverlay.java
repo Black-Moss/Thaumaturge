@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.client.aura.ClientAuraCache;
-import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumcraft.network.ServerboundRequestAuraChunkPayload;
 import java.text.DecimalFormat;
@@ -18,10 +17,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.neoforged.neoforge.client.gui.GuiLayer;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
-public final class AuraHudOverlay implements GuiLayer {
+public final class AuraHudOverlay implements LeftHudStack.Gauge {
     private static final Identifier HUD = TCIds.rl("textures/gui/hud.png");
     private static final int TEX_SIZE = 256;
 
@@ -59,22 +57,31 @@ public final class AuraHudOverlay implements GuiLayer {
     private static final int FLUX_RIPPLE_TINT = 0x80B266FF;
     private static final int VIS_TEXT_COLOR = 0xFFEEAAFF;
     private static final int FLUX_TEXT_COLOR = 0xFFAA11BB;
-    private static final int CASTER_HUD_SHIFT = 33;
+    private static final int STACK_HEIGHT = 83;
 
     private static final DecimalFormat AMOUNT_FORMAT = new DecimalFormat("#######.#");
 
     public AuraHudOverlay() {}
 
     @Override
+    public boolean visible(Minecraft mc, LocalPlayer player) {
+        return shouldShow(player);
+    }
+
+    @Override
+    public int height() {
+        return STACK_HEIGHT;
+    }
+
+    @Override
+    public String exclusiveGroup() {
+        return null;
+    }
+
+    @Override
     public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (player == null || mc.options.hideGui) {
-            return;
-        }
-        if (!shouldShow(player)) {
-            return;
-        }
         ClientAuraCache.tick();
         ChunkPos pos = ChunkPos.containing(player.blockPosition());
         if (ClientAuraCache.shouldRequest(pos)) {
@@ -86,12 +93,6 @@ public final class AuraHudOverlay implements GuiLayer {
         }
         if (snap == null) {
             return;
-        }
-
-        boolean shifted = CasterHudOverlay.isVisible(mc) && !ThaumcraftClientConfig.dialBottom();
-        if (shifted) {
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(0.0F, CASTER_HUD_SHIFT);
         }
 
         float partial = deltaTracker.getGameTimeDeltaPartialTick(false);
@@ -145,10 +146,6 @@ public final class AuraHudOverlay implements GuiLayer {
         graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
                 HUD_X + NEEDLE_X, Math.round(needleStart), NEEDLE_U, NEEDLE_V,
                 NEEDLE_W, NEEDLE_H, NEEDLE_W, NEEDLE_H, TEX_SIZE, TEX_SIZE);
-
-        if (shifted) {
-            graphics.pose().popMatrix();
-        }
     }
 
     private static void drawAmount(GuiGraphicsExtractor graphics, String text, float y, int color) {

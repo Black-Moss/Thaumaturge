@@ -27,6 +27,7 @@ public final class CasterHudOverlay implements GuiLayer {
     private static final Identifier HUD = TCIds.rl("textures/gui/hud.png");
     private static final int TEX_SIZE = 256;
 
+    public static final int STACK_HEIGHT = 33;
     private static final int DIAL_SIZE = 32;
     private static final int DIAL_SRC_SIZE = 64;
     private static final int ANCHOR = 16;
@@ -68,13 +69,42 @@ public final class CasterHudOverlay implements GuiLayer {
                 || player.getOffhandItem().getItem() instanceof ICaster;
     }
 
+    public static LeftHudStack.Gauge dialGauge() {
+        return new LeftHudStack.Gauge() {
+            @Override
+            public boolean visible(Minecraft mc, LocalPlayer player) {
+                return isVisible(mc) && !ThaumcraftClientConfig.dialBottom();
+            }
+
+            @Override
+            public int height() {
+                return STACK_HEIGHT;
+            }
+
+            @Override
+            public String exclusiveGroup() {
+                return null;
+            }
+
+            @Override
+            public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+                renderDial(graphics, 0);
+            }
+        };
+    }
+
     @Override
     public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc.player;
-        if (!isVisible(mc)) {
+        if (!isVisible(mc) || !ThaumcraftClientConfig.dialBottom()) {
             return;
         }
+        renderDial(graphics, graphics.guiHeight() - DIAL_SIZE);
+    }
+
+    private static void renderDial(GuiGraphicsExtractor graphics, int dialY) {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
         ItemStack casterStack = player.getMainHandItem();
         if (!(casterStack.getItem() instanceof ICaster)) {
             casterStack = player.getOffhandItem();
@@ -93,7 +123,6 @@ public final class CasterHudOverlay implements GuiLayer {
         int max = snap == null ? 0 : snap.base();
         int amt = snap == null ? 0 : (int) snap.vis();
 
-        int dialY = ThaumcraftClientConfig.dialBottom() ? graphics.guiHeight() - DIAL_SIZE : 0;
         graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
                 0, dialY, 0.0F, 0.0F, DIAL_SIZE, DIAL_SIZE, DIAL_SRC_SIZE, DIAL_SRC_SIZE, TEX_SIZE, TEX_SIZE);
 

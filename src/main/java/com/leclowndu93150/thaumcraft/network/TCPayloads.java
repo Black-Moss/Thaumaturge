@@ -69,6 +69,11 @@ public final class TCPayloads {
                 ServerboundGolemPressHandler::handle
         );
         registrar.playToServer(
+                ServerboundCloudJumpPayload.TYPE,
+                ServerboundCloudJumpPayload.STREAM_CODEC,
+                ServerboundCloudJumpPayload::handle
+        );
+        registrar.playToServer(
                 ServerboundAdvanceStagePayload.TYPE,
                 ServerboundAdvanceStagePayload.STREAM_CODEC,
                 ServerboundAdvanceStageHandler::handle

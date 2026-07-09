@@ -324,6 +324,31 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.CRIMSON_ROBE_HELM.get());
                         output.accept(TCItems.CRIMSON_ROBE_CHEST.get());
                         output.accept(TCItems.CRIMSON_ROBE_LEGS.get());
+                        output.accept(TCItems.FORTRESS_HELM.get());
+                        output.accept(TCItems.FORTRESS_CHEST.get());
+                        output.accept(TCItems.FORTRESS_LEGS.get());
+                        output.accept(TCItems.VOID_ROBE_HELM.get());
+                        output.accept(TCItems.VOID_ROBE_CHEST.get());
+                        output.accept(TCItems.VOID_ROBE_LEGS.get());
+                        output.accept(TCItems.AMULET_MUNDANE.get());
+                        output.accept(TCItems.RING_MUNDANE.get());
+                        output.accept(TCItems.GIRDLE_MUNDANE.get());
+                        output.accept(TCItems.RING_APPRENTICE.get());
+                        output.accept(TCItems.AMULET_FANCY.get());
+                        output.accept(TCItems.RING_FANCY.get());
+                        output.accept(TCItems.GIRDLE_FANCY.get());
+                        output.accept(TCItems.AMULET_VIS.get());
+                        output.accept(TCItems.AMULET_VIS_CRAFTED.get());
+                        output.accept(TCItems.CHARM_UNDYING.get());
+                        output.accept(TCItems.CLOUD_RING.get());
+                        output.accept(TCItems.CURIOSITY_BAND.get());
+                        output.accept(TCItems.VERDANT_CHARM.get());
+                        output.accept(verdantVariant(1));
+                        output.accept(verdantVariant(2));
+                        output.accept(TCItems.VOIDSEER_CHARM.get());
+                        output.accept(TCItems.FOCUS_POUCH.get());
+                        output.accept(TCItems.SANITY_CHECKER.get());
+                        output.accept(TCItems.RESONATOR.get());
                         output.accept(TCItems.PECH_WAND.get());
                         output.accept(TCItems.LOOT_BAG_COMMON.get());
                         output.accept(TCItems.LOOT_BAG_UNCOMMON.get());
@@ -356,6 +381,12 @@ public final class TCCreativeTabs {
     private static ItemStack golemPlacer(GolemProperties props) {
         ItemStack stack = new ItemStack(TCItems.GOLEM_PLACER.get());
         stack.set(TCDataComponents.GOLEM_PROPERTIES.get(), props);
+        return stack;
+    }
+
+    private static ItemStack verdantVariant(int type) {
+        ItemStack stack = new ItemStack(TCItems.VERDANT_CHARM.get());
+        stack.set(TCDataComponents.VERDANT_TYPE.get(), type);
         return stack;
     }
 

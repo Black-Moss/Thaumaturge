@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.client.screen;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.screen.casters.FocalManipulatorScreen;
+import com.leclowndu93150.thaumcraft.client.screen.casters.FocusPouchScreen;
 import com.leclowndu93150.thaumcraft.client.screen.golem.GolemBuilderScreen;
 import com.leclowndu93150.thaumcraft.client.screen.golem.SealScreen;
 import com.leclowndu93150.thaumcraft.client.screen.pip.BlockPreviewRenderState;
@@ -31,6 +32,7 @@ public final class TCMenuScreens {
         event.register(TCMenus.VOID_SIPHON.get(), VoidSiphonScreen::new);
         event.register(TCMenus.THAUMATORIUM.get(), ThaumatoriumScreen::new);
         event.register(TCMenus.PECH.get(), PechScreen::new);
+        event.register(TCMenus.FOCUS_POUCH.get(), FocusPouchScreen::new);
     }
 
     @SubscribeEvent

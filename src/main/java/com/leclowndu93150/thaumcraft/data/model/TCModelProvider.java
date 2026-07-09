@@ -175,6 +175,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.SCRIBING_TOOLS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.ALUMENTUM.get(), ModelTemplates.FLAT_ITEM);
         registerCelestialNotes(itemModels);
+        registerBaubleItems(itemModels);
 
         for (DyeColor dye : DyeColor.values()) {
             registerNitor(blockModels, itemModels, dye);
@@ -357,6 +358,60 @@ public final class TCModelProvider extends ModelProvider {
             itemModels.itemModelOutput.accept(candle.asItem(),
                     ItemModelUtils.tintedModel(model, new Constant(tint)));
         }
+    }
+
+    private void registerBaubleItems(ItemModelGenerators itemModels) {
+        itemModels.generateFlatItem(TCItems.AMULET_MUNDANE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.RING_MUNDANE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GIRDLE_MUNDANE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.RING_APPRENTICE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.AMULET_FANCY.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.RING_FANCY.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GIRDLE_FANCY.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.AMULET_VIS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.AMULET_VIS_CRAFTED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CHARM_UNDYING.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CLOUD_RING.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIOSITY_BAND.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.VOIDSEER_CHARM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.FOCUS_POUCH.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.SANITY_CHECKER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.RESONATOR.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.FORTRESS_HELM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.FORTRESS_CHEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.FORTRESS_LEGS.get(), ModelTemplates.FLAT_ITEM);
+        registerVerdantCharm(itemModels);
+        registerVoidRobeItems(itemModels);
+    }
+
+    private void registerVerdantCharm(ItemModelGenerators itemModels) {
+        Material base = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/verdant_charm"));
+        List<SelectItemModel.SwitchCase<Integer>> cases = new ArrayList<>();
+        Identifier fallback = null;
+        for (int type = 0; type <= 2; type++) {
+            Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/verdant_charm_" + type);
+            Material overlay = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID,
+                    "item/verdant_charm_over_" + type));
+            ModelTemplates.TWO_LAYERED_ITEM.create(model, TextureMapping.layered(base, overlay),
+                    itemModels.modelOutput);
+            cases.add(ItemModelUtils.when(type, ItemModelUtils.plainModel(model)));
+            if (type == 0) {
+                fallback = model;
+            }
+        }
+        itemModels.itemModelOutput.accept(TCItems.VERDANT_CHARM.get(),
+                ItemModelUtils.select(new ComponentContents<>(TCDataComponents.VERDANT_TYPE.get()),
+                        ItemModelUtils.plainModel(fallback), cases));
+    }
+
+    private void registerVoidRobeItems(ItemModelGenerators itemModels) {
+        Identifier helmModel = ModelTemplates.FLAT_ITEM.create(
+                ModelLocationUtils.getModelLocation(TCItems.VOID_ROBE_HELM.get()),
+                TextureMapping.layer0(TCItems.VOID_ROBE_HELM.get()), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCItems.VOID_ROBE_HELM.get(),
+                ItemModelUtils.tintedModel(helmModel, new Dye(ROBES_UNDYED_ARGB)));
+        registerRobeItem(itemModels, TCItems.VOID_ROBE_CHEST.get(), "void_robe_chest");
+        registerRobeItem(itemModels, TCItems.VOID_ROBE_LEGS.get(), "void_robe_legs");
     }
 
     private void registerCelestialNotes(ItemModelGenerators itemModels) {

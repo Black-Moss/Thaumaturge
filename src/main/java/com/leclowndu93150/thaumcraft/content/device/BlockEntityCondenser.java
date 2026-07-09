@@ -41,6 +41,14 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     private float latticeCount = -1.0F;
     private int interval;
     private int cost;
+
+    public int interval() {
+        return interval;
+    }
+
+    public int cost() {
+        return cost;
+    }
     private final List<BlockPos> unclogged = new ArrayList<>();
     private int latticeBlocks;
 
