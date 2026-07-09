@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.client.model.entity.EldritchCrabModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.EldritchGuardianModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.PechModel;
+import com.leclowndu93150.thaumcraft.client.model.gear.FortressArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.gear.KnightArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.gear.RobeArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.MatrixCubeModel;
@@ -52,6 +53,9 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_HEAD, KnightArmorModel::createHead);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_CHEST, KnightArmorModel::createChest);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_LEGS, KnightArmorModel::createLegs);
+        event.registerLayerDefinition(TCModelLayers.FORTRESS_ARMOR_HEAD, FortressArmorModel::createHead);
+        event.registerLayerDefinition(TCModelLayers.FORTRESS_ARMOR_CHEST, FortressArmorModel::createChest);
+        event.registerLayerDefinition(TCModelLayers.FORTRESS_ARMOR_LEGS, FortressArmorModel::createLegs);
         event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_HEAD, RobeArmorModel::createHead);
         event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_CHEST, RobeArmorModel::createChest);
         event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_LEGS, RobeArmorModel::createLegs);

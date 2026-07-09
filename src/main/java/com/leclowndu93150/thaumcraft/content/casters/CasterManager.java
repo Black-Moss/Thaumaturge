@@ -1,24 +1,31 @@
 package com.leclowndu93150.thaumcraft.content.casters;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.api.items.IArchitect;
+import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.fml.ModList;
 
 public final class CasterManager {
     public static final String REMOVE_FOCUS = "REMOVE";
+    private static final int POUCH_SLOT_OFFSET = 1000;
     private static final int TICKS_PER_SECOND = 20;
     private static final int EXHAUST_DISCOUNT_PENALTY = 10;
     private static final float SWAP_SOUND_VOLUME = 0.3F;
@@ -64,6 +71,17 @@ public final class CasterManager {
         }
         NonNullList<ItemStack> main = player.getInventory().getNonEquipmentItems();
         TreeMap<String, Integer> foci = new TreeMap<>();
+        Map<Integer, PouchHandle> pouches = new HashMap<>();
+        int pouchCount = 0;
+        if (ModList.get().isLoaded(TCIds.CURIOS)) {
+            for (ThaumcraftCuriosCompat.CurioPouchRef ref : ThaumcraftCuriosCompat.equippedPouches(
+                    player, stack -> stack.getItem() instanceof FocusPouchItem)) {
+                pouchCount++;
+                pouches.put(pouchCount, new PouchHandle(ref::stack,
+                        () -> ref.handler().setStackInSlot(ref.slot(), ref.stack())));
+                indexPouch(foci, ref.stack(), pouchCount);
+            }
+        }
         for (int slot = 0; slot < main.size(); slot++) {
             ItemStack stack = main.get(slot);
             if (stack.getItem() instanceof ItemFocus focus) {
@@ -72,10 +90,19 @@ public final class CasterManager {
                     foci.put(sortKey, slot);
                 }
             }
+            if (stack.getItem() instanceof FocusPouchItem) {
+                pouchCount++;
+                int pouchSlot = slot;
+                pouches.put(pouchCount, new PouchHandle(
+                        () -> player.getInventory().getItem(pouchSlot),
+                        () -> player.getInventory().setChanged()));
+                indexPouch(foci, stack, pouchCount);
+            }
         }
         if (REMOVE_FOCUS.equals(focusKey) || foci.isEmpty()) {
             ItemStack current = caster.getFocusStack(casterStack);
-            if (!current.isEmpty() && player.getInventory().add(current.copy())) {
+            if (!current.isEmpty()
+                    && (addFocusToPouch(current.copy(), pouches) || player.getInventory().add(current.copy()))) {
                 caster.setFocus(casterStack, ItemStack.EMPTY);
                 player.playSound(TCSounds.TICKS.get(), SWAP_SOUND_VOLUME, REMOVE_SOUND_PITCH);
             }
@@ -88,23 +115,87 @@ public final class CasterManager {
         if (newKey == null || foci.get(newKey) == null) {
             newKey = foci.firstKey();
         }
-        int slot = foci.get(newKey);
-        ItemStack picked = main.get(slot).copy();
-        if (picked.isEmpty()) {
-            return;
+        int encoded = foci.get(newKey);
+        ItemStack picked;
+        if (encoded < POUCH_SLOT_OFFSET) {
+            picked = main.get(encoded).copy();
+            if (picked.isEmpty()) {
+                return;
+            }
+            player.getInventory().setItem(encoded, ItemStack.EMPTY);
+        } else {
+            PouchHandle pouch = pouches.get(encoded / POUCH_SLOT_OFFSET);
+            if (pouch == null) {
+                return;
+            }
+            picked = fetchFocusFromPouch(pouch, encoded % POUCH_SLOT_OFFSET);
+            if (picked.isEmpty()) {
+                return;
+            }
         }
-        player.getInventory().setItem(slot, ItemStack.EMPTY);
         player.playSound(TCSounds.TICKS.get(), SWAP_SOUND_VOLUME, SWAP_SOUND_PITCH);
         ItemStack current = caster.getFocusStack(casterStack);
-        if (!current.isEmpty() && player.getInventory().add(current.copy())) {
+        if (!current.isEmpty()
+                && (addFocusToPouch(current.copy(), pouches) || player.getInventory().add(current.copy()))) {
             caster.setFocus(casterStack, ItemStack.EMPTY);
         }
         if (caster.getFocusStack(casterStack).isEmpty()) {
             caster.setFocus(casterStack, picked);
-        } else {
+        } else if (!addFocusToPouch(picked, pouches)) {
             player.getInventory().add(picked);
         }
     }
+
+    private static void indexPouch(TreeMap<String, Integer> foci, ItemStack pouch, int pouchId) {
+        NonNullList<ItemStack> contents = FocusPouchItem.getInventory(pouch);
+        for (int slot = 0; slot < contents.size(); slot++) {
+            ItemStack stack = contents.get(slot);
+            if (stack.getItem() instanceof ItemFocus focus) {
+                String sortKey = focus.getSortingHelper(stack);
+                if (sortKey != null) {
+                    foci.put(sortKey, slot + pouchId * POUCH_SLOT_OFFSET);
+                }
+            }
+        }
+    }
+
+    private static ItemStack fetchFocusFromPouch(PouchHandle pouch, int focusSlot) {
+        ItemStack pouchStack = pouch.getter().get();
+        if (!(pouchStack.getItem() instanceof FocusPouchItem)) {
+            return ItemStack.EMPTY;
+        }
+        NonNullList<ItemStack> contents = FocusPouchItem.getInventory(pouchStack);
+        ItemStack focus = contents.get(focusSlot);
+        if (!(focus.getItem() instanceof ItemFocus)) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack copy = focus.copy();
+        contents.set(focusSlot, ItemStack.EMPTY);
+        FocusPouchItem.setInventory(pouchStack, contents);
+        pouch.markChanged().run();
+        return copy;
+    }
+
+    private static boolean addFocusToPouch(ItemStack focus, Map<Integer, PouchHandle> pouches) {
+        for (PouchHandle pouch : pouches.values()) {
+            ItemStack pouchStack = pouch.getter().get();
+            if (!(pouchStack.getItem() instanceof FocusPouchItem)) {
+                continue;
+            }
+            NonNullList<ItemStack> contents = FocusPouchItem.getInventory(pouchStack);
+            for (int slot = 0; slot < contents.size(); slot++) {
+                if (contents.get(slot).isEmpty()) {
+                    contents.set(slot, focus.copy());
+                    FocusPouchItem.setInventory(pouchStack, contents);
+                    pouch.markChanged().run();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private record PouchHandle(Supplier<ItemStack> getter, Runnable markChanged) {}
 
     public static void toggleMisc(ItemStack casterStack, Level level, Player player, int mod) {
         if (!(casterStack.getItem() instanceof ICaster caster)) {

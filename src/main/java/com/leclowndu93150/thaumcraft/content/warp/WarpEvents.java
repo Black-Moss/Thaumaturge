@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.warp;
 
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.content.entity.EntityMindSpider;
 import com.leclowndu93150.thaumcraft.network.ClientboundWarpFXPayload;
@@ -21,6 +24,10 @@ import net.minecraft.world.entity.Mob;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class WarpEvents {
+    private static final int GRINNING_DEVIL_MASK = 0;
+    private static final int GRINNING_DEVIL_BASE_REDUCTION = 2;
+    private static final int GRINNING_DEVIL_RANDOM_REDUCTION = 4;
+
     private static final int EFFECT_AMP_DIVISOR = 15;
     private static final int MAX_EFFECT_AMP = 3;
     private static final int MAX_GUARDIANS = 8;
@@ -48,6 +55,11 @@ public final class WarpEvents {
         warpCounter = (int) (warpCounter - Math.max(5.0, Math.sqrt(warpCounter) * 2.0 - gearWarp * 2));
         wc.setCounter(warpCounter);
         int eff = rand.nextInt(warp) + gearWarp;
+        ItemStack helm = player.getItemBySlot(EquipmentSlot.HEAD);
+        if (helm.getItem() instanceof FortressArmorItem
+                && FortressArmorItem.mask(helm) == GRINNING_DEVIL_MASK) {
+            eff -= GRINNING_DEVIL_BASE_REDUCTION + rand.nextInt(GRINNING_DEVIL_RANDOM_REDUCTION);
+        }
         PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.heartbeat());
         if (eff > 0) {
             dispatchEvent(player, eff, warp, nw, rand);

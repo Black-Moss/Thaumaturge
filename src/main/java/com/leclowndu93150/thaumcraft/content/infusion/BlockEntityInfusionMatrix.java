@@ -211,7 +211,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         if (match.isPresent()) {
             InfusionRecipe recipe = match.get().value();
             job = new InfusionCraftJob(recipe.matchComponents(components),
-                    scaleByEnvironment(recipe.aspects(), costMult), recipe.resultItem(),
+                    scaleByEnvironment(recipe.aspects(), costMult), recipe.assemble(input),
                     catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
             level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
             setChanged();

@@ -79,6 +79,14 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         tag(TCItemTags.RARE_EARTH_CHANCE_NORMAL).addOptionalTag(TCItemTags.ORES_SILVER).addTags(Tags.Items.ORES_GOLD,TCItemTags.CLUSTERS);
         tag(TCItemTags.RARE_EARTH_CHANCE_LOW).addOptionalTags(TCItemTags.ORES_TIN,TCItemTags.ORES_LEAD).addTags(Tags.Items.ORES_IRON,Tags.Items.ORES_COAL,Tags.Items.ORES_COPPER,Tags.Items.ORES_LAPIS,Tags.Items.ORES_REDSTONE, Tags.Items.ORES_QUARTZ);
 
-        tag(CuriosTags.HEAD).add(TCItems.GOGGLES_REVEALING.get());
+        tag(CuriosTags.HEAD).add(TCItems.GOGGLES_REVEALING.get(), TCItems.CURIOSITY_BAND.get());
+        tag(CuriosTags.NECKLACE).add(TCItems.AMULET_MUNDANE.get(), TCItems.AMULET_FANCY.get(),
+                TCItems.AMULET_VIS.get(), TCItems.AMULET_VIS_CRAFTED.get());
+        tag(CuriosTags.RING).add(TCItems.RING_MUNDANE.get(), TCItems.RING_APPRENTICE.get(),
+                TCItems.RING_FANCY.get(), TCItems.CLOUD_RING.get());
+        tag(CuriosTags.BELT).add(TCItems.GIRDLE_MUNDANE.get(), TCItems.GIRDLE_FANCY.get(),
+                TCItems.FOCUS_POUCH.get());
+        tag(CuriosTags.CHARM).add(TCItems.CHARM_UNDYING.get(), TCItems.VERDANT_CHARM.get(),
+                TCItems.VOIDSEER_CHARM.get());
     }
 }

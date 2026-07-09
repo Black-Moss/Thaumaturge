@@ -52,6 +52,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
+import com.leclowndu93150.thaumcraft.content.casters.FocusPouchItem;
+import com.leclowndu93150.thaumcraft.content.equipment.VoidRobeArmorItem;
+import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
+import com.leclowndu93150.thaumcraft.content.equipment.bauble.AmuletVisItem;
+import com.leclowndu93150.thaumcraft.content.equipment.bauble.TrinketItem;
+import com.leclowndu93150.thaumcraft.content.equipment.bauble.VerdantCharmItem;
+import com.leclowndu93150.thaumcraft.content.equipment.bauble.VoidseerCharmItem;
+import com.leclowndu93150.thaumcraft.content.essentia.ItemResonator;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SpawnEggItem;
@@ -653,6 +661,66 @@ public final class TCItems {
                     )
     );
 
+
+    public static final DeferredItem<FortressArmorItem> FORTRESS_HELM = ITEMS.registerItem("fortress_helm",
+            FortressArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_FORTRESS, ArmorType.HELMET).rarity(Rarity.RARE));
+    public static final DeferredItem<FortressArmorItem> FORTRESS_CHEST = ITEMS.registerItem("fortress_chest",
+            FortressArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_FORTRESS, ArmorType.CHESTPLATE).rarity(Rarity.RARE));
+    public static final DeferredItem<FortressArmorItem> FORTRESS_LEGS = ITEMS.registerItem("fortress_legs",
+            FortressArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_FORTRESS, ArmorType.LEGGINGS).rarity(Rarity.RARE));
+
+    public static final DeferredItem<VoidRobeArmorItem> VOID_ROBE_HELM = ITEMS.registerItem("void_robe_helm",
+            VoidRobeArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID_ROBE, ArmorType.HELMET).rarity(Rarity.EPIC));
+    public static final DeferredItem<VoidRobeArmorItem> VOID_ROBE_CHEST = ITEMS.registerItem("void_robe_chest",
+            VoidRobeArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID_ROBE, ArmorType.CHESTPLATE).rarity(Rarity.EPIC));
+    public static final DeferredItem<VoidRobeArmorItem> VOID_ROBE_LEGS = ITEMS.registerItem("void_robe_legs",
+            VoidRobeArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID_ROBE, ArmorType.LEGGINGS).rarity(Rarity.EPIC));
+
+    public static final int TRINKET_APPRENTICE_DISCOUNT = 5;
+    private static final int AMULET_VIS_FOUND_INTERVAL = 40;
+    private static final int AMULET_VIS_CRAFTED_INTERVAL = 5;
+
+    public static final DeferredItem<TrinketItem> AMULET_MUNDANE = ITEMS.registerItem(
+            "amulet_mundane", TrinketItem::new, props -> props.stacksTo(1));
+    public static final DeferredItem<TrinketItem> RING_MUNDANE = ITEMS.registerItem(
+            "ring_mundane", TrinketItem::new, props -> props.stacksTo(1));
+    public static final DeferredItem<TrinketItem> GIRDLE_MUNDANE = ITEMS.registerItem(
+            "girdle_mundane", TrinketItem::new, props -> props.stacksTo(1));
+    public static final DeferredItem<TrinketItem> RING_APPRENTICE = ITEMS.registerItem(
+            "ring_apprentice",
+            props -> new TrinketItem(props, TRINKET_APPRENTICE_DISCOUNT),
+            props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<TrinketItem> AMULET_FANCY = ITEMS.registerItem(
+            "amulet_fancy", TrinketItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<TrinketItem> RING_FANCY = ITEMS.registerItem(
+            "ring_fancy", TrinketItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<TrinketItem> GIRDLE_FANCY = ITEMS.registerItem(
+            "girdle_fancy", TrinketItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<AmuletVisItem> AMULET_VIS = ITEMS.registerItem(
+            "amulet_vis",
+            props -> new AmuletVisItem(props, AMULET_VIS_FOUND_INTERVAL),
+            props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<AmuletVisItem> AMULET_VIS_CRAFTED = ITEMS.registerItem(
+            "amulet_vis_crafted",
+            props -> new AmuletVisItem(props, AMULET_VIS_CRAFTED_INTERVAL),
+            props -> props.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<Item> CHARM_UNDYING = ITEMS.registerItem(
+            "charm_undying", Item::new, props -> props.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<Item> CLOUD_RING = ITEMS.registerItem(
+            "cloud_ring", Item::new, props -> props.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<Item> CURIOSITY_BAND = ITEMS.registerItem(
+            "curiosity_band", Item::new, props -> props.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<VerdantCharmItem> VERDANT_CHARM = ITEMS.registerItem(
+            "verdant_charm", VerdantCharmItem::new, props -> props.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<VoidseerCharmItem> VOIDSEER_CHARM = ITEMS.registerItem(
+            "voidseer_charm", VoidseerCharmItem::new, props -> props.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<FocusPouchItem> FOCUS_POUCH = ITEMS.registerItem(
+            "focus_pouch", FocusPouchItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> SANITY_CHECKER = ITEMS.registerItem(
+            "sanity_checker", Item::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<ItemResonator> RESONATOR = ITEMS.registerItem(
+            "resonator", ItemResonator::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
 
     private TCItems() {}
 

@@ -52,6 +52,12 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.NotCondition;
 import net.neoforged.neoforge.common.conditions.TagEmptyCondition;
+import com.leclowndu93150.thaumcraft.content.equipment.bauble.VerdantCharmItem;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Unit;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 import java.util.Map;
@@ -86,6 +92,8 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildNoiseDeviceRecipes();
         buildEssentiaMachineRecipes();
         buildFluxMachineRecipes();
+        buildBaubleRecipes();
+        buildWearableInfusionRecipes();
 
         shapeless(RecipeCategory.MISC,TCItems.SCRIBING_TOOLS)
                 .requires(TCItems.PHIAL)
@@ -1626,6 +1634,276 @@ public final class TCRecipeProvider extends RecipeProvider {
         return new ArcaneWorkbenchShapelessRecipeBuilder(RecipeCategory.MISC, result, registries.lookupOrThrow(IAspect.REGISTRY_KEY), vis, items);
     }
 
+
+
+    private Ingredient crystal(ResourceKey<IAspect> aspect) {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        return DataComponentIngredient.of(TCDataComponents.CRYSTAL_ASPECT.get(),
+                new AspectInstance(aspects.getOrThrow(aspect), 1), TCItems.ESSENTIA_CRYSTAL.get());
+    }
+
+    private void buildBaubleRecipes() {
+        ResearchGate auromancyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false);
+        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
+
+        shaped(RecipeCategory.MISC, TCItems.AMULET_MUNDANE)
+                .pattern(" S ").pattern("S S").pattern(" I ")
+                .define('S', Items.STRING).define('I', TCItemTags.INGOTS_BRASS)
+                .unlockedBy("has", has(TCItemTags.INGOTS_BRASS)).save(output);
+        shaped(RecipeCategory.MISC, TCItems.RING_MUNDANE)
+                .pattern("NNN").pattern("N N").pattern("NNN")
+                .define('N', TCItems.NUGGET_BRASS)
+                .unlockedBy("has", has(TCItems.NUGGET_BRASS)).save(output);
+        shaped(RecipeCategory.MISC, TCItems.GIRDLE_MUNDANE)
+                .pattern(" L ").pattern("L L").pattern(" I ")
+                .define('L', Items.LEATHER).define('I', TCItemTags.INGOTS_BRASS)
+                .unlockedBy("has", has(TCItemTags.INGOTS_BRASS)).save(output);
+        shaped(RecipeCategory.MISC, TCItems.AMULET_FANCY)
+                .pattern(" S ").pattern("SGS").pattern(" I ")
+                .define('S', Items.STRING).define('G', Items.DIAMOND).define('I', Items.GOLD_INGOT)
+                .unlockedBy("has", has(Items.DIAMOND)).save(output);
+        shaped(RecipeCategory.MISC, TCItems.RING_FANCY)
+                .pattern("NGN").pattern("N N").pattern("NNN")
+                .define('G', Items.DIAMOND).define('N', Items.GOLD_NUGGET)
+                .unlockedBy("has", has(Items.DIAMOND)).save(output);
+        shaped(RecipeCategory.MISC, TCItems.GIRDLE_FANCY)
+                .pattern(" L ").pattern("LGL").pattern(" I ")
+                .define('L', Items.LEATHER).define('G', Items.DIAMOND).define('I', Items.GOLD_INGOT)
+                .unlockedBy("has", has(Items.DIAMOND)).save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.FOCUS_POUCH), 25)
+                .pattern("LGL").pattern("LBL").pattern("LLL")
+                .define('B', TCItems.GIRDLE_MUNDANE)
+                .define('L', Items.LEATHER)
+                .define('G', Items.GOLD_INGOT)
+                .gate(auromancyGate)
+                .unlockedBy("has", has(Items.LEATHER))
+                .save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.SANITY_CHECKER), 20)
+                .aspect(TCAspects.ORDO, 1)
+                .aspect(TCAspects.PERDITIO, 1)
+                .pattern("BN ").pattern("M N").pattern("BN ")
+                .define('N', TCItems.NUGGET_BRASS)
+                .define('B', TCItems.BRAIN)
+                .define('M', TCItems.MIRRORED_GLASS)
+                .gate(auromancyGate)
+                .unlockedBy("has", has(TCItems.MIRRORED_GLASS))
+                .save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.RESONATOR), 50)
+                .pattern("I I").pattern("INI").pattern(" S ")
+                .define('I', TCItems.PLATE_IRON)
+                .define('N', Items.QUARTZ)
+                .define('S', Items.STICK)
+                .gate(alchemyGate)
+                .unlockedBy("has", has(TCItems.PLATE_IRON))
+                .save(output);
+    }
+
+    private void buildWearableInfusionRecipes() {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.AMULET_VIS_CRAFTED.get()), Ingredient.of(TCItems.AMULET_MUNDANE.get()))
+                .component(Ingredient.of(TCItems.VIS_RESONATOR.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_IGNIS.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AQUA.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_TERRA.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_ORDO.get()))
+                .aspect(TCAspects.AURAM, 50).aspect(TCAspects.POTENTIA, 100).aspect(TCAspects.VACUOS, 50)
+                .instability(6).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.AMULET_MUNDANE.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.VERDANT_CHARM.get()), Ingredient.of(TCItems.AMULET_FANCY.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUICKSILVER.get()))
+                .component(crystal(TCAspects.VICTUS))
+                .component(Ingredient.of(Items.MILK_BUCKET))
+                .component(crystal(TCAspects.HERBA))
+                .aspect(TCAspects.VICTUS, 60).aspect(TCAspects.ORDO, 30).aspect(TCAspects.HERBA, 60)
+                .instability(5).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.AMULET_FANCY.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.VERDANT_CHARM.get()), Ingredient.of(TCItems.VERDANT_CHARM.get()))
+                .catalystPatch(DataComponentPatch.builder()
+                        .set(TCDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_LIFE).build())
+                .component(Ingredient.of(Items.GOLDEN_APPLE))
+                .component(crystal(TCAspects.VICTUS))
+                .component(potion(Potions.STRONG_HEALING))
+                .component(crystal(TCAspects.HUMANUS))
+                .aspect(TCAspects.VICTUS, 80).aspect(TCAspects.HUMANUS, 80)
+                .instability(5).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.VERDANT_CHARM.get()))
+                .save(output, TCIds.MODID + ":infusion/verdant_charm_life");
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.VERDANT_CHARM.get()), Ingredient.of(TCItems.VERDANT_CHARM.get()))
+                .catalystPatch(DataComponentPatch.builder()
+                        .set(TCDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_SUSTAIN).build())
+                .component(Ingredient.of(TCItems.TRIPLE_MEAT_TREAT.get()))
+                .component(crystal(TCAspects.DESIDERIUM))
+                .component(potion(Potions.STRONG_REGENERATION))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .aspect(TCAspects.DESIDERIUM, 80).aspect(TCAspects.AER, 80)
+                .instability(5).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.VERDANT_CHARM.get()))
+                .save(output, TCIds.MODID + ":infusion/verdant_charm_sustain");
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.CLOUD_RING.get()), Ingredient.of(TCItems.RING_MUNDANE.get()))
+                .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(Items.FEATHER))
+                .aspect(TCAspects.AER, 50)
+                .instability(1).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.RING_MUNDANE.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.CURIOSITY_BAND.get()), Ingredient.of(TCItems.GIRDLE_FANCY.get()))
+                .component(Ingredient.of(Items.EMERALD))
+                .component(Ingredient.of(Items.WRITABLE_BOOK))
+                .component(Ingredient.of(Items.EMERALD))
+                .component(Ingredient.of(Items.WRITABLE_BOOK))
+                .component(Ingredient.of(Items.EMERALD))
+                .component(Ingredient.of(Items.WRITABLE_BOOK))
+                .component(Ingredient.of(Items.EMERALD))
+                .component(Ingredient.of(Items.WRITABLE_BOOK))
+                .aspect(TCAspects.COGNITIO, 150).aspect(TCAspects.VACUOS, 50).aspect(TCAspects.VINCULUM, 100)
+                .instability(5).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.GIRDLE_FANCY.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.CHARM_UNDYING.get()), Ingredient.of(Items.TOTEM_OF_UNDYING))
+                .component(Ingredient.of(TCItems.PLATE_BRASS.get()))
+                .aspect(TCAspects.VICTUS, 25)
+                .instability(2).gate(infusionGate)
+                .unlockedBy("has", has(Items.TOTEM_OF_UNDYING))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.VOIDSEER_CHARM.get()), Ingredient.of(TCItems.AMULET_FANCY.get()))
+                .component(Ingredient.of(TCItems.BRAIN.get()))
+                .component(Ingredient.of(TCItems.VOID_SEED.get()))
+                .component(Ingredient.of(TCItems.BRAIN.get()))
+                .component(Ingredient.of(TCItems.PRIMORDIAL_PEARL.get()))
+                .aspect(TCAspects.COGNITIO, 150).aspect(TCAspects.VACUOS, 150).aspect(TCAspects.PRAECANTATIO, 100)
+                .instability(8).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.PRIMORDIAL_PEARL.get()))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.FORTRESS_HELM.get()), Ingredient.of(TCItems.THAUMIUM_HELM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.EMERALD))
+                .aspect(TCAspects.METALLUM, 50).aspect(TCAspects.PRAEMUNIO, 20).aspect(TCAspects.POTENTIA, 25)
+                .instability(3).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_HELM.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.FORTRESS_CHEST.get()), Ingredient.of(TCItems.THAUMIUM_CHEST.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.LEATHER))
+                .aspect(TCAspects.METALLUM, 50).aspect(TCAspects.PRAEMUNIO, 30).aspect(TCAspects.POTENTIA, 25)
+                .instability(3).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_CHEST.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.FORTRESS_LEGS.get()), Ingredient.of(TCItems.THAUMIUM_LEGS.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(TCItems.PLATE_THAUMIUM.get()))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.LEATHER))
+                .aspect(TCAspects.METALLUM, 50).aspect(TCAspects.PRAEMUNIO, 25).aspect(TCAspects.POTENTIA, 25)
+                .instability(3).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.THAUMIUM_LEGS.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.FORTRESS_HELM.get()), Ingredient.of(TCItems.FORTRESS_HELM.get()))
+                .catalystPatch(DataComponentPatch.builder()
+                        .set(TCDataComponents.GOGGLES_UPGRADE.get(), Unit.INSTANCE).build())
+                .component(Ingredient.of(Items.SLIME_BALL))
+                .component(Ingredient.of(TCItems.GOGGLES_REVEALING.get()))
+                .aspect(TCAspects.SENSUS, 40).aspect(TCAspects.AURAM, 20).aspect(TCAspects.PRAEMUNIO, 20)
+                .instability(5).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.FORTRESS_HELM.get()))
+                .save(output, TCIds.MODID + ":infusion/fortress_helm_goggles");
+        buildMaskRecipe(aspects, infusionGate, 0, TCAspects.COGNITIO, TCAspects.VICTUS,
+                Ingredient.of(Items.INK_SAC), Ingredient.of(TCItems.PLANT_SHIMMERLEAF.get()), Ingredient.of(TCItems.BRAIN.get()));
+        buildMaskRecipe(aspects, infusionGate, 1, TCAspects.PERDITIO, TCAspects.MORTUUS,
+                Ingredient.of(Items.BONE_MEAL), Ingredient.of(Items.POISONOUS_POTATO), Ingredient.of(Items.WITHER_SKELETON_SKULL));
+        buildMaskRecipe(aspects, infusionGate, 2, TCAspects.EXANIMIS, TCAspects.VICTUS,
+                Ingredient.of(Items.RED_DYE), Ingredient.of(Items.GHAST_TEAR), Ingredient.of(Items.MILK_BUCKET));
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.VOID_ROBE_HELM.get()), Ingredient.of(TCItems.VOID_HELM.get()))
+                .component(Ingredient.of(TCItems.GOGGLES_REVEALING.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(TCItems.SALIS_MUNDUS.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .aspect(TCAspects.METALLUM, 25).aspect(TCAspects.SENSUS, 25).aspect(TCAspects.PRAEMUNIO, 25)
+                .aspect(TCAspects.POTENTIA, 25).aspect(TCAspects.ALIENIS, 25).aspect(TCAspects.VACUOS, 25)
+                .instability(6).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.VOID_HELM.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.VOID_ROBE_CHEST.get()), Ingredient.of(TCItems.VOID_CHEST.get()))
+                .component(Ingredient.of(TCItems.CLOTH_CHEST.get()))
+                .component(Ingredient.of(TCItems.PLATE_VOID.get()))
+                .component(Ingredient.of(TCItems.PLATE_VOID.get()))
+                .component(Ingredient.of(TCItems.SALIS_MUNDUS.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(Items.LEATHER))
+                .aspect(TCAspects.METALLUM, 35).aspect(TCAspects.PRAEMUNIO, 35).aspect(TCAspects.POTENTIA, 25)
+                .aspect(TCAspects.ALIENIS, 25).aspect(TCAspects.VACUOS, 35)
+                .instability(6).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.VOID_CHEST.get()))
+                .save(output);
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.VOID_ROBE_LEGS.get()), Ingredient.of(TCItems.VOID_LEGS.get()))
+                .component(Ingredient.of(TCItems.CLOTH_LEGS.get()))
+                .component(Ingredient.of(TCItems.PLATE_VOID.get()))
+                .component(Ingredient.of(TCItems.PLATE_VOID.get()))
+                .component(Ingredient.of(TCItems.SALIS_MUNDUS.get()))
+                .component(Ingredient.of(TCItems.FABRIC.get()))
+                .component(Ingredient.of(Items.LEATHER))
+                .aspect(TCAspects.METALLUM, 30).aspect(TCAspects.PRAEMUNIO, 30).aspect(TCAspects.POTENTIA, 25)
+                .aspect(TCAspects.ALIENIS, 25).aspect(TCAspects.VACUOS, 30)
+                .instability(6).gate(infusionGate)
+                .unlockedBy("has", has(TCItems.VOID_LEGS.get()))
+                .save(output);
+    }
+
+    private void buildMaskRecipe(HolderLookup<IAspect> aspects, ResearchGate gate, int mask,
+                                 ResourceKey<IAspect> first, ResourceKey<IAspect> second,
+                                 Ingredient dye, Ingredient special1, Ingredient special2) {
+        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
+                new ItemStackTemplate(TCItems.FORTRESS_HELM.get()), Ingredient.of(TCItems.FORTRESS_HELM.get()))
+                .catalystPatch(DataComponentPatch.builder()
+                        .set(TCDataComponents.FORTRESS_MASK.get(), mask).build())
+                .component(dye)
+                .component(Ingredient.of(TCItems.PLATE_IRON.get()))
+                .component(Ingredient.of(Items.LEATHER))
+                .component(special1)
+                .component(special2)
+                .component(Ingredient.of(TCItems.PLATE_IRON.get()))
+                .aspect(first, 80).aspect(second, 80).aspect(TCAspects.PRAEMUNIO, 20)
+                .instability(8).gate(gate)
+                .unlockedBy("has", has(TCItems.FORTRESS_HELM.get()))
+                .save(output, TCIds.MODID + ":infusion/fortress_helm_mask_" + mask);
+    }
+
+    private Ingredient potion(Holder<Potion> potion) {
+        return DataComponentIngredient.of(DataComponents.POTION_CONTENTS,
+                new PotionContents(potion), Items.POTION);
+    }
 
     public static final class Runner extends RecipeProvider.Runner {
         public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {

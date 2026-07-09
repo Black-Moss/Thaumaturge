@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -26,6 +27,7 @@ public class InfusionRecipeBuilder extends SimpleRecipeBuilder {
     private AspectList aspects = AspectList.EMPTY;
     private int instability;
     private @Nullable ResearchGate gate;
+    private @Nullable DataComponentPatch catalystPatch;
 
     public InfusionRecipeBuilder(HolderGetter<IAspect> aspectsGetter, RecipeCategory category, ItemStackTemplate result, Ingredient catalyst) {
         super(result, category);
@@ -49,6 +51,11 @@ public class InfusionRecipeBuilder extends SimpleRecipeBuilder {
         return this;
     }
 
+    public InfusionRecipeBuilder catalystPatch(DataComponentPatch catalystPatch) {
+        this.catalystPatch = catalystPatch;
+        return this;
+    }
+
     public InfusionRecipeBuilder gate(ResearchGate gate) {
         Preconditions.checkNotNull(gate, "The research gate must not be null !");
         this.gate = gate;
@@ -58,8 +65,11 @@ public class InfusionRecipeBuilder extends SimpleRecipeBuilder {
     @Override
     public void save(RecipeOutput output, ResourceKey<Recipe<?>> key) {
         Preconditions.checkState(!components.isEmpty(), "Infusion recipe has no components");
-        InfusionRecipe recipe = new InfusionRecipe(catalyst, components, aspects, instability, result,
-                Optional.ofNullable(gate));
+        InfusionRecipe recipe = catalystPatch != null
+                ? new InfusionRecipe(catalyst, components, aspects, instability, Optional.empty(),
+                        Optional.of(catalystPatch), Optional.ofNullable(gate))
+                : new InfusionRecipe(catalyst, components, aspects, instability, result,
+                        Optional.ofNullable(gate));
         output.accept(key, recipe, this.advancementBuilder.build(output, key, this.category));
     }
 

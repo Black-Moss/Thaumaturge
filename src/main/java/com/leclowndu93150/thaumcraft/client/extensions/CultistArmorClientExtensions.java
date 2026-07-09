@@ -2,8 +2,10 @@ package com.leclowndu93150.thaumcraft.client.extensions;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.entity.TCModelLayers;
+import com.leclowndu93150.thaumcraft.client.model.gear.FortressArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.gear.KnightArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.gear.RobeArmorModel;
+import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.function.Function;
 import net.minecraft.client.Minecraft;
@@ -35,6 +37,44 @@ public final class CultistArmorClientExtensions {
         event.registerItem(new CustomArmorExtension(RobeArmorModel::new,
                         TCModelLayers.ROBE_ARMOR_HEAD, TCModelLayers.ROBE_ARMOR_CHEST, TCModelLayers.ROBE_ARMOR_LEGS),
                 TCItems.CRIMSON_ROBE_HELM.get(), TCItems.CRIMSON_ROBE_CHEST.get(), TCItems.CRIMSON_ROBE_LEGS.get());
+        event.registerItem(new CustomArmorExtension(RobeArmorModel::new,
+                        TCModelLayers.ROBE_ARMOR_HEAD, TCModelLayers.ROBE_ARMOR_CHEST, TCModelLayers.ROBE_ARMOR_LEGS),
+                TCItems.VOID_ROBE_HELM.get(), TCItems.VOID_ROBE_CHEST.get(), TCItems.VOID_ROBE_LEGS.get());
+        event.registerItem(new FortressArmorExtension(),
+                TCItems.FORTRESS_HELM.get(), TCItems.FORTRESS_CHEST.get(), TCItems.FORTRESS_LEGS.get());
+    }
+
+    private static final class FortressArmorExtension implements IClientItemExtensions {
+        private FortressArmorModel head;
+        private FortressArmorModel chest;
+        private FortressArmorModel legs;
+
+        @Override
+        public Model getHumanoidArmorModel(ItemStack stack, EquipmentClientInfo.LayerType layerType, Model original) {
+            if (layerType == EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS) {
+                if (legs == null) {
+                    legs = bake(TCModelLayers.FORTRESS_ARMOR_LEGS);
+                }
+                return legs;
+            }
+            Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+            if (equippable != null && equippable.slot() == EquipmentSlot.HEAD) {
+                if (head == null) {
+                    head = bake(TCModelLayers.FORTRESS_ARMOR_HEAD);
+                }
+                head.setMask(FortressArmorItem.mask(stack));
+                head.setGogglesVisible(FortressArmorItem.hasGoggles(stack));
+                return head;
+            }
+            if (chest == null) {
+                chest = bake(TCModelLayers.FORTRESS_ARMOR_CHEST);
+            }
+            return chest;
+        }
+
+        private FortressArmorModel bake(ModelLayerLocation layer) {
+            return new FortressArmorModel(Minecraft.getInstance().getEntityModels().bakeLayer(layer));
+        }
     }
 
     private static final class CustomArmorExtension implements IClientItemExtensions {

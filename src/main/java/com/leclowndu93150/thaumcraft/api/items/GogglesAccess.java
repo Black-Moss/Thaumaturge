@@ -68,6 +68,10 @@ public final class GogglesAccess {
         if (!off.isEmpty() && off.getItem() instanceof IRevealer r && r.showNodes(off, entity)) {
             return true;
         }
+        if (ModList.get().isLoaded(TCIds.CURIOS)) {
+            return ThaumcraftCuriosCompat.anyCurioMatches(entity,
+                    stack -> stack.getItem() instanceof IRevealer r && r.showNodes(stack, entity));
+        }
         return false;
     }
 

@@ -24,7 +24,7 @@ public final class InfusionAspectContributor implements IAspectRecipeContributor
             if (!(recipe instanceof InfusionRecipe infusion)) {
                 continue;
             }
-            ItemStack output = infusion.rawResult().create();
+            ItemStack output = infusion.resultItem();
             if (output.isEmpty() || output.getItem() != item) {
                 continue;
             }

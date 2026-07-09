@@ -1,20 +1,8 @@
 package com.leclowndu93150.thaumcraft.data.lang;
 
+import net.minecraft.world.item.DyeColor;
+import org.apache.commons.lang3.StringUtils;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangBCrystals;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangGolemancy;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangCasters;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangCStone;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDTrees;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangDecor;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangEPlants;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangEldritch;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangEnchantments;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangHContainers;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangGTools;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangMAuraHud;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangNScanning;
-import com.leclowndu93150.thaumcraft.data.lang.fragments.TCLangTaint;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -331,20 +319,21 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.cluster_quartz", "Native Quartz Cluster");
 
 
-        TCLangBCrystals.register(this);
-        TCLangCStone.register(this);
-        TCLangDTrees.register(this);
-        TCLangEPlants.register(this);
-        TCLangMAuraHud.register(this);
-        TCLangHContainers.register(this);
-        TCLangTaint.register(this);
-        TCLangGTools.register(this);
-        TCLangNScanning.register(this);
-        TCLangDecor.register(this);
-        TCLangCasters.register(this);
-        TCLangEnchantments.register(this);
-        TCLangGolemancy.register(this);
-        TCLangEldritch.register(this);
+        langBCrystals();
+        langBaubles();
+        langCStone();
+        langDTrees();
+        langEPlants();
+        langMAuraHud();
+        langHContainers();
+        langTaint();
+        langGTools();
+        langNScanning();
+        langDecor();
+        langCasters();
+        langEnchantments();
+        langGolemancy();
+        langEldritch();
     }
 
     private void aspect(String tag, String name, String description) {
@@ -371,5 +360,731 @@ public final class TCEnglishProvider extends LanguageProvider {
             add("research.thaumcraft." + path + ".title", title);
         }
         add("research.thaumcraft." + path + ".stage_" + stage, stageText);
+    }
+
+    private void langBCrystals() {
+
+        add("block.thaumcraft.crystal_aer", "Air Crystal");
+        add("block.thaumcraft.crystal_ignis", "Fire Crystal");
+        add("block.thaumcraft.crystal_aqua", "Water Crystal");
+        add("block.thaumcraft.crystal_terra", "Earth Crystal");
+        add("block.thaumcraft.crystal_ordo", "Order Crystal");
+        add("block.thaumcraft.crystal_perditio", "Entropy Crystal");
+        add("block.thaumcraft.crystal_vitium", "Flux Crystal");
+    
+    }
+
+    private void langBaubles() {
+
+        add("item.thaumcraft.amulet_mundane", "Mundane Amulet");
+        add("item.thaumcraft.ring_mundane", "Mundane Ring");
+        add("item.thaumcraft.girdle_mundane", "Mundane Belt");
+        add("item.thaumcraft.ring_apprentice", "Apprentice's Ring");
+        add("item.thaumcraft.amulet_fancy", "Fancy Amulet");
+        add("item.thaumcraft.ring_fancy", "Fancy Ring");
+        add("item.thaumcraft.girdle_fancy", "Fancy Belt");
+        add("item.thaumcraft.amulet_vis", "Vis Stone");
+        add("item.thaumcraft.amulet_vis_crafted", "Amulet of Vis");
+        add("item.thaumcraft.amulet_vis.text", "Recharges armor, baubles and hotbar items.");
+        add("item.thaumcraft.charm_undying", "Charm of Undying");
+        add("item.thaumcraft.cloud_ring", "Cloudstepper Ring");
+        add("item.thaumcraft.curiosity_band", "Headband of Curiosity");
+        add("item.thaumcraft.verdant_charm", "Verdant Heart Charm");
+        add("item.thaumcraft.verdant_charm.life.text", "Lifegiver");
+        add("item.thaumcraft.verdant_charm.sustain.text", "Sustainer");
+        add("item.thaumcraft.voidseer_charm", "Voidseer's Pearl");
+        add("item.thaumcraft.voidseer_charm.text",
+                "You peer into the inky blackness... you think you see something staring back...");
+        add("item.thaumcraft.focus_pouch", "Focus Pouch");
+        add("item.thaumcraft.sanity_checker", "Sanity Checker");
+        add("item.thaumcraft.resonator", "Essentia Resonator");
+        add("item.thaumcraft.fortress_helm", "Thaumium Fortress Helm");
+        add("item.thaumcraft.fortress_chest", "Thaumium Fortress Cuirass");
+        add("item.thaumcraft.fortress_legs", "Thaumium Fortress Thigh Guards");
+        add("item.thaumcraft.fortress_helm.mask.0", "Grinning Devil");
+        add("item.thaumcraft.fortress_helm.mask.1", "Angry Ghost");
+        add("item.thaumcraft.fortress_helm.mask.2", "Sipping Fiend");
+        add("item.thaumcraft.void_robe_helm", "Void Thaumaturge Hood");
+        add("item.thaumcraft.void_robe_chest", "Void Thaumaturge Robe");
+        add("item.thaumcraft.void_robe_legs", "Void Thaumaturge Leggings");
+        add("tc.resonator1", "Contains %1$s %2$s essentia");
+        add("tc.resonator2", "Suction %1$s %2$s");
+        add("tc.resonator3", "Untyped");
+        add("tc.condenser1", "Cost: %1$s essentia");
+        add("tc.condenser2", "Time: %1$s ticks (%2$s seconds)");
+    
+    }
+
+    private void langCStone() {
+
+        add("block.thaumcraft.stone_arcane", "Arcane Stone");
+        add("block.thaumcraft.stone_arcane_brick", "Arcane Stone Brick");
+        add("block.thaumcraft.stone_ancient", "Ancient Stone");
+        add("block.thaumcraft.stone_ancient_tile", "Ancient Stone Tile");
+        add("block.thaumcraft.stone_ancient_rock", "Ancient Rock");
+        add("block.thaumcraft.stone_ancient_glyphed", "Glyphed Stone");
+        add("block.thaumcraft.stone_ancient_doorway", "Ancient Barrier");
+        add("block.thaumcraft.stone_eldritch_tile", "Eldritch Stone");
+        add("block.thaumcraft.stone_porous", "Porous Stone");
+        add("block.thaumcraft.stairs_arcane", "Arcane Stone Stairs");
+        add("block.thaumcraft.stairs_arcane_brick", "Arcane Brick Stairs");
+        add("block.thaumcraft.stairs_ancient", "Ancient Stone Stairs");
+    
+    }
+
+    private void langDTrees() {
+
+        add("block.thaumcraft.sapling_greatwood", "Greatwood Sapling");
+        add("block.thaumcraft.sapling_silverwood", "Silverwood Sapling");
+        add("block.thaumcraft.log_greatwood", "Greatwood");
+        add("block.thaumcraft.log_silverwood", "Silverwood");
+        add("block.thaumcraft.leaves_greatwood", "Greatwood Leaves");
+        add("block.thaumcraft.leaves_silverwood", "Silverwood Leaves");
+        add("block.thaumcraft.plank_greatwood", "Greatwood Planks");
+        add("block.thaumcraft.plank_silverwood", "Silverwood Planks");
+    
+    }
+
+    private void langEPlants() {
+
+        add("block.thaumcraft.shimmerleaf", "Shimmerleaf");
+        add("block.thaumcraft.cinderpearl", "Cinderpearl");
+        add("block.thaumcraft.vishroom", "Vishroom");
+        add("block.thaumcraft.grass_ambient", "Ambient Grass Block");
+        add("biome.thaumcraft.magical_forest", "Magical Forest");
+        add("biome.thaumcraft.eerie", "Eerie");
+        add("biome.thaumcraft.eldritch", "Eldritch");
+    
+    }
+
+    private void langMAuraHud() {
+
+        add("item.thaumcraft.goggles_revealing", "Goggles of Revealing");
+        add("hud.thaumcraft.aura.title", "Aura");
+        add("hud.thaumcraft.aura.vis", "Vis: %1$s");
+        add("hud.thaumcraft.aura.flux", "Flux: %1$s");
+        add("hud.thaumcraft.aura.base", "Base: %1$s");
+    
+    }
+
+    private void langHContainers() {
+
+        add("item.thaumcraft.phial.empty", "Glass Phial");
+        add("item.thaumcraft.phial.filled", "Phial of %1$s Essential");
+        add("item.thaumcraft.primordial_pearl.pearl", "Primordial Pearl");
+        add("item.thaumcraft.primordial_pearl.nodule", "Primordial Nodule");
+        add("item.thaumcraft.primordial_pearl.mote", "Primordial Mote");
+    
+    }
+
+    private void langTaint() {
+
+        add("block.thaumcraft.flux_goo", "Flux Goo");
+        add("fluid_type.thaumcraft.flux_goo", "Flux Goo");
+
+        add("block.thaumcraft.taint_rock", "Tainted Rock");
+        add("block.thaumcraft.taint_soil", "Tainted Soil");
+        add("block.thaumcraft.taint_crust", "Tainted Crust");
+        add("block.thaumcraft.taint_geyser", "Taint Geyser");
+        add("block.thaumcraft.taint_log", "Tainted Log");
+        add("block.thaumcraft.taint_feature", "Taint Feature");
+        add("block.thaumcraft.taint_fibre", "Taint Fibre");
+
+        add("effect.thaumcraft.vis_exhaust", "Vis Exhaust");
+        add("effect.thaumcraft.infectious_vis_exhaust", "Flux Phage");
+        add("effect.thaumcraft.flux_taint", "Flux Taint");
+
+        add("death.attack.thaumcraft.taint", "%1$s was tainted");
+        add("death.attack.thaumcraft.tentacle", "%1$s was strangled by tentacles");
+        add("death.attack.thaumcraft.swarm", "%1$s was swarmed");
+        add("death.attack.thaumcraft.dissolve", "%1$s dissolved");
+
+        add("item.thaumcraft.essentia_crystal", "%s Vis Crystal");
+        add("item.thaumcraft.essentia_crystal.unknown", "Unknown Vis Crystal");
+
+        add("entity.thaumcraft.thaumic_slime", "Thaumic Slime");
+        add("entity.thaumcraft.taint_seed", "Taint Seed");
+        add("entity.thaumcraft.taint_seed_prime", "Greater Taint Seed");
+        add("entity.thaumcraft.taint_crawler", "Taint Crawler");
+        add("entity.thaumcraft.taint_swarm", "Taint Swarm");
+        add("entity.thaumcraft.taintacle", "Taintacle");
+        add("entity.thaumcraft.taintacle_small", "Lesser Taintacle");
+        add("entity.thaumcraft.falling_taint", "Falling Taint");
+        add("entity.thaumcraft.bottle_taint", "Bottle of Tainted Goo");
+        add("item.thaumcraft.bottle_taint", "Bottle of Taint");
+        add("entity.thaumcraft.wisp", "Wisp");
+        add("entity.thaumcraft.brainy_zombie", "Angry Zombie");
+        add("entity.thaumcraft.giant_brainy_zombie", "Furious Zombie");
+        add("entity.thaumcraft.firebat", "Firebat");
+        add("entity.thaumcraft.mind_spider", "Mind Spider");
+        add("item.thaumcraft.brain", "Zombie Brain");
+
+        add("item.thaumcraft.brainy_zombie_spawn_egg", "Angry Zombie Spawn Egg");
+        add("item.thaumcraft.giant_brainy_zombie_spawn_egg", "Furious Zombie Spawn Egg");
+        add("item.thaumcraft.firebat_spawn_egg", "Firebat Spawn Egg");
+        add("item.thaumcraft.mind_spider_spawn_egg", "Mind Spider Spawn Egg");
+        add("item.thaumcraft.wisp_spawn_egg", "Wisp Spawn Egg");
+        add("item.thaumcraft.thaumic_slime_spawn_egg", "Thaumic Slime Spawn Egg");
+        add("item.thaumcraft.taint_crawler_spawn_egg", "Taint Crawler Spawn Egg");
+        add("item.thaumcraft.taintacle_spawn_egg", "Taintacle Spawn Egg");
+        add("item.thaumcraft.taint_swarm_spawn_egg", "Taint Swarm Spawn Egg");
+        add("item.thaumcraft.taint_seed_spawn_egg", "Taint Seed Spawn Egg");
+        add("item.thaumcraft.taint_seed_prime_spawn_egg", "Greater Taint Seed Spawn Egg");
+    
+    }
+
+    private void langGTools() {
+
+        add("item.thaumcraft.thaumometer", "Thaumometer");
+        add("item.thaumcraft.scribing_tools", "Scribing Tools");
+    
+    }
+
+    private void langNScanning() {
+
+        add("tc.unknownobject", "Nothing new can be learned from this.");
+        add("tc.knownobject", "You have learned something new.");
+        add("tc.invtoolarge", "Inventory too large. Only scanning first 100 items.");
+        add("tc.celestial.fail.1", "You have already studied that today.");
+        add("tc.celestial.fail.2", "You are unable to take notes of your studies.");
+
+        add("item.thaumcraft.celestial_notes", "Celestial Notes");
+        add("item.thaumcraft.celestial_notes.sun.text", "Solar");
+        add("item.thaumcraft.celestial_notes.stars_1.text", "Stellar, Northern Quadrant");
+        add("item.thaumcraft.celestial_notes.stars_2.text", "Stellar, Southern Quadrant");
+        add("item.thaumcraft.celestial_notes.stars_3.text", "Stellar, Western Quadrant");
+        add("item.thaumcraft.celestial_notes.stars_4.text", "Stellar, Eastern Quadrant");
+        add("item.thaumcraft.celestial_notes.moon_1.text", "Lunar, Full");
+        add("item.thaumcraft.celestial_notes.moon_2.text", "Lunar, Waning Gibbous");
+        add("item.thaumcraft.celestial_notes.moon_3.text", "Lunar, Third Quarter");
+        add("item.thaumcraft.celestial_notes.moon_4.text", "Lunar, Waning Crescent");
+        add("item.thaumcraft.celestial_notes.moon_5.text", "Lunar, New");
+        add("item.thaumcraft.celestial_notes.moon_6.text", "Lunar, Waxing Crescent");
+        add("item.thaumcraft.celestial_notes.moon_7.text", "Lunar, First Quarter");
+        add("item.thaumcraft.celestial_notes.moon_8.text", "Lunar, Waxing Gibbous");
+
+        add("card.thaumcraft.celestial.name", "Celestial Studies");
+        add("card.thaumcraft.celestial.text",
+                "You take some of the celestial notes you have made and compare them for possible correlations with your primary research category. You gain 25 to 50 inspiration toward %1$s. You may gain other things as well...");
+
+        add("research.thaumcraft.celestial_scanning.title", "Celestial Observation");
+        add("research.thaumcraft.celestial_scanning.stage_0",
+                "I have noticed a link between the phases of the moon and the speed at which the aura replenishes itself. I should investigate this phenomenon further and even expand my investigation to see if other heavenly bodies influence magic.<BR>A few minor tweaks to my thaumometer should enable it to take measurements from objects in the sky. I should remember to carry some paper and scribing tools with me so I can take notes.<BR>Measuring the same body or quadrant of the sky more than once a day will not give me new insights - I need to study them over time to measure changes in their aural influence.<BR>The notes I gather should come in handy for theorycrafting.");
+        add("research.thaumcraft.flux.title", "Flux");
+        add("research.thaumcraft.flux.stage_0",
+                "I have been monitoring a strange buildup of magical energy in the aura. It seems to be a form of 'dirty' vis that I have named Flux. It shows as an ominous dark bar on my thaumometer.<BR>I now know what those purple puffs are I occasionally see when I am being careless - it is essentia spilling into the atmosphere and becoming Flux. Pure essentia, it seems, should not be directly exposed to the aura.<BR>I'm not exactly sure what negative effects this will cause, but I have noticed that Flux seems to clog the local aura preventing Vis from replenishing naturally.<BR>Picture it as a thick layer of scum on a natural pool of clean water.<BR>The local aura has a point at which it is 'filled' and Flux seems to count towards this capacity.<BR>More alarmingly, it seems to take precedence over vis and I suspect it can probably exceed this natural limit.<BR>I am not sure what will happen when Flux overflows, but it it bound to be interesting.");
+        add("research.thaumcraft.flux.warn", "Something seems to be building up in the aura. Something bad.");
+
+        scanEntry("thaumcraft/thaumic_slime", "Thaumic Slime",
+                "These purple slimes are a strange offshoot of their green cousins. Normal slimes form from the organic gunk that occasionally collects in caves, but Thaumic Slimes are formed from the purple proto-matter residue left over from magical mishaps.<BR>Apart from their strange origins they are rather similar to their green cousins for the most part. They do appear to have the ability to split at will, often spitting a lesser version of themselves at targets that venture too close. If there are no targets nearby, split slimes will endeavour to reform to once again form a larger organism.");
+        scanEntry("thaumcraft/taint_seed", "Taint Seed",
+                "Occasionally tight knots of Tainted tendrils will form. From out of this 'seed' foul tainted air will spew which acts as the basis for new Taint growth.<BR>These seeds can lash out to defend themselves, but the risk must be taken if you wish to rid an area of taint.<BR>Without the foul air these seeds create, tainted growth soon withers and dies.");
+        scanEntry("thaumcraft/taint_crawler", "Tainted Crawler",
+                "These disgusting grubs secrete corrupting Taint wherever they go. Most of the time the Taint is short-lived if they wander too far from the core of the Taint growth, but other times this can cause the Taint to spread much quicker than it normally would.<BR>It is best to destroy them on sight.");
+        scanEntry("thaumcraft/taintacle", "Taintacle",
+                "These dangerous growths look like giant tentacles. They will lash out at anything that comes nearby.<BR>Though they are immobile, keeping your distance might not keep you safe as miniature versions of them will spawn all around you should you draw their attention.");
+        scanEntry("thaumcraft/taint_swarm", "Taint Swarm",
+                "Sometimes purple hive-like growths will form on the remains of trees within Taint. Swarms of tiny biting creatures will spawn from these growths and rove around in aggressive swarms.<BR>They move fast, are hard to avoid and even harder to hit. Fortunately the individual creatures are not particularly robust so a properly prepared traveller should be able to dispatch them easily.");
+        scanEntry("thaumcraft/wisp", "Wisp",
+                "These strange creatures appear to be floating points of light and are often found near high concentrations of vis. Honestly I am not sure if they are creatures at all - they move randomly and do not appear to exhibit the normal characteristics of a living organism. They do however react to being attacked and occasionally become aggressive for no apparent reason.<BR>My initial thoughts are they might be a form of proto-life made up of vis instead of normal matter, but that cannot be the whole picture as I am detecting strange dimensional energies at their core.");
+        scanEntry("thaumcraft/pech", "The Pech",
+                "These strange humanoids can be found wherever the veil between worlds is at its thinnest. They seem drawn to the magical energies that abound in such places.<IMG>thaumcraft:textures/research/research5.png:128:136:108:117:.75</IMG>Don't let their small stature fool you. They have incredible strength and can carry many times their own bodyweight.<BR>Pech are normally not aggressive, but when riled up they will band together and hunt down their attacker. Under normal conditions they avoid people at all costs.<BR>Pechs are notoriously avaricious, and will loot anything not nailed down, though they prefer precious things. It is said that if you feed this desire for material wealth it could be possible to befriend one.<BR>Once befriended they often carry wondrous objects that they might be willing to part with.<BR>It should be noted that such 'friendships' seldom last long.");
+        scanEntry("thaumcraft/firebat", "Firebat",
+                "Fire bats, or Hellbats, are usually found in the Nether. Engulfed in flame and unreasonably aggressive they are perfectly suited to the environment they live in. They also have the alarming tendency to explode when attacking.<BR>One wonders what possible evolutionary advantage exploding gives them as a species, but the same can be asked of creepers.");
+        scanEntry("thaumcraft/cultist", "Crimson Cultist",
+                "These red-robed cultists have been popping up of late. Their goals are unknown to me and they seem unwilling to talk. Beyond that there is something... wrong about them. Their grip on sanity seems tenuous at best, but the wrongness goes much deeper than that. It is hard to describe.<BR>My presence seems to enrage them and I believe it might have something to do with my capacity for thaumaturgy.<BR>Their clerics are also capable of wielding magic and I can sense that they are drawing it from the aura, but the magic itself does not seem to be thaumaturgy. Whatever it is, it makes my skin crawl and I can feel the aura buckling and tearing every time they draw upon it.<BR>Some of them seem to carry a book around. I should try and get my hand on one of those, maybe it will tell me more about this strange cult. I should be careful though, some knowledge can be dangerous.");
+        scanEntry("thaumcraft/brainy_zombie", "Angry Zombie",
+                "I have observed that some zombies seem much more aware than their lumbering brethren. Their eyes burn with a malevolent intelligence leading me to believe that they retained much more intelligence after death than is normal. They are definitely more aggressive and dangerous than a normal zombie.<BR>They should make good sources of brain matter for my experiments.");
+        scanEntry("thaumcraft/eldritch_guardian", "Eldritch Guardian",
+                "These ghost-like figures are a dangerous menace. They can be found wherever the walls of reality are at their thinnest. I believe they act as guardians of such places, protecting those weak spots from trespassers.<BR>Their form is held together by dimensional energies from some other place making them much weaker in our world. I would hate having to confront them in whatever place they call home.<BR>Their touch is deadly and they are able to hurl entropic dimensional energy at those too far to reach.");
+        scanEntry("thaumcraft/eldritch_crab", "Eldritch Crab",
+                "Eldritch Crabs, or Helmed Crabs, are a most unusual and unnatural creature. I am convinced these creatures are the result of magical tinkering.<BR>A pair of powerful claws make them dangerous to face in combat, but it is how they use those claws that make them horrific. They leap at their foes heads in an attempt to decapitate them. If successful they are somehow able to burrow into the victims body and take control of what remains. Their abdomen looks much like a helmed head allowing them to disguise the true nature of the husk they now control.<BR>These husks are not much more powerful than a normal zombie so the reason why they do this eludes me - they are much more of a threat without their 'mount'. Possibly they were created as weapons of terror by some demented inventor?");
+    
+    }
+
+    private void langDecor() {
+
+        add("block.thaumcraft.dioptra", "Thaumic Dioptra");
+        add("block.thaumcraft.vis_battery", "Vis Battery");
+        add("block.thaumcraft.matrix_speed", "Infusion Speed Stone");
+        add("block.thaumcraft.matrix_cost", "Infusion Cost Stone");
+        add("block.thaumcraft.jar_brain", "Brain in a Jar");
+        add("block.thaumcraft.arcane_ear", "Arcane Ear");
+        add("block.thaumcraft.arcane_ear_toggle", "Arcane Ear (Toggle)");
+        add("block.thaumcraft.lamp_arcane", "Arcane Lamp");
+        add("block.thaumcraft.lamp_growth", "Lamp of Growth");
+        add("block.thaumcraft.lamp_fertility", "Lamp of Fertility");
+        add("block.thaumcraft.centrifuge", "Essentia Centrifuge");
+        add("block.thaumcraft.hungry_chest", "Hungry Chest");
+        add("block.thaumcraft.everfull_urn", "Everfull Urn");
+        add("block.thaumcraft.vis_generator", "Vis Generator");
+        add("block.thaumcraft.essentia_input", "Filling Essentia Transfuser");
+        add("block.thaumcraft.essentia_output", "Emptying Essentia Transfuser");
+        add("block.thaumcraft.condenser", "Flux Condenser");
+        add("block.thaumcraft.condenser_lattice", "Flux Condenser Lattice");
+        add("block.thaumcraft.condenser_lattice_dirty", "Clogged Flux Condenser Lattice");
+        add("block.thaumcraft.stabilizer", "Stabilizer");
+        add("block.thaumcraft.redstone_relay", "Redstone Relay");
+        add("block.thaumcraft.void_siphon", "Void Siphon");
+        add("block.thaumcraft.thaumatorium", "Thaumatorium");
+        add("block.thaumcraft.thaumatorium_top", "Thaumatorium");
+        add("block.thaumcraft.brain_box", "Brain Box");
+        add("item.thaumcraft.tallow", "Magic Tallow");
+        add("block.thaumcraft.placeholder_obsidian", "Infernal Furnace");
+        add("block.thaumcraft.placeholder_nether_bricks", "Infernal Furnace");
+        add("item.thaumcraft.warping", "Warping");
+        add("effect.thaumcraft.thaumarhia", "Thaumorrhea");
+        add("effect.thaumcraft.unnatural_hunger", "Unnatural Hunger");
+        add("effect.thaumcraft.sun_scorned", "Sun Scorned");
+        add("effect.thaumcraft.death_gaze", "Deadly Gaze");
+        add("effect.thaumcraft.blurred_vision", "Blurred Vision");
+        add("effect.thaumcraft.warp_ward", "Warp Ward");
+        add("warp.thaumcraft.gain.permanent", "You have gained permanent Warp!");
+        add("warp.thaumcraft.gain.normal", "You have gained Warp!");
+        add("warp.thaumcraft.gain.temporary", "You have gained temporary Warp!");
+        add("warp.thaumcraft.lose.permanent", "You have lost permanent Warp!");
+        add("warp.thaumcraft.lose.normal", "You have lost Warp!");
+        add("warp.thaumcraft.lose.temporary", "You have lost temporary Warp!");
+        add("warp.thaumcraft.text.1", "You feel oddly drained.");
+        add("warp.thaumcraft.text.2", "A sudden and unnatural hunger consumes you.");
+        add("warp.thaumcraft.text.4", "Your vision becomes strange and grim.");
+        add("warp.thaumcraft.text.5", "The light suddenly becomes overwhelmingly bright and burns your skin.");
+        add("warp.thaumcraft.text.6", "A thick fog appears from nowhere. Something stirs in its depths.");
+        add("warp.thaumcraft.text.7", "They're everywhere! Run!");
+        add("warp.thaumcraft.text.9", "You suddenly feel reluctant to break things.");
+        add("warp.thaumcraft.text.10", "Your perception suddenly expands.");
+        add("warp.thaumcraft.text.11", "What was that noise? Something is behind you.");
+        add("warp.thaumcraft.text.12", "Something is following you.");
+        add("warp.thaumcraft.text.13", "Something is watching you. Maybe it is time to stop.");
+        add("warp.thaumcraft.text.14", "You have a moment of clarity.");
+        add("warp.thaumcraft.text.15", "Your stomach suddenly gurgles very strangely.");
+        add("warp.thaumcraft.text.16", "The faint sound of chanting can be heard nearby.");
+        add("warp.thaumcraft.text.hunger.1", "Your hunger cannot be satisfied with normal food.");
+        add("warp.thaumcraft.text.hunger.2", "Your hunger begins to fade.");
+        add("warp.thaumcraft.fluxevent.2", "You feel something invading your mind and sapping your will.");
+        add("warp.thaumcraft.fluxevent.3", "You feel a sudden release of magical tension nearby.");
+        add("entity.thaumcraft.flux_rift", "Flux Rift");
+        add("item.thaumcraft.void_seed", "Void Seed");
+        add("item.thaumcraft.causality_collapser", "Causality Collapser");
+        add("block.thaumcraft.infusion_matrix", "Runic Matrix");
+        add("block.thaumcraft.pedestal_arcane", "Arcane Pedestal");
+        add("block.thaumcraft.recharge_pedestal", "Recharge Pedestal");
+        add("block.thaumcraft.pedestal_ancient", "Ancient Pedestal");
+        add("block.thaumcraft.pedestal_eldritch", "Eldritch Pedestal");
+        add("block.thaumcraft.pillar_arcane", "Infusion Pillar");
+        add("block.thaumcraft.pillar_ancient", "Ancient Infusion Pillar");
+        add("block.thaumcraft.pillar_eldritch", "Eldritch Infusion Pillar");
+        add("gui.thaumcraft.infusion.instability", "Instability: %s");
+        add("gui.thaumcraft.infusion.instability.0", "Negligible");
+        add("gui.thaumcraft.infusion.instability.1", "Minor");
+        add("gui.thaumcraft.infusion.instability.2", "Moderate");
+        add("gui.thaumcraft.infusion.instability.3", "High");
+        add("gui.thaumcraft.infusion.instability.4", "Very High");
+        add("gui.thaumcraft.infusion.instability.5", "Dangerous");
+        add("gui.thaumcraft.infusion.stability.very_stable", "Very Stable");
+        add("gui.thaumcraft.infusion.stability.stable", "Stable");
+        add("gui.thaumcraft.infusion.stability.unstable", "Unstable");
+        add("gui.thaumcraft.infusion.stability.very_unstable", "Dangerously Unstable");
+        add("gui.thaumcraft.infusion.stability.gain", "gain / cycle");
+        add("gui.thaumcraft.infusion.stability.range", "0 to ");
+        add("gui.thaumcraft.infusion.stability.loss", "loss / cycle");
+        add("entity.thaumcraft.causality_collapser", "Causality Collapser");
+        add("item.thaumcraft.thaumium_sword", "Thaumium Sword");
+        add("item.thaumcraft.thaumium_pickaxe", "Thaumium Pickaxe");
+        add("item.thaumcraft.thaumium_axe", "Thaumium Axe");
+        add("item.thaumcraft.thaumium_shovel", "Thaumium Shovel");
+        add("item.thaumcraft.thaumium_hoe", "Thaumium Hoe");
+        add("item.thaumcraft.thaumium_helm", "Thaumium Helm");
+        add("item.thaumcraft.thaumium_chest", "Thaumium Chestplate");
+        add("item.thaumcraft.thaumium_legs", "Thaumium Greaves");
+        add("item.thaumcraft.thaumium_boots", "Thaumium Boots");
+        add("item.thaumcraft.void_sword", "Void Sword");
+        add("item.thaumcraft.void_pickaxe", "Void Pickaxe");
+        add("item.thaumcraft.void_axe", "Void Axe");
+        add("item.thaumcraft.void_shovel", "Void Shovel");
+        add("item.thaumcraft.void_hoe", "Void Hoe");
+        add("item.thaumcraft.void_helm", "Void Helm");
+        add("item.thaumcraft.void_chest", "Void Chestplate");
+        add("item.thaumcraft.void_legs", "Void Greaves");
+        add("item.thaumcraft.void_boots", "Void Boots");
+        add("item.thaumcraft.elemental_sword", "Sword of the Zephyr");
+        add("item.thaumcraft.elemental_pickaxe", "Pickaxe of the Core");
+        add("item.thaumcraft.elemental_axe", "Axe of the Stream");
+        add("item.thaumcraft.elemental_shovel", "Shovel of the Earthmover");
+        add("item.thaumcraft.elemental_hoe", "Hoe of Growth");
+        add("item.thaumcraft.primal_crusher", "Primal Crusher");
+        add("item.thaumcraft.traveller_boots", "Boots of the Traveller");
+        add("item.thaumcraft.cloth_chest", "Apprentice's Robes");
+        add("item.thaumcraft.cloth_legs", "Apprentice's Leggings");
+        add("item.thaumcraft.cloth_boots", "Apprentice's Boots");
+
+        for (DyeColor dye : DyeColor.values()) {
+            add("block.thaumcraft.candle_" + dye.getName(), dyeName(dye) + " Tallow Candle");
+            add("block.thaumcraft.banner_" + dye.getName(), dyeName(dye) + " Banner");
+            add("block.thaumcraft.wall_banner_" + dye.getName(), dyeName(dye) + " Banner");
+        }
+        add("block.thaumcraft.banner_crimson_cult", "Crimson Cult Banner");
+        add("block.thaumcraft.wall_banner_crimson_cult", "Crimson Cult Banner");
+    
+    }
+
+    private void langCasters() {
+
+        add("key.category.thaumcraft.main", "Thaumcraft");
+        add("key.thaumcraft.change_focus", "Change Caster Focus");
+        add("key.thaumcraft.misc_toggle", "Misc Caster Toggle");
+        add("item.thaumcraft.caster_basic", "Caster's Gauntlet");
+        add("item.thaumcraft.focus_1", "Blank Lesser Focus");
+        add("item.thaumcraft.focus_2", "Blank Advanced Focus");
+        add("item.thaumcraft.focus_3", "Blank Greater Focus");
+        add("tooltip.thaumcraft.caster.vis_cost", "Vis cost: %s Vis per cast");
+        add("tooltip.thaumcraft.focus.vis_cost", "%s Vis per cast");
+        add("entity.thaumcraft.focus_projectile", "Focus Projectile");
+        add("entity.thaumcraft.focus_cloud", "Focus Cloud");
+        add("entity.thaumcraft.focus_mine", "Focus Mine");
+        add("entity.thaumcraft.spell_bat", "Spellbat");
+
+        add("block.thaumcraft.hole", "Dimensional Tear");
+        add("block.thaumcraft.effect_sap", "Sapping Field");
+
+        add("focus.thaumcraft.root.name", "Caster");
+        add("focus.thaumcraft.root.text", "The caster and point of origin of the spell.");
+        add("focus.thaumcraft.touch.name", "Touch");
+        add("focus.thaumcraft.touch.text", "Allows you to affect things you can touch, within roughly 4 blocks of the point of origin.");
+        add("focus.thaumcraft.projectile.name", "Projectile");
+        add("focus.thaumcraft.projectile.text", "Gathers the energy of the focus into a magical orb that you can throw like a projectile. This projectile travels slowly and is affected by gravity.");
+        add("focus.thaumcraft.bolt.name", "Bolt");
+        add("focus.thaumcraft.bolt.text", "Hurl magic directly at your target as a concentrated bolt of energy. The effect is instantaneous, but the range is limited to 16 blocks.");
+        add("focus.thaumcraft.plan.name", "Plan");
+        add("focus.thaumcraft.plan.text", "Allows you to plan exactly which blocks will be affected.");
+        add("focus.thaumcraft.cloud.name", "Cloud");
+        add("focus.thaumcraft.cloud.text", "Creates a lingering cloud of magical energy that effects anything inside.");
+        add("focus.thaumcraft.mine.name", "Arcane Mine");
+        add("focus.thaumcraft.mine.text", "Creates a mystical construct that detonates when a hostile entity passes nearby, releasing the effects upon it.");
+        add("focus.thaumcraft.spellbat.name", "Summon Spellbat");
+        add("focus.thaumcraft.spellbat.text", "Conjures a mystical bat that will hunt down enemies and inflict them with the focus's effects.");
+
+        add("focus.thaumcraft.air.name", "Air");
+        add("focus.thaumcraft.air.text", "Creates a blast of air that knocks things back, but causes only minor damage.");
+        add("focus.thaumcraft.earth.name", "Earth");
+        add("focus.thaumcraft.earth.text", "Hurls a blast of earthen shrapnel that causes significant damage and may break weaker blocks.");
+        add("focus.thaumcraft.fire.name", "Fire");
+        add("focus.thaumcraft.fire.text", "Hurls flame at your target and sets it alight.");
+        add("focus.thaumcraft.frost.name", "Frost");
+        add("focus.thaumcraft.frost.text", "Throws chilling cold at your target, causing damage and freezing it. Freezes water and will slow down creatures.");
+        add("focus.thaumcraft.break.name", "Break");
+        add("focus.thaumcraft.break.text", "Summons disruptive energy that breaks down most materials.");
+        add("focus.thaumcraft.curse.name", "Curse");
+        add("focus.thaumcraft.curse.text", "Summons the powers of entropy to harm and disrupt the targeted creature.");
+        add("focus.thaumcraft.flux.name", "Flux");
+        add("focus.thaumcraft.flux.text", "This effect conjures raw, unfocused vis that disrupts living (and dead) creatures. This energy cannot interact with inanimate objects, but it does bypass mundane armor.");
+        add("focus.thaumcraft.rift.name", "Rift");
+        add("focus.thaumcraft.rift.text", "Shifts matter into an alternate reality, creating temporary 'holes' through which you can travel.");
+        add("focus.thaumcraft.exchange.name", "Exchange");
+        add("focus.thaumcraft.exchange.text", "Swap one type of block in the world for another.");
+        add("focus.thaumcraft.heal.name", "Heal");
+        add("focus.thaumcraft.heal.text", "This effect heals living creatures and harms undead.");
+
+        add("focus.thaumcraft.scatter.name", "Scatter");
+        add("focus.thaumcraft.scatter.text", "Split a single trajectory into multiple random trajectories.");
+        add("focus.thaumcraft.split_target.name", "Split Target");
+        add("focus.thaumcraft.split_target.text", "Split a single target into two weaker ones.");
+        add("focus.thaumcraft.split_trajectory.name", "Split Trajectory");
+        add("focus.thaumcraft.split_trajectory.text", "Split a single trajectory into two weaker ones.");
+
+        add("focus.common.power", "Power");
+        add("focus.common.duration", "Duration (seconds)");
+        add("focus.common.radius", "Radius (blocks)");
+        add("focus.common.silk", "Silk Touch");
+        add("focus.common.no", "No");
+        add("focus.common.yes", "Yes");
+        add("focus.common.fortune", "Fortune");
+        add("focus.common.target", "Target Type");
+        add("focus.common.friend", "Friendly");
+        add("focus.common.enemy", "Non-friendly");
+        add("focus.common.none", "None");
+        add("focus.common.options", "Options");
+        add("focus.fire.burn", "Burn duration (seconds)");
+        add("focus.scatter.cone", "Spread angle (degrees)");
+        add("focus.scatter.forks", "Trajectory forks");
+        add("focus.projectile.speed", "Projectile speed");
+        add("focus.projectile.bouncy", "Bouncy");
+        add("focus.projectile.seeking.friendly", "Seek friendly");
+        add("focus.projectile.seeking.hostile", "Seek hostile");
+        add("focus.break.power", "Breaking strength");
+        add("focus.plan.method", "Planning method");
+        add("focus.plan.full", "Full");
+        add("focus.plan.surface", "Surface");
+        add("focus.rift.depth", "Depth");
+        add("focus.heal.power", "Healing");
+
+        add("death.attack.thaumcraft.focus_fire", "%1$s was burned to a crisp by magic");
+        add("death.attack.thaumcraft.focus_fire.player", "%1$s was burned to a crisp by %2$s's magic");
+        add("block.thaumcraft.focal_manipulator", "Focal Manipulator");
+        add("gui.thaumcraft.wandtable.craft", "Start Crafting");
+        add("gui.thaumcraft.wandtable.complexity", "Total Complexity");
+        add("gui.thaumcraft.wandtable.xp_cost", "Experience Cost");
+        add("gui.thaumcraft.wandtable.vis_cost", "Vis Cost");
+        add("gui.thaumcraft.wandtable.cast_cost", "Vis per cast: %s");
+        add("gui.thaumcraft.wandtable.components", "Crystals Required");
+        add("gui.thaumcraft.wandtable.part_complexity", "Complexity:");
+        add("gui.thaumcraft.wandtable.part_efficiency", "Effect Multiplier:");
+        add("gui.thaumcraft.wandtable.heal_power", "Healing");
+        add("gui.thaumcraft.wandtable.problem.in_progress", "Crafting in progress...");
+        add("gui.thaumcraft.wandtable.problem.complexity", "Too complex: %s/%s");
+        add("gui.thaumcraft.wandtable.problem.empty_nodes", "The spell has unfilled nodes");
+        add("gui.thaumcraft.wandtable.problem.crystal", "Missing %sx %s");
+        add("gui.thaumcraft.wandtable.problem.no_effects", "The spell needs at least one effect");
+        add("gui.thaumcraft.wandtable.problem.xp", "Requires %s experience levels");
+        add("gui.thaumcraft.wandtable.problem.ready", "Ready to craft!");
+    
+    }
+
+    private void langEnchantments() {
+
+        add("enchantment.thaumcraft.collector", "Collector");
+        add("enchantment.thaumcraft.destructive", "Destructive");
+        add("enchantment.thaumcraft.burrowing", "Burrowing");
+        add("enchantment.thaumcraft.sounding", "Sounding");
+        add("enchantment.thaumcraft.refining", "Refining");
+        add("enchantment.thaumcraft.arcing", "Arcing");
+        add("enchantment.thaumcraft.essence", "Essence Harvester");
+        add("enchantment.thaumcraft.lamplight", "Lamplighter");
+        add("block.thaumcraft.effect_glimmer", "Glimmer");
+    
+    }
+
+    private void langGolemancy() {
+
+        add("item.thaumcraft.mind_clockwork", "Clockwork Mind");
+        add("item.thaumcraft.mind_biothaumic", "Biothaumic Mind");
+        add("item.thaumcraft.module_vision", "Vision Module");
+        add("item.thaumcraft.module_aggression", "Aggression Module");
+        add("item.thaumcraft.golem_bell", "Golemancer's Bell");
+        add("item.thaumcraft.golem", "Golem");
+        add("item.thaumcraft.seal_blank", "Blank Seal");
+        add("item.thaumcraft.seal_pickup", "Control Seal: Collect");
+        add("item.thaumcraft.seal_pickup_advanced", "Advanced Control Seal: Collect");
+        add("item.thaumcraft.seal_fill", "Control Seal: Store");
+        add("item.thaumcraft.seal_fill_advanced", "Advanced Control Seal: Store");
+        add("item.thaumcraft.seal_empty", "Control Seal: Empty");
+        add("item.thaumcraft.seal_empty_advanced", "Advanced Control Seal: Empty");
+        add("item.thaumcraft.seal_harvest", "Control Seal: Harvest");
+        add("item.thaumcraft.seal_butcher", "Control Seal: Butcher");
+        add("item.thaumcraft.seal_guard", "Control Seal: Guard");
+        add("item.thaumcraft.seal_guard_advanced", "Advanced Control Seal: Guard");
+        add("item.thaumcraft.seal_lumber", "Control Seal: Lumberjack");
+        add("item.thaumcraft.seal_breaker", "Control Seal: Block Breaker");
+        add("item.thaumcraft.seal_breaker_advanced", "Control Seal: Advanced Block Breaker");
+        add("item.thaumcraft.seal_use", "Control Seal: Use");
+        add("item.thaumcraft.seal_provider", "Control Seal: Provide");
+        add("item.thaumcraft.seal_stock", "Control Seal: Stock");
+        add("block.thaumcraft.levitator", "Arcane Levitator");
+        add("block.thaumcraft.golem_builder", "Golem Press");
+        add("block.thaumcraft.placeholder_iron_bars", "Iron Bars");
+        add("block.thaumcraft.placeholder_cauldron", "Cauldron");
+        add("block.thaumcraft.placeholder_anvil", "Anvil");
+        add("block.thaumcraft.placeholder_smithing_table", "Smithing Table");
+        add("entity.thaumcraft.golem", "Thaumcraft Golem");
+        add("entity.thaumcraft.golem_dart", "Golem Dart");
+        add("golem.follow", "I'm coming, Master!");
+        add("golem.stay", "I will stay here, Master.");
+        add("golem.rank", "Rank");
+        add("tc.notowned", "This does not belong to you.");
+        add("gui.thaumcraft.levitator", "Range set to %s blocks. (%s vis/minute)");
+        trait("smart", "Smart", "This golem is nearly sentient, with superior reasoning and decision-making capabilities.");
+        trait("deft", "Deft", "This golem has a great deal of manual dexterity and can perform tasks requiring precision and a delicate touch. Counters and countered by Clumsy.");
+        trait("clumsy", "Clumsy", "This golem has almost no manual dexterity and can only perform simple tasks requiring basic interactions. Counters and countered by Deft.");
+        trait("fighter", "Fighter", "The golem is capable of taking hostile action against other entities.");
+        trait("wheeled", "Wheeled", "The golem propels itself using wheels. This gives it greater speed, but it is unable to jump or navigate steep slopes.");
+        trait("flyer", "Flyer", "The golem is capable of flight, giving it greater mobility at the cost of speed.");
+        trait("climber", "Climber", "Sheer cliffs do not deter this golem. It can easily scale them to get to its destination.");
+        trait("heavy", "Heavy Frame", "The golem is heavier than average, which reduces its speed and agility. Counters and countered by Light.");
+        trait("light", "Light Frame", "The golem is lighter than average, which gives it increased speed and agility. Counters and countered by Heavy.");
+        trait("fragile", "Fragile", "The golem is built with delicate components or weak materials that reduce its life total and armour rating. Counters and countered by Armored.");
+        trait("repair", "Improved Self Repair", "The golem repairs any damage suffered at more than double the normal rate.");
+        trait("scout", "Scout", "The golem has a greater visual range and can operate in a much wider area: 48 blocks away from its home location, instead of 32.");
+        trait("armored", "Armored", "The golem is reinforced with additional material which increases its armor rating. Counters and countered by Fragile.");
+        trait("brutal", "Brutal", "The golem inflicts greater melee damage in combat.");
+        trait("fireproof", "Fireproof", "The golem is immune to fire damage.");
+        trait("breaker", "Breaker", "The golem is capable of destroying most blocks with ease.");
+        trait("hauler", "Hauler", "Allows the golem to carry two stack of items instead of one.");
+        trait("ranged", "Ranged", "The golem can attack targets at range. ");
+        trait("blastproof", "Blast-proof", "The golem is highly resistant to explosion damage.");
+        material("wood", "Greatwood", "The golem is crafted from greatwood. It is light and agile, but not particularly sturdy.");
+        material("iron", "Iron", "The golem is crafted from iron. It is sturdy and fireproof, but heavy.");
+        material("clay", "Clay", "The golem is crafted from baked clay. It is not a particularly sturdy material, but the resulting golem is fireproof and relatively light.");
+        material("brass", "Brass", "The golem is crafted from brass. It is not as sturdy as iron nor as resistant to fire. Normally brass is heavier than iron, but it allows for superior construction methods which results in a much lighter frame.");
+        material("thaumium", "Thaumium", "The golem is crafted from thaumium. It shares many characteristics with iron, though it is sturdier and more resistant to damage.");
+        material("void", "Void Metal", "The golem is crafted from void metal. Slightly softer than iron, this metal makes up for it by being lighter and able to repair itself.");
+        head("basic", "Clockwork Head", "The default golem head. No particular strengths or weaknesses.");
+        head("smart", "Smart Head", "This head contains an advanced biothaumic brain, giving the golem greater capabilities and the ability to learn. ");
+        head("smart_armored", "Armored Smart Head", "The smart head enhanced with additional armor and padding.");
+        head("scout", "Perceptive Head", "The basic clockwork head enhanced with improved biothaumic eyes. ");
+        head("smart_scout", "Biothaumic Head", "Using both biothaumic eyes and brain, this head is the pinnacle of the biothaumic art. ");
+        arm("basic", "Basic Arms", "The default golem arms and hands. No particular strengths or weaknesses.");
+        arm("fine", "Fine Manipulators", "These arms end in delicate and dexterous hands. ");
+        arm("claws", "Claw Arms", "These arms end in a terrifying pair of razor sharp metal pincers. Comes with a built-in aggression module.");
+        arm("breakers", "Breaker Arms", "These arms end in a pair of pneumatic, diamond tipped grinders. ");
+        arm("darts", "Dart Launchers", "These arms end in a pair of pneumatic dart launchers. The darts are magically created as they are needed. Comes with a built-in aggression module.");
+        leg("walker", "Basic Legs", "A pair of simple legs. No particular strengths or weaknesses.");
+        leg("roller", "Uni-wheel ", "A single wheel. Quite fast, but incapable of jumping or going up steep hills.");
+        leg("climber", "Climbing Legs", "A pair of simple legs enhanced with crampons and other devices allowing for vertical ascent.");
+        leg("flyer", "Levitation Module", "A modified arcane levitator granting the golem the power of flight. Reduces speed by a third.");
+        addon("none", "None", "No addon installed.");
+        addon("armored", "Armor Plating", "Grants the golem increased durability.");
+        addon("fighter", "Aggression Module", "Allows the golem to engage in combat.");
+        addon("hauler", "Carry Frame", "Allows the golem to carry two stack of items instead of one.");
+        add("golem.prop.replant", "Replant crops");
+        add("golem.prop.cycle", "Cycle whitelist");
+        add("golem.prop.meta", "Use metadata");
+        add("golem.prop.nbt", "Use NBT data");
+        add("golem.prop.ore", "Use Ore Dictionary");
+        add("golem.prop.mod", "Use from same mod");
+        add("golem.prop.mob", "Target Mobs ");
+        add("golem.prop.animal", "Target Animals");
+        add("golem.prop.player", "Target Players");
+        add("golem.prop.left", "Left click");
+        add("golem.prop.empty", "Click empty air");
+        add("golem.prop.emptyhand", "Can use empty hand");
+        add("golem.prop.sneak", "Simulate sneaky click");
+        add("golem.prop.single", "Single item only");
+        add("golem.prop.provision", "Request provisioning");
+        add("golem.prop.provision.wl", "Request provisioning from whitelist");
+        add("golem.prop.priority", "Task Priority");
+        add("golem.prop.color", "Set for %s golems");
+        add("golem.prop.colorall", "All golems");
+        add("golem.prop.owner", "You own this seal");
+        add("golem.prop.lock", "Only golems owned by seal owner can perform these tasks");
+        add("golem.prop.unlock", "All golems can perform these tasks");
+        add("golem.prop.redon", "Redstone sensitive");
+        add("golem.prop.redoff", "Ignores Redstone signals");
+        add("golem.prop.exist", "Container must already contain item");
+        add("golem.prop.leave", "Always leave at least 1 item");
+        add("golem.prop.silk", "Use Silk Touch");
+        add("gui.thaumcraft.seal", "Seal");
+        add("golem.prop.blacklist", "Blacklist");
+        add("golem.prop.whitelist", "Whitelist");
+        add("button.category.0", "Priority/Locking");
+        add("button.category.1", "Filter");
+        add("button.category.2", "Area");
+        add("button.category.3", "Options");
+        add("button.category.4", "Requirements");
+        add("button.caption.x", "East / West");
+        add("button.caption.y", "Up / Down");
+        add("button.caption.z", "North / South");
+        add("button.caption.required", "Required");
+        add("button.caption.forbidden", "Forbidden");
+    
+    }
+
+    private void langEldritch() {
+
+        add("entity.thaumcraft.pech", "Pech Forager");
+        add("entity.thaumcraft.pech.mage", "Pech Mage");
+        add("entity.thaumcraft.pech.stalker", "Pech Stalker");
+        add("entity.thaumcraft.eldritch_crab", "Eldritch Crab");
+        add("entity.thaumcraft.inhabited_zombie", "Shambling Husk");
+        add("entity.thaumcraft.eldritch_guardian", "Eldritch Guardian");
+        add("entity.thaumcraft.cultist_knight", "Crimson Knight");
+        add("entity.thaumcraft.cultist_cleric", "Crimson Cleric");
+        add("entity.thaumcraft.cultist_portal_lesser", "Lesser Crimson Portal");
+        add("entity.thaumcraft.eldritch_orb", "Eldritch Orb");
+        add("entity.thaumcraft.golem_orb", "Arcane Orb");
+        add("item.thaumcraft.pech_spawn_egg", "Pech Spawn Egg");
+        add("item.thaumcraft.eldritch_crab_spawn_egg", "Eldritch Crab Spawn Egg");
+        add("item.thaumcraft.inhabited_zombie_spawn_egg", "Shambling Husk Spawn Egg");
+        add("item.thaumcraft.eldritch_guardian_spawn_egg", "Eldritch Guardian Spawn Egg");
+        add("item.thaumcraft.cultist_knight_spawn_egg", "Crimson Knight Spawn Egg");
+        add("item.thaumcraft.cultist_cleric_spawn_egg", "Crimson Cleric Spawn Egg");
+        add("item.thaumcraft.cultist_portal_lesser_spawn_egg", "Lesser Crimson Portal Spawn Egg");
+        add("item.thaumcraft.pech_wand", "Pech Wand");
+        add("item.thaumcraft.crimson_blade", "Crimson Blade");
+        add("item.thaumcraft.crimson_boots", "Crimson Cult Boots");
+        add("item.thaumcraft.crimson_robe_helm", "Crimson Cult Hood");
+        add("item.thaumcraft.crimson_robe_chest", "Crimson Cult Robe");
+        add("item.thaumcraft.crimson_robe_legs", "Crimson Cult Leggings");
+        add("item.thaumcraft.crimson_plate_helm", "Crimson Cult Helm");
+        add("item.thaumcraft.crimson_plate_chest", "Crimson Cult Chestplate");
+        add("item.thaumcraft.crimson_plate_legs", "Crimson Cult Greaves");
+        add("enchantment.special.sapgreat", "Greater Sapping");
+        add("item.curio.text", "What knowledge does this hold?");
+        add("not.pechwand", "You cannot fathom the workings of this yet.");
+        add("got.pechwand", "Hmmm, curious. I should investigate this further.");
+        add("item.thaumcraft.loot_bag_common", "Common Treasure");
+        add("item.thaumcraft.loot_bag_uncommon", "Uncommon Treasure");
+        add("item.thaumcraft.loot_bag_rare", "Rare Treasure");
+        add("tc.lootbag", "Click to open, or keep to trade.");
+        add("champion.thaumcraft.name", "%1$s %2$s");
+        add("champion.mod.bold", "Bold");
+        add("champion.mod.spine", "Spined");
+        add("champion.mod.armor", "Armored");
+        add("champion.mod.mighty", "Mighty");
+        add("champion.mod.grim", "Grim");
+        add("champion.mod.warded", "Warded");
+        add("champion.mod.warp", "Warped");
+        add("champion.mod.undying", "Undying");
+        add("champion.mod.fiery", "Fiery");
+        add("champion.mod.sickly", "Sickly");
+        add("champion.mod.venomous", "Venomous");
+        add("champion.mod.vampiric", "Vampiric");
+        add("champion.mod.infested", "Infested");
+        add("champion.mod.tainted", "Tainted");
+        add("attributes.thaumcraft.champion_mod", "Champion Modifier");
+        add("attributes.thaumcraft.tainted_mod", "Tainted Modifier");
+        add("block.thaumcraft.loot_crate_common", "Common Crate");
+        add("block.thaumcraft.loot_crate_uncommon", "Uncommon Crate");
+        add("block.thaumcraft.loot_crate_rare", "Rare Crate");
+        add("block.thaumcraft.loot_urn_common", "Common Urn");
+        add("block.thaumcraft.loot_urn_uncommon", "Uncommon Urn");
+        add("block.thaumcraft.loot_urn_rare", "Rare Urn");
+    
+    }
+
+    private void scanEntry(String entityPath, String title, String text) {
+        add("research.thaumcraft.scanned/entity/" + entityPath + ".title", title);
+        add("research.thaumcraft.scanned/entity/" + entityPath + ".stage_0", text);
+    }
+
+    private String dyeName(DyeColor dye) {
+        String[] parts = dye.getName().split("_");
+        StringBuilder name = new StringBuilder();
+        for (String part : parts) {
+            if (!name.isEmpty()) {
+                name.append(' ');
+            }
+            name.append(StringUtils.capitalize(part));
+        }
+        return name.toString();
+    }
+
+    private void trait(String key, String name, String text) {
+        add("golem.trait." + key, name);
+        add("golem.trait.text." + key, text);
+    }
+
+    private void material(String key, String name, String text) {
+        add("golem.material." + key, name);
+        add("golem.material.text." + key, text);
+    }
+
+    private void head(String key, String name, String text) {
+        add("golem.head." + key, name);
+        add("golem.head.text." + key, text);
+    }
+
+    private void arm(String key, String name, String text) {
+        add("golem.arm." + key, name);
+        add("golem.arm.text." + key, text);
+    }
+
+    private void leg(String key, String name, String text) {
+        add("golem.leg." + key, name);
+        add("golem.leg.text." + key, text);
+    }
+
+    private void addon(String key, String name, String text) {
+        add("golem.addon." + key, name);
+        add("golem.addon.text." + key, text);
     }
 }

@@ -1,10 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.warp;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.IWarpingGear;
 import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
 import com.leclowndu93150.thaumcraft.api.warp.ItemWarp;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
+import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCDataMaps;
@@ -18,6 +20,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.ModList;
 
 public final class WarpManager {
     private WarpManager() {}
@@ -70,6 +73,11 @@ public final class WarpManager {
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             if (slot.isArmor()) {
                 warp += getFinalWarp(player.getItemBySlot(slot), player);
+            }
+        }
+        if (ModList.get().isLoaded(TCIds.CURIOS)) {
+            for (ItemStack stack : ThaumcraftCuriosCompat.equippedCurios(player)) {
+                warp += getFinalWarp(stack, player);
             }
         }
         return warp;

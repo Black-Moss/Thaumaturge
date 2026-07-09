@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
 import net.minecraft.core.registries.Registries;
 import com.leclowndu93150.thaumcraft.content.casters.MenuFocalManipulator;
+import com.leclowndu93150.thaumcraft.content.casters.MenuFocusPouch;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
 import com.leclowndu93150.thaumcraft.content.device.MenuVoidSiphon;
@@ -48,6 +49,9 @@ public final class TCMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuSealBase>> SEAL =
             MENUS.register("seal", () -> IMenuTypeExtension.create(MenuSealBase::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuFocusPouch>> FOCUS_POUCH =
+            MENUS.register("focus_pouch", () -> IMenuTypeExtension.create(MenuFocusPouch::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuPech>> PECH =
             MENUS.register("pech", () -> IMenuTypeExtension.create(MenuPech::new));
