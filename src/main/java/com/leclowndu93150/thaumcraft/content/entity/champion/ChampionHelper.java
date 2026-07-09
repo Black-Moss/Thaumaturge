@@ -74,13 +74,17 @@ public final class ChampionHelper {
     }
 
     public static void makeChampion(Monster entity, boolean persist) {
-        AttributeInstance instance = entity.getAttribute(TCAttributes.CHAMPION_MOD);
-        if (instance == null || instance.getValue() > NOT_PROCESSED) {
-            return;
-        }
         int type = entity.getRandom().nextInt(ChampionModifier.MODS.size());
         if (entity instanceof Creeper) {
             type = ChampionModifier.BOLD;
+        }
+        makeChampion(entity, persist, type);
+    }
+
+    public static void makeChampion(Monster entity, boolean persist, int type) {
+        AttributeInstance instance = entity.getAttribute(TCAttributes.CHAMPION_MOD);
+        if (instance == null || instance.getValue() > NOT_PROCESSED) {
+            return;
         }
         ChampionModifier mod = ChampionModifier.MODS.get(type);
         instance.removeModifier(mod.attributeMod().id());

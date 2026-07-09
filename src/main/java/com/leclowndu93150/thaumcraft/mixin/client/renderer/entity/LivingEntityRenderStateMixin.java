@@ -10,6 +10,9 @@ public class LivingEntityRenderStateMixin implements ChampionRenderState {
     @Unique
     private int thaumcraft$championType = -2;
 
+    @Unique
+    private int thaumcraft$entityId;
+
     @Override
     public int thaumcraft$championType() {
         return thaumcraft$championType;
@@ -18,5 +21,15 @@ public class LivingEntityRenderStateMixin implements ChampionRenderState {
     @Override
     public void thaumcraft$setChampionType(int type) {
         this.thaumcraft$championType = type;
+    }
+
+    @Override
+    public int thaumcraft$entityId() {
+        return thaumcraft$entityId;
+    }
+
+    @Override
+    public void thaumcraft$setEntityId(int id) {
+        this.thaumcraft$entityId = id;
     }
 }

@@ -15,7 +15,15 @@ import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.content.warp.WarpEvents;
 import com.leclowndu93150.thaumcraft.content.entity.EntityFluxRift;
+import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionHelper;
+import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionModifier;
+import java.util.stream.Stream;
+import net.minecraft.commands.arguments.ResourceArgument;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.Arrays;
 import java.util.Locale;
@@ -89,6 +97,13 @@ public final class TCCommands {
             (ctx, builder) -> SharedSuggestionProvider.suggest(
                     TCFocusElements.registry().keySet().stream().map(Identifier::toString), builder);
 
+    private static final SuggestionProvider<CommandSourceStack> CHAMPION_MODS =
+            (ctx, builder) -> SharedSuggestionProvider.suggest(
+                    Stream.concat(ChampionModifier.MODS.stream().map(ChampionModifier::name),
+                            Stream.of("random")), builder);
+
+    private static final double CHAMPION_SPAWN_DISTANCE = 4.0;
+
     private static final DynamicCommandExceptionType ERROR_INVALID_GATE = new DynamicCommandExceptionType((value) -> Component.literal("Unknown Research Entry : " + value));
 
     @SubscribeEvent
@@ -119,6 +134,14 @@ public final class TCCommands {
                         .then(Commands.literal("taint_swarm").executes(ctx -> spawnEntity(ctx, "taint_swarm")))
                         .then(Commands.literal("taintacle").executes(ctx -> spawnEntity(ctx, "taintacle")))
                         .then(Commands.literal("taintacle_small").executes(ctx -> spawnEntity(ctx, "taintacle_small"))))
+                .then(Commands.literal("champion").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.argument("modifier", StringArgumentType.word())
+                                .suggests(CHAMPION_MODS)
+                                .executes(ctx -> spawnChampion(ctx, null))
+                                .then(Commands.argument("entity",
+                                                ResourceArgument.resource(event.getBuildContext(), Registries.ENTITY_TYPE))
+                                        .executes(ctx -> spawnChampion(ctx,
+                                                ResourceArgument.getResource(ctx, "entity", Registries.ENTITY_TYPE))))))
                 .then(Commands.literal("rift").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> spawnRift(ctx, DEFAULT_RIFT_SIZE))
                         .then(Commands.argument("size", IntegerArgumentType.integer(1, COMMAND_MAX_RIFT_SIZE))
@@ -474,6 +497,52 @@ public final class TCCommands {
             rift.setRiftSize(size);
             level.addFreshEntity(rift);
             ctx.getSource().sendSuccess(() -> Component.literal("Spawned flux rift (size " + size + ")"), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int spawnChampion(CommandContext<CommandSourceStack> ctx,
+                                     @Nullable Holder<EntityType<?>> entityType) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ServerLevel level = (ServerLevel) player.level();
+            String modName = StringArgumentType.getString(ctx, "modifier").toLowerCase(Locale.ROOT);
+            int type = -1;
+            if (modName.equals("random")) {
+                type = player.getRandom().nextInt(ChampionModifier.MODS.size());
+            } else {
+                for (int i = 0; i < ChampionModifier.MODS.size(); i++) {
+                    if (ChampionModifier.MODS.get(i).name().equals(modName)) {
+                        type = i;
+                        break;
+                    }
+                }
+            }
+            if (type < 0) {
+                ctx.getSource().sendFailure(Component.literal("Unknown champion modifier: " + modName));
+                return 0;
+            }
+            EntityType<?> toSpawn = entityType == null ? EntityType.ZOMBIE : entityType.value();
+            Entity entity = toSpawn.create(level, EntitySpawnReason.COMMAND);
+            if (!(entity instanceof Monster monster)) {
+                if (entity != null) {
+                    entity.discard();
+                }
+                ctx.getSource().sendFailure(Component.literal(
+                        "Champion modifiers only apply to monsters: " + toSpawn.getDescriptionId()));
+                return 0;
+            }
+            Vec3 pos = player.position().add(player.getLookAngle()
+                    .multiply(1.0, 0.0, 1.0).normalize().scale(CHAMPION_SPAWN_DISTANCE));
+            monster.snapTo(pos.x, pos.y, pos.z, player.getYRot() + 180.0F, 0.0F);
+            ChampionHelper.makeChampion(monster, true, type);
+            level.addFreshEntity(monster);
+            String finalName = ChampionModifier.MODS.get(type).name();
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "Spawned " + finalName + " champion " + monster.getName().getString()), false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

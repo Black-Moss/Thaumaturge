@@ -31,6 +31,7 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.JAR_BRAIN.get(), JarBrainRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.DIOPTRA.get(), DioptraRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.CENTRIFUGE.get(), CentrifugeRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.GOLEM_BUILDER.get(), GolemBuilderRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.HUNGRY_CHEST.get(), HungryChestRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.CRUCIBLE.get(), CrucibleRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ALEMBIC.get(), AlembicRenderer::new);

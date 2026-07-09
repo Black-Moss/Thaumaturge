@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
 import com.leclowndu93150.thaumcraft.client.color.GolemMaterialTint;
 import com.leclowndu93150.thaumcraft.client.model.CentrifugeItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.GolemBuilderItemSpecialRenderer;
 import com.mojang.math.Axis;
 import com.mojang.math.Quadrant;
 import com.mojang.math.Transformation;
@@ -589,8 +590,11 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
 
         registerInvisibleBlock(blockModels, TCBlocks.GOLEM_BUILDER.get());
-        itemModels.itemModelOutput.accept(TCItems.GOLEM_BUILDER.get(), ItemModelUtils.plainModel(
-                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/empty")));
+        itemModels.itemModelOutput.accept(TCItems.GOLEM_BUILDER.get(), new SpecialModelWrapper.Unbaked(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/golem_builder_base"),
+                Optional.empty(),
+                new GolemBuilderItemSpecialRenderer.Unbaked()
+        ));
         registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_IRON_BARS.get());
         registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_CAULDRON.get());
         registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_ANVIL.get());
