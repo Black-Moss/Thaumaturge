@@ -269,13 +269,7 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
         if (tank.getAmountAsInt(0) > 0 || total > 0){
             tank.set(0, FluidResource.EMPTY,0);
             AuraHelper.polluteAura(level,getBlockPos(),total * 0.25f, true);
-            int fluxAmount = 0;
-            for (AspectInstance entry : aspects.entries()) {
-                if (entry.aspect().is(TCAspects.VITIUM)) {
-                    fluxAmount = entry.amount();
-                    break;
-                }
-            }
+            int fluxAmount = aspects.amountOf(level.registryAccess().getOrThrow(TCAspects.VITIUM));
             if (fluxAmount > 0)
                 AuraHelper.polluteAura(level,getBlockPos(), fluxAmount * 0.75f, false);
             this.aspects = AspectList.EMPTY;

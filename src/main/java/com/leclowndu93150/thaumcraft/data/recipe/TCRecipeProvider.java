@@ -1065,9 +1065,9 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B',TCItemTags.PLATES_BRASS)
                 .define('I',TCItemTags.PLATES_IRON)
                 .define('C',TCItems.ALCHEMICAL_CONSTRUCT)
-                .define('L',TCItems.TUBE_RESTRICT /*TODO Arcane Bellows*/)
+                .define('L',TCItems.BELLOWS)
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"improved_essentia_smelting"),Optional.of(1),false))
-                .unlockedBy("has",has(TCItems.TUBE_RESTRICT/*TODO Arcane Bellows*/))
+                .unlockedBy("has",has(TCItems.BELLOWS))
                 .save(output);
 
         arcaneShaped(new ItemStackTemplate(TCItems.SMELTER_VENT),150)
