@@ -7,17 +7,18 @@
   "mixins": [
     "data.recipes.RecipeProviderAccessor",
     "server.network.ServerGamePacketListenerImplAccessor",
+    "world.entity.ExperienceOrbAccessor",
     "world.entity.MobAccessor",
     "world.entity.item.ItemEntityAccessor",
     "world.entity.monster.SlimeAccessor",
-    "world.level.block.entity.AbstractFurnaceBlockEntityAccessor",
-    "world.entity.ExperienceOrbAccessor"
+    "world.level.block.entity.AbstractFurnaceBlockEntityAccessor"
   ],
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",
     "client.renderer.GameRendererInvoker",
-    "client.renderer.entity.LivingEntityRenderStateMixin",
     "client.renderer.entity.LivingEntityRendererMixin",
+    "client.renderer.entity.LivingEntityRenderStateMixin",
+    "client.renderer.entity.layers.HumanoidArmorLayerAccessor",
     "jei.RecipeLayoutMixin"
   ],
   "injectors": {
