@@ -1,0 +1,34 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_elemental.title",
+  "parents": [
+    "thaumcraft:base_auromancy"
+  ],
+  "column": 0,
+  "row": 2,
+  "icons": [
+    "thaumcraft:focus_2",
+    "thaumcraft:focus_2",
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_elemental.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/aer",
+        "thaumcraft:scanned/aspect/thaumcraft/gelum",
+        "thaumcraft:scanned/aspect/thaumcraft/terra"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_elemental.stage_1"
+    }
+  ]
+}

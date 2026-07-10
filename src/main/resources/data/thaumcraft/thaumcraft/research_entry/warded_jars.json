@@ -1,0 +1,27 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.warded_jars.title",
+  "parents": [
+    "thaumcraft:essentia_smelter"
+  ],
+  "column": 4,
+  "row": -2,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:jar_normal"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.warded_jars.stage_0",
+      "recipes": [
+        "thaumcraft:arcane_workbench/jar_normal",
+        "thaumcraft:arcane_workbench/jar_void",
+        "thaumcraft:jar_brace",
+        "thaumcraft:label",
+        "thaumcraft:label"
+      ]
+    }
+  ]
+}

@@ -25,7 +25,8 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 public final class PechWandItem extends Item {
-    private static final Identifier GATE_RESEARCH = TCIds.rl("unlock_auromancy");
+    private static final Identifier GATE_RESEARCH = TCIds.rl("base_auromancy");
+    private static final Identifier FOCUS_PECH = TCIds.rl("focuspech");
 
     public PechWandItem(Properties properties) {
         super(properties);
@@ -56,6 +57,9 @@ public final class PechWandItem extends Item {
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.sendSystemMessage(Component.translatable("got.pechwand")
                     .withStyle(ChatFormatting.DARK_PURPLE));
+            if (!KnowledgeAccess.of(serverPlayer).isResearchKnown(FOCUS_PECH)) {
+                ResearchManager.complete(serverPlayer, FOCUS_PECH);
+            }
             List<Holder.Reference<IResearchCategory>> categories = serverPlayer.registryAccess()
                     .lookupOrThrow(IResearchCategory.REGISTRY_KEY).listElements().toList();
             if (!categories.isEmpty()) {

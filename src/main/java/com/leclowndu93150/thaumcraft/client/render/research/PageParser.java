@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.research;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
@@ -22,7 +23,7 @@ public final class PageParser {
     private static final float BONUS_BREAK_FRACTION = 0.66F;
     private static final int IMAGE_GAP = 2;
 
-    private static final Identifier KNOWLEDGETYPES_ID = Identifier.fromNamespaceAndPath("thaumcraft", "knowledgetypes");
+    private static final Identifier KNOWLEDGETYPES_ID = Identifier.fromNamespaceAndPath("thaumcraft", "knowledge_types");
     private static final String ADDENDUM_TEXT_KEY = "tc.addendumtext";
 
     private PageParser() {}
@@ -134,11 +135,11 @@ public final class PageParser {
                 firstPassText.add("~P");
             }
         }
-        List<String> parsedText = new ArrayList<>();
+        List<StyledLine> parsedText = new ArrayList<>();
         for (String sx : firstPassText) {
             List<FormattedText> split = font.getSplitter().splitLines(sx, PAGE_WIDTH, Style.EMPTY);
             for (FormattedText ln : split) {
-                parsedText.add(ln.getString());
+                parsedText.add(new StyledLine(ln.getString(), lineStyle(ln)));
             }
         }
         int lineHeight = font.lineHeight;
@@ -146,8 +147,8 @@ public final class PageParser {
         List<Page> pages = new ArrayList<>();
         Page page1 = new Page();
         List<PageImage> tempImages = new ArrayList<>();
-        for (String original : parsedText) {
-            String line = original;
+        for (StyledLine styled : parsedText) {
+            String line = styled.content;
             if (line.contains("~I")) {
                 if (!images.isEmpty()) {
                     tempImages.add(images.remove(0));
@@ -170,9 +171,13 @@ public final class PageParser {
             }
             if (!line.isEmpty()) {
                 line = line.trim();
-                page1.add(new PageElement.Text(line));
+                boolean paragraphBreak = line.endsWith("~B");
+                if (paragraphBreak) {
+                    line = line.substring(0, line.length() - 2).stripTrailing();
+                }
+                page1.add(new PageElement.Text(line, styled.style, paragraphBreak));
                 heightRemaining -= lineHeight;
-                if (line.endsWith("~B")) {
+                if (paragraphBreak) {
                     heightRemaining = (int) (heightRemaining - lineHeight * BONUS_BREAK_FRACTION);
                 }
             }
@@ -224,8 +229,14 @@ public final class PageParser {
     }
 
     public sealed interface PageElement permits PageElement.Text, PageElement.Image {
-        record Text(String content) implements PageElement {}
+        record Text(String content, Style style, boolean paragraphBreak) implements PageElement {}
         record Image(PageImage image) implements PageElement {}
+    }
+
+    private record StyledLine(String content, Style style) {}
+
+    private static Style lineStyle(FormattedText line) {
+        return line.visit((style, text) -> Optional.of(style), Style.EMPTY).orElse(Style.EMPTY);
     }
 
     public static final class PageImage {

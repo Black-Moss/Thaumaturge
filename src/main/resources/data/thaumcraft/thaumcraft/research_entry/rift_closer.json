@@ -1,0 +1,42 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.rift_closer.title",
+  "parents": [
+    "thaumcraft:flux_rift",
+    "thaumcraft:infusion",
+    "thaumcraft:vis_battery"
+  ],
+  "column": 0,
+  "row": -5,
+  "icons": [
+    "thaumcraft:causality_collapser"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.rift_closer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.rift_closer.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/causality_collapser"
+      ]
+    }
+  ]
+}

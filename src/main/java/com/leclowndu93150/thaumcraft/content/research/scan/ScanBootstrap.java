@@ -10,6 +10,8 @@ import com.leclowndu93150.thaumcraft.api.research.scan.ScanItemTag;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultist;
 import com.leclowndu93150.thaumcraft.content.entity.EntityInhabitedZombie;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityOwnedConstruct;
+import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -27,6 +29,8 @@ import net.minecraft.world.entity.animal.parrot.Parrot;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.spider.Spider;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.hurtingprojectile.AbstractHurtingProjectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -104,6 +108,38 @@ public final class ScanBootstrap {
         ScanningManager.addScannableThing(new ScanItemTag(TCIds.rl("f_matiron"), Tags.Items.STORAGE_BLOCKS_IRON));
         ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matbrass"), new ItemStack(TCItems.INGOT_BRASS.get())));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matbrass"), TCBlocks.METAL_BRASS_BLOCK.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matthaumium"), new ItemStack(TCItems.INGOT_THAUMIUM.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matthaumium"), new ItemStack(TCItems.PLATE_THAUMIUM.get())));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matthaumium"), TCBlocks.METAL_THAUMIUM_BLOCK.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matvoid"), new ItemStack(TCItems.INGOT_VOID.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matvoid"), new ItemStack(TCItems.PLATE_VOID.get())));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matvoid"), TCBlocks.METAL_VOID_BLOCK.get()));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_brain"), TCEntities.BRAINY_ZOMBIE.get()));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_brain"), TCEntities.GIANT_BRAINY_ZOMBIE.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_brain"), new ItemStack(TCItems.BRAIN.get())));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), EntityThaumcraftGolem.class, true));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), EntityOwnedConstruct.class, true));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_arrow"), AbstractArrow.class, true));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_arrow"), new ItemStack(Items.ARROW)));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_fireball"), AbstractHurtingProjectile.class, true));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_spit"), EntityType.LLAMA_SPIT));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_voidseed"), new ItemStack(TCItems.VOID_SEED.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("primordial_pearl"), new ItemStack(TCItems.PRIMORDIAL_PEARL.get())));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_toomuchflux"), TCEntities.FLUX_RIFT.get()));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("scanned/fluxrift"), TCEntities.FLUX_RIFT.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/orblock1"),
+                TCBlocks.STONE_ANCIENT.get(), TCBlocks.STONE_ANCIENT_TILE.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/orblock2"), TCBlocks.STONE_ELDRITCH_TILE.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("outer_revelations"),
+                TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), TCBlocks.ELDRITCH_CRUST_GLOWING.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/dragonbreath"), new ItemStack(Items.DRAGON_BREATH)));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/totemundying"), new ItemStack(Items.TOTEM_OF_UNDYING)));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/pechwand"), new ItemStack(TCItems.PECH_WAND.get())));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/oreamber"), TCBlocks.ORE_AMBER.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/orecinnabar"), TCBlocks.ORE_CINNABAR.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/plantcinderpearl"), TCBlocks.PLANT_CINDERPEARL.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/plantshimmerleaf"), TCBlocks.PLANT_SHIMMERLEAF.get()));
+        ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/plantvishroom"), TCBlocks.PLANT_VISHROOM.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("scanned/entity/thaumcraft/cultist"),
                 EntityCultist.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("scanned/entity/thaumcraft/eldritch_crab"),

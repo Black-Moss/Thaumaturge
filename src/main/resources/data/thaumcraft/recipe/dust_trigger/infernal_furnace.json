@@ -5,7 +5,6 @@
     "id": "thaumcraft:infernal_furnace"
   },
   "research": {
-    "entry": "thaumcraft:arcane_workbench",
-    "stage": 1
+    "entry": "thaumcraft:infernal_furnace"
   }
 }

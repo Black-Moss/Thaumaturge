@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.cloud_ring.title",
+  "parents": [
+    "thaumcraft:infusion"
+  ],
+  "column": 2,
+  "row": 2,
+  "icons": [
+    "thaumcraft:cloud_ring"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.cloud_ring.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.cloud_ring.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/cloud_ring"
+      ]
+    }
+  ]
+}

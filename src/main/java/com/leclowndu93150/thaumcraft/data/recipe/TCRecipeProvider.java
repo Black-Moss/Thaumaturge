@@ -73,6 +73,14 @@ public final class TCRecipeProvider extends RecipeProvider {
         super(provider, output);
     }
 
+    private static ResearchGate gate(String path) {
+        return new ResearchGate(TCIds.rl(path), Optional.empty(), false);
+    }
+
+    private static ResearchGate gate(String path, int stage) {
+        return new ResearchGate(TCIds.rl(path), Optional.of(stage), false);
+    }
+
     @Override
     protected void buildRecipes() {
         buildArcaneWorkbenchRecipes();
@@ -85,6 +93,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildRechargePedestalRecipe();
         buildFocalManipulatorRecipe();
         buildCrucibleRecipes();
+        buildCrystalClusterRecipes();
         buildFocusRecipes();
         buildIngredientRecipes();
         buildGolemancyRecipes();
@@ -312,7 +321,7 @@ public final class TCRecipeProvider extends RecipeProvider {
 
 
     private void buildDecorRecipes() {
-        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
+        ResearchGate artificeGate = gate("paving_stones");
 
         stairsRecipe(TCBlocks.STAIRS_GREATWOOD.get(), TCBlocks.PLANK_GREATWOOD.get());
         stairsRecipe(TCBlocks.STAIRS_SILVERWOOD.get(), TCBlocks.PLANK_SILVERWOOD.get());
@@ -406,13 +415,9 @@ public final class TCRecipeProvider extends RecipeProvider {
     }
 
     private void buildConstructRecipes() {
-        ResearchGate firstSteps = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "first_steps"), Optional.of(1), false);
-        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
-        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
-
         arcaneShapeless(new ItemStackTemplate(TCItems.ACTIVATOR_RAIL), 10)
                 .requires(Items.ACTIVATOR_RAIL)
-                .gate(firstSteps)
+                .gate(gate("first_steps"))
                 .unlockedBy("has", has(Items.ACTIVATOR_RAIL))
                 .save(output);
 
@@ -427,7 +432,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('M', TCItems.MIND_CLOCKWORK)
                 .define('B', Items.BOW)
                 .define('W', TCBlocks.PLANK_GREATWOOD)
-                .gate(artificeGate)
+                .gate(gate("basic_turret"))
                 .unlockedBy("has", has(TCItems.MIND_CLOCKWORK))
                 .save(output);
 
@@ -438,7 +443,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T', TCItems.TURRET_BASIC)
                 .define('P', TCItemTags.PLATES_IRON)
                 .define('M', TCItems.MIND_BIOTHAUMIC)
-                .gate(artificeGate)
+                .gate(gate("advanced_turret"))
                 .unlockedBy("has", has(TCItems.MIND_BIOTHAUMIC))
                 .save(output);
 
@@ -458,7 +463,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.VACUOS, 25)
                 .aspect(TCAspects.MOTUS, 25)
                 .instability(4)
-                .gate(infusionGate)
+                .gate(gate("arcane_bore"))
                 .unlockedBy("has", has(TCItems.TURRET_BASIC))
                 .save(output);
 
@@ -470,7 +475,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItemTags.PLATES_BRASS)
                 .define('R', TCItems.RARE_EARTH)
                 .define('H', Items.TRIPWIRE_HOOK)
-                .gate(artificeGate)
+                .gate(gate("grapple_gun"))
                 .unlockedBy("has", has(TCItems.RARE_EARTH))
                 .save(output);
 
@@ -482,7 +487,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('G', TCItems.MECHANISM_SIMPLE)
                 .define('S', Tags.Items.STRINGS)
                 .define('H', Items.TRIPWIRE_HOOK)
-                .gate(artificeGate)
+                .gate(gate("grapple_gun"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -497,7 +502,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T', TCItems.GRAPPLE_GUN_TIP)
                 .define('W', ItemTags.PLANKS)
                 .define('S', TCItems.GRAPPLE_GUN_SPOOL)
-                .gate(artificeGate)
+                .gate(gate("grapple_gun"))
                 .unlockedBy("has", has(TCItems.GRAPPLE_GUN_TIP))
                 .save(output);
     }
@@ -515,6 +520,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('R', TCItems.VIS_RESONATOR)
                 .define('G', Items.GOLD_INGOT)
                 .define('T', TCItems.TABLE_STONE)
+                .gate(gate("base_auromancy", 1))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
     }
@@ -527,21 +533,9 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("S S")
                 .define('S', TCItems.STONE_ARCANE_BRICK)
                 .define('N', TCItemTags.NITORS)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false))
+                .gate(gate("infusion", 1))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
                 .save(output);
-
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC,
-                new ItemStackTemplate(TCItems.INGOT_THAUMIUM), Ingredient.of(Items.IRON_INGOT))
-                .component(Ingredient.of(TCItems.AMBER.get()))
-                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
-                .component(Ingredient.of(TCItems.AMBER.get()))
-                .component(Ingredient.of(TCItems.QUICKSILVER.get()))
-                .aspect(TCAspects.METALLUM, 8)
-                .aspect(TCAspects.PRAECANTATIO, 8)
-                .instability(2)
-                .unlockedBy("has", has(Items.IRON_INGOT))
-                .save(output, TCIds.MODID + ":infusion/test_thaumium");
 
         arcaneShaped(new ItemStackTemplate(TCItems.PEDESTAL_ARCANE), 10)
                 .pattern("SSS")
@@ -549,13 +543,33 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("SSS")
                 .define('S', TCItems.SLAB_ARCANE_STONE)
                 .define('B', TCItems.STONE_ARCANE)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
+                .gate(gate("infusion"))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.PEDESTAL_ANCIENT), 150)
+                .pattern("SSS")
+                .pattern(" B ")
+                .pattern("SSS")
+                .define('S', TCItems.SLAB_ANCIENT)
+                .define('B', TCItems.STONE_ANCIENT)
+                .gate(gate("infusion_ancient"))
+                .unlockedBy("has", has(TCItems.STONE_ANCIENT))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.PEDESTAL_ELDRITCH), 150)
+                .pattern("SSS")
+                .pattern(" B ")
+                .pattern("SSS")
+                .define('S', TCItems.SLAB_ELDRITCH)
+                .define('B', TCItems.STONE_ELDRITCH_TILE)
+                .gate(gate("infusion_eldritch"))
+                .unlockedBy("has", has(TCItems.STONE_ELDRITCH_TILE))
                 .save(output);
     }
 
     private void buildElementalToolRecipes() {
-        ResearchGate gate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
+        ResearchGate gate = gate("elemental_tools");
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
                 enchantedTool(TCItems.ELEMENTAL_AXE.get(),
                         Map.of(InfusionEnchantment.COLLECTOR, 1, InfusionEnchantment.BURROWING, 1)),
@@ -642,7 +656,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.ALIENIS, 50)
                 .aspect(TCAspects.DESIDERIUM, 50)
                 .instability(6)
-                .gate(gate)
+                .gate(gate("primal_crusher"))
                 .unlockedBy("has", has(TCItems.PRIMORDIAL_PEARL))
                 .save(output);
     }
@@ -658,7 +672,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('D', Tags.Items.GEMS_DIAMOND)
                 .define('I', Tags.Items.INGOTS_GOLD)
                 .define('S', Tags.Items.STONES)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(2), false))
+                .gate(gate("recharge_pedestal"))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
     }
@@ -676,7 +690,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.VOLATUS, 100)
                 .aspect(TCAspects.MOTUS, 100)
                 .instability(1)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false))
+                .gate(gate("boots_traveller"))
                 .unlockedBy("has", has(Items.LEATHER_BOOTS))
                 .save(output);
     }
@@ -729,7 +743,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 enchantment, Ingredient.of(displayCatalyst))
                 .component(Ingredient.of(Items.ENCHANTED_BOOK))
                 .component(signature)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false));
+                .gate(gate("infusion_enchantment"));
     }
 
     private void buildGearRecipes() {
@@ -830,6 +844,45 @@ public final class TCRecipeProvider extends RecipeProvider {
     private void buildIngredientRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
 
+        arcaneShapeless(new ItemStackTemplate(TCItems.INLAY.get(), 2), 25)
+                .aspect(TCAspects.AQUA, 1)
+                .requires(Tags.Items.DUSTS_REDSTONE)
+                .requires(Tags.Items.INGOTS_GOLD)
+                .gate(gate("infusion_stable"))
+                .unlockedBy("has", has(Tags.Items.DUSTS_REDSTONE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.PATTERN_CRAFTER), 50)
+                .aspect(TCAspects.TERRA, 1)
+                .aspect(TCAspects.AQUA, 1)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern("VH ")
+                .pattern("GCG")
+                .pattern(" W ")
+                .define('H', Items.HOPPER)
+                .define('W', TCBlocks.PLANK_GREATWOOD)
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .define('V', TCItems.VIS_RESONATOR)
+                .define('C', Items.CRAFTING_TABLE)
+                .gate(gate("arcane_pattern_crafter"))
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.POTION_SPRAYER), 75)
+                .aspect(TCAspects.AQUA, 1)
+                .aspect(TCAspects.IGNIS, 1)
+                .pattern("BDB")
+                .pattern("IAI")
+                .pattern("ICI")
+                .define('B', TCItemTags.PLATES_BRASS)
+                .define('I', TCItemTags.PLATES_IRON)
+                .define('A', Items.BREWING_STAND)
+                .define('D', Items.DISPENSER)
+                .define('C', TCItems.ALCHEMICAL_CONSTRUCT)
+                .gate(gate("potion_sprayer"))
+                .unlockedBy("has", has(TCItems.ALCHEMICAL_CONSTRUCT))
+                .save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.SPA), 50)
                 .aspect(TCAspects.AQUA)
                 .pattern("QIQ")
@@ -840,7 +893,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('S', TCItems.STONE_ARCANE)
                 .define('J', TCItems.JAR_NORMAL)
                 .define('P', TCItems.MECHANISM_SIMPLE)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("arcane_spa"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -850,7 +903,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern(" S ")
                 .define('S', Tags.Items.STRINGS)
                 .define('C', ItemTags.WOOL)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
+                .gate(gate("unlock_infusion"))
                 .unlockedBy("has", has(Tags.Items.STRINGS))
                 .save(output);
 
@@ -867,7 +920,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItemTags.PLATES_BRASS)
                 .define('I', TCItemTags.PLATES_IRON)
                 .define('S', Tags.Items.RODS_WOODEN)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false))
+                .gate(gate("base_artifice"))
                 .unlockedBy("has", has(TCItemTags.PLATES_BRASS))
                 .save(output);
 
@@ -880,7 +933,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T', TCItemTags.PLATES_THAUMIUM)
                 .define('Q', Items.PISTON)
                 .define('M', TCItems.MECHANISM_SIMPLE)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false))
+                .gate(gate("base_artifice"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -889,7 +942,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.ORDO)
                 .requires(TCItems.QUICKSILVER)
                 .requires(Tags.Items.GLASS_PANES)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false))
+                .gate(gate("base_artifice"))
                 .unlockedBy("has", has(TCItems.QUICKSILVER))
                 .save(output);
 
@@ -898,7 +951,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("GWG")
                 .define('G', Tags.Items.INGOTS_GOLD)
                 .define('W', TCItems.PLANK_SILVERWOOD)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("base_alchemy"))
                 .unlockedBy("has", has(TCItems.PLANK_SILVERWOOD))
                 .save(output);
 
@@ -911,7 +964,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('G', Tags.Items.GLASS_PANES)
                 .define('B', TCItemTags.PLATES_BRASS)
                 .define('S', TCItems.NUGGET_QUICKSILVER)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("base_alchemy"))
                 .unlockedBy("has", has(TCItemTags.PLATES_BRASS))
                 .save(output);
 
@@ -921,7 +974,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                         TCItems.PHIAL.get()))
                 .aspect(TCAspects.VITIUM, 30)
                 .aspect(TCAspects.AQUA, 30)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("bottle_taint"))
                 .unlockedBy("has", has(TCItems.PHIAL.get()))
                 .save(output);
 
@@ -931,7 +984,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.AER, 40)
                 .aspect(TCAspects.ORDO, 40)
                 .aspect(TCAspects.VICTUS, 40)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("bath_salts"))
                 .unlockedBy("has", has(TCItems.SALIS_MUNDUS))
                 .save(output);
 
@@ -941,7 +994,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.ALIENIS, 50)
                 .aspect(TCAspects.ORDO, 75)
                 .aspect(TCAspects.VICTUS, 50)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("sane_soap"))
                 .unlockedBy("has", has(Items.ROTTEN_FLESH))
                 .save(output);
 
@@ -962,8 +1015,64 @@ public final class TCRecipeProvider extends RecipeProvider {
             builder.pattern(row3);
         }
         builder.define('I', TCItems.FABRIC)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
+                .gate(gate("unlock_infusion"))
                 .unlockedBy("has", has(TCItems.FABRIC))
+                .save(output);
+    }
+
+    private void buildCrystalClusterRecipes() {
+        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        crystalCluster(aspects, TCItems.CRYSTAL_AER, TCAspects.AER, 0);
+        crystalCluster(aspects, TCItems.CRYSTAL_IGNIS, TCAspects.IGNIS, 0);
+        crystalCluster(aspects, TCItems.CRYSTAL_AQUA, TCAspects.AQUA, 0);
+        crystalCluster(aspects, TCItems.CRYSTAL_TERRA, TCAspects.TERRA, 0);
+        crystalCluster(aspects, TCItems.CRYSTAL_ORDO, TCAspects.ORDO, 0);
+        crystalCluster(aspects, TCItems.CRYSTAL_PERDITIO, TCAspects.PERDITIO, 0);
+        crystalCluster(aspects, TCItems.CRYSTAL_VITIUM, TCAspects.VITIUM, 4);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.ELDRITCH_EYE.get()), Ingredient.of(Items.ENDER_EYE))
+                .component(Ingredient.of(TCItems.VOID_SEED.get()))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .aspect(TCAspects.ALIENIS, 64)
+                .aspect(TCAspects.VACUOS, 16)
+                .aspect(TCAspects.TENEBRAE, 16)
+                .aspect(TCAspects.MOTUS, 16)
+                .instability(5)
+                .gate(gate("oculus"))
+                .unlockedBy("has", has(Items.ENDER_EYE))
+                .save(output);
+
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(TCItems.CAUSALITY_COLLAPSER.get()), Ingredient.of(Items.TNT))
+                .component(Ingredient.of(TCItems.MORPHIC_RESONATOR.get()))
+                .component(Ingredient.of(Items.REDSTONE_BLOCK))
+                .component(Ingredient.of(TCItems.ALUMENTUM.get()))
+                .component(Ingredient.of(items.getOrThrow(TCItemTags.NITORS)))
+                .component(Ingredient.of(TCItems.VIS_RESONATOR.get()))
+                .component(Ingredient.of(Items.REDSTONE_BLOCK))
+                .component(Ingredient.of(TCItems.ALUMENTUM.get()))
+                .component(Ingredient.of(items.getOrThrow(TCItemTags.NITORS)))
+                .aspect(TCAspects.ALIENIS, 50)
+                .aspect(TCAspects.VITIUM, 50)
+                .instability(8)
+                .gate(gate("rift_closer"))
+                .unlockedBy("has", has(TCItems.MORPHIC_RESONATOR))
+                .save(output);
+    }
+
+    private void crystalCluster(HolderLookup<IAspect> aspects, ItemLike cluster,
+                                ResourceKey<IAspect> aspect, int instability) {
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
+                new ItemStackTemplate(cluster.asItem()), crystal(aspect))
+                .component(Ingredient.of(Items.WHEAT_SEEDS))
+                .component(Ingredient.of(TCItems.SALIS_MUNDUS.get()))
+                .aspect(aspect, 10)
+                .aspect(TCAspects.VITREUS, 10)
+                .aspect(TCAspects.VINCULUM, 5)
+                .instability(instability)
+                .gate(gate("crystal_farmer"))
+                .unlockedBy("has", has(TCItems.SALIS_MUNDUS))
                 .save(output);
     }
 
@@ -973,7 +1082,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.FOCUS_1.get()),
                 DataComponentIngredient.of(TCDataComponents.CRYSTAL_ASPECT.get(),
                         new AspectInstance(aspects.getOrThrow(TCAspects.ORDO), 1), TCItems.ESSENTIA_CRYSTAL.get()))
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false))
+                .gate(gate("unlock_auromancy"))
                 .aspect(TCAspects.VITREUS, 20)
                 .aspect(TCAspects.PRAECANTATIO, 10)
                 .aspect(TCAspects.AURAM, 5)
@@ -989,6 +1098,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.PRAECANTATIO, 25)
                 .aspect(TCAspects.ORDO, 50)
                 .instability(3)
+                .gate(gate("focus_advanced", 0))
                 .unlockedBy("has", has(TCItems.FOCUS_1.get()))
                 .save(output);
 
@@ -1002,6 +1112,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.ORDO, 50)
                 .aspect(TCAspects.VACUOS, 100)
                 .instability(5)
+                .gate(gate("focus_greater", 0))
                 .unlockedBy("has", has(TCItems.FOCUS_2.get()))
                 .save(output);
     }
@@ -1011,11 +1122,90 @@ public final class TCRecipeProvider extends RecipeProvider {
 
         new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC, new ItemStackTemplate(TCItems.TALLOW.get()), Ingredient.of(Items.ROTTEN_FLESH))
                 .aspect(TCAspects.IGNIS, 1)
+                .gate(gate("hedge_alchemy", 0))
                 .unlockedBy("has", has(Items.ROTTEN_FLESH))
                 .save(output);
 
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.LEATHER), Ingredient.of(Items.ROTTEN_FLESH))
+                .aspect(TCAspects.AER, 3)
+                .aspect(TCAspects.BESTIA, 3)
+                .gate(gate("hedge_alchemy", 0))
+                .unlockedBy("has", has(Items.ROTTEN_FLESH))
+                .save(output, TCIds.MODID + ":crucible/leather");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.GUNPOWDER, 2), Ingredient.of(Items.GUNPOWDER))
+                .aspect(TCAspects.IGNIS, 10)
+                .aspect(TCAspects.PERDITIO, 10)
+                .aspect(TCAspects.ALKIMIA, 5)
+                .gate(gate("hedge_alchemy", 1))
+                .unlockedBy("has", has(Items.GUNPOWDER))
+                .save(output, TCIds.MODID + ":crucible/gunpowder");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.SLIME_BALL, 2), Ingredient.of(Items.SLIME_BALL))
+                .aspect(TCAspects.AQUA, 5)
+                .aspect(TCAspects.VICTUS, 5)
+                .aspect(TCAspects.ALKIMIA, 1)
+                .gate(gate("hedge_alchemy", 1))
+                .unlockedBy("has", has(Items.SLIME_BALL))
+                .save(output, TCIds.MODID + ":crucible/slime_ball");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.GLOWSTONE_DUST, 2), Ingredient.of(Items.GLOWSTONE_DUST))
+                .aspect(TCAspects.SENSUS, 5)
+                .aspect(TCAspects.LUX, 10)
+                .gate(gate("hedge_alchemy", 1))
+                .unlockedBy("has", has(Items.GLOWSTONE_DUST))
+                .save(output, TCIds.MODID + ":crucible/glowstone_dust");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.INK_SAC, 2), Ingredient.of(Items.INK_SAC))
+                .aspect(TCAspects.AQUA, 2)
+                .aspect(TCAspects.BESTIA, 2)
+                .gate(gate("hedge_alchemy", 1))
+                .unlockedBy("has", has(Items.INK_SAC))
+                .save(output, TCIds.MODID + ":crucible/dye");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.CLAY_BALL), Ingredient.of(Items.DIRT))
+                .aspect(TCAspects.AQUA, 5)
+                .gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.DIRT))
+                .save(output, TCIds.MODID + ":crucible/clay_ball");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.STRING), Ingredient.of(Items.WHEAT))
+                .aspect(TCAspects.BESTIA, 5)
+                .aspect(TCAspects.FABRICO, 1)
+                .gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.WHEAT))
+                .save(output, TCIds.MODID + ":crucible/string");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.COBWEB), Ingredient.of(Items.STRING))
+                .aspect(TCAspects.VINCULUM, 5)
+                .gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.STRING))
+                .save(output, TCIds.MODID + ":crucible/cobweb");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.LAVA_BUCKET), Ingredient.of(Items.BUCKET))
+                .aspect(TCAspects.IGNIS, 15)
+                .aspect(TCAspects.TERRA, 5)
+                .gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.BUCKET))
+                .save(output, TCIds.MODID + ":crucible/lava_bucket");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.INGOT_BRASS.get()),
+                Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON)))
+                .aspect(TCAspects.INSTRUMENTUM, 5)
+                .gate(gate("metallurgy", 0))
+                .unlockedBy("has", has(Tags.Items.INGOTS_IRON))
+                .save(output);
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.INGOT_THAUMIUM.get()),
+                Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON)))
+                .aspect(TCAspects.PRAECANTATIO, 5)
+                .aspect(TCAspects.TERRA, 5)
+                .gate(gate("metallurgy", 1))
+                .unlockedBy("has", has(Tags.Items.INGOTS_IRON))
+                .save(output);
+
         new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC, new ItemStackTemplate(TCItems.NITORS.get(DyeColor.YELLOW).get()), Ingredient.of(Items.GLOWSTONE_DUST))
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("unlock_alchemy", 2))
                 .aspect(TCAspects.POTENTIA, 10)
                 .aspect(TCAspects.IGNIS, 10)
                 .aspect(TCAspects.LUX, 10)
@@ -1025,14 +1215,14 @@ public final class TCRecipeProvider extends RecipeProvider {
         registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspect -> {
             new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC, new ItemStackTemplate(TCItems.ESSENTIA_CRYSTAL, 1, DataComponentPatch.builder().set(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1)).build()),
                     Ingredient.of(items.getOrThrow(TCItemTags.NUGGETS_QUARTZ)))
-                    .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                    .gate(gate("base_alchemy"))
                     .aspect(aspect, 2)
                     .unlockedBy("has", has(TCItemTags.NUGGETS_QUARTZ))
                     .save(output, TCIds.MODID + ":crucible/vis_crystal/" + aspect.getKey().identifier().getPath());
         });
 
         new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC, new ItemStackTemplate(TCItems.INGOT_VOID.get()), Ingredient.of(TCItems.VOID_SEED.get()))
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false))
+                .gate(gate("base_eldritch"))
                 .aspect(TCAspects.METALLUM, 10)
                 .aspect(TCAspects.VITIUM, 5)
                 .unlockedBy("has", has(TCItems.VOID_SEED.get()))
@@ -1048,6 +1238,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         clusterRecipe(TCItems.CLUSTER_QUARTZ,Tags.Items.ORES_QUARTZ);
 
         new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC,new ItemStackTemplate(TCItems.ALUMENTUM), Ingredient.of(items.getOrThrow(ItemTags.COALS)))
+                .gate(gate("alumentum"))
                 .aspect(TCAspects.IGNIS, 10)
                 .aspect(TCAspects.POTENTIA, 10)
                 .aspect(TCAspects.PERDITIO, 5)
@@ -1060,7 +1251,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         new CrucibleRecipeBuilder(aspects,RecipeCategory.MISC,new ItemStackTemplate(cluster.asItem()),Ingredient.of(items.getOrThrow(oreTag)))
                 .aspect(TCAspects.METALLUM,5)
                 .aspect(TCAspects.ORDO,5)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "metal_purification"), Optional.of(0), false))
+                .gate(gate("metal_purification"))
                 .unlockedBy("has", has(oreTag))
                 .save(output.withConditions(new NotCondition(new TagEmptyCondition<>(oreTag))));
     }
@@ -1075,7 +1266,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern(" G ")
                 .define('G', Tags.Items.INGOTS_GOLD)
                 .define('P', Tags.Items.GLASS_PANES)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"first_steps"),Optional.of(1),false))
+                .gate(gate("first_steps", 1))
                 .unlockedBy("has", has(Tags.Items.INGOTS_GOLD))
                 .save(output);
 
@@ -1088,7 +1279,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('R', TCItems.VIS_RESONATOR)
                 .define('T', TCItems.THAUMOMETER)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(2), false))
+                .gate(gate("unlock_auromancy", 1))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
 
@@ -1097,7 +1288,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.AQUA)
                 .requires(TCItemTags.PLATES_IRON)
                 .requires(Tags.Items.GEMS_QUARTZ)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_auromancy"),Optional.of(1),false))
+                .gate(gate("unlock_auromancy", 1))
                 .unlockedBy("has", has(Tags.Items.GEMS_QUARTZ))
                 .save(output);
 
@@ -1110,7 +1301,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('R', TCItems.VIS_RESONATOR)
                 .define('P', TCItems.PLANK_GREATWOOD)
                 .define('I', Tags.Items.INGOTS_IRON)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"workbench_charger"),Optional.of(1),false))
+                .gate(gate("workbench_charger"))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
 
@@ -1121,7 +1312,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('L',Tags.Items.LEATHERS)
                 .define('B',TCItemTags.INGOTS_BRASS)
                 .define('M',TCItems.THAUMOMETER)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"unlock_artifice"),Optional.of(3),false))
+                .gate(gate("unlock_artifice"))
                 .unlockedBy("has",has(TCItems.THAUMOMETER))
                 .save(output);
 
@@ -1134,7 +1325,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('F',TCItems.FILTER)
                 .define('P', TCItemTags.PLATES_BRASS)
                 .define('B',Items.BUCKET)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"essentia_smelter"),Optional.of(1),false))
+                .gate(gate("essentia_smelter"))
                 .unlockedBy("has",has(TCItemTags.PLATES_BRASS))
                 .save(output);
 
@@ -1147,7 +1338,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('F',Items.FURNACE)
                 .define('P', TCItemTags.PLATES_BRASS)
                 .define('R',TCItems.CRUCIBLE)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"essentia_smelter"),Optional.of(3),false))
+                .gate(gate("essentia_smelter", 1))
                 .unlockedBy("has",has(TCItems.CRUCIBLE))
                 .save(output);
 
@@ -1160,7 +1351,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('F',TCItems.ALCHEMICAL_CONSTRUCT)
                 .define('P', TCItemTags.PLATES_BRASS)
                 .define('R',TCItems.SMELTER_BASIC)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"thaumium_essentia_smelter"),Optional.of(1),false))
+                .gate(gate("essentia_smelter_thaumium"))
                 .unlockedBy("has",has(TCItems.SMELTER_BASIC))
                 .save(output);
 
@@ -1173,7 +1364,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('F',TCItems.ADVANCED_ALCHEMICAL_CONSTRUCT)
                 .define('P', TCItemTags.PLATES_BRASS)
                 .define('R',TCItems.SMELTER_THAUMIUM)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"void_essentia_smelter"),Optional.of(1),false))
+                .gate(gate("essentia_smelter_void"))
                 .unlockedBy("has",has(TCItems.SMELTER_THAUMIUM))
                 .save(output);
 
@@ -1183,14 +1374,14 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("PPP")
                 .define('P', Tags.Items.GLASS_PANES)
                 .define('R',ItemTags.WOODEN_SLABS)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"warded_jars"),Optional.of(0),false))
+                .gate(gate("warded_jars"))
                 .unlockedBy("has",has(Tags.Items.GLASS_PANES))
                 .save(output);
 
         arcaneShapeless(new ItemStackTemplate(TCItems.JAR_VOID),50)
                 .aspect(TCAspects.PERDITIO)
                 .requires(TCItems.JAR_NORMAL)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"warded_jars"),Optional.of(0),false))
+                .gate(gate("warded_jars"))
                 .unlockedBy("has",has(TCItems.JAR_NORMAL))
                 .save(output);
 
@@ -1202,35 +1393,35 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('P', TCItemTags.PLATES_IRON)
                 .define('G', Tags.Items.GLASS_BLOCKS)
                 .define('B', TCItemTags.NUGGETS_BRASS)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(1),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(Tags.Items.GEMS_QUARTZ))
                 .save(output);
 
         arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_RESTRICT),10)
                 .aspect(TCAspects.TERRA)
                 .requires(TCItems.TUBE)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(TCItems.TUBE))
                 .save(output);
 
         arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_ONEWAY),10)
                 .aspect(TCAspects.AQUA)
                 .requires(TCItems.TUBE)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(TCItems.TUBE))
                 .save(output);
 
         arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_FILTER),10)
                 .requires(TCItems.TUBE)
                 .requires(TCItems.FILTER)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(TCItems.TUBE))
                 .save(output);
 
         arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_VALVE),10)
                 .requires(TCItems.TUBE)
                 .requires(Items.LEVER)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(TCItems.TUBE))
                 .save(output);
 
@@ -1243,7 +1434,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T',TCItems.TUBE)
                 .define('I',TCItemTags.PLATES_IRON)
                 .define('R',TCItems.TUBE_RESTRICT)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(TCItems.TUBE))
                 .save(output);
 
@@ -1259,7 +1450,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('I',TCItemTags.PLATES_IRON)
                 .define('C',TCItems.ALCHEMICAL_CONSTRUCT)
                 .define('L',TCItems.BELLOWS)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"improved_essentia_smelting"),Optional.of(1),false))
+                .gate(gate("improved_smelting"))
                 .unlockedBy("has",has(TCItems.BELLOWS))
                 .save(output);
 
@@ -1272,7 +1463,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B',TCItemTags.PLATES_BRASS)
                 .define('I',TCItemTags.PLATES_IRON)
                 .define('C',TCItems.ALCHEMICAL_CONSTRUCT)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"improved_essentia_smelting_2"),Optional.of(1),false))
+                .gate(gate("improved_smelting_2"))
                 .unlockedBy("has",has(TCItems.ALCHEMICAL_CONSTRUCT))
                 .save(output);
 
@@ -1287,7 +1478,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('V', TCItems.TUBE)
                 .define('I', TCItemTags.PLATES_IRON)
                 .define('P', TCItems.PLANK_GREATWOOD)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"tubes"),Optional.of(0),false))
+                .gate(gate("tubes"))
                 .unlockedBy("has",has(TCItemTags.PLATES_IRON))
                 .save(output);
 
@@ -1300,7 +1491,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('A',TCItems.ALCHEMICAL_CONSTRUCT)
                 .define('V', TCItemTags.PLATES_VOID_METAL)
                 .define('P', TCItems.PRIMORDIAL_PEARL)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"void_essentia_smelter"),Optional.of(1),false))
+                .gate(gate("essentia_smelter_void", 0))
                 .unlockedBy("has",has(TCItems.ALCHEMICAL_CONSTRUCT))
                 .save(output);
 
@@ -1312,7 +1503,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('P',ItemTags.PLANKS)
                 .define('L',Tags.Items.LEATHERS)
                 .define('I',Tags.Items.INGOTS_IRON)
-                .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID,"arcane_bellows"),Optional.of(1),false))
+                .gate(gate("bellows"))
                 .unlockedBy("has",has(Tags.Items.LEATHERS))
                 .save(output);
     }
@@ -1324,8 +1515,6 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private void buildGolemancyRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        ResearchGate gate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
-
         shaped(RecipeCategory.TOOLS, TCItems.GOLEM_BELL.get())
                 .pattern(" QQ")
                 .pattern(" QQ")
@@ -1345,7 +1534,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItems.PLATE_BRASS)
                 .define('P', Tags.Items.GLASS_PANES)
                 .define('C', Items.COMPARATOR)
-                .gate(gate)
+                .gate(gate("mind_clockwork", 1))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -1356,7 +1545,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.COGNITIO, 50)
                 .aspect(TCAspects.MACHINA, 25)
                 .instability(4)
-                .gate(gate)
+                .gate(gate("mind_biothaumic"))
                 .unlockedBy("has", has(TCItems.MIND_CLOCKWORK))
                 .save(output);
 
@@ -1369,7 +1558,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('E', Items.FERMENTED_SPIDER_EYE)
                 .define('P', TCItems.PLATE_BRASS)
                 .define('G', TCItems.MECHANISM_SIMPLE)
-                .gate(gate)
+                .gate(gate("golem_vision"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -1382,7 +1571,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T', Items.BLAZE_POWDER)
                 .define('P', TCItems.PLATE_BRASS)
                 .define('G', TCItems.MECHANISM_SIMPLE)
-                .gate(gate)
+                .gate(gate("seal_guard"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -1396,7 +1585,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('W', ItemTags.PLANKS)
                 .define('B', TCItems.PLATE_IRON)
                 .define('G', TCItems.MECHANISM_SIMPLE)
-                .gate(gate)
+                .gate(gate("levitator"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -1406,35 +1595,35 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .requires(TCItems.TALLOW.get())
                 .requires(Tags.Items.DYES_RED)
                 .requires(TCItemTags.NITORS)
-                .gate(gate)
+                .gate(gate("control_seals"))
                 .unlockedBy("has", has(TCItems.TALLOW))
                 .save(output);
 
-        sealCrucible(aspects, gate, TCItems.SEAL_PICKUP, TCItems.SEAL_BLANK,
+        sealCrucible(aspects, gate("seal_collect"), TCItems.SEAL_PICKUP, TCItems.SEAL_BLANK,
                 builder -> builder.aspect(TCAspects.DESIDERIUM, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_PICKUP_ADVANCED, TCItems.SEAL_PICKUP,
+        sealCrucible(aspects, gate("seal_collect"), TCItems.SEAL_PICKUP_ADVANCED, TCItems.SEAL_PICKUP,
                 builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_FILL, TCItems.SEAL_BLANK,
+        sealCrucible(aspects, gate("seal_store"), TCItems.SEAL_FILL, TCItems.SEAL_BLANK,
                 builder -> builder.aspect(TCAspects.AVERSIO, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_FILL_ADVANCED, TCItems.SEAL_FILL,
+        sealCrucible(aspects, gate("seal_store"), TCItems.SEAL_FILL_ADVANCED, TCItems.SEAL_FILL,
                 builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_EMPTY, TCItems.SEAL_BLANK,
+        sealCrucible(aspects, gate("seal_empty"), TCItems.SEAL_EMPTY, TCItems.SEAL_BLANK,
                 builder -> builder.aspect(TCAspects.VACUOS, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_EMPTY_ADVANCED, TCItems.SEAL_EMPTY,
+        sealCrucible(aspects, gate("seal_empty"), TCItems.SEAL_EMPTY_ADVANCED, TCItems.SEAL_EMPTY,
                 builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_PROVIDER, TCItems.SEAL_EMPTY_ADVANCED,
+        sealCrucible(aspects, gate("seal_provide"), TCItems.SEAL_PROVIDER, TCItems.SEAL_EMPTY_ADVANCED,
                 builder -> builder.aspect(TCAspects.PERMUTATIO, 10).aspect(TCAspects.DESIDERIUM, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_STOCK, TCItems.SEAL_FILL,
+        sealCrucible(aspects, gate("seal_stock"), TCItems.SEAL_STOCK, TCItems.SEAL_FILL,
                 builder -> builder.aspect(TCAspects.COGNITIO, 10).aspect(TCAspects.DESIDERIUM, 10));
-        sealCrucible(aspects, gate, TCItems.SEAL_GUARD, TCItems.SEAL_BLANK,
+        sealCrucible(aspects, gate("seal_guard"), TCItems.SEAL_GUARD, TCItems.SEAL_BLANK,
                 builder -> builder.aspect(TCAspects.AVERSIO, 20).aspect(TCAspects.PRAEMUNIO, 20));
-        sealCrucible(aspects, gate, TCItems.SEAL_GUARD_ADVANCED, TCItems.SEAL_GUARD,
+        sealCrucible(aspects, gate("seal_guard"), TCItems.SEAL_GUARD_ADVANCED, TCItems.SEAL_GUARD,
                 builder -> builder.aspect(TCAspects.SENSUS, 20).aspect(TCAspects.COGNITIO, 20));
-        sealCrucible(aspects, gate, TCItems.SEAL_LUMBER, TCItems.SEAL_BREAKER,
+        sealCrucible(aspects, gate("seal_lumber"), TCItems.SEAL_LUMBER, TCItems.SEAL_BREAKER,
                 builder -> builder.aspect(TCAspects.HERBA, 40).aspect(TCAspects.SENSUS, 20));
-        sealCrucible(aspects, gate, TCItems.SEAL_USE, TCItems.SEAL_BLANK,
+        sealCrucible(aspects, gate("seal_use"), TCItems.SEAL_USE, TCItems.SEAL_BLANK,
                 builder -> builder.aspect(TCAspects.FABRICO, 20).aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 20));
-        sealCrucible(aspects, gate, TCItems.SEAL_BREAKER_ADVANCED, TCItems.SEAL_BREAKER,
+        sealCrucible(aspects, gate("seal_break"), TCItems.SEAL_BREAKER_ADVANCED, TCItems.SEAL_BREAKER,
                 builder -> builder.aspect(TCAspects.SENSUS, 10).aspect(TCAspects.COGNITIO, 10).aspect(TCAspects.INSTRUMENTUM, 20));
 
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -1449,7 +1638,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.SENSUS, 10)
                 .aspect(TCAspects.HUMANUS, 10)
                 .instability(0)
-                .gate(gate)
+                .gate(gate("seal_harvest"))
                 .unlockedBy("has", has(TCItems.SEAL_BLANK))
                 .save(output);
 
@@ -1465,7 +1654,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.SENSUS, 10)
                 .aspect(TCAspects.HUMANUS, 10)
                 .instability(0)
-                .gate(gate)
+                .gate(gate("seal_butcher"))
                 .unlockedBy("has", has(TCItems.SEAL_GUARD))
                 .save(output);
 
@@ -1478,7 +1667,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.PERDITIO, 10)
                 .aspect(TCAspects.HUMANUS, 10)
                 .instability(1)
-                .gate(gate)
+                .gate(gate("seal_break"))
                 .unlockedBy("has", has(TCItems.SEAL_BLANK))
                 .save(output);
     }
@@ -1495,8 +1684,6 @@ public final class TCRecipeProvider extends RecipeProvider {
 
 
     private void buildAuraDeviceRecipes() {
-        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
-        ResearchGate auromancyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false);
 
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.DECORATIONS,
                 new ItemStackTemplate(TCItems.MIRROR), Ingredient.of(TCItems.MIRRORED_GLASS.get()))
@@ -1508,7 +1695,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.TENEBRAE, 25)
                 .aspect(TCAspects.PERMUTATIO, 25)
                 .instability(1)
-                .gate(infusionGate)
+                .gate(gate("mirror"))
                 .unlockedBy("has", has(TCItems.MIRRORED_GLASS))
                 .save(output);
 
@@ -1520,7 +1707,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.INSTRUMENTUM, 50)
                 .aspect(TCAspects.MOTUS, 50)
                 .instability(5)
-                .gate(infusionGate)
+                .gate(gate("mirror_hand"))
                 .unlockedBy("has", has(TCItems.MIRROR))
                 .save(output);
 
@@ -1534,7 +1721,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.AQUA, 25)
                 .aspect(TCAspects.PERMUTATIO, 25)
                 .instability(2)
-                .gate(infusionGate)
+                .gate(gate("mirror_essentia"))
                 .unlockedBy("has", has(TCItems.MIRRORED_GLASS))
                 .save(output);
 
@@ -1547,7 +1734,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('S', TCItems.STONE_ARCANE)
                 .define('N', TCItemTags.NITORS)
                 .define('G', Items.DIAMOND_BLOCK)
-                .gate(infusionGate)
+                .gate(gate("infusion_boost"))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE))
                 .save(output);
 
@@ -1561,7 +1748,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('S', TCItems.STONE_ARCANE)
                 .define('A', TCItems.ALUMENTUM)
                 .define('G', Items.DIAMOND_BLOCK)
-                .gate(infusionGate)
+                .gate(gate("infusion_boost"))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE))
                 .save(output);
 
@@ -1575,7 +1762,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('P', TCItems.VIS_RESONATOR)
                 .define('G', TCItems.THAUMOMETER)
                 .define('I', TCItems.PLATE_IRON)
-                .gate(auromancyGate)
+                .gate(gate("dioptra"))
                 .unlockedBy("has", has(TCItems.THAUMOMETER))
                 .save(output);
 
@@ -1591,7 +1778,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("SSS")
                 .define('S', TCItems.SLAB_ARCANE_STONE)
                 .define('R', TCItems.VIS_RESONATOR)
-                .gate(auromancyGate)
+                .gate(gate("vis_battery"))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
 
@@ -1605,16 +1792,13 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.SENSUS, 25)
                 .aspect(TCAspects.EXANIMIS, 25)
                 .instability(4)
-                .gate(infusionGate)
+                .gate(gate("jar_brain"))
                 .unlockedBy("has", has(TCItems.JAR_NORMAL.get()))
                 .save(output);
     }
 
 
     private void buildNoiseDeviceRecipes() {
-        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
-        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
-        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
 
         arcaneShaped(new ItemStackTemplate(TCItems.LAMP_ARCANE), 50)
                 .aspect(TCAspects.AER, 1)
@@ -1624,7 +1808,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern(" I ")
                 .define('A', TCItems.AMBER_BLOCK)
                 .define('I', TCItems.PLATE_IRON)
-                .gate(artificeGate)
+                .gate(gate("arcane_lamp"))
                 .unlockedBy("has", has(TCItems.PLATE_IRON))
                 .save(output);
 
@@ -1637,15 +1821,16 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .define('G', TCItems.MECHANISM_SIMPLE)
                 .define('P', TCItems.PLATE_BRASS)
-                .gate(artificeGate)
+                .gate(gate("arcane_ear"))
                 .unlockedBy("has", has(TCItems.PLATE_BRASS))
                 .save(output);
 
-        this.shapeless(RecipeCategory.REDSTONE, TCItems.ARCANE_EAR_TOGGLE.get())
+        arcaneShapeless(new ItemStackTemplate(TCItems.ARCANE_EAR_TOGGLE), 5)
                 .requires(TCItems.ARCANE_EAR.get())
                 .requires(Items.LEVER)
+                .gate(gate("arcane_ear"))
                 .unlockedBy("has", has(TCItems.ARCANE_EAR.get()))
-                .save(output);
+                .save(output, TCIds.MODID + ":arcane_ear_toggle");
 
         arcaneShaped(new ItemStackTemplate(TCItems.HUNGRY_CHEST), 15)
                 .aspect(TCAspects.TERRA, 1)
@@ -1655,7 +1840,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("WWW")
                 .define('W', TCItems.PLANK_GREATWOOD)
                 .define('T', ItemTags.WOODEN_TRAPDOORS)
-                .gate(artificeGate)
+                .gate(gate("hungry_chest"))
                 .unlockedBy("has", has(TCItems.PLANK_GREATWOOD))
                 .save(output);
 
@@ -1669,7 +1854,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('P', TCItems.MECHANISM_SIMPLE)
                 .define('R', TCItems.MORPHIC_RESONATOR)
                 .define('C', TCItems.ALCHEMICAL_CONSTRUCT)
-                .gate(alchemyGate)
+                .gate(gate("centrifuge"))
                 .unlockedBy("has", has(TCItems.MORPHIC_RESONATOR))
                 .save(output);
 
@@ -1686,7 +1871,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.VICTUS, 15)
                 .aspect(TCAspects.INSTRUMENTUM, 15)
                 .instability(4)
-                .gate(infusionGate)
+                .gate(gate("lamp_growth"))
                 .unlockedBy("has", has(TCItems.LAMP_ARCANE.get()))
                 .save(output);
 
@@ -1703,7 +1888,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.VICTUS, 15)
                 .aspect(TCAspects.DESIDERIUM, 15)
                 .instability(4)
-                .gate(infusionGate)
+                .gate(gate("lamp_fertility"))
                 .unlockedBy("has", has(TCItems.LAMP_ARCANE.get()))
                 .save(output);
     }
@@ -1711,15 +1896,13 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private void buildEssentiaMachineRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
-        ResearchGate auromancyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false);
 
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.EVERFULL_URN),
                 Ingredient.of(Items.FLOWER_POT))
                 .aspect(TCAspects.AQUA, 30)
                 .aspect(TCAspects.FABRICO, 10)
                 .aspect(TCAspects.TERRA, 10)
-                .gate(alchemyGate)
+                .gate(gate("everfull_urn"))
                 .unlockedBy("has", has(Items.FLOWER_POT))
                 .save(output);
 
@@ -1734,7 +1917,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('S', Items.REDSTONE)
                 .define('P', Items.PISTON)
                 .define('W', ItemTags.PLANKS)
-                .gate(auromancyGate)
+                .gate(gate("vis_generator"))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
 
@@ -1747,7 +1930,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItems.PLATE_BRASS)
                 .define('Q', Items.DISPENSER)
                 .define('G', TCItems.ALCHEMICAL_CONSTRUCT)
-                .gate(alchemyGate)
+                .gate(gate("essentia_transport"))
                 .unlockedBy("has", has(TCItems.PLATE_BRASS))
                 .save(output);
 
@@ -1760,16 +1943,13 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItems.PLATE_BRASS)
                 .define('Q', Items.HOPPER)
                 .define('G', TCItems.ALCHEMICAL_CONSTRUCT)
-                .gate(alchemyGate)
+                .gate(gate("essentia_transport"))
                 .unlockedBy("has", has(TCItems.PLATE_BRASS))
                 .save(output);
     }
 
 
     private void buildFluxMachineRecipes() {
-        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
-        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
-        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
 
         arcaneShaped(new ItemStackTemplate(TCItems.BRAIN_BOX), 50)
                 .aspect(TCAspects.TERRA, 1)
@@ -1780,7 +1960,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItems.MIND_CLOCKWORK)
                 .define('A', TCItems.AMBER)
                 .define('I', TCItems.PLATE_IRON)
-                .gate(alchemyGate)
+                .gate(gate("thaumatorium"))
                 .unlockedBy("has", has(TCItems.MIND_CLOCKWORK))
                 .save(output);
 
@@ -1796,7 +1976,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('W', ItemTags.PLANKS)
                 .define('M', TCItems.MECHANISM_COMPLEX)
                 .define('B', TCItems.PLATE_BRASS)
-                .gate(alchemyGate)
+                .gate(gate("flux_cleanup"))
                 .unlockedBy("has", has(TCItems.MORPHIC_RESONATOR))
                 .save(output);
 
@@ -1809,7 +1989,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T', TCItems.PLATE_THAUMIUM)
                 .define('F', TCItems.FILTER)
                 .define('Q', Items.QUARTZ)
-                .gate(alchemyGate)
+                .gate(gate("flux_cleanup"))
                 .unlockedBy("has", has(TCItems.FILTER))
                 .save(output);
 
@@ -1826,7 +2006,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('M', TCItems.MECHANISM_COMPLEX)
                 .define('V', TCItems.VIS_RESONATOR)
                 .define('I', TCItems.PLATE_IRON)
-                .gate(infusionGate)
+                .gate(gate("infusion_stable"))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
 
@@ -1837,7 +2017,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('T', Items.REDSTONE_TORCH)
                 .define('G', TCItems.MECHANISM_SIMPLE)
                 .define('S', Items.STONE_SLAB)
-                .gate(artificeGate)
+                .gate(gate("redstone_relay"))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
@@ -1854,7 +2034,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.VACUOS, 100)
                 .aspect(TCAspects.FABRICO, 50)
                 .instability(7)
-                .gate(infusionGate)
+                .gate(gate("void_siphon"))
                 .unlockedBy("has", has(TCItems.METAL_VOID_BLOCK.get()))
                 .save(output);
     }
@@ -1876,8 +2056,6 @@ public final class TCRecipeProvider extends RecipeProvider {
     }
 
     private void buildBaubleRecipes() {
-        ResearchGate auromancyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false);
-        ResearchGate alchemyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_alchemy"), Optional.of(1), false);
 
         shaped(RecipeCategory.MISC, TCItems.AMULET_MUNDANE)
                 .pattern(" S ").pattern("S S").pattern(" I ")
@@ -1909,7 +2087,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('B', TCItems.GIRDLE_MUNDANE)
                 .define('L', Items.LEATHER)
                 .define('G', Items.GOLD_INGOT)
-                .gate(auromancyGate)
+                .gate(gate("focus_pouch"))
                 .unlockedBy("has", has(Items.LEATHER))
                 .save(output);
         arcaneShaped(new ItemStackTemplate(TCItems.SANITY_CHECKER), 20)
@@ -1919,7 +2097,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('N', TCItems.NUGGET_BRASS)
                 .define('B', TCItems.BRAIN)
                 .define('M', TCItems.MIRRORED_GLASS)
-                .gate(auromancyGate)
+                .gate(gate("warp"))
                 .unlockedBy("has", has(TCItems.MIRRORED_GLASS))
                 .save(output);
         arcaneShaped(new ItemStackTemplate(TCItems.RESONATOR), 50)
@@ -1927,15 +2105,13 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('I', TCItems.PLATE_IRON)
                 .define('N', Items.QUARTZ)
                 .define('S', Items.STICK)
-                .gate(alchemyGate)
+                .gate(gate("tubes"))
                 .unlockedBy("has", has(TCItems.PLATE_IRON))
                 .save(output);
     }
 
     private void buildWearableInfusionRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
-
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
                 new ItemStackTemplate(TCItems.AMULET_VIS_CRAFTED.get()), Ingredient.of(TCItems.AMULET_MUNDANE.get()))
                 .component(Ingredient.of(TCItems.VIS_RESONATOR.get()))
@@ -1945,7 +2121,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(TCItems.CRYSTAL_TERRA.get()))
                 .component(Ingredient.of(TCItems.CRYSTAL_ORDO.get()))
                 .aspect(TCAspects.AURAM, 50).aspect(TCAspects.POTENTIA, 100).aspect(TCAspects.VACUOS, 50)
-                .instability(6).gate(infusionGate)
+                .instability(6).gate(gate("vis_amulet"))
                 .unlockedBy("has", has(TCItems.AMULET_MUNDANE.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -1955,7 +2131,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.MILK_BUCKET))
                 .component(crystal(TCAspects.HERBA))
                 .aspect(TCAspects.VICTUS, 60).aspect(TCAspects.ORDO, 30).aspect(TCAspects.HERBA, 60)
-                .instability(5).gate(infusionGate)
+                .instability(5).gate(gate("verdant_charms"))
                 .unlockedBy("has", has(TCItems.AMULET_FANCY.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -1967,7 +2143,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(potion(Potions.STRONG_HEALING))
                 .component(crystal(TCAspects.HUMANUS))
                 .aspect(TCAspects.VICTUS, 80).aspect(TCAspects.HUMANUS, 80)
-                .instability(5).gate(infusionGate)
+                .instability(5).gate(gate("verdant_charms"))
                 .unlockedBy("has", has(TCItems.VERDANT_CHARM.get()))
                 .save(output, TCIds.MODID + ":infusion/verdant_charm_life");
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -1979,7 +2155,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(potion(Potions.STRONG_REGENERATION))
                 .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
                 .aspect(TCAspects.DESIDERIUM, 80).aspect(TCAspects.AER, 80)
-                .instability(5).gate(infusionGate)
+                .instability(5).gate(gate("verdant_charms"))
                 .unlockedBy("has", has(TCItems.VERDANT_CHARM.get()))
                 .save(output, TCIds.MODID + ":infusion/verdant_charm_sustain");
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -1987,7 +2163,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
                 .component(Ingredient.of(Items.FEATHER))
                 .aspect(TCAspects.AER, 50)
-                .instability(1).gate(infusionGate)
+                .instability(1).gate(gate("cloud_ring"))
                 .unlockedBy("has", has(TCItems.RING_MUNDANE.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -2001,14 +2177,14 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.EMERALD))
                 .component(Ingredient.of(Items.WRITABLE_BOOK))
                 .aspect(TCAspects.COGNITIO, 150).aspect(TCAspects.VACUOS, 50).aspect(TCAspects.VINCULUM, 100)
-                .instability(5).gate(infusionGate)
+                .instability(5).gate(gate("curiosity_band"))
                 .unlockedBy("has", has(TCItems.GIRDLE_FANCY.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
                 new ItemStackTemplate(TCItems.CHARM_UNDYING.get()), Ingredient.of(Items.TOTEM_OF_UNDYING))
                 .component(Ingredient.of(TCItems.PLATE_BRASS.get()))
                 .aspect(TCAspects.VICTUS, 25)
-                .instability(2).gate(infusionGate)
+                .instability(2).gate(gate("charm_undying"))
                 .unlockedBy("has", has(Items.TOTEM_OF_UNDYING))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
@@ -2018,7 +2194,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(TCItems.BRAIN.get()))
                 .component(Ingredient.of(TCItems.PRIMORDIAL_PEARL.get()))
                 .aspect(TCAspects.COGNITIO, 150).aspect(TCAspects.VACUOS, 150).aspect(TCAspects.PRAECANTATIO, 100)
-                .instability(8).gate(infusionGate)
+                .instability(8).gate(gate("voidseer_pearl"))
                 .unlockedBy("has", has(TCItems.PRIMORDIAL_PEARL.get()))
                 .save(output);
 
@@ -2030,7 +2206,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.GOLD_INGOT))
                 .component(Ingredient.of(Items.EMERALD))
                 .aspect(TCAspects.METALLUM, 50).aspect(TCAspects.PRAEMUNIO, 20).aspect(TCAspects.POTENTIA, 25)
-                .instability(3).gate(infusionGate)
+                .instability(3).gate(gate("armor_fortress"))
                 .unlockedBy("has", has(TCItems.THAUMIUM_HELM.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
@@ -2042,7 +2218,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.GOLD_INGOT))
                 .component(Ingredient.of(Items.LEATHER))
                 .aspect(TCAspects.METALLUM, 50).aspect(TCAspects.PRAEMUNIO, 30).aspect(TCAspects.POTENTIA, 25)
-                .instability(3).gate(infusionGate)
+                .instability(3).gate(gate("armor_fortress"))
                 .unlockedBy("has", has(TCItems.THAUMIUM_CHEST.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
@@ -2053,7 +2229,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.GOLD_INGOT))
                 .component(Ingredient.of(Items.LEATHER))
                 .aspect(TCAspects.METALLUM, 50).aspect(TCAspects.PRAEMUNIO, 25).aspect(TCAspects.POTENTIA, 25)
-                .instability(3).gate(infusionGate)
+                .instability(3).gate(gate("armor_fortress"))
                 .unlockedBy("has", has(TCItems.THAUMIUM_LEGS.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
@@ -2063,14 +2239,14 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.SLIME_BALL))
                 .component(Ingredient.of(TCItems.GOGGLES_REVEALING.get()))
                 .aspect(TCAspects.SENSUS, 40).aspect(TCAspects.AURAM, 20).aspect(TCAspects.PRAEMUNIO, 20)
-                .instability(5).gate(infusionGate)
+                .instability(5).gate(gate("fortress_mask"))
                 .unlockedBy("has", has(TCItems.FORTRESS_HELM.get()))
                 .save(output, TCIds.MODID + ":infusion/fortress_helm_goggles");
-        buildMaskRecipe(aspects, infusionGate, 0, TCAspects.COGNITIO, TCAspects.VICTUS,
+        buildMaskRecipe(aspects, gate("fortress_mask"), 0, TCAspects.COGNITIO, TCAspects.VICTUS,
                 Ingredient.of(Items.INK_SAC), Ingredient.of(TCItems.PLANT_SHIMMERLEAF.get()), Ingredient.of(TCItems.BRAIN.get()));
-        buildMaskRecipe(aspects, infusionGate, 1, TCAspects.PERDITIO, TCAspects.MORTUUS,
+        buildMaskRecipe(aspects, gate("fortress_mask"), 1, TCAspects.PERDITIO, TCAspects.MORTUUS,
                 Ingredient.of(Items.BONE_MEAL), Ingredient.of(Items.POISONOUS_POTATO), Ingredient.of(Items.WITHER_SKELETON_SKULL));
-        buildMaskRecipe(aspects, infusionGate, 2, TCAspects.EXANIMIS, TCAspects.VICTUS,
+        buildMaskRecipe(aspects, gate("fortress_mask"), 2, TCAspects.EXANIMIS, TCAspects.VICTUS,
                 Ingredient.of(Items.RED_DYE), Ingredient.of(Items.GHAST_TEAR), Ingredient.of(Items.MILK_BUCKET));
 
         new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
@@ -2083,7 +2259,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(TCItems.FABRIC.get()))
                 .aspect(TCAspects.METALLUM, 25).aspect(TCAspects.SENSUS, 25).aspect(TCAspects.PRAEMUNIO, 25)
                 .aspect(TCAspects.POTENTIA, 25).aspect(TCAspects.ALIENIS, 25).aspect(TCAspects.VACUOS, 25)
-                .instability(6).gate(infusionGate)
+                .instability(6).gate(gate("void_robe_armor"))
                 .unlockedBy("has", has(TCItems.VOID_HELM.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
@@ -2096,7 +2272,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.LEATHER))
                 .aspect(TCAspects.METALLUM, 35).aspect(TCAspects.PRAEMUNIO, 35).aspect(TCAspects.POTENTIA, 25)
                 .aspect(TCAspects.ALIENIS, 25).aspect(TCAspects.VACUOS, 35)
-                .instability(6).gate(infusionGate)
+                .instability(6).gate(gate("void_robe_armor"))
                 .unlockedBy("has", has(TCItems.VOID_CHEST.get()))
                 .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT,
@@ -2109,7 +2285,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .component(Ingredient.of(Items.LEATHER))
                 .aspect(TCAspects.METALLUM, 30).aspect(TCAspects.PRAEMUNIO, 30).aspect(TCAspects.POTENTIA, 25)
                 .aspect(TCAspects.ALIENIS, 25).aspect(TCAspects.VACUOS, 30)
-                .instability(6).gate(infusionGate)
+                .instability(6).gate(gate("void_robe_armor"))
                 .unlockedBy("has", has(TCItems.VOID_LEGS.get()))
                 .save(output);
     }

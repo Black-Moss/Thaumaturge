@@ -1,5 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.warp;
 
+import net.minecraft.resources.Identifier;
+import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.IWarpingGear;
 import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
@@ -41,10 +45,25 @@ public final class WarpManager {
         if (amount > 0) {
             data.setCounter(data.total());
             notifyGain(player, type);
+            grantWarpResearch(player, type);
         } else {
             notifyLoss(player, type);
         }
         player.syncData(TCAttachments.WARP);
+    }
+
+    private static final Identifier WARP_RESEARCH = TCIds.rl("warp");
+    private static final Identifier FIRST_STEPS_RESEARCH = TCIds.rl("first_steps");
+
+    private static void grantWarpResearch(ServerPlayer player, WarpType type) {
+        if (type == WarpType.TEMPORARY) {
+            return;
+        }
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        if (knowledge.isResearchComplete(FIRST_STEPS_RESEARCH) && !knowledge.isResearchComplete(WARP_RESEARCH)) {
+            ResearchManager.complete(player, WARP_RESEARCH);
+            sendActionBar(player, "research.thaumcraft.warp.warn");
+        }
     }
 
     public static int getActualWarp(Player player) {

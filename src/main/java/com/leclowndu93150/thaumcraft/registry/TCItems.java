@@ -284,6 +284,9 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> RECHARGE_PEDESTAL = ITEMS.registerSimpleBlockItem(TCBlocks.RECHARGE_PEDESTAL);
 
     public static final DeferredItem<BlockItem> LEVITATOR = ITEMS.registerSimpleBlockItem(TCBlocks.LEVITATOR);
+    public static final DeferredItem<BlockItem> POTION_SPRAYER = ITEMS.registerSimpleBlockItem(TCBlocks.POTION_SPRAYER);
+    public static final DeferredItem<BlockItem> PATTERN_CRAFTER = ITEMS.registerSimpleBlockItem(TCBlocks.PATTERN_CRAFTER);
+    public static final DeferredItem<BlockItem> INLAY = ITEMS.registerSimpleBlockItem(TCBlocks.INLAY);
 
     public static final DeferredItem<BlockItem> GOLEM_BUILDER = ITEMS.registerSimpleBlockItem(TCBlocks.GOLEM_BUILDER);
 

@@ -240,6 +240,9 @@ public final class TCCreativeTabs {
                         output.accept(primalCrusher);
                         output.accept(TCItems.RECHARGE_PEDESTAL.get());
                         output.accept(TCItems.LEVITATOR.get());
+                        output.accept(TCItems.POTION_SPRAYER.get());
+                        output.accept(TCItems.PATTERN_CRAFTER.get());
+                        output.accept(TCItems.INLAY.get());
                         output.accept(TCItems.DIOPTRA.get());
                         output.accept(TCItems.ARCANE_EAR.get());
                         output.accept(TCItems.ARCANE_EAR_TOGGLE.get());

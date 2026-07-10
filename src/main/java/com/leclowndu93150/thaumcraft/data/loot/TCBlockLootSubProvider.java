@@ -184,6 +184,9 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropOther(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), Blocks.NETHER_BRICKS);
         dropOther(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), Blocks.OBSIDIAN);
         dropSelf(TCBlocks.LEVITATOR.get());
+        dropSelf(TCBlocks.POTION_SPRAYER.get());
+        dropSelf(TCBlocks.PATTERN_CRAFTER.get());
+        dropSelf(TCBlocks.INLAY.get());
         dropSelf(TCBlocks.DIOPTRA.get());
         dropSelf(TCBlocks.ARCANE_EAR.get());
         dropSelf(TCBlocks.ARCANE_EAR_TOGGLE.get());

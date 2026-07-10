@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
+import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import java.util.Optional;
 import net.minecraft.core.Holder;
@@ -26,10 +27,24 @@ public final class ScanBindings implements ScanningManager.Bindings {
         }
         boolean hasEntry = serverPlayer.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY)
                 .get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research)).isPresent();
-        if (hasEntry && KnowledgeAccess.of(serverPlayer).isResearchKnown(research)) {
+        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(serverPlayer);
+        if (hasEntry) {
+            if (!knowledge.isResearchKnown(research)) {
+                if (!ResearchManager.unlock(serverPlayer, research)) {
+                    return false;
+                }
+                ResearchManager.advanceStage(serverPlayer, research);
+                return true;
+            }
             return ResearchManager.advanceStage(serverPlayer, research);
         }
-        return ResearchManager.unlock(serverPlayer, research);
+        if (knowledge.isResearchKnown(research)) {
+            return false;
+        }
+        knowledge.addResearch(research);
+        knowledge.markComplete(research);
+        knowledge.sync(serverPlayer);
+        return true;
     }
 
     @Override

@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.seal_stock.title",
+  "parents": [
+    "thaumcraft:seal_provide"
+  ],
+  "column": -6,
+  "row": 8,
+  "icons": [
+    "thaumcraft:seal_stock"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.seal_stock.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.seal_stock.stage_1",
+      "recipes": [
+        "thaumcraft:crucible/seal_stock"
+      ]
+    }
+  ]
+}

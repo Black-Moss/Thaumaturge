@@ -1,0 +1,48 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.lamp_fertility.title",
+  "parents": [
+    "thaumcraft:arcane_lamp",
+    "thaumcraft:infusion"
+  ],
+  "column": -4,
+  "row": -1,
+  "icons": [
+    "thaumcraft:lamp_fertility"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.lamp_fertility.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:wheat"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:carrot"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/desiderium"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.lamp_fertility.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/lamp_fertility"
+      ]
+    }
+  ]
+}

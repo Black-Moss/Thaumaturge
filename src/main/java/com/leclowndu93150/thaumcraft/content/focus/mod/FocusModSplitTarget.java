@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.focus.mod;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusModSplit;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.HitResult;
 import org.jspecify.annotations.Nullable;
@@ -14,6 +16,11 @@ public final class FocusModSplitTarget extends FocusModSplit {
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("focus_split"), Optional.empty(), false);
     }
 
     @Override

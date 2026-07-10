@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.workbench;
 
+import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
@@ -10,6 +11,7 @@ import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingReci
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
@@ -57,6 +59,9 @@ public final class SlotArcaneResult extends Slot {
         amountCrafted = 0;
 
         if (!(player.level() instanceof ServerLevel serverLevel)) return;
+        if (player instanceof ServerPlayer serverPlayer) {
+            ResearchProgressionEvents.recordCrafted(serverPlayer, stack);
+        }
 
         ArcaneCraftingInput input = craftMatrix.asArcaneCraftInput();
 

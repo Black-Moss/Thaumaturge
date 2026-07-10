@@ -1,0 +1,18 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.primordial_pearl.title",
+  "column": -8,
+  "row": 4,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:primordial_pearl"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.primordial_pearl.stage_0"
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.infusion;
 
+import org.jspecify.annotations.Nullable;
+import net.minecraft.core.Direction;
+import com.leclowndu93150.thaumcraft.content.device.BlockInlay;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -74,5 +77,37 @@ public class BlockEntityPedestal extends BlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+    public @Nullable BlockPos findInstabilityMitigator() {
+        if (level == null) {
+            return null;
+        }
+        int charge = getBlockState().hasProperty(BlockPedestal.CHARGE)
+                ? getBlockState().getValue(BlockPedestal.CHARGE) : 0;
+        if (charge <= 0) {
+            return null;
+        }
+        return seekSourceRecursive(getBlockPos(), charge, 0);
+    }
+
+    private @Nullable BlockPos seekSourceRecursive(BlockPos pos, int lastCharge, int depth) {
+        if (level == null || depth > 32) {
+            return null;
+        }
+        for (Direction face : Direction.Plane.HORIZONTAL) {
+            BlockPos next = pos.relative(face);
+            int source = BlockInlay.sourceStrengthAt(level, next);
+            if (source >= BlockInlay.MITIGATOR_MIN_ENERGY) {
+                return next;
+            }
+            int charge = BlockInlay.chargeAt(level, next);
+            if (charge > lastCharge) {
+                BlockPos found = seekSourceRecursive(next, charge, depth + 1);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 }

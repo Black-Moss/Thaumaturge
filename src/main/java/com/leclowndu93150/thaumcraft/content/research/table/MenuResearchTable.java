@@ -78,6 +78,10 @@ public final class MenuResearchTable extends AbstractContainerMenu {
         return items;
     }
 
+    public BlockPos tablePos() {
+        return pos;
+    }
+
     public boolean hasUsableScribeTools() {
         ItemResource resource = items.getResource(BlockEntityResearchTable.SLOT_SCRIBE_TOOLS);
         int amount = items.getAmountAsInt(BlockEntityResearchTable.SLOT_SCRIBE_TOOLS);

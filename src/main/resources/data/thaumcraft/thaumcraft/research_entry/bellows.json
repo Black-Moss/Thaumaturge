@@ -1,0 +1,38 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.bellows.title",
+  "parents": [
+    "thaumcraft:infernal_furnace"
+  ],
+  "column": 5,
+  "row": -3,
+  "icons": [
+    "thaumcraft:bellows"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.bellows.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumcraft:essentia_crystal"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.bellows.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/bellows"
+      ]
+    }
+  ]
+}

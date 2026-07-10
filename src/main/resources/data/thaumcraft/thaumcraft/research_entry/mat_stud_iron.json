@@ -1,0 +1,24 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.mat_stud_iron.title",
+  "parents": [
+    "thaumcraft:mat_stud_wood"
+  ],
+  "column": -3,
+  "row": -1,
+  "meta": [
+    "reverse",
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:plate_iron"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mat_stud_iron.stage_0",
+      "required_research": [
+        "thaumcraft:f_matiron"
+      ]
+    }
+  ]
+}

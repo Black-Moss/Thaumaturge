@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.unlock_golemancy.title",
+  "parents": [
+    "thaumcraft:unlock_artifice",
+    "thaumcraft:unlock_auromancy",
+    "thaumcraft:unlock_infusion"
+  ],
+  "siblings": [
+    "thaumcraft:base_golemancy"
+  ],
+  "column": 0,
+  "row": 6,
+  "meta": [
+    "round",
+    "spiky",
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_golemancy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.unlock_golemancy.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:f_golem"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.unlock_golemancy.stage_1"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_advanced.title",
+  "parents": [
+    "thaumcraft:base_auromancy",
+    "thaumcraft:infusion"
+  ],
+  "column": 0,
+  "row": -2,
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_advanced.stage_0",
+      "recipes": [
+        "thaumcraft:infusion/focus_2"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:focus_2"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_advanced.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/focus_2"
+      ]
+    }
+  ]
+}

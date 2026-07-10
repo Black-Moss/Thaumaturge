@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.eldritch.block;
 
+import net.minecraft.resources.Identifier;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.content.casters.ItemCaster;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -27,6 +30,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEldritchAltar extends BlockEldritchStructure implements EntityBlock {
+    private static final Identifier OCULUS_RESEARCH = TCIds.rl("oculus");
+
     public static final MapCodec<BlockEldritchAltar> CODEC = simpleCodec(BlockEldritchAltar::new);
 
     private static final int MAX_EYES = 4;
@@ -90,6 +95,14 @@ public final class BlockEldritchAltar extends BlockEldritchStructure implements 
                 return InteractionResult.SUCCESS;
             }
             if (!altar.checkForMaze()) {
+                return InteractionResult.SUCCESS;
+            }
+            if (!KnowledgeAccess.of(player).isResearchComplete(OCULUS_RESEARCH)) {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                            Component.translatable("gui.thaumcraft.altar.ritual_unknown")
+                                    .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
+                }
                 return InteractionResult.SUCCESS;
             }
             if (AuraHelper.drainVis(level, pos, RITUAL_CHARGE, true) >= RITUAL_CHARGE) {

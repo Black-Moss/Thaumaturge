@@ -1,0 +1,18 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.scanned/entity/thaumcraft/wisp.title",
+  "column": -7,
+  "row": 0,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_wisp.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.scanned/entity/thaumcraft/wisp.stage_0"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerPlacement;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerFx;
+import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
@@ -107,6 +108,7 @@ public final class SalisMundusItem extends Item {
             DustTriggerFx.emitUseBurst(serverLevel, serverPlayer, context.getHand(), pos);
             DustTriggerFx.emitTriggerSparkles(serverLevel, serverPlayer, pos, trigger, hitWorld, placement);
             serverPlayer.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
+            ResearchProgressionEvents.recordCrafted(serverPlayer, result);
             CriteriaTriggers.RECIPE_CRAFTED.trigger(serverPlayer, holder.id(), List.of(consumed));
         }
         level.playSound(null, pos, TCSounds.DUST.get(), SoundSource.PLAYERS, 0.33F,

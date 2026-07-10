@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.focus.medium;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMedium;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
@@ -15,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -40,6 +42,11 @@ public final class FocusMediumPlan extends FocusMedium implements IArchitect {
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("focus_plan"), Optional.empty(), false);
     }
 
     @Override

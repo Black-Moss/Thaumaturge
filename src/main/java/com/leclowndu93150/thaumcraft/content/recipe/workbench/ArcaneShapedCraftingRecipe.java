@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.recipe.workbench;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.google.common.annotations.VisibleForTesting;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
@@ -86,6 +87,14 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe{
     }
 
     public List<RecipeDisplay> display() {
-        return List.of(new ShapedCraftingRecipeDisplay(this.pattern.width(), this.pattern.height(), this.pattern.ingredients().stream().map((e) -> (SlotDisplay)e.map(Ingredient::display).orElse(SlotDisplay.Empty.INSTANCE)).toList(), new SlotDisplay.ItemStackSlotDisplay(this.result), new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
+        return List.of(new ArcaneCraftingRecipeDisplay(
+                this.pattern.width(),
+                this.pattern.height(),
+                false,
+                this.pattern.ingredients().stream().map((e) -> (SlotDisplay) e.map(Ingredient::display).orElse(SlotDisplay.Empty.INSTANCE)).toList(),
+                new SlotDisplay.ItemStackSlotDisplay(this.result),
+                new SlotDisplay.ItemSlotDisplay(TCBlocks.ARCANE_WORKBENCH.get().asItem()),
+                this.vis,
+                crystalDisplays()));
     }
 }

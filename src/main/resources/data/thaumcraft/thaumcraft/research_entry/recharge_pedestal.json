@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.recharge_pedestal.title",
+  "parents": [
+    "thaumcraft:base_auromancy"
+  ],
+  "column": -3,
+  "row": 2,
+  "icons": [
+    "thaumcraft:recharge_pedestal"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.recharge_pedestal.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.recharge_pedestal.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/recharge_pedestal"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.infusion;
 
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import com.leclowndu93150.thaumcraft.content.device.BlockInlay;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -23,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockPedestal extends BaseEntityBlock {
     public static final MapCodec<BlockPedestal> CODEC = simpleCodec(BlockPedestal::new);
+    public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, 15);
 
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0),
@@ -31,6 +36,20 @@ public final class BlockPedestal extends BaseEntityBlock {
 
     public BlockPedestal(Properties properties) {
         super(properties);
+        registerDefaultState(stateDefinition.any().setValue(CHARGE, 0));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(CHARGE);
+    }
+
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   @Nullable Orientation orientation, boolean movedByPiston) {
+        if (!level.isClientSide()) {
+            BlockInlay.updateNetwork(level, pos);
+        }
     }
 
     @Override

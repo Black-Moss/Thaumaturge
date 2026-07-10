@@ -90,6 +90,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.need.research", "Things that need to be discovered");
         add("tc.need.know", "Knowledge that must be used");
         add("tc.research.stage", "Current stage:");
+        add("tc.knowledge.none", "You have not accumulated any knowledge yet. Scan the world with a thaumometer or perform research at a table.");
         add("tc.research.stage.short", "%1$s / %2$s");
         add("tc.research.begin", "You have not yet begun this research");
         add("tc.researchmissing", "Missing required research:");
@@ -215,46 +216,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.nitor_red", "Red Nitor");
         add("block.thaumcraft.nitor_black", "Black Nitor");
 
-        researchEntry("basics_root", "Thaumaturgy",
-                "Your first studies of the arcane begin here. Gather scribing paper and start recording your observations.");
-        researchEntry("unlock_auromancy", "The Aura",
-                "The world is suffused with vis, the raw energy of magic. Tap into it through glowing motes.");
-        researchEntry("unlock_alchemy", "Discovering Alchemy",
-                "Strange ingredients yield stranger results when combined under the right conditions.");
-        researchEntry("unlock_artifice", "Mechanical Aid",
-                "Redstone and clever construction can carry your thaumic experiments far beyond mortal hands.");
-        researchEntry("unlock_infusion", "Infusion Crafting",
-                "Combine alchemy and auromancy to imbue items with new properties through ritual.");
-        researchEntry("unlock_golemancy", "Sentient Servants",
-                "Shape clay into automatons that perform simple tasks at your bidding.");
-        researchEntry("unlock_eldritch", "Eldritch Whispers",
-                "Some doors should not be opened. You open them anyway.");
+        ResearchTextEn.addAll(this::add);
 
-        researchEntry("aura_basics", "Aura Sensing",
-                "Use focused crystals to perceive the flow of vis around you.");
-        researchEntryStage("vis_taps", "Vis Taps", 0,
-                "A simple drain can siphon vis from an aura node into a portable vessel.");
-        researchEntryStage("vis_taps", null, 1,
-                "Refining the design lets vis pass through a lantern, lighting it with arcane fire.");
-
-        researchEntry("crucible", "Thaumic Crucible",
-                "A cauldron heated under the right conditions becomes a vessel for liquid essentia.");
-        researchEntry("alembic", "Alembic Distillation",
-                "Brewing-stand mechanics can be repurposed to separate essentia into its primal components.");
-
-        researchEntry("arcane_workbench", "Arcane Workbench",
-                "Crafting tables modified with thaumic catalysts can produce items mundane benches cannot.");
-        researchEntry("wand_crafting", "Wandcraft",
-                "A stick capped with metal becomes a conduit for shaped magic.");
-
-        researchEntry("runic_matrix", "Runic Matrix",
-                "Carved obsidian acts as the central node in an infusion ritual. Beware the unstable energies.");
-
-        researchEntry("golem_intro", "First Golem",
-                "A handful of clay, shaped and bound, becomes a creature that follows simple commands.");
-
-        researchEntry("eldritch_warning", "Eldritch Whispers",
-                "The voices you hear are not your own. They are not new, either.");
         add("key.thaumcraft.thaumonomicon", "Open Thaumonomicon");
         add("gui.thaumcraft.entry.advance", "Mark As Read");
         add("tc.stage.complete", "Complete");
@@ -355,17 +318,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("card.thaumcraft." + path + ".text", text);
     }
 
-    private void researchEntry(String path, String title, String stageText) {
-        add("research.thaumcraft." + path + ".title", title);
-        add("research.thaumcraft." + path + ".stage_0", stageText);
-    }
 
-    private void researchEntryStage(String path, String title, int stage, String stageText) {
-        if (title != null) {
-            add("research.thaumcraft." + path + ".title", title);
-        }
-        add("research.thaumcraft." + path + ".stage_" + stage, stageText);
-    }
 
     private void langBCrystals() {
 
@@ -592,42 +545,75 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.celestial_notes.moon_7.text", "Lunar, First Quarter");
         add("item.thaumcraft.celestial_notes.moon_8.text", "Lunar, Waxing Gibbous");
 
+        add("card.thaumcraft.curio.name", "Study Curio");
+        add("card.thaumcraft.curio.text", "While examining a curio often reveals some interesting information it is much better to study it as part of controlled research.");
+        add("card.thaumcraft.enchantment.name", "Study Enchantment");
+        add("card.thaumcraft.enchantment.text", "You study normal enchantment to see how it functions at a fundamental level. You are sure that is shares a lot in common with the enchantment methods used in Infusion and Artifice. You lose 5 experience levels, but will gain 15 to 20 progress in both Infusion and Auromancy. ");
+        add("card.thaumcraft.beacon.name", "Aural Influence");
+        add("card.thaumcraft.beacon.text", "You believe that the beacon interacts in some way with the mystical aura. You carefully study this and while you cannot find anything concrete this time you have been inspired. You regain 2 inspiration, 1 bonus draw and an additional category will gain the full bonus upon completion. ");
+        add("card.thaumcraft.dragonegg.name", "Draconic Studies");
+        add("card.thaumcraft.dragonegg.text", "The aura around the egg swirls with strange and chaotic energies. Occasionally you glimpse strange order in the chaos. ");
+        add("card.thaumcraft.concentrate.name", "Concentrate");
+        add("card.thaumcraft.concentrate.text", "Often much can be learned by concentrating a substance into its purest form. Attempt to concentrate some %1$s essentia. Gain 15 Alchemy and 1 bonus draw. There is also a chance you will gain 1 inspiration.");
+        add("card.thaumcraft.reactions.name", "Reactions");
+        add("card.thaumcraft.reactions.text", "Studying the reactions between two different types of vis should prove beneficial. You should study what happens when %1$s essentia reacts with %2$s essentia. Gain 25 Alchemy. There is also a chance you will gain 1 inspiration.");
+        add("card.thaumcraft.synthesis.name", "Synthesis");
+        add("card.thaumcraft.synthesis.text", "When essentia combines to form more complex forms a number of interesting and intricate reactions take place. You will learn much by combining %1$s essentia with %2$s essentia and then studying the resulting combination. Gain 40 Alchemy. There is also a chance you will gain 1 inspiration.");
+        add("card.thaumcraft.measure.name", "Measure");
+        add("card.thaumcraft.measure.text", "You take some time to make detailed measurements of various types of essentia and the potential vis they contain. Gain 15 Infusion progress and 1 bonus draw.");
+        add("card.thaumcraft.channel.name", "Channel %1$s Essentia");
+        add("card.thaumcraft.channel.text", "You set up a simple experiment to examine what happens when you channel %1$s during infusion. Gain 25 Infusion.");
+        add("card.thaumcraft.infuse.name", "Experimental Infusion");
+        add("card.thaumcraft.infuse.text", "By making assumptions on the results of infusing certain objects with essentia, and then testing those results valuable insight may be gained. You will learn much by combining %1$s essentia with %2$s and then studying the result. Gain %3$s Infusion.");
+        add("card.thaumcraft.calibrate.name", "Calibrate");
+        add("card.thaumcraft.calibrate.text", "You take some time to properly calibrate your instruments and tools. Gain 15 Artifice and a bonus draw.");
+        add("card.thaumcraft.mindmatter.name", "Mind over Matter");
+        add("card.thaumcraft.mindmatter.text", "You carefully examine and take apart some basic components in the hopes of finding new ways to assemble them into more complex creations. Gain %1$s Artifice. ");
+        add("card.thaumcraft.tinker.name", "Tinker");
+        add("card.thaumcraft.tinker.text", "You start tinkering with some devices to find new ways of incorporating them into magical creations. Gain %1$s to %2$s Artifice.");
+        add("card.thaumcraft.spellbinding.name", "Spellbinding");
+        add("card.thaumcraft.spellbinding.text", "You bind various test enchantments to small pieces of leftover crystal. They have no practical purpose, but grant you invaluable knowledge. Lose up to 5 experience levels, but gain 5 Auromancy per level lost.");
+        add("card.thaumcraft.awareness.name", "Awareness");
+        add("card.thaumcraft.awareness.text", "You open yourself to the flows of vis around you. You gain a deeper understanding of how it works and the underlying nature of things, but this leaves you metaphysically vulnerable. Gain 20 Auromancy. There is a chance you gain Eldritch knowledge and Warp. ");
+        add("card.thaumcraft.focus.name", "Spiritual Focus");
+        add("card.thaumcraft.focus.text", "You focus your mind on the magical and spiritual energy around you, hoping to grow more attuned to its ebb and flow. Gain 15 Auromancy and a bonus draw.");
+        add("card.thaumcraft.sculpting.name", "Sculpting");
+        add("card.thaumcraft.sculpting.text", "You can hone your knowledge by creating simple and short-lived animated figurines. Gain 20 Golemancy and a bonus draw.");
+        add("card.thaumcraft.scripting.name", "Scripting");
+        add("card.thaumcraft.scripting.text", "A large part of Golemancy is creating intricate arcane texts to control your creations. By creating some test scripts you can further your understanding. Gain 25 Golemancy. This consumes additional paper and ink from the research table. ");
+        add("card.thaumcraft.synergy.name", "Synergy");
+        add("card.thaumcraft.synergy.text", "At its root, Golemancy is a blend of Alchemy, Artifice and Infusion. Only by fully understanding how these three disciplines interact with each other will you be able to master Golemancy. Lose 15 points divided evenly between Alchemy, Artifice and Infusion to gain 30 Golemancy. An additional category will gain the full bonus upon completion.");
+        add("card.thaumcraft.darkwhisper.name", "Dark Whispers");
+        add("card.thaumcraft.darkwhisper.text", "The brain in a jar has been very talkative lately. It promises you ancient secrets for all your experience. Can you trust it?");
+        add("card.thaumcraft.glyph.name", "Study Glyphs");
+        add("card.thaumcraft.glyph.text", "You study the ancient glyphs. What Eldritch secrets do they hold? You find the ancient language difficult to understand, but now and again some nugget of truth reveals itself to you.");
+        add("card.thaumcraft.portal.name", "Voices from Beyond");
+        add("card.thaumcraft.portal.text", "Bathed in the light of this strange portal you find strange thoughts invading your mind. Most are incomprehensible, but some fill your mind with strange inspirations.");
+        add("card.thaumcraft.revelation.name", "Revelation");
+        add("card.thaumcraft.revelation.text", "Studying the Eldritch is a dangerous pursuit, but the knowledge you can uncover is often worth it. You gain 30 Eldritch progress and 5 to 10 progress in a random category. You will also gain some temporary and normal Warp and an additional category will gain the full bonus upon completion. ");
+        add("card.thaumcraft.realization.name", "Sudden Realization");
+        add("card.thaumcraft.realization.text", "While pondering the nature of the Eldritch you come to a sudden and shocking realization on the true nature of the universe. You gain 15 Eldritch progress and 5 to 10 progress in two random categories. You will also gain some temporary Warp. There is a chance you may gain some normal Warp as well.");
+        add("card.thaumcraft.truth.name", "Find Truth");
+        add("card.thaumcraft.truth.text", "You desperately try and find the truth behind the Eldritch and what it could mean for the world. You gain 10 to 25 Eldritch progress and a bonus draw. You will also gain some temporary Warp.");
         add("card.thaumcraft.celestial.name", "Celestial Studies");
         add("card.thaumcraft.celestial.text",
                 "You take some of the celestial notes you have made and compare them for possible correlations with your primary research category. You gain 25 to 50 inspiration toward %1$s. You may gain other things as well...");
 
-        add("research.thaumcraft.celestial_scanning.title", "Celestial Observation");
-        add("research.thaumcraft.celestial_scanning.stage_0",
-                "I have noticed a link between the phases of the moon and the speed at which the aura replenishes itself. I should investigate this phenomenon further and even expand my investigation to see if other heavenly bodies influence magic.<BR>A few minor tweaks to my thaumometer should enable it to take measurements from objects in the sky. I should remember to carry some paper and scribing tools with me so I can take notes.<BR>Measuring the same body or quadrant of the sky more than once a day will not give me new insights - I need to study them over time to measure changes in their aural influence.<BR>The notes I gather should come in handy for theorycrafting.");
-        add("research.thaumcraft.flux.title", "Flux");
-        add("research.thaumcraft.flux.stage_0",
-                "I have been monitoring a strange buildup of magical energy in the aura. It seems to be a form of 'dirty' vis that I have named Flux. It shows as an ominous dark bar on my thaumometer.<BR>I now know what those purple puffs are I occasionally see when I am being careless - it is essentia spilling into the atmosphere and becoming Flux. Pure essentia, it seems, should not be directly exposed to the aura.<BR>I'm not exactly sure what negative effects this will cause, but I have noticed that Flux seems to clog the local aura preventing Vis from replenishing naturally.<BR>Picture it as a thick layer of scum on a natural pool of clean water.<BR>The local aura has a point at which it is 'filled' and Flux seems to count towards this capacity.<BR>More alarmingly, it seems to take precedence over vis and I suspect it can probably exceed this natural limit.<BR>I am not sure what will happen when Flux overflows, but it it bound to be interesting.");
         add("research.thaumcraft.flux.warn", "Something seems to be building up in the aura. Something bad.");
+        add("research.thaumcraft.warp.warn", "My mind reels from the knowledge I have gained");
+        add("research.thaumcraft.oculus.title", "The Oculus");
+        add("research.thaumcraft.oculus.stage_0",
+                "The whispers have grown into a chorus and at last I understand what they want of me. The obelisks scattered across the world are not monuments - they are doors, and every door has a key.<BR>The strange altars where I first encountered the crimson cult hold a keystone marked with four empty sockets. Four eyes must be seated there, crafted or bargained for, and the sinister energies above the keystone must remain intact.<BR>Before I attempt something this reckless I should set my theories in order.");
+        add("research.thaumcraft.oculus.stage_1",
+                "It was all so simple - I am amazed the Crimson Cultists never discovered this.<BR>Four Eldritch Eyes seated upon the keystone, then a focused discharge of vis channeled through my casting gauntlet into the altar. The local aura pays the price, and the so-called Eye is opened.<BR>Of course I have no idea what that means. No matter - only fools fear the unknown!");
+        add("research.thaumcraft.enter_outer_lands.title", "The Outer Lands");
+        add("research.thaumcraft.enter_outer_lands.stage_0",
+                "You are not quite sure what you were expecting when you stepped through the Oculus, but this strange structure of crumbling stone and twisted passageways was not it.<BR>Something is not quite right here - this structure was not designed for any practical purpose you can discern... unless that purpose was for it to be a deadly maze.<BR>Strange energies abound and your magic seems to act strangely in this alien environment. Even the other denizens you encounter seem out of place here.");
+        add("research.thaumcraft.outer_revelations.title", "Outer Revelations");
+        add("research.thaumcraft.outer_revelations.stage_0",
+                "Your suspicions have been confirmed. This is not the home of the race you have come to call the Eldritch. This place is something else entirely and you do not believe it exists in what you understand as being \"reality\" - it is as much a mental construct as a physical one, but what mind can contain this?<BR>You have been able to decipher only a small number of the symbols, but you are sure this place is a trap - a place to test visitors and weed out the weak. For what purpose you are not sure.");
+        add("gui.thaumcraft.altar.ritual_unknown", "The keystone hums with power, but its purpose escapes you... for now.");
 
-        scanEntry("thaumcraft/thaumic_slime", "Thaumic Slime",
-                "These purple slimes are a strange offshoot of their green cousins. Normal slimes form from the organic gunk that occasionally collects in caves, but Thaumic Slimes are formed from the purple proto-matter residue left over from magical mishaps.<BR>Apart from their strange origins they are rather similar to their green cousins for the most part. They do appear to have the ability to split at will, often spitting a lesser version of themselves at targets that venture too close. If there are no targets nearby, split slimes will endeavour to reform to once again form a larger organism.");
-        scanEntry("thaumcraft/taint_seed", "Taint Seed",
-                "Occasionally tight knots of Tainted tendrils will form. From out of this 'seed' foul tainted air will spew which acts as the basis for new Taint growth.<BR>These seeds can lash out to defend themselves, but the risk must be taken if you wish to rid an area of taint.<BR>Without the foul air these seeds create, tainted growth soon withers and dies.");
-        scanEntry("thaumcraft/taint_crawler", "Tainted Crawler",
-                "These disgusting grubs secrete corrupting Taint wherever they go. Most of the time the Taint is short-lived if they wander too far from the core of the Taint growth, but other times this can cause the Taint to spread much quicker than it normally would.<BR>It is best to destroy them on sight.");
-        scanEntry("thaumcraft/taintacle", "Taintacle",
-                "These dangerous growths look like giant tentacles. They will lash out at anything that comes nearby.<BR>Though they are immobile, keeping your distance might not keep you safe as miniature versions of them will spawn all around you should you draw their attention.");
-        scanEntry("thaumcraft/taint_swarm", "Taint Swarm",
-                "Sometimes purple hive-like growths will form on the remains of trees within Taint. Swarms of tiny biting creatures will spawn from these growths and rove around in aggressive swarms.<BR>They move fast, are hard to avoid and even harder to hit. Fortunately the individual creatures are not particularly robust so a properly prepared traveller should be able to dispatch them easily.");
-        scanEntry("thaumcraft/wisp", "Wisp",
-                "These strange creatures appear to be floating points of light and are often found near high concentrations of vis. Honestly I am not sure if they are creatures at all - they move randomly and do not appear to exhibit the normal characteristics of a living organism. They do however react to being attacked and occasionally become aggressive for no apparent reason.<BR>My initial thoughts are they might be a form of proto-life made up of vis instead of normal matter, but that cannot be the whole picture as I am detecting strange dimensional energies at their core.");
-        scanEntry("thaumcraft/pech", "The Pech",
-                "These strange humanoids can be found wherever the veil between worlds is at its thinnest. They seem drawn to the magical energies that abound in such places.<IMG>thaumcraft:textures/research/research5.png:128:136:108:117:.75</IMG>Don't let their small stature fool you. They have incredible strength and can carry many times their own bodyweight.<BR>Pech are normally not aggressive, but when riled up they will band together and hunt down their attacker. Under normal conditions they avoid people at all costs.<BR>Pechs are notoriously avaricious, and will loot anything not nailed down, though they prefer precious things. It is said that if you feed this desire for material wealth it could be possible to befriend one.<BR>Once befriended they often carry wondrous objects that they might be willing to part with.<BR>It should be noted that such 'friendships' seldom last long.");
-        scanEntry("thaumcraft/firebat", "Firebat",
-                "Fire bats, or Hellbats, are usually found in the Nether. Engulfed in flame and unreasonably aggressive they are perfectly suited to the environment they live in. They also have the alarming tendency to explode when attacking.<BR>One wonders what possible evolutionary advantage exploding gives them as a species, but the same can be asked of creepers.");
-        scanEntry("thaumcraft/cultist", "Crimson Cultist",
-                "These red-robed cultists have been popping up of late. Their goals are unknown to me and they seem unwilling to talk. Beyond that there is something... wrong about them. Their grip on sanity seems tenuous at best, but the wrongness goes much deeper than that. It is hard to describe.<BR>My presence seems to enrage them and I believe it might have something to do with my capacity for thaumaturgy.<BR>Their clerics are also capable of wielding magic and I can sense that they are drawing it from the aura, but the magic itself does not seem to be thaumaturgy. Whatever it is, it makes my skin crawl and I can feel the aura buckling and tearing every time they draw upon it.<BR>Some of them seem to carry a book around. I should try and get my hand on one of those, maybe it will tell me more about this strange cult. I should be careful though, some knowledge can be dangerous.");
-        scanEntry("thaumcraft/brainy_zombie", "Angry Zombie",
-                "I have observed that some zombies seem much more aware than their lumbering brethren. Their eyes burn with a malevolent intelligence leading me to believe that they retained much more intelligence after death than is normal. They are definitely more aggressive and dangerous than a normal zombie.<BR>They should make good sources of brain matter for my experiments.");
-        scanEntry("thaumcraft/eldritch_guardian", "Eldritch Guardian",
-                "These ghost-like figures are a dangerous menace. They can be found wherever the walls of reality are at their thinnest. I believe they act as guardians of such places, protecting those weak spots from trespassers.<BR>Their form is held together by dimensional energies from some other place making them much weaker in our world. I would hate having to confront them in whatever place they call home.<BR>Their touch is deadly and they are able to hurl entropic dimensional energy at those too far to reach.");
-        scanEntry("thaumcraft/eldritch_crab", "Eldritch Crab",
-                "Eldritch Crabs, or Helmed Crabs, are a most unusual and unnatural creature. I am convinced these creatures are the result of magical tinkering.<BR>A pair of powerful claws make them dangerous to face in combat, but it is how they use those claws that make them horrific. They leap at their foes heads in an attempt to decapitate them. If successful they are somehow able to burrow into the victims body and take control of what remains. Their abdomen looks much like a helmed head allowing them to disguise the true nature of the husk they now control.<BR>These husks are not much more powerful than a normal zombie so the reason why they do this eludes me - they are much more of a threat without their 'mount'. Possibly they were created as weapons of terror by some demented inventor?");
     
     }
 
@@ -909,6 +895,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.seal_provider", "Control Seal: Provide");
         add("item.thaumcraft.seal_stock", "Control Seal: Stock");
         add("block.thaumcraft.levitator", "Arcane Levitator");
+        add("block.thaumcraft.potion_sprayer", "Potion Sprayer");
+        add("block.thaumcraft.pattern_crafter", "Arcane Pattern Crafter");
+        add("block.thaumcraft.inlay", "Redstone Inlay");
         add("block.thaumcraft.golem_builder", "Golem Press");
         add("block.thaumcraft.placeholder_iron_bars", "Iron Bars");
         add("block.thaumcraft.placeholder_cauldron", "Cauldron");
@@ -1158,10 +1147,6 @@ public final class TCEnglishProvider extends LanguageProvider {
     
     }
 
-    private void scanEntry(String entityPath, String title, String text) {
-        add("research.thaumcraft.scanned/entity/" + entityPath + ".title", title);
-        add("research.thaumcraft.scanned/entity/" + entityPath + ".stage_0", text);
-    }
 
     private String dyeName(DyeColor dye) {
         String[] parts = dye.getName().split("_");

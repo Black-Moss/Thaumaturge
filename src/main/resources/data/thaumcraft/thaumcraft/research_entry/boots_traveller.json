@@ -1,0 +1,38 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.boots_traveller.title",
+  "parents": [
+    "thaumcraft:infusion",
+    "thaumcraft:recharge_pedestal"
+  ],
+  "column": -2,
+  "row": 2,
+  "icons": [
+    "thaumcraft:traveller_boots"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.boots_traveller.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:infusion",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/motus",
+        "thaumcraft:m_walker",
+        "thaumcraft:m_runner",
+        "thaumcraft:m_swimmer",
+        "thaumcraft:m_jumper"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.boots_traveller.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/traveller_boots"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "category": "thaumcraft:eldritch",
+  "name": "research.thaumcraft.void_siphon.title",
+  "parents": [
+    "thaumcraft:base_eldritch",
+    "thaumcraft:infusion"
+  ],
+  "column": 3,
+  "row": 0,
+  "icons": [
+    "thaumcraft:void_siphon"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.void_siphon.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:eldritch",
+          "amount": 1
+        }
+      ],
+      "warp": 1
+    },
+    {
+      "text": "research.thaumcraft.void_siphon.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/void_siphon"
+      ]
+    }
+  ]
+}

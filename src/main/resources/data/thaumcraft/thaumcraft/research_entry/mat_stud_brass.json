@@ -1,0 +1,26 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.mat_stud_brass.title",
+  "parents": [
+    "thaumcraft:mat_stud_iron",
+    "thaumcraft:metallurgy@2"
+  ],
+  "column": -4,
+  "row": -2,
+  "meta": [
+    "reverse",
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:plate_brass"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mat_stud_brass.stage_0",
+      "required_research": [
+        "thaumcraft:f_matbrass"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.mirror_hand.title",
+  "parents": [
+    "thaumcraft:mirror"
+  ],
+  "column": -7,
+  "row": 1,
+  "icons": [
+    "thaumcraft:hand_mirror"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mirror_hand.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.mirror_hand.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/hand_mirror"
+      ]
+    }
+  ]
+}

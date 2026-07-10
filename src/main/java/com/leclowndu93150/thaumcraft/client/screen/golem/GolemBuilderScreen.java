@@ -9,6 +9,8 @@ import com.leclowndu93150.thaumcraft.api.golems.parts.GolemArm;
 import com.leclowndu93150.thaumcraft.api.golems.parts.GolemHead;
 import com.leclowndu93150.thaumcraft.api.golems.parts.GolemLeg;
 import com.leclowndu93150.thaumcraft.api.golems.parts.GolemMaterial;
+import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.items.InvHelper;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCContainerScreen;
 import com.leclowndu93150.thaumcraft.client.screen.widget.TCButton;
@@ -101,15 +103,25 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
     protected void init() {
         super.init();
         valHeads.clear();
-        TCGolemParts.heads().forEach(valHeads::add);
+        TCGolemParts.heads().forEach(head -> {
+            if (knowsAll(head.research())) valHeads.add(head);
+        });
         valMats.clear();
-        TCGolemParts.materials().forEach(valMats::add);
+        TCGolemParts.materials().forEach(mat -> {
+            if (knowsAll(mat.research())) valMats.add(mat);
+        });
         valArms.clear();
-        TCGolemParts.arms().forEach(valArms::add);
+        TCGolemParts.arms().forEach(arm -> {
+            if (knowsAll(arm.research())) valArms.add(arm);
+        });
         valLegs.clear();
-        TCGolemParts.legs().forEach(valLegs::add);
+        TCGolemParts.legs().forEach(leg -> {
+            if (knowsAll(leg.research())) valLegs.add(leg);
+        });
         valAddons.clear();
-        TCGolemParts.addons().forEach(valAddons::add);
+        TCGolemParts.addons().forEach(addon -> {
+            if (knowsAll(addon.research())) valAddons.add(addon);
+        });
         if (headIndex >= valHeads.size()) {
             headIndex = 0;
         }
@@ -126,6 +138,19 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             addonIndex = 0;
         }
         gatherInfo();
+    }
+
+    private boolean knowsAll(List<Identifier> research) {
+        if (minecraft == null || minecraft.player == null) {
+            return false;
+        }
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
+        for (Identifier id : research) {
+            if (!knowledge.isResearchComplete(id)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void gatherInfo() {
@@ -171,8 +196,8 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             int row = 0;
             int col = 0;
             for (GolemTrait tag : tags) {
-                TCHoverButton button = new TCHoverButton(leftPos + 72 + col * 16 - xx, topPos + 48 + 16 * row - yy,
-                        16, 16, new TCButtonIcon.TextureIcon(tag.icon()),
+                TCHoverButton button = TCHoverButton.centered(leftPos + 72 + col * 16 - xx, topPos + 48 + 16 * row - yy,
+                        16, new TCButtonIcon.TextureIcon(tag.icon()),
                         Component.translatable("golem.trait." + tag.getSerializedName()), () -> {});
                 button.setDescription(Component.translatable("golem.trait.text." + tag.getSerializedName()));
                 addRenderableWidget(button);
@@ -258,7 +283,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
     }
 
     private void addPartButton(int x, int y, Identifier icon, String kind, String path, int color) {
-        TCHoverButton button = new TCHoverButton(leftPos + x, topPos + y, 16, 16,
+        TCHoverButton button = TCHoverButton.centered(leftPos + x, topPos + y, 16,
                 new TCButtonIcon.TextureIcon(icon),
                 Component.translatable("golem." + kind + "." + path), () -> {});
         button.setDescription(Component.translatable("golem." + kind + ".text." + path));
@@ -271,7 +296,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         return key == null ? "unknown" : key.getPath();
     }
 
-    private void redoComps() {
+    private void computeOwnership() {
         allFound = true;
         cost = props.getTraits().size() * 2;
         components = props.generateComponents();
@@ -288,10 +313,22 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
                 allFound = false;
             }
         }
+        for (var widget : children()) {
+            if (widget instanceof TCButton button) {
+                button.active = !disableAll;
+            }
+        }
+        if (!disableAll && craftButton != null) {
+            craftButton.active = allFound;
+        }
+    }
+
+    private void redoComps() {
+        computeOwnership();
         if (!components.isEmpty()) {
             Holder<IAspect> machina = machinaHolder();
             if (machina != null) {
-                TCHoverButton aspectButton = new TCHoverButton(leftPos + 152, topPos + 24, 16, 16,
+                TCHoverButton aspectButton = TCHoverButton.centered(leftPos + 152, topPos + 24, 16,
                         new TCButtonIcon.AspectIcon(machina),
                         Component.translatable("aspect.thaumcraft." + machina.value().tag()), () -> {});
                 aspectButton.setDescription(Component.translatable("aspect.thaumcraft." + machina.value().tag() + ".desc"));
@@ -300,7 +337,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             int row = 1;
             int col = 0;
             for (ItemStack stack : components) {
-                addRenderableWidget(new TCHoverButton(leftPos + 152 + col * 16, topPos + 24 + 16 * row, 16, 16,
+                addRenderableWidget(TCHoverButton.centered(leftPos + 152 + col * 16, topPos + 24 + 16 * row, 16,
                         new TCButtonIcon.StackIcon(stack), stack.getHoverName(), () -> {}));
                 if (++row > 3) {
                     row = 0;
@@ -316,6 +353,12 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         if (!disableAll && craftButton != null) {
             craftButton.active = allFound;
         }
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        computeOwnership();
     }
 
     private @Nullable Holder<IAspect> machinaHolder() {
@@ -362,16 +405,16 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
                     PROGRESS_HEIGHT, 256, 256);
             if (!disableAll) {
                 disableAll = true;
-                redoComps();
+                computeOwnership();
             }
         } else if (disableAll) {
             disableAll = false;
-            redoComps();
+            computeOwnership();
         }
         BlockEntityGolemBuilder builder = menu.blockEntity();
         if (builder != null && builder.hasStuff != lastStuff) {
             lastStuff = builder.hasStuff;
-            redoComps();
+            computeOwnership();
         }
         drawCentered(graphics, String.valueOf(hearts), leftPos + STAT_HEARTS_X, topPos + STAT_Y);
         drawCentered(graphics, String.valueOf(armor), leftPos + STAT_ARMOR_X, topPos + STAT_Y);
@@ -379,14 +422,14 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
     }
 
     private void drawCentered(GuiGraphicsExtractor graphics, String text, int centerX, int y) {
-        graphics.text(font, text, centerX - font.width(text) / 2, y, WHITE, false);
+        graphics.text(font, text, centerX - font.width(text) / 2, y, WHITE, true);
     }
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!components.isEmpty()) {
             String costText = String.valueOf(cost);
-            graphics.text(font, costText, COST_RIGHT_X - font.width(costText), COST_Y, WHITE, false);
+            graphics.text(font, costText, COST_RIGHT_X - font.width(costText), COST_Y, WHITE, true);
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 12, 12, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 12, 60, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);

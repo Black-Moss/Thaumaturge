@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipeDisplay;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
@@ -63,8 +65,16 @@ public final class TCRecipeTypes {
 
     private TCRecipeTypes() {}
 
+    public static final DeferredRegister<RecipeDisplay.Type<?>> RECIPE_DISPLAYS =
+            DeferredRegister.create(Registries.RECIPE_DISPLAY, TCIds.MODID);
+
+    public static final DeferredHolder<RecipeDisplay.Type<?>, RecipeDisplay.Type<ArcaneCraftingRecipeDisplay>> ARCANE_DISPLAY =
+            RECIPE_DISPLAYS.register("arcane_crafting",
+                    () -> new RecipeDisplay.Type<>(ArcaneCraftingRecipeDisplay.MAP_CODEC, ArcaneCraftingRecipeDisplay.STREAM_CODEC));
+
     public static void register(IEventBus modBus) {
         RECIPE_TYPES.register(modBus);
+        RECIPE_DISPLAYS.register(modBus);
     }
 
     public static void registerSynchronizedRecipes(OnDatapackSyncEvent event){

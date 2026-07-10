@@ -1,0 +1,37 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_scatter.title",
+  "parents": [
+    "thaumcraft:focus_bolt",
+    "thaumcraft:focus_projectile"
+  ],
+  "column": 5,
+  "row": -1,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_scatter.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_scatter.stage_1"
+    }
+  ]
+}

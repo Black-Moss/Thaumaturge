@@ -1,0 +1,52 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.vis_generator.title",
+  "parents": [
+    "thaumcraft:redstone_relay"
+  ],
+  "column": 2,
+  "row": -3,
+  "icons": [
+    "thaumcraft:vis_generator"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.vis_generator.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:redstone_block"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:piston"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/potentia"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.vis_generator.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/vis_generator"
+      ]
+    }
+  ]
+}

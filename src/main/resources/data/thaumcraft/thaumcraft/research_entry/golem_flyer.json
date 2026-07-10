@@ -1,0 +1,31 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.golem_flyer.title",
+  "parents": [
+    "thaumcraft:golem_climber",
+    "thaumcraft:levitator"
+  ],
+  "column": -6,
+  "row": 2,
+  "icons": [
+    "thaumcraft:textures/research/icon_legs_flyer.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.golem_flyer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:f_fly"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.golem_flyer.stage_1"
+    }
+  ]
+}

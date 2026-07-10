@@ -63,6 +63,10 @@ public final class ItemCurio extends Item {
         this.variant = variant;
     }
 
+    public Variant variant() {
+        return variant;
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {

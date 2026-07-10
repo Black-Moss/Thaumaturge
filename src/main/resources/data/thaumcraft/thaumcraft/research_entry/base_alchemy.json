@@ -1,0 +1,29 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.base_alchemy.title",
+  "parents": [
+    "thaumcraft:unlock_alchemy"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_alchemy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.base_alchemy.stage_0",
+      "recipes": [
+        "thaumcraft:crucible/nitor_yellow",
+        "thaumcraft:crucible/nitor_yellow",
+        "thaumcraft:crucible/vis_crystal/aer",
+        "thaumcraft:phial",
+        "thaumcraft:arcane_workbench/filter",
+        "thaumcraft:arcane_workbench/morphic_resonator"
+      ]
+    }
+  ]
+}

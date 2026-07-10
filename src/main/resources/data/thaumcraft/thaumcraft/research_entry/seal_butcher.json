@@ -1,0 +1,36 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.seal_butcher.title",
+  "parents": [
+    "thaumcraft:seal_guard",
+    "thaumcraft:infusion",
+    "thaumcraft:mind_biothaumic"
+  ],
+  "column": -11,
+  "row": 6,
+  "icons": [
+    "thaumcraft:seal_butcher"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.seal_butcher.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/bestia"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.seal_butcher.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/seal_butcher"
+      ],
+      "warp": 1
+    }
+  ]
+}

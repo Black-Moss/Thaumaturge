@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumcraft.data;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
-import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.compat.curio.data.TCCurioProvider;
 import com.leclowndu93150.thaumcraft.data.damagetype.TCDamageTypeBootstrap;
 import com.leclowndu93150.thaumcraft.data.datamap.AuraModifierProvider;
@@ -29,7 +28,6 @@ import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCStructureBootstrap;
 import com.leclowndu93150.thaumcraft.data.worldgen.research.CategoryBootstrap;
-import com.leclowndu93150.thaumcraft.data.worldgen.research.EntryBootstrap;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.RegistrySetBuilder;
@@ -50,7 +48,6 @@ public final class TCDataGenerators {
         RegistrySetBuilder registries = new RegistrySetBuilder()
                 .add(IAspect.REGISTRY_KEY, AspectBootstrap::bootstrap)
                 .add(IResearchCategory.REGISTRY_KEY, CategoryBootstrap::bootstrap)
-                .add(IResearchEntry.REGISTRY_KEY, EntryBootstrap::bootstrap)
                 .add(Registries.DAMAGE_TYPE, TCDamageTypeBootstrap::bootstrap)
                 .add(Registries.CONFIGURED_FEATURE, TCConfiguredFeatures::bootstrap)
                 .add(Registries.PLACED_FEATURE, TCPlacedFeatures::bootstrap)

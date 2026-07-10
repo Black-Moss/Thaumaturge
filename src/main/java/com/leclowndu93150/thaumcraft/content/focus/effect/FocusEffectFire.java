@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.focus.effect;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
@@ -10,6 +11,7 @@ import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.api.damagesource.TCDamageSources;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -37,6 +39,11 @@ public final class FocusEffectFire extends FocusEffect {
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("base_auromancy"), Optional.empty(), false);
     }
 
     @Override

@@ -3,12 +3,14 @@ package com.leclowndu93150.thaumcraft.content.focus.medium;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMedium;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.entity.EntityFocusCloud;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
@@ -23,6 +25,11 @@ public final class FocusMediumCloud extends FocusMedium {
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("focus_cloud"), Optional.empty(), false);
     }
 
     @Override

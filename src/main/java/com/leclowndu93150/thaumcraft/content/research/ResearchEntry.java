@@ -3,8 +3,10 @@ package com.leclowndu93150.thaumcraft.content.research;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
+import com.leclowndu93150.thaumcraft.api.research.ResearchAddendum;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
 import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
+import com.leclowndu93150.thaumcraft.api.research.ResearchParent;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -19,24 +21,26 @@ import net.minecraft.resources.RegistryFixedCodec;
 public record ResearchEntry(
         Holder<IResearchCategory> category,
         String nameKey,
-        Set<Identifier> parents,
+        Set<ResearchParent> parents,
         Set<Identifier> siblings,
         int column,
         int row,
         List<IResearchStage> stages,
         Set<ResearchEntryMeta> meta,
-        List<ResearchIcon> icons
+        List<ResearchIcon> icons,
+        List<ResearchAddendum> addenda
 ) implements IResearchEntry {
     public static final Codec<ResearchEntry> DIRECT_CODEC = RecordCodecBuilder.<ResearchEntry>create(instance -> instance.group(
             RegistryFixedCodec.create(IResearchCategory.REGISTRY_KEY).fieldOf("category").forGetter(ResearchEntry::category),
             Codec.STRING.fieldOf("name").forGetter(ResearchEntry::nameKey),
-            Identifier.CODEC.listOf().optionalFieldOf("parents", List.of()).forGetter(e -> List.copyOf(e.parents())),
+            ResearchParent.CODEC.listOf().optionalFieldOf("parents", List.of()).forGetter(e -> List.copyOf(e.parents())),
             Identifier.CODEC.listOf().optionalFieldOf("siblings", List.of()).forGetter(e -> List.copyOf(e.siblings())),
             Codec.INT.fieldOf("column").forGetter(ResearchEntry::column),
             Codec.INT.fieldOf("row").forGetter(ResearchEntry::row),
             ResearchStage.CODEC.listOf().fieldOf("stages").forGetter(e -> e.stages().stream().map(s -> (ResearchStage) s).toList()),
             ResearchEntryMeta.CODEC.listOf().optionalFieldOf("meta", List.of()).forGetter(e -> List.copyOf(e.meta())),
-            ResearchIcon.CODEC.listOf().optionalFieldOf("icons", List.of()).forGetter(ResearchEntry::icons)
+            ResearchIcon.CODEC.listOf().optionalFieldOf("icons", List.of()).forGetter(ResearchEntry::icons),
+            ResearchAddendum.CODEC.listOf().optionalFieldOf("addenda", List.of()).forGetter(ResearchEntry::addenda)
     ).apply(instance, ResearchEntry::create)).validate(ResearchEntry::validate);
 
     public static final Codec<IResearchEntry> CODEC = DIRECT_CODEC.xmap(e -> (IResearchEntry) e, ResearchEntry::ofInterface);
@@ -44,13 +48,14 @@ public record ResearchEntry(
     private static ResearchEntry create(
             Holder<IResearchCategory> category,
             String nameKey,
-            List<Identifier> parents,
+            List<ResearchParent> parents,
             List<Identifier> siblings,
             int column,
             int row,
             List<ResearchStage> stages,
             List<ResearchEntryMeta> meta,
-            List<ResearchIcon> icons
+            List<ResearchIcon> icons,
+            List<ResearchAddendum> addenda
     ) {
         return new ResearchEntry(
                 category,
@@ -61,7 +66,8 @@ public record ResearchEntry(
                 row,
                 List.copyOf(stages),
                 meta.isEmpty() ? EnumSet.noneOf(ResearchEntryMeta.class) : EnumSet.copyOf(meta),
-                List.copyOf(icons)
+                List.copyOf(icons),
+                List.copyOf(addenda)
         );
     }
 
@@ -85,7 +91,8 @@ public record ResearchEntry(
                 entry.row(),
                 entry.stages(),
                 entry.meta(),
-                entry.icons()
+                entry.icons(),
+                entry.addenda()
         );
     }
 }

@@ -3,5 +3,8 @@
   "blueprint": "thaumcraft:thaumatorium",
   "result": {
     "id": "thaumcraft:thaumatorium"
+  },
+  "research": {
+    "entry": "thaumcraft:thaumatorium"
   }
 }

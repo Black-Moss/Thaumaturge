@@ -1,0 +1,35 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.improved_smelting_2.title",
+  "parents": [
+    "thaumcraft:improved_smelting"
+  ],
+  "column": 3,
+  "row": -4,
+  "icons": [
+    "thaumcraft:smelter_vent"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.improved_smelting_2.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.improved_smelting_2.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/smelter_vent"
+      ]
+    }
+  ]
+}

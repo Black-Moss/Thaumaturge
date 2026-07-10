@@ -114,6 +114,16 @@ public final class TCPayloads {
                 (payload, context) -> RecipeDisplayClientHandler.handle(payload, context)
         );
         registrar.playToServer(
+                ServerboundRequestItemRecipePayload.TYPE,
+                ServerboundRequestItemRecipePayload.STREAM_CODEC,
+                ServerboundRecipeDisplayHandler::handleItemRequest
+        );
+        registrar.playToClient(
+                ClientboundItemRecipePayload.TYPE,
+                ClientboundItemRecipePayload.STREAM_CODEC,
+                (payload, context) -> RecipeDisplayClientHandler.handleItemRecipe(payload, context)
+        );
+        registrar.playToServer(
                 ServerboundRequestRecipeDisplayPayload.TYPE,
                 ServerboundRequestRecipeDisplayPayload.STREAM_CODEC,
                 ServerboundRecipeDisplayHandler::handle

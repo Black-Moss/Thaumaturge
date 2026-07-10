@@ -1,0 +1,27 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.base_infusion.title",
+  "parents": [
+    "thaumcraft:unlock_infusion"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_infusion.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.base_infusion.stage_0",
+      "recipes": [
+        "thaumcraft:arcane/banner_white",
+        "thaumcraft:amulet_mundane",
+        "thaumcraft:ring_mundane",
+        "thaumcraft:girdle_mundane"
+      ]
+    }
+  ]
+}

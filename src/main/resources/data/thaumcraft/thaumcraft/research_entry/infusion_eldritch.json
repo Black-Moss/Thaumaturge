@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.infusion_eldritch.title",
+  "parents": [
+    "thaumcraft:infusion_boost",
+    "thaumcraft:scanned/orblock2"
+  ],
+  "column": -2,
+  "row": 6,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:stone_eldritch_tile"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.infusion_eldritch.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumcraft:stone_eldritch_tile"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:eldritch",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.infusion_eldritch.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/pedestal_eldritch",
+        "thaumcraft:dust_trigger/infusion_altar_eldritch"
+      ],
+      "warp": 2
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.ore.title",
+  "column": -4,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "minecraft:iron_pickaxe"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.ore.stage_0"
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumcraft.ore.addendum_0",
+      "required_research": [
+        "thaumcraft:scanned/oreamber"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.ore.addendum_1",
+      "required_research": [
+        "thaumcraft:scanned/orecinnabar"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.ore.addendum_2",
+      "required_research": [
+        "thaumcraft:scanned/orecrystal"
+      ]
+    }
+  ]
+}

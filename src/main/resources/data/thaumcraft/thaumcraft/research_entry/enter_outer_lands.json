@@ -1,0 +1,21 @@
+{
+  "category": "thaumcraft:eldritch",
+  "name": "research.thaumcraft.enter_outer_lands.title",
+  "parents": [
+    "~thaumcraft:oculus"
+  ],
+  "column": -5,
+  "row": 4,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_outer.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.enter_outer_lands.stage_0"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.crimson_rites.title",
+  "parents": [
+    "thaumcraft:scanned/entity/thaumcraft/cultist"
+  ],
+  "column": -6,
+  "row": 4,
+  "meta": [
+    "round",
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:curio_rites"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.crimson_rites.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumcraft:curio_rites"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.crimson_rites.stage_1"
+    }
+  ]
+}

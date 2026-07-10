@@ -3,5 +3,8 @@
   "blueprint": "thaumcraft:golem_press",
   "result": {
     "id": "thaumcraft:golem_builder"
+  },
+  "research": {
+    "entry": "thaumcraft:mind_clockwork"
   }
 }

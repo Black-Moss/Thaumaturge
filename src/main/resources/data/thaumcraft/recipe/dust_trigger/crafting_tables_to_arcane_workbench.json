@@ -5,7 +5,7 @@
     "id": "thaumcraft:arcane_workbench"
   },
   "research": {
-    "entry": "thaumcraft:arcane_workbench",
-    "stage": 1
+    "entry": "thaumcraft:first_steps",
+    "stage": 0
   }
 }

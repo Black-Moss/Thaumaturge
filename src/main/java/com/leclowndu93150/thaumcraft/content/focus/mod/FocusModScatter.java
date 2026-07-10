@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.focus.mod;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMod;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
@@ -8,6 +9,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
@@ -23,6 +25,11 @@ public final class FocusModScatter extends FocusMod {
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("focus_scatter"), Optional.empty(), false);
     }
 
     @Override

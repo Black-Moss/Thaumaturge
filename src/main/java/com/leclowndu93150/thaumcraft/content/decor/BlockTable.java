@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.decor;
 
+import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.api.items.IScribeTools;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockResearchTable;
@@ -8,6 +9,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -63,6 +65,9 @@ public final class BlockTable extends Block {
             researchTable.setChanged();
         }
         player.setItemInHand(hand, ItemStack.EMPTY);
+        if (player instanceof ServerPlayer serverPlayer) {
+            ResearchProgressionEvents.recordCrafted(serverPlayer, new ItemStack(TCBlocks.RESEARCH_TABLE.get()));
+        }
         return InteractionResult.SUCCESS;
     }
 }

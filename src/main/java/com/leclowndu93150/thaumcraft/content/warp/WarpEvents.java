@@ -2,6 +2,10 @@ package com.leclowndu93150.thaumcraft.content.warp;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
@@ -10,6 +14,7 @@ import com.leclowndu93150.thaumcraft.network.ClientboundWarpFXPayload;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -64,6 +69,31 @@ public final class WarpEvents {
         PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.heartbeat());
         if (eff > 0) {
             dispatchEvent(player, eff, warp, nw, rand);
+        }
+        checkWarpMilestones(player, nw + pw);
+    }
+
+    private static final int BATH_SALTS_WARP_THRESHOLD = 10;
+    private static final int ELDRITCH_MINOR_WARP_THRESHOLD = 25;
+    private static final int ELDRITCH_MAJOR_WARP_THRESHOLD = 50;
+    private static final Identifier BATH_SALTS_ENTRY = TCIds.rl("bath_salts");
+    private static final Identifier BATHSALTS_FLAG = TCIds.rl("bathsalts");
+    private static final Identifier ELDRITCH_MINOR_FLAG = TCIds.rl("eldritchminor");
+    private static final Identifier ELDRITCH_MAJOR_FLAG = TCIds.rl("eldritchmajor");
+
+    private static void checkWarpMilestones(ServerPlayer player, int actualWarp) {
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        if (actualWarp > BATH_SALTS_WARP_THRESHOLD
+                && !knowledge.isResearchKnown(BATH_SALTS_ENTRY)
+                && !knowledge.isResearchKnown(BATHSALTS_FLAG)) {
+            WarpManager.sendActionBar(player, "warp.thaumcraft.text.8");
+            ResearchManager.complete(player, BATHSALTS_FLAG);
+        }
+        if (actualWarp > ELDRITCH_MINOR_WARP_THRESHOLD && !knowledge.isResearchKnown(ELDRITCH_MINOR_FLAG)) {
+            ResearchManager.complete(player, ELDRITCH_MINOR_FLAG);
+        }
+        if (actualWarp > ELDRITCH_MAJOR_WARP_THRESHOLD && !knowledge.isResearchKnown(ELDRITCH_MAJOR_FLAG)) {
+            ResearchManager.complete(player, ELDRITCH_MAJOR_FLAG);
         }
     }
 

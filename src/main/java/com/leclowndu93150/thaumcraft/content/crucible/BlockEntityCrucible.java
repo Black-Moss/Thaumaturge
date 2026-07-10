@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.crucible;
 
+import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
@@ -32,6 +33,7 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -370,6 +372,9 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
                     ctx.commit();
                 }
                 ejectItem(out);
+                if (owner instanceof ServerPlayer serverPlayer) {
+                    ResearchProgressionEvents.recordCrafted(serverPlayer, out);
+                }
                 craftDone = true;
                 count--;
                 this.counter = -250L;

@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.focus.effect;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusBlockPicker;
@@ -11,6 +12,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -42,6 +44,11 @@ public final class FocusEffectExchange extends FocusEffect implements IFocusBloc
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("focus_exchange"), Optional.empty(), false);
     }
 
     @Override

@@ -1,0 +1,42 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.lamp_growth.title",
+  "parents": [
+    "thaumcraft:arcane_lamp",
+    "thaumcraft:infusion"
+  ],
+  "column": -4,
+  "row": 1,
+  "icons": [
+    "thaumcraft:lamp_growth"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.lamp_growth.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:bone_meal"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/herba"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.lamp_growth.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/lamp_growth"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.scanned/entity/thaumcraft/taintacle.title",
+  "column": -9,
+  "row": 1,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_taintacle.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.scanned/entity/thaumcraft/taintacle.stage_0"
+    }
+  ]
+}

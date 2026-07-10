@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.golem_combat_adv.title",
+  "parents": [
+    "thaumcraft:seal_guard"
+  ],
+  "column": -12,
+  "row": 2,
+  "icons": [
+    "thaumcraft:textures/research/icon_addon_fighter.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.golem_combat_adv.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:arrow"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:shears"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/aversio",
+        "thaumcraft:f_dispenser"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.golem_combat_adv.stage_1"
+    }
+  ]
+}

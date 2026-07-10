@@ -9,6 +9,7 @@ public final class ThaumcraftCommonConfig {
     public static final ModConfigSpec.DoubleValue TAINT_SPREAD_RATE;
     public static final ModConfigSpec.IntValue TAINT_SPREAD_AREA;
     public static final ModConfigSpec.BooleanValue ALLOW_CHAMPION_MOBS;
+    public static final ModConfigSpec.BooleanValue NO_SLEEP;
     public static final ModConfigSpec.BooleanValue NO_STRESS;
     public static final ModConfigSpec.BooleanValue SHOW_GOLEM_EMOTES;
 
@@ -27,6 +28,9 @@ public final class ThaumcraftCommonConfig {
         ALLOW_CHAMPION_MOBS = builder
                 .comment("Setting this to false will disable spawning champion mobs.")
                 .define("allowChampionMobs", true);
+        NO_SLEEP = builder
+                .comment("Setting this to true will make you get the recipe book for salis mundus without having to sleep first.")
+                .define("noSleep", false);
         builder.pop();
         builder.push("sounds");
         NO_STRESS = builder

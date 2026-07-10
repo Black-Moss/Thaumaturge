@@ -36,12 +36,12 @@ public interface IResearchEntry {
     String nameKey();
 
     /**
-     * Parent entries that must be complete before this entry becomes available. A parent may be
-     * referenced from another category.
+     * Parent references that must be satisfied before this entry becomes available. A parent may
+     * be referenced from another category and may require only a partial stage of its progress.
      *
-     * @return the parent identifiers, never null; may be empty
+     * @return the parent references, never null; may be empty
      */
-    Set<Identifier> parents();
+    Set<ResearchParent> parents();
 
     /**
      * Sibling entries displayed in the Thaumonomicon as decorative connectors next to this entry,
@@ -97,6 +97,16 @@ public interface IResearchEntry {
      * @return the icons, never null, possibly empty
      */
     default List<ResearchIcon> icons() {
+        return List.of();
+    }
+
+    /**
+     * Extra pages shown once this entry is complete and each page's own research requirements are
+     * met.
+     *
+     * @return the addenda, never null, possibly empty
+     */
+    default List<ResearchAddendum> addenda() {
         return List.of();
     }
 }

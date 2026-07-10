@@ -1,0 +1,23 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.mat_stud_clay.title",
+  "parents": [
+    "thaumcraft:mat_stud_iron"
+  ],
+  "column": -4,
+  "row": 0,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "minecraft:terracotta"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mat_stud_clay.stage_0",
+      "required_research": [
+        "thaumcraft:f_matclay"
+      ]
+    }
+  ]
+}

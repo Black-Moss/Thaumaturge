@@ -1,0 +1,47 @@
+{
+  "category": "thaumcraft:eldritch",
+  "name": "research.thaumcraft.base_eldritch.title",
+  "parents": [
+    "thaumcraft:metallurgy",
+    "thaumcraft:unlock_eldritch"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:void_seed"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.base_eldritch.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:eldritch",
+          "amount": 1
+        }
+      ],
+      "warp": 2
+    },
+    {
+      "text": "research.thaumcraft.base_eldritch.stage_1",
+      "recipes": [
+        "thaumcraft:crucible/void_ingot",
+        "thaumcraft:plate_void",
+        "thaumcraft:metal_void"
+      ]
+    }
+  ]
+}

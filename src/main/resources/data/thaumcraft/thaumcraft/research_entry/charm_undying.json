@@ -1,0 +1,35 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.charm_undying.title",
+  "parents": [
+    "thaumcraft:cloud_ring",
+    "thaumcraft:scanned/totemundying"
+  ],
+  "column": 3,
+  "row": -1,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:charm_undying"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.charm_undying.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.charm_undying.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/charm_undying"
+      ]
+    }
+  ]
+}

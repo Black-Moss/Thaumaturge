@@ -1,0 +1,18 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.scanned/entity/thaumcraft/brainy_zombie.title",
+  "column": -8,
+  "row": 2,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_angryzombie.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.scanned/entity/thaumcraft/brainy_zombie.stage_0"
+    }
+  ]
+}

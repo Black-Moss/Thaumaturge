@@ -1,0 +1,25 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.mat_stud_void.title",
+  "parents": [
+    "thaumcraft:mat_stud_thaumium",
+    "thaumcraft:base_eldritch"
+  ],
+  "column": -6,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:plate_void"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mat_stud_void.stage_0",
+      "required_research": [
+        "thaumcraft:f_matvoid"
+      ]
+    }
+  ]
+}

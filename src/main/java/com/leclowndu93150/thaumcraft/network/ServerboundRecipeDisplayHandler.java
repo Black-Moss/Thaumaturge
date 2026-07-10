@@ -1,5 +1,10 @@
 package com.leclowndu93150.thaumcraft.network;
 
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.context.ContextMap;
+import net.minecraft.resources.Identifier;
+import com.leclowndu93150.thaumcraft.TCIds;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -25,6 +30,32 @@ public final class ServerboundRecipeDisplayHandler {
                 List<RecipeDisplay> displays = holder.value().display();
                 PacketDistributor.sendToPlayer(player, new ClientboundRecipeDisplayPayload(payload.recipeId(), displays));
             });
+        });
+    }
+
+    public static void handleItemRequest(ServerboundRequestItemRecipePayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) return;
+            if (!(player.level() instanceof ServerLevel level)) return;
+            ContextMap displayContext = SlotDisplayContext.fromLevel(level);
+            RecipeHolder<?> best = null;
+            for (RecipeHolder<?> holder : level.recipeAccess().getRecipes()) {
+                List<RecipeDisplay> displays = holder.value().display();
+                if (displays.isEmpty()) continue;
+                ItemStack result = displays.get(0).result().resolveForFirstStack(displayContext);
+                Identifier resultId = result.getItem().builtInRegistryHolder()
+                        .unwrapKey().map(ResourceKey::identifier).orElse(null);
+                if (!payload.itemId().equals(resultId)) continue;
+                boolean thaumcraft = holder.id().identifier().getNamespace().equals(TCIds.MODID);
+                if (best == null || (thaumcraft && !best.id().identifier().getNamespace().equals(TCIds.MODID))) {
+                    best = holder;
+                }
+                if (thaumcraft) break;
+            }
+            if (best != null) {
+                PacketDistributor.sendToPlayer(player,
+                        new ClientboundItemRecipePayload(best.id().identifier(), best.value().display()));
+            }
         });
     }
 }

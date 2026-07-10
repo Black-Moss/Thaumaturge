@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.render.research;
 
+import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipeDisplay;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
 import java.util.ArrayList;
 import java.util.List;
@@ -313,6 +314,9 @@ public final class RecipeDisplayWidget {
     }
 
     private static Layout collect(RecipeDisplay display, ContextMap context) {
+        if (display instanceof ArcaneCraftingRecipeDisplay arcane) {
+            return collectArcane(arcane, context);
+        }
         if (display instanceof ShapedCraftingRecipeDisplay shaped) {
             return collectShaped(shaped, context);
         }
@@ -341,6 +345,39 @@ public final class RecipeDisplayWidget {
             }
         }
         return new Layout(Kind.WORKBENCH_SHAPED, slots, shaped.result().resolveForFirstStack(context), 0, List.of());
+    }
+
+    private static Layout collectArcane(ArcaneCraftingRecipeDisplay arcane, ContextMap context) {
+        List<SlotDisplay> ingredients = arcane.ingredients();
+        List<Slot> slots = new ArrayList<>();
+        List<ItemStack> crystals = new ArrayList<>();
+        for (SlotDisplay crystal : arcane.crystals()) {
+            ItemStack stack = crystal.resolveForFirstStack(context);
+            if (!stack.isEmpty()) crystals.add(stack);
+        }
+        if (arcane.shapeless()) {
+            int cap = Math.min(ingredients.size(), 9);
+            for (int i = 0; i < cap; i++) {
+                List<ItemStack> cycle = ingredients.get(i).resolveForStacks(context);
+                if (cycle.isEmpty()) continue;
+                slots.add(new Slot(i % GRID_DIM_MAX, i / GRID_DIM_MAX, i, cycle));
+            }
+            return new Layout(Kind.ARCANE_SHAPELESS, slots,
+                    arcane.result().resolveForFirstStack(context), arcane.visCost(), crystals);
+        }
+        int rw = arcane.width();
+        int rh = arcane.height();
+        for (int i = 0; i < rw && i < GRID_DIM_MAX; i++) {
+            for (int j = 0; j < rh && j < GRID_DIM_MAX; j++) {
+                int index = i + j * rw;
+                if (index >= ingredients.size()) continue;
+                List<ItemStack> cycle = ingredients.get(index).resolveForStacks(context);
+                if (cycle.isEmpty()) continue;
+                slots.add(new Slot(i, j, index, cycle));
+            }
+        }
+        return new Layout(Kind.ARCANE_SHAPED, slots,
+                arcane.result().resolveForFirstStack(context), arcane.visCost(), crystals);
     }
 
     private static Layout collectShapeless(ShapelessCraftingRecipeDisplay shapeless, ContextMap context) {

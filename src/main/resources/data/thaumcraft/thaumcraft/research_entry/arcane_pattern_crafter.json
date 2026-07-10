@@ -1,0 +1,43 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.arcane_pattern_crafter.title",
+  "parents": [
+    "thaumcraft:dioptra"
+  ],
+  "column": -2,
+  "row": 5,
+  "icons": [
+    "thaumcraft:pattern_crafter"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.arcane_pattern_crafter.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/fabrico"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.arcane_pattern_crafter.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/pattern_crafter"
+      ]
+    }
+  ]
+}

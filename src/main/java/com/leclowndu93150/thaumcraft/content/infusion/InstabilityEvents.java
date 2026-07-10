@@ -1,5 +1,14 @@
 package com.leclowndu93150.thaumcraft.content.infusion;
 
+import net.minecraft.util.Mth;
+import com.leclowndu93150.thaumcraft.content.device.BlockEntityStabilizer;
+import net.minecraft.resources.Identifier;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
@@ -29,7 +38,25 @@ public final class InstabilityEvents {
 
     private InstabilityEvents() {}
 
+    private static final Identifier INSTABILITY_RESEARCH = TCIds.rl("instability");
+
+    private static void grantInstabilityResearch(ServerLevel level, BlockPos matrixPos) {
+        List<ServerPlayer> targets = level.getEntitiesOfClass(ServerPlayer.class,
+                new AABB(matrixPos).inflate(EVENT_RANGE));
+        for (ServerPlayer player : targets) {
+            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+            if (!knowledge.isResearchKnown(INSTABILITY_RESEARCH)) {
+                knowledge.addResearch(INSTABILITY_RESEARCH);
+                knowledge.markComplete(INSTABILITY_RESEARCH);
+                knowledge.sync(player);
+                player.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("got.instability").withStyle(ChatFormatting.DARK_PURPLE)));
+            }
+        }
+    }
+
     public static void trigger(ServerLevel level, BlockPos matrixPos, List<BlockPos> pedestals) {
+        grantInstabilityResearch(level, matrixPos);
         RandomSource rand = level.getRandom();
         switch (rand.nextInt(24)) {
             case 0, 1, 2, 3 -> ejectItem(level, matrixPos, pedestals, EjectKind.DROP);
@@ -69,6 +96,12 @@ public final class InstabilityEvents {
             if (!(level.getBlockEntity(pedestalPos) instanceof BlockEntityPedestal pedestal)
                     || pedestal.getItem().isEmpty()) {
                 continue;
+            }
+            BlockPos mitigatorPos = pedestal.findInstabilityMitigator();
+            if (mitigatorPos != null
+                    && level.getBlockEntity(mitigatorPos) instanceof BlockEntityStabilizer stabilizer
+                    && stabilizer.mitigate(Mth.nextInt(rand, 5, 10))) {
+                return;
             }
             if (kind.deletes()) {
                 pedestal.setItem(ItemStack.EMPTY);

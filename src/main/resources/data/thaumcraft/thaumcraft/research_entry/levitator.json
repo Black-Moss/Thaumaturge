@@ -1,0 +1,34 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.levitator.title",
+  "parents": [
+    "thaumcraft:hungry_chest",
+    "thaumcraft:metallurgy@3"
+  ],
+  "column": 5,
+  "row": 3,
+  "icons": [
+    "thaumcraft:levitator"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.levitator.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/volatus"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.levitator.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/levitator"
+      ]
+    }
+  ]
+}

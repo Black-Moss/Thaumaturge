@@ -1,0 +1,33 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_split.title",
+  "parents": [
+    "thaumcraft:focus_scatter"
+  ],
+  "column": 5,
+  "row": -3,
+  "icons": [
+    "thaumcraft:focus_2",
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_split.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_split.stage_1"
+    }
+  ]
+}

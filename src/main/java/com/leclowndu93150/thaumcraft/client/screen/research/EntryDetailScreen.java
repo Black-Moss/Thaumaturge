@@ -13,20 +13,24 @@ import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
+import com.leclowndu93150.thaumcraft.api.research.ResearchAddendum;
 import com.leclowndu93150.thaumcraft.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.client.render.research.KnowledgeRequirementWidget;
 import com.leclowndu93150.thaumcraft.client.render.research.PageParser;
+import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.client.render.research.RecipeDisplayCache;
 import com.leclowndu93150.thaumcraft.client.render.research.RecipeDisplayWidget;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCScreen;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
 import com.leclowndu93150.thaumcraft.client.screen.TCTooltips;
 import com.leclowndu93150.thaumcraft.network.ServerboundAdvanceStagePayload;
+import com.leclowndu93150.thaumcraft.network.ServerboundRequestItemRecipePayload;
 import com.leclowndu93150.thaumcraft.network.ServerboundClearResearchFlagsPayload;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -43,6 +47,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -163,8 +168,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     private static final int LABEL_TINT = 0x40FFFFFF;
 
-    private static final Identifier FIRSTSTEPS_RESEARCH = Identifier.fromNamespaceAndPath(TCIds.MODID, "firststeps");
-    private static final Identifier KNOWLEDGETYPES_RESEARCH = Identifier.fromNamespaceAndPath(TCIds.MODID, "knowledgetypes");
+    private static final Identifier FIRSTSTEPS_RESEARCH = Identifier.fromNamespaceAndPath(TCIds.MODID, "first_steps");
+    private static final Identifier KNOWLEDGETYPES_RESEARCH = Identifier.fromNamespaceAndPath(TCIds.MODID, "knowledge_types");
 
     private static final int ASPECTS_INSERT_OFFSET_X = 60;
     private static final int ASPECTS_INSERT_OFFSET_Y = 24;
@@ -274,6 +279,11 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 RecipeDisplayCache.ensureRequested(recipeId);
             }
         }
+        for (ResearchAddendum addendum : entry.value().addenda()) {
+            for (Identifier recipeId : addendum.recipes()) {
+                RecipeDisplayCache.ensureRequested(recipeId);
+            }
+        }
         rebuildPages();
         if (!flagsCleared) {
             ClientPacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(
@@ -286,34 +296,45 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         int currentStageIndex = currentStageIndex();
         IResearchStage stage = entry.value().stages().get(currentStageIndex);
         rhash = entryId.toString().hashCode() + currentStageIndex * 50;
-        int budget = 182;
-        int dividerSpace = 0;
-        if (entryId.equals(KNOWLEDGETYPES_RESEARCH)) {
-            budget -= 2;
-            int tc = activeKnowledgeRowCount();
-            budget -= KNOW_GRID_INPAGE_ROW_STRIDE * tc;
-            dividerSpace = 12;
+        List<String> addendaKeys = new ArrayList<>();
+        for (ResearchAddendum addendum : unlockedAddenda()) {
+            addendaKeys.add(addendum.textKey());
         }
-        if (!isComplete) {
-            if (!stage.requiredResearch().isEmpty()) {
-                budget -= 18;
-                dividerSpace = 15;
+        parsedPages = PageParser.parse(font, entryId, stage.textKey(), addendaKeys,
+                activeKnowledgeRowCount(), isComplete,
+                !stage.requiredResearch().isEmpty(),
+                !stage.obtain().isEmpty(),
+                !stage.craft().isEmpty(),
+                !stage.requiredKnowledge().isEmpty());
+    }
+
+    private List<ResearchAddendum> unlockedAddenda() {
+        if (!isComplete || minecraft == null || minecraft.player == null) return List.of();
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
+        List<ResearchAddendum> unlocked = new ArrayList<>();
+        for (ResearchAddendum addendum : entry.value().addenda()) {
+            boolean met = true;
+            for (Identifier required : addendum.requiredResearch()) {
+                if (!knowledge.isResearchComplete(required)) {
+                    met = false;
+                    break;
+                }
             }
-            if (!stage.obtain().isEmpty()) {
-                budget -= 18;
-                dividerSpace = 15;
-            }
-            if (!stage.craft().isEmpty()) {
-                budget -= 18;
-                dividerSpace = 15;
-            }
-            if (!stage.knowledge().isEmpty()) {
-                budget -= 18;
-                dividerSpace = 15;
+            if (met) unlocked.add(addendum);
+        }
+        return unlocked;
+    }
+
+    private List<Identifier> displayRecipes(IResearchStage stage) {
+        List<ResearchAddendum> addenda = unlockedAddenda();
+        if (addenda.isEmpty()) return stage.recipes();
+        List<Identifier> all = new ArrayList<>(stage.recipes());
+        for (ResearchAddendum addendum : addenda) {
+            for (Identifier rid : addendum.recipes()) {
+                if (!all.contains(rid)) all.add(rid);
             }
         }
-        budget -= dividerSpace;
-        parsedPages = PageParser.parse(font, stage.textKey(), budget);
+        return all;
     }
 
     private int activeKnowledgeRowCount() {
@@ -363,20 +384,22 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         renderPaneBackground(graphics);
         IResearchStage stage = entry.value().stages().get(currentStageIndex());
+        boolean insertOpen = insertOpen();
+        int pageMouseX = insertOpen ? Integer.MIN_VALUE : mouseX;
+        int pageMouseY = insertOpen ? Integer.MIN_VALUE : mouseY;
+        int pageBaseY = sh + CONTENT_Y_OFFSET;
+        renderTextPages(graphics, pageBaseY, pageMouseX, pageMouseY);
+        renderRequirements(graphics, stage, sw, pageMouseX, pageMouseY);
+        renderWarpIndicator(graphics, stage, sw, sh + CONTENT_Y_OFFSET + TITLE_Y_ADVANCE, pageMouseX, pageMouseY);
+        if (knowsResearch(KNOWLEDGETYPES_RESEARCH) && entryId.equals(KNOWLEDGETYPES_RESEARCH)) {
+            drawKnowledges(graphics, sw, sh + KNOW_INPAGE_INSERT_INPAGE_Y_OFFSET - 16, pageMouseX, pageMouseY, true);
+        }
         if (showingAspects) {
             renderAspectsInsert(graphics, mouseX, mouseY);
         } else if (showingKnowledge) {
             renderKnowledgeInsert(graphics, mouseX, mouseY);
         } else if (shownRecipe != null) {
             renderRecipePage(graphics, mouseX, mouseY);
-        } else {
-            int pageBaseY = sh + CONTENT_Y_OFFSET;
-            renderTextPages(graphics, pageBaseY, mouseX, mouseY);
-            renderRequirements(graphics, stage, sw, mouseX, mouseY);
-            renderWarpIndicator(graphics, stage, sw, sh + CONTENT_Y_OFFSET + TITLE_Y_ADVANCE, mouseX, mouseY);
-            if (knowsResearch(KNOWLEDGETYPES_RESEARCH) && entryId.equals(KNOWLEDGETYPES_RESEARCH)) {
-                drawKnowledges(graphics, sw, sh + KNOW_INPAGE_INSERT_INPAGE_Y_OFFSET - 16, mouseX, mouseY, true);
-            }
         }
         renderBookmarks(graphics, mouseX, mouseY);
         renderRecipeBookmarks(graphics, stage, mouseX, mouseY);
@@ -421,12 +444,11 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         int textX = x + PAGE_LEFT_OFFSET + side * PAGE_SIDE_OFFSET;
         for (PageParser.PageElement element : page.elements()) {
             if (element instanceof PageParser.PageElement.Text text) {
-                String content = text.content();
-                graphics.text(font,
-                        FormattedCharSequence.forward(content, Style.EMPTY),
-                        textX, currentY - 6, TEXT_LINE_COLOR, false);
+                FormattedCharSequence sequence = sink ->
+                        StringDecomposer.iterateFormatted(text.content(), text.style(), sink);
+                graphics.text(font, sequence, textX, currentY - 6, TEXT_LINE_COLOR, false);
                 currentY += LINE_HEIGHT;
-                if (content.endsWith("~B")) {
+                if (text.paragraphBreak()) {
                     currentY += (int) (LINE_HEIGHT * 0.66F);
                 }
             } else if (element instanceof PageParser.PageElement.Image image) {
@@ -485,7 +507,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         boolean[] researchSatisfied = new boolean[stage.requiredResearch().size()];
         boolean[] obtainSatisfied = new boolean[stage.obtain().size()];
         boolean[] craftSatisfied = new boolean[stage.craft().size()];
-        boolean[] knowSatisfied = new boolean[stage.knowledge().size()];
+        boolean[] knowSatisfied = new boolean[stage.requiredKnowledge().size()];
 
         if (!stage.requiredResearch().isEmpty()) {
             reqY -= REQ_ROW_STEP;
@@ -505,11 +527,11 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             renderRowLabel(graphics, x, reqY, LABEL_CRAFT_V);
             renderItemRow(graphics, stage.craft(), x, reqY, gameTime, mouseX, mouseY, false, craftSatisfied);
         }
-        if (!stage.knowledge().isEmpty()) {
+        if (!stage.requiredKnowledge().isEmpty()) {
             reqY -= REQ_ROW_STEP;
             hasAny = true;
             renderRowLabel(graphics, x, reqY, LABEL_KNOW_V);
-            renderKnowledgeRow(graphics, stage.knowledge(), knowledge, x, reqY, mouseX, mouseY, knowSatisfied);
+            renderKnowledgeRow(graphics, stage.requiredKnowledge(), knowledge, x, reqY, mouseX, mouseY, knowSatisfied);
         }
         if (hasAny) {
             reqY -= 12;
@@ -622,8 +644,9 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             if (!stack.isEmpty()) {
                 graphics.item(stack, slotX, y);
             }
-            int held = countMatching(player, req);
-            boolean met = held >= req.amount();
+            boolean met = obtain
+                    ? countMatching(player, req) >= req.amount()
+                    : ResearchManager.isCraftSatisfied(KnowledgeAccess.of(player), req);
             satisfied[i] = met;
             if (met) {
                 graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
@@ -748,7 +771,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private void renderRecipeBookmarks(GuiGraphicsExtractor graphics, IResearchStage stage, int mouseX, int mouseY) {
-        List<Identifier> recipes = stage.recipes();
+        List<Identifier> recipes = displayRecipes(stage);
         if (recipes.isEmpty()) return;
         int space = Math.min(RECIPE_BOOKMARK_MAX_STEP, RECIPE_BOOKMARK_TOTAL_BUDGET / recipes.size());
         int slotY = sh + RECIPE_BOOKMARK_BASE_Y_OFFSET;
@@ -1002,6 +1025,28 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 INSERT_PAPER_SIZE, INSERT_PAPER_SIZE,
                 TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
         drawKnowledges(graphics, paperX + ASPECTS_INSERT_OFFSET_X, sh + KNOW_INPAGE_INSERT_Y_OFFSET, mouseX, mouseY, false);
+        if (!hasAnyKnowledge()) {
+            Component hint = Component.translatable("tc.knowledge.none");
+            graphics.text(font, hint,
+                    (width - font.width(hint)) / 2, sh + KNOW_INPAGE_INSERT_Y_OFFSET,
+                    KNOW_GRID_AMT_COLOR, false);
+        }
+    }
+
+    private boolean hasAnyKnowledge() {
+        if (minecraft == null || minecraft.player == null) return false;
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
+        Optional<? extends HolderLookup.RegistryLookup<IResearchCategory>> lookupOpt =
+                minecraft.player.registryAccess().lookup(IResearchCategory.REGISTRY_KEY);
+        if (lookupOpt.isEmpty()) return false;
+        for (Holder.Reference<IResearchCategory> ref : lookupOpt.get().listElements().toList()) {
+            Optional<ResourceKey<IResearchCategory>> keyOpt = ref.unwrapKey();
+            if (keyOpt.isEmpty()) continue;
+            for (KnowledgeType type : KnowledgeType.values()) {
+                if (knowledge.rawKnowledge(type, keyOpt.get()) > 0) return true;
+            }
+        }
+        return false;
     }
 
     private void drawKnowledges(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY, boolean inpage) {
@@ -1098,11 +1143,11 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private void drawNavigation(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int arrowY = sh + ARROW_Y_OFFSET;
         float bob = bob();
-        if (currentPage > 0 && shownRecipe == null) {
+        if (currentPage > 0 && !insertOpen()) {
             int leftX = sw + ARROW_LEFT_OFFSET_X;
             drawTexturedRectScaled(graphics, leftX, arrowY, ARROW_LEFT_U, ARROW_V, ARROW_W, ARROW_H, bob);
         }
-        if (hasNextPage() && shownRecipe == null) {
+        if (hasNextPage() && !insertOpen()) {
             int rightX = sw + ARROW_RIGHT_OFFSET_X;
             drawTexturedRectScaled(graphics, rightX, arrowY, ARROW_RIGHT_U, ARROW_V, ARROW_W, ARROW_H, bob);
         }
@@ -1114,6 +1159,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 graphics.text(font, Component.translatable("recipe.return"), mouseX, mouseY, textColor, true);
             }
         }
+    }
+
+    private boolean insertOpen() {
+        return showingAspects || showingKnowledge || shownRecipe != null;
     }
 
     private float bob() {
@@ -1172,13 +1221,13 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             int rightHitX = sw + ARROW_RIGHT_HIT_OFFSET_X;
             int backX = sw + BACK_OFFSET_X;
             int backY = sh + ARROW_Y_OFFSET;
-            if (shownRecipe == null && currentPage > 0
+            if (!insertOpen() && currentPage > 0
                     && mx >= leftHitX && mx < leftHitX + ARROW_LEFT_HIT_W
                     && my >= arrowYBase && my < arrowYBase + ARROW_LEFT_HIT_H) {
                 prevPage();
                 return true;
             }
-            if (shownRecipe == null && hasNextPage()
+            if (!insertOpen() && hasNextPage()
                     && mx >= rightHitX && mx < rightHitX + ARROW_LEFT_HIT_W
                     && my >= arrowYBase && my < arrowYBase + ARROW_LEFT_HIT_H) {
                 nextPage();
@@ -1232,6 +1281,9 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                     return true;
                 }
             }
+            if (shownRecipe != null && handleRecipeIngredientClick(mx, my)) {
+                return true;
+            }
             if (shownRecipe != null) {
                 int recipeNavLeftX = sw + 38;
                 int recipeNavRightX = sw + 205;
@@ -1256,7 +1308,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             IResearchStage stage = entry.value().stages().get(currentStageIndex());
             int hitRecipe = hitRecipeBookmark(mx, my, stage);
             if (hitRecipe >= 0) {
-                Identifier rid = stage.recipes().get(hitRecipe);
+                Identifier rid = displayRecipes(stage).get(hitRecipe);
                 if (rid.equals(shownRecipe)) {
                     shownRecipe = null;
                 } else {
@@ -1268,7 +1320,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 playSound(TCSounds.PAGE.get(), 0.7F, 0.9F);
                 return true;
             }
-            if (currentPage == 0 && !isComplete && !hold) {
+            if (currentPage == 0 && !isComplete && !hold && !insertOpen()) {
                 if (hitStageComplete(mx, my, stage)) {
                     ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(entryId));
                     playSound(TCSounds.WRITE.get(), 0.66F, 1.0F);
@@ -1279,6 +1331,38 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             }
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private boolean handleRecipeIngredientClick(double mx, double my) {
+        if (shownRecipe == null || minecraft == null || minecraft.player == null) return false;
+        List<RecipeDisplay> displays = RecipeDisplayCache.get(shownRecipe);
+        if (displays == null || displays.isEmpty()) return false;
+        RecipeDisplay current = displays.get(Math.min(recipePage, displays.size() - 1));
+        int cx = width / 2;
+        int cy = height / 2;
+        int gridW = RecipeDisplayWidget.width();
+        int gridH = RecipeDisplayWidget.height();
+        long gameTime = minecraft.player.level().getGameTime();
+        ItemStack hover = RecipeDisplayWidget.hoverStackForDisplay(
+                cx - gridW / 2, cy - gridH / 2, current, gameTime, (int) mx, (int) my);
+        if (hover == null || hover.isEmpty()) return false;
+        Identifier itemId = hover.getItem().builtInRegistryHolder()
+                .unwrapKey().map(ResourceKey::identifier).orElse(null);
+        if (itemId == null) return false;
+        ClientPacketDistributor.sendToServer(new ServerboundRequestItemRecipePayload(itemId));
+        return true;
+    }
+
+    public void openRecipeFromNavigation(Identifier recipeId) {
+        if (recipeId.equals(shownRecipe)) return;
+        if (shownRecipe != null) {
+            history.push(shownRecipe);
+        }
+        shownRecipe = recipeId;
+        recipePage = 0;
+        showingAspects = false;
+        showingKnowledge = false;
+        playSound(TCSounds.PAGE.get(), 0.7F, 0.9F);
     }
 
     private void nextPage() {
@@ -1315,7 +1399,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private int hitRecipeBookmark(double mx, double my, IResearchStage stage) {
-        List<Identifier> recipes = stage.recipes();
+        List<Identifier> recipes = displayRecipes(stage);
         if (recipes.isEmpty()) return -1;
         int space = Math.min(RECIPE_BOOKMARK_MAX_STEP, RECIPE_BOOKMARK_TOTAL_BUDGET / recipes.size());
         int slotY = sh + RECIPE_BOOKMARK_BASE_Y_OFFSET;
@@ -1337,7 +1421,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         boolean[] researchSatisfied = new boolean[stage.requiredResearch().size()];
         boolean[] obtainSatisfied = new boolean[stage.obtain().size()];
         boolean[] craftSatisfied = new boolean[stage.craft().size()];
-        boolean[] knowSatisfied = new boolean[stage.knowledge().size()];
+        boolean[] knowSatisfied = new boolean[stage.requiredKnowledge().size()];
         for (int i = 0; i < stage.requiredResearch().size(); i++) {
             researchSatisfied[i] = knowledge.isResearchComplete(stage.requiredResearch().get(i));
         }
@@ -1345,10 +1429,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             obtainSatisfied[i] = countMatching(player, stage.obtain().get(i)) >= stage.obtain().get(i).amount();
         }
         for (int i = 0; i < stage.craft().size(); i++) {
-            craftSatisfied[i] = countMatching(player, stage.craft().get(i)) >= stage.craft().get(i).amount();
+            craftSatisfied[i] = ResearchManager.isCraftSatisfied(knowledge, stage.craft().get(i));
         }
-        for (int i = 0; i < stage.knowledge().size(); i++) {
-            KnowledgeReward reward = stage.knowledge().get(i);
+        for (int i = 0; i < stage.requiredKnowledge().size(); i++) {
+            KnowledgeReward reward = stage.requiredKnowledge().get(i);
             int current = reward.category().unwrapKey().map(k -> knowledge.knowledge(reward.type(), k)).orElse(0);
             knowSatisfied[i] = current >= reward.amount();
         }
@@ -1358,13 +1442,13 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         boolean hasAny = !stage.requiredResearch().isEmpty()
                 || !stage.obtain().isEmpty()
                 || !stage.craft().isEmpty()
-                || !stage.knowledge().isEmpty();
+                || !stage.requiredKnowledge().isEmpty();
         if (!hasAny) return false;
         int reqY = sh + REQ_TOP_Y_OFFSET;
         if (!stage.requiredResearch().isEmpty()) reqY -= REQ_ROW_STEP;
         if (!stage.obtain().isEmpty()) reqY -= REQ_ROW_STEP;
         if (!stage.craft().isEmpty()) reqY -= REQ_ROW_STEP;
-        if (!stage.knowledge().isEmpty()) reqY -= REQ_ROW_STEP;
+        if (!stage.requiredKnowledge().isEmpty()) reqY -= REQ_ROW_STEP;
         reqY -= 12;
         int hrx = sw + COMPLETE_BUTTON_OFFSET_X;
         int hry = reqY + COMPLETE_BUTTON_Y_OFFSET;

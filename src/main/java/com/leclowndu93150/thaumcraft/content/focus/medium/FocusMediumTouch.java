@@ -3,12 +3,14 @@ package com.leclowndu93150.thaumcraft.content.focus.medium;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMedium;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
 import com.leclowndu93150.thaumcraft.content.focus.FocusRayTrace;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -30,6 +32,11 @@ public class FocusMediumTouch extends FocusMedium {
     @Override
     public Identifier getKey() {
         return KEY;
+    }
+
+    @Override
+    public ResearchGate getResearch() {
+        return new ResearchGate(TCIds.rl("base_auromancy"), Optional.empty(), false);
     }
 
     @Override

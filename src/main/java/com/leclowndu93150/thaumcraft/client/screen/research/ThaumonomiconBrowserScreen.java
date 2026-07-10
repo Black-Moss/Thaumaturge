@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
+import com.leclowndu93150.thaumcraft.api.research.ResearchParent;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.client.render.research.ConnectorRenderer;
 import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
@@ -147,7 +148,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
     private static final float CONNECTOR_Z_PARENT_UNKNOWN = 2.0F;
     private static final float CONNECTOR_Z_SIBLING_KNOWN = 1.0F;
     private static final float CONNECTOR_Z_SIBLING_UNKNOWN = 0.0F;
-    private static final String INHERIT_PARENT_PREFIX = "~";
     private static final double UNSET_PERSIST = -9999.0;
     private static final int ENTRY_CULL_BORDER = 24;
     private static final int ENTRY_HIT_NEG_PADDING = 2;
@@ -346,14 +346,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         boolean hidden = node.entry.hasMeta(ResearchEntryMeta.HIDDEN);
         if (hidden && !canUnlockResearch(knowledge, node)) return false;
         if (node.entry.parents().isEmpty() && hidden) return false;
-        for (Identifier parentId : node.entry.parents()) {
-            String path = parentId.toString();
-            Identifier cleanId = path.startsWith(INHERIT_PARENT_PREFIX)
-                    ? Identifier.parse(path.substring(INHERIT_PARENT_PREFIX.length()))
-                    : parentId;
-            EntryNode parentNode = findGlobalNode(cleanId);
+        for (ResearchParent parent : node.entry.parents()) {
+            EntryNode parentNode = findGlobalNode(parent.id());
             if (parentNode != null && !isVisible(knowledge, parentNode)) {
-                invisibleEntries.add(cleanId);
+                invisibleEntries.add(parent.id());
                 return false;
             }
         }
@@ -361,12 +357,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
     }
 
     private boolean canUnlockResearch(IPlayerKnowledge knowledge, EntryNode node) {
-        for (Identifier parent : node.entry.parents()) {
-            String path = parent.toString();
-            Identifier cleanId = path.startsWith(INHERIT_PARENT_PREFIX)
-                    ? Identifier.parse(path.substring(INHERIT_PARENT_PREFIX.length()))
-                    : parent;
-            if (!knowledge.isResearchComplete(cleanId)) return false;
+        for (ResearchParent parent : node.entry.parents()) {
+            if (!parent.isSatisfiedBy(knowledge)) return false;
         }
         return true;
     }
@@ -556,18 +548,14 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
         List<EntryNode> nodes = nodesByCategory.getOrDefault(activeCategory, List.of());
         for (EntryNode source : nodes) {
-            for (Identifier parentRaw : source.entry.parents()) {
-                String parentPath = parentRaw.toString();
-                Identifier cleanParentId = parentPath.startsWith(INHERIT_PARENT_PREFIX)
-                        ? Identifier.parse(parentPath.substring(INHERIT_PARENT_PREFIX.length()))
-                        : parentRaw;
-                EntryNode parentNode = findGlobalNode(cleanParentId);
+            for (ResearchParent parent : source.entry.parents()) {
+                EntryNode parentNode = findGlobalNode(parent.id());
                 if (parentNode == null) continue;
                 if (!activeCategory.equals(parentNode.category)) continue;
                 if (parentNode.entry.siblings().contains(source.id)) continue;
-                boolean b = isVisible(knowledge, source) && !parentPath.startsWith(INHERIT_PARENT_PREFIX);
+                boolean b = isVisible(knowledge, source) && !parent.inherit();
                 if (!b) continue;
-                boolean knowsParent = knowledge.isResearchComplete(cleanParentId);
+                boolean knowsParent = knowledge.isResearchComplete(parent.id());
                 int originX = START_X - locX;
                 int originY = START_Y - locY;
                 if (knowsParent) {
@@ -591,11 +579,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                 }
             }
             for (Identifier siblingRaw : source.entry.siblings()) {
-                String siblingPath = siblingRaw.toString();
                 EntryNode siblingNode = findGlobalNode(siblingRaw);
                 if (siblingNode == null) continue;
                 if (!activeCategory.equals(siblingNode.category)) continue;
-                if (!(isVisible(knowledge, source) && !siblingPath.startsWith(INHERIT_PARENT_PREFIX))) continue;
+                if (!isVisible(knowledge, source)) continue;
                 boolean knowsSibling = knowledge.isResearchComplete(siblingRaw);
                 int originX = START_X - locX;
                 int originY = START_Y - locY;
@@ -955,14 +942,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             }
         } else {
             lines.add(Component.literal("@@" + ChatFormatting.RED + Component.translatable("tc.researchmissing").getString()));
-            for (Identifier parentRaw : node.entry.parents()) {
-                String path = parentRaw.toString();
-                Identifier cleanId = path.startsWith(INHERIT_PARENT_PREFIX)
-                        ? Identifier.parse(path.substring(INHERIT_PARENT_PREFIX.length()))
-                        : parentRaw;
-                if (knowledge.isResearchComplete(cleanId)) continue;
+            for (ResearchParent parent : node.entry.parents()) {
+                if (parent.isSatisfiedBy(knowledge)) continue;
                 String s = "?";
-                EntryNode parentNode = findGlobalNode(cleanId);
+                EntryNode parentNode = findGlobalNode(parent.id());
                 if (parentNode != null) {
                     s = Component.translatable(parentNode.entry.nameKey()).getString();
                 }

@@ -1,0 +1,41 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.golem_breaker.title",
+  "parents": [
+    "thaumcraft:mind_clockwork"
+  ],
+  "column": -8,
+  "row": 2,
+  "icons": [
+    "thaumcraft:textures/research/icon_arms_breakers.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.golem_breaker.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:diamond"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:piston"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.golem_breaker.stage_1"
+    }
+  ]
+}

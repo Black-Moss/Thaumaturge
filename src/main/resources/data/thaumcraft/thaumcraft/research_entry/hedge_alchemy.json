@@ -1,0 +1,152 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.hedge_alchemy.title",
+  "parents": [
+    "thaumcraft:base_alchemy"
+  ],
+  "column": -2,
+  "row": 0,
+  "icons": [
+    "thaumcraft:tallow"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.hedge_alchemy.stage_0",
+      "recipes": [
+        "thaumcraft:crucible/tallow",
+        "thaumcraft:crucible/leather"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:tallow"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:leather"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.hedge_alchemy.stage_1",
+      "recipes": [
+        "thaumcraft:crucible/tallow",
+        "thaumcraft:candle_white",
+        "thaumcraft:crucible/leather",
+        "thaumcraft:crucible/gunpowder",
+        "thaumcraft:crucible/slime_ball",
+        "thaumcraft:crucible/dye",
+        "thaumcraft:crucible/glowstone_dust"
+      ],
+      "craft": [
+        {
+          "items": [
+            "minecraft:gunpowder"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:slime_ball"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:ink_sac"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:glowstone_dust"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.hedge_alchemy.stage_2",
+      "recipes": [
+        "thaumcraft:crucible/tallow",
+        "thaumcraft:candle_white",
+        "thaumcraft:crucible/leather",
+        "thaumcraft:crucible/gunpowder",
+        "thaumcraft:crucible/slime_ball",
+        "thaumcraft:crucible/dye",
+        "thaumcraft:crucible/glowstone_dust",
+        "thaumcraft:crucible/clay_ball",
+        "thaumcraft:crucible/string",
+        "thaumcraft:crucible/cobweb",
+        "thaumcraft:crucible/lava_bucket"
+      ],
+      "craft": [
+        {
+          "items": [
+            "minecraft:clay_ball"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:string"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:cobweb"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:lava_bucket"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.hedge_alchemy.stage_3",
+      "recipes": [
+        "thaumcraft:crucible/tallow",
+        "thaumcraft:candle_white",
+        "thaumcraft:crucible/leather",
+        "thaumcraft:crucible/gunpowder",
+        "thaumcraft:crucible/slime_ball",
+        "thaumcraft:crucible/dye",
+        "thaumcraft:crucible/glowstone_dust",
+        "thaumcraft:crucible/clay_ball",
+        "thaumcraft:crucible/string",
+        "thaumcraft:crucible/cobweb",
+        "thaumcraft:crucible/lava_bucket"
+      ]
+    }
+  ]
+}

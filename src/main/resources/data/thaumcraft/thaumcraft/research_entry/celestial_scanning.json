@@ -1,0 +1,37 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.celestial_scanning.title",
+  "parents": [
+    "thaumcraft:theory_research"
+  ],
+  "column": 4,
+  "row": 1,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_celestial.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.celestial_scanning.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    }
+  ]
+}

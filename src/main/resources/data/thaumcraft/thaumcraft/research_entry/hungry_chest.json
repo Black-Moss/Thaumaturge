@@ -1,0 +1,42 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.hungry_chest.title",
+  "parents": [
+    "thaumcraft:base_artifice"
+  ],
+  "column": 3,
+  "row": 1,
+  "icons": [
+    "thaumcraft:hungry_chest"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.hungry_chest.stage_0",
+      "obtain": [
+        {
+          "items": "#c:chests/wooden",
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:hopper"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.hungry_chest.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/hungry_chest"
+      ]
+    }
+  ]
+}

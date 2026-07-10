@@ -1,0 +1,19 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.mat_stud_wood.title",
+  "column": -2,
+  "row": 0,
+  "meta": [
+    "hidden",
+    "reverse",
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:log_greatwood"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mat_stud_wood.stage_0"
+    }
+  ]
+}

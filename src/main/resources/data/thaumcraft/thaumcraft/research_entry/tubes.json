@@ -1,0 +1,68 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.tubes.title",
+  "parents": [
+    "thaumcraft:warded_jars"
+  ],
+  "column": 6,
+  "row": -2,
+  "icons": [
+    "thaumcraft:tube"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.tubes.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumcraft:phial"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:phial"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:phial"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:phial"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.tubes.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/resonator",
+        "thaumcraft:arcane_workbench/tube",
+        "thaumcraft:arcane_workbench/tube_valve",
+        "thaumcraft:arcane_workbench/tube_filter",
+        "thaumcraft:arcane_workbench/tube_restrict",
+        "thaumcraft:arcane_workbench/tube_oneway",
+        "thaumcraft:arcane_workbench/tube_buffer",
+        "thaumcraft:arcane_workbench/alchemical_construct"
+      ]
+    }
+  ]
+}

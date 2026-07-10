@@ -1,0 +1,47 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_cloud.title",
+  "parents": [
+    "thaumcraft:focus_mine",
+    "thaumcraft:scanned/dragonbreath"
+  ],
+  "column": 7,
+  "row": 2,
+  "meta": [
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_cloud.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:dragon_breath"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/alkimia"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_cloud.stage_1"
+    }
+  ]
+}

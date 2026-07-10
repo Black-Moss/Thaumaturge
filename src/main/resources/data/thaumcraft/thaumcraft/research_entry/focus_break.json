@@ -1,0 +1,47 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_break.title",
+  "parents": [
+    "thaumcraft:focus_flux"
+  ],
+  "column": 2,
+  "row": 6,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_break.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:enchanted_book"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:enchanted_book"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/perditio"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_break.stage_1"
+    }
+  ]
+}

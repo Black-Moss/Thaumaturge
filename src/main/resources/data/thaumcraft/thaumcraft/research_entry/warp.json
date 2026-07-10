@@ -1,0 +1,21 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.warp.title",
+  "column": -4,
+  "row": -2,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_warp.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.warp.stage_0",
+      "recipes": [
+        "thaumcraft:arcane_workbench/sanity_checker"
+      ]
+    }
+  ]
+}

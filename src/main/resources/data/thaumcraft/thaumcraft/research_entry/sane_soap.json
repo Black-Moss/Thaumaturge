@@ -1,0 +1,35 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.sane_soap.title",
+  "parents": [
+    "thaumcraft:bath_salts"
+  ],
+  "column": -3,
+  "row": -4,
+  "icons": [
+    "thaumcraft:sanity_soap"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.sane_soap.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.sane_soap.stage_1",
+      "recipes": [
+        "thaumcraft:crucible/sanity_soap"
+      ]
+    }
+  ]
+}

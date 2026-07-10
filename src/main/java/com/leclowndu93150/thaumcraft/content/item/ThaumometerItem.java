@@ -72,7 +72,7 @@ public final class ThaumometerItem extends Item {
         boolean dangerous = flux > AuraHelper.getVis(level, pos)
                 || flux > AuraHelper.getAuraBase(level, pos) / (float) FLUX_WARN_BASE_DIVISOR;
         if (dangerous && !KnowledgeAccess.of(player).isResearchKnown(TCResearchEntries.FLUX)) {
-            ResearchManager.unlock(player, TCResearchEntries.FLUX);
+            ResearchManager.complete(player, TCResearchEntries.FLUX);
             player.sendOverlayMessage(Component.translatable("research.thaumcraft.flux.warn")
                     .withStyle(ChatFormatting.DARK_PURPLE));
         }

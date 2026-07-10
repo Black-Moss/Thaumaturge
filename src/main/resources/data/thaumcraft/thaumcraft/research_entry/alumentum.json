@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.alumentum.title",
+  "parents": [
+    "thaumcraft:base_alchemy"
+  ],
+  "column": 2,
+  "row": -1,
+  "icons": [
+    "thaumcraft:alumentum"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.alumentum.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.alumentum.stage_1",
+      "recipes": [
+        "thaumcraft:crucible/alumentum"
+      ]
+    }
+  ]
+}

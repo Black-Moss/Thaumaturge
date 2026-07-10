@@ -1,0 +1,46 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.theory_research.title",
+  "parents": [
+    "thaumcraft:knowledge_types"
+  ],
+  "column": 4,
+  "row": -1,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/knowledge_theory.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.theory_research.stage_0",
+      "recipes": [
+        "thaumcraft:table_wood",
+        "thaumcraft:scribing_tools"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:scribing_tools"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:research_table"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.theory_research.stage_1",
+      "recipes": [
+        "thaumcraft:table_wood",
+        "thaumcraft:scribing_tools"
+      ]
+    }
+  ]
+}

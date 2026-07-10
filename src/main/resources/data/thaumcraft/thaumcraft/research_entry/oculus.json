@@ -1,0 +1,36 @@
+{
+  "category": "thaumcraft:eldritch",
+  "name": "research.thaumcraft.oculus.title",
+  "parents": [
+    "thaumcraft:base_eldritch",
+    "~thaumcraft:eldritchmajor"
+  ],
+  "column": -3,
+  "row": 3,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:eldritch_eye"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.oculus.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:eldritch",
+          "amount": 2
+        }
+      ],
+      "warp": 6
+    },
+    {
+      "text": "research.thaumcraft.oculus.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/eldritch_eye"
+      ]
+    }
+  ]
+}

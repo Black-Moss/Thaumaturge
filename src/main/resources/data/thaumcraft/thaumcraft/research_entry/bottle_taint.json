@@ -1,0 +1,34 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.bottle_taint.title",
+  "parents": [
+    "thaumcraft:hedge_alchemy",
+    "thaumcraft:f_toomuchflux"
+  ],
+  "column": -6,
+  "row": 0,
+  "icons": [
+    "thaumcraft:bottle_taint"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.bottle_taint.stage_0",
+      "recipes": [
+        "thaumcraft:crucible/bottle_taint"
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ],
+      "warp": 2
+    }
+  ]
+}

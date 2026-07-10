@@ -1,0 +1,39 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.unlock_artifice.title",
+  "parents": [
+    "thaumcraft:unlock_alchemy",
+    "thaumcraft:metallurgy@2"
+  ],
+  "column": 2,
+  "row": 4,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_artifice.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.unlock_artifice.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/sensus",
+        "thaumcraft:scanned/aspect/thaumcraft/machina"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.unlock_artifice.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/goggles_revealing"
+      ]
+    }
+  ]
+}

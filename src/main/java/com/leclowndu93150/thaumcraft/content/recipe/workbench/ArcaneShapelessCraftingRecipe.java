@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.recipe.workbench;
 
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.mojang.serialization.Codec;
@@ -100,7 +101,15 @@ public class ArcaneShapelessCraftingRecipe extends ArcaneCraftingRecipe {
     }
 
     public List<RecipeDisplay> display() {
-        return List.of(new ShapelessCraftingRecipeDisplay(this.ingredients.stream().map(Ingredient::display).toList(), new SlotDisplay.ItemStackSlotDisplay(this.result), new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
+        return List.of(new ArcaneCraftingRecipeDisplay(
+                0,
+                0,
+                true,
+                this.ingredients.stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(),
+                new SlotDisplay.ItemStackSlotDisplay(this.result),
+                new SlotDisplay.ItemSlotDisplay(TCBlocks.ARCANE_WORKBENCH.get().asItem()),
+                this.vis,
+                crystalDisplays()));
     }
 
 }

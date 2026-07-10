@@ -40,11 +40,21 @@ public interface IResearchStage {
     List<ResearchRequirement> craft();
 
     /**
-     * Knowledge rewards required to advance.
+     * Knowledge rewards granted when this stage completes.
      *
      * @return the knowledge rewards, never null
      */
     List<KnowledgeReward> knowledge();
+
+    /**
+     * Knowledge the player must hold to advance past this stage. The listed amounts are consumed
+     * when the stage completes.
+     *
+     * @return the knowledge costs, never null
+     */
+    default List<KnowledgeReward> requiredKnowledge() {
+        return List.of();
+    }
 
     /**
      * Other research entries required to be complete before this stage will advance.

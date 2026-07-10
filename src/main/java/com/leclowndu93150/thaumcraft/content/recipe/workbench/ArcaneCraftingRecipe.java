@@ -1,5 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.recipe.workbench;
 
+import net.minecraft.world.item.crafting.display.SlotDisplay;
+import java.util.List;
+import java.util.ArrayList;
+import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
@@ -102,6 +106,16 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
     @Override
     public Optional<ResearchGate> researchGate() {
         return gate;
+    }
+
+    public List<SlotDisplay> crystalDisplays() {
+        List<SlotDisplay> displays = new ArrayList<>();
+        for (AspectInstance entry : aspects.entries()) {
+            ItemStack crystal = EssentiaCrystalFactory.of(entry.aspect(), entry.amount());
+            displays.add(new SlotDisplay.ItemStackSlotDisplay(
+                    new ItemStackTemplate(crystal.typeHolder(), crystal.getCount(), crystal.getComponentsPatch())));
+        }
+        return displays;
     }
 
     @Override

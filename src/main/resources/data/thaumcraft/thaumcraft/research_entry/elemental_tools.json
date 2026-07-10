@@ -1,0 +1,76 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.elemental_tools.title",
+  "parents": [
+    "thaumcraft:boots_traveller",
+    "thaumcraft:metallurgy@3"
+  ],
+  "column": -4,
+  "row": 3,
+  "icons": [
+    "thaumcraft:elemental_axe",
+    "thaumcraft:elemental_sword",
+    "thaumcraft:elemental_pickaxe",
+    "thaumcraft:elemental_shovel",
+    "thaumcraft:elemental_hoe"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.elemental_tools.stage_0",
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:thaumium_axe"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:thaumium_sword"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:thaumium_pickaxe"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:thaumium_shovel"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:thaumium_hoe"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:infusion",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.elemental_tools.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/elemental_axe",
+        "thaumcraft:infusion/elemental_sword",
+        "thaumcraft:infusion/elemental_pickaxe",
+        "thaumcraft:infusion/elemental_shovel",
+        "thaumcraft:infusion/elemental_hoe"
+      ]
+    }
+  ]
+}

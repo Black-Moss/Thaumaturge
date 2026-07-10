@@ -1,0 +1,47 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.essentia_smelter_thaumium.title",
+  "parents": [
+    "thaumcraft:tubes",
+    "thaumcraft:metallurgy@3"
+  ],
+  "column": 8,
+  "row": 0,
+  "icons": [
+    "thaumcraft:smelter_thaumium"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.essentia_smelter_thaumium.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumcraft:plate_thaumium"
+          ],
+          "amount": 1
+        }
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:alchemical_construct"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.essentia_smelter_thaumium.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/smelter_thaumium"
+      ]
+    }
+  ]
+}

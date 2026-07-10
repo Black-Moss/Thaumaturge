@@ -1,0 +1,35 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_pouch.title",
+  "parents": [
+    "thaumcraft:base_auromancy"
+  ],
+  "column": -2,
+  "row": -1,
+  "icons": [
+    "thaumcraft:focus_pouch"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_pouch.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_pouch.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/focus_pouch"
+      ]
+    }
+  ]
+}

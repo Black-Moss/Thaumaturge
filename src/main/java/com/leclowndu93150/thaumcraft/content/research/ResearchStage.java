@@ -14,6 +14,7 @@ public record ResearchStage(
         List<ResearchRequirement> obtain,
         List<ResearchRequirement> craft,
         List<KnowledgeReward> knowledge,
+        List<KnowledgeReward> requiredKnowledge,
         List<Identifier> requiredResearch,
         int warp
 ) implements IResearchStage {
@@ -23,6 +24,7 @@ public record ResearchStage(
             ResearchRequirement.CODEC.listOf().optionalFieldOf("obtain", List.of()).forGetter(ResearchStage::obtain),
             ResearchRequirement.CODEC.listOf().optionalFieldOf("craft", List.of()).forGetter(ResearchStage::craft),
             KnowledgeReward.CODEC.listOf().optionalFieldOf("knowledge", List.of()).forGetter(ResearchStage::knowledge),
+            KnowledgeReward.CODEC.listOf().optionalFieldOf("required_knowledge", List.of()).forGetter(ResearchStage::requiredKnowledge),
             Identifier.CODEC.listOf().optionalFieldOf("required_research", List.of()).forGetter(ResearchStage::requiredResearch),
             Codec.INT.optionalFieldOf("warp", 0).forGetter(ResearchStage::warp)
     ).apply(instance, ResearchStage::new));

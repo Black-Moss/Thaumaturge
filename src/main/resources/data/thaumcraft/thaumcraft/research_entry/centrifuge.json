@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.centrifuge.title",
+  "parents": [
+    "thaumcraft:tubes"
+  ],
+  "column": 7,
+  "row": -4,
+  "icons": [
+    "thaumcraft:centrifuge"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.centrifuge.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.centrifuge.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/centrifuge"
+      ]
+    }
+  ]
+}

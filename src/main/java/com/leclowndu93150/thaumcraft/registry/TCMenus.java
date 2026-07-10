@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.device.sprayer.MenuPotionSprayer;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.MenuSmelter;
 import com.leclowndu93150.thaumcraft.content.golem.press.MenuGolemBuilder;
@@ -38,6 +39,9 @@ public final class TCMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuSpa>> SPA =
             MENUS.register("spa", () -> IMenuTypeExtension.create(MenuSpa::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuPotionSprayer>> POTION_SPRAYER =
+            MENUS.register("potion_sprayer", () -> IMenuTypeExtension.create(MenuPotionSprayer::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuSmelter>> SMELTER =
             MENUS.register("smelter", () -> IMenuTypeExtension.create(MenuSmelter::new));

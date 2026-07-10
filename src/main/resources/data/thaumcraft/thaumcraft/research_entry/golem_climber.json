@@ -1,0 +1,38 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.golem_climber.title",
+  "parents": [
+    "thaumcraft:mind_clockwork"
+  ],
+  "column": -4,
+  "row": 2,
+  "icons": [
+    "thaumcraft:textures/research/icon_legs_climber.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.golem_climber.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:flint"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:f_spider"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.golem_climber.stage_1"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.flux_rift.title",
+  "parents": [
+    "thaumcraft:flux",
+    "thaumcraft:scanned/fluxrift"
+  ],
+  "column": 0,
+  "row": -3,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_fluxrift.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.flux_rift.stage_0"
+    }
+  ]
+}

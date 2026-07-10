@@ -49,6 +49,9 @@ import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockInfernalFurnac
 import com.leclowndu93150.thaumcraft.content.infernalfurnace.BlockPlaceholder;
 import com.leclowndu93150.thaumcraft.content.metal.BlockMetalTC;
 import com.leclowndu93150.thaumcraft.content.device.BlockLevitator;
+import com.leclowndu93150.thaumcraft.content.device.BlockInlay;
+import com.leclowndu93150.thaumcraft.content.device.patterncrafter.BlockPatternCrafter;
+import com.leclowndu93150.thaumcraft.content.device.sprayer.BlockPotionSprayer;
 import com.leclowndu93150.thaumcraft.content.golem.press.BlockGolemBuilder;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockNitor;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockResearchTable;
@@ -613,6 +616,37 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockRechargePedestal> RECHARGE_PEDESTAL = BLOCKS.registerBlock(
             "recharge_pedestal", BlockRechargePedestal::new, TCBlocks::pedestalProps);
+
+    public static final DeferredBlock<BlockInlay> INLAY = BLOCKS.registerBlock(
+            "inlay",
+            BlockInlay::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(0.5F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+                    .noCollision()
+                    .lightLevel(state -> 1)
+    );
+
+    public static final DeferredBlock<BlockPatternCrafter> PATTERN_CRAFTER = BLOCKS.registerBlock(
+            "pattern_crafter",
+            BlockPatternCrafter::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 20.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+    );
+
+    public static final DeferredBlock<BlockPotionSprayer> POTION_SPRAYER = BLOCKS.registerBlock(
+            "potion_sprayer",
+            BlockPotionSprayer::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F, 20.0F)
+                    .sound(SoundType.METAL)
+    );
 
     public static final DeferredBlock<BlockLevitator> LEVITATOR = BLOCKS.registerBlock(
             "levitator",

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.infusion;
 
+import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
@@ -417,6 +418,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
 
     private void awardCraft(ServerPlayer player, ItemStack result) {
         player.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
+        ResearchProgressionEvents.recordCrafted(player, result);
     }
 
     private ItemStack pedestalItem(Level level, BlockPos pos) {

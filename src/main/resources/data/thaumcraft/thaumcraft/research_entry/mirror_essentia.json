@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.mirror_essentia.title",
+  "parents": [
+    "thaumcraft:mirror"
+  ],
+  "column": -7,
+  "row": -1,
+  "icons": [
+    "thaumcraft:mirror_essentia"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mirror_essentia.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.mirror_essentia.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/mirror_essentia"
+      ]
+    }
+  ]
+}

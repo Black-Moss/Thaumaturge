@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.arcane_spa.title",
+  "parents": [
+    "thaumcraft:bath_salts"
+  ],
+  "column": -5,
+  "row": -4,
+  "icons": [
+    "thaumcraft:spa"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.arcane_spa.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.arcane_spa.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/spa"
+      ]
+    }
+  ]
+}

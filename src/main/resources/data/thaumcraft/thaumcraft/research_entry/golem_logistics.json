@@ -1,0 +1,47 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.golem_logistics.title",
+  "parents": [
+    "~thaumcraft:seal_provide",
+    "thaumcraft:golem_direct"
+  ],
+  "column": 3,
+  "row": 4,
+  "icons": [
+    "thaumcraft:textures/research/golem_logistics.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.golem_logistics.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:map"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:ender_eye"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.golem_logistics.stage_1"
+    }
+  ]
+}

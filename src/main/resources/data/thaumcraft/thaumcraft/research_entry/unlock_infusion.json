@@ -1,0 +1,41 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.unlock_infusion.title",
+  "parents": [
+    "thaumcraft:unlock_alchemy"
+  ],
+  "column": 0,
+  "row": 4,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_infusion.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.unlock_infusion.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:infusion",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/auram",
+        "thaumcraft:scanned/aspect/thaumcraft/praecantatio"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.unlock_infusion.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/fabric",
+        "thaumcraft:arcane_workbench/cloth_chest",
+        "thaumcraft:arcane_workbench/cloth_legs",
+        "thaumcraft:arcane_workbench/cloth_boots"
+      ]
+    }
+  ]
+}

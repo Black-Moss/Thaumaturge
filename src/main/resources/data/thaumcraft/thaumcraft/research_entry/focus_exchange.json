@@ -1,0 +1,30 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_exchange.title",
+  "parents": [
+    "thaumcraft:focus_flux"
+  ],
+  "column": 2,
+  "row": 4,
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_exchange.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/permutatio"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_exchange.stage_1"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.vis_battery.title",
+  "parents": [
+    "thaumcraft:recharge_pedestal",
+    "thaumcraft:crystal_farmer"
+  ],
+  "column": -5,
+  "row": 0,
+  "icons": [
+    "thaumcraft:vis_battery"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.vis_battery.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.vis_battery.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/vis_battery"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.knowledge_types.title",
+  "column": 2,
+  "row": -1,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/knowledge_theory.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.knowledge_types.stage_0"
+    }
+  ]
+}

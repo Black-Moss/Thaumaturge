@@ -1,0 +1,40 @@
+{
+  "category": "thaumcraft:alchemy",
+  "name": "research.thaumcraft.thaumatorium.title",
+  "parents": [
+    "thaumcraft:centrifuge",
+    "thaumcraft:essentia_smelter_thaumium"
+  ],
+  "column": 10,
+  "row": -2,
+  "meta": [
+    "spiky"
+  ],
+  "icons": [
+    "thaumcraft:thaumatorium"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.thaumatorium.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.thaumatorium.stage_1",
+      "recipes": [
+        "thaumcraft:dust_trigger/thaumatorium",
+        "thaumcraft:arcane_workbench/brain_box"
+      ]
+    }
+  ]
+}

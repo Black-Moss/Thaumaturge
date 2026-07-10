@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_greater.title",
+  "parents": [
+    "thaumcraft:focus_advanced",
+    "thaumcraft:primordial_pearl"
+  ],
+  "column": 0,
+  "row": -4,
+  "icons": [
+    "thaumcraft:focus_3"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_greater.stage_0",
+      "recipes": [
+        "thaumcraft:infusion/focus_3"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:focus_3"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:f_onfire"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_greater.stage_1",
+      "recipes": [
+        "thaumcraft:infusion/focus_3"
+      ]
+    }
+  ]
+}

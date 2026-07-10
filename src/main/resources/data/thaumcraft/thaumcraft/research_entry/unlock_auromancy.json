@@ -1,0 +1,53 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.unlock_auromancy.title",
+  "parents": [
+    "thaumcraft:unlock_alchemy"
+  ],
+  "column": -2,
+  "row": 4,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_auromancy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.unlock_auromancy.stage_0",
+      "required_research": [
+        "thaumcraft:m_deepdown",
+        "thaumcraft:m_uphigh"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.unlock_auromancy.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/vis_resonator",
+        "thaumcraft:arcane_workbench/caster_basic"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumcraft:vis_resonator"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumcraft:caster_basic"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.unlock_auromancy.stage_2",
+      "recipes": [
+        "thaumcraft:arcane_workbench/vis_resonator",
+        "thaumcraft:arcane_workbench/caster_basic"
+      ]
+    }
+  ]
+}

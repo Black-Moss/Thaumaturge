@@ -1,0 +1,44 @@
+{
+  "category": "thaumcraft:infusion",
+  "name": "research.thaumcraft.infusion_ancient.title",
+  "parents": [
+    "thaumcraft:infusion_boost",
+    "thaumcraft:scanned/orblock1"
+  ],
+  "column": 0,
+  "row": 6,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:stone_ancient"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.infusion_ancient.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumcraft:stone_ancient"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.infusion_ancient.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/pedestal_ancient",
+        "thaumcraft:dust_trigger/infusion_altar_ancient"
+      ]
+    }
+  ]
+}

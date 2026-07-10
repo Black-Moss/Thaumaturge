@@ -1,0 +1,38 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_projectile.title",
+  "parents": [
+    "thaumcraft:base_auromancy"
+  ],
+  "column": 3,
+  "row": 0,
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_projectile.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/motus"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_projectile.stage_1",
+      "required_research": [
+        "thaumcraft:f_arrow",
+        "thaumcraft:f_fireball",
+        "thaumcraft:f_spit"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_projectile.stage_2"
+    }
+  ]
+}

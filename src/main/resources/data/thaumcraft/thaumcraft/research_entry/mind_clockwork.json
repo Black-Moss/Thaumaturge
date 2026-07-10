@@ -1,0 +1,62 @@
+{
+  "category": "thaumcraft:golemancy",
+  "name": "research.thaumcraft.mind_clockwork.title",
+  "parents": [
+    "thaumcraft:base_golemancy",
+    "thaumcraft:essentia_smelter",
+    "thaumcraft:hedge_alchemy"
+  ],
+  "siblings": [
+    "thaumcraft:control_seals",
+    "thaumcraft:mat_stud_wood"
+  ],
+  "column": 0,
+  "row": 3,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:mind_clockwork"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.mind_clockwork.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/cognitio",
+        "thaumcraft:scanned/aspect/thaumcraft/victus"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.mind_clockwork.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/mind_clockwork"
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.mind_clockwork.stage_2",
+      "recipes": [
+        "thaumcraft:arcane_workbench/mind_clockwork",
+        "thaumcraft:dust_trigger/golem_press"
+      ]
+    }
+  ]
+}

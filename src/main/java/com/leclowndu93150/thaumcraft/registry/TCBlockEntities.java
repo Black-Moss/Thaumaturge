@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.device.patterncrafter.BlockEntityPatternCrafter;
+import com.leclowndu93150.thaumcraft.content.device.sprayer.BlockEntityPotionSprayer;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.decor.BlockEntityBarrierStone;
 import com.leclowndu93150.thaumcraft.content.device.mirror.BlockEntityMirror;
@@ -384,6 +386,18 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "recharge_pedestal",
                     () -> new BlockEntityType<>(BlockEntityRechargePedestal::new, Set.of(TCBlocks.RECHARGE_PEDESTAL.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityPatternCrafter>> PATTERN_CRAFTER =
+            BLOCK_ENTITIES.register(
+                    "pattern_crafter",
+                    () -> new BlockEntityType<>(BlockEntityPatternCrafter::new, Set.of(TCBlocks.PATTERN_CRAFTER.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityPotionSprayer>> POTION_SPRAYER =
+            BLOCK_ENTITIES.register(
+                    "potion_sprayer",
+                    () -> new BlockEntityType<>(BlockEntityPotionSprayer::new, Set.of(TCBlocks.POTION_SPRAYER.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityLevitator>> LEVITATOR =

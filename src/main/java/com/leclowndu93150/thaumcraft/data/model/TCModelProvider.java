@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
+import com.leclowndu93150.thaumcraft.content.device.BlockInlay;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.device.mirror.BlockMirror;
 import com.leclowndu93150.thaumcraft.content.device.BlockVisBattery;
@@ -654,6 +655,56 @@ public final class TCModelProvider extends ModelProvider {
                 TextureMapping.layer0(TCItems.GOLEM_PLACER.get()), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(TCItems.GOLEM_PLACER.get(),
                 ItemModelUtils.tintedModel(golemModel, new GolemMaterialTint()));
+
+        Identifier inlayDot = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/inlay_dot");
+        Identifier inlaySide = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/inlay_side");
+        MultiPartGenerator inlayGenerator = MultiPartGenerator.multiPart(TCBlocks.INLAY.get())
+                .with(new MultiVariant(WeightedList.of(new Variant(inlayDot))));
+        inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.NORTH, true),
+                new MultiVariant(WeightedList.of(new Variant(inlaySide))));
+        inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.EAST, true),
+                new MultiVariant(WeightedList.of(BlockModelGenerators.Y_ROT_90.apply(new Variant(inlaySide)))));
+        inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.SOUTH, true),
+                new MultiVariant(WeightedList.of(BlockModelGenerators.Y_ROT_180.apply(new Variant(inlaySide)))));
+        inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.WEST, true),
+                new MultiVariant(WeightedList.of(BlockModelGenerators.Y_ROT_270.apply(new Variant(inlaySide)))));
+        blockModels.blockStateOutput.accept(inlayGenerator);
+        Identifier inlayItemModel = ModelTemplates.TWO_LAYERED_ITEM.create(
+                ModelLocationUtils.getModelLocation(TCItems.INLAY.get()),
+                TextureMapping.layered(
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/inlay_connect_under")),
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/inlay_connect1"))),
+                itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCItems.INLAY.get(), ItemModelUtils.plainModel(inlayItemModel));
+
+        Identifier patternCrafterModel = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/pattern_crafter");
+        PropertyDispatch<VariantMutator> patternCrafterFacing = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.PATTERN_CRAFTER.get(),
+                new MultiVariant(WeightedList.of(new Variant(patternCrafterModel))))
+                .with(patternCrafterFacing));
+        itemModels.itemModelOutput.accept(TCItems.PATTERN_CRAFTER.get(), ItemModelUtils.plainModel(patternCrafterModel));
+
+        Identifier sprayerModel = ModelTemplates.CUBE_BOTTOM_TOP.create(TCBlocks.POTION_SPRAYER.get(),
+                new TextureMapping()
+                        .put(TextureSlot.TOP, new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/potion_sprayer_top")))
+                        .put(TextureSlot.BOTTOM, new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/potion_sprayer_bottom")))
+                        .put(TextureSlot.SIDE, new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/potion_sprayer_side"))),
+                blockModels.modelOutput);
+        PropertyDispatch<VariantMutator> sprayerFacing = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.UP, BlockModelGenerators.NOP)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180)
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180))
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.POTION_SPRAYER.get(),
+                new MultiVariant(WeightedList.of(new Variant(sprayerModel))))
+                .with(sprayerFacing));
+        itemModels.itemModelOutput.accept(TCItems.POTION_SPRAYER.get(), ItemModelUtils.plainModel(sprayerModel));
 
         PropertyDispatch<VariantMutator> levitatorFacing = PropertyDispatch.modify(BlockStateProperties.FACING)
                 .select(Direction.UP, BlockModelGenerators.NOP)

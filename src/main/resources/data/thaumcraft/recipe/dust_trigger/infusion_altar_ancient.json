@@ -3,5 +3,8 @@
   "blueprint": "thaumcraft:infusion_altar_ancient",
   "result": {
     "id": "thaumcraft:infusion_matrix"
+  },
+  "research": {
+    "entry": "thaumcraft:infusion_ancient"
   }
 }

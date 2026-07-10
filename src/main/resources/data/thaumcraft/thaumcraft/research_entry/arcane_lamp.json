@@ -1,0 +1,33 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.arcane_lamp.title",
+  "parents": [
+    "thaumcraft:base_artifice"
+  ],
+  "column": -3,
+  "row": 0,
+  "icons": [
+    "thaumcraft:lamp_arcane"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.arcane_lamp.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumcraft:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/lux"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.arcane_lamp.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/lamp_arcane"
+      ]
+    }
+  ]
+}

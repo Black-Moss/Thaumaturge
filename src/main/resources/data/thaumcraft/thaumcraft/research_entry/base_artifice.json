@@ -1,0 +1,28 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.base_artifice.title",
+  "parents": [
+    "thaumcraft:unlock_artifice"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/cat_artifice.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.base_artifice.stage_0",
+      "recipes": [
+        "thaumcraft:arcane_workbench/goggles_revealing",
+        "thaumcraft:arcane_workbench/mechanism_simple",
+        "thaumcraft:arcane_workbench/mechanism_complex",
+        "thaumcraft:arcane_workbench/mirrored_glass",
+        "thaumcraft:plate_iron"
+      ]
+    }
+  ]
+}

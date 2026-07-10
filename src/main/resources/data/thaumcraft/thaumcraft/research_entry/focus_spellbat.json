@@ -1,0 +1,41 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_spellbat.title",
+  "parents": [
+    "thaumcraft:focus_mine",
+    "thaumcraft:f_bat",
+    "thaumcraft:scanned/entity/thaumcraft/firebat"
+  ],
+  "column": 7,
+  "row": 4,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumcraft:focus_2"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_spellbat.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumcraft:eldritch",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/bestia"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_spellbat.stage_1",
+      "warp": 2
+    }
+  ]
+}

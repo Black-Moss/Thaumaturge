@@ -113,7 +113,12 @@ public final class TCTooltips {
     }
 
     public static Component prereqEntryName(Identifier id) {
-        return Component.translatable("research.thaumcraft." + id.getPath() + ".title");
+        String path = id.getPath();
+        if (path.startsWith("scanned/aspect/")) {
+            String aspect = path.substring(path.lastIndexOf('/') + 1);
+            return Component.translatable("aspect.thaumcraft." + aspect);
+        }
+        return Component.translatableWithFallback("research.thaumcraft." + path + ".title", "?");
     }
 
     public enum EntryStatus {

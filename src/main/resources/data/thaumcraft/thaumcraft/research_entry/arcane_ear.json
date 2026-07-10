@@ -1,0 +1,36 @@
+{
+  "category": "thaumcraft:artifice",
+  "name": "research.thaumcraft.arcane_ear.title",
+  "parents": [
+    "thaumcraft:redstone_relay"
+  ],
+  "column": 0,
+  "row": -4,
+  "icons": [
+    "thaumcraft:arcane_ear"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.arcane_ear.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:note_block"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/aspect/thaumcraft/sensus"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.arcane_ear.stage_1",
+      "recipes": [
+        "thaumcraft:arcane_workbench/arcane_ear",
+        "thaumcraft:arcane_ear_toggle",
+        "thaumcraft:arcane_ear_toggle"
+      ]
+    }
+  ]
+}

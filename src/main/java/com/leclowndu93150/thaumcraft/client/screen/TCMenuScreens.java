@@ -30,6 +30,7 @@ public final class TCMenuScreens {
         event.register(TCMenus.ARCANE_WORKBENCH.get(), ArcaneWorkbenchScreen::new);
         event.register(TCMenus.SMELTER.get(), SmelterScreen::new);
         event.register(TCMenus.SPA.get(), SpaScreen::new);
+        event.register(TCMenus.POTION_SPRAYER.get(), PotionSprayerScreen::new);
         event.register(TCMenus.FOCAL_MANIPULATOR.get(), FocalManipulatorScreen::new);
         event.register(TCMenus.GOLEM_BUILDER.get(), GolemBuilderScreen::new);
         event.register(TCMenus.SEAL.get(), SealScreen::new);
