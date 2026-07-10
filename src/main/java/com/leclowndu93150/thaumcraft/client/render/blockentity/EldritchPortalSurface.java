@@ -1,19 +1,23 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.blockentity.AbstractEndPortalRenderer;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.joml.Matrix4fc;
 
 public final class EldritchPortalSurface {
+    public static final Identifier TUNNEL_TEXTURE = TCIds.rl("textures/misc/tunnel.png");
+    public static final Identifier PARTICLE_FIELD_TEXTURE = TCIds.rl("textures/misc/particlefield.png");
+
     public static final RenderType SURFACE = RenderType.create(
             "tc_eldritch_portal_surface",
-            RenderSetup.builder(TCRenderPipelines.RIFT_SOLID)
-                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_SKY_LOCATION)
-                    .withTexture("Sampler1", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
+            RenderSetup.builder(TCRenderPipelines.PORTAL_SURFACE)
+                    .withTexture("Sampler0", TUNNEL_TEXTURE)
+                    .withTexture("Sampler1", PARTICLE_FIELD_TEXTURE)
                     .createRenderSetup());
 
     private EldritchPortalSurface() {}

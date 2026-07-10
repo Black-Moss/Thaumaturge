@@ -44,6 +44,8 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
     private static final float TABLET_FACE_OFFSET = 0.525F;
     private static final float TABLET_HEIGHT = 0.285F;
     private static final float FLAT_ITEM_LIFT = 0.125F;
+    private static final float IN_FRAME_SCALE = 0.5128205F;
+    private static final float IN_FRAME_DROP = -0.05F;
     private static final float DOOR_MIN = -2.0F;
     private static final float DOOR_MAX = 3.0F;
     private static final float DOOR_PLANE = 0.5F;
@@ -118,7 +120,7 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
         }
         Direction dir = state.facing;
         poseStack.pushPose();
-        poseStack.translate(0.5F + dir.getStepX() * TABLET_FACE_OFFSET, TABLET_HEIGHT + FLAT_ITEM_LIFT,
+        poseStack.translate(0.5F + dir.getStepX() * TABLET_FACE_OFFSET, TABLET_HEIGHT,
                 0.5F + dir.getStepZ() * TABLET_FACE_OFFSET);
         float yRot = switch (dir) {
             case NORTH -> 180.0F;
@@ -127,6 +129,8 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
             default -> 0.0F;
         };
         poseStack.mulPose(Axis.YP.rotationDegrees(yRot));
+        poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
+        poseStack.translate(0.0F, IN_FRAME_DROP + FLAT_ITEM_LIFT, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         state.tablet.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();

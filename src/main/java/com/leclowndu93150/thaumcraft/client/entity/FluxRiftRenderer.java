@@ -22,21 +22,21 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
     private static final RenderType RIFT_GLOW_TYPE = RenderType.create(
             "tc_rift_glow",
             RenderSetup.builder(TCRenderPipelines.RIFT_GLOW)
-                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_SKY_LOCATION)
+                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
                     .withTexture("Sampler1", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
                     .createRenderSetup());
 
     private static final RenderType RIFT_GLOW_NO_DEPTH_TYPE = RenderType.create(
             "tc_rift_glow_no_depth",
             RenderSetup.builder(TCRenderPipelines.RIFT_GLOW_NO_DEPTH)
-                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_SKY_LOCATION)
+                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
                     .withTexture("Sampler1", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
                     .createRenderSetup());
 
     private static final RenderType RIFT_SOLID_TYPE = RenderType.create(
             "tc_rift_solid",
             RenderSetup.builder(TCRenderPipelines.RIFT_SOLID)
-                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_SKY_LOCATION)
+                    .withTexture("Sampler0", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
                     .withTexture("Sampler1", AbstractEndPortalRenderer.END_PORTAL_LOCATION)
                     .createRenderSetup());
 

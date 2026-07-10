@@ -32,6 +32,8 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
     private static final float EYE_HEIGHT = 0.2F;
     private static final float EYE_TILT = 18.0F;
     private static final float FLAT_ITEM_LIFT = 0.125F;
+    private static final float IN_FRAME_SCALE = 0.5128205F;
+    private static final float IN_FRAME_DROP = -0.05F;
 
     private final Identifier texture;
     private final Identifier textureOuter;
@@ -85,9 +87,11 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.0F, 0.5F);
             poseStack.mulPose(Axis.YP.rotationDegrees(a * 90.0F));
-            poseStack.translate(EYE_OFFSET, EYE_HEIGHT + FLAT_ITEM_LIFT, 0.0F);
+            poseStack.translate(EYE_OFFSET, EYE_HEIGHT, 0.0F);
             poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
             poseStack.mulPose(Axis.XN.rotationDegrees(EYE_TILT));
+            poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
+            poseStack.translate(0.0F, IN_FRAME_DROP + FLAT_ITEM_LIFT, 0.0F);
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             state.eye.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();

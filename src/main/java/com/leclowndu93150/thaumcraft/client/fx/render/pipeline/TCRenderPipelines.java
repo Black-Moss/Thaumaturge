@@ -63,7 +63,8 @@ public final class TCRenderPipelines {
 
     public static final RenderPipeline RIFT_GLOW = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow"))
-            .withShaderDefine("PORTAL_LAYERS", 4)
+            .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
             .withDepthStencilState(TEST_NO_WRITE)
             .withCull(false)
@@ -71,7 +72,8 @@ public final class TCRenderPipelines {
 
     public static final RenderPipeline RIFT_GLOW_NO_DEPTH = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow_no_depth"))
-            .withShaderDefine("PORTAL_LAYERS", 4)
+            .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
             .withDepthStencilState(ALWAYS_NO_WRITE)
             .withCull(false)
@@ -79,8 +81,16 @@ public final class TCRenderPipelines {
 
     public static final RenderPipeline RIFT_SOLID = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_solid"))
-            .withShaderDefine("PORTAL_LAYERS", 15)
+            .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withCull(false)
+            .build();
+
+    public static final RenderPipeline PORTAL_SURFACE = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/portal_surface"))
+            .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_portal"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_portal"))
             .withCull(false)
             .build();
 
@@ -141,6 +151,7 @@ public final class TCRenderPipelines {
         event.registerPipeline(RIFT_GLOW);
         event.registerPipeline(RIFT_GLOW_NO_DEPTH);
         event.registerPipeline(RIFT_SOLID);
+        event.registerPipeline(PORTAL_SURFACE);
         event.registerPipeline(FX_TRANSLUCENT);
         event.registerPipeline(FX_ADDITIVE_NO_DEPTH);
         event.registerPipeline(FX_TRANSLUCENT_NO_DEPTH);
