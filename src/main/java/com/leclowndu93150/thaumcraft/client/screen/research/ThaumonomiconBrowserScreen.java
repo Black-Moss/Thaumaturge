@@ -654,6 +654,9 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         List<ResearchIcon> icons = node.entry.icons();
         if (!icons.isEmpty()) {
             ResearchIcon icon = icons.get((int) (ticks / 20L % icons.size()));
+            if (icon.kind() == ResearchIcon.Kind.FOCUS) {
+                return new EntryIconRenderer.FocusIcon(icon.id());
+            }
             if (icon.texture()) {
                 return icon.id();
             }

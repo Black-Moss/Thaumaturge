@@ -1,6 +1,9 @@
 package com.leclowndu93150.thaumcraft.client.render.research;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
+import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
+import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
@@ -50,6 +53,13 @@ public final class EntryIconRenderer {
     private static final int LOCKED_ICON_OVERLAY = 0x7F000000;
     private static final int ICON_TEX_SIZE = 16;
     private static final long FLIPBOOK_FRAME_MS = 150L;
+
+    private static final Identifier FOCUS_EFFECT_BACK = Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/foci/_effect.png");
+    private static final Identifier FOCUS_MEDIUM_BACK = Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/foci/_medium.png");
+    private static final float FOCUS_PART_SCALE = 24.0F;
+    private static final int FOCUS_BACK_ALPHA = 220;
+    private static final int FOCUS_GLYPH_ALPHA = 220;
+    private static final int FOCUS_GLYPH_LOCKED_ALPHA = 50;
 
     private static final long PULSE_PERIOD_MS = 600L;
     private static final float PULSE_AMPLITUDE = 0.25F;
@@ -137,9 +147,39 @@ public final class EntryIconRenderer {
             }
             return;
         }
+        if (icon instanceof FocusIcon focus) {
+            drawFocusIcon(graphics, iconX + ICON_TEX_SIZE / 2, iconY + ICON_TEX_SIZE / 2, focus.elementId(), locked);
+            return;
+        }
         if (icon instanceof Identifier texture) {
             drawTextureIcon(graphics, iconX, iconY, texture, locked);
         }
+    }
+
+    public record FocusIcon(Identifier elementId) {}
+
+    public static void drawFocusIcon(GuiGraphicsExtractor graphics, int centerX, int centerY, Identifier elementId, boolean locked) {
+        IFocusElement element = FocusEngine.getElement(elementId);
+        if (!(element instanceof FocusNode node)) {
+            return;
+        }
+        int color = (FOCUS_BACK_ALPHA << 24) | (FocusEngine.getElementColor(elementId) & 0x00FFFFFF);
+        if (node.getType() == IFocusElement.EnumUnitType.EFFECT) {
+            blitCentered(graphics, FOCUS_EFFECT_BACK, centerX, centerY, Math.round(FOCUS_PART_SCALE * 0.9F), color);
+        } else if (node.getType() == IFocusElement.EnumUnitType.MEDIUM) {
+            blitCentered(graphics, FOCUS_MEDIUM_BACK, centerX, centerY, Math.round(FOCUS_PART_SCALE * 0.9F), color);
+        }
+        int glyphAlpha = locked ? FOCUS_GLYPH_LOCKED_ALPHA : FOCUS_GLYPH_ALPHA;
+        Identifier glyph = FocusEngine.getElementIcon(elementId);
+        if (glyph != null) {
+            blitCentered(graphics, glyph, centerX, centerY, Math.round(FOCUS_PART_SCALE / 2.0F), (glyphAlpha << 24) | 0x00FFFFFF);
+        }
+    }
+
+    private static void blitCentered(GuiGraphicsExtractor graphics, Identifier texture, int cx, int cy, int size, int color) {
+        int half = size / 2;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, cx - half, cy - half,
+                0.0F, 0.0F, size, size, 32, 32, 32, 32, color);
     }
 
     private static void drawTextureIcon(GuiGraphicsExtractor graphics, int iconX, int iconY, Identifier texture, boolean locked) {
