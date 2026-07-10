@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.device.mirror.BlockMirror;
 import com.leclowndu93150.thaumcraft.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
@@ -80,6 +81,15 @@ public final class TCModelProvider extends ModelProvider {
     @Override
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         registerResearchTable(blockModels);
+        registerConstructs(blockModels, itemModels);
+        TCBlocksDecorModels.register(blockModels);
+        TCBlocksEldritchModels.register(blockModels);
+        blockModels.createTrivialCube(TCBlocks.AMBER_BRICK.get());
+        blockModels.registerSimpleItemModel(TCBlocks.AMBER_BRICK.get().asItem(), ModelLocationUtils.getModelLocation(TCBlocks.AMBER_BRICK.get()));
+        blockModels.createTrivialCube(TCBlocks.FLESH_BLOCK.get());
+        blockModels.registerSimpleItemModel(TCBlocks.FLESH_BLOCK.get().asItem(), ModelLocationUtils.getModelLocation(TCBlocks.FLESH_BLOCK.get()));
+        registerInvisibleBlock(blockModels, TCBlocks.EFFECT_SHOCK.get());
+        registerInvisibleBlock(blockModels, TCBlocks.BARRIER.get());
         registerJar(blockModels, itemModels, TCBlocks.JAR_NORMAL.get(), "jar_normal");
         registerJar(blockModels, itemModels, TCBlocks.JAR_VOID.get(), "jar_void");
         registerJarBrain(blockModels, itemModels);
@@ -87,6 +97,8 @@ public final class TCModelProvider extends ModelProvider {
         registerNoiseDevices(blockModels, itemModels);
         TubeModels.register(blockModels);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CRUCIBLE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.CRUCIBLE.get()))));
+        mirrorBlockState(blockModels, TCBlocks.MIRROR.get());
+        mirrorBlockState(blockModels, TCBlocks.MIRROR_ESSENTIA.get());
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_URN_COMMON.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_COMMON.get()))));
         itemModels.itemModelOutput.accept(TCItems.LOOT_URN_COMMON.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_COMMON.get())));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.LOOT_URN_UNCOMMON.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_URN_UNCOMMON.get()))));
@@ -377,6 +389,20 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.FOCUS_POUCH.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SANITY_CHECKER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.RESONATOR.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_ARCANE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_PRESERVED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_ANCIENT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_ELDRITCH.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_KNOWLEDGE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_TWISTED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CURIO_RITES.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CREATIVE_FLUX_SPONGE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.HAND_MIRROR.get(), ModelTemplates.FLAT_ITEM);
+        registerMirrorItem(itemModels, TCItems.MIRROR.get(), "mirrorframe");
+        registerMirrorItem(itemModels, TCItems.MIRROR_ESSENTIA.get(), "mirrorframe2");
+        itemModels.generateFlatItem(TCItems.CRIMSON_PRAETOR_HELM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_PRAETOR_CHEST.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CRIMSON_PRAETOR_LEGS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FORTRESS_HELM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FORTRESS_CHEST.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FORTRESS_LEGS.get(), ModelTemplates.FLAT_ITEM);
@@ -653,7 +679,58 @@ public final class TCModelProvider extends ModelProvider {
         registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_IRON_BARS.get());
         registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_CAULDRON.get());
         registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_ANVIL.get());
-        registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_SMITHING_TABLE.get());
+        registerInvisibleBlock(blockModels, TCBlocks.PLACEHOLDER_TABLE.get());
+    }
+
+
+    private static void registerConstructs(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        itemModels.generateFlatItem(TCItems.TURRET_BASIC.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.TURRET_ADVANCED.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.TURRET_BORE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GRAPPLE_GUN_TIP.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GRAPPLE_GUN_SPOOL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ELDRITCH_EYE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.RUNED_TABLET.get(), ModelTemplates.FLAT_ITEM);
+        ItemModel.Unbaked unloaded = ItemModelUtils.plainModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/grapple_gun_1"));
+        ItemModel.Unbaked loaded = ItemModelUtils.plainModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/grapple_gun_2"));
+        itemModels.itemModelOutput.accept(TCItems.GRAPPLE_GUN.get(),
+                ItemModelUtils.conditional(
+                        ItemModelUtils.hasComponent(TCDataComponents.GRAPPLE_LOADED.get()),
+                        loaded,
+                        unloaded));
+        registerActivatorRail(blockModels);
+    }
+
+    private static void registerActivatorRail(BlockModelGenerators blockModels) {
+        Block block = TCBlocks.ACTIVATOR_RAIL.get();
+        MultiVariant flat = BlockModelGenerators.plainVariant(
+                ModelTemplates.RAIL_FLAT.create(block, TextureMapping.rail(block), blockModels.modelOutput));
+        MultiVariant risingNE = BlockModelGenerators.plainVariant(
+                ModelTemplates.RAIL_RAISED_NE.create(block, TextureMapping.rail(block), blockModels.modelOutput));
+        MultiVariant risingSW = BlockModelGenerators.plainVariant(
+                ModelTemplates.RAIL_RAISED_SW.create(block, TextureMapping.rail(block), blockModels.modelOutput));
+
+        MultiVariant flatOn = BlockModelGenerators.plainVariant(ModelTemplates.RAIL_FLAT.createWithSuffix(
+                block, "_on", TextureMapping.rail(TextureMapping.getBlockTexture(block, "_on")), blockModels.modelOutput));
+        MultiVariant risingNEOn = BlockModelGenerators.plainVariant(ModelTemplates.RAIL_RAISED_NE.createWithSuffix(
+                block, "_on", TextureMapping.rail(TextureMapping.getBlockTexture(block, "_on")), blockModels.modelOutput));
+        MultiVariant risingSWOn = BlockModelGenerators.plainVariant(ModelTemplates.RAIL_RAISED_SW.createWithSuffix(
+                block, "_on", TextureMapping.rail(TextureMapping.getBlockTexture(block, "_on")), blockModels.modelOutput));
+        blockModels.registerSimpleFlatItemModel(block);
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(block)
+                        .with(PropertyDispatch.initial(BlockStateProperties.POWERED, BlockStateProperties.RAIL_SHAPE_STRAIGHT)
+                                .generate((powered, railShape) -> switch (railShape) {
+                                    case NORTH_SOUTH -> powered ? flatOn : flat;
+                                    case EAST_WEST -> (powered ? flatOn : flat).with(BlockModelGenerators.Y_ROT_90);
+                                    case ASCENDING_EAST -> (powered ? risingNEOn : risingNE).with(BlockModelGenerators.Y_ROT_90);
+                                    case ASCENDING_WEST -> (powered ? risingSWOn : risingSW).with(BlockModelGenerators.Y_ROT_90);
+                                    case ASCENDING_NORTH -> powered ? risingNEOn : risingNE;
+                                    case ASCENDING_SOUTH -> powered ? risingSWOn : risingSW;
+                                    default -> throw new UnsupportedOperationException();
+                                })));
     }
 
     private static void registerCasters(ItemModelGenerators itemModels) {
@@ -896,6 +973,24 @@ public final class TCModelProvider extends ModelProvider {
                         .select(true, new MultiVariant(WeightedList.of(new Variant(dioptraOn))))
                         .select(false, new MultiVariant(WeightedList.of(new Variant(dioptraOff))))));
         itemModels.itemModelOutput.accept(TCItems.DIOPTRA.get(), ItemModelUtils.plainModel(dioptraOn));
+    }
+
+    private static void registerMirrorItem(ItemModelGenerators itemModels, Item item, String frameTexture) {
+        Identifier model = ModelLocationUtils.getModelLocation(item);
+        ModelTemplates.TWO_LAYERED_ITEM.create(model,
+                TextureMapping.layered(
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + frameTexture)),
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/mirrorpane"))),
+                itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(model));
+    }
+
+    private static void mirrorBlockState(BlockModelGenerators blockModels, Block block) {
+        Identifier model = ModelTemplates.PARTICLE_ONLY.createWithSuffix(block, "_state",
+                TextureMapping.particle(new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/mirrorframe"))),
+                blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
     }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {

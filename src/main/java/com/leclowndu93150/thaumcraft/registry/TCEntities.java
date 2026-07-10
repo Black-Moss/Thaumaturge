@@ -1,10 +1,19 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityCultistLeader;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityCultistPortalGreater;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityEldritchGolem;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityEldritchWarden;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityTaintacleGiant;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.entity.*;
 
 import java.util.function.Supplier;
 
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityArcaneBore;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbow;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbowAdvanced;
+import com.leclowndu93150.thaumcraft.content.entity.projectile.EntityGrapple;
 import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
 import com.leclowndu93150.thaumcraft.content.misc.alumentum.ThrownAlumentum;
 import net.minecraft.core.registries.Registries;
@@ -260,6 +269,50 @@ public final class TCEntities {
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistLeader>> CULTIST_LEADER = register(
+            "cultist_leader",
+            () -> EntityType.Builder.of(EntityCultistLeader::new, MobCategory.MONSTER)
+                    .sized(0.75F, 2.25F)
+                    .notInPeaceful()
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalGreater>> CULTIST_PORTAL_GREATER = register(
+            "cultist_portal_greater",
+            () -> EntityType.Builder.of(EntityCultistPortalGreater::new, MobCategory.MONSTER)
+                    .sized(1.5F, 3.0F)
+                    .fireImmune()
+                    .notInPeaceful()
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchGolem>> ELDRITCH_GOLEM = register(
+            "eldritch_golem",
+            () -> EntityType.Builder.of(EntityEldritchGolem::new, MobCategory.MONSTER)
+                    .sized(1.75F, 3.5F)
+                    .eyeHeight(3.0F)
+                    .fireImmune()
+                    .notInPeaceful()
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchWarden>> ELDRITCH_WARDEN = register(
+            "eldritch_warden",
+            () -> EntityType.Builder.of(EntityEldritchWarden::new, MobCategory.MONSTER)
+                    .sized(1.5F, 3.5F)
+                    .eyeHeight(3.1F)
+                    .notInPeaceful()
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintacleGiant>> TAINTACLE_GIANT = register(
+            "taintacle_giant",
+            () -> EntityType.Builder.of(EntityTaintacleGiant::new, MobCategory.MONSTER)
+                    .sized(1.1F, 6.0F)
+                    .notInPeaceful()
+                    .clientTrackingRange(10)
+                    .updateInterval(3));
+
     public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalLesser>> CULTIST_PORTAL_LESSER = register(
             "cultist_portal_lesser",
             () -> EntityType.Builder.of(EntityCultistPortalLesser::new, MobCategory.MONSTER)
@@ -288,6 +341,37 @@ public final class TCEntities {
             () -> EntityType.Builder.<EntityThaumcraftGolem>of(EntityThaumcraftGolem::new, MobCategory.MISC)
                     .sized(0.4F, 0.9F)
                     .eyeHeight(0.7F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTurretCrossbow>> TURRET_CROSSBOW = register(
+            "turret_crossbow",
+            () -> EntityType.Builder.<EntityTurretCrossbow>of(EntityTurretCrossbow::new, MobCategory.MISC)
+                    .sized(0.95F, 1.25F)
+                    .eyeHeight(0.825F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTurretCrossbowAdvanced>> TURRET_CROSSBOW_ADVANCED = register(
+            "turret_crossbow_advanced",
+            () -> EntityType.Builder.<EntityTurretCrossbowAdvanced>of(EntityTurretCrossbowAdvanced::new, MobCategory.MISC)
+                    .sized(0.95F, 1.5F)
+                    .eyeHeight(1.0F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityArcaneBore>> ARCANE_BORE = register(
+            "arcane_bore",
+            () -> EntityType.Builder.<EntityArcaneBore>of(EntityArcaneBore::new, MobCategory.MISC)
+                    .sized(0.9F, 0.9F)
+                    .eyeHeight(0.8125F)
+                    .clientTrackingRange(8)
+                    .updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityGrapple>> GRAPPLE = register(
+            "grapple",
+            () -> EntityType.Builder.<EntityGrapple>of(EntityGrapple::new, MobCategory.MISC)
+                    .sized(0.1F, 0.1F)
                     .clientTrackingRange(8)
                     .updateInterval(3));
 

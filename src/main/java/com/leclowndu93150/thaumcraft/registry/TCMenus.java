@@ -4,6 +4,9 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.MenuSmelter;
 import com.leclowndu93150.thaumcraft.content.golem.press.MenuGolemBuilder;
 import com.leclowndu93150.thaumcraft.content.golem.seals.MenuSealBase;
+import com.leclowndu93150.thaumcraft.content.entity.construct.MenuArcaneBore;
+import com.leclowndu93150.thaumcraft.content.entity.construct.MenuTurretAdvanced;
+import com.leclowndu93150.thaumcraft.content.entity.construct.MenuTurretBasic;
 import com.leclowndu93150.thaumcraft.content.pech.MenuPech;
 import com.leclowndu93150.thaumcraft.content.spa.MenuSpa;
 import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
@@ -14,6 +17,7 @@ import com.leclowndu93150.thaumcraft.content.casters.MenuFocusPouch;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
 import com.leclowndu93150.thaumcraft.content.device.MenuVoidSiphon;
+import com.leclowndu93150.thaumcraft.content.device.mirror.MenuHandMirror;
 import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.MenuThaumatorium;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -55,6 +59,18 @@ public final class TCMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuPech>> PECH =
             MENUS.register("pech", () -> IMenuTypeExtension.create(MenuPech::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuTurretBasic>> TURRET_BASIC =
+            MENUS.register("turret_basic", () -> IMenuTypeExtension.create(MenuTurretBasic::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuTurretAdvanced>> TURRET_ADVANCED =
+            MENUS.register("turret_advanced", () -> IMenuTypeExtension.create(MenuTurretAdvanced::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuArcaneBore>> ARCANE_BORE =
+            MENUS.register("arcane_bore", () -> IMenuTypeExtension.create(MenuArcaneBore::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuHandMirror>> HAND_MIRROR =
+            MENUS.register("hand_mirror", () -> IMenuTypeExtension.create(MenuHandMirror::new));
 
     private TCMenus() {}
 

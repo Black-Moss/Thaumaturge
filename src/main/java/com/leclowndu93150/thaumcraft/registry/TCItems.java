@@ -15,6 +15,10 @@ import com.leclowndu93150.thaumcraft.content.item.SalisMundusItem;
 import com.leclowndu93150.thaumcraft.content.item.ScribingToolsItem;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumcraft.content.item.equipment.GogglesItem;
+import com.leclowndu93150.thaumcraft.content.device.mirror.ItemBlockMirror;
+import com.leclowndu93150.thaumcraft.content.device.mirror.ItemHandMirror;
+import com.leclowndu93150.thaumcraft.content.misc.ItemCreativeFluxSponge;
+import com.leclowndu93150.thaumcraft.content.misc.ItemCurio;
 import com.leclowndu93150.thaumcraft.content.misc.alumentum.ItemAlumentum;
 import com.leclowndu93150.thaumcraft.content.warp.ItemSanitySoap;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -53,6 +57,11 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import com.leclowndu93150.thaumcraft.content.casters.FocusPouchItem;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityArcaneBore;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbow;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbowAdvanced;
+import com.leclowndu93150.thaumcraft.content.entity.construct.TurretPlacerItem;
+import com.leclowndu93150.thaumcraft.content.equipment.GrappleGunItem;
 import com.leclowndu93150.thaumcraft.content.equipment.VoidRobeArmorItem;
 import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumcraft.content.equipment.bauble.AmuletVisItem;
@@ -676,6 +685,13 @@ public final class TCItems {
     public static final DeferredItem<VoidRobeArmorItem> VOID_ROBE_LEGS = ITEMS.registerItem("void_robe_legs",
             VoidRobeArmorItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID_ROBE, ArmorType.LEGGINGS).rarity(Rarity.EPIC));
 
+    public static final DeferredItem<Item> CRIMSON_PRAETOR_HELM = ITEMS.registerItem("crimson_praetor_helm",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_LEADER, ArmorType.HELMET).rarity(Rarity.RARE));
+    public static final DeferredItem<Item> CRIMSON_PRAETOR_CHEST = ITEMS.registerItem("crimson_praetor_chest",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_LEADER, ArmorType.CHESTPLATE).rarity(Rarity.RARE));
+    public static final DeferredItem<Item> CRIMSON_PRAETOR_LEGS = ITEMS.registerItem("crimson_praetor_legs",
+            Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_CULTIST_LEADER, ArmorType.LEGGINGS).rarity(Rarity.RARE));
+
     public static final int TRINKET_APPRENTICE_DISCOUNT = 5;
     private static final int AMULET_VIS_FOUND_INTERVAL = 40;
     private static final int AMULET_VIS_CRAFTED_INTERVAL = 5;
@@ -717,10 +733,94 @@ public final class TCItems {
             "voidseer_charm", VoidseerCharmItem::new, props -> props.stacksTo(1).rarity(Rarity.RARE));
     public static final DeferredItem<FocusPouchItem> FOCUS_POUCH = ITEMS.registerItem(
             "focus_pouch", FocusPouchItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<BlockItem> ACTIVATOR_RAIL = ITEMS.registerSimpleBlockItem(TCBlocks.ACTIVATOR_RAIL);
+    public static final DeferredItem<BlockItem> OBSIDIAN_TILE = ITEMS.registerSimpleBlockItem(TCBlocks.OBSIDIAN_TILE);
+    public static final DeferredItem<BlockItem> ELDRITCH_STONE = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_STONE);
+    public static final DeferredItem<BlockItem> ELDRITCH_STONE_INERT = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_STONE_INERT);
+    public static final DeferredItem<BlockItem> ELDRITCH_ROCK = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_ROCK);
+    public static final DeferredItem<BlockItem> ELDRITCH_CRUST = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_CRUST);
+    public static final DeferredItem<BlockItem> ELDRITCH_CRUST_GLOWING = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_CRUST_GLOWING);
+    public static final DeferredItem<BlockItem> STAIRS_ELDRITCH = ITEMS.registerSimpleBlockItem(TCBlocks.STAIRS_ELDRITCH);
+    public static final DeferredItem<BlockItem> ELDRITCH_DOOR = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_DOOR);
+    public static final DeferredItem<BlockItem> ELDRITCH_PEDESTAL = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_PEDESTAL);
+    public static final DeferredItem<BlockItem> ELDRITCH_STONE_CRYSTAL = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_STONE_CRYSTAL);
+    public static final DeferredItem<BlockItem> ELDRITCH_LOCK = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_LOCK);
+    public static final DeferredItem<BlockItem> ELDRITCH_CRAB_SPAWNER = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_CRAB_SPAWNER);
+    public static final DeferredItem<BlockItem> ELDRITCH_TRAP = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_TRAP);
+    public static final DeferredItem<BlockItem> ELDRITCH_ALTAR = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_ALTAR);
+    public static final DeferredItem<BlockItem> ELDRITCH_OBELISK = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_OBELISK);
+    public static final DeferredItem<BlockItem> ELDRITCH_PILLAR = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_PILLAR);
+    public static final DeferredItem<BlockItem> ELDRITCH_CAPSTONE = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_CAPSTONE);
+    public static final DeferredItem<Item> ELDRITCH_EYE = ITEMS.registerItem(
+            "eldritch_eye", Item::new, props -> props.rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> RUNED_TABLET = ITEMS.registerItem(
+            "runed_tablet", Item::new, props -> props.rarity(Rarity.RARE));
+    public static final DeferredItem<BlockItem> SLAB_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.SLAB_GREATWOOD);
+    public static final DeferredItem<BlockItem> SLAB_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.SLAB_SILVERWOOD);
+    public static final DeferredItem<BlockItem> SLAB_ARCANE_STONE = ITEMS.registerSimpleBlockItem(TCBlocks.SLAB_ARCANE_STONE);
+    public static final DeferredItem<BlockItem> SLAB_ARCANE_BRICK = ITEMS.registerSimpleBlockItem(TCBlocks.SLAB_ARCANE_BRICK);
+    public static final DeferredItem<BlockItem> SLAB_ANCIENT = ITEMS.registerSimpleBlockItem(TCBlocks.SLAB_ANCIENT);
+    public static final DeferredItem<BlockItem> SLAB_ELDRITCH = ITEMS.registerSimpleBlockItem(TCBlocks.SLAB_ELDRITCH);
+    public static final DeferredItem<BlockItem> STAIRS_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.STAIRS_GREATWOOD);
+    public static final DeferredItem<BlockItem> STAIRS_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.STAIRS_SILVERWOOD);
+    public static final DeferredItem<BlockItem> TABLE_WOOD = ITEMS.registerSimpleBlockItem(TCBlocks.TABLE_WOOD);
+    public static final DeferredItem<BlockItem> TABLE_STONE = ITEMS.registerSimpleBlockItem(TCBlocks.TABLE_STONE);
+    public static final DeferredItem<BlockItem> PAVING_STONE_TRAVEL = ITEMS.registerSimpleBlockItem(TCBlocks.PAVING_STONE_TRAVEL);
+    public static final DeferredItem<BlockItem> PAVING_STONE_BARRIER = ITEMS.registerSimpleBlockItem(TCBlocks.PAVING_STONE_BARRIER);
+    public static final DeferredItem<BlockItem> AMBER_BRICK = ITEMS.registerSimpleBlockItem(TCBlocks.AMBER_BRICK);
+    public static final DeferredItem<BlockItem> FLESH_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.FLESH_BLOCK);
+    public static final DeferredItem<TurretPlacerItem> TURRET_BASIC = ITEMS.registerItem(
+            "turret_basic",
+            props -> new TurretPlacerItem(props,
+                    level -> new EntityTurretCrossbow(TCEntities.TURRET_CROSSBOW.get(), level)),
+            props -> props.stacksTo(16));
+    public static final DeferredItem<TurretPlacerItem> TURRET_ADVANCED = ITEMS.registerItem(
+            "turret_advanced",
+            props -> new TurretPlacerItem(props,
+                    level -> new EntityTurretCrossbowAdvanced(TCEntities.TURRET_CROSSBOW_ADVANCED.get(), level)),
+            props -> props.stacksTo(16));
+    public static final DeferredItem<TurretPlacerItem> TURRET_BORE = ITEMS.registerItem(
+            "turret_bore",
+            props -> new TurretPlacerItem(props,
+                    level -> new EntityArcaneBore(TCEntities.ARCANE_BORE.get(), level)),
+            props -> props.stacksTo(16).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<GrappleGunItem> GRAPPLE_GUN = ITEMS.registerItem(
+            "grapple_gun", GrappleGunItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> GRAPPLE_GUN_TIP = ITEMS.registerSimpleItem("grapple_gun_tip");
+    public static final DeferredItem<Item> GRAPPLE_GUN_SPOOL = ITEMS.registerSimpleItem("grapple_gun_spool");
     public static final DeferredItem<Item> SANITY_CHECKER = ITEMS.registerItem(
             "sanity_checker", Item::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
     public static final DeferredItem<ItemResonator> RESONATOR = ITEMS.registerItem(
             "resonator", ItemResonator::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<ItemCurio> CURIO_ARCANE = registerCurio("curio_arcane", ItemCurio.Variant.ARCANE);
+    public static final DeferredItem<ItemCurio> CURIO_PRESERVED = registerCurio("curio_preserved", ItemCurio.Variant.PRESERVED);
+    public static final DeferredItem<ItemCurio> CURIO_ANCIENT = registerCurio("curio_ancient", ItemCurio.Variant.ANCIENT);
+    public static final DeferredItem<ItemCurio> CURIO_ELDRITCH = registerCurio("curio_eldritch", ItemCurio.Variant.ELDRITCH);
+    public static final DeferredItem<ItemCurio> CURIO_KNOWLEDGE = registerCurio("curio_knowledge", ItemCurio.Variant.KNOWLEDGE);
+    public static final DeferredItem<ItemCurio> CURIO_TWISTED = registerCurio("curio_twisted", ItemCurio.Variant.TWISTED);
+    public static final DeferredItem<ItemCurio> CURIO_RITES = registerCurio("curio_rites", ItemCurio.Variant.RITES);
+
+    public static final DeferredItem<ItemCreativeFluxSponge> CREATIVE_FLUX_SPONGE = ITEMS.registerItem(
+            "creative_flux_sponge", ItemCreativeFluxSponge::new,
+            props -> props.stacksTo(1).rarity(Rarity.EPIC));
+
+    public static final DeferredItem<ItemBlockMirror> MIRROR = ITEMS.registerItem(
+            "mirror", props -> new ItemBlockMirror(TCBlocks.MIRROR.get(), props.useBlockDescriptionPrefix()),
+            props -> props.rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<ItemBlockMirror> MIRROR_ESSENTIA = ITEMS.registerItem(
+            "mirror_essentia", props -> new ItemBlockMirror(TCBlocks.MIRROR_ESSENTIA.get(), props.useBlockDescriptionPrefix()),
+            props -> props.rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<ItemHandMirror> HAND_MIRROR = ITEMS.registerItem(
+            "hand_mirror", ItemHandMirror::new,
+            props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+
+    private static DeferredItem<ItemCurio> registerCurio(String name, ItemCurio.Variant variant) {
+        return ITEMS.registerItem(name, props -> new ItemCurio(props, variant),
+                props -> props.rarity(Rarity.UNCOMMON));
+    }
 
     private TCItems() {}
 

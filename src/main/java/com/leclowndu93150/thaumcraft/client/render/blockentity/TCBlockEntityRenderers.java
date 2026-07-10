@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchAltar;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.resources.Identifier;
@@ -37,6 +38,19 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.ALEMBIC.get(), AlembicRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.BANNER.get(), BannerRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.BELLOWS.get(), BellowsRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_OBELISK.get(), EldritchObeliskRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_CAP.get(),
+                context -> new EldritchCapRenderer<>(context,
+                        EldritchCapRenderer.CAP_TEXTURE, EldritchCapRenderer.CAP_TEXTURE_OUTER, cap -> 0));
+        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_ALTAR.get(),
+                context -> new EldritchCapRenderer<>(context,
+                        EldritchCapRenderer.ALTAR_TEXTURE, EldritchCapRenderer.ALTAR_TEXTURE,
+                        BlockEntityEldritchAltar::getEyes));
+        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_PORTAL.get(), EldritchPortalRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_NOTHING.get(), EldritchNothingRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_LOCK.get(), EldritchLockRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.MIRROR.get(), MirrorRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.MIRROR_ESSENTIA.get(), MirrorRenderer::new);
     }
 
     @SubscribeEvent
@@ -47,5 +61,9 @@ public final class TCBlockEntityRenderers {
             BellowsRenderer.MODEL_KEYS[i] = new StandaloneModelKey<>(modelId::toString);
             event.register(BellowsRenderer.MODEL_KEYS[i], SimpleUnbakedStandaloneModel.blockStateModel(modelId));
         }
+        event.register(MirrorRenderer.FRAME_MODEL,
+                SimpleUnbakedStandaloneModel.blockStateModel(MirrorRenderer.FRAME_MODEL_ID));
+        event.register(MirrorRenderer.FRAME_ESSENTIA_MODEL,
+                SimpleUnbakedStandaloneModel.blockStateModel(MirrorRenderer.FRAME_ESSENTIA_MODEL_ID));
     }
 }

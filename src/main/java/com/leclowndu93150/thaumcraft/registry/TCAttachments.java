@@ -56,6 +56,9 @@ public final class TCAttachments {
                     .serialize(DustTriggerSwapQueue.CODEC)
                     .build());
 
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Integer>> GRAPPLE_ID =
+            register("grapple_id", () -> AttachmentType.builder(() -> -1).build());
+
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CASTER_COOLDOWN =
             register("caster_cooldown", () -> AttachmentType.builder(() -> 0L).build());
 

@@ -3,7 +3,11 @@ package com.leclowndu93150.thaumcraft.client.entity;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.golem.GolemDartRenderer;
 import com.leclowndu93150.thaumcraft.client.golem.GolemRenderer;
+import com.leclowndu93150.thaumcraft.client.model.entity.ArcaneBoreModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.CrossbowModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.EldritchCrabModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.GrapplerModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.EldritchGolemModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.EldritchGuardianModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.PechModel;
@@ -28,6 +32,8 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class TCEntityRenderers {
     private static final float TAINTACLE_SHADOW = 0.6F;
+    private static final float TAINTACLE_GIANT_SHADOW = 1.0F;
+    private static final int TAINTACLE_GIANT_LENGTH = 14;
     private static final float TAINTACLE_SMALL_SHADOW = 0.2F;
     private static final float TAINT_SEED_SHADOW = 0.4F;
     private static final float TAINT_SEED_PRIME_SHADOW = 0.6F;
@@ -38,6 +44,9 @@ public final class TCEntityRenderers {
     public static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(TCModelLayers.TAINTACLE,
                 () -> TaintacleModel.createLayer(TaintacleModel.TAINTACLE_LENGTH));
+        event.registerLayerDefinition(TCModelLayers.TAINTACLE_GIANT,
+                () -> TaintacleModel.createLayer(TAINTACLE_GIANT_LENGTH));
+        event.registerLayerDefinition(TCModelLayers.ELDRITCH_GOLEM, EldritchGolemModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.TAINTACLE_SMALL,
                 () -> TaintacleModel.createLayer(TaintacleModel.TAINTACLE_SMALL_LENGTH));
         event.registerLayerDefinition(TCModelLayers.TAINT_SEED, TaintSeedModel::createLayer);
@@ -59,6 +68,9 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_HEAD, RobeArmorModel::createHead);
         event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_CHEST, RobeArmorModel::createChest);
         event.registerLayerDefinition(TCModelLayers.ROBE_ARMOR_LEGS, RobeArmorModel::createLegs);
+        event.registerLayerDefinition(TCModelLayers.TURRET_CROSSBOW, CrossbowModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.ARCANE_BORE, ArcaneBoreModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.GRAPPLER, GrapplerModel::createLayer);
     }
 
     @SubscribeEvent
@@ -98,10 +110,21 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.ELDRITCH_CRAB.get(), EldritchCrabRenderer::new);
         event.registerEntityRenderer(TCEntities.INHABITED_ZOMBIE.get(), InhabitedZombieRenderer::new);
         event.registerEntityRenderer(TCEntities.ELDRITCH_GUARDIAN.get(), EldritchGuardianRenderer::new);
+        event.registerEntityRenderer(TCEntities.CULTIST_LEADER.get(), CultistLeaderRenderer::new);
+        event.registerEntityRenderer(TCEntities.CULTIST_PORTAL_GREATER.get(), CultistPortalGreaterRenderer::new);
+        event.registerEntityRenderer(TCEntities.ELDRITCH_GOLEM.get(), EldritchGolemRenderer::new);
+        event.registerEntityRenderer(TCEntities.ELDRITCH_WARDEN.get(), EldritchWardenRenderer::new);
+        event.registerEntityRenderer(TCEntities.TAINTACLE_GIANT.get(),
+                context -> new TaintacleRenderer(context, TCModelLayers.TAINTACLE_GIANT,
+                        TAINTACLE_GIANT_LENGTH, TAINTACLE_GIANT_SHADOW));
         event.registerEntityRenderer(TCEntities.CULTIST_KNIGHT.get(), CultistRenderer::new);
         event.registerEntityRenderer(TCEntities.CULTIST_CLERIC.get(), CultistRenderer::new);
         event.registerEntityRenderer(TCEntities.CULTIST_PORTAL_LESSER.get(), CultistPortalRenderer::new);
         event.registerEntityRenderer(TCEntities.ELDRITCH_ORB.get(), EldritchOrbRenderer::new);
         event.registerEntityRenderer(TCEntities.GOLEM_ORB.get(), GolemOrbRenderer::new);
+        event.registerEntityRenderer(TCEntities.TURRET_CROSSBOW.get(), TurretCrossbowRenderer::new);
+        event.registerEntityRenderer(TCEntities.TURRET_CROSSBOW_ADVANCED.get(), TurretCrossbowAdvancedRenderer::new);
+        event.registerEntityRenderer(TCEntities.ARCANE_BORE.get(), ArcaneBoreRenderer::new);
+        event.registerEntityRenderer(TCEntities.GRAPPLE.get(), GrappleRenderer::new);
     }
 }

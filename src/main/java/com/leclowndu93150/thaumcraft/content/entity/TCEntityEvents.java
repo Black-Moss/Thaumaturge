@@ -1,7 +1,15 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityCultistLeader;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityCultistPortalGreater;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityEldritchGolem;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityEldritchWarden;
+import com.leclowndu93150.thaumcraft.content.entity.boss.EntityTaintacleGiant;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityArcaneBore;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbow;
+import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
@@ -49,6 +57,11 @@ public final class TCEntityEvents {
     @SubscribeEvent
     public static void onAttributes(EntityAttributeCreationEvent event) {
         event.put(TCEntities.WISP.get(), WispEntity.createAttributes().build());
+        event.put(TCEntities.CULTIST_LEADER.get(), EntityCultistLeader.createAttributes().build());
+        event.put(TCEntities.CULTIST_PORTAL_GREATER.get(), EntityCultistPortalGreater.createAttributes().build());
+        event.put(TCEntities.ELDRITCH_GOLEM.get(), EntityEldritchGolem.createAttributes().build());
+        event.put(TCEntities.ELDRITCH_WARDEN.get(), EntityEldritchWarden.createAttributes().build());
+        event.put(TCEntities.TAINTACLE_GIANT.get(), EntityTaintacleGiant.createAttributes().build());
         event.put(TCEntities.BRAINY_ZOMBIE.get(), EntityBrainyZombie.createAttributes().build());
         event.put(TCEntities.FIRE_BAT.get(), EntityFireBat.createAttributes().build());
         event.put(TCEntities.MIND_SPIDER.get(), EntityMindSpider.createAttributes().build());
@@ -69,5 +82,8 @@ public final class TCEntityEvents {
         event.put(TCEntities.CULTIST_KNIGHT.get(), EntityCultistKnight.createAttributes().build());
         event.put(TCEntities.CULTIST_CLERIC.get(), EntityCultistCleric.createAttributes().build());
         event.put(TCEntities.CULTIST_PORTAL_LESSER.get(), EntityCultistPortalLesser.createAttributes().build());
+        event.put(TCEntities.TURRET_CROSSBOW.get(), EntityTurretCrossbow.createAttributes().build());
+        event.put(TCEntities.TURRET_CROSSBOW_ADVANCED.get(), EntityTurretCrossbowAdvanced.createAdvancedAttributes().build());
+        event.put(TCEntities.ARCANE_BORE.get(), EntityArcaneBore.createAttributes().build());
     }
 }

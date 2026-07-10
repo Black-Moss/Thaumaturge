@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.compat.curio;
 import com.leclowndu93150.thaumcraft.api.items.IGoggles;
 import com.leclowndu93150.thaumcraft.api.items.IVisDiscountGear;
 import com.leclowndu93150.thaumcraft.api.items.RechargeAccess;
+import com.leclowndu93150.thaumcraft.compat.curio.client.CuriosityBandCurioRenderer;
 import com.leclowndu93150.thaumcraft.compat.curio.client.GoggleCurioRenderer;
 import com.leclowndu93150.thaumcraft.content.equipment.bauble.AmuletVisItem;
 import com.leclowndu93150.thaumcraft.content.equipment.bauble.VerdantCharmItem;
@@ -105,6 +106,7 @@ public final class ThaumcraftCuriosCompat {
 
     private static void onClientSetup(FMLClientSetupEvent event) {
         ICurioRenderer.register(TCItems.GOGGLES_REVEALING.get(), GoggleCurioRenderer::new);
+        ICurioRenderer.register(TCItems.CURIOSITY_BAND.get(), CuriosityBandCurioRenderer::new);
     }
 
     public static boolean checkForGoggles(LivingEntity entity) {

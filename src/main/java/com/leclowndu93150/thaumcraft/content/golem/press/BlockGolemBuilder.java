@@ -89,8 +89,8 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
                         level.setBlock(offset, Blocks.ANVIL.defaultBlockState(), 3);
                     } else if (neighbor.is(TCBlocks.PLACEHOLDER_CAULDRON.get())) {
                         level.setBlock(offset, Blocks.CAULDRON.defaultBlockState(), 3);
-                    } else if (neighbor.is(TCBlocks.PLACEHOLDER_SMITHING_TABLE.get())) {
-                        level.setBlock(offset, Blocks.SMITHING_TABLE.defaultBlockState(), 3);
+                    } else if (neighbor.is(TCBlocks.PLACEHOLDER_TABLE.get())) {
+                        level.setBlock(offset, TCBlocks.TABLE_STONE.get().defaultBlockState(), 3);
                     }
                 }
             }

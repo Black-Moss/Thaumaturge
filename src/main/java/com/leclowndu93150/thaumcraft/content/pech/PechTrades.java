@@ -57,6 +57,7 @@ public final class PechTrades {
         add(trades, 5, Items.ENCHANTED_GOLDEN_APPLE);
         add(trades, 5, TCBlocks.SAPLING_SILVERWOOD.get());
         add(trades, 5, Items.TOTEM_OF_UNDYING);
+        add(trades, 5, TCItems.CURIO_KNOWLEDGE.get());
         return trades;
     }
 
@@ -81,6 +82,7 @@ public final class PechTrades {
         add(trades, 4, TCItems.CLOTH_LEGS.get());
         add(trades, 5, Items.ENCHANTED_GOLDEN_APPLE);
         add(trades, 5, TCItems.PECH_WAND.get());
+        add(trades, 5, TCItems.CURIO_KNOWLEDGE.get());
         return trades;
     }
 
@@ -96,9 +98,11 @@ public final class PechTrades {
         add(trades, 3, Items.EXPERIENCE_BOTTLE);
         add(trades, 3, Items.EXPERIENCE_BOTTLE);
         add(trades, 3, Items.GOLDEN_APPLE);
+        add(trades, 4, TCItems.ELDRITCH_EYE.get());
         add(trades, 4, Items.ENCHANTED_GOLDEN_APPLE);
         trades.add(new Entry(5, enchantedBook(registries, Enchantments.FLAME, 1)));
         trades.add(new Entry(5, enchantedBook(registries, Enchantments.INFINITY, 1)));
+        add(trades, 5, TCItems.CURIO_KNOWLEDGE.get());
         return trades;
     }
 

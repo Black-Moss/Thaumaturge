@@ -16,6 +16,11 @@ public final class TCModelLayers {
     public static final ModelLayerLocation KNIGHT_ARMOR_HEAD = new ModelLayerLocation(TCIds.rl("knight_armor"), "head");
     public static final ModelLayerLocation KNIGHT_ARMOR_CHEST = new ModelLayerLocation(TCIds.rl("knight_armor"), "chest");
     public static final ModelLayerLocation KNIGHT_ARMOR_LEGS = new ModelLayerLocation(TCIds.rl("knight_armor"), "legs");
+    public static final ModelLayerLocation ELDRITCH_GOLEM = new ModelLayerLocation(TCIds.rl("eldritch_golem"), "main");
+    public static final ModelLayerLocation TURRET_CROSSBOW = new ModelLayerLocation(TCIds.rl("turret_crossbow"), "main");
+    public static final ModelLayerLocation ARCANE_BORE = new ModelLayerLocation(TCIds.rl("arcane_bore"), "main");
+    public static final ModelLayerLocation GRAPPLER = new ModelLayerLocation(TCIds.rl("grappler"), "main");
+    public static final ModelLayerLocation TAINTACLE_GIANT = new ModelLayerLocation(TCIds.rl("taintacle_giant"), "main");
     public static final ModelLayerLocation FORTRESS_ARMOR_HEAD = new ModelLayerLocation(TCIds.rl("fortress_armor"), "head");
     public static final ModelLayerLocation FORTRESS_ARMOR_CHEST = new ModelLayerLocation(TCIds.rl("fortress_armor"), "chest");
     public static final ModelLayerLocation FORTRESS_ARMOR_LEGS = new ModelLayerLocation(TCIds.rl("fortress_armor"), "legs");

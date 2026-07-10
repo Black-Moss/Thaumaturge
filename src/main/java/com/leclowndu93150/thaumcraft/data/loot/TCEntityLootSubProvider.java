@@ -7,6 +7,7 @@ import net.minecraft.data.loot.EntityLootSubProvider;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
@@ -24,6 +25,8 @@ public final class TCEntityLootSubProvider extends EntityLootSubProvider {
     private static final float GIANT_FLESH_CHANCE = 0.5F;
     private static final float CRAB_PEARL_CHANCE = 0.33F;
     private static final float CRAB_PEARL_LOOTING_BONUS = 0.25F;
+    private static final float CURIO_CHANCE = 0.0125F;
+    private static final float CURIO_LOOTING_BONUS = 0.01F;
 
     public TCEntityLootSubProvider(HolderLookup.Provider registries) {
         super(FeatureFlags.REGISTRY.allFlags(), FeatureFlagSet.of(), registries);
@@ -52,11 +55,14 @@ public final class TCEntityLootSubProvider extends EntityLootSubProvider {
                                         .randomChanceAndLootingBoost(this.registries, GIANT_FLESH_CHANCE, 0.0F))))
                 .withPool(brainPool()));
         add(TCEntities.PECH.get(), LootTable.lootTable()
-                .withPool(goldNuggetPool()));
+                .withPool(goldNuggetPool())
+                .withPool(curioPool(TCItems.CURIO_KNOWLEDGE.get())));
         add(TCEntities.CULTIST_KNIGHT.get(), LootTable.lootTable()
-                .withPool(goldNuggetPool()));
+                .withPool(goldNuggetPool())
+                .withPool(curioPool(TCItems.CURIO_RITES.get())));
         add(TCEntities.CULTIST_CLERIC.get(), LootTable.lootTable()
-                .withPool(goldNuggetPool()));
+                .withPool(goldNuggetPool())
+                .withPool(curioPool(TCItems.CURIO_RITES.get())));
         add(TCEntities.ELDRITCH_CRAB.get(), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))
@@ -67,6 +73,15 @@ public final class TCEntityLootSubProvider extends EntityLootSubProvider {
         add(TCEntities.INHABITED_ZOMBIE.get(), LootTable.lootTable());
         add(TCEntities.ELDRITCH_GUARDIAN.get(), LootTable.lootTable());
         add(TCEntities.CULTIST_PORTAL_LESSER.get(), LootTable.lootTable());
+    }
+
+    private LootPool.Builder curioPool(ItemLike curio) {
+        return LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1))
+                .add(LootItem.lootTableItem(curio))
+                .when(LootItemKilledByPlayerCondition.killedByPlayer())
+                .when(LootItemRandomChanceWithEnchantedBonusCondition
+                        .randomChanceAndLootingBoost(this.registries, CURIO_CHANCE, CURIO_LOOTING_BONUS));
     }
 
     private LootPool.Builder goldNuggetPool() {

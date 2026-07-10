@@ -52,6 +52,7 @@ public final class Thaumcraft {
         TCMobEffects.register(modBus);
         TCTheorycraft.register(modBus);
         TCAttributes.register(modBus);
+        TCChunkGenerators.register(modBus);
         TCFocusElements.register(modBus);
         TCGolemParts.register(modBus);
         TCSeals.register(modBus);

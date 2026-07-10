@@ -1,6 +1,17 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.decor.BlockEntityBarrierStone;
+import com.leclowndu93150.thaumcraft.content.device.mirror.BlockEntityMirror;
+import com.leclowndu93150.thaumcraft.content.device.mirror.BlockEntityMirrorEssentia;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchAltar;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchCap;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchCrabSpawner;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchLock;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchNothing;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchObelisk;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchPortal;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchTrap;
 import com.leclowndu93150.thaumcraft.content.casters.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumcraft.content.essentia.bellows.BlockEntityBellows;
@@ -227,6 +238,72 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "hungry_chest",
                     () -> new BlockEntityType<>(BlockEntityHungryChest::new, Set.of(TCBlocks.HUNGRY_CHEST.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchAltar>> ELDRITCH_ALTAR =
+            BLOCK_ENTITIES.register(
+                    "eldritch_altar",
+                    () -> new BlockEntityType<>(BlockEntityEldritchAltar::new, Set.of(TCBlocks.ELDRITCH_ALTAR.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchObelisk>> ELDRITCH_OBELISK =
+            BLOCK_ENTITIES.register(
+                    "eldritch_obelisk",
+                    () -> new BlockEntityType<>(BlockEntityEldritchObelisk::new, Set.of(TCBlocks.ELDRITCH_OBELISK.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchLock>> ELDRITCH_LOCK =
+            BLOCK_ENTITIES.register(
+                    "eldritch_lock",
+                    () -> new BlockEntityType<>(BlockEntityEldritchLock::new, Set.of(TCBlocks.ELDRITCH_LOCK.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchCrabSpawner>> ELDRITCH_CRAB_SPAWNER =
+            BLOCK_ENTITIES.register(
+                    "eldritch_crab_spawner",
+                    () -> new BlockEntityType<>(BlockEntityEldritchCrabSpawner::new, Set.of(TCBlocks.ELDRITCH_CRAB_SPAWNER.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchTrap>> ELDRITCH_TRAP =
+            BLOCK_ENTITIES.register(
+                    "eldritch_trap",
+                    () -> new BlockEntityType<>(BlockEntityEldritchTrap::new, Set.of(TCBlocks.ELDRITCH_TRAP.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchPortal>> ELDRITCH_PORTAL =
+            BLOCK_ENTITIES.register(
+                    "eldritch_portal",
+                    () -> new BlockEntityType<>(BlockEntityEldritchPortal::new, Set.of(TCBlocks.ELDRITCH_PORTAL.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchCap>> ELDRITCH_CAP =
+            BLOCK_ENTITIES.register(
+                    "eldritch_cap",
+                    () -> new BlockEntityType<>(BlockEntityEldritchCap::new, Set.of(TCBlocks.ELDRITCH_CAPSTONE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEldritchNothing>> ELDRITCH_NOTHING =
+            BLOCK_ENTITIES.register(
+                    "eldritch_nothing",
+                    () -> new BlockEntityType<>(BlockEntityEldritchNothing::new, Set.of(TCBlocks.ELDRITCH_NOTHING.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityMirror>> MIRROR =
+            BLOCK_ENTITIES.register(
+                    "mirror",
+                    () -> new BlockEntityType<>(BlockEntityMirror::new, Set.of(TCBlocks.MIRROR.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityMirrorEssentia>> MIRROR_ESSENTIA =
+            BLOCK_ENTITIES.register(
+                    "mirror_essentia",
+                    () -> new BlockEntityType<>(BlockEntityMirrorEssentia::new, Set.of(TCBlocks.MIRROR_ESSENTIA.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityBarrierStone>> BARRIER_STONE =
+            BLOCK_ENTITIES.register(
+                    "barrier_stone",
+                    () -> new BlockEntityType<>(BlockEntityBarrierStone::new, Set.of(TCBlocks.PAVING_STONE_BARRIER.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityDioptra>> DIOPTRA =

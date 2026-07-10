@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.mojang.serialization.Codec;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
@@ -11,6 +12,7 @@ import com.leclowndu93150.thaumcraft.content.essentia.EssentiaContentsComponent;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantments;
 import com.leclowndu93150.thaumcraft.content.golem.GolemProperties;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -74,6 +76,11 @@ public final class TCDataComponents {
                     .persistent(BlockState.CODEC)
                     .networkSynchronized(ByteBufCodecs.fromCodec(BlockState.CODEC)));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> GRAPPLE_LOADED =
+            DATA_COMPONENTS.registerComponentType("grapple_loaded", builder -> builder
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL));
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CHARGE =
             DATA_COMPONENTS.registerComponentType("charge", builder -> builder
                     .persistent(ExtraCodecs.NON_NEGATIVE_INT)
@@ -133,6 +140,11 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("pouch_contents", builder -> builder
                     .persistent(ItemContainerContents.CODEC)
                     .networkSynchronized(ItemContainerContents.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> MIRROR_LINK =
+            DATA_COMPONENTS.registerComponentType("mirror_link", builder -> builder
+                    .persistent(GlobalPos.CODEC)
+                    .networkSynchronized(GlobalPos.STREAM_CODEC));
 
     private TCDataComponents() {}
 

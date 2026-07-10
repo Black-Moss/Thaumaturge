@@ -1,14 +1,20 @@
 package com.leclowndu93150.thaumcraft.client;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.api.infusion.IInfusionStabiliser;
 import com.leclowndu93150.thaumcraft.api.items.IRechargable;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumcraft.api.items.RechargeAccess;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
+import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import java.util.Map;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -16,6 +22,8 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class TCTooltipEvents {
+    private static final Identifier INFUSION_RESEARCH = TCIds.rl("unlock_infusion");
+
     private TCTooltipEvents() {}
 
     @SubscribeEvent
@@ -43,5 +51,15 @@ public final class TCTooltipEvents {
                             rechargable.getMaxCharge(event.getItemStack(), event.getEntity()))
                     .withStyle(ChatFormatting.AQUA));
         }
+        if (event.getItemStack().getItem() instanceof BlockItem blockItem && isStabiliser(blockItem.getBlock())
+                && KnowledgeAccess.of(event.getEntity()).isResearchComplete(INFUSION_RESEARCH)) {
+            event.getToolTip().add(Component.translatable("tooltip.thaumcraft.infusion_stabiliser")
+                    .withStyle(ChatFormatting.DARK_PURPLE));
+        }
+    }
+
+    private static boolean isStabiliser(Block block) {
+        return block instanceof IInfusionStabiliser
+                || block.defaultBlockState().is(TCBlockTags.INFUSION_STABILISERS);
     }
 }

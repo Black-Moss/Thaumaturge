@@ -66,7 +66,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import com.leclowndu93150.thaumcraft.content.eldritch.maze.MazeSavedData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -112,6 +114,14 @@ public final class TCCommands {
                 .then(Commands.literal("theorycraft").then(Commands.literal("test")
                         .executes(TCCommands::startTestSession)))
                 .then(Commands.literal("table").executes(TCCommands::giveResearchTable))
+                .then(Commands.literal("outermaze")
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .executes(ctx -> generateOuterMaze(ctx, 0, 0))
+                        .then(Commands.argument("width", IntegerArgumentType.integer(5, 31))
+                                .then(Commands.argument("height", IntegerArgumentType.integer(5, 31))
+                                        .executes(ctx -> generateOuterMaze(ctx,
+                                                IntegerArgumentType.getInteger(ctx, "width"),
+                                                IntegerArgumentType.getInteger(ctx, "height"))))))
                 .then(Commands.literal("book").executes(TCCommands::giveThaumonomicon))
                 .then(Commands.literal("particle")
                         .then(Commands.literal("list").executes(TCCommands::listParticles))
@@ -662,6 +672,30 @@ public final class TCCommands {
             ServerPlayer player = ctx.getSource().getPlayerOrException();
             TheorycraftManager.beginSession(player, player.level(), player.blockPosition());
             ctx.getSource().sendSuccess(() -> Component.literal("Theorycraft session started; open a Research Table."), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int generateOuterMaze(CommandContext<CommandSourceStack> ctx, int w, int h) {
+        try {
+            ServerLevel level = ctx.getSource().getLevel();
+            MazeSavedData maze = MazeSavedData.get(level);
+            RandomSource rand = level.getRandom();
+            int width = w > 0 ? w : 15 + rand.nextInt(8) * 2;
+            int height = h > 0 ? h : 15 + rand.nextInt(8) * 2;
+            int chunkX = (int) ctx.getSource().getPosition().x >> 4;
+            int chunkZ = (int) ctx.getSource().getPosition().z >> 4;
+            if (maze.mazesInRange(chunkX, chunkZ, width, height)) {
+                ctx.getSource().sendFailure(Component.literal("A maze already exists in range."));
+                return 0;
+            }
+            maze.generateMaze(chunkX, chunkZ, width, height, rand.nextLong());
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "Maze " + width + "x" + height + " generated around chunk " + chunkX + "," + chunkZ
+                            + " (portal room at that chunk in the Outer Lands)"), true);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

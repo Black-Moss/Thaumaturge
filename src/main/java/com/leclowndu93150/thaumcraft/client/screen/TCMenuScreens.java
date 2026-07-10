@@ -2,6 +2,10 @@ package com.leclowndu93150.thaumcraft.client.screen;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.screen.casters.FocalManipulatorScreen;
+import com.leclowndu93150.thaumcraft.client.screen.construct.ArcaneBoreScreen;
+import com.leclowndu93150.thaumcraft.content.entity.construct.MenuTurretBasic;
+import com.leclowndu93150.thaumcraft.client.screen.construct.TurretAdvancedScreen;
+import com.leclowndu93150.thaumcraft.client.screen.construct.TurretBasicScreen;
 import com.leclowndu93150.thaumcraft.client.screen.casters.FocusPouchScreen;
 import com.leclowndu93150.thaumcraft.client.screen.golem.GolemBuilderScreen;
 import com.leclowndu93150.thaumcraft.client.screen.golem.SealScreen;
@@ -33,6 +37,10 @@ public final class TCMenuScreens {
         event.register(TCMenus.THAUMATORIUM.get(), ThaumatoriumScreen::new);
         event.register(TCMenus.PECH.get(), PechScreen::new);
         event.register(TCMenus.FOCUS_POUCH.get(), FocusPouchScreen::new);
+        event.register(TCMenus.TURRET_BASIC.get(), TurretBasicScreen<MenuTurretBasic>::new);
+        event.register(TCMenus.TURRET_ADVANCED.get(), TurretAdvancedScreen::new);
+        event.register(TCMenus.ARCANE_BORE.get(), ArcaneBoreScreen::new);
+        event.register(TCMenus.HAND_MIRROR.get(), HandMirrorScreen::new);
     }
 
     @SubscribeEvent

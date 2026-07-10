@@ -129,6 +129,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("recipe.type.infusion", "Arcane Infusion");
         add("recipe.type.infusion_enchantment", "Infusion Enchantment");
         add("tooltip.thaumcraft.charge", "Vis: %s / %s");
+        add("tooltip.thaumcraft.infusion_stabiliser", "Infusion Stabilizer");
         add("recipe.type.construct", "Mystical Construct");
         add("wandtable.text1", "Vis Cost");
         add("gui.thaumcraft.research_table.title", "Research Table");
@@ -334,6 +335,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         langEnchantments();
         langGolemancy();
         langEldritch();
+        langBosses();
+        langConstructs();
+        langDecorSweep();
+        langOuterLands();
     }
 
     private void aspect(String tag, String name, String description) {
@@ -397,6 +402,30 @@ public final class TCEnglishProvider extends LanguageProvider {
                 "You peer into the inky blackness... you think you see something staring back...");
         add("item.thaumcraft.focus_pouch", "Focus Pouch");
         add("item.thaumcraft.sanity_checker", "Sanity Checker");
+        add("item.thaumcraft.curio_arcane", "Arcane Curiosity");
+        add("item.thaumcraft.curio_preserved", "Preserved Curiosity");
+        add("item.thaumcraft.curio_ancient", "Ancient Curiosity");
+        add("item.thaumcraft.curio_eldritch", "Eldritch Curiosity");
+        add("item.thaumcraft.curio_knowledge", "Illuminating Curiosity");
+        add("item.thaumcraft.curio_twisted", "Twisted Curiosity");
+        add("item.thaumcraft.curio_rites", "Crimson Rites");
+        add("tc.knowledge.gained", "You have gained some knowledge");
+        add("block.thaumcraft.mirror", "Magic Mirror");
+        add("block.thaumcraft.mirror_essentia", "Essentia Mirror");
+        add("item.thaumcraft.hand_mirror", "Magic Hand Mirror");
+        add("tc.handmirrorlinked", "Link established.");
+        add("tc.handmirrorerror", "Destination mirror is missing or misplaced. Link broken.");
+        add("tc.handmirrorlinkedto.full", "Linked to %s,%s,%s in %s");
+        add("tc.mirrorlinkedalready", "That mirror is already linked to a valid destination.");
+        add("fail.crimsonrites", "This book contains nothing but crazed ravings.");
+        add("item.thaumcraft.creative_flux_sponge", "Creative Flux Sponge");
+        add("tooltip.thaumcraft.flux_sponge.drain.0", "Right-click to drain all");
+        add("tooltip.thaumcraft.flux_sponge.drain.1", "flux from 9x9 chunk area");
+        add("tooltip.thaumcraft.flux_sponge.rifts.0", "Also removes flux rifts");
+        add("tooltip.thaumcraft.flux_sponge.rifts.1", "if used while sneaking.");
+        add("tooltip.thaumcraft.flux_sponge.creative", "Creative only");
+        add("tc.flux_sponge.drained", "%s flux drained from 81 chunks.");
+        add("tc.flux_sponge.rifts", "%s flux rifts removed.");
         add("item.thaumcraft.resonator", "Essentia Resonator");
         add("item.thaumcraft.fortress_helm", "Thaumium Fortress Helm");
         add("item.thaumcraft.fortress_chest", "Thaumium Fortress Cuirass");
@@ -884,7 +913,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.placeholder_iron_bars", "Iron Bars");
         add("block.thaumcraft.placeholder_cauldron", "Cauldron");
         add("block.thaumcraft.placeholder_anvil", "Anvil");
-        add("block.thaumcraft.placeholder_smithing_table", "Smithing Table");
+        add("block.thaumcraft.placeholder_table", "Stone Table");
         add("entity.thaumcraft.golem", "Thaumcraft Golem");
         add("entity.thaumcraft.golem_dart", "Golem Dart");
         add("golem.follow", "I'm coming, Master!");
@@ -976,6 +1005,94 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("button.caption.required", "Required");
         add("button.caption.forbidden", "Forbidden");
     
+    }
+
+    private void langBosses() {
+        add("entity.thaumcraft.cultist_leader", "Cultist Praetor");
+        add("entity.thaumcraft.cultist_leader.name.custom", "Praetor %1$s the %2$s");
+        add("entity.thaumcraft.cultist_portal_greater", "Greater Crimson Portal");
+        add("entity.thaumcraft.eldritch_golem", "Eldritch Golem");
+        add("entity.thaumcraft.eldritch_golem.name.custom", "%1$s Eldritch Construct");
+        add("entity.thaumcraft.eldritch_warden", "Eldritch Warden");
+        add("entity.thaumcraft.eldritch_warden.name.custom", "%1$s the %2$s");
+        add("entity.thaumcraft.taintacle_giant", "Giant Taintacle");
+        add("tc.boss.enrage", "is enraged by your powerful blows.");
+        add("item.thaumcraft.crimson_praetor_helm", "Crimson Praetor Helm");
+        add("item.thaumcraft.crimson_praetor_chest", "Crimson Praetor Cuirass");
+        add("item.thaumcraft.crimson_praetor_legs", "Crimson Praetor Greaves");
+    }
+
+    private void langConstructs() {
+        add("block.thaumcraft.activator_rail", "Arcane Activator Rail");
+        add("item.thaumcraft.turret_basic", "Automated Crossbow");
+        add("item.thaumcraft.turret_advanced", "Advanced Automated Crossbow");
+        add("item.thaumcraft.turret_bore", "Arcane Bore");
+        add("item.thaumcraft.grapple_gun", "Arcane Grappler");
+        add("item.thaumcraft.grapple_gun_tip", "Grappler Head");
+        add("item.thaumcraft.grapple_gun_spool", "Grappler Spool");
+        add("entity.thaumcraft.turret_crossbow", "Automated Crossbow");
+        add("entity.thaumcraft.turret_crossbow_advanced", "Advanced Automated Crossbow");
+        add("entity.thaumcraft.arcane_bore", "Arcane Bore");
+        add("entity.thaumcraft.grapple", "Grappler");
+        add("button.turretfocus.1", "Target Animals");
+        add("button.turretfocus.2", "Target Mobs");
+        add("button.turretfocus.3", "Target Players");
+        add("button.turretfocus.4", "Target Friendly");
+        add("gui.thaumcraft.bore.width", "Width: %s");
+        add("gui.thaumcraft.bore.depth", "Depth: %s");
+        add("gui.thaumcraft.bore.speed", "Speed: +%s");
+        add("gui.thaumcraft.bore.properties", "Other properties:");
+        add("gui.thaumcraft.bore.refining", "Refining %s");
+        add("gui.thaumcraft.bore.fortune", "Fortune %s");
+        add("gui.thaumcraft.bore.silktouch", "Silk Touch");
+    }
+
+    private void langDecorSweep() {
+        add("block.thaumcraft.slab_greatwood", "Greatwood Slab");
+        add("block.thaumcraft.slab_silverwood", "Silverwood Slab");
+        add("block.thaumcraft.slab_arcane_stone", "Arcane Stone Slab");
+        add("block.thaumcraft.slab_arcane_brick", "Arcane Brick Slab");
+        add("block.thaumcraft.slab_ancient", "Ancient Stone Slab");
+        add("block.thaumcraft.slab_eldritch", "Eldritch Stone Slab");
+        add("block.thaumcraft.stairs_greatwood", "Greatwood Stairs");
+        add("block.thaumcraft.stairs_silverwood", "Silverwood Stairs");
+        add("block.thaumcraft.table_wood", "Wood Table");
+        add("block.thaumcraft.table_stone", "Stone Table");
+        add("block.thaumcraft.paving_stone_travel", "Paving Stone of Travel");
+        add("block.thaumcraft.paving_stone_barrier", "Barrier Stone");
+        add("block.thaumcraft.barrier", "Barrier");
+        add("block.thaumcraft.amber_brick", "Amber Bricks");
+        add("block.thaumcraft.flesh_block", "Block of Flesh");
+        add("block.thaumcraft.effect_shock", "Static Field");
+    }
+
+    private void langOuterLands() {
+        add("block.thaumcraft.obsidian_tile", "Obsidian Tile");
+        add("block.thaumcraft.eldritch_stone", "Eldritch Stone");
+        add("block.thaumcraft.eldritch_stone_inert", "Inert Eldritch Stone");
+        add("block.thaumcraft.eldritch_rock", "Eldritch Rock");
+        add("block.thaumcraft.eldritch_crust", "Eldritch Crust");
+        add("block.thaumcraft.eldritch_crust_glowing", "Glowing Eldritch Crust");
+        add("block.thaumcraft.stairs_eldritch", "Eldritch Stone Stairs");
+        add("block.thaumcraft.eldritch_door", "Glowing Eldritch Stone");
+        add("block.thaumcraft.eldritch_pedestal", "Eldritch Pedestal");
+        add("block.thaumcraft.eldritch_stone_crystal", "Crystallized Eldritch Stone");
+        add("block.thaumcraft.eldritch_nothing", "Nothingness");
+        add("block.thaumcraft.eldritch_lock", "Eldritch Lock");
+        add("block.thaumcraft.eldritch_crab_spawner", "Crusted Opening");
+        add("block.thaumcraft.eldritch_trap", "Eldritch Stone");
+        add("block.thaumcraft.eldritch_altar", "Eldritch Altar");
+        add("block.thaumcraft.eldritch_obelisk", "Eldritch Obelisk");
+        add("block.thaumcraft.eldritch_pillar", "Eldritch Pillar");
+        add("block.thaumcraft.eldritch_capstone", "Eldritch Capstone");
+        add("block.thaumcraft.eldritch_portal", "Eldritch Portal");
+        add("item.thaumcraft.eldritch_eye", "Eldritch Eye");
+        add("item.thaumcraft.runed_tablet", "Runed Tablet");
+        add("tc.boss.warden", "A voice thunders through the halls: WHO DARES DISTURB MY SLUMBER?");
+        add("tc.boss.golem", "You hear the grinding of ancient gears as something massive stirs...");
+        add("tc.boss.crimson", "Chanting in an unknown tongue echoes from beyond the door...");
+        add("tc.boss.taint", "A sickening squelching sound comes from the chamber beyond...");
+        add("gui.thaumcraft.altar.not_enough_vis", "The local aura is too weak to tear open the veil. It needs at least 100 vis.");
     }
 
     private void langEldritch() {

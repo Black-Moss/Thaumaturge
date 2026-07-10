@@ -100,8 +100,14 @@ public final class ChampionHelper {
         switch (type) {
             case ChampionModifier.BOLD -> applyPermanent(entity, Attributes.MOVEMENT_SPEED, BOLD_SPEED);
             case ChampionModifier.MIGHTY -> applyPermanent(entity, Attributes.ATTACK_DAMAGE, MIGHTY_DAMAGE);
-            case ChampionModifier.WARDED -> entity.setAbsorptionAmount(entity.getAbsorptionAmount()
-                    + (int) entity.getAttributeBaseValue(Attributes.MAX_HEALTH) / 2);
+            case ChampionModifier.WARDED -> {
+                int ward = (int) entity.getAttributeBaseValue(Attributes.MAX_HEALTH) / 2;
+                AttributeInstance maxAbsorption = entity.getAttribute(Attributes.MAX_ABSORPTION);
+                if (maxAbsorption != null && maxAbsorption.getBaseValue() < ward) {
+                    maxAbsorption.setBaseValue(ward);
+                }
+                entity.setAbsorptionAmount(entity.getAbsorptionAmount() + ward);
+            }
             default -> {
             }
         }

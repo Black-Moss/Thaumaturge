@@ -65,10 +65,15 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
+        submitPortal(state, poseStack, collector, camera, BASE_SCALE_Y, SCALE_FACTOR);
+    }
+
+    static void submitPortal(State state, PoseStack poseStack, SubmitNodeCollector collector,
+                             CameraRenderState camera, float baseScaleY, float scaleFactor) {
         if (!state.active) {
             return;
         }
-        float scaleY = BASE_SCALE_Y;
+        float scaleY = baseScaleY;
         float grown = Math.min(GROW_TICKS, state.activeCounter);
         if (state.hurtTime > 0) {
             double d = Math.sin(state.hurtTime * 72.0 * Math.PI / 180.0);
@@ -80,7 +85,7 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
             scaleY += (float) (d / 4.0);
             grown += (float) (12.0 * d);
         }
-        float scale = grown / GROW_TICKS * SCALE_FACTOR;
+        float scale = grown / GROW_TICKS * scaleFactor;
         float m = (1.0F - state.healthFraction) / 3.0F;
         float bob = Mth.sin(state.activeCounter / (5.0F - 12.0F * m)) * m + m;
         float bob2 = Mth.sin(state.activeCounter / (6.0F - 15.0F * m)) * m + m;

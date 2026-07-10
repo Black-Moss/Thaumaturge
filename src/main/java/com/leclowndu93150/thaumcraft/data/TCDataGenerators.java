@@ -24,6 +24,7 @@ import com.leclowndu93150.thaumcraft.data.tag.TCItemTagsProvider;
 import com.leclowndu93150.thaumcraft.data.worldgen.aspect.AspectBootstrap;
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomeModifiers;
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
+import com.leclowndu93150.thaumcraft.data.worldgen.dimension.OuterLandsBootstrap;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCPlacedFeatures;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCStructureBootstrap;
@@ -54,6 +55,8 @@ public final class TCDataGenerators {
                 .add(Registries.CONFIGURED_FEATURE, TCConfiguredFeatures::bootstrap)
                 .add(Registries.PLACED_FEATURE, TCPlacedFeatures::bootstrap)
                 .add(Registries.BIOME, TCBiomes::bootstrap)
+                .add(Registries.DIMENSION_TYPE, OuterLandsBootstrap::bootstrapTypes)
+                .add(Registries.LEVEL_STEM, OuterLandsBootstrap::bootstrapStems)
                 .add(Registries.STRUCTURE, TCStructureBootstrap::bootstrapStructures)
                 .add(Registries.STRUCTURE_SET, TCStructureBootstrap::bootstrapSets)
                 .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, TCBiomeModifiers::bootstrap);

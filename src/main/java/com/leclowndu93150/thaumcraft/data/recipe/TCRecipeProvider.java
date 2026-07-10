@@ -89,6 +89,8 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildIngredientRecipes();
         buildGolemancyRecipes();
         buildAuraDeviceRecipes();
+        buildConstructRecipes();
+        buildDecorRecipes();
         buildNoiseDeviceRecipes();
         buildEssentiaMachineRecipes();
         buildFluxMachineRecipes();
@@ -309,6 +311,197 @@ public final class TCRecipeProvider extends RecipeProvider {
     }
 
 
+    private void buildDecorRecipes() {
+        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
+
+        stairsRecipe(TCBlocks.STAIRS_GREATWOOD.get(), TCBlocks.PLANK_GREATWOOD.get());
+        stairsRecipe(TCBlocks.STAIRS_SILVERWOOD.get(), TCBlocks.PLANK_SILVERWOOD.get());
+        slabRecipe(TCBlocks.SLAB_GREATWOOD.get(), TCBlocks.PLANK_GREATWOOD.get());
+        slabRecipe(TCBlocks.SLAB_SILVERWOOD.get(), TCBlocks.PLANK_SILVERWOOD.get());
+        slabRecipe(TCBlocks.SLAB_ARCANE_STONE.get(), TCBlocks.STONE_ARCANE.get());
+        slabRecipe(TCBlocks.SLAB_ARCANE_BRICK.get(), TCBlocks.STONE_ARCANE_BRICK.get());
+        slabRecipe(TCBlocks.SLAB_ANCIENT.get(), TCBlocks.STONE_ANCIENT.get());
+        slabRecipe(TCBlocks.SLAB_ELDRITCH.get(), TCBlocks.STONE_ELDRITCH_TILE.get());
+
+        shaped(RecipeCategory.DECORATIONS, TCItems.TABLE_WOOD)
+                .pattern("SSS")
+                .pattern("W W")
+                .define('S', ItemTags.WOODEN_SLABS)
+                .define('W', ItemTags.PLANKS)
+                .unlockedBy("has", has(ItemTags.WOODEN_SLABS))
+                .save(output);
+
+        shaped(RecipeCategory.DECORATIONS, TCItems.TABLE_STONE)
+                .pattern("SSS")
+                .pattern("W W")
+                .define('S', Items.STONE_SLAB)
+                .define('W', Tags.Items.STONES)
+                .unlockedBy("has", has(Items.STONE_SLAB))
+                .save(output);
+
+        shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.FLESH_BLOCK)
+                .pattern("###")
+                .pattern("###")
+                .pattern("###")
+                .define('#', Items.ROTTEN_FLESH)
+                .unlockedBy("has", has(Items.ROTTEN_FLESH))
+                .save(output);
+
+        shapeless(RecipeCategory.MISC, Items.ROTTEN_FLESH, 9)
+                .requires(TCItems.FLESH_BLOCK)
+                .unlockedBy("has", has(TCItems.FLESH_BLOCK))
+                .save(output, TCIds.MODID + ":rotten_flesh_from_flesh_block");
+
+        shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.AMBER_BRICK, 4)
+                .pattern("##")
+                .pattern("##")
+                .define('#', TCItems.AMBER_BLOCK)
+                .unlockedBy("has", has(TCItems.AMBER_BLOCK))
+                .save(output);
+
+        shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.AMBER_BLOCK, 4)
+                .pattern("##")
+                .pattern("##")
+                .define('#', TCItems.AMBER_BRICK)
+                .unlockedBy("has", has(TCItems.AMBER_BRICK))
+                .save(output, TCIds.MODID + ":amber_block_from_brick");
+
+        arcaneShaped(new ItemStackTemplate(TCItems.PAVING_STONE_BARRIER.get(), 4), 50)
+                .aspect(TCAspects.IGNIS, 1)
+                .aspect(TCAspects.ORDO, 1)
+                .pattern("SS")
+                .pattern("SS")
+                .define('S', TCItems.STONE_ARCANE_BRICK)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.PAVING_STONE_TRAVEL.get(), 4), 50)
+                .aspect(TCAspects.AER, 1)
+                .aspect(TCAspects.TERRA, 1)
+                .pattern("SS")
+                .pattern("SS")
+                .define('S', TCItems.STONE_ARCANE_BRICK)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
+                .save(output);
+    }
+
+    private void stairsRecipe(Block result, Block base) {
+        shaped(RecipeCategory.BUILDING_BLOCKS, result, 4)
+                .pattern("K  ")
+                .pattern("KK ")
+                .pattern("KKK")
+                .define('K', base)
+                .unlockedBy("has", has(base))
+                .save(output);
+    }
+
+    private void slabRecipe(Block result, Block base) {
+        shaped(RecipeCategory.BUILDING_BLOCKS, result, 6)
+                .pattern("KKK")
+                .define('K', base)
+                .unlockedBy("has", has(base))
+                .save(output);
+    }
+
+    private void buildConstructRecipes() {
+        ResearchGate firstSteps = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "first_steps"), Optional.of(1), false);
+        ResearchGate artificeGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_artifice"), Optional.of(1), false);
+        ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
+
+        arcaneShapeless(new ItemStackTemplate(TCItems.ACTIVATOR_RAIL), 10)
+                .requires(Items.ACTIVATOR_RAIL)
+                .gate(firstSteps)
+                .unlockedBy("has", has(Items.ACTIVATOR_RAIL))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.TURRET_BASIC), 100)
+                .aspect(TCAspects.AER, 1)
+                .pattern("BGI")
+                .pattern("WMW")
+                .pattern("S S")
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .define('I', TCItemTags.PLATES_IRON)
+                .define('S', Tags.Items.RODS_WOODEN)
+                .define('M', TCItems.MIND_CLOCKWORK)
+                .define('B', Items.BOW)
+                .define('W', TCBlocks.PLANK_GREATWOOD)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.MIND_CLOCKWORK))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.TURRET_ADVANCED), 150)
+                .aspect(TCAspects.AER, 2)
+                .pattern("PMP")
+                .pattern("PTP")
+                .define('T', TCItems.TURRET_BASIC)
+                .define('P', TCItemTags.PLATES_IRON)
+                .define('M', TCItems.MIND_BIOTHAUMIC)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.MIND_BIOTHAUMIC))
+                .save(output);
+
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                new ItemStackTemplate(TCItems.TURRET_BORE), Ingredient.of(TCItems.TURRET_BASIC.get()))
+                .component(Ingredient.of(TCBlocks.PLANK_GREATWOOD.get()))
+                .component(Ingredient.of(TCBlocks.PLANK_GREATWOOD.get()))
+                .component(Ingredient.of(TCItems.MECHANISM_COMPLEX.get()))
+                .component(Ingredient.of(registries.lookupOrThrow(Registries.ITEM).getOrThrow(TCItemTags.PLATES_BRASS)))
+                .component(Ingredient.of(Items.DIAMOND_PICKAXE))
+                .component(Ingredient.of(Items.DIAMOND_SHOVEL))
+                .component(Ingredient.of(TCItems.MORPHIC_RESONATOR.get()))
+                .component(Ingredient.of(TCItems.RARE_EARTH.get()))
+                .aspect(TCAspects.POTENTIA, 25)
+                .aspect(TCAspects.TERRA, 25)
+                .aspect(TCAspects.MACHINA, 100)
+                .aspect(TCAspects.VACUOS, 25)
+                .aspect(TCAspects.MOTUS, 25)
+                .instability(4)
+                .gate(infusionGate)
+                .unlockedBy("has", has(TCItems.TURRET_BASIC))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.GRAPPLE_GUN_TIP), 25)
+                .aspect(TCAspects.TERRA, 1)
+                .pattern("BRB")
+                .pattern("RHR")
+                .pattern("BRB")
+                .define('B', TCItemTags.PLATES_BRASS)
+                .define('R', TCItems.RARE_EARTH)
+                .define('H', Items.TRIPWIRE_HOOK)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.RARE_EARTH))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.GRAPPLE_GUN_SPOOL), 25)
+                .aspect(TCAspects.AQUA, 1)
+                .pattern("SHS")
+                .pattern("SGS")
+                .pattern("SSS")
+                .define('G', TCItems.MECHANISM_SIMPLE)
+                .define('S', Tags.Items.STRINGS)
+                .define('H', Items.TRIPWIRE_HOOK)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.GRAPPLE_GUN), 75)
+                .aspect(TCAspects.AER, 1)
+                .aspect(TCAspects.IGNIS, 1)
+                .pattern("  S")
+                .pattern("TII")
+                .pattern(" BW")
+                .define('B', TCItemTags.PLATES_BRASS)
+                .define('I', TCItemTags.PLATES_IRON)
+                .define('T', TCItems.GRAPPLE_GUN_TIP)
+                .define('W', ItemTags.PLANKS)
+                .define('S', TCItems.GRAPPLE_GUN_SPOOL)
+                .gate(artificeGate)
+                .unlockedBy("has", has(TCItems.GRAPPLE_GUN_TIP))
+                .save(output);
+    }
+
     private void buildFocalManipulatorRecipe() {
         arcaneShaped(new ItemStackTemplate(TCItems.FOCAL_MANIPULATOR), 100)
                 .aspect(TCAspects.TERRA, 1)
@@ -316,12 +509,12 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("ISI")
                 .pattern("BRB")
                 .pattern("GTG")
-                .define('I', Items.IRON_INGOT)
-                .define('S', TCItems.STONE_ARCANE)
+                .define('I', TCItemTags.PLATES_IRON)
+                .define('S', TCItems.SLAB_ARCANE_STONE)
                 .define('B', TCItems.STONE_ARCANE)
                 .define('R', TCItems.VIS_RESONATOR)
                 .define('G', Items.GOLD_INGOT)
-                .define('T', TCItems.RESEARCH_TABLE)
+                .define('T', TCItems.TABLE_STONE)
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
                 .save(output);
     }
@@ -354,7 +547,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("SSS")
                 .pattern(" B ")
                 .pattern("SSS")
-                .define('S', TCItems.STONE_ARCANE)
+                .define('S', TCItems.SLAB_ARCANE_STONE)
                 .define('B', TCItems.STONE_ARCANE)
                 .gate(new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(1), false))
                 .unlockedBy("has", has(TCItems.STONE_ARCANE))
@@ -1305,6 +1498,46 @@ public final class TCRecipeProvider extends RecipeProvider {
         ResearchGate infusionGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_infusion"), Optional.of(2), false);
         ResearchGate auromancyGate = new ResearchGate(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_auromancy"), Optional.of(1), false);
 
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.DECORATIONS,
+                new ItemStackTemplate(TCItems.MIRROR), Ingredient.of(TCItems.MIRRORED_GLASS.get()))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.GOLD_INGOT))
+                .component(Ingredient.of(Items.ENDER_PEARL))
+                .aspect(TCAspects.MOTUS, 25)
+                .aspect(TCAspects.TENEBRAE, 25)
+                .aspect(TCAspects.PERMUTATIO, 25)
+                .instability(1)
+                .gate(infusionGate)
+                .unlockedBy("has", has(TCItems.MIRRORED_GLASS))
+                .save(output);
+
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
+                new ItemStackTemplate(TCItems.HAND_MIRROR), Ingredient.of(TCItems.MIRROR.get()))
+                .component(Ingredient.of(Items.STICK))
+                .component(Ingredient.of(Items.COMPASS))
+                .component(Ingredient.of(Items.MAP))
+                .aspect(TCAspects.INSTRUMENTUM, 50)
+                .aspect(TCAspects.MOTUS, 50)
+                .instability(5)
+                .gate(infusionGate)
+                .unlockedBy("has", has(TCItems.MIRROR))
+                .save(output);
+
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.DECORATIONS,
+                new ItemStackTemplate(TCItems.MIRROR_ESSENTIA), Ingredient.of(TCItems.MIRRORED_GLASS.get()))
+                .component(Ingredient.of(Items.IRON_INGOT))
+                .component(Ingredient.of(Items.IRON_INGOT))
+                .component(Ingredient.of(Items.IRON_INGOT))
+                .component(Ingredient.of(Items.ENDER_PEARL))
+                .aspect(TCAspects.MOTUS, 25)
+                .aspect(TCAspects.AQUA, 25)
+                .aspect(TCAspects.PERMUTATIO, 25)
+                .instability(2)
+                .gate(infusionGate)
+                .unlockedBy("has", has(TCItems.MIRRORED_GLASS))
+                .save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.MATRIX_SPEED), 500)
                 .aspect(TCAspects.AER, 1)
                 .aspect(TCAspects.ORDO, 1)
@@ -1356,7 +1589,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("SSS")
                 .pattern("SRS")
                 .pattern("SSS")
-                .define('S', TCItems.STONE_ARCANE)
+                .define('S', TCItems.SLAB_ARCANE_STONE)
                 .define('R', TCItems.VIS_RESONATOR)
                 .gate(auromancyGate)
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR))
@@ -1588,7 +1821,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .pattern("BVB")
                 .pattern("IMI")
                 .define('R', Items.REDSTONE_BLOCK)
-                .define('S', TCItems.STONE_ARCANE)
+                .define('S', TCItems.SLAB_ARCANE_STONE)
                 .define('B', TCItems.STONE_ARCANE)
                 .define('M', TCItems.MECHANISM_COMPLEX)
                 .define('V', TCItems.VIS_RESONATOR)

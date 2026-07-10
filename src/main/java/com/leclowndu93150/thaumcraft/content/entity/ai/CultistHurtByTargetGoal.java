@@ -2,13 +2,14 @@ package com.leclowndu93150.thaumcraft.content.entity.ai;
 
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultist;
 import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.phys.AABB;
 
 public final class CultistHurtByTargetGoal extends HurtByTargetGoal {
     private static final double ALERT_RANGE_Y = 10.0;
 
-    public CultistHurtByTargetGoal(EntityCultist cultist) {
+    public CultistHurtByTargetGoal(PathfinderMob cultist) {
         super(cultist);
         this.setAlertOthers();
     }

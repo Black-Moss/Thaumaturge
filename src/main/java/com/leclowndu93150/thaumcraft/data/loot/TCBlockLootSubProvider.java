@@ -14,16 +14,32 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.BonusLevelTableCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 import java.util.Set;
 
 public final class TCBlockLootSubProvider extends BlockLootSubProvider {
+    private static final float AMBER_CURIO_CHANCE = 0.1F;
+    private static final float[] VENT_CURIO_CHANCES = {0.01F, 0.01F, 0.02F, 0.03F};
+
+    private LootTable.Builder mirrorTable(Block block) {
+        return LootTable.lootTable()
+                .withPool(this.applyExplosionCondition(block, LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .add(LootItem.lootTableItem(block)
+                                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                                        .include(TCDataComponents.MIRROR_LINK.get())))));
+    }
+
     private LootTable.Builder bannerTable(ItemLike item) {
         return LootTable.lootTable()
                 .withPool(this.applyExplosionCondition(item, LootPool.lootPool()
@@ -140,7 +156,21 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
     }
 
     private void generateResources(){
-        add(TCBlocks.ORE_AMBER.get(),b->createOreDrop(b, TCItems.AMBER.get()));
+        add(TCBlocks.ORE_AMBER.get(), b -> createOreDrop(b, TCItems.AMBER.get())
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(this.doesNotHaveSilkTouch())
+                        .when(LootItemRandomChanceCondition.randomChance(AMBER_CURIO_CHANCE))
+                        .add(LootItem.lootTableItem(TCItems.CURIO_PRESERVED.get()))));
+        add(TCBlocks.MIRROR.get(), this::mirrorTable);
+        add(TCBlocks.MIRROR_ESSENTIA.get(), this::mirrorTable);
+        add(TCBlocks.ELDRITCH_CRAB_SPAWNER.get(), b -> LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(BonusLevelTableCondition.bonusLevelFlatChance(
+                                lookupProvider.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE),
+                                VENT_CURIO_CHANCES))
+                        .add(LootItem.lootTableItem(TCItems.CURIO_PRESERVED.get()))));
         dropSelf(TCBlocks.ORE_CINNABAR.get());
         add(TCBlocks.ORE_QUARTZ.get(),b->createOreDrop(b, Items.QUARTZ));
 
@@ -171,6 +201,31 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.CONDENSER_LATTICE_DIRTY.get());
         dropSelf(TCBlocks.STABILIZER.get());
         dropSelf(TCBlocks.REDSTONE_RELAY.get());
+        dropSelf(TCBlocks.ACTIVATOR_RAIL.get());
+        add(TCBlocks.SLAB_GREATWOOD.get(), this::createSlabItemTable);
+        add(TCBlocks.SLAB_SILVERWOOD.get(), this::createSlabItemTable);
+        add(TCBlocks.SLAB_ARCANE_STONE.get(), this::createSlabItemTable);
+        add(TCBlocks.SLAB_ARCANE_BRICK.get(), this::createSlabItemTable);
+        add(TCBlocks.SLAB_ANCIENT.get(), this::createSlabItemTable);
+        add(TCBlocks.SLAB_ELDRITCH.get(), this::createSlabItemTable);
+        dropSelf(TCBlocks.STAIRS_GREATWOOD.get());
+        dropSelf(TCBlocks.STAIRS_SILVERWOOD.get());
+        dropSelf(TCBlocks.TABLE_WOOD.get());
+        dropSelf(TCBlocks.TABLE_STONE.get());
+        dropSelf(TCBlocks.PAVING_STONE_TRAVEL.get());
+        dropSelf(TCBlocks.PAVING_STONE_BARRIER.get());
+        dropSelf(TCBlocks.AMBER_BRICK.get());
+        dropSelf(TCBlocks.FLESH_BLOCK.get());
+        dropSelf(TCBlocks.OBSIDIAN_TILE.get());
+        dropSelf(TCBlocks.ELDRITCH_STONE.get());
+        dropSelf(TCBlocks.ELDRITCH_STONE_INERT.get());
+        dropSelf(TCBlocks.ELDRITCH_ROCK.get());
+        dropSelf(TCBlocks.ELDRITCH_CRUST.get());
+        dropSelf(TCBlocks.ELDRITCH_CRUST_GLOWING.get());
+        dropSelf(TCBlocks.STAIRS_ELDRITCH.get());
+        dropSelf(TCBlocks.ELDRITCH_PEDESTAL.get());
+        add(TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), noDrop());
+        dropSelf(TCBlocks.ELDRITCH_DOOR.get());
         dropSelf(TCBlocks.VOID_SIPHON.get());
         dropOther(TCBlocks.THAUMATORIUM.get(), TCBlocks.ALCHEMICAL_CONSTRUCT.get());
         dropSelf(TCBlocks.BRAIN_BOX.get());

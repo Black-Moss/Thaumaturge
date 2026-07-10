@@ -60,7 +60,7 @@ public class BlockPlaceholder extends Block {
         }
         if (!level.isClientSide()
                 && (state.is(TCBlocks.PLACEHOLDER_IRON_BARS) || state.is(TCBlocks.PLACEHOLDER_ANVIL)
-                || state.is(TCBlocks.PLACEHOLDER_CAULDRON) || state.is(TCBlocks.PLACEHOLDER_SMITHING_TABLE))) {
+                || state.is(TCBlocks.PLACEHOLDER_CAULDRON) || state.is(TCBlocks.PLACEHOLDER_TABLE))) {
             restoreGolemPress:
             for (int x = -1; x <= 1; x++) {
                 for (int y = -1; y <= 1; y++) {

@@ -18,6 +18,20 @@ import com.leclowndu93150.thaumcraft.content.crucible.BlockCrucible;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStairsTC;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStonePorous;
 import com.leclowndu93150.thaumcraft.content.decor.BlockStoneTC;
+import com.leclowndu93150.thaumcraft.content.decor.BlockTable;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchAltar;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCap;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchLock;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchNothing;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchObelisk;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchPortal;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchStructure;
+import com.leclowndu93150.thaumcraft.content.device.mirror.BlockMirror;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchTrap;
+import com.leclowndu93150.thaumcraft.content.decor.BlockEffectShock;
+import com.leclowndu93150.thaumcraft.content.decor.BlockBarrier;
+import com.leclowndu93150.thaumcraft.content.decor.BlockPavingStone;
 import com.leclowndu93150.thaumcraft.content.equipment.BlockEffectGlimmer;
 import com.leclowndu93150.thaumcraft.content.focus.BlockEffectSap;
 import com.leclowndu93150.thaumcraft.content.focus.BlockHole;
@@ -90,6 +104,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.PoweredRailBlock;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -627,8 +643,8 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_ANVIL = BLOCKS.registerBlock(
             "placeholder_anvil", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
 
-    public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_SMITHING_TABLE = BLOCKS.registerBlock(
-            "placeholder_smithing_table", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
+    public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_TABLE = BLOCKS.registerBlock(
+            "placeholder_table", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
 
     public static final DeferredBlock<BlockPedestal> PEDESTAL_ANCIENT = BLOCKS.registerBlock(
             "pedestal_ancient", BlockPedestal::new, TCBlocks::pedestalProps);
@@ -975,6 +991,7 @@ public final class TCBlocks {
                 .mapColor(MapColor.STONE)
                 .strength(15.0F, 1000.0F)
                 .sound(SoundType.STONE)
+                .lightLevel(state -> 12)
                 .requiresCorrectToolForDrops();
     }
 
@@ -1043,6 +1060,15 @@ public final class TCBlocks {
             "leaves_silverwood",
             props -> new BlockLeavesTC(0.01F, props),
             props -> leavesProps(props).mapColor(MapColor.COLOR_LIGHT_BLUE)
+    );
+
+    public static final DeferredBlock<PoweredRailBlock> ACTIVATOR_RAIL = BLOCKS.registerBlock(
+            "activator_rail",
+            PoweredRailBlock::new,
+            props -> props
+                    .noCollision()
+                    .strength(0.7F)
+                    .sound(SoundType.METAL)
     );
 
     public static final DeferredBlock<Block> PLANK_GREATWOOD = BLOCKS.registerBlock(
@@ -1183,6 +1209,195 @@ public final class TCBlocks {
                     .sound(SoundType.METAL)
                     .requiresCorrectToolForDrops()
     );
+
+    public static final DeferredBlock<SlabBlock> SLAB_GREATWOOD = BLOCKS.registerBlock(
+            "slab_greatwood", SlabBlock::new,
+            props -> props.mapColor(MapColor.WOOD).strength(1.2F, 2.0F).sound(SoundType.WOOD).ignitedByLava());
+
+    public static final DeferredBlock<SlabBlock> SLAB_SILVERWOOD = BLOCKS.registerBlock(
+            "slab_silverwood", SlabBlock::new,
+            props -> props.mapColor(MapColor.QUARTZ).strength(1.0F, 2.0F).sound(SoundType.WOOD).ignitedByLava());
+
+    public static final DeferredBlock<SlabBlock> SLAB_ARCANE_STONE = BLOCKS.registerBlock(
+            "slab_arcane_stone", SlabBlock::new,
+            props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<SlabBlock> SLAB_ARCANE_BRICK = BLOCKS.registerBlock(
+            "slab_arcane_brick", SlabBlock::new,
+            props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<SlabBlock> SLAB_ANCIENT = BLOCKS.registerBlock(
+            "slab_ancient", SlabBlock::new,
+            props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<SlabBlock> SLAB_ELDRITCH = BLOCKS.registerBlock(
+            "slab_eldritch", SlabBlock::new,
+            props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<BlockStairsTC> STAIRS_GREATWOOD = BLOCKS.registerBlock(
+            "stairs_greatwood",
+            props -> new BlockStairsTC(PLANK_GREATWOOD.get().defaultBlockState(), props),
+            props -> props.mapColor(MapColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD).ignitedByLava());
+
+    public static final DeferredBlock<BlockStairsTC> STAIRS_SILVERWOOD = BLOCKS.registerBlock(
+            "stairs_silverwood",
+            props -> new BlockStairsTC(PLANK_SILVERWOOD.get().defaultBlockState(), props),
+            props -> props.mapColor(MapColor.QUARTZ).strength(2.0F, 3.0F).sound(SoundType.WOOD).ignitedByLava());
+
+    public static final DeferredBlock<BlockTable> TABLE_WOOD = BLOCKS.registerBlock(
+            "table_wood", BlockTable::new,
+            props -> props.mapColor(MapColor.WOOD).strength(2.0F).sound(SoundType.WOOD).noOcclusion().ignitedByLava());
+
+    public static final DeferredBlock<BlockTable> TABLE_STONE = BLOCKS.registerBlock(
+            "table_stone", BlockTable::new,
+            props -> props.mapColor(MapColor.STONE).strength(2.5F).sound(SoundType.STONE).noOcclusion());
+
+    public static final DeferredBlock<BlockPavingStone> PAVING_STONE_TRAVEL = BLOCKS.registerBlock(
+            "paving_stone_travel",
+            props -> new BlockPavingStone(false, props),
+            props -> props.mapColor(MapColor.STONE).strength(2.5F).sound(SoundType.STONE).noOcclusion());
+
+    public static final DeferredBlock<BlockPavingStone> PAVING_STONE_BARRIER = BLOCKS.registerBlock(
+            "paving_stone_barrier",
+            props -> new BlockPavingStone(true, props),
+            props -> props.mapColor(MapColor.STONE).strength(2.5F).sound(SoundType.STONE).noOcclusion());
+
+    public static final DeferredBlock<BlockBarrier> BARRIER = BLOCKS.registerBlock(
+            "barrier", BlockBarrier::new,
+            props -> props.mapColor(MapColor.NONE).strength(-1.0F, 999.0F).noOcclusion().noLootTable()
+                    .dynamicShape().isValidSpawn((state, level, pos, type) -> false));
+
+    public static final DeferredBlock<Block> AMBER_BRICK = BLOCKS.registerBlock(
+            "amber_brick",
+            Block::new,
+            props -> props
+                    .mapColor(MapColor.METAL)
+                    .strength(4.0F, 10.0F)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()
+    );
+
+    public static final DeferredBlock<Block> FLESH_BLOCK = BLOCKS.registerBlock(
+            "flesh_block",
+            Block::new,
+            props -> props
+                    .mapColor(MapColor.COLOR_RED)
+                    .strength(0.25F, 2.0F)
+                    .sound(TCSoundTypes.GORE.get())
+    );
+
+    public static final DeferredBlock<BlockEffectShock> EFFECT_SHOCK = BLOCKS.registerBlock(
+            "effect_shock",
+            BlockEffectShock::new,
+            props -> props
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .strength(0.0F, 999.0F)
+                    .replaceable()
+                    .noCollision()
+                    .noOcclusion()
+                    .lightLevel(state -> 7)
+                    .randomTicks()
+                    .noLootTable()
+                    .pushReaction(PushReaction.DESTROY)
+    );
+
+
+    public static final DeferredBlock<Block> OBSIDIAN_TILE = BLOCKS.registerBlock(
+            "obsidian_tile", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<Block> ELDRITCH_STONE = BLOCKS.registerBlock(
+            "eldritch_stone", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<Block> ELDRITCH_STONE_INERT = BLOCKS.registerBlock(
+            "eldritch_stone_inert", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops().isValidSpawn((state, level, pos, type) -> false));
+
+    public static final DeferredBlock<Block> ELDRITCH_ROCK = BLOCKS.registerBlock(
+            "eldritch_rock", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<Block> ELDRITCH_CRUST = BLOCKS.registerBlock(
+            "eldritch_crust", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(TCSoundTypes.GORE.get()));
+
+    public static final DeferredBlock<Block> ELDRITCH_CRUST_GLOWING = BLOCKS.registerBlock(
+            "eldritch_crust_glowing", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(TCSoundTypes.GORE.get())
+                    .lightLevel(state -> 15));
+
+    public static final DeferredBlock<BlockMirror> MIRROR = BLOCKS.registerBlock(
+            "mirror", props -> new BlockMirror(props, false),
+            props -> props.mapColor(MapColor.METAL).strength(0.1F).sound(TCSoundTypes.JAR.get()).noOcclusion());
+
+    public static final DeferredBlock<BlockMirror> MIRROR_ESSENTIA = BLOCKS.registerBlock(
+            "mirror_essentia", props -> new BlockMirror(props, true),
+            props -> props.mapColor(MapColor.METAL).strength(0.1F).sound(TCSoundTypes.JAR.get()).noOcclusion());
+
+    public static final DeferredBlock<BlockStairsTC> STAIRS_ELDRITCH = BLOCKS.registerBlock(
+            "stairs_eldritch",
+            props -> new BlockStairsTC(ELDRITCH_STONE.get().defaultBlockState(), props),
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<Block> ELDRITCH_DOOR = BLOCKS.registerBlock(
+            "eldritch_door", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, Float.MAX_VALUE)
+                    .sound(SoundType.STONE).lightLevel(state -> 12));
+
+    public static final DeferredBlock<Block> ELDRITCH_PEDESTAL = BLOCKS.registerBlock(
+            "eldritch_pedestal", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<Block> ELDRITCH_STONE_CRYSTAL = BLOCKS.registerBlock(
+            "eldritch_stone_crystal", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 30.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 12));
+
+    public static final DeferredBlock<BlockEldritchNothing> ELDRITCH_NOTHING = BLOCKS.registerBlock(
+            "eldritch_nothing", BlockEldritchNothing::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 6000000.0F)
+                    .sound(SoundType.WOOL).lightLevel(state -> 3).noOcclusion().noLootTable().dynamicShape());
+
+    public static final DeferredBlock<BlockEldritchLock> ELDRITCH_LOCK = BLOCKS.registerBlock(
+            "eldritch_lock", BlockEldritchLock::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, Float.MAX_VALUE)
+                    .sound(SoundType.STONE).lightLevel(state -> 5).noLootTable());
+
+    public static final DeferredBlock<BlockEldritchCrabSpawner> ELDRITCH_CRAB_SPAWNER = BLOCKS.registerBlock(
+            "eldritch_crab_spawner", BlockEldritchCrabSpawner::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(7.0F, 20.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 4).noOcclusion().requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<BlockEldritchTrap> ELDRITCH_TRAP = BLOCKS.registerBlock(
+            "eldritch_trap", BlockEldritchTrap::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(15.0F, 30.0F).sound(SoundType.STONE).noLootTable());
+
+    public static final DeferredBlock<BlockEldritchAltar> ELDRITCH_ALTAR = BLOCKS.registerBlock(
+            "eldritch_altar", BlockEldritchAltar::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 20000.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 12).noOcclusion().noLootTable());
+
+    public static final DeferredBlock<BlockEldritchObelisk> ELDRITCH_OBELISK = BLOCKS.registerBlock(
+            "eldritch_obelisk", BlockEldritchObelisk::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 20000.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 8).noOcclusion().noLootTable());
+
+    public static final DeferredBlock<BlockEldritchStructure> ELDRITCH_PILLAR = BLOCKS.registerBlock(
+            "eldritch_pillar", BlockEldritchStructure::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 20000.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 8).noOcclusion().noLootTable());
+
+    public static final DeferredBlock<BlockEldritchCap> ELDRITCH_CAPSTONE = BLOCKS.registerBlock(
+            "eldritch_capstone", BlockEldritchCap::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 20000.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 8).noOcclusion().noLootTable());
+
+    public static final DeferredBlock<BlockEldritchPortal> ELDRITCH_PORTAL = BLOCKS.registerBlock(
+            "eldritch_portal", BlockEldritchPortal::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 200000.0F)
+                    .lightLevel(state -> 15).noOcclusion().noLootTable().noCollision());
 
     public static final DeferredBlock<Block> AMBER_BLOCK = BLOCKS.registerBlock(
             "amber_block",

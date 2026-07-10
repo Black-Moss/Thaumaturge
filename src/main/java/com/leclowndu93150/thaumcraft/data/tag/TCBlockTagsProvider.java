@@ -37,6 +37,65 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(Blocks.PIGLIN_HEAD)
                 .add(Blocks.PIGLIN_WALL_HEAD);
 
+        tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(TCBlocks.SLAB_ARCANE_STONE.get())
+                .add(TCBlocks.SLAB_ARCANE_BRICK.get())
+                .add(TCBlocks.SLAB_ANCIENT.get())
+                .add(TCBlocks.SLAB_ELDRITCH.get())
+                .add(TCBlocks.TABLE_STONE.get())
+                .add(TCBlocks.PAVING_STONE_TRAVEL.get())
+                .add(TCBlocks.PAVING_STONE_BARRIER.get())
+                .add(TCBlocks.AMBER_BRICK.get());
+
+        tag(BlockTags.MINEABLE_WITH_AXE)
+                .add(TCBlocks.SLAB_GREATWOOD.get())
+                .add(TCBlocks.SLAB_SILVERWOOD.get())
+                .add(TCBlocks.STAIRS_GREATWOOD.get())
+                .add(TCBlocks.STAIRS_SILVERWOOD.get())
+                .add(TCBlocks.TABLE_WOOD.get());
+
+        tag(BlockTags.SLABS)
+                .add(TCBlocks.SLAB_GREATWOOD.get())
+                .add(TCBlocks.SLAB_SILVERWOOD.get())
+                .add(TCBlocks.SLAB_ARCANE_STONE.get())
+                .add(TCBlocks.SLAB_ARCANE_BRICK.get())
+                .add(TCBlocks.SLAB_ANCIENT.get())
+                .add(TCBlocks.SLAB_ELDRITCH.get());
+
+        tag(BlockTags.WOODEN_SLABS)
+                .add(TCBlocks.SLAB_GREATWOOD.get())
+                .add(TCBlocks.SLAB_SILVERWOOD.get());
+
+        tag(BlockTags.STAIRS)
+                .add(TCBlocks.STAIRS_GREATWOOD.get())
+                .add(TCBlocks.STAIRS_SILVERWOOD.get());
+
+        tag(BlockTags.WOODEN_STAIRS)
+                .add(TCBlocks.STAIRS_GREATWOOD.get())
+                .add(TCBlocks.STAIRS_SILVERWOOD.get());
+
+        tag(TCBlockTags.ELDRITCH_OBELISK_PARTS)
+                .add(TCBlocks.ELDRITCH_ALTAR.get())
+                .add(TCBlocks.ELDRITCH_OBELISK.get())
+                .add(TCBlocks.ELDRITCH_PILLAR.get())
+                .add(TCBlocks.ELDRITCH_CAPSTONE.get());
+
+        tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(TCBlocks.OBSIDIAN_TILE.get())
+                .add(TCBlocks.ELDRITCH_STONE.get())
+                .add(TCBlocks.ELDRITCH_STONE_INERT.get())
+                .add(TCBlocks.ELDRITCH_ROCK.get())
+                .add(TCBlocks.ELDRITCH_CRUST.get())
+                .add(TCBlocks.ELDRITCH_CRUST_GLOWING.get())
+                .add(TCBlocks.STAIRS_ELDRITCH.get())
+                .add(TCBlocks.ELDRITCH_PEDESTAL.get())
+                .add(TCBlocks.ELDRITCH_STONE_CRYSTAL.get())
+                .add(TCBlocks.ELDRITCH_CRAB_SPAWNER.get())
+                .add(TCBlocks.ELDRITCH_TRAP.get());
+
+        tag(BlockTags.RAILS)
+                .add(TCBlocks.ACTIVATOR_RAIL.get());
+
         tag(BlockTags.BEACON_BASE_BLOCKS)
                 .add(TCBlocks.METAL_THAUMIUM_BLOCK.get())
                 .add(TCBlocks.METAL_BRASS_BLOCK.get())

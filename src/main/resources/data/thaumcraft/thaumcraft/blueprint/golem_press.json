@@ -64,11 +64,11 @@
       "part": {
         "source": {
           "type": "block",
-          "block": "minecraft:smithing_table"
+          "block": "thaumcraft:table_stone"
         },
         "target": {
           "type": "block",
-          "block": "thaumcraft:placeholder_smithing_table"
+          "block": "thaumcraft:placeholder_table"
         }
       }
     }
