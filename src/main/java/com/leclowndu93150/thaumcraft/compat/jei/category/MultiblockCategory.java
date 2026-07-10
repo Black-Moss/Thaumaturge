@@ -32,6 +32,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
+import org.joml.Matrix3x2f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -148,10 +149,11 @@ public final class MultiblockCategory implements IRecipeCategory<RecipeHolder<Du
         arrow.draw(guiGraphics,WIDTH / 2 -arrow.getWidth() / 2 - 20,0);
         boolean doesPassGate = holder.value().doesPassGate(Minecraft.getInstance().player);
         if (!doesPassGate) guiGraphics.item(Items.BARRIER.getDefaultInstance(),WIDTH / 2 -arrow.getWidth() / 2 - 14, 4);
-
+        Matrix3x2f pose = guiGraphics.pose();
+        drawExtra(holder, new Rect2i(Math.round(pose.m20), Math.round(pose.m21), WIDTH, HEIGHT), guiGraphics, mouseX, mouseY);
     }
 
-    public void drawExtra(RecipeHolder<DustTrigger> holder,Rect2i area, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+    private void drawExtra(RecipeHolder<DustTrigger> holder,Rect2i area, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         DustTriggerMultiblockRecipe recipe = (DustTriggerMultiblockRecipe) holder.value();
         Blueprint blueprint = lookupBlueprint(recipe.blueprintId());
         if (blueprint != null){
