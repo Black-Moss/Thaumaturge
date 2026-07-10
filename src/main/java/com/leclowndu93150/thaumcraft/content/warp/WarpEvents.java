@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.content.warp;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.content.entity.EntityMindSpider;
@@ -69,15 +70,19 @@ public final class WarpEvents {
     private static void dispatchEvent(ServerPlayer player, int eff, int warp, int normalWarp, RandomSource rand) {
         ServerLevel level = player.level();
         if (eff <= 4) {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.CREEPER_PRIMED, SoundSource.AMBIENT, 1.0F, 0.5F);
+            if (!ThaumcraftCommonConfig.NO_STRESS.get()) {
+                level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.CREEPER_PRIMED, SoundSource.AMBIENT, 1.0F, 0.5F);
+            }
         } else if (eff <= 8) {
-            level.playSound(null,
-                    player.getX() + rand.nextInt(10) - rand.nextInt(10),
-                    player.getY() + rand.nextInt(10) - rand.nextInt(10),
-                    player.getZ() + rand.nextInt(10) - rand.nextInt(10),
-                    SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, 4.0F,
-                    (1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.2F) * 0.7F);
+            if (!ThaumcraftCommonConfig.NO_STRESS.get()) {
+                level.playSound(null,
+                        player.getX() + rand.nextInt(10) - rand.nextInt(10),
+                        player.getY() + rand.nextInt(10) - rand.nextInt(10),
+                        player.getZ() + rand.nextInt(10) - rand.nextInt(10),
+                        SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, 4.0F,
+                        (1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.2F) * 0.7F);
+            }
         } else if (eff <= 12) {
             WarpManager.sendActionBar(player, "warp.thaumcraft.text.11");
         } else if (eff <= 16) {
@@ -130,7 +135,8 @@ public final class WarpEvents {
         return Math.min(MAX_EFFECT_AMP, warp / EFFECT_AMP_DIVISOR);
     }
 
-    private static void applyEffect(ServerPlayer player, Holder<MobEffect> effect, int duration, int amplifier, String messageKey) {
+    private static void applyEffect(ServerPlayer player, Holder<MobEffect> effect, int duration, int amplifier,
+                                    String messageKey) {
         player.addEffect(new MobEffectInstance(effect, duration, amplifier, true, true));
         if (messageKey != null) {
             WarpManager.sendActionBar(player, messageKey);

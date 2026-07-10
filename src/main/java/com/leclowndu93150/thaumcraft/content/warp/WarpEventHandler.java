@@ -7,7 +7,10 @@ import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.registry.TCDataMaps;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
+import java.util.Set;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,6 +19,7 @@ import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -25,7 +29,28 @@ public final class WarpEventHandler {
     private static final int DEATH_GAZE_INTERVAL = 20;
     private static final int HUNGER_CURE_DURATION_STEP = 600;
 
+    private static final Set<Identifier> MILK_PROOF_EFFECTS = Set.of(
+            TCIds.rl("vis_exhaust"),
+            TCIds.rl("infectious_vis_exhaust"),
+            TCIds.rl("thaumarhia"),
+            TCIds.rl("unnatural_hunger"),
+            TCIds.rl("sun_scorned"),
+            TCIds.rl("death_gaze"),
+            TCIds.rl("flux_taint"));
+
     private WarpEventHandler() {}
+
+    @SubscribeEvent
+    public static void onEffectRemove(MobEffectEvent.Remove event) {
+        LivingEntity entity = event.getEntity();
+        if (!entity.isUsingItem() || !entity.getUseItem().is(Items.MILK_BUCKET)) {
+            return;
+        }
+        Identifier id = event.getEffect().unwrapKey().map(ResourceKey::identifier).orElse(null);
+        if (id != null && MILK_PROOF_EFFECTS.contains(id)) {
+            event.setCanceled(true);
+        }
+    }
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {

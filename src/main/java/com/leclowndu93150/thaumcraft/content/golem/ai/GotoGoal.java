@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.golem.ai;
 
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.api.golems.GolemTrait;
 import com.leclowndu93150.thaumcraft.api.golems.GolemHelper;
 import com.leclowndu93150.thaumcraft.api.golems.seals.ISealEntity;
@@ -126,7 +127,7 @@ public abstract class GotoGoal extends Goal {
         if (task == null) {
             return;
         }
-        if (!task.isCompleted() && task.isReserved()) {
+        if (!task.isCompleted() && task.isReserved() && ThaumcraftCommonConfig.SHOW_GOLEM_EMOTES.get()) {
             golem.level().broadcastEntityEvent(golem, EVENT_EMOTE_FAIL);
         }
         if (task.isCompleted() && !task.isSuspended()) {

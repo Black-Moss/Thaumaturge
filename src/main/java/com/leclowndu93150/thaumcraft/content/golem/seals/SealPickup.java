@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.golem.seals;
 
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.golems.GolemHelper;
 import com.leclowndu93150.thaumcraft.api.golems.GolemTrait;
@@ -102,7 +103,9 @@ public class SealPickup extends SealFiltered implements ISealConfigArea {
                     && golemEntity.isWithinHome(next.getEntity().blockPosition())) {
                 golemEntity.setTask(next);
                 next.setReserved(true);
-                level.broadcastEntityEvent(golemEntity, EVENT_EMOTE_TASK);
+                if (ThaumcraftCommonConfig.SHOW_GOLEM_EMOTES.get()) {
+                    level.broadcastEntityEvent(golemEntity, EVENT_EMOTE_TASK);
+                }
                 break;
             }
         }

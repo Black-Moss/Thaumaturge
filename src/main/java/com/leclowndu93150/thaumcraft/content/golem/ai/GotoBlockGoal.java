@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.golem.ai;
 
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.api.golems.tasks.Task;
 import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
 import com.leclowndu93150.thaumcraft.content.golem.tasks.TaskHandler;
@@ -47,7 +48,9 @@ public final class GotoBlockGoal extends GotoGoal {
                 targetBlock = getAdjacentSpace(task.getPos());
                 golem.setTask(task);
                 task.setReserved(true);
-                golem.level().broadcastEntityEvent(golem, EVENT_EMOTE_TASK);
+                if (ThaumcraftCommonConfig.SHOW_GOLEM_EMOTES.get()) {
+                    golem.level().broadcastEntityEvent(golem, EVENT_EMOTE_TASK);
+                }
                 return true;
             }
         }

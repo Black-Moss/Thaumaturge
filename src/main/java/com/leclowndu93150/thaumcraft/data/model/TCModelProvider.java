@@ -45,6 +45,7 @@ import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.client.renderer.item.*;
 import net.minecraft.client.color.item.Constant;
+import net.minecraft.client.renderer.item.properties.conditional.HasComponent;
 import net.minecraft.client.renderer.item.properties.select.ComponentContents;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.world.item.DyeColor;
@@ -976,13 +977,19 @@ public final class TCModelProvider extends ModelProvider {
     }
 
     private static void registerMirrorItem(ItemModelGenerators itemModels, Item item, String frameTexture) {
-        Identifier model = ModelLocationUtils.getModelLocation(item);
-        ModelTemplates.TWO_LAYERED_ITEM.create(model,
-                TextureMapping.layered(
-                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + frameTexture)),
+        Material frame = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + frameTexture));
+        Identifier model = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(item),
+                TextureMapping.layered(frame,
                         new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/mirrorpane"))),
                 itemModels.modelOutput);
-        itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(model));
+        Identifier linkedModel = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(item, "_on"),
+                TextureMapping.layered(frame,
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/mirrorpaneopen"))),
+                itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.conditional(
+                new HasComponent(TCDataComponents.MIRROR_LINK.get(), false),
+                ItemModelUtils.plainModel(linkedModel),
+                ItemModelUtils.plainModel(model)));
     }
 
     private static void mirrorBlockState(BlockModelGenerators blockModels, Block block) {

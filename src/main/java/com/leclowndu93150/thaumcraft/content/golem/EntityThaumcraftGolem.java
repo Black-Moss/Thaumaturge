@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.golem;
 
 import com.leclowndu93150.thaumcraft.api.golems.GolemTrait;
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumcraft.api.golems.IGolemProperties;
 import com.leclowndu93150.thaumcraft.api.golems.parts.IGolemFunction;
@@ -478,11 +479,15 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
         setFollowingOwner(!isFollowingOwner());
         if (isFollowingOwner()) {
             sendActionBar(player, "golem.follow");
-            level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_TASK);
+            if (ThaumcraftCommonConfig.SHOW_GOLEM_EMOTES.get()) {
+                level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_TASK);
+            }
             clearHome();
         } else {
             sendActionBar(player, "golem.stay");
-            level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_STAY);
+            if (ThaumcraftCommonConfig.SHOW_GOLEM_EMOTES.get()) {
+                level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_STAY);
+            }
             setHomeTo(blockPosition(), props().hasTrait(GolemTrait.SCOUT) ? HOME_RANGE_SCOUT : HOME_RANGE);
         }
         updateEntityAttributes();
@@ -595,8 +600,10 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
             GolemProperties props = props().copy();
             props.setRank(rank + 1);
             setProperties(props);
-            level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_RANKUP);
-            playSound(SoundEvents.PLAYER_LEVELUP, 0.25F, 1.0F);
+            if (ThaumcraftCommonConfig.SHOW_GOLEM_EMOTES.get()) {
+                level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_RANKUP);
+                playSound(SoundEvents.PLAYER_LEVELUP, 0.25F, 1.0F);
+            }
         }
     }
 
