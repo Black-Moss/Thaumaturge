@@ -21,7 +21,7 @@
     {
       "text": "research.thaumcraft.first_steps.stage_0",
       "recipes": [
-        "thaumcraft:dust_trigger/crafting_tables_to_arcane_workbench"
+        "thaumcraft:salis_mundus"
       ],
       "craft": [
         {
@@ -36,7 +36,7 @@
       "text": "research.thaumcraft.first_steps.stage_1",
       "recipes": [
         "thaumcraft:arcane_workbench/thaumometer",
-        "thaumcraft:dust_trigger/crafting_tables_to_arcane_workbench"
+        "thaumcraft:salis_mundus"
       ],
       "craft": [
         {
@@ -58,7 +58,7 @@
       "text": "research.thaumcraft.first_steps.stage_2",
       "recipes": [
         "thaumcraft:arcane_workbench/thaumometer",
-        "thaumcraft:dust_trigger/crafting_tables_to_arcane_workbench",
+        "thaumcraft:salis_mundus",
         "thaumcraft:stone_arcane",
         "thaumcraft:stone_arcane_brick"
       ]

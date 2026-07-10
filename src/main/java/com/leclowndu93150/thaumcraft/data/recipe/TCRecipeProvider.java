@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.data.recipe;
 
+import com.leclowndu93150.thaumcraft.content.recipe.SalisMundusRecipe;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import com.google.common.collect.ImmutableList;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
@@ -83,6 +85,7 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
+        buildSalisMundusRecipe();
         buildArcaneWorkbenchRecipes();
         buildBannerRecipes();
         buildGearRecipes();
@@ -2328,5 +2331,11 @@ public final class TCRecipeProvider extends RecipeProvider {
         public String getName() {
             return "Thaumcraft Recipes";
         }
+    }
+
+    private void buildSalisMundusRecipe() {
+        SpecialRecipeBuilder.special(() -> SalisMundusRecipe.INSTANCE)
+                .unlockedBy("has_crystal", has(TCItems.ESSENTIA_CRYSTAL))
+                .save(output, "thaumcraft:salis_mundus");
     }
 }

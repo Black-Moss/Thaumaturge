@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.client.render.research;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
+import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
@@ -275,7 +276,7 @@ public final class EntryIconRenderer {
         graphics.pose().pushMatrix();
         graphics.pose().translate(centerX, centerY);
         graphics.blit(
-                RenderPipelines.GUI_NAUSEA_OVERLAY,
+                TCRenderPipelines.GUI_TEXTURED_ADDITIVE,
                 NODE_TEXTURE,
                 -half, -half,
                 (float) u, (float) v,

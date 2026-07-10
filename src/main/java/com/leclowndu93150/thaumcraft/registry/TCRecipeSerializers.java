@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.infusion.InfusionEnchantmentRecipe;
 import com.leclowndu93150.thaumcraft.content.infusion.InfusionRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.SalisMundusRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSimpleRecipe;
@@ -42,6 +43,9 @@ public final class TCRecipeSerializers {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArcaneShapelessCraftingRecipe>> ARCANE_SHAPELESS =
             RECIPE_SERIALIZERS.register("arcane_workbench_shapeless", () -> ArcaneShapelessCraftingRecipe.SERIALIZER);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SalisMundusRecipe>> SALIS_MUNDUS =
+            RECIPE_SERIALIZERS.register("salis_mundus", () -> new RecipeSerializer<>(SalisMundusRecipe.MAP_CODEC, SalisMundusRecipe.STREAM_CODEC));
 
 
 
