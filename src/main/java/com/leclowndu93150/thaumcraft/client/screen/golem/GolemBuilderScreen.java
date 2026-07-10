@@ -39,7 +39,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGolemBuilder> {
     private static final Identifier TEXTURE = TCIds.rl("textures/gui/gui_golembuilder.png");
-    private static final Identifier MATERIAL_ICON = TCIds.rl("textures/items/golem.png");
+    private static final Identifier MATERIAL_ICON = TCIds.rl("textures/item/golem.png");
 
     private static final int IMAGE_WIDTH = 208;
     private static final int IMAGE_HEIGHT = 224;
@@ -337,8 +337,10 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             int row = 1;
             int col = 0;
             for (ItemStack stack : components) {
-                addRenderableWidget(TCHoverButton.centered(leftPos + 152 + col * 16, topPos + 24 + 16 * row, 16,
-                        new TCButtonIcon.StackIcon(stack), stack.getHoverName(), () -> {}));
+                TCHoverButton componentButton = TCHoverButton.centered(leftPos + 152 + col * 16, topPos + 24 + 16 * row, 16,
+                        new TCButtonIcon.StackIcon(stack), Component.empty(), () -> {});
+                componentButton.setMessage(stack.getHoverName());
+                addRenderableWidget(componentButton);
                 if (++row > 3) {
                     row = 0;
                     col++;

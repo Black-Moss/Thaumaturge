@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.screen.widget;
 
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
@@ -52,6 +53,7 @@ public sealed interface TCButtonIcon {
         @Override
         public void draw(GuiGraphicsExtractor graphics, int x, int y, int size, int tintColor) {
             graphics.item(stack, x, y);
+            graphics.itemDecorations(Minecraft.getInstance().font, stack, x, y);
         }
     }
 }

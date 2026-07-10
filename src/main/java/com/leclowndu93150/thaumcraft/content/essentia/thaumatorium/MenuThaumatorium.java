@@ -34,8 +34,12 @@ public final class MenuThaumatorium extends AbstractContainerMenu {
     private int lastQueueSize = -1;
 
     public MenuThaumatorium(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, (BlockEntityThaumatorium) null);
-        buf.readBlockPos();
+        this(containerId, playerInventory, clientBlockEntity(playerInventory, buf));
+    }
+
+    private static @Nullable BlockEntityThaumatorium clientBlockEntity(Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        return playerInventory.player.level().getBlockEntity(buf.readBlockPos())
+                instanceof BlockEntityThaumatorium machine ? machine : null;
     }
 
     public MenuThaumatorium(int containerId, Inventory playerInventory, @Nullable BlockEntityThaumatorium blockEntity) {

@@ -1,5 +1,16 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
+import com.leclowndu93150.thaumcraft.client.color.AspectColorTint;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
+import com.leclowndu93150.thaumcraft.content.item.PrimordialPearlItem;
+import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintFibre;
+import net.minecraft.client.color.item.GrassColorSource;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.properties.numeric.Damage;
+import net.minecraft.world.level.block.DirectionalBlock;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.block.state.properties.StairsShape;
 import com.leclowndu93150.thaumcraft.content.device.BlockInlay;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.device.mirror.BlockMirror;
@@ -19,7 +30,6 @@ import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEssentiaTransport;
 import com.leclowndu93150.thaumcraft.content.item.CelestialBody;
-import com.leclowndu93150.thaumcraft.data.fragments.*;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalBlockstateGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumcraft.data.model.crystal.EssentiaCrystalModelGenerator;
@@ -84,8 +94,8 @@ public final class TCModelProvider extends ModelProvider {
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         registerResearchTable(blockModels);
         registerConstructs(blockModels, itemModels);
-        TCBlocksDecorModels.register(blockModels);
-        TCBlocksEldritchModels.register(blockModels);
+        decorModels(blockModels);
+        eldritchModels(blockModels);
         blockModels.createTrivialCube(TCBlocks.AMBER_BRICK.get());
         blockModels.registerSimpleItemModel(TCBlocks.AMBER_BRICK.get().asItem(), ModelLocationUtils.getModelLocation(TCBlocks.AMBER_BRICK.get()));
         blockModels.createTrivialCube(TCBlocks.FLESH_BLOCK.get());
@@ -283,11 +293,11 @@ public final class TCModelProvider extends ModelProvider {
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
         EssentiaCrystalModelGenerator.register(itemModels);
-        TCBlocksCStoneModels.register(blockModels);
-        TCBlocksDTreesModels.register(blockModels, itemModels);
-        TCBlocksEPlantsModels.register(blockModels, itemModels);
-        TCBlocksTaintModels.register(blockModels, itemModels);
-        TCItemsHContainersModels.register(itemModels);
+        stoneAndStairModels(blockModels);
+        treeModels(blockModels, itemModels);
+        plantModels(blockModels, itemModels);
+        taintModels(blockModels, itemModels);
+        containerItemModels(itemModels);
     }
 
     private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName){
@@ -1059,4 +1069,497 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
     }
 
+    private static final int FOLIAGE_DEFAULT_COLOR = 0x48B518;
+
+    private void stoneAndStairModels(BlockModelGenerators blockModels) {
+        simpleCube(blockModels, TCBlocks.STONE_ARCANE.get(), "stone_arcane");
+        simpleCube(blockModels, TCBlocks.STONE_ARCANE_BRICK.get(), "stone_arcane_brick");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT.get(), "stone_ancient");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_TILE.get(), "stone_ancient_tile");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_ROCK.get(), "stone_ancient_rock");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_GLYPHED.get(), "stone_ancient_glyphed");
+        simpleCube(blockModels, TCBlocks.STONE_ANCIENT_DOORWAY.get(), "stone_ancient_doorway");
+        simpleCube(blockModels, TCBlocks.STONE_ELDRITCH_TILE.get(), "stone_eldritch_tile");
+        simpleCube(blockModels, TCBlocks.STONE_POROUS.get(), "stone_porous");
+
+        stairsFromModels(blockModels, TCBlocks.STAIRS_ARCANE.get(), "arcane_stairs", "arcane_inner_stairs", "arcane_outer_stairs");
+        stairsFromModels(blockModels, TCBlocks.STAIRS_ARCANE_BRICK.get(), "arcane_brick_stairs", "arcane_brick_inner_stairs", "arcane_brick_outer_stairs");
+        stairsFromModels(blockModels, TCBlocks.STAIRS_ANCIENT.get(), "ancient_stairs", "ancient_inner_stairs", "ancient_outer_stairs");
+
+    }
+
+    private void simpleCube(BlockModelGenerators blockModels, Block block, String modelName) {
+        MultiVariant variant = variantOf(modelName);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+    }
+
+    private void stairsFromModels(BlockModelGenerators blockModels, Block block, String straightName, String innerName, String outerName) {
+        MultiVariant straight = variantOf(straightName);
+        MultiVariant inner = variantOf(innerName);
+        MultiVariant outer = variantOf(outerName);
+        PropertyDispatch<MultiVariant> dispatch = PropertyDispatch.initial(
+                        BlockStateProperties.HORIZONTAL_FACING,
+                        BlockStateProperties.HALF,
+                        BlockStateProperties.STAIRS_SHAPE)
+                .select(Direction.EAST, Half.BOTTOM, StairsShape.STRAIGHT, straight)
+                .select(Direction.WEST, Half.BOTTOM, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.BOTTOM, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.BOTTOM, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer)
+                .select(Direction.WEST, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.BOTTOM, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.BOTTOM, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.BOTTOM, StairsShape.OUTER_LEFT, outer)
+                .select(Direction.NORTH, Half.BOTTOM, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.BOTTOM, StairsShape.INNER_RIGHT, inner)
+                .select(Direction.WEST, Half.BOTTOM, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.BOTTOM, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.BOTTOM, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.BOTTOM, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.BOTTOM, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.BOTTOM, StairsShape.INNER_LEFT, inner)
+                .select(Direction.NORTH, Half.BOTTOM, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.EAST, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.WEST, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.SOUTH, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                .select(Direction.NORTH, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(dispatch));
+    }
+
+    private void treeModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        simpleCube(blockModels, TCBlocks.SAPLING_GREATWOOD.get(), "sapling_greatwood");
+        simpleCube(blockModels, TCBlocks.SAPLING_SILVERWOOD.get(), "sapling_silverwood");
+        flatItemFromBlock(itemModels, TCItems.SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get());
+        flatItemFromBlock(itemModels, TCItems.SAPLING_SILVERWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get());
+        simpleCube(blockModels, TCBlocks.PLANK_GREATWOOD.get(), "plank_greatwood");
+        simpleCube(blockModels, TCBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
+        simpleCube(blockModels, TCBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
+        simpleCube(blockModels, TCBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
+        itemModels.itemModelOutput.accept(TCBlocks.LEAVES_GREATWOOD.get().asItem(), ItemModelUtils.tintedModel(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "block/leaves_greatwood"),
+                new Constant(FOLIAGE_DEFAULT_COLOR)));
+        log(blockModels, TCBlocks.LOG_GREATWOOD.get(), "log_greatwood", "log_greatwood_horizontal");
+        log(blockModels, TCBlocks.LOG_SILVERWOOD.get(), "log_silverwood", "log_silverwood_horizontal");
+    }
+
+    private void log(BlockModelGenerators blockModels, Block block, String verticalName, String horizontalName) {
+        MultiVariant vertical = variantOf(verticalName);
+        MultiVariant horizontal = variantOf(horizontalName);
+        PropertyDispatch<MultiVariant> dispatch = PropertyDispatch.initial(BlockStateProperties.AXIS)
+                .select(Direction.Axis.Y, vertical)
+                .select(Direction.Axis.Z, horizontal.with(BlockModelGenerators.X_ROT_90))
+                .select(Direction.Axis.X, horizontal.with(BlockModelGenerators.X_ROT_90).with(BlockModelGenerators.Y_ROT_90));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(dispatch));
+    }
+
+    private void plantModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        cross(blockModels, TCBlocks.PLANT_SHIMMERLEAF.get());
+        cross(blockModels, TCBlocks.PLANT_CINDERPEARL.get());
+        cross(blockModels, TCBlocks.PLANT_VISHROOM.get());
+
+        flatItemFromBlock(itemModels, TCItems.PLANT_SHIMMERLEAF.get(), TCBlocks.PLANT_SHIMMERLEAF.get());
+        flatItemFromBlock(itemModels, TCItems.PLANT_CINDERPEARL.get(), TCBlocks.PLANT_CINDERPEARL.get());
+        flatItemFromBlock(itemModels, TCItems.PLANT_VISHROOM.get(), TCBlocks.PLANT_VISHROOM.get());
+
+        Identifier grassModel = Identifier.withDefaultNamespace("block/grass_block");
+        MultiVariant grassVariant = new MultiVariant(WeightedList.of(new Variant(grassModel)));
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(TCBlocks.GRASS_AMBIENT.get(), grassVariant));
+        itemModels.itemModelOutput.accept(TCItems.GRASS_AMBIENT.get(),
+                ItemModelUtils.tintedModel(grassModel, new GrassColorSource(0.5F, 1.0F)));
+    }
+
+    private void flatItemFromBlock(ItemModelGenerators itemModels, Item item, Block block) {
+        Identifier model = ModelTemplates.FLAT_ITEM.create(
+                ModelLocationUtils.getModelLocation(item),
+                TextureMapping.layer0(TextureMapping.getBlockTexture(block)),
+                itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(model));
+    }
+
+    private void cross(BlockModelGenerators blockModels, Block block) {
+        Identifier model = ModelTemplates.CROSS.create(block, TextureMapping.cross(block), blockModels.modelOutput);
+        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+    }
+
+    private void taintModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
+                TCBlocks.TAINT_ROCK.get(), rotatedWeighted(new String[]{"taint_rock"}, new int[]{1})));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
+                TCBlocks.TAINT_SOIL.get(),
+                rotatedWeighted(new String[]{"taint_soil_0", "taint_soil_1", "taint_soil_2"}, new int[]{16, 1, 1})));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
+                TCBlocks.TAINT_CRUST.get(),
+                rotatedWeighted(new String[]{"taint_crust_0", "taint_crust_1", "taint_crust_2"}, new int[]{8, 1, 1})));
+
+        registerFluxGoo(blockModels);
+        registerTaintGeyser(blockModels);
+        registerTaintLog(blockModels);
+        registerTaintFeature(blockModels);
+        registerTaintFibre(blockModels);
+
+        blockItemModel(itemModels, TCBlocks.TAINT_ROCK.asItem(), "taint_rock");
+        blockItemModel(itemModels, TCBlocks.TAINT_SOIL.asItem(), "taint_soil_0");
+        blockItemModel(itemModels, TCBlocks.TAINT_CRUST.asItem(), "taint_crust_0");
+        blockItemModel(itemModels, TCBlocks.TAINT_GEYSER.asItem(), "taint_geyser");
+        blockItemModel(itemModels, TCBlocks.TAINT_LOG.asItem(), "taint_log");
+        blockItemModel(itemModels, TCBlocks.TAINT_FEATURE.asItem(), "taint_orb_0");
+        blockItemModel(itemModels, TCBlocks.TAINT_FIBRE.asItem(), "taint_fibre");
+    }
+
+    private void registerFluxGoo(BlockModelGenerators blockModels) {
+        MultiVariant variant = variantOf("flux_goo");
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.FLUX_GOO.get(), variant));
+    }
+
+    private void registerTaintGeyser(BlockModelGenerators blockModels) {
+        MultiVariant variant = variantOf("taint_geyser");
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.TAINT_GEYSER.get(), variant));
+    }
+
+    private void registerTaintLog(BlockModelGenerators blockModels) {
+        WeightedList.Builder<Variant> entries = WeightedList.builder();
+        for (int tex = 1; tex <= 2; tex++) {
+            for (String face : new String[]{"north", "south", "east", "west"}) {
+                entries.add(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID,
+                        "block/taint_log_" + face + tex)), 1);
+            }
+        }
+        MultiVariant barks = new MultiVariant(entries.build());
+        PropertyDispatch<VariantMutator> axes = PropertyDispatch.modify(BlockStateProperties.AXIS)
+                .select(Direction.Axis.Y, BlockModelGenerators.NOP)
+                .select(Direction.Axis.Z, BlockModelGenerators.X_ROT_90)
+                .select(Direction.Axis.X, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(TCBlocks.TAINT_LOG.get(), barks).with(axes));
+    }
+
+    private MultiVariant rotatedWeighted(String[] models, int[] weights) {
+        WeightedList.Builder<Variant> entries = WeightedList.builder();
+        for (int i = 0; i < models.length; i++) {
+            Variant base = new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + models[i]));
+            entries.add(base, weights[i]);
+            entries.add(BlockModelGenerators.X_ROT_90.apply(base), weights[i]);
+            entries.add(BlockModelGenerators.Y_ROT_90.apply(base), weights[i]);
+            entries.add(BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90).apply(base), weights[i]);
+        }
+        return new MultiVariant(entries.build());
+    }
+
+    private void registerTaintFeature(BlockModelGenerators blockModels) {
+        MultiVariant orbs = orbVariants();
+        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(DirectionalBlock.FACING)
+                .select(Direction.UP, BlockModelGenerators.NOP)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180)
+                .select(Direction.NORTH, BlockModelGenerators.X_ROT_270)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270));
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(TCBlocks.TAINT_FEATURE.get(), orbs).with(rotations));
+    }
+
+    private MultiVariant orbVariants() {
+        return new MultiVariant(WeightedList.<Variant>builder()
+                .add(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/taint_orb_0")))
+                .add(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/taint_orb_1")))
+                .add(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/taint_orb_2")))
+                .build());
+    }
+
+    private void registerTaintFibre(BlockModelGenerators blockModels) {
+        MultiVariant fibre = variantOf("taint_fibre");
+        MultiVariant growth1 = variantOf("taint_growth_1");
+        MultiVariant growth2 = variantOf("taint_growth_2");
+        MultiVariant growth3 = variantOf("taint_growth_3");
+        MultiVariant growth4 = variantOf("taint_growth_4");
+        MultiPartGenerator gen = MultiPartGenerator.multiPart(TCBlocks.TAINT_FIBRE.get());
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.NORTH, true), fibre);
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.EAST, true), fibre.with(BlockModelGenerators.Y_ROT_90));
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.SOUTH, true), fibre.with(BlockModelGenerators.Y_ROT_180));
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.WEST, true), fibre.with(BlockModelGenerators.Y_ROT_270));
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.UP, true), fibre.with(BlockModelGenerators.X_ROT_270));
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.DOWN, true), fibre.with(BlockModelGenerators.X_ROT_90));
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.GROWTH1, true), growth1);
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.GROWTH2, true), growth2);
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.GROWTH3, true), growth3);
+        gen.with(new ConditionBuilder().term(BlockTaintFibre.GROWTH4, true), growth4);
+        blockModels.blockStateOutput.accept(gen);
+    }
+
+    private void blockItemModel(ItemModelGenerators itemModels, Item item, String modelName) {
+        itemModels.itemModelOutput.accept(item,
+                ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName)));
+    }
+
+    private void decorModels(BlockModelGenerators blockModels) {
+        slab(blockModels, TCBlocks.SLAB_GREATWOOD.get(), TCBlocks.PLANK_GREATWOOD.get(),
+                texture("plank_greatwood"), texture("plank_greatwood"), texture("plank_greatwood"));
+        slab(blockModels, TCBlocks.SLAB_SILVERWOOD.get(), TCBlocks.PLANK_SILVERWOOD.get(),
+                texture("plank_silverwood"), texture("plank_silverwood"), texture("plank_silverwood"));
+        slab(blockModels, TCBlocks.SLAB_ARCANE_STONE.get(), TCBlocks.STONE_ARCANE.get(),
+                texture("arcane_stone_1"), texture("arcane_stone_2"), texture("arcane_stone_3"));
+        slab(blockModels, TCBlocks.SLAB_ARCANE_BRICK.get(), TCBlocks.STONE_ARCANE_BRICK.get(),
+                texture("arcane_brick_stone"), texture("arcane_brick_stone"), texture("arcane_brick_stone"));
+        slab(blockModels, TCBlocks.SLAB_ANCIENT.get(), TCBlocks.STONE_ANCIENT.get(),
+                texture("ancient_stone_1"), texture("ancient_stone_2"), texture("ancient_stone_3"));
+        slab(blockModels, TCBlocks.SLAB_ELDRITCH.get(), TCBlocks.STONE_ELDRITCH_TILE.get(),
+                texture("eldritch_stone_1"), texture("eldritch_stone_2"), texture("eldritch_stone_3"));
+        stairsFromTexture(blockModels, TCBlocks.STAIRS_GREATWOOD.get(), texture("plank_greatwood"));
+        stairsFromTexture(blockModels, TCBlocks.STAIRS_SILVERWOOD.get(), texture("plank_silverwood"));
+        existingModelWithItem(blockModels, TCBlocks.TABLE_WOOD.get(), "table_wood");
+        existingModelWithItem(blockModels, TCBlocks.TABLE_STONE.get(), "table_stone");
+        paving(blockModels, TCBlocks.PAVING_STONE_TRAVEL.get(), "paving_stone_travel");
+        paving(blockModels, TCBlocks.PAVING_STONE_BARRIER.get(), "paving_stone_barrier");
+    }
+
+    private Material texture(String name) {
+        return new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + name));
+    }
+
+    private void slab(BlockModelGenerators blockModels, Block slab, Block fullBlock,
+                             Material bottom, Material top, Material side) {
+        TextureMapping mapping = new TextureMapping()
+                .put(TextureSlot.BOTTOM, bottom)
+                .put(TextureSlot.TOP, top)
+                .put(TextureSlot.SIDE, side);
+        MultiVariant bottomModel = BlockModelGenerators.plainVariant(
+                ModelTemplates.SLAB_BOTTOM.create(slab, mapping, blockModels.modelOutput));
+        MultiVariant topModel = BlockModelGenerators.plainVariant(
+                ModelTemplates.SLAB_TOP.create(slab, mapping, blockModels.modelOutput));
+        MultiVariant doubleModel = BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(fullBlock));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(slab)
+                .with(PropertyDispatch.initial(BlockStateProperties.SLAB_TYPE)
+                        .select(SlabType.BOTTOM, bottomModel)
+                        .select(SlabType.TOP, topModel)
+                        .select(SlabType.DOUBLE, doubleModel)));
+        blockModels.registerSimpleItemModel(slab.asItem(), ModelLocationUtils.getModelLocation(slab));
+    }
+
+    private void stairsFromTexture(BlockModelGenerators blockModels, Block block, Material all) {
+        TextureMapping mapping = new TextureMapping()
+                .put(TextureSlot.BOTTOM, all)
+                .put(TextureSlot.TOP, all)
+                .put(TextureSlot.SIDE, all);
+        MultiVariant straight = BlockModelGenerators.plainVariant(
+                ModelTemplates.STAIRS_STRAIGHT.create(block, mapping, blockModels.modelOutput));
+        MultiVariant inner = BlockModelGenerators.plainVariant(
+                ModelTemplates.STAIRS_INNER.create(block, mapping, blockModels.modelOutput));
+        MultiVariant outer = BlockModelGenerators.plainVariant(
+                ModelTemplates.STAIRS_OUTER.create(block, mapping, blockModels.modelOutput));
+        blockModels.blockStateOutput.accept(createStairsDispatch(block, straight, inner, outer));
+        blockModels.registerSimpleItemModel(block.asItem(), ModelLocationUtils.getModelLocation(block));
+    }
+
+    private MultiVariantGenerator createStairsDispatch(Block block, MultiVariant straight,
+                                                              MultiVariant inner, MultiVariant outer) {
+        return MultiVariantGenerator.dispatch(block)
+                .with(PropertyDispatch.initial(BlockStateProperties.HORIZONTAL_FACING,
+                                BlockStateProperties.HALF, BlockStateProperties.STAIRS_SHAPE)
+                        .select(Direction.EAST, Half.BOTTOM, StairsShape.STRAIGHT, straight)
+                        .select(Direction.WEST, Half.BOTTOM, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.BOTTOM, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.BOTTOM, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer)
+                        .select(Direction.WEST, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.BOTTOM, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.BOTTOM, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.BOTTOM, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.BOTTOM, StairsShape.OUTER_LEFT, outer)
+                        .select(Direction.NORTH, Half.BOTTOM, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.BOTTOM, StairsShape.INNER_RIGHT, inner)
+                        .select(Direction.WEST, Half.BOTTOM, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.BOTTOM, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.BOTTOM, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.BOTTOM, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.BOTTOM, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.BOTTOM, StairsShape.INNER_LEFT, inner)
+                        .select(Direction.NORTH, Half.BOTTOM, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.TOP, StairsShape.STRAIGHT, straight.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.TOP, StairsShape.OUTER_RIGHT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.TOP, StairsShape.OUTER_LEFT, outer.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.TOP, StairsShape.INNER_RIGHT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.EAST, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.WEST, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_180).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.SOUTH, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_90).with(BlockModelGenerators.UV_LOCK))
+                        .select(Direction.NORTH, Half.TOP, StairsShape.INNER_LEFT, inner.with(BlockModelGenerators.X_ROT_180).with(BlockModelGenerators.Y_ROT_270).with(BlockModelGenerators.UV_LOCK)));
+    }
+
+    private void existingModelWithItem(BlockModelGenerators blockModels, Block block, String modelName) {
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+        blockModels.registerSimpleItemModel(block.asItem(), model);
+    }
+
+    private void paving(BlockModelGenerators blockModels, Block block, String name) {
+        TextureMapping mapping = new TextureMapping()
+                .put(TextureSlot.DIRT, texture("arcane_brick_stone"))
+                .put(TextureSlot.TOP, texture(name))
+                .put(TextureSlot.PARTICLE, texture(name));
+        Identifier model = ModelTemplates.FARMLAND.create(block, mapping, blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+        blockModels.registerSimpleItemModel(block.asItem(), model);
+    }
+
+    private void eldritchModels(BlockModelGenerators blockModels) {
+        cube(blockModels, TCBlocks.OBSIDIAN_TILE.get(), "obsidian_tile", true);
+        cube(blockModels, TCBlocks.ELDRITCH_STONE.get(), "eldritch_stone", true);
+        cube(blockModels, TCBlocks.ELDRITCH_STONE_INERT.get(), "eldritch_stone", true);
+        cube(blockModels, TCBlocks.ELDRITCH_ROCK.get(), "eldritch_rock", true);
+        cube(blockModels, TCBlocks.ELDRITCH_CRUST.get(), "eldritch_crust", true);
+        cube(blockModels, TCBlocks.ELDRITCH_CRUST_GLOWING.get(), "eldritch_crust_glowing", true);
+        cube(blockModels, TCBlocks.ELDRITCH_DOOR.get(), "eldritch_door", true);
+        cube(blockModels, TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), "eldritch_stone_crystal", true);
+        cube(blockModels, TCBlocks.ELDRITCH_LOCK.get(), "eldritch_deco", true);
+        crabSpawner(blockModels);
+        column(blockModels, TCBlocks.ELDRITCH_PEDESTAL.get(), "eldritch_pedestal_side", "eldritch_stone");
+        invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar");
+        invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_OBELISK.get(), "eldritch_deco");
+        invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_PILLAR.get(), "eldritch_deco");
+        invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_CAPSTONE.get(), "eldritch_deco");
+        trap(blockModels);
+        invisible(blockModels, TCBlocks.ELDRITCH_NOTHING.get());
+        invisible(blockModels, TCBlocks.ELDRITCH_PORTAL.get());
+        stairsFromTexture(blockModels, TCBlocks.STAIRS_ELDRITCH.get(), texture("eldritch_stone"));
+    }
+
+    private void cube(BlockModelGenerators blockModels, Block block, String textureName, boolean item) {
+        Identifier model = ModelTemplates.CUBE_ALL.create(block,
+                new TextureMapping().put(TextureSlot.ALL, texture(textureName)), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+        if (item) {
+            blockModels.registerSimpleItemModel(block.asItem(), model);
+        }
+    }
+
+    private void column(BlockModelGenerators blockModels, Block block, String side, String end) {
+        Identifier model = ModelTemplates.CUBE_COLUMN.create(block,
+                new TextureMapping().put(TextureSlot.SIDE, texture(side)).put(TextureSlot.END, texture(end)),
+                blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+        blockModels.registerSimpleItemModel(block.asItem(), model);
+    }
+
+    private void trap(BlockModelGenerators blockModels) {
+        Block block = TCBlocks.ELDRITCH_TRAP.get();
+        WeightedList.Builder<Variant> variants = WeightedList.builder();
+        for (int i = 0; i < 4; i++) {
+            Identifier model = ModelTemplates.CUBE_ALL.createWithSuffix(block, "_" + i,
+                    new TextureMapping().put(TextureSlot.ALL, texture("eldritch_trap_" + i)),
+                    blockModels.modelOutput);
+            variants.add(new Variant(model), 1);
+        }
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                new MultiVariant(variants.build())));
+        blockModels.registerSimpleItemModel(block.asItem(),
+                ModelLocationUtils.getModelLocation(block, "_0"));
+    }
+
+    private void crabSpawner(BlockModelGenerators blockModels) {
+        Block block = TCBlocks.ELDRITCH_CRAB_SPAWNER.get();
+        Identifier model = ModelLocationUtils.getModelLocation(block);
+        MultiVariant base = BlockModelGenerators.plainVariant(model);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
+                .with(PropertyDispatch.initial(BlockEldritchCrabSpawner.FACING)
+                        .select(Direction.UP, base)
+                        .select(Direction.DOWN, base.with(BlockModelGenerators.X_ROT_180))
+                        .select(Direction.NORTH, base.with(BlockModelGenerators.X_ROT_90))
+                        .select(Direction.EAST, base.with(BlockModelGenerators.X_ROT_90).with(BlockModelGenerators.Y_ROT_90))
+                        .select(Direction.SOUTH, base.with(BlockModelGenerators.X_ROT_90).with(BlockModelGenerators.Y_ROT_180))
+                        .select(Direction.WEST, base.with(BlockModelGenerators.X_ROT_90).with(BlockModelGenerators.Y_ROT_270))));
+        blockModels.registerSimpleItemModel(block.asItem(), model);
+    }
+
+    private void invisibleWithCubeItem(BlockModelGenerators blockModels, Block block, String textureName) {
+        Identifier itemModel = ModelTemplates.CUBE_ALL.createWithSuffix(block, "_inventory",
+                new TextureMapping().put(TextureSlot.ALL, texture(textureName)), blockModels.modelOutput);
+        blockModels.registerSimpleItemModel(block.asItem(), itemModel);
+        Identifier model = ModelTemplates.PARTICLE_ONLY.create(block,
+                TextureMapping.particle(texture(textureName)), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+    }
+
+    private void invisible(BlockModelGenerators blockModels, Block block) {
+        Identifier model = ModelTemplates.PARTICLE_ONLY.create(block,
+                TextureMapping.particle(texture("eldritch_stone")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+    }
+
+    private void containerItemModels(ItemModelGenerators itemModels) {
+        registerPhial(itemModels);
+        registerPrimordialPearl(itemModels);
+    }
+
+    private void registerPhial(ItemModelGenerators itemModels) {
+        Identifier phialModel = itemModels.createFlatItemModel(TCItems.PHIAL.get(), ModelTemplates.FLAT_ITEM);
+        Identifier filledModel = itemModels.generateLayeredItem(ModelLocationUtils.getModelLocation(TCItems.PHIAL.get(),"_filled"), TextureMapping.getItemTexture(TCItems.PHIAL.get()),TextureMapping.getItemTexture(TCItems.PHIAL.get(),"_overlay"));
+        ItemModel.Unbaked phial = ItemModelUtils.plainModel(phialModel);
+        ItemModel.Unbaked filled = ItemModelUtils.tintedModel(filledModel, new Constant(0xFFFFFF), new AspectColorTint(0xFFFFFF));
+        itemModels.itemModelOutput.accept(
+                TCItems.PHIAL.get(),
+                ItemModelUtils.conditional(
+                        ItemModelUtils.hasComponent(TCDataComponents.ASPECTS.get()),
+                        filled,
+                        phial
+                )
+        );
+    }
+
+    private void registerPrimordialPearl(ItemModelGenerators itemModels) {
+        Identifier pearlModel = itemModels.createFlatItemModel(TCItems.PRIMORDIAL_PEARL.get(), ModelTemplates.FLAT_ITEM);
+        Identifier noduleModel = itemModels.createFlatItemModel(TCItems.PRIMORDIAL_PEARL.get(), "_nodule", ModelTemplates.FLAT_ITEM);
+        Identifier moteModel = itemModels.createFlatItemModel(TCItems.PRIMORDIAL_PEARL.get(), "_mote", ModelTemplates.FLAT_ITEM);
+        ItemModel.Unbaked pearl = ItemModelUtils.plainModel(pearlModel);
+        ItemModel.Unbaked nodule = ItemModelUtils.plainModel(noduleModel);
+        ItemModel.Unbaked mote = ItemModelUtils.plainModel(moteModel);
+        float noduleThreshold = (float) (PrimordialPearlItem.PEARL_MAX_DAMAGE + 1) / (float) PrimordialPearlItem.MAX_DAMAGE;
+        float moteThreshold = (float) (PrimordialPearlItem.NODULE_MAX_DAMAGE + 1) / (float) PrimordialPearlItem.MAX_DAMAGE;
+        itemModels.itemModelOutput.accept(
+                TCItems.PRIMORDIAL_PEARL.get(),
+                ItemModelUtils.rangeSelect(
+                        new Damage(true),
+                        pearl,
+                        ItemModelUtils.override(nodule, noduleThreshold),
+                        ItemModelUtils.override(mote, moteThreshold)
+                )
+        );
+    }
 }

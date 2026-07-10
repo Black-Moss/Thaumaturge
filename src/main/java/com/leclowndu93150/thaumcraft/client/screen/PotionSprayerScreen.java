@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import com.leclowndu93150.thaumcraft.content.device.sprayer.BlockEntityPotionSprayer;
 import com.leclowndu93150.thaumcraft.content.device.sprayer.MenuPotionSprayer;
@@ -45,6 +46,9 @@ public final class PotionSprayerScreen extends AbstractTCContainerScreen<MenuPot
 
     private static final int TAG_TEXTURE_SIZE = 32;
     private static final int TAG_DRAW_SIZE = 16;
+
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
 
     public PotionSprayerScreen(MenuPotionSprayer menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TEXTURE, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -115,7 +119,7 @@ public final class PotionSprayerScreen extends AbstractTCContainerScreen<MenuPot
         }
         pos = 0;
         for (AspectInstance entry : recipe.entries()) {
-            drawAspectTag(graphics,
+            AspectTagRenderer.render(graphics, font,
                     leftPos + TAG_BASE_X + TAG_COLUMN_STRIDE * (pos % 2),
                     topPos + TAG_BASE_Y + TAG_ROW_STRIDE * (pos / 2),
                     entry.aspect(), entry.amount());
@@ -123,19 +127,4 @@ public final class PotionSprayerScreen extends AbstractTCContainerScreen<MenuPot
         }
     }
 
-    private void drawAspectTag(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect, int amount) {
-        int tint = 0xFF000000 | (aspect.value().color() & 0x00FFFFFF);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, aspect.value().texture(),
-                x, y,
-                0.0F, 0.0F,
-                TAG_DRAW_SIZE, TAG_DRAW_SIZE,
-                TAG_TEXTURE_SIZE, TAG_TEXTURE_SIZE,
-                TAG_TEXTURE_SIZE, TAG_TEXTURE_SIZE,
-                tint);
-        String label = Integer.toString(amount);
-        graphics.text(font, label,
-                x + TAG_DRAW_SIZE - font.width(label) / 2,
-                y + TAG_DRAW_SIZE - font.lineHeight / 2,
-                0xFFFFFFFF, true);
-    }
 }

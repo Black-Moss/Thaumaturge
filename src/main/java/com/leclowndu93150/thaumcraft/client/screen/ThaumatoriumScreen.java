@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.client.screen;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.BlockEntityThaumatorium;
 import com.leclowndu93150.thaumcraft.content.essentia.thaumatorium.MenuThaumatorium;
 import com.leclowndu93150.thaumcraft.network.ClientboundThaumatoriumRecipesPayload;
@@ -34,6 +35,8 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
     private static final int QUEUED_V = 8;
     private static final int BAR_X = 98;
     private static final int BAR_Y = 40;
+    private static final int TAG_X = 96;
+    private static final int TAG_Y = 24;
     private static final int BAR_SPACING_X = 16;
     private static final int BAR_SPACING_Y = 20;
     private static final int BAR_U = 176;
@@ -43,7 +46,8 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
     private static final int BAR_HEIGHT = 3;
     private static final int COUNT_X = 64;
     private static final int COUNT_Y = 48;
-    private static final int BARS_PER_ROW = 5;
+    private static final int ASPECTS_PER_ROW = 2;
+    private static final int MAX_ASPECTS = 8;
 
     private int index;
 
@@ -120,8 +124,11 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
         }
         int count = 0;
         for (AspectInstance entry : shown.aspects().sortedByTag()) {
-            int px = count % BARS_PER_ROW;
-            int py = count / BARS_PER_ROW;
+            if (count >= MAX_ASPECTS) {
+                break;
+            }
+            int px = count % ASPECTS_PER_ROW;
+            int py = count / ASPECTS_PER_ROW;
             int x = k + BAR_X + BAR_SPACING_X * px;
             int y = l + BAR_Y + BAR_SPACING_Y * py;
             graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_BACK_V, BAR_WIDTH, BAR_HEIGHT, 256, 256);
@@ -130,6 +137,17 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
                 int color = ARGB.opaque(entry.aspect().value().color());
                 graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_FILL_V, Math.min(fill, BAR_WIDTH), BAR_HEIGHT, 256, 256, color);
             }
+            count++;
+        }
+        count = 0;
+        for (AspectInstance entry : shown.aspects().sortedByTag()) {
+            if (count >= MAX_ASPECTS) {
+                break;
+            }
+            int px = count % ASPECTS_PER_ROW;
+            int py = count / ASPECTS_PER_ROW;
+            AspectTagRenderer.render(graphics, font, k + TAG_X + BAR_SPACING_X * px, l + TAG_Y + BAR_SPACING_Y * py,
+                    entry.aspect(), entry.amount());
             count++;
         }
     }

@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumcraft.data.loot;
 
-import com.leclowndu93150.thaumcraft.data.fragments.*;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -30,6 +29,13 @@ import java.util.Set;
 public final class TCBlockLootSubProvider extends BlockLootSubProvider {
     private static final float AMBER_CURIO_CHANCE = 0.1F;
     private static final float[] VENT_CURIO_CHANCES = {0.01F, 0.01F, 0.02F, 0.03F};
+
+    private LootTable.Builder dropSelfWithoutExplosion(Block block) {
+        return LootTable.lootTable().withPool(
+                LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .add(LootItem.lootTableItem(block)));
+    }
 
     private LootTable.Builder mirrorTable(Block block) {
         return LootTable.lootTable()
@@ -116,16 +122,38 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         for (DyeColor dye : DyeColor.values()) {
             dropSelf(TCBlocks.NITORS.get(dye).get());
         }
-        add(TCBlocks.CRYSTAL_AER.get(), TCBlocksBCrystalsLoot.crystalAer());
-        add(TCBlocks.CRYSTAL_IGNIS.get(), TCBlocksBCrystalsLoot.crystalIgnis());
-        add(TCBlocks.CRYSTAL_AQUA.get(), TCBlocksBCrystalsLoot.crystalAqua());
-        add(TCBlocks.CRYSTAL_TERRA.get(), TCBlocksBCrystalsLoot.crystalTerra());
-        add(TCBlocks.CRYSTAL_ORDO.get(), TCBlocksBCrystalsLoot.crystalOrdo());
-        add(TCBlocks.CRYSTAL_PERDITIO.get(), TCBlocksBCrystalsLoot.crystalPerditio());
-        add(TCBlocks.CRYSTAL_VITIUM.get(), TCBlocksBCrystalsLoot.crystalVitium());
-        TCBlocksCStoneLoot.register(this::dropSelf, this::add, noDrop());
-        TCBlocksDTreesLoot.register(this::dropSelf, this::add, this::createLeavesDrops);
-        TCBlocksEPlantsLoot.register(this::dropSelf);
+        add(TCBlocks.CRYSTAL_AER.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_AER.get()));
+        add(TCBlocks.CRYSTAL_IGNIS.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_IGNIS.get()));
+        add(TCBlocks.CRYSTAL_AQUA.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_AQUA.get()));
+        add(TCBlocks.CRYSTAL_TERRA.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_TERRA.get()));
+        add(TCBlocks.CRYSTAL_ORDO.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_ORDO.get()));
+        add(TCBlocks.CRYSTAL_PERDITIO.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_PERDITIO.get()));
+        add(TCBlocks.CRYSTAL_VITIUM.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_VITIUM.get()));
+        dropSelf(TCBlocks.STONE_ARCANE.get());
+        dropSelf(TCBlocks.STONE_ARCANE_BRICK.get());
+        dropSelf(TCBlocks.STONE_ANCIENT.get());
+        dropSelf(TCBlocks.STONE_ANCIENT_TILE.get());
+        dropSelf(TCBlocks.STONE_ANCIENT_GLYPHED.get());
+        dropSelf(TCBlocks.STONE_ELDRITCH_TILE.get());
+        dropSelf(TCBlocks.STONE_POROUS.get());
+        dropSelf(TCBlocks.STAIRS_ARCANE.get());
+        dropSelf(TCBlocks.STAIRS_ARCANE_BRICK.get());
+        dropSelf(TCBlocks.STAIRS_ANCIENT.get());
+        add(TCBlocks.STONE_ANCIENT_ROCK.get(), noDrop());
+        add(TCBlocks.STONE_ANCIENT_DOORWAY.get(), noDrop());
+        dropSelf(TCBlocks.SAPLING_GREATWOOD.get());
+        dropSelf(TCBlocks.SAPLING_SILVERWOOD.get());
+        dropSelf(TCBlocks.LOG_GREATWOOD.get());
+        dropSelf(TCBlocks.LOG_SILVERWOOD.get());
+        dropSelf(TCBlocks.PLANK_GREATWOOD.get());
+        dropSelf(TCBlocks.PLANK_SILVERWOOD.get());
+        add(TCBlocks.LEAVES_GREATWOOD.get(),
+                createLeavesDrops(TCBlocks.LEAVES_GREATWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get()));
+        add(TCBlocks.LEAVES_SILVERWOOD.get(),
+                createLeavesDrops(TCBlocks.LEAVES_SILVERWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get()));
+        dropSelf(TCBlocks.PLANT_SHIMMERLEAF.get());
+        dropSelf(TCBlocks.PLANT_CINDERPEARL.get());
+        dropSelf(TCBlocks.PLANT_VISHROOM.get());
         add(TCBlocks.GRASS_AMBIENT.get(),
                 block -> createSingleItemTableWithSilkTouch(block, Blocks.DIRT));
         dropSelf(TCBlocks.TAINT_ROCK.get());

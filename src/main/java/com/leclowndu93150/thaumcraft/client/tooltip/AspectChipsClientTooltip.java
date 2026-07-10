@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.tooltip;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectChipsTooltip;
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
@@ -41,33 +42,7 @@ public final class AspectChipsClientTooltip implements ClientTooltipComponent {
     public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
         int chipX = x;
         for (AspectInstance entry : aspects.sortedByAmount()) {
-            IAspect aspect = entry.aspect().value();
-            int color = 0xFF000000 | (aspect.color() & 0x00FFFFFF);
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    aspect.texture(),
-                    chipX,
-                    y,
-                    0.0F,
-                    0.0F,
-                    CHIP_SIZE,
-                    CHIP_SIZE,
-                    TEXTURE_SIZE,
-                    TEXTURE_SIZE,
-                    TEXTURE_SIZE,
-                    TEXTURE_SIZE,
-                    color
-            );
-            String amount = Integer.toString(entry.amount());
-            int amountWidth = font.width(amount);
-            graphics.text(
-                    font,
-                    Component.literal(amount),
-                    chipX + AMOUNT_OFFSET_X - amountWidth,
-                    y + AMOUNT_OFFSET_Y,
-                    0xFFFFFFFF,
-                    true
-            );
+            AspectTagRenderer.render(graphics, font, chipX, y, entry.aspect(), entry.amount());
             chipX += CHIP_STRIDE;
         }
     }
