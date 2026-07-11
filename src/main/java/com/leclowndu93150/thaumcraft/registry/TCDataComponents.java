@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPoolData;
 import com.mojang.serialization.Codec;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
@@ -156,6 +158,16 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("research_note", builder -> builder
                     .persistent(ResearchNoteData.CODEC)
                     .networkSynchronized(ResearchNoteData.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AspectPoolData>> DISCOVERED_ASPECTS =
+            DATA_COMPONENTS.registerComponentType("discovered_aspects", builder -> builder
+                    .persistent(AspectPoolData.CODEC.codec())
+                    .networkSynchronized(AspectPoolData.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<PlayerKnowledge>> KNOWLEDGE =
+            DATA_COMPONENTS.registerComponentType("knowledge", builder -> builder
+                    .persistent(PlayerKnowledge.CODEC.codec())
+                    .networkSynchronized(PlayerKnowledge.STREAM_CODEC));
 
     private TCDataComponents() {}
 

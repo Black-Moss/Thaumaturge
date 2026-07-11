@@ -76,4 +76,10 @@ public final class AspectPoolData {
     public void incrementCompletedNotes() {
         completedNotes++;
     }
+
+    public void copyFrom(AspectPoolData other){
+        this.pool.clear();
+        this.pool.putAll(other.pool);
+        this.completedNotes = other.completedNotes;
+    }
 }
