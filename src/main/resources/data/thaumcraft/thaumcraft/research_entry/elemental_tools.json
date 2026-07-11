@@ -72,5 +72,20 @@
         "thaumcraft:infusion/elemental_hoe"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

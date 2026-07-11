@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.network;
 
+import com.leclowndu93150.thaumcraft.client.network.AspectGainClientHandler;
 import com.leclowndu93150.thaumcraft.client.screen.ThaumatoriumClientHandler;
 
 import com.leclowndu93150.thaumcraft.TCIds;
@@ -78,35 +79,35 @@ public final class TCPayloads {
                 ServerboundAdvanceStagePayload.STREAM_CODEC,
                 ServerboundAdvanceStageHandler::handle
         );
-        registrar.playToServer(
-                ServerboundPlayCardPayload.TYPE,
-                ServerboundPlayCardPayload.STREAM_CODEC,
-                ServerboundTheorycraftHandlers::handlePlayCard
+        registrar.playToClient(
+                ClientboundAspectGainPayload.TYPE,
+                ClientboundAspectGainPayload.STREAM_CODEC,
+                (payload, context) -> AspectGainClientHandler.handle(payload, context)
         );
         registrar.playToServer(
-                ServerboundEndSessionPayload.TYPE,
-                ServerboundEndSessionPayload.STREAM_CODEC,
-                ServerboundTheorycraftHandlers::handleEndSession
+                ServerboundObtainNotePayload.TYPE,
+                ServerboundObtainNotePayload.STREAM_CODEC,
+                ServerboundObtainNotePayload::handle
         );
         registrar.playToServer(
-                ServerboundTableActionPayload.TYPE,
-                ServerboundTableActionPayload.STREAM_CODEC,
-                ServerboundTableActionHandler::handle
+                ServerboundTablePlaceAspectPayload.TYPE,
+                ServerboundTablePlaceAspectPayload.STREAM_CODEC,
+                ServerboundTablePlaceAspectPayload::handle
         );
         registrar.playToServer(
-                ServerboundStartTheoryPayload.TYPE,
-                ServerboundStartTheoryPayload.STREAM_CODEC,
-                ServerboundTableActionHandler::handleStart
+                ServerboundTableCombinePayload.TYPE,
+                ServerboundTableCombinePayload.STREAM_CODEC,
+                ServerboundTableCombinePayload::handle
         );
         registrar.playToServer(
-                ServerboundCardAnimationCompletePayload.TYPE,
-                ServerboundCardAnimationCompletePayload.STREAM_CODEC,
-                ServerboundTheorycraftHandlers::handleCardAnimationComplete
+                ServerboundTableDuplicatePayload.TYPE,
+                ServerboundTableDuplicatePayload.STREAM_CODEC,
+                ServerboundTableDuplicatePayload::handle
         );
         registrar.playToServer(
-                ServerboundDrawCardsPayload.TYPE,
-                ServerboundDrawCardsPayload.STREAM_CODEC,
-                ServerboundTheorycraftHandlers::handleDrawCards
+                ServerboundDeconCollectPayload.TYPE,
+                ServerboundDeconCollectPayload.STREAM_CODEC,
+                ServerboundDeconCollectPayload::handle
         );
         registrar.playToClient(
                 ClientboundRecipeDisplayPayload.TYPE,

@@ -49,5 +49,16 @@
         "thaumcraft:arcane_workbench/caster_basic"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

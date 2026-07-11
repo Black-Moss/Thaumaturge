@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.decon.BlockEntityDeconstructionTable;
 import com.leclowndu93150.thaumcraft.content.device.patterncrafter.BlockEntityPatternCrafter;
 import com.leclowndu93150.thaumcraft.content.device.sprayer.BlockEntityPotionSprayer;
 import com.leclowndu93150.thaumcraft.TCIds;
@@ -99,6 +100,12 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "research_table",
                     () -> new BlockEntityType<>(BlockEntityResearchTable::new, Set.of(TCBlocks.RESEARCH_TABLE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityDeconstructionTable>> DECONSTRUCTION_TABLE =
+            BLOCK_ENTITIES.register(
+                    "deconstruction_table",
+                    () -> new BlockEntityType<>(BlockEntityDeconstructionTable::new, Set.of(TCBlocks.DECONSTRUCTION_TABLE.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityArcaneWorkbench>> ARCANE_WORKBENCH =

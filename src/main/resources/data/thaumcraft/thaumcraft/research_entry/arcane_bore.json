@@ -38,5 +38,24 @@
         "thaumcraft:infusion/turret_bore"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

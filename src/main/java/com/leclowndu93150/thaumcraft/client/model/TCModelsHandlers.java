@@ -25,6 +25,9 @@ public class TCModelsHandlers {
     public static final Identifier GOLEM_BUILDER_MODEL_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_builder");
 
+    public static final Identifier DECON_TABLE_MODEL_ID =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "deconstruction_table");
+
     public static final Identifier OBJ_LOADER_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "obj");
 
@@ -34,6 +37,7 @@ public class TCModelsHandlers {
         event.register(JAR_BRAIN_MODEL_ID, JarBrainItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(CENTRIFUGE_MODEL_ID, CentrifugeItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(GOLEM_BUILDER_MODEL_ID, GolemBuilderItemSpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(DECON_TABLE_MODEL_ID, DeconTableItemSpecialRenderer.Unbaked.MAP_CODEC);
     }
 
     @SubscribeEvent

@@ -31,5 +31,20 @@
         "thaumcraft:crucible/everfull_urn"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

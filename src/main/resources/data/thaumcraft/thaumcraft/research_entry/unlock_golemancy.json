@@ -41,5 +41,16 @@
     {
       "text": "research.thaumcraft.unlock_golemancy.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:spiritus",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

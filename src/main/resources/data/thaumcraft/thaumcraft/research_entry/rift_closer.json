@@ -38,5 +38,20 @@
         "thaumcraft:infusion/causality_collapser"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

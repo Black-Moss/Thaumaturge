@@ -21,5 +21,20 @@
         "thaumcraft:f_matthaumium"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

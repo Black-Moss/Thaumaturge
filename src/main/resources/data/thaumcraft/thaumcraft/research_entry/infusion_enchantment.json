@@ -41,5 +41,28 @@
         "thaumcraft:infusion_enchantment/lamplight"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aversio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
 }

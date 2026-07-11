@@ -27,5 +27,20 @@
     {
       "text": "research.thaumcraft.focus_plan.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

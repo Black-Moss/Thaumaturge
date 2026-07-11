@@ -26,5 +26,16 @@
         "thaumcraft:crucible/alumentum"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 1
+    }
+  ],
+  "complexity": 1
 }

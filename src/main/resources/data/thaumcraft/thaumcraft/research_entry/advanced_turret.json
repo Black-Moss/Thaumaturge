@@ -32,5 +32,20 @@
         "thaumcraft:arcane_workbench/turret_advanced"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:aversio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

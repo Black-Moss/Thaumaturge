@@ -24,5 +24,20 @@
         "thaumcraft:plate_iron"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

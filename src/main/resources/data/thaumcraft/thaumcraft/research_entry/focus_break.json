@@ -43,5 +43,20 @@
     {
       "text": "research.thaumcraft.focus_break.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

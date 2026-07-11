@@ -35,5 +35,20 @@
         "thaumcraft:infusion/void_robe_legs"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

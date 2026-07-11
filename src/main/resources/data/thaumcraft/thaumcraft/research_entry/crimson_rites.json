@@ -29,5 +29,20 @@
     {
       "text": "research.thaumcraft.crimson_rites.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:humanus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

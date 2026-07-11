@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.casters;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -37,6 +39,9 @@ public final class FocusPouchItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("focus_pouch"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(new MenuProvider() {
                 @Override

@@ -24,5 +24,20 @@
         "thaumcraft:arcane_workbench/seal_blank"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

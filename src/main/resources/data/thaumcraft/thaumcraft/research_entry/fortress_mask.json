@@ -32,5 +32,20 @@
       ],
       "warp": 2
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:humanus",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
 }

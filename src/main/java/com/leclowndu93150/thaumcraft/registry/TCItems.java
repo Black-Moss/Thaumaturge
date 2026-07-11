@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.note.ItemResearchNote;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
@@ -106,6 +107,7 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> FOCAL_MANIPULATOR = ITEMS.registerSimpleBlockItem(TCBlocks.FOCAL_MANIPULATOR);
     public static final DeferredItem<BlockItem> RESEARCH_TABLE = ITEMS.registerSimpleBlockItem(TCBlocks.RESEARCH_TABLE);
+    public static final DeferredItem<BlockItem> DECONSTRUCTION_TABLE = ITEMS.registerSimpleBlockItem(TCBlocks.DECONSTRUCTION_TABLE);
 
     public static final DeferredItem<BlockItem> ARCANE_WORKBENCH = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_WORKBENCH);
 
@@ -591,6 +593,12 @@ public final class TCItems {
     public static final DeferredItem<PhialItem> PHIAL = ITEMS.registerItem(
             "phial",
             PhialItem::new
+    );
+
+    public static final DeferredItem<ItemResearchNote> RESEARCH_NOTE = ITEMS.registerItem(
+            "research_note",
+            ItemResearchNote::new,
+            props -> props.stacksTo(1)
     );
 
     public static final DeferredItem<BlockItem> INFUSION_MATRIX = ITEMS.registerSimpleBlockItem(TCBlocks.INFUSION_MATRIX);

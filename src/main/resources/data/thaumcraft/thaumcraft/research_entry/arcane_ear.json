@@ -32,5 +32,20 @@
         "thaumcraft:arcane_ear_toggle"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:sensus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

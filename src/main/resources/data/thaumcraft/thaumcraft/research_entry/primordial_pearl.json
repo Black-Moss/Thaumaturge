@@ -14,5 +14,20 @@
     {
       "text": "research.thaumcraft.primordial_pearl.stage_0"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

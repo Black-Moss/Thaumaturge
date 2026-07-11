@@ -64,5 +64,20 @@
         "thaumcraft:arcane_workbench/alchemical_construct"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

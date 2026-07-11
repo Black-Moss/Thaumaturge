@@ -38,5 +38,16 @@
         "thaumcraft:arcane_workbench/hungry_chest"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:desiderium",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

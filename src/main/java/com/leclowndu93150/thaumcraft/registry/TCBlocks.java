@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.decon.BlockDeconstructionTable;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.casters.BlockFocalManipulator;
 import com.leclowndu93150.thaumcraft.content.essentia.bellows.BlockBellows;
@@ -139,6 +140,17 @@ public final class TCBlocks {
             props -> props
                     .mapColor(MapColor.WOOD)
                     .strength(1.5F, 2.0F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+                    .pushReaction(PushReaction.BLOCK)
+    );
+
+    public static final DeferredBlock<BlockDeconstructionTable> DECONSTRUCTION_TABLE = BLOCKS.registerBlock(
+            "deconstruction_table",
+            BlockDeconstructionTable::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.5F)
                     .sound(SoundType.WOOD)
                     .noOcclusion()
     );

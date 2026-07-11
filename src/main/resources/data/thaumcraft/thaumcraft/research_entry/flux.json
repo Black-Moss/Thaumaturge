@@ -28,5 +28,20 @@
         "thaumcraft:f_toomuchflux"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vitium",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

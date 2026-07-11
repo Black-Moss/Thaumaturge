@@ -35,5 +35,20 @@
         "thaumcraft:arcane_workbench/potion_sprayer"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

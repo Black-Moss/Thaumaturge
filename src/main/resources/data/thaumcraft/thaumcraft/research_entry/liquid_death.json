@@ -25,5 +25,24 @@
       "text": "research.thaumcraft.liquid_death.stage_1",
       "recipes": []
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:mortuus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aversio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 1
+    },
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 1
+    }
+  ],
+  "complexity": 2
 }

@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.thaumatorium;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.mojang.serialization.MapCodec;
@@ -52,6 +54,9 @@ public final class BlockThaumatorium extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("thaumatorium"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

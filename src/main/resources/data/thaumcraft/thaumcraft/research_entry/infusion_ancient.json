@@ -40,5 +40,20 @@
         "thaumcraft:dust_trigger/infusion_altar_ancient"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

@@ -27,5 +27,24 @@
         "thaumcraft:infusion/amulet_vis_crafted"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

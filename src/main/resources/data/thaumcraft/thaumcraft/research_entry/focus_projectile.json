@@ -34,5 +34,20 @@
     {
       "text": "research.thaumcraft.focus_projectile.stage_2"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aversio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

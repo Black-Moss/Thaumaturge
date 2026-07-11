@@ -35,5 +35,24 @@
         "thaumcraft:crucible/bath_salts"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

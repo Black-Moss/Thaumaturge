@@ -148,5 +148,20 @@
         "thaumcraft:crucible/lava_bucket"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

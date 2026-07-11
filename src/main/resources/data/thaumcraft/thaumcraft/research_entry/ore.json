@@ -34,5 +34,20 @@
         "thaumcraft:scanned/orecrystal"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

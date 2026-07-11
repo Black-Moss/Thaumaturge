@@ -38,5 +38,20 @@
         "thaumcraft:infusion/lamp_growth"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:lux",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 9
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

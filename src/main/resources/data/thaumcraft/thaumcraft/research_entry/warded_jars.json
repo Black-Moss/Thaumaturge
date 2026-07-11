@@ -23,5 +23,20 @@
         "thaumcraft:label"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

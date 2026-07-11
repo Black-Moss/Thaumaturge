@@ -28,5 +28,20 @@
         "thaumcraft:infusion/verdant_charm_sustain"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

@@ -249,6 +249,11 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
 
     @Override
     public void onClose() {
+        persistState();
+        super.onClose();
+    }
+
+    private void persistState() {
         persistedX = guiMapX;
         persistedY = guiMapY;
         persistedCatScrollPos = catScrollPos;
@@ -256,7 +261,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         if (activeCategory != null) {
             activeCategory.unwrapKey().ifPresent(key -> persistedCategoryId = key.identifier());
         }
-        super.onClose();
     }
 
     private void loadRegistryData() {
@@ -1016,6 +1020,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(hl.id));
             popupTimeMs = System.currentTimeMillis() + POPUP_DURATION_MS;
             popupMessage = Component.translatable("tc.research.popup", Component.translatable(hl.entry.nameKey()).getString());
+            persistState();
             minecraft.setScreen(new EntryDetailScreen(hl.holder, hl.id, this));
             return true;
         } else if (currentHighlight != null && knowledge.isResearchKnown(currentHighlight.id)) {
@@ -1028,6 +1033,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             if (stage > 1 && stage >= hl.entry.stages().size()) {
                 ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(hl.id));
             }
+            persistState();
             minecraft.setScreen(new EntryDetailScreen(hl.holder, hl.id, this));
             return true;
         } else if (searching) {
@@ -1046,6 +1052,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                     return true;
                 }
                 if ((sr.kind == SearchResult.Kind.ENTRY || sr.kind == SearchResult.Kind.RECIPE) && sr.entryNode != null) {
+                    persistState();
                     minecraft.setScreen(new EntryDetailScreen(sr.entryNode.holder, sr.entryNode.id, this));
                     return true;
                 }

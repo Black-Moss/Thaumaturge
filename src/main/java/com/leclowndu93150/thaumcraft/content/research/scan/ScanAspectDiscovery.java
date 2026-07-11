@@ -2,9 +2,8 @@ package com.leclowndu93150.thaumcraft.content.research.scan;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
-import com.leclowndu93150.thaumcraft.api.research.TCResearchCategories;
 import com.leclowndu93150.thaumcraft.api.research.scan.IScanThing;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import net.minecraft.core.Holder;
@@ -17,8 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 public final class ScanAspectDiscovery implements IScanThing {
-    private static final int DISCOVERY_OBSERVATION_POINTS = 1;
-
     private final ResourceKey<IAspect> aspect;
 
     public ScanAspectDiscovery(ResourceKey<IAspect> aspect) {
@@ -45,17 +42,11 @@ public final class ScanAspectDiscovery implements IScanThing {
             }
             aspects = ScanningManager.itemAspects(stack);
         }
-        return aspects.amountOf(holder) > 0;
+        return aspects.amountOf(holder) > 0 && AspectPools.hasDiscoveredComponents(player, holder);
     }
 
     @Override
     public void onSuccess(Player player, @Nullable Object target) {
-        ScanningManager.addKnowledge(player, KnowledgeType.OBSERVATION,
-                TCResearchCategories.AUROMANCY.identifier(), DISCOVERY_OBSERVATION_POINTS);
-        ScanningManager.addKnowledge(player, KnowledgeType.OBSERVATION,
-                TCResearchCategories.BASICS.identifier(), DISCOVERY_OBSERVATION_POINTS);
-        ScanningManager.addKnowledge(player, KnowledgeType.OBSERVATION,
-                TCResearchCategories.ALCHEMY.identifier(), DISCOVERY_OBSERVATION_POINTS);
     }
 
     @Override

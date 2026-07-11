@@ -33,5 +33,20 @@
         "thaumcraft:infusion/voidseer_charm"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:sensus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

@@ -66,5 +66,20 @@
         "thaumcraft:metal_thaumium"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

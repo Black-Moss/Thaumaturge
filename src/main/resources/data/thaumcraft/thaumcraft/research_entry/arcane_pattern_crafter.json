@@ -39,5 +39,20 @@
         "thaumcraft:arcane_workbench/pattern_crafter"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

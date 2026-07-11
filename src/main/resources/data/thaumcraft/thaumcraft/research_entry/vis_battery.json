@@ -32,5 +32,20 @@
         "thaumcraft:arcane_workbench/vis_battery"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

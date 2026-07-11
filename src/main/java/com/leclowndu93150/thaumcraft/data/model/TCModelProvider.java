@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.data.model;
 
+import com.leclowndu93150.thaumcraft.client.color.NoteColorTint;
 import com.leclowndu93150.thaumcraft.client.color.AspectColorTint;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumcraft.content.item.PrimordialPearlItem;
@@ -19,6 +20,7 @@ import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
 import com.leclowndu93150.thaumcraft.client.color.GolemMaterialTint;
 import com.leclowndu93150.thaumcraft.client.model.CentrifugeItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.DeconTableItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.GolemBuilderItemSpecialRenderer;
 import com.mojang.math.Axis;
 import com.mojang.math.Quadrant;
@@ -93,6 +95,8 @@ public final class TCModelProvider extends ModelProvider {
     @Override
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         registerResearchTable(blockModels);
+        registerDeconstructionTable(blockModels, itemModels);
+        registerResearchNote(itemModels);
         registerConstructs(blockModels, itemModels);
         decorModels(blockModels);
         eldritchModels(blockModels);
@@ -549,15 +553,43 @@ public final class TCModelProvider extends ModelProvider {
         return new MultiVariant(WeightedList.of(new Variant(model)));
     }
 
+    private void registerDeconstructionTable(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        registerInvisibleBlock(blockModels, TCBlocks.DECONSTRUCTION_TABLE.get());
+        itemModels.itemModelOutput.accept(TCBlocks.DECONSTRUCTION_TABLE.get().asItem(), new SpecialModelWrapper.Unbaked(
+                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/deconstruction_table_base"),
+                Optional.empty(),
+                new DeconTableItemSpecialRenderer.Unbaked()
+        ));
+    }
+
+    private void registerResearchNote(ItemModelGenerators itemModels) {
+        Identifier base = ModelTemplates.TWO_LAYERED_ITEM.create(
+                ModelLocationUtils.getModelLocation(TCItems.RESEARCH_NOTE.get()),
+                TextureMapping.layered(
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/research_note")),
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/research_note_overlay"))),
+                itemModels.modelOutput);
+        Identifier complete = ModelTemplates.TWO_LAYERED_ITEM.create(
+                ModelLocationUtils.getModelLocation(TCItems.RESEARCH_NOTE.get(), "_complete"),
+                TextureMapping.layered(
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/research_note_complete")),
+                        new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/research_note_complete_overlay"))),
+                itemModels.modelOutput);
+        ItemModel.Unbaked baseModel = ItemModelUtils.tintedModel(base,
+                new Constant(0xFFFFFF), new NoteColorTint(0x999999));
+        ItemModel.Unbaked completeModel = ItemModelUtils.tintedModel(complete,
+                new Constant(0xFFFFFF), new NoteColorTint(0x999999));
+        itemModels.itemModelOutput.accept(TCItems.RESEARCH_NOTE.get(),
+                ItemModelUtils.conditional(
+                        ItemModelUtils.hasComponent(TCDataComponents.NOTE_COMPLETE.get()),
+                        completeModel,
+                        baseModel));
+    }
+
     private void registerResearchTable(BlockModelGenerators blockModels) {
-        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/research_table");
-        MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
-        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
-                .select(Direction.NORTH, BlockModelGenerators.NOP)
-                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
-                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
-                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
-        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.RESEARCH_TABLE.get(), variant).with(rotations));
+        Identifier model = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/table_wood");
+        registerInvisibleBlock(blockModels, TCBlocks.RESEARCH_TABLE.get());
+        blockModels.registerSimpleItemModel(TCBlocks.RESEARCH_TABLE.get().asItem(), model);
     }
 
     private static void registerInvisibleBlock(BlockModelGenerators blockModels, Block block) {

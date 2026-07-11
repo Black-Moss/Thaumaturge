@@ -58,5 +58,20 @@
         "thaumcraft:dust_trigger/golem_press"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

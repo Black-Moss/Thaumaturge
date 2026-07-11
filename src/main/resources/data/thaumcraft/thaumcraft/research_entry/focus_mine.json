@@ -39,5 +39,20 @@
     {
       "text": "research.thaumcraft.focus_mine.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

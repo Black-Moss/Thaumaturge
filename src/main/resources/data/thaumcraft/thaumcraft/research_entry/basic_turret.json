@@ -36,5 +36,20 @@
         "thaumcraft:arcane_workbench/activator_rail"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:aversio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:sensus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

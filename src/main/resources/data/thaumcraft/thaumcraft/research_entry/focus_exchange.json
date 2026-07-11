@@ -26,5 +26,20 @@
     {
       "text": "research.thaumcraft.focus_exchange.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
 }

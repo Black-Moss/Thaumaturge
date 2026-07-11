@@ -30,5 +30,20 @@
         "thaumcraft:crucible/seal_lumber"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

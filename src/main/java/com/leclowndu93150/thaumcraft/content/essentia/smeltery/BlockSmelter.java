@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.smeltery;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.workbench.BlockEntityArcaneWorkbench;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
@@ -112,6 +114,9 @@ public class BlockSmelter extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("essentia_smelter"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

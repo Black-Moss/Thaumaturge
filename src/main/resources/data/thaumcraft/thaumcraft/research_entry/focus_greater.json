@@ -41,5 +41,20 @@
         "thaumcraft:infusion/focus_3"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

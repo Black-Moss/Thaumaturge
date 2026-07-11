@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.decon.MenuDeconstructionTable;
 import com.leclowndu93150.thaumcraft.content.device.sprayer.MenuPotionSprayer;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.MenuSmelter;
@@ -33,6 +34,9 @@ public final class TCMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuResearchTable>> RESEARCH_TABLE =
             MENUS.register("research_table", () -> IMenuTypeExtension.create(MenuResearchTable::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<MenuDeconstructionTable>> DECONSTRUCTION_TABLE =
+            MENUS.register("deconstruction_table", () -> IMenuTypeExtension.create(MenuDeconstructionTable::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuArcaneWorkbench>> ARCANE_WORKBENCH =
             MENUS.register("arcane_workbench", () -> IMenuTypeExtension.create(MenuArcaneWorkbench::new));

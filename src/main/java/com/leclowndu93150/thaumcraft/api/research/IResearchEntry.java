@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.api.research;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.Holder;
@@ -108,5 +109,28 @@ public interface IResearchEntry {
      */
     default List<ResearchAddendum> addenda() {
         return List.of();
+    }
+
+    /**
+     * Returns the hand-authored aspect cost of this entry. The distinct aspects seed the anchor
+     * ring of research-note puzzles generated for theory gates; the amounts are the point price
+     * paid from the player's aspect pool for observation gates.
+     *
+     * @return the aspect cost, or the empty list when the entry has no knowledge gates
+     * @since 1.0.0
+     */
+    default AspectList noteAspects() {
+        return AspectList.EMPTY;
+    }
+
+    /**
+     * Returns the research-note puzzle complexity of this entry, clamped to {@code [1, 3]}.
+     * Drives the hex grid radius and the number of holes punched into the sheet.
+     *
+     * @return the puzzle complexity
+     * @since 1.0.0
+     */
+    default int complexity() {
+        return 1;
     }
 }

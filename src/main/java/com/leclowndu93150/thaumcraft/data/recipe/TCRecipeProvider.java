@@ -871,6 +871,24 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE))
                 .save(output);
 
+        shapeless(RecipeCategory.TOOLS, TCItems.SCRIBING_TOOLS)
+                .requires(TCItems.SCRIBING_TOOLS)
+                .requires(Tags.Items.DYES_BLACK)
+                .unlockedBy("has", has(TCItems.SCRIBING_TOOLS))
+                .save(output, "thaumcraft:scribing_tools_refill");
+
+        arcaneShaped(new ItemStackTemplate(TCBlocks.DECONSTRUCTION_TABLE.asItem()), 20)
+                .aspect(TCAspects.PERDITIO, 1)
+                .pattern(" S ")
+                .pattern("ATP")
+                .define('S', TCItems.THAUMOMETER)
+                .define('T', TCBlocks.TABLE_WOOD.asItem())
+                .define('A', Items.GOLDEN_AXE)
+                .define('P', Items.GOLDEN_PICKAXE)
+                .gate(gate("deconstructor"))
+                .unlockedBy("has", has(TCItems.THAUMOMETER))
+                .save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.POTION_SPRAYER), 75)
                 .aspect(TCAspects.AQUA, 1)
                 .aspect(TCAspects.IGNIS, 1)

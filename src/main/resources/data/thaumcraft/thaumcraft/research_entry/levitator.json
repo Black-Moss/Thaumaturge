@@ -30,5 +30,20 @@
         "thaumcraft:arcane_workbench/levitator"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:volatus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

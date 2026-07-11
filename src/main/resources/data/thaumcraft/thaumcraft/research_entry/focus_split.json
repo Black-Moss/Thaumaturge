@@ -29,5 +29,20 @@
     {
       "text": "research.thaumcraft.focus_split.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

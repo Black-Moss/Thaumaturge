@@ -29,5 +29,20 @@
         "thaumcraft:arcane_workbench/lamp_arcane"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:lux",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:sensus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

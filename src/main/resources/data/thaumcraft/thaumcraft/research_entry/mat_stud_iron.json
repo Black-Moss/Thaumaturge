@@ -20,5 +20,20 @@
         "thaumcraft:f_matiron"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

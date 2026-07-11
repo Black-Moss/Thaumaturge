@@ -37,5 +37,20 @@
     {
       "text": "research.thaumcraft.golem_breaker.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

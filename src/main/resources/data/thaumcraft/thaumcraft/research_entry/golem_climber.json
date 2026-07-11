@@ -34,5 +34,20 @@
     {
       "text": "research.thaumcraft.golem_climber.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:bestia",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

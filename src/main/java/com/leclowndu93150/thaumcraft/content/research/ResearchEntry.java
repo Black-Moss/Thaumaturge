@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.research;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
@@ -28,7 +29,9 @@ public record ResearchEntry(
         List<IResearchStage> stages,
         Set<ResearchEntryMeta> meta,
         List<ResearchIcon> icons,
-        List<ResearchAddendum> addenda
+        List<ResearchAddendum> addenda,
+        AspectList noteAspects,
+        int complexity
 ) implements IResearchEntry {
     public static final Codec<ResearchEntry> DIRECT_CODEC = RecordCodecBuilder.<ResearchEntry>create(instance -> instance.group(
             RegistryFixedCodec.create(IResearchCategory.REGISTRY_KEY).fieldOf("category").forGetter(ResearchEntry::category),
@@ -40,7 +43,9 @@ public record ResearchEntry(
             ResearchStage.CODEC.listOf().fieldOf("stages").forGetter(e -> e.stages().stream().map(s -> (ResearchStage) s).toList()),
             ResearchEntryMeta.CODEC.listOf().optionalFieldOf("meta", List.of()).forGetter(e -> List.copyOf(e.meta())),
             ResearchIcon.CODEC.listOf().optionalFieldOf("icons", List.of()).forGetter(ResearchEntry::icons),
-            ResearchAddendum.CODEC.listOf().optionalFieldOf("addenda", List.of()).forGetter(ResearchEntry::addenda)
+            ResearchAddendum.CODEC.listOf().optionalFieldOf("addenda", List.of()).forGetter(ResearchEntry::addenda),
+            AspectList.CODEC.optionalFieldOf("note_aspects", AspectList.EMPTY).forGetter(ResearchEntry::noteAspects),
+            Codec.intRange(1, 3).optionalFieldOf("complexity", 1).forGetter(ResearchEntry::complexity)
     ).apply(instance, ResearchEntry::create)).validate(ResearchEntry::validate);
 
     public static final Codec<IResearchEntry> CODEC = DIRECT_CODEC.xmap(e -> (IResearchEntry) e, ResearchEntry::ofInterface);
@@ -55,7 +60,9 @@ public record ResearchEntry(
             List<ResearchStage> stages,
             List<ResearchEntryMeta> meta,
             List<ResearchIcon> icons,
-            List<ResearchAddendum> addenda
+            List<ResearchAddendum> addenda,
+            AspectList noteAspects,
+            int complexity
     ) {
         return new ResearchEntry(
                 category,
@@ -67,7 +74,9 @@ public record ResearchEntry(
                 List.copyOf(stages),
                 meta.isEmpty() ? EnumSet.noneOf(ResearchEntryMeta.class) : EnumSet.copyOf(meta),
                 List.copyOf(icons),
-                List.copyOf(addenda)
+                List.copyOf(addenda),
+                noteAspects,
+                complexity
         );
     }
 
@@ -92,7 +101,9 @@ public record ResearchEntry(
                 entry.stages(),
                 entry.meta(),
                 entry.icons(),
-                entry.addenda()
+                entry.addenda(),
+                entry.noteAspects(),
+                entry.complexity()
         );
     }
 }

@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.workbench;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.crucible.BlockCrucible;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -66,6 +68,9 @@ public class BlockArcaneWorkbench extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("gotdream"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

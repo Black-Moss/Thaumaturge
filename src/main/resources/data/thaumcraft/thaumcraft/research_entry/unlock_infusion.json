@@ -37,5 +37,16 @@
         "thaumcraft:arcane_workbench/cloth_boots"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

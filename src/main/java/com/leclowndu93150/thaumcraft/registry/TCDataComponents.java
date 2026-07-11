@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.mojang.serialization.Codec;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
@@ -145,6 +146,16 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("mirror_link", builder -> builder
                     .persistent(GlobalPos.CODEC)
                     .networkSynchronized(GlobalPos.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> NOTE_COMPLETE =
+            DATA_COMPONENTS.registerComponentType("note_complete", builder -> builder
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResearchNoteData>> RESEARCH_NOTE =
+            DATA_COMPONENTS.registerComponentType("research_note", builder -> builder
+                    .persistent(ResearchNoteData.CODEC)
+                    .networkSynchronized(ResearchNoteData.STREAM_CODEC));
 
     private TCDataComponents() {}
 

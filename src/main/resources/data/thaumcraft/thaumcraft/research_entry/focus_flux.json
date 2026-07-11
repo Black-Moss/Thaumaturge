@@ -23,5 +23,20 @@
         "thaumcraft:scanned/aspect/thaumcraft/vitium"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vitium",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
 }

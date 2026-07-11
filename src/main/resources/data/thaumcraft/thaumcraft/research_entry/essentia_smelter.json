@@ -164,5 +164,20 @@
         "thaumcraft:bellows"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

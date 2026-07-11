@@ -178,6 +178,20 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         if (!valAddons.isEmpty() && !"none".equals(keyOf(TCGolemParts.addons(), valAddons.get(addonIndex)))) {
             addPartButton(24, 72, valAddons.get(addonIndex).icon(), "addon", keyOf(TCGolemParts.addons(), valAddons.get(addonIndex)), WHITE);
         }
+        if (valHeads.isEmpty() || valMats.isEmpty() || valArms.isEmpty()
+                || valLegs.isEmpty() || valAddons.isEmpty()) {
+            props = GolemProperties.createDefault();
+            components = List.of();
+            owns = new boolean[0];
+            allFound = false;
+            hearts = 0.0F;
+            armor = 0.0F;
+            damage = 0.0F;
+            if (craftButton != null) {
+                craftButton.active = false;
+            }
+            return;
+        }
         props = GolemProperties.createDefault();
         props.setHead(valHeads.get(headIndex));
         props.setMaterial(valMats.get(matIndex));
@@ -297,6 +311,14 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
     }
 
     private void computeOwnership() {
+        if (valHeads.isEmpty() || valMats.isEmpty() || valArms.isEmpty()
+                || valLegs.isEmpty() || valAddons.isEmpty()) {
+            allFound = false;
+            if (craftButton != null) {
+                craftButton.active = false;
+            }
+            return;
+        }
         allFound = true;
         cost = props.getTraits().size() * 2;
         components = props.generateComponents();

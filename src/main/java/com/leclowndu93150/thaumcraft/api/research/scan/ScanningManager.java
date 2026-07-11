@@ -107,8 +107,16 @@ public final class ScanningManager {
     public static void scanTheThing(Player player, @Nullable Object target) {
         boolean found = false;
         boolean suppress = false;
+        Component failure = null;
         for (IScanThing thing : THINGS) {
             if (!thing.checkThing(player, target)) {
+                continue;
+            }
+            Component fail = thing.scanFailure(player, target);
+            if (fail != null) {
+                if (failure == null) {
+                    failure = fail;
+                }
                 continue;
             }
             Identifier key = thing.getResearchKey(player, target);
@@ -121,7 +129,10 @@ public final class ScanningManager {
             found = true;
             thing.onSuccess(player, target);
         }
-        if (!suppress) {
+        if (failure != null) {
+            player.sendOverlayMessage(failure.copy()
+                    .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+        } else if (!suppress) {
             if (found) {
                 player.sendOverlayMessage(Component.translatable("tc.knownobject")
                         .withStyle(ChatFormatting.GREEN, ChatFormatting.ITALIC));

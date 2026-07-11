@@ -31,5 +31,20 @@
         "thaumcraft:arcane_workbench/smelter_vent"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

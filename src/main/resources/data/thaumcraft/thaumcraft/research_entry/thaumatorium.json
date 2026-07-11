@@ -36,5 +36,24 @@
         "thaumcraft:arcane_workbench/brain_box"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
 }

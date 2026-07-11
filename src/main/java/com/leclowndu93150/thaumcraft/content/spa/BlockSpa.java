@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.spa;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -51,6 +53,9 @@ public class BlockSpa extends BaseEntityBlock {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("arcane_spa"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (FluidUtil.getFirstStackContained(stack).isEmpty()) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }

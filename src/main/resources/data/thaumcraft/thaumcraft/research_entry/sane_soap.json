@@ -31,5 +31,24 @@
         "thaumcraft:crucible/sanity_soap"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 5
+    }
+  ],
+  "complexity": 1
 }

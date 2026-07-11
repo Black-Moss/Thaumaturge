@@ -32,5 +32,20 @@
         "thaumcraft:infusion/fortress_legs"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 5
+    }
+  ],
+  "complexity": 2
 }

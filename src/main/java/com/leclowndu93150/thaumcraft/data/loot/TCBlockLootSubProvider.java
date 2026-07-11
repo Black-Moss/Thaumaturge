@@ -97,7 +97,8 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         add(TCBlocks.LOOT_CRATE_UNCOMMON.get(), lootContainerTable(TCBlocks.LOOT_CRATE_UNCOMMON.get(), 1));
         add(TCBlocks.LOOT_CRATE_RARE.get(), lootContainerTable(TCBlocks.LOOT_CRATE_RARE.get(), 2));
 
-        dropSelf(TCBlocks.RESEARCH_TABLE.get());
+        dropOther(TCBlocks.RESEARCH_TABLE.get(), TCBlocks.TABLE_WOOD.get());
+        dropSelf(TCBlocks.DECONSTRUCTION_TABLE.get());
         dropSelf(TCBlocks.SPA.get());
         dropSelf(TCBlocks.FOCAL_MANIPULATOR.get());
         dropSelf(TCBlocks.ARCANE_WORKBENCH.get());

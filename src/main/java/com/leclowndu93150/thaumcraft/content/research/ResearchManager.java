@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.research;
 
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNotes;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
@@ -73,14 +76,14 @@ public final class ResearchManager {
         int totalStages = entry.stages().size();
         if (currentStage >= totalStages) return false;
         IResearchStage finished = entry.stages().get(Math.max(0, currentStage));
-        if (checkRequisites && !stageRequirementsMet(player, knowledge, finished)) {
+        if (checkRequisites && !stageRequirementsMet(player, knowledge, entry, research, Math.max(0, currentStage))) {
             return false;
         }
         int next = currentStage + 1;
         ResearchEvent.StageAdvanced event = new ResearchEvent.StageAdvanced(player, research, currentStage, next);
         if (NeoForge.EVENT_BUS.post(event).isCanceled()) return false;
         if (checkRequisites) {
-            consumeStageRequirements(player, knowledge, finished);
+            consumeStageRequirements(player, knowledge, entry, finished);
         }
         applyStageEffects(player, knowledge, finished);
         if (next == totalStages - 1 && stageHasNoRequirements(entry.stages().get(next))) {
@@ -165,7 +168,9 @@ public final class ResearchManager {
         return true;
     }
 
-    public static boolean stageRequirementsMet(Player player, IPlayerKnowledge knowledge, IResearchStage stage) {
+    public static boolean stageRequirementsMet(Player player, IPlayerKnowledge knowledge, IResearchEntry entry,
+                                               Identifier entryId, int stageIndex) {
+        IResearchStage stage = entry.stages().get(stageIndex);
         for (Identifier required : stage.requiredResearch()) {
             if (!knowledge.isResearchComplete(required)) return false;
         }
@@ -175,9 +180,14 @@ public final class ResearchManager {
         for (ResearchRequirement req : stage.craft()) {
             if (!isCraftSatisfied(knowledge, req)) return false;
         }
+        int theoryOrdinal = ResearchNotes.theoryRowsBefore(entry, stageIndex);
         for (KnowledgeReward cost : stage.requiredKnowledge()) {
-            ResourceKey<IResearchCategory> key = cost.category().unwrapKey().orElse(null);
-            if (knowledge.knowledge(cost.type(), key) < cost.amount()) return false;
+            if (cost.type() == KnowledgeType.THEORY) {
+                if (!knowledge.isResearchKnown(ResearchNoteData.learnKey(entryId, theoryOrdinal))) return false;
+                theoryOrdinal++;
+            } else {
+                if (!AspectPools.canAfford(player, ResearchNotes.observationCost(entry, cost.amount()))) return false;
+            }
         }
         return true;
     }
@@ -203,7 +213,7 @@ public final class ResearchManager {
         return total;
     }
 
-    private static void consumeStageRequirements(ServerPlayer player, PlayerKnowledge knowledge, IResearchStage stage) {
+    private static void consumeStageRequirements(ServerPlayer player, PlayerKnowledge knowledge, IResearchEntry entry, IResearchStage stage) {
         for (ResearchRequirement req : stage.obtain()) {
             int remaining = req.amount();
             Inventory inv = player.getInventory();
@@ -218,8 +228,9 @@ public final class ResearchManager {
             }
         }
         for (KnowledgeReward cost : stage.requiredKnowledge()) {
-            ResourceKey<IResearchCategory> key = cost.category().unwrapKey().orElse(null);
-            knowledge.addKnowledge(cost.type(), key, -cost.amount() * cost.type().progression());
+            if (cost.type() != KnowledgeType.THEORY) {
+                AspectPools.spendAll(player, ResearchNotes.observationCost(entry, cost.amount()));
+            }
         }
     }
 

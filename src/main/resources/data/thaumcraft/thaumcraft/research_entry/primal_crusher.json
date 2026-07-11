@@ -33,5 +33,20 @@
         "thaumcraft:infusion/primal_crusher"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

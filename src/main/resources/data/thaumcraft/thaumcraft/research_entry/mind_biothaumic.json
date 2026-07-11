@@ -39,5 +39,20 @@
       ],
       "warp": 3
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:spiritus",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

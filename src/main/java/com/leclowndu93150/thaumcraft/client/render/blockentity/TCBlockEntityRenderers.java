@@ -39,6 +39,8 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.BANNER.get(), BannerRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.BELLOWS.get(), BellowsRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_OBELISK.get(), EldritchObeliskRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.RESEARCH_TABLE.get(), ResearchTableRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.DECONSTRUCTION_TABLE.get(), DeconstructionTableRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_CAP.get(),
                 context -> new EldritchCapRenderer<>(context,
                         EldritchCapRenderer.CAP_TEXTURE, EldritchCapRenderer.CAP_TEXTURE_OUTER, cap -> 0));

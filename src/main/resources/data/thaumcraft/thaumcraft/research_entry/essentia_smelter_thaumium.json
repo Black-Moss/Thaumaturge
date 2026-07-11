@@ -43,5 +43,20 @@
         "thaumcraft:arcane_workbench/smelter_thaumium"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 4
+    }
+  ],
+  "complexity": 2
 }

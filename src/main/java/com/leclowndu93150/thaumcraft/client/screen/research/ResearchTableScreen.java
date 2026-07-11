@@ -1,39 +1,33 @@
 package com.leclowndu93150.thaumcraft.client.screen.research;
 
+import net.minecraft.world.item.ItemStack;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
-import com.leclowndu93150.thaumcraft.api.research.theorycraft.ITheorycraftAid;
-import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftAccess;
-import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftCard;
-import com.leclowndu93150.thaumcraft.client.render.research.card.CardSheetRenderer;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCContainerScreen;
-import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
-import com.leclowndu93150.thaumcraft.client.screen.TCTooltips;
-import com.leclowndu93150.thaumcraft.client.screen.widget.TCImageButton;
+import com.leclowndu93150.thaumcraft.content.research.note.HexGrid;
+import com.leclowndu93150.thaumcraft.content.research.note.NoteRules;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNotes;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPoolData;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
-import com.leclowndu93150.thaumcraft.content.research.theorycraft.AidScanner;
-import com.leclowndu93150.thaumcraft.content.research.theorycraft.ResearchTableData;
-import com.leclowndu93150.thaumcraft.content.research.theorycraft.TheorycraftManager;
-import com.leclowndu93150.thaumcraft.network.ServerboundCardAnimationCompletePayload;
-import com.leclowndu93150.thaumcraft.network.ServerboundDrawCardsPayload;
-import com.leclowndu93150.thaumcraft.network.ServerboundEndSessionPayload;
-import com.leclowndu93150.thaumcraft.network.ServerboundPlayCardPayload;
-import com.leclowndu93150.thaumcraft.network.ServerboundStartTheoryPayload;
-import com.leclowndu93150.thaumcraft.network.ServerboundTableActionPayload;
+import com.leclowndu93150.thaumcraft.network.ServerboundTableCombinePayload;
+import com.leclowndu93150.thaumcraft.network.ServerboundTableDuplicatePayload;
+import com.leclowndu93150.thaumcraft.network.ServerboundTablePlaceAspectPayload;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
-import com.leclowndu93150.thaumcraft.registry.TCTheorycraft;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -43,964 +37,656 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
+import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuResearchTable> {
-    public static final int PANEL_W = 255;
-    public static final int PANEL_H = 255;
+    private static final Identifier TEXTURE = TCIds.rl("textures/gui/guiresearchtable2.png");
+    private static final Identifier PARCHMENT = TCIds.rl("textures/misc/parchment3.png");
+    private static final Identifier HEX_IDLE = TCIds.rl("textures/gui/hex1.png");
+    private static final Identifier HEX_HOVER = TCIds.rl("textures/gui/hex2.png");
+    private static final Identifier LINE_TEXTURE = TCIds.rl("textures/misc/white.png");
+    private static final int LINE_HALF_WIDTH = 1;
+    private static final float LINE_ALPHA = 0.6F;
+    private static final Identifier UNKNOWN_ASPECT = TCIds.rl("textures/aspects/_unknown.png");
 
-    private static final int INSPIRATION_ANCHOR_X = 128;
-    private static final int INSPIRATION_ANCHOR_Y = 16;
-    private static final int INSPIRATION_STRIDE_PRESCALE = 20;
-    private static final float INSPIRATION_SCALE = 0.5F;
-    private static final int INK_BOTTLE_SIZE = 16;
-    private static final int INK_BOTTLE_FILLED_U = 32;
-    private static final int INK_BOTTLE_EMPTY_U = 48;
-    private static final int INK_BOTTLE_V = 96;
+    private static final int GUI_SIZE = 255;
+    private static final int MAIN_PANE_H = 167;
+    private static final int LOWER_PANEL_X = 40;
+    private static final int LOWER_PANEL_V = 166;
+    private static final int LOWER_PANEL_W = 184;
+    private static final int LOWER_PANEL_H = 88;
 
-    private static final int BONUS_DRAW_ANCHOR_X = 15;
-    private static final int BONUS_DRAW_ANCHOR_Y = 150;
-    private static final int BONUS_DRAW_U = 64;
-    private static final int BONUS_DRAW_V = 96;
-    private static final int BONUS_DRAW_SIZE = 16;
-    private static final int BONUS_DRAW_STRIDE_X = 2;
-    private static final int BONUS_DRAW_STRIDE_Y = 1;
+    private static final int PALETTE_X = 10;
+    private static final int PALETTE_Y = 40;
+    private static final int PALETTE_CELL = 16;
+    private static final int PALETTE_ROWS = 5;
+    private static final int PALETTE_SLOTS = 25;
+    private static final int PALETTE_W = 80;
+    private static final int PALETTE_H = 80;
+    private static final int PAGE_STEP = 5;
 
-    private static final int DECK_ANCHOR_X = 65;
-    private static final int DECK_ANCHOR_Y = 100;
-    private static final int DECK_HIT_OFFSET_X = 25;
-    private static final int DECK_HIT_OFFSET_Y = 55;
-    private static final int DECK_HIT_W = 75;
-    private static final int DECK_HIT_H = 90;
-    private static final long DECK_SHEET_SEED = 55L;
-    private static final int DECK_SHEETS_PER_PAPER = 4;
-    private static final float QUESTION_SCALE_INACTIVE = 1.5F;
-    private static final float QUESTION_SCALE_HOVER = 1.75F;
-    private static final float QUESTION_ALPHA_INACTIVE = 0.5F;
-    private static final float QUESTION_ALPHA_HOVER = 1.0F;
-    private static final int QUESTION_HALF = 8;
-    private static final int QUESTION_QUAD_SIZE = 16;
-    private static final int QUESTION_SRC_SIZE = 32;
-    private static final int QUESTION_TEXTURE_SIZE = 32;
-    private static final Identifier QUESTION_TEXTURE =
-            Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/aspects/_unknown.png");
+    private static final int ARROW_PREV_X = 27;
+    private static final int ARROW_NEXT_X = 51;
+    private static final int ARROW_Y = 121;
+    private static final int ARROW_W = 24;
+    private static final int ARROW_H = 8;
+    private static final int ARROW_PREV_U = 184;
+    private static final int ARROW_NEXT_U = 208;
+    private static final int ARROW_V = 208;
 
-    private static final int SAVED_CARD_ANCHOR_X = 191;
-    private static final int SAVED_CARD_ANCHOR_Y = 100;
+    private static final int SELECT1_CENTER_X = 21;
+    private static final int SELECT2_CENTER_X = 79;
+    private static final int SELECT_CENTER_Y = 147;
+    private static final float SELECT_SCALE = 1.5F;
+    private static final int SELECT1_HIT_X = 11;
+    private static final int SELECT2_HIT_X = 71;
+    private static final int SELECT_HIT_Y = 137;
+    private static final int SELECT_SIZE = 16;
 
-    private static final int CARD_ANCHOR_Y = 100;
-    private static final int CARD_STRIDE = 110;
-    private static final int CARD_BASE_X = 128;
-    private static final int CARD_HALF_STRIDE = 55;
-    private static final int CARD_HIT_OFFSET_X = 5;
-    private static final int CARD_HIT_OFFSET_Y = -60;
-    private static final int CARD_ITEM_STRIDE = 18;
-    private static final int CARD_ITEM_HIT_SIZE = 15;
-    private static final int CARD_ITEM_HIT_OFFSET_Y = 36;
+    private static final int COMBINE_X = 35;
+    private static final int COMBINE_Y = 139;
+    private static final int COMBINE_W = 32;
+    private static final int COMBINE_H = 16;
+    private static final int COMBINE_U = 184;
+    private static final int COMBINE_V = 184;
+    private static final int COMBINE_PRESSED_V = 168;
+    private static final long COMBINE_COOLDOWN_MS = 200L;
 
-    private static final int CATEGORY_SIDEBAR_X = 253;
-    private static final int CATEGORY_SIDEBAR_Y = 16;
-    private static final int CATEGORY_SIDEBAR_STRIDE = 18;
-    private static final int CATEGORY_SIDEBAR_GAP = 4;
-    private static final float CATEGORY_ICON_SCALE = 0.0625F;
-    private static final int CATEGORY_LABEL_OFFSET_X = 23;
-    private static final int CATEGORY_LABEL_OFFSET_Y = 4;
-    private static final int CATEGORY_ICON_HIT_SIZE = 16;
-    private static final int CATEGORY_ICON_HIT_OFFSET_X = 3;
+    private static final int DUPE_X = 37;
+    private static final int DUPE_Y = 5;
+    private static final int DUPE_SIZE = 24;
+    private static final int DUPE_U = 232;
+    private static final int DUPE_V = 200;
 
-    private static final int CATEGORY_LABEL_COLOR_BLOCKED = 0xFF606060;
-    private static final int CATEGORY_LABEL_COLOR_NORMAL = 0xFF00E0C0;
-    private static final int CATEGORY_LABEL_COLOR_PENALTY = 0xFFFFFFFF;
+    private static final int SHEET_X = 94;
+    private static final int SHEET_Y = 8;
+    private static final int SHEET_SIZE = 150;
+    private static final int HEX_ORIGIN_X = 169;
+    private static final int HEX_ORIGIN_Y = 83;
+    private static final float HEX_SIZE = 9.0F;
+    private static final int HEX_TILE_HALF = 8;
+    private static final int ORB_OFFSET = -8;
 
-    private static final int BUTTON_FACE_U = 37;
-    private static final int BUTTON_FACE_V = 66;
-    private static final int BUTTON_W = 49;
-    private static final int BUTTON_H = 11;
-    private static final int BUTTON_FACE_W = 51;
-    private static final int BUTTON_FACE_H = 13;
+    private static final int INK_WARN_X = 157;
+    private static final int INK_WARN_Y = 84;
 
-    private static final int CREATE_BUTTON_X = 128;
-    private static final int CREATE_BUTTON_Y = 22;
-    private static final int COMPLETE_BUTTON_X = 191;
-    private static final int COMPLETE_BUTTON_Y = 96;
-    private static final int SCRAP_BUTTON_X = 128;
-    private static final int SCRAP_BUTTON_Y = 168;
+    private static final int HELPER_X = 41;
+    private static final int HELPER_Y = 9;
+    private static final int HELPER_SIZE = 16;
+    private static final int HELPER_ROWS = 7;
+    private static final int HELPER_ROW_START_Y = 10;
+    private static final int HELPER_ROW_STRIDE = 17;
+    private static final int HELPER_ARROW_Y = 144;
+    private static final int HELPER_PAGE_HALF_GAP = 18;
+    private static final int HELPER_ROW_WIDTH = 72;
 
-    private static final int CREATE_BUTTON_TINT = 0xFF88FFAA;
-    private static final int COMPLETE_BUTTON_TINT = 0xFF88FFAA;
-    private static final int SCRAP_BUTTON_TINT = 0xFFFF2222;
+    private boolean helperOpen;
+    private int helperPage;
 
-    private static final int MAX_HAND_SIZE = 3;
-    private static final float ZOOM_GATE = 0.6F;
-    private static final float ZOOM_OUT_TICK_FRACTION = 1.0F / 5.0F;
-    private static final float ZOOM_IN_TICK_FRACTION = 1.0F / 3.0F;
-    private static final float ZOOM_INACTIVE_TICK_RATE = 0.3F;
-    private static final float HOVER_MAX = 0.25F;
-    private static final float HOVER_TICK_FRACTION = 1.0F / 3.0F;
-    private static final float HOVER_DECAY_PER_TICK = 0.1F;
-    private static final float MIN_TICK_DELTA = 0.0025F;
-    private static final float HOVER_ACTIVATE_THRESHOLD = 0.95F;
+    private @Nullable Holder<IAspect> draggedAspect;
+    private @Nullable Holder<IAspect> select1;
+    private @Nullable Holder<IAspect> select2;
+    private int page;
+    private long combineCooldownUntil;
 
-    private static final float WRITE_SOUND_VOLUME = 0.3F;
-    private static final float CLACK_SOUND_VOLUME = 0.4F;
-    private static final float SOUND_PITCH = 1.0F;
-
-    private final float[] cardZoomOut = new float[MAX_HAND_SIZE];
-    private final float[] cardZoomIn = new float[MAX_HAND_SIZE];
-    private final float[] cardHover = new float[MAX_HAND_SIZE];
-    private final boolean[] cardActive = new boolean[MAX_HAND_SIZE];
-    private final boolean[] cardZoomOutStarted = new boolean[MAX_HAND_SIZE];
-    private boolean cardSelected;
-    private boolean cardSelectedSoundPlayed;
-    private int previousHandSignature;
-
-    private TCImageButton createButton;
-    private TCImageButton completeButton;
-    private TCImageButton scrapButton;
-
-    private final LinkedHashSet<ResourceKey<ITheorycraftAid>> availableAids = new LinkedHashSet<>();
-    private final LinkedHashSet<ResourceKey<ITheorycraftAid>> selectedAids = new LinkedHashSet<>();
-    private int aidScanTickTimer;
-    private int availableInspiration;
-
-    private final HashMap<ResourceKey<IResearchCategory>, Integer> tempCatTotals = new HashMap<>();
-    private final HashSet<ResourceKey<IResearchCategory>> sparkleQueue = new HashSet<>();
-
-    private static final int AID_SCAN_INTERVAL_TICKS = 100;
-    private static final int AID_ROW_MAX = 6;
-    private static final int AID_ANCHOR_X = 128;
-    private static final int AID_ROW_Y = 85;
-    private static final int AID_COL_STRIDE = 20;
-    private static final int AID_ROW_STRIDE = 35;
-    private static final int AID_ICON_SIZE = 16;
-    private static final int AID_SELECTED_U = 0;
-    private static final int AID_SELECTED_V = 96;
-    private static final int AID_HOVER_U = 0;
-    private static final int AID_HOVER_V = 96;
-    private static final int AID_HOVER_TINT = 0x33FFFFFF;
-    private static final int DUMMY_INSP_ANCHOR_Y = 55;
-
-    private static final int WARNING_CENTER_X = 116;
-    private static final int WARNING_BASE_Y = 60;
-    private static final int WARNING_GAP_Y = 40;
-
-    public ResearchTableScreen(MenuResearchTable menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, TCScreenTextures.RESEARCH_TABLE, PANEL_W, PANEL_H);
-        resetCardAnimations();
+    public ResearchTableScreen(MenuResearchTable menu, Inventory inventory, Component title) {
+        super(menu, inventory, title, TEXTURE, GUI_SIZE, GUI_SIZE);
     }
 
-    private void resetCardAnimations() {
-        for (int i = 0; i < MAX_HAND_SIZE; i++) {
-            cardZoomOut[i] = 0.0F;
-            cardZoomIn[i] = 0.0F;
-            cardHover[i] = 0.0F;
-            cardActive[i] = true;
-            cardZoomOutStarted[i] = false;
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
+
+    @Override
+    protected void extractBackgroundTexture(GuiGraphicsExtractor graphics) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos,
+                0.0F, 0.0F, GUI_SIZE, MAIN_PANE_H, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + LOWER_PANEL_X, topPos + MAIN_PANE_H,
+                0.0F, (float) LOWER_PANEL_V, LOWER_PANEL_W, LOWER_PANEL_H, 256, 256);
+    }
+
+    private @Nullable BlockEntityResearchTable table() {
+        return menu.blockEntity();
+    }
+
+    private @Nullable ResearchNoteData noteData() {
+        return ResearchNotes.dataOf(menu.slots.get(BlockEntityResearchTable.SLOT_NOTE).getItem());
+    }
+
+    private boolean hasInkReady() {
+        var tools = menu.slots.get(BlockEntityResearchTable.SLOT_SCRIBE_TOOLS).getItem();
+        return !tools.isEmpty() && tools.isDamageableItem() && tools.getDamageValue() < tools.getMaxDamage();
+    }
+
+    private AspectPoolData pool() {
+        return AspectPools.data(minecraft.player);
+    }
+
+    private List<Holder<IAspect>> discoveredAspects() {
+        List<Holder<IAspect>> result = new ArrayList<>();
+        if (minecraft == null || minecraft.level == null) {
+            return result;
         }
-        cardSelected = false;
-        cardSelectedSoundPlayed = false;
+        HolderLookup.RegistryLookup<IAspect> lookup =
+                minecraft.level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
+        List<Identifier> ids = new ArrayList<>(pool().pool().keySet());
+        ids.sort(Identifier::compareTo);
+        for (Identifier id : ids) {
+            lookup.get(ResourceKey.create(IAspect.REGISTRY_KEY, id)).ifPresent(result::add);
+        }
+        return result;
+    }
+
+    private int availableOf(Holder<IAspect> aspect) {
+        int amount = pool().amount(AspectPools.idOf(aspect));
+        BlockEntityResearchTable table = table();
+        if (table != null) {
+            amount += table.bonusAspects().amountOf(aspect);
+        }
+        return amount;
     }
 
     @Override
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        if (minecraft == null || minecraft.player == null) return;
-        ResearchTableData data = sessionData();
-        boolean inSession = data != null && data.inspirationStart() > 0;
-        if (!inSession) {
-            renderDummyInspirationRow(graphics);
-            renderAidsBackground(graphics);
-            return;
-        }
-        syncCardAnimationState(data);
-        renderInspirationRow(graphics, data);
-        renderBonusDraws(graphics, data);
-        renderSavedCards(graphics, data);
-        renderLastDraw(graphics, data);
-        renderDeckOrCards(graphics, data, mouseX, mouseY, partialTick);
-        renderCategorySidebar(graphics, data);
-        renderNoSuppliesWarning(graphics, data, mouseX, mouseY);
+        drawPalette(graphics, mouseX, mouseY);
+        drawCombineTray(graphics, mouseX, mouseY);
+        drawSheet(graphics, mouseX, mouseY);
+        drawDuplicateButton(graphics, mouseX, mouseY);
+        drawHelperButton(graphics, mouseX, mouseY);
+        drawSlotHints(graphics, mouseX, mouseY);
+        drawDragged(graphics, mouseX, mouseY);
     }
 
-    @Override
-    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractContents(graphics, mouseX, mouseY, partialTick);
-        if (minecraft == null || minecraft.player == null) return;
-        ResearchTableData data = sessionData();
-        boolean inSession = data != null && data.inspirationStart() > 0;
-        if (!inSession) {
-            renderAidsHoverOverlay(graphics, mouseX, mouseY);
-            return;
+    private void drawPalette(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        List<Holder<IAspect>> aspects = discoveredAspects();
+        int start = page * PAGE_STEP;
+        int drawn = 0;
+        Holder<IAspect> hovered = null;
+        for (int i = start; i < aspects.size() && drawn < PALETTE_SLOTS; i++, drawn++) {
+            Holder<IAspect> aspect = aspects.get(i);
+            int x = leftPos + PALETTE_X + (drawn / PALETTE_ROWS) * PALETTE_CELL;
+            int y = topPos + PALETTE_Y + (drawn % PALETTE_ROWS) * PALETTE_CELL;
+            float alpha = availableOf(aspect) > 0 ? 1.0F : 0.33F;
+            AspectTagRenderer.render(graphics, font, (double) x, (double) y, aspect,
+                    pool().amount(AspectPools.idOf(aspect)), 0, 0.0,
+                    AspectTagRenderer.BlendMode.ALPHA, alpha, false);
+            if (mouseX >= x && mouseX < x + PALETTE_CELL && mouseY >= y && mouseY < y + PALETTE_CELL) {
+                hovered = aspect;
+            }
         }
-        renderCardItemTooltips(graphics, data, mouseX, mouseY);
-        renderCategorySidebarTooltip(graphics, data, mouseX, mouseY);
+        int lastPage = lastPage(aspects.size());
+        if (page > 0) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + ARROW_PREV_X, topPos + ARROW_Y,
+                    (float) ARROW_PREV_U, (float) ARROW_V, ARROW_W, ARROW_H, 256, 256);
+            if (inRect(mouseX, mouseY, leftPos + ARROW_PREV_X, topPos + ARROW_Y, ARROW_W, ARROW_H)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.page.prev"), mouseX, mouseY);
+            }
+        }
+        if (page < lastPage) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + ARROW_NEXT_X, topPos + ARROW_Y,
+                    (float) ARROW_NEXT_U, (float) ARROW_V, ARROW_W, ARROW_H, 256, 256);
+            if (inRect(mouseX, mouseY, leftPos + ARROW_NEXT_X, topPos + ARROW_Y, ARROW_W, ARROW_H)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.page.next"), mouseX, mouseY);
+            }
+        }
+        if (hovered != null && draggedAspect == null) {
+            graphics.setTooltipForNextFrame(font, aspectTooltip(hovered), Optional.empty(), mouseX, mouseY);
+        }
     }
 
-    private void renderDummyInspirationRow(GuiGraphicsExtractor graphics) {
-        if (availableInspiration <= 0) return;
-        int used = selectedAids.size();
+    private static int lastPage(int count) {
+        return Math.max(0, (count - (PALETTE_SLOTS - PAGE_STEP)) / PAGE_STEP);
+    }
+
+    private List<Component> aspectTooltip(Holder<IAspect> aspect) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(AspectComponents.name(aspect));
+        return lines;
+    }
+
+    private void drawCombineTray(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        drawSelectTag(graphics, select1, leftPos + SELECT1_CENTER_X, topPos + SELECT_CENTER_Y);
+        drawSelectTag(graphics, select2, leftPos + SELECT2_CENTER_X, topPos + SELECT_CENTER_Y);
+        if (select1 != null && select2 != null) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + COMBINE_X, topPos + COMBINE_Y,
+                    (float) COMBINE_U, (float) COMBINE_V, COMBINE_W, COMBINE_H, 256, 256);
+            if (System.currentTimeMillis() < combineCooldownUntil) {
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + COMBINE_X, topPos + COMBINE_Y,
+                        (float) COMBINE_U, (float) COMBINE_PRESSED_V, COMBINE_W, COMBINE_H, 256, 256);
+            }
+            if (inRect(mouseX, mouseY, leftPos + COMBINE_X, topPos + COMBINE_Y, COMBINE_W, COMBINE_H)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.combine"), mouseX, mouseY);
+            }
+        }
+        if (inRect(mouseX, mouseY, leftPos + SELECT1_HIT_X, topPos + SELECT_HIT_Y, SELECT_SIZE, SELECT_SIZE)) {
+            graphics.setTooltipForNextFrame(font, select1 != null
+                    ? AspectComponents.name(select1)
+                    : Component.translatable("tc.table.select"), mouseX, mouseY);
+        } else if (inRect(mouseX, mouseY, leftPos + SELECT2_HIT_X, topPos + SELECT_HIT_Y, SELECT_SIZE, SELECT_SIZE)) {
+            graphics.setTooltipForNextFrame(font, select2 != null
+                    ? AspectComponents.name(select2)
+                    : Component.translatable("tc.table.select"), mouseX, mouseY);
+        }
+    }
+
+    private void drawSelectTag(GuiGraphicsExtractor graphics, @Nullable Holder<IAspect> aspect, int centerX, int centerY) {
+        if (aspect == null) {
+            return;
+        }
         graphics.pose().pushMatrix();
-        graphics.pose().translate(leftPos + AID_ANCHOR_X - availableInspiration * 5.0F, topPos + DUMMY_INSP_ANCHOR_Y);
-        graphics.pose().scale(INSPIRATION_SCALE, INSPIRATION_SCALE);
-        for (int i = 0; i < availableInspiration; i++) {
-            int u = availableInspiration - used <= i ? INK_BOTTLE_EMPTY_U : INK_BOTTLE_FILLED_U;
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    TCScreenTextures.GUI_BASE,
-                    INSPIRATION_STRIDE_PRESCALE * i, 0,
-                    (float) u, (float) INK_BOTTLE_V,
-                    INK_BOTTLE_SIZE, INK_BOTTLE_SIZE,
-                    INK_BOTTLE_SIZE, INK_BOTTLE_SIZE,
-                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE
-            );
-        }
+        graphics.pose().translate(centerX, centerY);
+        graphics.pose().scale(SELECT_SCALE, SELECT_SCALE);
+        AspectTagRenderer.render(graphics, font, -8.0, -8.0, aspect, 0, 0, 0.0,
+                AspectTagRenderer.BlendMode.ALPHA, 1.0F, false);
         graphics.pose().popMatrix();
     }
 
-    private void renderAidsBackground(GuiGraphicsExtractor graphics) {
-        if (availableAids.isEmpty()) return;
-        int total = availableAids.size();
-        int rowSize = Math.min(total, AID_ROW_MAX);
-        int row = 0;
-        int col = 0;
-        for (ResourceKey<ITheorycraftAid> key : availableAids) {
-            int x = leftPos + AID_ANCHOR_X + AID_COL_STRIDE * col - rowSize * 10;
-            int y = topPos + AID_ROW_Y + AID_ROW_STRIDE * row;
-            boolean selected = selectedAids.contains(key);
-            if (selected) {
-                graphics.blit(
-                        RenderPipelines.GUI_TEXTURED,
-                        TCScreenTextures.GUI_BASE,
-                        x, y,
-                        (float) AID_SELECTED_U, (float) AID_SELECTED_V,
-                        AID_ICON_SIZE, AID_ICON_SIZE,
-                        AID_ICON_SIZE, AID_ICON_SIZE,
-                        TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE
-                );
-            }
-            aidHolder(key).ifPresent(holder -> {
-                ItemStack stack = holder.value().displayStack();
-                if (!stack.isEmpty()) {
-                    graphics.item(stack, x, y);
+    private void drawDuplicateButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        BlockEntityResearchTable table = table();
+        if (table == null || minecraft.player == null) {
+            return;
+        }
+        ResearchNoteData data = noteData();
+        if (data == null || !data.complete()
+                || !KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+            return;
+        }
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + DUPE_X, topPos + DUPE_Y,
+                (float) DUPE_U, (float) DUPE_V, DUPE_SIZE, DUPE_SIZE, 256, 256);
+        if (inRect(mouseX, mouseY, leftPos + DUPE_X, topPos + DUPE_Y, DUPE_SIZE, DUPE_SIZE)) {
+            List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable("tc.research.copy"));
+            AspectList cost = table.duplicationCost(minecraft.player, data);
+            if (cost != null) {
+                for (AspectInstance instance : cost.entries()) {
+                    lines.add(AspectComponents.name(instance.aspect()).copy()
+                            .append(Component.literal(" x" + instance.amount())));
                 }
-            });
-            col++;
-            if (col >= rowSize) {
-                row++;
-                col = 0;
+            }
+            graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
+        }
+    }
+
+    private void drawHelperButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.item(new ItemStack(TCItems.THAUMONOMICON.get()), leftPos + HELPER_X, topPos + HELPER_Y);
+        if (inRect(mouseX, mouseY, leftPos + HELPER_X, topPos + HELPER_Y, HELPER_SIZE, HELPER_SIZE)) {
+            graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.helper"), mouseX, mouseY);
+        }
+    }
+
+    private List<Holder<IAspect>> discoveredCompounds() {
+        List<Holder<IAspect>> result = new ArrayList<>();
+        for (Holder<IAspect> aspect : discoveredAspects()) {
+            if (aspect.value().components().size() == 2) {
+                result.add(aspect);
+            }
+        }
+        return result;
+    }
+
+    private void drawHelper(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        List<Holder<IAspect>> compounds = discoveredCompounds();
+        int start = helperPage * HELPER_ROWS;
+        for (int i = start, row = 0; i < compounds.size() && row < HELPER_ROWS; i++, row++) {
+            Holder<IAspect> compound = compounds.get(i);
+            List<Holder<IAspect>> parts = compound.value().components();
+            int y = topPos + SHEET_Y + HELPER_ROW_START_Y + row * HELPER_ROW_STRIDE;
+            int x = leftPos + SHEET_X + (SHEET_SIZE - HELPER_ROW_WIDTH) / 2;
+            drawHelperTag(graphics, parts.get(0), x, y, mouseX, mouseY);
+            graphics.text(font, "+", x + 20, y + 4, 0xFF3A2A1A, false);
+            drawHelperTag(graphics, parts.get(1), x + 28, y, mouseX, mouseY);
+            graphics.text(font, "=", x + 48, y + 4, 0xFF3A2A1A, false);
+            drawHelperTag(graphics, compound, x + 56, y, mouseX, mouseY);
+        }
+        int lastPage = Math.max(0, (compounds.size() - 1) / HELPER_ROWS);
+        int center = leftPos + SHEET_X + SHEET_SIZE / 2;
+        if (lastPage > 0) {
+            String label = (helperPage + 1) + "/" + (lastPage + 1);
+            graphics.text(font, label, center - font.width(label) / 2, topPos + HELPER_ARROW_Y, 0xFF3A2A1A, false);
+        }
+        if (helperPage > 0) {
+            int x = center - HELPER_PAGE_HALF_GAP - ARROW_W;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, topPos + HELPER_ARROW_Y,
+                    (float) ARROW_PREV_U, (float) ARROW_V, ARROW_W, ARROW_H, 256, 256);
+            if (inRect(mouseX, mouseY, x, topPos + HELPER_ARROW_Y, ARROW_W, ARROW_H)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.page.prev"), mouseX, mouseY);
+            }
+        }
+        if (helperPage < lastPage) {
+            int x = center + HELPER_PAGE_HALF_GAP;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, topPos + HELPER_ARROW_Y,
+                    (float) ARROW_NEXT_U, (float) ARROW_V, ARROW_W, ARROW_H, 256, 256);
+            if (inRect(mouseX, mouseY, x, topPos + HELPER_ARROW_Y, ARROW_W, ARROW_H)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.page.next"), mouseX, mouseY);
             }
         }
     }
 
-    private void renderAidsHoverOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        if (availableAids.isEmpty()) return;
-        int total = availableAids.size();
-        int rowSize = Math.min(total, AID_ROW_MAX);
-        int row = 0;
-        int col = 0;
-        ResourceKey<ITheorycraftAid> hoveredKey = null;
-        for (ResourceKey<ITheorycraftAid> key : availableAids) {
-            int x = leftPos + AID_ANCHOR_X + AID_COL_STRIDE * col - rowSize * 10;
-            int y = topPos + AID_ROW_Y + AID_ROW_STRIDE * row;
-            boolean hovered = mouseX >= x && mouseX < x + AID_ICON_SIZE
-                    && mouseY >= y && mouseY < y + AID_ICON_SIZE;
-            boolean selected = selectedAids.contains(key);
-            if (hovered && !selected) {
-                graphics.blit(
-                        RenderPipelines.GUI_TEXTURED,
-                        TCScreenTextures.GUI_BASE,
-                        x, y,
-                        (float) AID_HOVER_U, (float) AID_HOVER_V,
-                        AID_ICON_SIZE, AID_ICON_SIZE,
-                        AID_ICON_SIZE, AID_ICON_SIZE,
-                        TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                        AID_HOVER_TINT
-                );
+    private void drawHelperTag(GuiGraphicsExtractor graphics, Holder<IAspect> aspect, int x, int y, int mouseX, int mouseY) {
+        if (pool().isDiscovered(AspectPools.idOf(aspect))) {
+            AspectTagRenderer.render(graphics, font, (double) x, (double) y, aspect, 0, 0, 0.0,
+                    AspectTagRenderer.BlendMode.ALPHA, 1.0F, false);
+            if (inRect(mouseX, mouseY, x, y, 16, 16)) {
+                graphics.setTooltipForNextFrame(font, AspectComponents.name(aspect), mouseX, mouseY);
             }
-            if (hovered) {
-                hoveredKey = key;
-            }
-            col++;
-            if (col >= rowSize) {
-                row++;
-                col = 0;
-            }
-        }
-        if (hoveredKey != null) {
-            Holder.Reference<ITheorycraftAid> holder = aidHolder(hoveredKey).orElse(null);
-            if (holder != null) {
-                graphics.setTooltipForNextFrame(font, holder.value().description(), mouseX, mouseY);
-            }
+        } else {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, UNKNOWN_ASPECT, x, y,
+                    0.0F, 0.0F, 16, 16, 32, 32, 32, 32, ARGB.color(128, 0x000000));
         }
     }
 
-    private Optional<Holder.Reference<ITheorycraftAid>> aidHolder(ResourceKey<ITheorycraftAid> key) {
-        if (minecraft == null || minecraft.player == null) return Optional.empty();
-        return minecraft.player.registryAccess()
-                .lookup(TCTheorycraft.AIDS_REGISTRY_KEY)
-                .flatMap(lookup -> lookup.get(key));
-    }
-
-    private int aidIndexAt(double mx, double my) {
-        if (availableAids.isEmpty()) return -1;
-        int total = availableAids.size();
-        int rowSize = Math.min(total, AID_ROW_MAX);
-        int row = 0;
-        int col = 0;
-        int i = 0;
-        for (ResourceKey<ITheorycraftAid> key : availableAids) {
-            int x = leftPos + AID_ANCHOR_X + AID_COL_STRIDE * col - rowSize * 10;
-            int y = topPos + AID_ROW_Y + AID_ROW_STRIDE * row;
-            if (mx >= x && mx < x + AID_ICON_SIZE && my >= y && my < y + AID_ICON_SIZE) {
-                return i;
-            }
-            col++;
-            if (col >= rowSize) {
-                row++;
-                col = 0;
-            }
-            i++;
-        }
-        return -1;
-    }
-
-    private ResourceKey<ITheorycraftAid> aidAt(int index) {
-        int i = 0;
-        for (ResourceKey<ITheorycraftAid> key : availableAids) {
-            if (i == index) return key;
-            i++;
-        }
-        return null;
-    }
-
-    private void rescanAids() {
-        if (minecraft == null || minecraft.player == null) return;
-        availableAids.clear();
-        availableAids.addAll(AidScanner.scan(minecraft.player.level(), menu.pos()));
-        selectedAids.retainAll(availableAids);
-        availableInspiration = computeAvailableInspiration();
-        int budget = Math.max(0, availableInspiration - 1);
-        while (selectedAids.size() > budget) {
-            ResourceKey<ITheorycraftAid> last = null;
-            for (ResourceKey<ITheorycraftAid> key : selectedAids) last = key;
-            if (last == null) break;
-            selectedAids.remove(last);
-        }
-    }
-
-    private int computeAvailableInspiration() {
-        return TheorycraftManager.computeInspirationFor(minecraft.player);
-    }
-
-    private void renderNoSuppliesWarning(GuiGraphicsExtractor graphics, ResearchTableData data, int mouseX, int mouseY) {
-        if (data.inspirationStart() <= 0) return;
-        int y = topPos + WARNING_BASE_Y;
-        if (!menu.hasUsableScribeTools()) {
-            int sx = Math.max(
-                    font.width(TCTooltips.noInkLine0()),
-                    font.width(TCTooltips.noInkLine1())
-            ) / 2;
-            int x = leftPos - sx + WARNING_CENTER_X;
-            graphics.setTooltipForNextFrame(
-                    font,
-                    List.of(TCTooltips.noInkLine0(), TCTooltips.noInkLine1()),
-                    Optional.empty(),
-                    x,
-                    y);
-            y += WARNING_GAP_Y;
-        }
-        if (!menu.hasPaperReady()) {
-            int sx = font.width(TCTooltips.noPaperLine0()) / 2;
-            int x = leftPos - sx + WARNING_CENTER_X;
-            graphics.setTooltipForNextFrame(
-                    font,
-                    List.of(TCTooltips.noPaperLine0()),
-                    Optional.empty(),
-                    x,
-                    y);
-        }
-    }
-
-    private ResearchTableData sessionData() {
-        if (minecraft == null || minecraft.player == null) return null;
-        return TheorycraftAccess.of(minecraft.player) instanceof ResearchTableData rt ? rt : null;
-    }
-
-    private void renderInspirationRow(GuiGraphicsExtractor graphics, ResearchTableData data) {
-        int total = data.inspirationStart();
-        if (total <= 0) return;
-        int remaining = data.inspiration();
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(leftPos + INSPIRATION_ANCHOR_X - total * 5.0F, topPos + INSPIRATION_ANCHOR_Y);
-        graphics.pose().scale(INSPIRATION_SCALE, INSPIRATION_SCALE);
-        for (int i = 0; i < total; i++) {
-            int u = remaining <= i ? INK_BOTTLE_EMPTY_U : INK_BOTTLE_FILLED_U;
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    TCScreenTextures.GUI_BASE,
-                    INSPIRATION_STRIDE_PRESCALE * i, 0,
-                    (float) u, (float) INK_BOTTLE_V,
-                    INK_BOTTLE_SIZE, INK_BOTTLE_SIZE,
-                    INK_BOTTLE_SIZE, INK_BOTTLE_SIZE,
-                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE
-            );
-        }
-        graphics.pose().popMatrix();
-    }
-
-    private void renderBonusDraws(GuiGraphicsExtractor graphics, ResearchTableData data) {
-        int bonus = data.bonusDraws();
-        if (bonus <= 0) return;
-        for (int i = 0; i < bonus; i++) {
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    TCScreenTextures.GUI_BASE,
-                    leftPos + BONUS_DRAW_ANCHOR_X + i * BONUS_DRAW_STRIDE_X,
-                    topPos + BONUS_DRAW_ANCHOR_Y + i * BONUS_DRAW_STRIDE_Y,
-                    (float) BONUS_DRAW_U, (float) BONUS_DRAW_V,
-                    BONUS_DRAW_SIZE, BONUS_DRAW_SIZE,
-                    BONUS_DRAW_SIZE, BONUS_DRAW_SIZE,
-                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE
-            );
-        }
-    }
-
-    private void renderDeckOrCards(GuiGraphicsExtractor graphics, ResearchTableData data, int mouseX, int mouseY, float partialTick) {
-        List<ResearchTableData.CardChoice> choices = data.cardChoices();
-        if (choices.isEmpty()) {
-            renderDeck(graphics, data, mouseX, mouseY);
+    private void drawSheet(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, PARCHMENT, leftPos + SHEET_X, topPos + SHEET_Y,
+                0.0F, 0.0F, SHEET_SIZE, SHEET_SIZE, SHEET_SIZE, SHEET_SIZE, 256, 256);
+        if (helperOpen) {
+            drawHelper(graphics, mouseX, mouseY);
             return;
         }
-        HolderLookup.Provider registries = minecraft.player.registryAccess();
-        int count = Math.min(choices.size(), MAX_HAND_SIZE);
-        RenderedCard[] renderedCards = new RenderedCard[count];
-        int activeCompleteIndex = -1;
-        for (int i = 0; i < count; i++) {
-            ResearchTableData.CardChoice choice = choices.get(i);
-            boolean active = cardActive[i] || choice.selected();
-            float prevZoomIn = cardZoomIn[i];
-            updateCardAnimation(i, count, active, mouseX, mouseY, partialTick);
-            float dx = CARD_HALF_STRIDE + CARD_BASE_X - CARD_HALF_STRIDE * count + (float) CARD_STRIDE * i - DECK_ANCHOR_X;
-            float fx = leftPos + DECK_ANCHOR_X + dx * cardZoomOut[i];
-            float qx = leftPos + SAVED_CARD_ANCHOR_X - fx;
-            if (active) {
-                fx += qx * cardZoomIn[i];
+        ResearchNoteData data = noteData();
+        if (data == null) {
+            if (!hasInkReady()) {
+                drawInkWarning(graphics);
             }
-            float scale = CardSheetRenderer.DEFAULT_SCALE + cardZoomOut[i] * 2.0F - cardZoomIn[i] * 2.0F + cardHover[i];
-            float alphaActive = active ? 1.0F : 1.0F - cardZoomIn[i];
-            float tilt = Math.max(1.0F - cardZoomOut[i], cardZoomIn[i]);
-            renderedCards[i] = new RenderedCard(i, choice, active, fx, topPos + CARD_ANCHOR_Y, scale, tilt, alphaActive);
-            if (cardSelected && active && cardZoomIn[i] >= 1.0F && prevZoomIn < 1.0F) {
-                activeCompleteIndex = i;
+            return;
+        }
+        HexGrid.Hex hoveredHex = hexAt(mouseX, mouseY);
+        Map<HexGrid.Hex, ResearchNoteData.Cell> cells = new HashMap<>(data.cellMap());
+        drawConnections(graphics, data, cells);
+        for (ResearchNoteData.Cell cell : data.cells()) {
+            int cx = leftPos + HEX_ORIGIN_X + Math.round(cell.hex().pixelX(HEX_SIZE));
+            int cy = topPos + HEX_ORIGIN_Y + Math.round(cell.hex().pixelY(HEX_SIZE));
+            if (!data.complete() && cell.type() != ResearchNoteData.TYPE_ROOT) {
+                boolean hover = cell.hex().equals(hoveredHex);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, hover ? HEX_HOVER : HEX_IDLE,
+                        cx - HEX_TILE_HALF, cy - HEX_TILE_HALF,
+                        0.0F, 0.0F, 16, 16, 32, 32, 32, 32,
+                        ARGB.color(hover ? 255 : 64, 0xFFFFFF));
             }
-        }
-        int activeIndex = activeCardIndex(renderedCards);
-        for (RenderedCard rendered : renderedCards) {
-            if (rendered.index() != activeIndex) {
-                renderCard(graphics, registries, rendered);
-            }
-        }
-        if (activeIndex >= 0) {
-            renderCard(graphics, registries, renderedCards[activeIndex]);
-        }
-        if (activeCompleteIndex >= 0) {
-            playLocalSound(TCSounds.WRITE.get(), WRITE_SOUND_VOLUME, SOUND_PITCH);
-            ClientPacketDistributor.sendToServer(ServerboundCardAnimationCompletePayload.INSTANCE);
-        }
-    }
-
-    private void renderCardItemTooltips(GuiGraphicsExtractor graphics, ResearchTableData data, int mouseX, int mouseY) {
-        if (cardSelected) return;
-        List<ResearchTableData.CardChoice> choices = data.cardChoices();
-        if (choices.isEmpty()) return;
-        HolderLookup.Provider registries = minecraft.player.registryAccess();
-        int count = Math.min(choices.size(), MAX_HAND_SIZE);
-        for (int i = 0; i < count; i++) {
-            if (cardZoomOut[i] < 1.0F) continue;
-            ResearchTableData.CardChoice choice = choices.get(i);
-            TheorycraftCard card = choice.hydrate(registries);
-            if (card == null) continue;
-            List<TheorycraftCard.CardItemRequirement> items = card.requiredItems();
-            if (items.isEmpty()) continue;
-            float dx = CARD_HALF_STRIDE + CARD_BASE_X - CARD_HALF_STRIDE * count + (float) CARD_STRIDE * i - DECK_ANCHOR_X;
-            float centerX = leftPos + DECK_ANCHOR_X + dx * cardZoomOut[i];
-            float centerY = topPos + CARD_ANCHOR_Y;
-            int itemCount = items.size();
-            for (int a = 0; a < itemCount; a++) {
-                int hitX = (int) (centerX - 9 * itemCount + CARD_ITEM_STRIDE * a);
-                int hitY = (int) (centerY + CARD_ITEM_HIT_OFFSET_Y);
-                if (mouseX < hitX || mouseX >= hitX + CARD_ITEM_HIT_SIZE) continue;
-                if (mouseY < hitY || mouseY >= hitY + CARD_ITEM_HIT_SIZE) continue;
-                ItemStack stack = items.get(a).stack();
-                if (!stack.isEmpty()) {
-                    graphics.setTooltipForNextFrame(font, stack, mouseX, mouseY);
+            Holder<IAspect> aspect = cell.aspectOrNull();
+            if (aspect != null) {
+                if (!pool().isDiscovered(AspectPools.idOf(aspect))) {
+                    graphics.blit(RenderPipelines.GUI_TEXTURED, UNKNOWN_ASPECT, cx + ORB_OFFSET, cy + ORB_OFFSET,
+                            0.0F, 0.0F, 16, 16, 32, 32, 32, 32, ARGB.color(128, 0x000000));
+                    if (cell.hex().equals(hoveredHex)) {
+                        graphics.setTooltipForNextFrame(font, Component.translatable("tc.aspect.unknown"), mouseX, mouseY);
+                    }
                 } else {
-                    graphics.setTooltipForNextFrame(font, TCTooltips.cardUnknown(), mouseX, mouseY);
+                    float alpha = 1.0F;
+                    AspectTagRenderer.render(graphics, font, (double) (cx + ORB_OFFSET), (double) (cy + ORB_OFFSET),
+                            aspect, 0, 0, 0.0, AspectTagRenderer.BlendMode.ALPHA, alpha, false);
+                    if (cell.hex().equals(hoveredHex) && draggedAspect == null) {
+                        graphics.setTooltipForNextFrame(font, aspectTooltip(aspect), Optional.empty(), mouseX, mouseY);
+                    }
                 }
             }
         }
-    }
-
-    private void renderCard(GuiGraphicsExtractor graphics, HolderLookup.Provider registries, RenderedCard card) {
-        if (card == null) return;
-        CardSheetRenderer.render(
-                graphics, font, registries,
-                card.centerX(), card.centerY(),
-                card.scale(), card.tilt(), card.alpha(),
-                card.choice()
-        );
-    }
-
-    private int activeCardIndex(RenderedCard[] renderedCards) {
-        if (!cardSelected) return -1;
-        for (RenderedCard rendered : renderedCards) {
-            if (rendered != null && rendered.active()) return rendered.index();
-        }
-        return -1;
-    }
-
-    private void updateCardAnimation(int index, int count, boolean active, int mouseX, int mouseY, float partialTick) {
-        if (cardZoomOut[index] >= HOVER_ACTIVATE_THRESHOLD && !cardSelected) {
-            double hitX = leftPos + CARD_HIT_OFFSET_X + CARD_BASE_X - CARD_HALF_STRIDE * count + (double) CARD_STRIDE * index;
-            double hitY = topPos + CARD_ANCHOR_Y + CARD_HIT_OFFSET_Y;
-            boolean hovered = mouseX >= hitX && mouseY >= hitY
-                    && mouseX < hitX + CardSheetRenderer.CARD_HIT_WIDTH
-                    && mouseY < hitY + CardSheetRenderer.CARD_HIT_HEIGHT;
-            if (hovered) {
-                cardHover[index] += Math.max((HOVER_MAX - cardHover[index]) * HOVER_TICK_FRACTION * partialTick, MIN_TICK_DELTA);
-            } else {
-                cardHover[index] -= HOVER_DECAY_PER_TICK * partialTick;
-            }
-        }
-        boolean nextIsRevealed = index == count - 1 || cardZoomOut[index + 1] > ZOOM_GATE;
-        if (nextIsRevealed) {
-            float prev = cardZoomOut[index];
-            cardZoomOut[index] += Math.max((1.0F - cardZoomOut[index]) * ZOOM_OUT_TICK_FRACTION * partialTick, MIN_TICK_DELTA);
-            if (!cardZoomOutStarted[index] && cardZoomOut[index] > 0.0F && prev == 0.0F) {
-                cardZoomOutStarted[index] = true;
-                playLocalSound(TCSounds.PAGE.get(), 1.0F, SOUND_PITCH);
-            }
-        }
-        if (cardSelected) {
-            float delta = active
-                    ? Math.max((1.0F - cardZoomIn[index]) * ZOOM_IN_TICK_FRACTION * partialTick, MIN_TICK_DELTA)
-                    : ZOOM_INACTIVE_TICK_RATE * partialTick;
-            cardZoomIn[index] += delta;
-            cardHover[index] = 1.0F - cardZoomIn[index];
-        }
-        cardZoomIn[index] = Mth.clamp(cardZoomIn[index], 0.0F, 1.0F);
-        cardHover[index] = Mth.clamp(cardHover[index], 0.0F, HOVER_MAX);
-        cardZoomOut[index] = Mth.clamp(cardZoomOut[index], 0.0F, 1.0F);
-    }
-
-    private void renderDeck(GuiGraphicsExtractor graphics, ResearchTableData data, int mouseX, int mouseY) {
-        if (data.isComplete()) return;
-        int paperCount = menu.tableItems().getAmountAsInt(1);
-        if (paperCount <= 0) return;
-        int sheets = 1 + paperCount / DECK_SHEETS_PER_PAPER;
-        Random r = new Random(DECK_SHEET_SEED);
-        for (int i = 0; i < sheets; i++) {
-            CardSheetRenderer.renderBlank(graphics,
-                    leftPos + DECK_ANCHOR_X, topPos + DECK_ANCHOR_Y,
-                    CardSheetRenderer.DEFAULT_SCALE, 1.0F, 1.0F,
-                    r.nextLong(), false);
-        }
-        int hitOriginX = leftPos + DECK_HIT_OFFSET_X;
-        int hitOriginY = topPos + DECK_HIT_OFFSET_Y;
-        boolean highlight = mouseX >= hitOriginX && mouseY >= hitOriginY
-                && mouseX < hitOriginX + DECK_HIT_W
-                && mouseY < hitOriginY + DECK_HIT_H;
-        float scale = highlight ? QUESTION_SCALE_HOVER : QUESTION_SCALE_INACTIVE;
-        float alpha = highlight ? QUESTION_ALPHA_HOVER : QUESTION_ALPHA_INACTIVE;
-        int color = packAlpha(alpha);
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(leftPos + DECK_ANCHOR_X, topPos + DECK_ANCHOR_Y);
-        graphics.pose().scale(scale, scale);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED,
-                QUESTION_TEXTURE,
-                -QUESTION_HALF, -QUESTION_HALF,
-                0.0F, 0.0F,
-                QUESTION_QUAD_SIZE, QUESTION_QUAD_SIZE,
-                QUESTION_SRC_SIZE, QUESTION_SRC_SIZE,
-                QUESTION_TEXTURE_SIZE, QUESTION_TEXTURE_SIZE,
-                color
-        );
-        graphics.pose().popMatrix();
-    }
-
-    private static int packAlpha(float alpha) {
-        int a = Math.max(0, Math.min(255, Math.round(alpha * 255.0F)));
-        return (a << 24) | 0xFFFFFF;
-    }
-
-    private void renderSavedCards(GuiGraphicsExtractor graphics, ResearchTableData data) {
-        for (long seed : data.savedCards()) {
-            CardSheetRenderer.renderBlank(graphics,
-                    leftPos + SAVED_CARD_ANCHOR_X, topPos + SAVED_CARD_ANCHOR_Y,
-                    CardSheetRenderer.DEFAULT_SCALE, 1.0F, 1.0F,
-                    seed, false);
+        if (!hasInkReady()) {
+            drawInkWarning(graphics);
         }
     }
 
-    private void renderLastDraw(GuiGraphicsExtractor graphics, ResearchTableData data) {
-        ResearchTableData.CardChoice last = data.lastDraw();
-        if (last == null) return;
-        HolderLookup.Provider registries = minecraft.player.registryAccess();
-        CardSheetRenderer.render(graphics, font, registries,
-                leftPos + SAVED_CARD_ANCHOR_X, topPos + SAVED_CARD_ANCHOR_Y,
-                CardSheetRenderer.DEFAULT_SCALE, 1.0F, 1.0F,
-                last);
-    }
-
-    private void renderCategorySidebar(GuiGraphicsExtractor graphics, ResearchTableData data) {
-        Map<ResourceKey<IResearchCategory>, Integer> sorted = sortedTempCategoryTotals();
-        if (sorted.isEmpty()) return;
-        int i = 0;
-        for (Map.Entry<ResourceKey<IResearchCategory>, Integer> entry : sorted.entrySet()) {
-            int iconGap = i > 0 ? CATEGORY_SIDEBAR_GAP : 0;
-            int textGap = i > data.penaltyStart() ? CATEGORY_SIDEBAR_GAP : 0;
-            int iconX = leftPos + CATEGORY_SIDEBAR_X;
-            int iconY = topPos + CATEGORY_SIDEBAR_Y + i * CATEGORY_SIDEBAR_STRIDE + iconGap;
-            int textX = leftPos + CATEGORY_SIDEBAR_X + CATEGORY_LABEL_OFFSET_X;
-            int textY = topPos + CATEGORY_SIDEBAR_Y + CATEGORY_LABEL_OFFSET_Y + i * CATEGORY_SIDEBAR_STRIDE + textGap;
-            int percent = entry.getValue();
-            ResourceKey<IResearchCategory> key = entry.getKey();
-            int color = data.isCategoryBlocked(key)
-                    ? CATEGORY_LABEL_COLOR_BLOCKED
-                    : (i <= data.penaltyStart()
-                            ? CATEGORY_LABEL_COLOR_NORMAL
-                            : CATEGORY_LABEL_COLOR_PENALTY);
-            minecraft.player.registryAccess().lookup(IResearchCategory.REGISTRY_KEY).flatMap(lookup -> lookup.get(key)).ifPresent(holder -> {
-                graphics.pose().pushMatrix();
-                graphics.pose().translate(iconX, iconY);
-                graphics.pose().scale(CATEGORY_ICON_SCALE, CATEGORY_ICON_SCALE);
-                graphics.blit(
-                        RenderPipelines.GUI_TEXTURED,
-                        holder.value().icon(),
-                        0, 0,
-                        0.0F, 0.0F,
-                        TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                        TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                        TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE
-                );
-                graphics.pose().popMatrix();
-            });
-            String label = percent + "%";
-            if (i > data.penaltyStart()) {
-                int q = percent / 3;
-                label = label + " (-" + q + ")";
-            }
-            graphics.text(font, Component.literal(label), textX, textY, color, true);
-            i++;
-        }
-    }
-
-    private void renderCategorySidebarTooltip(GuiGraphicsExtractor graphics, ResearchTableData data, int mouseX, int mouseY) {
-        Map<ResourceKey<IResearchCategory>, Integer> sorted = sortedTempCategoryTotals();
-        if (sorted.isEmpty()) return;
-        int i = 0;
-        for (Map.Entry<ResourceKey<IResearchCategory>, Integer> entry : sorted.entrySet()) {
-            int textGap = i > data.penaltyStart() ? CATEGORY_SIDEBAR_GAP : 0;
-            int hitX = leftPos + CATEGORY_SIDEBAR_X + CATEGORY_ICON_HIT_OFFSET_X;
-            int hitY = topPos + CATEGORY_SIDEBAR_Y + i * CATEGORY_SIDEBAR_STRIDE + textGap;
-            if (mouseX >= hitX && mouseX < hitX + CATEGORY_ICON_HIT_SIZE
-                    && mouseY >= hitY && mouseY < hitY + CATEGORY_ICON_HIT_SIZE) {
-                graphics.setTooltipForNextFrame(font, TCTooltips.categoryName(entry.getKey()), mouseX, mouseY);
-                return;
-            }
-            i++;
-        }
-    }
-
-    private Map<ResourceKey<IResearchCategory>, Integer> sortedTempCategoryTotals() {
-        if (tempCatTotals.isEmpty()) return Map.of();
-        Map<ResourceKey<IResearchCategory>, Integer> filtered = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<IResearchCategory>, Integer> entry : tempCatTotals.entrySet()) {
-            if (entry.getValue() != 0) {
-                filtered.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return filtered.entrySet().stream()
-                .sorted(Map.Entry.<ResourceKey<IResearchCategory>, Integer>comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> a,
-                        LinkedHashMap::new));
-    }
-
-    private void tickTempCategoryTotals(ResearchTableData data) {
-        if (minecraft == null || minecraft.player == null) return;
-        sparkleQueue.clear();
-        Set<ResourceKey<IResearchCategory>> all = new LinkedHashSet<>(tempCatTotals.keySet());
-        all.addAll(data.categoriesWithTotal());
-        minecraft.player.registryAccess().lookup(IResearchCategory.REGISTRY_KEY).ifPresent(lookup ->
-                lookup.listElements().forEach(holder -> holder.unwrapKey().ifPresent(all::add)));
-        for (ResourceKey<IResearchCategory> key : all) {
-            int t0 = data.categoryTotal(key);
-            Integer current = tempCatTotals.get(key);
-            int t1 = current == null ? 0 : current;
-            if (t0 == 0 && t1 == 0) {
-                tempCatTotals.remove(key);
+    private void drawConnections(GuiGraphicsExtractor graphics, ResearchNoteData data,
+                                 Map<HexGrid.Hex, ResearchNoteData.Cell> cells) {
+        for (ResearchNoteData.Cell cell : data.cells()) {
+            if (!cell.active()) {
                 continue;
             }
-            if (t1 > t0) {
-                t1--;
-            }
-            if (t1 < t0) {
-                t1++;
-                sparkleQueue.add(key);
-            }
-            tempCatTotals.put(key, t1);
-        }
-    }
-
-    @Override
-    protected void init() {
-        super.init();
-        createButton = TCImageButton.centered(
-                leftPos + CREATE_BUTTON_X, topPos + CREATE_BUTTON_Y,
-                BUTTON_W, BUTTON_H,
-                TCScreenTextures.GUI_BASE,
-                BUTTON_FACE_U, BUTTON_FACE_V,
-                BUTTON_FACE_W, BUTTON_FACE_H,
-                TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                Component.translatable("button.thaumcraft.create_theory"),
-                () -> {
-                    playLocalSound(TCSounds.CLACK.get(), CLACK_SOUND_VOLUME, SOUND_PITCH);
-                    ClientPacketDistributor.sendToServer(new ServerboundStartTheoryPayload(new ArrayList<>(selectedAids)));
+            for (int dir = 0; dir < 3; dir++) {
+                HexGrid.Hex neighbour = cell.hex().neighbour(dir);
+                ResearchNoteData.Cell other = cells.get(neighbour);
+                if (other == null || !other.active()) {
+                    continue;
                 }
-        );
-        createButton.setTintColor(CREATE_BUTTON_TINT);
-        completeButton = TCImageButton.centered(
-                leftPos + COMPLETE_BUTTON_X, topPos + COMPLETE_BUTTON_Y,
-                BUTTON_W, BUTTON_H,
-                TCScreenTextures.GUI_BASE,
-                BUTTON_FACE_U, BUTTON_FACE_V,
-                BUTTON_FACE_W, BUTTON_FACE_H,
-                TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                Component.translatable("button.thaumcraft.complete_theory"),
-                () -> {
-                    playLocalSound(TCSounds.CLACK.get(), CLACK_SOUND_VOLUME, SOUND_PITCH);
-                    tempCatTotals.clear();
-                    sparkleQueue.clear();
-                    ClientPacketDistributor.sendToServer(new ServerboundTableActionPayload(ServerboundTableActionPayload.Action.COMPLETE));
+                if (NoteRules.connects(cell.aspectOrNull(), other.aspectOrNull(),
+                        a -> pool().isDiscovered(AspectPools.idOf(a)))) {
+                    int x1 = leftPos + HEX_ORIGIN_X + Math.round(cell.hex().pixelX(HEX_SIZE));
+                    int y1 = topPos + HEX_ORIGIN_Y + Math.round(cell.hex().pixelY(HEX_SIZE));
+                    int x2 = leftPos + HEX_ORIGIN_X + Math.round(neighbour.pixelX(HEX_SIZE));
+                    int y2 = topPos + HEX_ORIGIN_Y + Math.round(neighbour.pixelY(HEX_SIZE));
+                    drawLine(graphics, x1, y1, x2, y2);
                 }
-        );
-        completeButton.setTintColor(COMPLETE_BUTTON_TINT);
-        scrapButton = TCImageButton.centered(
-                leftPos + SCRAP_BUTTON_X, topPos + SCRAP_BUTTON_Y,
-                BUTTON_W, BUTTON_H,
-                TCScreenTextures.GUI_BASE,
-                BUTTON_FACE_U, BUTTON_FACE_V,
-                BUTTON_FACE_W, BUTTON_FACE_H,
-                TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                Component.translatable("button.thaumcraft.scrap_theory"),
-                () -> {
-                    playLocalSound(TCSounds.CLACK.get(), CLACK_SOUND_VOLUME, SOUND_PITCH);
-                    tempCatTotals.clear();
-                    sparkleQueue.clear();
-                    ClientPacketDistributor.sendToServer(new ServerboundTableActionPayload(ServerboundTableActionPayload.Action.SCRAP));
-                }
-        );
-        scrapButton.setTintColor(SCRAP_BUTTON_TINT);
-        addRenderableWidget(createButton);
-        addRenderableWidget(completeButton);
-        addRenderableWidget(scrapButton);
-        updateButtonVisibility();
-    }
-
-    private void updateButtonVisibility() {
-        ResearchTableData data = sessionData();
-        boolean inSession = data != null && data.inspirationStart() > 0;
-        boolean complete = data != null && data.isComplete();
-        createButton.visible = !inSession;
-        createButton.active = !inSession && menu.hasUsableScribeTools() && menu.hasPaperReady();
-        completeButton.visible = inSession && complete;
-        completeButton.active = inSession && complete;
-        scrapButton.visible = inSession && !complete;
-        scrapButton.active = inSession && !complete;
-    }
-
-    @Override
-    public void containerTick() {
-        super.containerTick();
-        updateButtonVisibility();
-        syncCardAnimationState();
-        tickAidScan();
-        tickTempCategoryTotals();
-    }
-
-    private void tickTempCategoryTotals() {
-        ResearchTableData data = sessionData();
-        if (data == null || data.inspirationStart() <= 0) {
-            tempCatTotals.clear();
-            sparkleQueue.clear();
-            return;
-        }
-        tickTempCategoryTotals(data);
-    }
-
-    private void tickAidScan() {
-        ResearchTableData data = sessionData();
-        boolean inSession = data != null && data.inspirationStart() > 0;
-        if (inSession) {
-            availableAids.clear();
-            selectedAids.clear();
-            aidScanTickTimer = 0;
-            return;
-        }
-        if (aidScanTickTimer <= 0) {
-            rescanAids();
-            aidScanTickTimer = AID_SCAN_INTERVAL_TICKS;
-        } else {
-            aidScanTickTimer--;
-        }
-    }
-
-    private void syncCardAnimationState() {
-        syncCardAnimationState(sessionData());
-    }
-
-    private void syncCardAnimationState(ResearchTableData data) {
-        if (data == null) {
-            previousHandSignature = 0;
-            resetCardAnimations();
-            return;
-        }
-        List<ResearchTableData.CardChoice> choices = data.cardChoices();
-        int signature = handSignature(choices);
-        if (signature != previousHandSignature) {
-            previousHandSignature = signature;
-            resetCardAnimations();
-        }
-        int selectedIndex = selectedCardIndex(choices);
-        if (selectedIndex >= 0) {
-            for (int i = 0; i < MAX_HAND_SIZE; i++) {
-                cardActive[i] = i < choices.size() && i < MAX_HAND_SIZE && choices.get(i).selected();
             }
-            if (!cardSelected && !cardSelectedSoundPlayed) {
-                playLocalSound(TCSounds.PAGETURN.get(), 1.0F, SOUND_PITCH);
-                cardSelectedSoundPlayed = true;
+        }
+    }
+
+    private void drawLine(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2) {
+        int color = ARGB.color((int) (LINE_ALPHA * 255.0F), 0, 153, 204);
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        int length = Math.round(Mth.sqrt(dx * dx + dy * dy));
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(x1, y1);
+        graphics.pose().rotate((float) Math.atan2(dy, dx));
+        graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, LINE_TEXTURE,
+                0, -LINE_HALF_WIDTH, 0.0F, 0.0F, length, LINE_HALF_WIDTH * 2, 4, 4, 4, 4, color);
+        graphics.pose().popMatrix();
+    }
+
+    private void drawInkWarning(GuiGraphicsExtractor graphics) {
+        Component line0 = Component.translatable("tile.researchtable.noink.0");
+        Component line1 = Component.translatable("tile.researchtable.noink.1");
+        int x = leftPos + SHEET_X + SHEET_SIZE / 2;
+        int y = topPos + INK_WARN_Y;
+        graphics.text(font, line0, x - font.width(line0) / 2, y - font.lineHeight, 0xFFFF5555, true);
+        graphics.text(font, line1, x - font.width(line1) / 2, y, 0xFFFF5555, true);
+    }
+
+    private void drawSlotHints(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (menu.getCarried().isEmpty() && draggedAspect == null) {
+            if (menu.slots.get(0).getItem().isEmpty()
+                    && inRect(mouseX, mouseY, leftPos + MenuResearchTable.SCRIBE_TOOLS_X, topPos + MenuResearchTable.SCRIBE_TOOLS_Y, 16, 16)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.slot.tools"), mouseX, mouseY);
+            } else if (menu.slots.get(1).getItem().isEmpty()
+                    && inRect(mouseX, mouseY, leftPos + MenuResearchTable.NOTE_X, topPos + MenuResearchTable.NOTE_Y, 16, 16)) {
+                graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.slot.note"), mouseX, mouseY);
             }
-            cardSelected = true;
-        } else if (cardSelected) {
-            resetCardAnimations();
         }
     }
 
-    private void playLocalSound(SoundEvent sound, float volume, float pitch) {
-        if (minecraft == null || minecraft.player == null) return;
-        minecraft.player.playSound(sound, volume, pitch);
-    }
-
-    private static int selectedCardIndex(List<ResearchTableData.CardChoice> choices) {
-        int count = Math.min(choices.size(), MAX_HAND_SIZE);
-        for (int i = 0; i < count; i++) {
-            if (choices.get(i).selected()) return i;
+    private void drawDragged(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        if (draggedAspect != null) {
+            AspectTagRenderer.render(graphics, font, (double) (mouseX - 8), (double) (mouseY - 8),
+                    draggedAspect, 0, 0, 0.0, AspectTagRenderer.BlendMode.ALPHA, 1.0F, false);
         }
-        return -1;
     }
 
-    private static int handSignature(List<ResearchTableData.CardChoice> choices) {
-        int count = Math.min(choices.size(), MAX_HAND_SIZE);
-        int hash = count;
-        for (int i = 0; i < count; i++) {
-            ResearchTableData.CardChoice choice = choices.get(i);
-            hash = 31 * hash + choice.key().hashCode();
-            hash = 31 * hash + Long.hashCode(choice.seed());
-            hash = 31 * hash + Boolean.hashCode(choice.fromAid());
+    private HexGrid.@Nullable Hex hexAt(double mouseX, double mouseY) {
+        if (mouseX < leftPos + SHEET_X || mouseX >= leftPos + SHEET_X + SHEET_SIZE
+                || mouseY < topPos + SHEET_Y || mouseY >= topPos + SHEET_Y + SHEET_SIZE) {
+            return null;
         }
-        return hash;
+        float relX = (float) (mouseX - leftPos - HEX_ORIGIN_X);
+        float relY = (float) (mouseY - topPos - HEX_ORIGIN_Y);
+        return HexGrid.pixelToHex(relX, relY, HEX_SIZE);
     }
 
-    private record RenderedCard(
-            int index,
-            ResearchTableData.CardChoice choice,
-            boolean active,
-            float centerX,
-            float centerY,
-            float scale,
-            float tilt,
-            float alpha
-    ) {}
+    private @Nullable Holder<IAspect> paletteAspectAt(double mouseX, double mouseY) {
+        if (mouseX < leftPos + PALETTE_X || mouseX >= leftPos + PALETTE_X + PALETTE_W
+                || mouseY < topPos + PALETTE_Y || mouseY >= topPos + PALETTE_Y + PALETTE_H) {
+            return null;
+        }
+        int col = (int) ((mouseX - leftPos - PALETTE_X) / PALETTE_CELL);
+        int row = (int) ((mouseY - topPos - PALETTE_Y) / PALETTE_CELL);
+        int index = page * PAGE_STEP + col * PALETTE_ROWS + row;
+        List<Holder<IAspect>> aspects = discoveredAspects();
+        return index >= 0 && index < aspects.size() ? aspects.get(index) : null;
+    }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == 0 && minecraft != null && minecraft.player != null) {
-            ResearchTableData data = sessionData();
-            boolean inSession = data != null && data.inspirationStart() > 0;
-            if (!inSession) {
-                int aidIndex = aidIndexAt(event.x(), event.y());
-                if (aidIndex >= 0) {
-                    toggleAid(aidIndex);
-                    return true;
-                }
-            } else if (!cardSelected) {
-                int hitCard = hitCard(event.x(), event.y());
-                if (hitCard >= 0) {
-                    if (menu.hasUsableScribeTools()) {
-                        ClientPacketDistributor.sendToServer(new ServerboundPlayCardPayload(hitCard));
+        double mx = event.x();
+        double my = event.y();
+        if (event.button() == 0) {
+            if (inRect(mx, my, leftPos + HELPER_X, topPos + HELPER_Y, HELPER_SIZE, HELPER_SIZE)) {
+                helperOpen = !helperOpen;
+                playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
+                return true;
+            }
+            if (helperOpen && handleHelperArrows(mx, my)) {
+                return true;
+            }
+            if (handleArrows(mx, my) || handleCombineButton(mx, my)
+                    || handleSelectRemove(mx, my) || handleDuplicate(mx, my)) {
+                return true;
+            }
+            Holder<IAspect> palette = paletteAspectAt(mx, my);
+            if (palette != null) {
+                if (Minecraft.getInstance().hasShiftDown() && !palette.value().isPrimal() && minecraft.player != null
+                        && KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_MASTERY)) {
+                    List<Holder<IAspect>> components = palette.value().components();
+                    if (components.size() == 2) {
+                        select1 = components.get(0);
+                        select2 = components.get(1);
+                        playSound(TCSounds.HHON.get(), 0.2F, 1.0F);
+                        return true;
                     }
-                    return true;
                 }
-                if (data.cardChoices().isEmpty() && hitDeck(event.x(), event.y()) && menu.hasPaperReady()) {
-                    ClientPacketDistributor.sendToServer(ServerboundDrawCardsPayload.INSTANCE);
-                    return true;
+                if (availableOf(palette) > 0) {
+                    draggedAspect = palette;
+                    playSound(TCSounds.HHOFF.get(), 0.2F, 1.0F);
+                }
+                return true;
+            }
+            HexGrid.Hex hex = hexAt(mx, my);
+            if (hex != null && draggedAspect == null) {
+                ResearchNoteData data = noteData();
+                if (data != null && !data.complete()) {
+                    ResearchNoteData.Cell cell = data.cellAt(hex);
+                    if (cell != null && cell.type() == ResearchNoteData.TYPE_PLACED) {
+                        ClientPacketDistributor.sendToServer(new ServerboundTablePlaceAspectPayload(
+                                menu.pos(), hex.q(), hex.r(), Optional.empty()));
+                        playSound(TCSounds.ERASE.get(), 0.2F, 1.0F);
+                        return true;
+                    }
                 }
             }
         }
         return super.mouseClicked(event, doubleClick);
     }
 
-    private boolean hitDeck(double mx, double my) {
-        double hitOriginX = leftPos + DECK_HIT_OFFSET_X;
-        double hitOriginY = topPos + DECK_HIT_OFFSET_Y;
-        return mx >= hitOriginX && my >= hitOriginY
-                && mx < hitOriginX + DECK_HIT_W
-                && my < hitOriginY + DECK_HIT_H;
-    }
-
-    private void toggleAid(int aidIndex) {
-        ResourceKey<ITheorycraftAid> key = aidAt(aidIndex);
-        if (key == null) return;
-        if (selectedAids.contains(key)) {
-            selectedAids.remove(key);
-            return;
-        }
-        if (selectedAids.size() + 1 < availableInspiration) {
-            selectedAids.add(key);
-        }
-    }
-
-    private int hitCard(double mx, double my) {
-        ResearchTableData data = sessionData();
-        if (data == null) return -1;
-        List<ResearchTableData.CardChoice> choices = data.cardChoices();
-        int count = Math.min(choices.size(), MAX_HAND_SIZE);
-        for (int i = 0; i < count; i++) {
-            if (cardZoomOut[i] < HOVER_ACTIVATE_THRESHOLD || cardSelected) continue;
-            double cardX = leftPos + CARD_HIT_OFFSET_X + CARD_BASE_X - CARD_HALF_STRIDE * count + (double) CARD_STRIDE * i;
-            double cardY = topPos + CARD_ANCHOR_Y + CARD_HIT_OFFSET_Y;
-            if (mx >= cardX && mx < cardX + CardSheetRenderer.CARD_HIT_WIDTH
-                    && my >= cardY && my < cardY + CardSheetRenderer.CARD_HIT_HEIGHT) {
-                return i;
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() == 0 && draggedAspect != null) {
+            double mx = event.x();
+            double my = event.y();
+            HexGrid.Hex hex = hexAt(mx, my);
+            ResearchNoteData data = noteData();
+            if (hex != null && data != null && !data.complete()) {
+                ResearchNoteData.Cell cell = data.cellAt(hex);
+                if (cell != null && cell.type() == ResearchNoteData.TYPE_BLANK) {
+                    ClientPacketDistributor.sendToServer(new ServerboundTablePlaceAspectPayload(
+                            menu.pos(), hex.q(), hex.r(), Optional.of(AspectPools.idOf(draggedAspect))));
+                    playSound(TCSounds.WRITE.get(), 0.2F, 1.0F);
+                }
+            } else if (inRect(mx, my, leftPos + SELECT1_HIT_X - 8, topPos + SELECT_HIT_Y - 8,
+                    SELECT_SIZE * 2, SELECT_SIZE * 2)) {
+                select1 = draggedAspect;
+            } else if (inRect(mx, my, leftPos + SELECT2_HIT_X - 8, topPos + SELECT_HIT_Y - 8,
+                    SELECT_SIZE * 2, SELECT_SIZE * 2)) {
+                select2 = draggedAspect;
             }
+            draggedAspect = null;
+            return true;
         }
-        return -1;
+        return super.mouseReleased(event);
     }
 
-    @Override
-    public void onClose() {
-        ClientPacketDistributor.sendToServer(ServerboundEndSessionPayload.INSTANCE);
-        super.onClose();
-    }
-
-    @Override
-    public boolean isPauseScreen() {
+    private boolean handleHelperArrows(double mx, double my) {
+        int lastPage = Math.max(0, (discoveredCompounds().size() - 1) / HELPER_ROWS);
+        int center = leftPos + SHEET_X + SHEET_SIZE / 2;
+        if (helperPage > 0 && inRect(mx, my, center - HELPER_PAGE_HALF_GAP - ARROW_W, topPos + HELPER_ARROW_Y, ARROW_W, ARROW_H)) {
+            helperPage--;
+            playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
+            return true;
+        }
+        if (helperPage < lastPage && inRect(mx, my, center + HELPER_PAGE_HALF_GAP, topPos + HELPER_ARROW_Y, ARROW_W, ARROW_H)) {
+            helperPage++;
+            playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
+            return true;
+        }
         return false;
+    }
+
+    private boolean handleArrows(double mx, double my) {
+        int lastPage = lastPage(discoveredAspects().size());
+        if (page > 0 && inRect(mx, my, leftPos + ARROW_PREV_X, topPos + ARROW_Y, ARROW_W, ARROW_H)) {
+            page--;
+            playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
+            return true;
+        }
+        if (page < lastPage && inRect(mx, my, leftPos + ARROW_NEXT_X, topPos + ARROW_Y, ARROW_W, ARROW_H)) {
+            page++;
+            playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleCombineButton(double mx, double my) {
+        if (select1 == null || select2 == null
+                || !inRect(mx, my, leftPos + COMBINE_X, topPos + COMBINE_Y, COMBINE_W, COMBINE_H)) {
+            return false;
+        }
+        if (System.currentTimeMillis() < combineCooldownUntil) {
+            return true;
+        }
+        combineCooldownUntil = System.currentTimeMillis() + COMBINE_COOLDOWN_MS;
+        BlockEntityResearchTable table = table();
+        boolean bonus1 = table != null && pool().amount(AspectPools.idOf(select1)) <= 0
+                && table.bonusAspects().amountOf(select1) > 0;
+        boolean bonus2 = table != null && pool().amount(AspectPools.idOf(select2)) <= 0
+                && table.bonusAspects().amountOf(select2) > 0;
+        ClientPacketDistributor.sendToServer(new ServerboundTableCombinePayload(
+                menu.pos(), AspectPools.idOf(select1), AspectPools.idOf(select2), bonus1, bonus2));
+        playSound(TCSounds.HHON.get(), 0.3F, 1.0F);
+        select1 = null;
+        select2 = null;
+        return true;
+    }
+
+    private boolean handleSelectRemove(double mx, double my) {
+        if (select1 != null && inRect(mx, my, leftPos + SELECT1_HIT_X, topPos + SELECT_HIT_Y, SELECT_SIZE, SELECT_SIZE)) {
+            select1 = null;
+            playSound(TCSounds.HHOFF.get(), 0.2F, 1.0F);
+            return true;
+        }
+        if (select2 != null && inRect(mx, my, leftPos + SELECT2_HIT_X, topPos + SELECT_HIT_Y, SELECT_SIZE, SELECT_SIZE)) {
+            select2 = null;
+            playSound(TCSounds.HHOFF.get(), 0.2F, 1.0F);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleDuplicate(double mx, double my) {
+        BlockEntityResearchTable table = table();
+        if (table == null || minecraft.player == null
+                || !inRect(mx, my, leftPos + DUPE_X, topPos + DUPE_Y, DUPE_SIZE, DUPE_SIZE)) {
+            return false;
+        }
+        ResearchNoteData data = noteData();
+        if (data == null || !data.complete()
+                || !KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+            return false;
+        }
+        ClientPacketDistributor.sendToServer(new ServerboundTableDuplicatePayload(menu.pos()));
+        playSound(TCSounds.CLACK.get(), 0.4F, 1.0F);
+        return true;
+    }
+
+    private static boolean inRect(double mx, double my, int x, int y, int w, int h) {
+        return mx >= x && mx < x + w && my >= y && my < y + h;
+    }
+
+    private void playSound(SoundEvent sound, float volume, float pitch) {
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            player.playSound(sound, volume, pitch);
+        }
     }
 }

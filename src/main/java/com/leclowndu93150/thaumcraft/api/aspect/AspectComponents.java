@@ -7,8 +7,9 @@ import net.minecraft.network.chat.MutableComponent;
 /**
  * Localized component factories for aspects. Used by tooltips, GUI labels, and chat output.
  *
- * <p>Translation keys follow the pattern {@code aspect.<namespace>.<tag>} for the display name
- * and {@code aspect.<namespace>.<tag>.desc} for the English description. The namespace is
+ * <p>Translation keys follow the pattern {@code aspect.<namespace>.<tag>} for the display name,
+ * {@code aspect.<namespace>.<tag>.desc} for the English description, and
+ * {@code aspect.<namespace>.<tag>.help} for the study hint. The namespace is
  * derived from the aspect's registry id, so addon aspects resolve against the addon's lang
  * files without further configuration.
  *
@@ -24,7 +25,7 @@ public final class AspectComponents {
      * @return a translatable component bound to {@code aspect.<namespace>.<tag>}
      */
     public static MutableComponent name(Holder<IAspect> aspect) {
-        return Component.translatable(translationKey(aspect, false));
+        return Component.translatable(translationKey(aspect, ""));
     }
 
     /**
@@ -34,16 +35,24 @@ public final class AspectComponents {
      * @return a translatable component bound to {@code aspect.<namespace>.<tag>.desc}
      */
     public static MutableComponent description(Holder<IAspect> aspect) {
-        return Component.translatable(translationKey(aspect, true));
+        return Component.translatable(translationKey(aspect, ".desc"));
     }
 
-    private static String translationKey(Holder<IAspect> holder, boolean description) {
+    /**
+     * Returns the localized study hint of the given aspect, a short phrase naming the kind of
+     * thing a player should examine to discover it.
+     *
+     * @param aspect the aspect, referenced by holder so the registry id is available
+     * @return a translatable component bound to {@code aspect.<namespace>.<tag>.help}
+     */
+    public static MutableComponent help(Holder<IAspect> aspect) {
+        return Component.translatable(translationKey(aspect, ".help"));
+    }
+
+    private static String translationKey(Holder<IAspect> holder, String suffix) {
         String namespace = holder.unwrapKey()
                 .map(key -> key.identifier().getNamespace())
                 .orElse("thaumcraft");
-        String tag = holder.value().tag();
-        return description
-                ? "aspect." + namespace + "." + tag + ".desc"
-                : "aspect." + namespace + "." + tag;
+        return "aspect." + namespace + "." + holder.value().tag() + suffix;
     }
 }

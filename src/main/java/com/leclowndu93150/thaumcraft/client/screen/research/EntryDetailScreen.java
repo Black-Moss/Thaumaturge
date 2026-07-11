@@ -1,5 +1,11 @@
 package com.leclowndu93150.thaumcraft.client.screen.research;
 
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNotes;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumcraft.network.ServerboundObtainNotePayload;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
@@ -174,6 +180,9 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private static final int ASPECTS_INSERT_OFFSET_X = 60;
     private static final int ASPECTS_INSERT_OFFSET_Y = 24;
     private static final int ASPECT_PAGE_ROWS = 5;
+    private static final float ASPECT_COMBINE_YIELD = 1.0F;
+    private static final Identifier UNKNOWN_ASPECT_TEXTURE = TCIds.rl("textures/aspects/_unknown.png");
+    private static final int UNKNOWN_ASPECT_TINT = 0x80808080;
     private static final int ASPECT_ROW_STRIDE = 40;
     private static final int ASPECT_BACK_OFFSET_X = -2;
     private static final int ASPECT_BACK_OFFSET_Y = -2;
@@ -699,12 +708,69 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         int spacing = rewards.size() > 6 ? SLOT_BUDGET / rewards.size() : SLOT_DEFAULT_SPACING;
         int shift = SLOT_BASE_SHIFT;
         int innerX = x + SLOT_INNER_OFFSET_X;
+        int theoryOrdinal = ResearchNotes.theoryRowsBefore(entry.value(), currentStageIndex());
         for (int i = 0; i < rewards.size(); i++) {
             KnowledgeReward reward = rewards.get(i);
             int slotX = innerX + shift;
-            KnowledgeRequirementWidget.render(graphics, font, slotX, y, reward, knowledge);
-            int current = reward.category().unwrapKey().map(k -> knowledge.knowledge(reward.type(), k)).orElse(0);
-            boolean met = current >= reward.amount();
+            boolean met;
+            if (reward.type() == KnowledgeType.THEORY) {
+                Identifier learnKey = ResearchNoteData.learnKey(entryId, theoryOrdinal);
+                theoryOrdinal++;
+                met = knowledge.isResearchKnown(learnKey);
+                graphics.item(new ItemStack(TCItems.RESEARCH_NOTE.get()), slotX, y);
+                if (mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
+                    List<Component> lines = new ArrayList<>();
+                    lines.add(Component.translatable("tc.researchtheory",
+                            Component.translatable(entry.value().nameKey())));
+                    if (!met) {
+                        lines.add(Component.translatable(
+                                ResearchNotes.hasNoteFor(minecraft.player, learnKey)
+                                        ? "tc.researchnote.table" : "tc.researchnote.click")
+                                .withStyle(ChatFormatting.GRAY));
+                    }
+                    graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
+                }
+            } else {
+                AspectList cost = ResearchNotes.observationCost(entry.value(), reward.amount());
+                met = AspectPools.canAfford(minecraft.player, cost);
+                List<AspectInstance> entries = cost.entries();
+                for (int a = 0; a < entries.size(); a++) {
+                    AspectInstance instance = entries.get(a);
+                    int chipX = slotX + a * spacing;
+                    if (AspectPools.isDiscovered(minecraft.player, instance.aspect())) {
+                        int have = AspectPools.amount(minecraft.player, instance.aspect());
+                        float alpha = 1.0F;
+                        if (have < instance.amount()) {
+                            alpha = Mth.sin(System.currentTimeMillis() % 600L / 600.0F * Mth.TWO_PI) * 0.25F + 0.75F;
+                        }
+                        AspectTagRenderer.render(graphics, font, chipX, y, instance.aspect(),
+                                instance.amount(), 0, alpha, false);
+                        if (mouseInside(chipX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
+                            List<Component> lines = new ArrayList<>();
+                            lines.add(Component.translatable("tc.aspectcost"));
+                            lines.add(AspectComponents.name(instance.aspect()).copy()
+                                    .append(Component.literal(" " + have + "/" + instance.amount()))
+                                    .withStyle(have >= instance.amount() ? ChatFormatting.GREEN : ChatFormatting.RED));
+                            graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
+                        }
+                    } else {
+                        graphics.blit(RenderPipelines.GUI_TEXTURED, UNKNOWN_ASPECT_TEXTURE, chipX, y,
+                                0.0F, 0.0F, 16, 16, 32, 32, 32, 32, UNKNOWN_ASPECT_TINT);
+                        if (mouseInside(chipX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
+                            List<Component> lines = new ArrayList<>();
+                            lines.add(Component.translatable("tc.aspect.unknown"));
+                            lines.add(Component.translatable("tc.discoveryerror",
+                                    AspectComponents.help(instance.aspect())).withStyle(ChatFormatting.GRAY));
+                            graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
+                        }
+                    }
+                }
+                if (entries.size() > 1) {
+                    int extra = (entries.size() - 1) * spacing;
+                    slotX += extra;
+                    shift += extra;
+                }
+            }
             satisfied[i] = met;
             if (met) {
                 graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
@@ -714,7 +780,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                         CHECKMARK_SIZE, CHECKMARK_SIZE,
                         TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
             }
-            if (mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
+            if (reward.type() == KnowledgeType.THEORY
+                    && mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                 reward.category().unwrapKey().ifPresent(k ->
                         graphics.setTooltipForNextFrame(font, TCTooltips.knowledgeLabel(reward.type(), k), mouseX, mouseY));
             }
@@ -899,7 +966,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + ASPECT_TAG_OFFSET_X, rowY + ASPECT_TAG_OFFSET_Y);
             graphics.pose().scale(ASPECT_TAG_SCALE, ASPECT_TAG_SCALE);
-            drawAspectTag(graphics, 0, 0, entry.aspect());
+            AspectTagRenderer.render(graphics, font, 0, 0, entry.aspect(),
+                    aspect.components().isEmpty() ? 0.0F : ASPECT_COMBINE_YIELD);
             graphics.pose().popMatrix();
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + ASPECT_NAME_OFFSET_X, rowY + ASPECT_NAME_OFFSET_Y);
@@ -997,9 +1065,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     private boolean knowsAspect(Holder<IAspect> aspect) {
         if (minecraft == null || minecraft.player == null) return false;
-        return aspect.unwrapKey()
-                .map(key -> KnowledgeAccess.of(minecraft.player).isResearchKnown(ScanKeys.aspect(key)))
-                .orElse(false);
+        return AspectPools.isDiscovered(minecraft.player, aspect);
     }
 
     private AspectList knownAspects() {
@@ -1010,7 +1076,9 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         HolderLookup.RegistryLookup<IAspect> lookup = lookupOpt.get();
         AspectList list = AspectList.EMPTY;
         for (Holder.Reference<IAspect> ref : lookup.listElements().toList()) {
-            list = list.add(ref, 1);
+            if (AspectPools.isDiscovered(minecraft.player, ref)) {
+                list = list.add(ref, AspectPools.amount(minecraft.player, ref));
+            }
         }
         return list;
     }
@@ -1320,6 +1388,9 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 playSound(TCSounds.PAGE.get(), 0.7F, 0.9F);
                 return true;
             }
+            if (currentPage == 0 && !isComplete && !insertOpen() && handleTheoryNoteClick(mx, my, stage)) {
+                return true;
+            }
             if (currentPage == 0 && !isComplete && !hold && !insertOpen()) {
                 if (hitStageComplete(mx, my, stage)) {
                     ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(entryId));
@@ -1414,6 +1485,46 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         return -1;
     }
 
+    private boolean handleTheoryNoteClick(double mx, double my, IResearchStage stage) {
+        if (minecraft == null || minecraft.player == null || stage.requiredKnowledge().isEmpty()) {
+            return false;
+        }
+        int rowsAbove = 1;
+        if (!stage.requiredResearch().isEmpty()) rowsAbove++;
+        if (!stage.obtain().isEmpty()) rowsAbove++;
+        if (!stage.craft().isEmpty()) rowsAbove++;
+        int rowY = sh + REQ_TOP_Y_OFFSET - REQ_ROW_STEP * rowsAbove;
+        List<KnowledgeReward> rewards = stage.requiredKnowledge();
+        int spacing = rewards.size() > 6 ? SLOT_BUDGET / rewards.size() : SLOT_DEFAULT_SPACING;
+        int shift = SLOT_BASE_SHIFT;
+        int innerX = sw + SLOT_INNER_OFFSET_X;
+        IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
+        int theoryOrdinal = ResearchNotes.theoryRowsBefore(entry.value(), currentStageIndex());
+        for (KnowledgeReward reward : rewards) {
+            int slotX = innerX + shift;
+            shift += spacing;
+            if (reward.type() != KnowledgeType.THEORY) {
+                int chips = ResearchNotes.observationCost(entry.value(), reward.amount()).entries().size();
+                if (chips > 1) {
+                    shift += (chips - 1) * spacing;
+                }
+                continue;
+            }
+            int ordinal = theoryOrdinal++;
+            if (!mouseInside(slotX, rowY, SLOT_HIT_SIZE, SLOT_HIT_SIZE, (int) mx, (int) my)) {
+                continue;
+            }
+            Identifier learnKey = ResearchNoteData.learnKey(entryId, ordinal);
+            if (knowledge.isResearchKnown(learnKey) || ResearchNotes.hasNoteFor(minecraft.player, learnKey)) {
+                return false;
+            }
+            ClientPacketDistributor.sendToServer(new ServerboundObtainNotePayload(entryId, ordinal));
+            playSound(TCSounds.WRITE.get(), 0.5F, 1.0F);
+            return true;
+        }
+        return false;
+    }
+
     private boolean hitStageComplete(double mx, double my, IResearchStage stage) {
         if (minecraft == null || minecraft.player == null) return false;
         Player player = minecraft.player;
@@ -1431,10 +1542,16 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         for (int i = 0; i < stage.craft().size(); i++) {
             craftSatisfied[i] = ResearchManager.isCraftSatisfied(knowledge, stage.craft().get(i));
         }
+        int theoryOrdinal = ResearchNotes.theoryRowsBefore(entry.value(), currentStageIndex());
         for (int i = 0; i < stage.requiredKnowledge().size(); i++) {
             KnowledgeReward reward = stage.requiredKnowledge().get(i);
-            int current = reward.category().unwrapKey().map(k -> knowledge.knowledge(reward.type(), k)).orElse(0);
-            knowSatisfied[i] = current >= reward.amount();
+            if (reward.type() == KnowledgeType.THEORY) {
+                knowSatisfied[i] = knowledge.isResearchKnown(ResearchNoteData.learnKey(entryId, theoryOrdinal));
+                theoryOrdinal++;
+            } else {
+                knowSatisfied[i] = AspectPools.canAfford(player,
+                        ResearchNotes.observationCost(entry.value(), reward.amount()));
+            }
         }
         if (!allTrue(researchSatisfied) || !allTrue(obtainSatisfied) || !allTrue(craftSatisfied) || !allTrue(knowSatisfied)) {
             return false;

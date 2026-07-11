@@ -32,5 +32,28 @@
         "thaumcraft:infusion/eldritch_eye"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 6
+    }
+  ],
+  "complexity": 1
 }

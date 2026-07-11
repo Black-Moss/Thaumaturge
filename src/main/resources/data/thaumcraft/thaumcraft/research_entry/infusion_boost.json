@@ -31,5 +31,20 @@
         "thaumcraft:arcane_workbench/matrix_cost"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

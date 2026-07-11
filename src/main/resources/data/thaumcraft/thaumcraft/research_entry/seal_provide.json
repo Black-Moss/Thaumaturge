@@ -30,5 +30,20 @@
         "thaumcraft:crucible/seal_provider"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:desiderium",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

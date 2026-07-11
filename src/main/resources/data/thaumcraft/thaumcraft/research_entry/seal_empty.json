@@ -40,5 +40,20 @@
         "thaumcraft:mind_biothaumic"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

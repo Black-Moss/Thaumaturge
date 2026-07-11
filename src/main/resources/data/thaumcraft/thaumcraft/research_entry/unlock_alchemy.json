@@ -55,5 +55,16 @@
         }
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

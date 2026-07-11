@@ -4,9 +4,12 @@ import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.api.items.IScribeTools;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockEntityResearchTable;
 import com.leclowndu93150.thaumcraft.content.research.table.BlockResearchTable;
+import com.leclowndu93150.thaumcraft.content.research.table.ResearchTablePart;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.mojang.serialization.MapCodec;
+import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,6 +50,9 @@ public final class BlockTable extends Block {
         return SHAPE;
     }
 
+    private static final List<Direction> CONVERT_SCAN_ORDER =
+            List.of(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
+
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hit) {
@@ -56,18 +62,28 @@ public final class BlockTable extends Block {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        BlockState table = TCBlocks.RESEARCH_TABLE.get().defaultBlockState()
-                .setValue(BlockResearchTable.FACING, player.getDirection());
-        level.setBlock(pos, table, 3);
-        if (level.getBlockEntity(pos) instanceof BlockEntityResearchTable researchTable) {
-            ItemStack tools = stack.copy();
-            researchTable.items().set(BlockEntityResearchTable.SLOT_SCRIBE_TOOLS, ItemResource.of(tools), tools.getCount());
-            researchTable.setChanged();
+        for (Direction dir : CONVERT_SCAN_ORDER) {
+            BlockPos partnerPos = pos.relative(dir);
+            if (!level.getBlockState(partnerPos).is(TCBlocks.TABLE_WOOD.get())) {
+                continue;
+            }
+            level.setBlock(pos, TCBlocks.RESEARCH_TABLE.get().defaultBlockState()
+                    .setValue(BlockResearchTable.FACING, dir)
+                    .setValue(BlockResearchTable.PART, ResearchTablePart.MAIN), 3);
+            level.setBlock(partnerPos, TCBlocks.RESEARCH_TABLE.get().defaultBlockState()
+                    .setValue(BlockResearchTable.FACING, dir.getOpposite())
+                    .setValue(BlockResearchTable.PART, ResearchTablePart.EXT), 3);
+            if (level.getBlockEntity(pos) instanceof BlockEntityResearchTable researchTable) {
+                ItemStack tools = stack.copy();
+                researchTable.items().set(BlockEntityResearchTable.SLOT_SCRIBE_TOOLS, ItemResource.of(tools), tools.getCount());
+                researchTable.setChanged();
+            }
+            player.setItemInHand(hand, ItemStack.EMPTY);
+            if (player instanceof ServerPlayer serverPlayer) {
+                ResearchProgressionEvents.recordCrafted(serverPlayer, new ItemStack(TCBlocks.RESEARCH_TABLE.get()));
+            }
+            return InteractionResult.SUCCESS;
         }
-        player.setItemInHand(hand, ItemStack.EMPTY);
-        if (player instanceof ServerPlayer serverPlayer) {
-            ResearchProgressionEvents.recordCrafted(serverPlayer, new ItemStack(TCBlocks.RESEARCH_TABLE.get()));
-        }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 }

@@ -48,5 +48,20 @@
         "thaumcraft:arcane_workbench/vis_generator"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    }
+  ],
+  "complexity": 2
 }

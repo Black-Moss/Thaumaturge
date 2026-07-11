@@ -30,5 +30,20 @@
     {
       "text": "research.thaumcraft.focus_elemental.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:gelum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 4
+    }
+  ],
+  "complexity": 2
 }

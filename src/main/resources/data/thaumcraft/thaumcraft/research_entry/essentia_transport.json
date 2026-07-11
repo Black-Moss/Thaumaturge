@@ -33,5 +33,20 @@
         "thaumcraft:arcane_workbench/essentia_output"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

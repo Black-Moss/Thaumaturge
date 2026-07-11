@@ -21,5 +21,20 @@
         "thaumcraft:f_matvoid"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
 }

@@ -17,5 +17,20 @@
     {
       "text": "research.thaumcraft.outer_revelations.stage_0"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

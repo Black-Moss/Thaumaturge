@@ -47,5 +47,20 @@
         "thaumcraft:scanned/plantvishroom"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:sensus",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

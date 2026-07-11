@@ -33,5 +33,20 @@
     {
       "text": "research.thaumcraft.focus_scatter.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:perditio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

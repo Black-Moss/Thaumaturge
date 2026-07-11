@@ -86,5 +86,20 @@
         "thaumcraft:infusion/crystal_vitium"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

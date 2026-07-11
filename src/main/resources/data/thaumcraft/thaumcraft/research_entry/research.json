@@ -1,0 +1,26 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.research.title",
+  "parents": [
+    "~thaumcraft:gotthaumonomicon"
+  ],
+  "column": 2,
+  "row": 0,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:scribing_tools"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.research.stage_0",
+      "recipes": [
+        "thaumcraft:arcane_workbench/thaumometer",
+        "thaumcraft:scribing_tools",
+        "thaumcraft:scribing_tools_alt",
+        "thaumcraft:table_wood"
+      ]
+    }
+  ]
+}

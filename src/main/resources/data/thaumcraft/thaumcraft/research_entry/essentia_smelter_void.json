@@ -52,5 +52,20 @@
         "thaumcraft:arcane_workbench/smelter_void"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

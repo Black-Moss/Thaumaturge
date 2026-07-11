@@ -43,5 +43,20 @@
         "thaumcraft:metal_void"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

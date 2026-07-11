@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.golems.GolemHelper;
 import com.leclowndu93150.thaumcraft.content.golem.GolemBindings;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumcraft.api.research.theorycraft.TheorycraftAccess;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
 import com.leclowndu93150.thaumcraft.content.aura.AuraHelperBindings;
@@ -50,7 +49,6 @@ public final class Thaumcraft {
         TCAttachments.register(modBus);
         TCDamageTypes.register(modBus);
         TCMobEffects.register(modBus);
-        TCTheorycraft.register(modBus);
         TCAttributes.register(modBus);
         TCChunkGenerators.register(modBus);
         TCFocusElements.register(modBus);
@@ -65,7 +63,6 @@ public final class Thaumcraft {
         container.registerConfig(ModConfig.Type.SERVER, ThaumcraftServerConfig.SPEC);
 
         KnowledgeAccess.bind(player -> player.getData(TCAttachments.KNOWLEDGE));
-        TheorycraftAccess.bind(player -> player.getData(TCAttachments.RESEARCH_TABLE));
         AuraHelper.bind(new AuraHelperBindings());
         TaintApi.bind(new TaintApiBindings());
         WarpHelper.bind(new WarpManager.Bindings());

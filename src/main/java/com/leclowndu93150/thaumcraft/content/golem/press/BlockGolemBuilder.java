@@ -1,5 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.golem.press;
 
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.Identifier;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.mojang.serialization.MapCodec;
@@ -24,6 +31,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockGolemBuilder extends BaseEntityBlock {
+    private static final Identifier MIND_CLOCKWORK_RESEARCH = TCIds.rl("mind_clockwork");
+
     public static final MapCodec<BlockGolemBuilder> CODEC = simpleCodec(BlockGolemBuilder::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
@@ -58,6 +67,13 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
+        }
+        if (player instanceof ServerPlayer serverPlayer
+                && !KnowledgeAccess.of(serverPlayer).isResearchComplete(MIND_CLOCKWORK_RESEARCH)) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("tc.device.unknown")
+                            .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
+            return InteractionResult.SUCCESS_SERVER;
         }
         if (level.getBlockEntity(pos) instanceof BlockEntityGolemBuilder builder) {
             player.openMenu(builder, buf -> buf.writeBlockPos(pos));

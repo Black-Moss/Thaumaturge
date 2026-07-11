@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.device.mirror;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.function.Consumer;
@@ -53,6 +55,9 @@ public final class ItemHandMirror extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("mirror_hand"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         ItemStack stack = player.getItemInHand(hand);
         GlobalPos link = stack.get(TCDataComponents.MIRROR_LINK.get());
         if (link == null || !(player instanceof ServerPlayer serverPlayer)) {

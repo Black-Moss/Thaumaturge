@@ -1,0 +1,41 @@
+{
+  "category": "thaumcraft:basics",
+  "name": "research.thaumcraft.research_expertise.title",
+  "parents": [
+    "thaumcraft:first_steps"
+  ],
+  "column": -2,
+  "row": -3,
+  "stages": [
+    {
+      "text": "research.thaumcraft.research_expertise.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.research_expertise.stage.2"
+    }
+  ],
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumcraft:textures/research/r_researcher1.png"
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

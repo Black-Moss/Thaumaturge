@@ -41,5 +41,20 @@
         "thaumcraft:stone_arcane_brick"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

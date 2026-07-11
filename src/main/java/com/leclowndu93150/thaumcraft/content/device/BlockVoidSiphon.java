@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.device;
 
+import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -80,6 +82,9 @@ public final class BlockVoidSiphon extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("void_siphon"))) {
+            return InteractionResult.SUCCESS_SERVER;
+        }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

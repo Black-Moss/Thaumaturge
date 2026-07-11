@@ -15,5 +15,20 @@
     {
       "text": "research.thaumcraft.mat_stud_wood.stage_0"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:herba",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

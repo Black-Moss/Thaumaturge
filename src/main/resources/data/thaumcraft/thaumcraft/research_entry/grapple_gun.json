@@ -45,5 +45,20 @@
         "thaumcraft:arcane_workbench/grapple_gun"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:vinculum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

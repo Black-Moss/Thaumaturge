@@ -70,5 +70,20 @@
         "thaumcraft:dust_trigger/infusion_altar"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 6
+    }
+  ],
+  "complexity": 2
 }

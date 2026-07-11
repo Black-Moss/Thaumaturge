@@ -31,5 +31,20 @@
         "thaumcraft:arcane_workbench/arcane_workbench_charger"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.research.table;
 
+import org.jspecify.annotations.Nullable;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCMenus;
 import net.minecraft.core.BlockPos;
@@ -10,21 +11,19 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 public final class MenuResearchTable extends AbstractContainerMenu {
-    public static final int SCRIBE_TOOLS_X = 16;
-    public static final int SCRIBE_TOOLS_Y = 15;
-    public static final int PAPER_X = 224;
-    public static final int PAPER_Y = 16;
+    public static final int SCRIBE_TOOLS_X = 14;
+    public static final int SCRIBE_TOOLS_Y = 10;
+    public static final int NOTE_X = 70;
+    public static final int NOTE_Y = 10;
 
-    public static final int PLAYER_GRID_X = 77;
-    public static final int PLAYER_GRID_Y = 190;
-    public static final int CRAFTING_GRID_X = 20;
-    public static final int CRAFTING_GRID_Y = 190;
+    public static final int PLAYER_GRID_X = 48;
+    public static final int PLAYER_GRID_Y = 175;
+    public static final int HOTBAR_Y = 233;
 
     public static final int TABLE_SLOT_COUNT = BlockEntityResearchTable.SLOT_COUNT;
     public static final int PLAYER_ROW_SLOTS = 9;
@@ -35,25 +34,30 @@ public final class MenuResearchTable extends AbstractContainerMenu {
     private final ItemStacksResourceHandler items;
     private final ContainerLevelAccess access;
     private final BlockPos pos;
+    private final @Nullable BlockEntityResearchTable blockEntity;
 
     public MenuResearchTable(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new ItemStacksResourceHandler(BlockEntityResearchTable.SLOT_COUNT), ContainerLevelAccess.NULL, buf.readBlockPos());
+        this(containerId, playerInventory, clientBlockEntity(playerInventory, buf.readBlockPos()));
     }
 
-    public MenuResearchTable(int containerId, Inventory playerInventory, BlockEntityResearchTable blockEntity) {
-        this(containerId, playerInventory, blockEntity.items(),
-                ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos()),
-                blockEntity.getBlockPos());
+    private static @Nullable BlockEntityResearchTable clientBlockEntity(Inventory playerInventory, BlockPos pos) {
+        return playerInventory.player.level().getBlockEntity(pos)
+                instanceof BlockEntityResearchTable table ? table : null;
     }
 
-    private MenuResearchTable(int containerId, Inventory playerInventory, ItemStacksResourceHandler items, ContainerLevelAccess access, BlockPos pos) {
+    public MenuResearchTable(int containerId, Inventory playerInventory, @Nullable BlockEntityResearchTable blockEntity) {
         super(TCMenus.RESEARCH_TABLE.get(), containerId);
-        this.items = items;
-        this.access = access;
-        this.pos = pos;
+        this.blockEntity = blockEntity;
+        this.items = blockEntity != null ? blockEntity.items()
+                : new ItemStacksResourceHandler(BlockEntityResearchTable.SLOT_COUNT);
+        this.access = blockEntity != null
+                ? ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos())
+                : ContainerLevelAccess.NULL;
+        this.pos = blockEntity != null ? blockEntity.getBlockPos() : BlockPos.ZERO;
+        ItemStacksResourceHandler items = this.items;
 
         addSlot(new ResourceHandlerSlot(items, items::set, BlockEntityResearchTable.SLOT_SCRIBE_TOOLS, SCRIBE_TOOLS_X, SCRIBE_TOOLS_Y));
-        addSlot(new ResourceHandlerSlot(items, items::set, BlockEntityResearchTable.SLOT_PAPER, PAPER_X, PAPER_Y));
+        addSlot(new ResourceHandlerSlot(items, items::set, BlockEntityResearchTable.SLOT_NOTE, NOTE_X, NOTE_Y));
 
         for (int row = 0; row < PLAYER_ROWS; row++) {
             for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
@@ -61,17 +65,38 @@ public final class MenuResearchTable extends AbstractContainerMenu {
                         PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
             }
         }
+        for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
+            addSlot(new Slot(playerInventory, col, PLAYER_GRID_X + col * 18, HOTBAR_Y));
+        }
+    }
 
-        for (int row = 0; row < PLAYER_ROWS; row++) {
-            for (int col = 0; col < PLAYER_ROWS; col++) {
-                addSlot(new Slot(playerInventory, col + row * PLAYER_ROWS,
-                        CRAFTING_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
-            }
+    private ItemStack lastTools = ItemStack.EMPTY;
+    private ItemStack lastNote = ItemStack.EMPTY;
+
+    @Override
+    public void broadcastChanges() {
+        super.broadcastChanges();
+        if (blockEntity == null || blockEntity.getLevel() == null || blockEntity.getLevel().isClientSide()) {
+            return;
+        }
+        ItemStack tools = slots.get(BlockEntityResearchTable.SLOT_SCRIBE_TOOLS).getItem();
+        ItemStack note = slots.get(BlockEntityResearchTable.SLOT_NOTE).getItem();
+        if (!ItemStack.matches(tools, lastTools) || !ItemStack.matches(note, lastNote)) {
+            lastTools = tools.copy();
+            lastNote = note.copy();
+            blockEntity.ensureNotePuzzle();
+            blockEntity.setChanged();
+            blockEntity.getLevel().sendBlockUpdated(blockEntity.getBlockPos(),
+                    blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
         }
     }
 
     public BlockPos pos() {
         return pos;
+    }
+
+    public @Nullable BlockEntityResearchTable blockEntity() {
+        return blockEntity;
     }
 
     public ItemStacksResourceHandler tableItems() {
@@ -90,11 +115,7 @@ public final class MenuResearchTable extends AbstractContainerMenu {
         return stack.isDamageableItem() && stack.getDamageValue() < stack.getMaxDamage();
     }
 
-    public boolean hasPaperReady() {
-        ItemResource resource = items.getResource(BlockEntityResearchTable.SLOT_PAPER);
-        int amount = items.getAmountAsInt(BlockEntityResearchTable.SLOT_PAPER);
-        return !resource.isEmpty() && resource.getItem() == Items.PAPER && amount > 0;
-    }
+
 
     @Override
     public boolean stillValid(Player player) {

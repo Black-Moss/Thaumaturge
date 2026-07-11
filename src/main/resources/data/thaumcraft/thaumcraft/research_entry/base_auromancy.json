@@ -61,5 +61,20 @@
         "thaumcraft:arcane_workbench/focal_manipulator"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

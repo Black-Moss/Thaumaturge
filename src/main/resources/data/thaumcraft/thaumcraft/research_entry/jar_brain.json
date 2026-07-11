@@ -45,5 +45,20 @@
       ],
       "warp": 3
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:desiderium",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:exanimis",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

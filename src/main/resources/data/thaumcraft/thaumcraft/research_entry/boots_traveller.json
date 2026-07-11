@@ -34,5 +34,24 @@
         "thaumcraft:infusion/traveller_boots"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:volatus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

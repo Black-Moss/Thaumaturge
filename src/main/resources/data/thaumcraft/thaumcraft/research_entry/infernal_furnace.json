@@ -59,5 +59,24 @@
         "thaumcraft:bellows"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

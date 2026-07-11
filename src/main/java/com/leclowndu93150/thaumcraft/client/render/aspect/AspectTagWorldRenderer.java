@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumcraft.client.render.aspect;
 
+import net.minecraft.resources.Identifier;
+import java.util.function.Predicate;
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
@@ -22,6 +25,9 @@ import org.jspecify.annotations.Nullable;
 
 public final class AspectTagWorldRenderer {
     public static final float DEFAULT_SCALE = 0.0625F;
+    private static final Identifier UNKNOWN_TEXTURE =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/aspects/_unknown.png");
+    private static final float UNKNOWN_ALPHA = 0.75F;
     private static final float HALF_QUAD = 0.5F;
     private static final int ROW_SIZE = 5;
     private static final float ROW_SPACING = 1.05F;
@@ -34,6 +40,13 @@ public final class AspectTagWorldRenderer {
     public static void renderTagCloud(PoseStack poseStack, Minecraft mc,
                                       double x, double y, double z, AspectList aspects,
                                       @Nullable Direction dir, float tagScale, float alpha) {
+        renderTagCloud(poseStack, mc, x, y, z, aspects, dir, tagScale, alpha, aspect -> true);
+    }
+
+    public static void renderTagCloud(PoseStack poseStack, Minecraft mc,
+                                      double x, double y, double z, AspectList aspects,
+                                      @Nullable Direction dir, float tagScale, float alpha,
+                                      Predicate<Holder<IAspect>> discovered) {
         Camera camera = mc.gameRenderer.getMainCamera();
         Vec3 cam = camera.position();
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
@@ -76,11 +89,13 @@ public final class AspectTagWorldRenderer {
             poseStack.scale(-1.0F, 1.0F, 1.0F);
             poseStack.translate(shift, rowShift, 0.0);
 
+            boolean known = discovered.test(entry.aspect());
             poseStack.pushPose();
             poseStack.scale(tagScale, tagScale, tagScale);
             renderQuad(poseStack,
-                    buffers.getBuffer(RenderTypes.entityTranslucent(entry.aspect().value().texture())),
-                    entry.aspect(), alpha, false, LightCoordsUtil.FULL_BRIGHT);
+                    buffers.getBuffer(RenderTypes.entityTranslucent(
+                            known ? entry.aspect().value().texture() : UNKNOWN_TEXTURE)),
+                    entry.aspect(), known ? alpha : UNKNOWN_ALPHA, false, LightCoordsUtil.FULL_BRIGHT);
             poseStack.popPose();
 
             String amount = Integer.toString(entry.amount());
@@ -162,10 +177,20 @@ public final class AspectTagWorldRenderer {
             boolean bw,
             int packedLight
     ) {
+        renderQuad(poseStack.last(), buffer, aspect, alpha, bw, packedLight);
+    }
+
+    public static void renderQuad(
+            PoseStack.Pose pose,
+            VertexConsumer buffer,
+            Holder<IAspect> aspect,
+            float alpha,
+            boolean bw,
+            int packedLight
+    ) {
         if (aspect == null || aspect.value() == null) return;
         IAspect value = aspect.value();
         int color = AspectTagRenderer.colorOf(value, alpha, bw);
-        PoseStack.Pose pose = poseStack.last();
         addQuadVertex(buffer, pose, -HALF_QUAD, -HALF_QUAD, 0.0F, 1.0F, color, packedLight);
         addQuadVertex(buffer, pose, HALF_QUAD, -HALF_QUAD, 1.0F, 1.0F, color, packedLight);
         addQuadVertex(buffer, pose, HALF_QUAD, HALF_QUAD, 1.0F, 0.0F, color, packedLight);

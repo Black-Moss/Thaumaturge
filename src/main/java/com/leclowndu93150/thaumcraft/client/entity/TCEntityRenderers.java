@@ -17,6 +17,8 @@ import com.leclowndu93150.thaumcraft.client.model.gear.RobeArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.MatrixCubeModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.BrainModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.CentrifugeModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.DeconTableModel;
+import com.leclowndu93150.thaumcraft.client.model.entity.ResearchTableModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.JarBrineModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TCBannerModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintSeedModel;
@@ -59,6 +61,8 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.PECH, PechModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.ELDRITCH_CRAB, EldritchCrabModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.ELDRITCH_GUARDIAN, EldritchGuardianModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.RESEARCH_TABLE, ResearchTableModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.DECONSTRUCTION_TABLE, DeconTableModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_HEAD, KnightArmorModel::createHead);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_CHEST, KnightArmorModel::createChest);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_LEGS, KnightArmorModel::createLegs);

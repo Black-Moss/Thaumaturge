@@ -42,5 +42,20 @@
         "thaumcraft:mind_biothaumic"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aversio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

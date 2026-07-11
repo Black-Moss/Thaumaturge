@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.hud;
 
+import net.minecraft.core.Holder;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
@@ -96,11 +98,16 @@ public final class KnowledgeGainOverlay implements GuiLayer {
             graphics.pose().translate(xx, yy);
             graphics.pose().rotate((float) Math.toRadians(84 + rand.nextInt(12) - QUAD_INTRINSIC_ROTATION));
 
-            Identifier typeIcon = current.type == KnowledgeType.THEORY ? KNOW_THEORY : KNOW_OBSERVATION;
-            drawCentered(graphics, typeIcon, s, ARGB.color(ICON_ALPHA, 255, 255, 255), false);
-            Identifier categoryIcon = categoryIcon(mc, current.category);
-            if (categoryIcon != null) {
-                drawCentered(graphics, categoryIcon, s * 0.75F, ARGB.color(ICON_ALPHA, 255, 255, 255), false);
+            if (current.aspect != null) {
+                drawCentered(graphics, current.aspect.value().texture(), s,
+                        ARGB.color(ICON_ALPHA, current.aspect.value().color()), false);
+            } else {
+                Identifier typeIcon = current.type == KnowledgeType.THEORY ? KNOW_THEORY : KNOW_OBSERVATION;
+                drawCentered(graphics, typeIcon, s, ARGB.color(ICON_ALPHA, 255, 255, 255), false);
+                Identifier categoryIcon = categoryIcon(mc, current.category);
+                if (categoryIcon != null) {
+                    drawCentered(graphics, categoryIcon, s * 0.75F, ARGB.color(ICON_ALPHA, 255, 255, 255), false);
+                }
             }
 
             if (current.progress > current.max * 0.9F) {
@@ -213,6 +220,10 @@ public final class KnowledgeGainOverlay implements GuiLayer {
                 .orElse(null);
     }
 
+    public static void addAspectTracker(Holder<IAspect> aspect, int duration, long seed) {
+        TRACKERS.add(new Tracker(KnowledgeType.OBSERVATION, null, aspect, duration, seed));
+    }
+
     public static void addTracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category,
                                   int duration, long seed) {
         int total = type == KnowledgeType.THEORY ? duration + THEORY_EXTRA_TICKS : duration;
@@ -290,13 +301,20 @@ public final class KnowledgeGainOverlay implements GuiLayer {
     private static final class Tracker {
         final KnowledgeType type;
         final @Nullable ResourceKey<IResearchCategory> category;
+        final @Nullable Holder<IAspect> aspect;
         int progress;
         final int max;
         final long seed;
 
         Tracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category, int duration, long seed) {
+            this(type, category, null, duration, seed);
+        }
+
+        Tracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category,
+                @Nullable Holder<IAspect> aspect, int duration, long seed) {
             this.type = type;
             this.category = category;
+            this.aspect = aspect;
             this.progress = duration;
             this.max = duration;
             this.seed = seed;

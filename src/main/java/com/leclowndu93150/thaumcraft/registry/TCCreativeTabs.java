@@ -51,6 +51,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.FOCUS_3.get());
                         output.accept(TCItems.LABEL.get());
                         output.accept(TCItems.RESEARCH_TABLE.get());
+                        output.accept(TCBlocks.DECONSTRUCTION_TABLE.get());
                         output.accept(TCItems.ARCANE_WORKBENCH_CHARGER.get());
                         output.accept(TCItems.FOCAL_MANIPULATOR.get());
                         output.accept(TCItems.ARCANE_WORKBENCH.get());

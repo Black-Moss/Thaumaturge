@@ -26,5 +26,20 @@
     {
       "text": "research.thaumcraft.golem_direct.stage_1"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

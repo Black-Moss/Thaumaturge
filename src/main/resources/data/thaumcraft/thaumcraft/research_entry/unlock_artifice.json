@@ -35,5 +35,16 @@
         "thaumcraft:arcane_workbench/goggles_revealing"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:fabrico",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

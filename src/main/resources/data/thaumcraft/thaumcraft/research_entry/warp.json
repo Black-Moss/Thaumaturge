@@ -17,5 +17,20 @@
         "thaumcraft:arcane_workbench/sanity_checker"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

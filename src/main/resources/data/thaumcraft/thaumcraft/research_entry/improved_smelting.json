@@ -32,5 +32,20 @@
         "thaumcraft:arcane_workbench/smelter_aux"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

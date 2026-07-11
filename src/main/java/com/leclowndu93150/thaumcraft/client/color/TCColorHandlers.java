@@ -17,6 +17,8 @@ public final class TCColorHandlers {
             Identifier.fromNamespaceAndPath(TCIds.MODID, "focus_color");
     public static final Identifier GOLEM_MATERIAL_TINT_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_material");
+    public static final Identifier NOTE_COLOR_TINT_ID =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "note_color");
 
     private TCColorHandlers() {}
 
@@ -26,5 +28,6 @@ public final class TCColorHandlers {
         event.register(CRYSTAL_ASPECT_TINT_ID, CrystalAspectTint.MAP_CODEC);
         event.register(FOCUS_COLOR_TINT_ID, FocusColorTint.MAP_CODEC);
         event.register(GOLEM_MATERIAL_TINT_ID, GolemMaterialTint.MAP_CODEC);
+        event.register(NOTE_COLOR_TINT_ID, NoteColorTint.MAP_CODEC);
     }
 }

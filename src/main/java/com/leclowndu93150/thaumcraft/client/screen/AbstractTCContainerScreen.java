@@ -47,6 +47,11 @@ public abstract class AbstractTCContainerScreen<T extends AbstractContainerMenu>
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        extractBackgroundTexture(graphics);
+        extractBackgroundOverlay(graphics, mouseX, mouseY, partialTick);
+    }
+
+    protected void extractBackgroundTexture(GuiGraphicsExtractor graphics) {
         graphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 background,
@@ -59,7 +64,6 @@ public abstract class AbstractTCContainerScreen<T extends AbstractContainerMenu>
                 backgroundTextureWidth,
                 backgroundTextureHeight
         );
-        extractBackgroundOverlay(graphics, mouseX, mouseY, partialTick);
     }
 
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {

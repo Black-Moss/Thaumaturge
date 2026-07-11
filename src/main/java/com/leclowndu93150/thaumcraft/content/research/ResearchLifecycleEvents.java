@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.research;
 
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import net.minecraft.resources.Identifier;
 import com.leclowndu93150.thaumcraft.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumcraft.TCIds;
@@ -16,6 +17,7 @@ public final class ResearchLifecycleEvents {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             ResearchManager.applyAutoUnlock(player);
+            AspectPools.seedIfNew(player);
         }
     }
 

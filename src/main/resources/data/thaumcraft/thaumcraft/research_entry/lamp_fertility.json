@@ -44,5 +44,20 @@
         "thaumcraft:infusion/lamp_fertility"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:bestia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:lux",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

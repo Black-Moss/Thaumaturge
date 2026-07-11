@@ -39,7 +39,6 @@ import com.leclowndu93150.thaumcraft.content.research.ResearchRegistration;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
 import com.leclowndu93150.thaumcraft.network.ClientboundKnowledgeGainPayload;
-import com.leclowndu93150.thaumcraft.content.research.theorycraft.TheorycraftManager;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
@@ -111,8 +110,6 @@ public final class TCCommands {
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
         LiteralArgumentBuilder<CommandSourceStack> tc = Commands.literal("tc")
-                .then(Commands.literal("theorycraft").then(Commands.literal("test")
-                        .executes(TCCommands::startTestSession)))
                 .then(Commands.literal("table").executes(TCCommands::giveResearchTable))
                 .then(Commands.literal("outermaze")
                         .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -667,17 +664,6 @@ public final class TCCommands {
         }
     }
 
-    private static int startTestSession(CommandContext<CommandSourceStack> ctx) {
-        try {
-            ServerPlayer player = ctx.getSource().getPlayerOrException();
-            TheorycraftManager.beginSession(player, player.level(), player.blockPosition());
-            ctx.getSource().sendSuccess(() -> Component.literal("Theorycraft session started; open a Research Table."), false);
-            return Command.SINGLE_SUCCESS;
-        } catch (Exception e) {
-            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
-            return 0;
-        }
-    }
 
     private static int generateOuterMaze(CommandContext<CommandSourceStack> ctx, int w, int h) {
         try {

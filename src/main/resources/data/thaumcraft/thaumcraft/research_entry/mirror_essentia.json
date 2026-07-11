@@ -26,5 +26,24 @@
         "thaumcraft:infusion/mirror_essentia"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

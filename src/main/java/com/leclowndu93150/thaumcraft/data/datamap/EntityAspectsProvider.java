@@ -85,6 +85,47 @@ public final class EntityAspectsProvider extends DataMapProvider {
         add(b, EntityType.STRAY, list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 5, TCAspects.VINCULUM, 5));
         add(b, EntityType.VEX, list(TCAspects.ALIENIS, 5, TCAspects.VOLATUS, 5, TCAspects.PRAECANTATIO, 5, TCAspects.HUMANUS, 5));
 
+        add(b, EntityType.DOLPHIN, list(TCAspects.BESTIA, 10, TCAspects.AQUA, 10, TCAspects.MOTUS, 5, TCAspects.COGNITIO, 5));
+        add(b, EntityType.DROWNED, list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 10, TCAspects.AQUA, 5));
+        add(b, EntityType.TURTLE, list(TCAspects.BESTIA, 10, TCAspects.AQUA, 5, TCAspects.PRAEMUNIO, 5));
+        add(b, EntityType.COD, list(TCAspects.BESTIA, 5, TCAspects.AQUA, 5));
+        add(b, EntityType.SALMON, list(TCAspects.BESTIA, 5, TCAspects.AQUA, 5));
+        add(b, EntityType.TROPICAL_FISH, list(TCAspects.BESTIA, 5, TCAspects.AQUA, 5, TCAspects.SENSUS, 3));
+        add(b, EntityType.PUFFERFISH, list(TCAspects.BESTIA, 5, TCAspects.AQUA, 5, TCAspects.AVERSIO, 3));
+        add(b, EntityType.PHANTOM, list(TCAspects.EXANIMIS, 15, TCAspects.VOLATUS, 10, TCAspects.TENEBRAE, 5, TCAspects.SPIRITUS, 5));
+        add(b, EntityType.CAT, list(TCAspects.BESTIA, 10, TCAspects.SENSUS, 5));
+        add(b, EntityType.FOX, list(TCAspects.BESTIA, 10, TCAspects.SENSUS, 5, TCAspects.MOTUS, 3));
+        add(b, EntityType.PANDA, list(TCAspects.BESTIA, 15, TCAspects.HERBA, 5));
+        add(b, EntityType.PILLAGER, list(TCAspects.HUMANUS, 10, TCAspects.AVERSIO, 10));
+        add(b, EntityType.RAVAGER, list(TCAspects.BESTIA, 20, TCAspects.AVERSIO, 15, TCAspects.TERRA, 5));
+        add(b, EntityType.TRADER_LLAMA, list(TCAspects.BESTIA, 15, TCAspects.AQUA, 5));
+        add(b, EntityType.WANDERING_TRADER, list(TCAspects.HUMANUS, 10, TCAspects.PERMUTATIO, 10, TCAspects.DESIDERIUM, 5));
+        add(b, EntityType.BEE, list(TCAspects.BESTIA, 5, TCAspects.VOLATUS, 5, TCAspects.HERBA, 5, TCAspects.FABRICO, 2));
+        add(b, EntityType.HOGLIN, list(TCAspects.BESTIA, 15, TCAspects.AVERSIO, 10, TCAspects.IGNIS, 5));
+        add(b, EntityType.ZOGLIN, list(TCAspects.EXANIMIS, 15, TCAspects.BESTIA, 10, TCAspects.AVERSIO, 10));
+        add(b, EntityType.PIGLIN, list(TCAspects.HUMANUS, 10, TCAspects.BESTIA, 5, TCAspects.DESIDERIUM, 10));
+        add(b, EntityType.PIGLIN_BRUTE, list(TCAspects.HUMANUS, 10, TCAspects.BESTIA, 5, TCAspects.AVERSIO, 15));
+        add(b, EntityType.STRIDER, list(TCAspects.BESTIA, 10, TCAspects.IGNIS, 10, TCAspects.MOTUS, 5));
+        add(b, EntityType.AXOLOTL, list(TCAspects.BESTIA, 10, TCAspects.AQUA, 5, TCAspects.VICTUS, 5));
+        add(b, EntityType.GLOW_SQUID, list(TCAspects.BESTIA, 5, TCAspects.AQUA, 5, TCAspects.LUX, 5));
+        add(b, EntityType.GOAT, list(TCAspects.BESTIA, 10, TCAspects.TERRA, 5, TCAspects.MOTUS, 5));
+        add(b, EntityType.ALLAY, list(TCAspects.SPIRITUS, 10, TCAspects.VOLATUS, 5, TCAspects.SENSUS, 5, TCAspects.DESIDERIUM, 3));
+        add(b, EntityType.FROG, list(TCAspects.BESTIA, 8, TCAspects.AQUA, 4, TCAspects.MOTUS, 3));
+        add(b, EntityType.TADPOLE, list(TCAspects.BESTIA, 4, TCAspects.AQUA, 4, TCAspects.VICTUS, 2));
+        add(b, EntityType.WARDEN, list(TCAspects.TENEBRAE, 20, TCAspects.SENSUS, 15, TCAspects.AVERSIO, 15, TCAspects.TERRA, 10, TCAspects.VITIUM, 5));
+        add(b, EntityType.CAMEL, list(TCAspects.BESTIA, 12, TCAspects.TERRA, 5, TCAspects.MOTUS, 3));
+        add(b, EntityType.SNIFFER, list(TCAspects.BESTIA, 15, TCAspects.HERBA, 10, TCAspects.SENSUS, 10, TCAspects.TERRA, 5));
+        add(b, EntityType.ARMADILLO, list(TCAspects.BESTIA, 8, TCAspects.PRAEMUNIO, 5, TCAspects.TERRA, 3));
+        add(b, EntityType.BOGGED, list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 5, TCAspects.HERBA, 5));
+        add(b, EntityType.BREEZE, list(TCAspects.AER, 15, TCAspects.MOTUS, 10, TCAspects.POTENTIA, 5, TCAspects.PRAECANTATIO, 3));
+        add(b, EntityType.CREAKING, list(TCAspects.HERBA, 15, TCAspects.SPIRITUS, 10, TCAspects.TENEBRAE, 10, TCAspects.AVERSIO, 5));
+        add(b, EntityType.HAPPY_GHAST, list(TCAspects.BESTIA, 10, TCAspects.VOLATUS, 10, TCAspects.AER, 5, TCAspects.VICTUS, 3));
+        add(b, EntityType.COPPER_GOLEM, list(TCAspects.METALLUM, 10, TCAspects.MACHINA, 10, TCAspects.MOTUS, 5, TCAspects.HUMANUS, 3));
+        add(b, EntityType.CAMEL_HUSK, list(TCAspects.EXANIMIS, 15, TCAspects.BESTIA, 8, TCAspects.IGNIS, 3));
+        add(b, EntityType.PARCHED, list(TCAspects.EXANIMIS, 15, TCAspects.HUMANUS, 8, TCAspects.TERRA, 3));
+        add(b, EntityType.NAUTILUS, list(TCAspects.BESTIA, 8, TCAspects.AQUA, 8, TCAspects.PRAEMUNIO, 3));
+        add(b, EntityType.ZOMBIE_NAUTILUS, list(TCAspects.EXANIMIS, 12, TCAspects.BESTIA, 5, TCAspects.AQUA, 5));
+
         add(b, TCEntities.THAUMIC_SLIME.get(), list(TCAspects.VICTUS, 5, TCAspects.AQUA, 5, TCAspects.VITIUM, 5, TCAspects.ALKIMIA, 5));
         add(b, TCEntities.TAINTACLE.get(), list(TCAspects.VITIUM, 15, TCAspects.BESTIA, 10));
         add(b, TCEntities.TAINT_SEED.get(), list(TCAspects.VITIUM, 20, TCAspects.AURAM, 10, TCAspects.HERBA, 5));
@@ -122,5 +163,11 @@ public final class EntityAspectsProvider extends DataMapProvider {
     private AspectList list(ResourceKey<IAspect> a1, int n1, ResourceKey<IAspect> a2, int n2,
                             ResourceKey<IAspect> a3, int n3, ResourceKey<IAspect> a4, int n4) {
         return list(a1, n1, a2, n2, a3, n3).add(aspects.getOrThrow(a4), n4);
+    }
+
+    private AspectList list(ResourceKey<IAspect> a1, int n1, ResourceKey<IAspect> a2, int n2,
+                            ResourceKey<IAspect> a3, int n3, ResourceKey<IAspect> a4, int n4,
+                            ResourceKey<IAspect> a5, int n5) {
+        return list(a1, n1, a2, n2, a3, n3, a4, n4).add(aspects.getOrThrow(a5), n5);
     }
 }

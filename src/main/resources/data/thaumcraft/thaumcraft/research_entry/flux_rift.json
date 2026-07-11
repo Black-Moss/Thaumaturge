@@ -18,5 +18,20 @@
     {
       "text": "research.thaumcraft.flux_rift.stage_0"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vitium",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

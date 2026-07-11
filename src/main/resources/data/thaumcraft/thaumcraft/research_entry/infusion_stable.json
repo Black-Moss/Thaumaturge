@@ -52,5 +52,20 @@
         "thaumcraft:arcane_workbench/inlay"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

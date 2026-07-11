@@ -26,5 +26,20 @@
         "thaumcraft:infusion/cloud_ring"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:volatus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

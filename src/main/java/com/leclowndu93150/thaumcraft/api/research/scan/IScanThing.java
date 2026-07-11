@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.api.research.scan;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
@@ -46,5 +47,19 @@ public interface IScanThing {
      * @param target the scan target
      */
     default void onSuccess(Player player, @Nullable Object target) {
+    }
+
+    /**
+     * Returns why a matching target cannot be scanned yet, or {@code null} when scanning may
+     * proceed. When non-null, the scan attempt fails without recording the research key or
+     * calling {@link #onSuccess onSuccess}, the message is shown to the player, and the target
+     * stays scannable for later attempts.
+     *
+     * @param player the scanning player
+     * @param target the scan target
+     * @return the failure message, or {@code null} when the scan may complete
+     */
+    default @Nullable Component scanFailure(Player player, @Nullable Object target) {
+        return null;
     }
 }

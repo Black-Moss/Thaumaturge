@@ -5,7 +5,6 @@
     "thaumcraft:gotthaumonomicon"
   ],
   "siblings": [
-    "thaumcraft:knowledge_types",
     "thaumcraft:gotdream"
   ],
   "column": 0,
@@ -63,5 +62,16 @@
         "thaumcraft:stone_arcane_brick"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:cognitio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

@@ -22,5 +22,20 @@
         "thaumcraft:f_matbrass"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

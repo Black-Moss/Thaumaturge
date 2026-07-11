@@ -19,5 +19,20 @@
         "thaumcraft:f_matclay"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
 }

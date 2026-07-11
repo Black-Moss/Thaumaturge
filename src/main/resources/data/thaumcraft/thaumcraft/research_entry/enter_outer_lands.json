@@ -17,5 +17,20 @@
     {
       "text": "research.thaumcraft.enter_outer_lands.stage_0"
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
 }

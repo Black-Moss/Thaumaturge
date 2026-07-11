@@ -23,5 +23,20 @@
         "thaumcraft:girdle_mundane"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

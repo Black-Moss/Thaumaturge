@@ -33,5 +33,20 @@
         "thaumcraft:arcane_workbench/dioptra"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:sensus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

@@ -26,5 +26,24 @@
         "thaumcraft:infusion/hand_mirror"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:instrumentum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

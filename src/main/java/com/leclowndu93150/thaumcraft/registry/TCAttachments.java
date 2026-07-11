@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPoolData;
 import com.leclowndu93150.thaumcraft.TCIds;
 import net.minecraft.core.BlockPos;
 import com.leclowndu93150.thaumcraft.content.aura.AuraData;
@@ -10,7 +11,6 @@ import com.leclowndu93150.thaumcraft.content.golem.tasks.GolemTasks;
 import com.leclowndu93150.thaumcraft.content.entity.FocusCloudCooldowns;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
-import com.leclowndu93150.thaumcraft.content.research.theorycraft.ResearchTableData;
 import com.leclowndu93150.thaumcraft.content.warp.WarpData;
 import java.util.function.Supplier;
 import net.neoforged.bus.api.IEventBus;
@@ -33,15 +33,16 @@ public final class TCAttachments {
                     .copyOnDeath()
                     .build());
 
-    public static final DeferredHolder<AttachmentType<?>, AttachmentType<ResearchTableData>> RESEARCH_TABLE =
-            register("research_table", () -> AttachmentType.builder(ResearchTableData::new)
-                    .serialize(ResearchTableData.CODEC)
-                    .sync(ResearchTableData.STREAM_CODEC)
-                    .build());
-
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AuraData>> AURA =
             register("aura", () -> AttachmentType.builder(AuraData::new)
                     .serialize(AuraData.CODEC)
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<AspectPoolData>> ASPECT_POOL =
+            register("aspect_pool", () -> AttachmentType.builder(AspectPoolData::new)
+                    .serialize(AspectPoolData.CODEC)
+                    .sync(AspectPoolData.STREAM_CODEC)
+                    .copyOnDeath()
                     .build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<WarpData>> WARP =

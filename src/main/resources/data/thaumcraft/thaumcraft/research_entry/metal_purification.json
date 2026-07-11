@@ -29,5 +29,20 @@
         }
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:metallum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:permutatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:alkimia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
 }

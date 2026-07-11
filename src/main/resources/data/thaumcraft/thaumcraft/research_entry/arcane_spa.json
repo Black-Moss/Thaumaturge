@@ -26,5 +26,20 @@
         "thaumcraft:arcane_workbench/spa"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

@@ -34,5 +34,20 @@
         "thaumcraft:arcane_workbench/bellows"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
 }

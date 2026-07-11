@@ -1,5 +1,13 @@
 package com.leclowndu93150.thaumcraft.compat.jei;
 
+import java.util.List;
+import java.util.ArrayList;
+import mezz.jei.api.registration.IExtraIngredientRegistration;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNotes;
+import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.research.note.NoteGenerator;
+import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.*;
@@ -42,6 +50,8 @@ import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.*;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -83,6 +93,42 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(TCItems.ESSENTIA_CRYSTAL.get(), crystalAspectInterpreter);
         registration.registerSubtypeInterpreter(TCItems.PHIAL.get(), aspectsInterpreter);
         registration.registerFromDataComponentTypes(TCItems.CELESTIAL_NOTES.asItem(), TCDataComponents.CELESTIAL_BODY.get());
+        registration.registerFromDataComponentTypes(TCItems.RESEARCH_NOTE.get(), TCDataComponents.RESEARCH_NOTE.get());
+    }
+
+    @Override
+    public void registerExtraIngredients(IExtraIngredientRegistration registration) {
+        RegistryAccess registryAccess = clientRegistryAccess();
+        if (registryAccess == null) {
+            return;
+        }
+        List<ItemStack> notes = new ArrayList<>();
+        for (Holder.Reference<IResearchEntry> holder
+                : registryAccess.lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList()) {
+            IResearchEntry entry = holder.value();
+            int theoryRows = ResearchNotes.theoryRowsBefore(entry, entry.stages().size());
+            if (theoryRows == 0) {
+                continue;
+            }
+            Identifier entryId = holder.key().identifier();
+            AspectList anchors = ResearchNotes.anchors(registryAccess, entry);
+            int color = NoteGenerator.primaryColor(anchors);
+            for (int ordinal = 0; ordinal < theoryRows; ordinal++) {
+                notes.add(displayNote(entryId, ordinal, color, false));
+                notes.add(displayNote(entryId, ordinal, color, true));
+            }
+        }
+        registration.addExtraItemStacks(notes);
+    }
+
+    private static ItemStack displayNote(Identifier entry, int ordinal, int color, boolean complete) {
+        ItemStack stack = new ItemStack(TCItems.RESEARCH_NOTE.get());
+        stack.set(TCDataComponents.RESEARCH_NOTE.get(),
+                new ResearchNoteData(entry, ordinal, color, complete, 0, List.of()));
+        if (complete) {
+            stack.set(TCDataComponents.NOTE_COMPLETE.get(), true);
+        }
+        return stack;
     }
 
     @Override
@@ -96,8 +142,11 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
             return;
         }
         Registry<IAspect> registry = registryOpt.get();
+        Player player = Minecraft.getInstance().player;
         List<Holder<IAspect>> all = new ArrayList<>(registry.size());
-        registry.listElements().forEach(all::add);
+        registry.listElements()
+                .filter(ref -> player != null && AspectPools.isDiscovered(player, ref))
+                .forEach(all::add);
         registration.register(
                 AspectIngredientType.INSTANCE,
                 all.stream().sorted(Comparator.comparingInt(e->clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getId(e.getKey()))).sorted(Comparator.comparing(h->!h.value().isPrimal())).map(aspect->new AspectInstance(aspect,1)).toList(),
@@ -138,6 +187,11 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         addTypedRecipes(registration,MultiblockCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerMultiblockRecipe);
         registerAspectInfoPages(registration);
         registerAspectFromStacksPages(registration);
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        AspectJeiSync.onRuntimeAvailable(jeiRuntime);
     }
 
   /*  @Override

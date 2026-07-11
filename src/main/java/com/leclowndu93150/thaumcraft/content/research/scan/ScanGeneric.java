@@ -1,14 +1,16 @@
 package com.leclowndu93150.thaumcraft.content.research.scan;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
-import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
-import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import net.minecraft.network.chat.Component;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.research.scan.IScanThing;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
-import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,6 +27,21 @@ public final class ScanGeneric implements IScanThing {
     }
 
     @Override
+    public @Nullable Component scanFailure(Player player, @Nullable Object target) {
+        for (AspectInstance instance : aspectsOf(player, target).entries()) {
+            if (AspectPools.hasDiscoveredComponents(player, instance.aspect())) {
+                continue;
+            }
+            for (Holder<IAspect> component : instance.aspect().value().components()) {
+                if (!AspectPools.isDiscovered(player, component)) {
+                    return Component.translatable("tc.discoveryerror", AspectComponents.help(component));
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void onSuccess(Player player, @Nullable Object target) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
@@ -33,11 +50,7 @@ public final class ScanGeneric implements IScanThing {
         if (aspects.isEmpty()) {
             return;
         }
-        for (Holder.Reference<IResearchCategory> category
-                : serverPlayer.registryAccess().lookupOrThrow(IResearchCategory.REGISTRY_KEY).listElements().toList()) {
-            int amount = category.value().applyFormula(aspects);
-            ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.OBSERVATION, category, amount);
-        }
+        AspectPools.grantAll(serverPlayer, aspects);
     }
 
     @Override

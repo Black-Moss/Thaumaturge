@@ -41,5 +41,20 @@
       ],
       "warp": 2
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:alienis",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:tenebrae",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }

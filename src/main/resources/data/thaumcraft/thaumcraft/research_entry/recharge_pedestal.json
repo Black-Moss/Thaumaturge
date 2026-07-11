@@ -26,5 +26,20 @@
         "thaumcraft:arcane_workbench/recharge_pedestal"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:praemunio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
 }

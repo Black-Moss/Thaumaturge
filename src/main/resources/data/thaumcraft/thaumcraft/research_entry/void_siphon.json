@@ -33,5 +33,20 @@
         "thaumcraft:infusion/void_siphon"
       ]
     }
-  ]
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:vacuos",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
 }
