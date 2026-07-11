@@ -20,8 +20,15 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public class BlockPlaceholder extends Block {
+    private final boolean visible;
+
     public BlockPlaceholder(Properties properties) {
+        this(properties, false);
+    }
+
+    public BlockPlaceholder(Properties properties, boolean visible) {
         super(properties);
+        this.visible = visible;
     }
 
     protected boolean propagatesSkylightDown(BlockState state) {
@@ -29,7 +36,7 @@ public class BlockPlaceholder extends Block {
     }
 
     protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.INVISIBLE;
+        return visible ? RenderShape.MODEL : RenderShape.INVISIBLE;
     }
 
     protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {

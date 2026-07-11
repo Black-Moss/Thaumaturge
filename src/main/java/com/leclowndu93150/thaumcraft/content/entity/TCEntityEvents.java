@@ -52,6 +52,12 @@ public final class TCEntityEvents {
         event.register(TCEntities.CULTIST_CLERIC.get(), SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkAnyLightMonsterSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.FIRE_BAT.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EntityFireBat::checkFireBatSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.THAUMIC_SLIME.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ThaumicSlime::checkSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
     @SubscribeEvent

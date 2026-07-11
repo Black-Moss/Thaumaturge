@@ -37,33 +37,36 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class ScanBootstrap {
     private static final Set<Identifier> DYNAMIC_ASPECTS = new HashSet<>();
     private static final Set<Identifier> DYNAMIC_ENCHANTMENTS = new HashSet<>();
-    private static boolean registered;
 
     private ScanBootstrap() {}
 
     @SubscribeEvent
-    public static void onServerAboutToStart(ServerAboutToStartEvent event) {
-        if (!registered) {
-            registered = true;
+    public static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
             ScanningManager.addScannableThing(new ScanGeneric());
             ScanningManager.addScannableThing(new ScanSky());
             for (Holder.Reference<MobEffect> effect : BuiltInRegistries.MOB_EFFECT.listElements().toList()) {
                 ScanningManager.addScannableThing(new ScanPotion(effect));
             }
             registerContentScans();
-        }
-        event.getServer().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspect -> {
+        });
+    }
+
+    @SubscribeEvent
+    public static void onTagsUpdated(TagsUpdatedEvent event) {
+        event.getLookupProvider().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspect -> {
             if (DYNAMIC_ASPECTS.add(aspect.key().identifier())) {
                 ScanningManager.addScannableThing(new ScanAspectDiscovery(aspect.key()));
             }
         });
-        event.getServer().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).listElements().forEach(enchantment -> {
+        event.getLookupProvider().lookupOrThrow(Registries.ENCHANTMENT).listElements().forEach(enchantment -> {
             if (DYNAMIC_ENCHANTMENTS.add(enchantment.key().identifier())) {
                 ScanningManager.addScannableThing(new ScanEnchantment(enchantment.key().identifier()));
             }
@@ -90,7 +93,7 @@ public final class ScanBootstrap {
 
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_teleport"),
                 Blocks.NETHER_PORTAL, Blocks.END_PORTAL, Blocks.END_PORTAL_FRAME));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_teleport"), new ItemStack(Items.ENDER_PEARL)));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_teleport"), Items.ENDER_PEARL));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_teleport"), EntityType.ENDERMAN));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_spider"), Spider.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_bat"), Bat.class, true));
@@ -100,31 +103,31 @@ public final class ScanBootstrap {
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_fly"), Blaze.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_fly"), TCEntities.TAINT_SWARM.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_dispenser"), Blocks.DISPENSER));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matclay"), new ItemStack(Items.CLAY_BALL)));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matclay"), Items.CLAY_BALL));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matclay"), Blocks.CLAY));
         ScanningManager.addScannableThing(new ScanBlockTag(TCIds.rl("f_matclay"), BlockTags.TERRACOTTA));
         ScanningManager.addScannableThing(new ScanItemTag(TCIds.rl("f_matiron"), Tags.Items.ORES_IRON));
         ScanningManager.addScannableThing(new ScanItemTag(TCIds.rl("f_matiron"), Tags.Items.INGOTS_IRON));
         ScanningManager.addScannableThing(new ScanItemTag(TCIds.rl("f_matiron"), Tags.Items.STORAGE_BLOCKS_IRON));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matbrass"), new ItemStack(TCItems.INGOT_BRASS.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matbrass"), TCItems.INGOT_BRASS.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matbrass"), TCBlocks.METAL_BRASS_BLOCK.get()));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matthaumium"), new ItemStack(TCItems.INGOT_THAUMIUM.get())));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matthaumium"), new ItemStack(TCItems.PLATE_THAUMIUM.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matthaumium"), TCItems.INGOT_THAUMIUM.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matthaumium"), TCItems.PLATE_THAUMIUM.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matthaumium"), TCBlocks.METAL_THAUMIUM_BLOCK.get()));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matvoid"), new ItemStack(TCItems.INGOT_VOID.get())));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matvoid"), new ItemStack(TCItems.PLATE_VOID.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matvoid"), TCItems.INGOT_VOID.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_matvoid"), TCItems.PLATE_VOID.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_matvoid"), TCBlocks.METAL_VOID_BLOCK.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_brain"), TCEntities.BRAINY_ZOMBIE.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_brain"), TCEntities.GIANT_BRAINY_ZOMBIE.get()));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_brain"), new ItemStack(TCItems.BRAIN.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_brain"), TCItems.BRAIN.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), EntityThaumcraftGolem.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), EntityOwnedConstruct.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_arrow"), AbstractArrow.class, true));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_arrow"), new ItemStack(Items.ARROW)));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_arrow"), Items.ARROW));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_fireball"), AbstractHurtingProjectile.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_spit"), EntityType.LLAMA_SPIT));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_voidseed"), new ItemStack(TCItems.VOID_SEED.get())));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("primordial_pearl"), new ItemStack(TCItems.PRIMORDIAL_PEARL.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_voidseed"), TCItems.VOID_SEED.get()));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("primordial_pearl"), TCItems.PRIMORDIAL_PEARL.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_toomuchflux"), TCEntities.FLUX_RIFT.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("scanned/fluxrift"), TCEntities.FLUX_RIFT.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/orblock1"),
@@ -132,9 +135,9 @@ public final class ScanBootstrap {
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/orblock2"), TCBlocks.STONE_ELDRITCH_TILE.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("outer_revelations"),
                 TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), TCBlocks.ELDRITCH_CRUST_GLOWING.get()));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/dragonbreath"), new ItemStack(Items.DRAGON_BREATH)));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/totemundying"), new ItemStack(Items.TOTEM_OF_UNDYING)));
-        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/pechwand"), new ItemStack(TCItems.PECH_WAND.get())));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/dragonbreath"), Items.DRAGON_BREATH));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/totemundying"), Items.TOTEM_OF_UNDYING));
+        ScanningManager.addScannableThing(new ScanItem(TCIds.rl("scanned/pechwand"), TCItems.PECH_WAND.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/oreamber"), TCBlocks.ORE_AMBER.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/orecinnabar"), TCBlocks.ORE_CINNABAR.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/plantcinderpearl"), TCBlocks.PLANT_CINDERPEARL.get()));

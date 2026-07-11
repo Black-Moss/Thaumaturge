@@ -3,7 +3,9 @@ package com.leclowndu93150.thaumcraft.api.research.scan;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -13,17 +15,18 @@ import org.jspecify.annotations.Nullable;
  */
 public class ScanItem implements IScanThing {
     private final Identifier research;
-    private final ItemStack stack;
+    private final Item item;
 
     /**
-     * Creates the subject.
+     * Creates the subject. Holds the {@link Item} rather than a stack so instances can be
+     * created before item components are bound.
      *
      * @param research the research key granted on scan
-     * @param stack the stack whose item this subject matches
+     * @param item the item this subject matches
      */
-    public ScanItem(Identifier research, ItemStack stack) {
+    public ScanItem(Identifier research, ItemLike item) {
         this.research = research;
-        this.stack = stack;
+        this.item = item.asItem();
     }
 
     @Override
@@ -34,7 +37,7 @@ public class ScanItem implements IScanThing {
         } else if (target instanceof ItemEntity itemEntity) {
             is = itemEntity.getItem();
         }
-        return !is.isEmpty() && ItemStack.isSameItem(is, stack);
+        return !is.isEmpty() && is.is(item);
     }
 
     @Override

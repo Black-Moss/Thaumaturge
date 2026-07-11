@@ -256,6 +256,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("gui.thaumcraft.entry.advance", "Mark As Read");
         add("tc.stage.complete", "Complete");
         add("tc.stage.hold", "Completing...");
+        add("tc.research.complete", "Research Complete!");
         add("tc.aspect.name", "Aspects of Essentia");
         add("tc.knowledge.name", "Knowledge Totals");
         add("tc.aspect.primal", "Primal Aspect");

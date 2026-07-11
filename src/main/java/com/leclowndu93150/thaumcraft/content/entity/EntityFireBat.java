@@ -3,6 +3,9 @@ package com.leclowndu93150.thaumcraft.content.entity;
 import com.leclowndu93150.thaumcraft.content.entity.ai.FireBatAttackGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.FlyingWanderGoal;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -30,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class EntityFireBat extends Monster {
+    private static final int SPAWN_LIGHT_CAP = 7;
     private static final EntityDataAccessor<Boolean> DATA_HANGING =
             SynchedEntityData.defineId(EntityFireBat.class, EntityDataSerializers.BOOLEAN);
 
@@ -44,6 +48,14 @@ public final class EntityFireBat extends Monster {
 
     public @Nullable LivingEntity owner;
     public int damBonus;
+
+    public static boolean checkFireBatSpawnRules(EntityType<EntityFireBat> type, ServerLevelAccessor level,
+                                                 EntitySpawnReason reason, BlockPos pos, RandomSource random) {
+        if (level.getMaxLocalRawBrightness(pos) > random.nextInt(SPAWN_LIGHT_CAP)) {
+            return false;
+        }
+        return Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
+    }
 
     public EntityFireBat(EntityType<? extends EntityFireBat> type, Level level) {
         super(type, level);

@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.api.research.scan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
@@ -28,9 +28,8 @@ public class ScanBlock implements IScanThing {
         this.research = research;
         this.blocks = blocks;
         for (Block block : blocks) {
-            ItemStack stack = new ItemStack(block);
-            if (!stack.isEmpty()) {
-                ScanningManager.addScannableThing(new ScanItem(research, stack));
+            if (block.asItem() != Items.AIR) {
+                ScanningManager.addScannableThing(new ScanItem(research, block));
             }
         }
     }

@@ -1457,7 +1457,7 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockPlaceholder> OBSIDIAN_PLACEHOLDER = BLOCKS.registerBlock(
             "placeholder_obsidian",
-            BlockPlaceholder::new,
+            props -> new BlockPlaceholder(props, true),
             props -> props
                     .mapColor(MapColor.STONE)
                     .strength(2.5F, 3600000.0F)
@@ -1467,7 +1467,7 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockPlaceholder> NETHER_BRICKS_PLACEHOLDER = BLOCKS.registerBlock(
             "placeholder_nether_bricks",
-            BlockPlaceholder::new,
+            props -> new BlockPlaceholder(props, true),
             props -> props
                     .mapColor(MapColor.STONE)
                     .strength(2.5F, 3600000.0F)
