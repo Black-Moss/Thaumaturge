@@ -31,6 +31,9 @@ jobs:
           cache-disabled: ${{ inputs.is-release }}
           cache-read-only: false
 
+      - name: Data Generation
+        run: ./gradlew runData
+
       - name: Build
         run: ./gradlew build
 
