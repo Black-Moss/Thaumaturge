@@ -9,12 +9,15 @@ import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.network.ServerboundFocusChangePayload;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -298,13 +301,16 @@ public final class RadialFocusOverlay implements GuiLayer {
         }
 
         if (!tooltipStack.isEmpty()) {
-            graphics.setTooltipForNextFrame(mc.font,
-                    tooltipStack.getTooltipLines(
+            List<ClientTooltipComponent> lines = tooltipStack.getTooltipLines(
                             Item.TooltipContext.of(mc.level),
                             mc.player,
-                            mc.options.advancedItemTooltips ? TooltipFlag.ADVANCED : TooltipFlag.NORMAL),
-                    Optional.empty(),
-                    cx + TOOLTIP_X_OFFSET, cy + TOOLTIP_Y_OFFSET);
+                            mc.options.advancedItemTooltips ? TooltipFlag.ADVANCED : TooltipFlag.NORMAL).stream()
+                    .map(Component::getVisualOrderText)
+                    .map(ClientTooltipComponent::create)
+                    .toList();
+            graphics.tooltip(mc.font, lines,
+                    cx + TOOLTIP_X_OFFSET, cy + TOOLTIP_Y_OFFSET,
+                    DefaultTooltipPositioner.INSTANCE, null);
         }
     }
 

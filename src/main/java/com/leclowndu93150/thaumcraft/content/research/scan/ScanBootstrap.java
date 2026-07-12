@@ -51,6 +51,7 @@ public final class ScanBootstrap {
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             ScanningManager.addScannableThing(new ScanGeneric());
+            ScanningManager.addScannableThing(new ScanNode());
             ScanningManager.addScannableThing(new ScanSky());
             for (Holder.Reference<MobEffect> effect : BuiltInRegistries.MOB_EFFECT.listElements().toList()) {
                 ScanningManager.addScannableThing(new ScanPotion(effect));

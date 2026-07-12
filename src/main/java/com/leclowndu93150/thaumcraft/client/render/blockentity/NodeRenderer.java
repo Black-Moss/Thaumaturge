@@ -139,10 +139,9 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
                     .yRot(-yaw * Mth.DEG_TO_RAD)
                     .yRot(-wave * 0.01F)
                     .xRot(-wave * 0.015F);
-            double eye = drainer == player ? 0.0 : drainer.getEyeHeight();
             Vec3 hand = new Vec3(
                     Mth.lerp(partialTicks, drainer.xo, drainer.getX()),
-                    Mth.lerp(partialTicks, drainer.yo, drainer.getY()) + eye,
+                    Mth.lerp(partialTicks, drainer.yo, drainer.getY()) + drainer.getEyeHeight(),
                     Mth.lerp(partialTicks, drainer.zo, drainer.getZ())).add(offset);
             Vec3 nodeCenter = Vec3.atCenterOf(node.getBlockPos());
             state.draining = true;

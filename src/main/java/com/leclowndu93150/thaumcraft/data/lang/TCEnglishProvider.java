@@ -805,6 +805,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("wand.thaumcraft.rod.quartz", "Quartz");
         add("wand.thaumcraft.rod.primal", "Primal");
         add("tooltip.thaumcraft.focus_pouch.count", "Holds %1$s/%2$s foci");
+        add("tc.wand.notenoughvis", "The wand does not hold enough vis");
+        add("tc.wand.noaura", "The aura here is too weak to draw upon");
         add("tooltip.thaumcraft.wand.capacity", "Capacity %s");
         add("tooltip.thaumcraft.wand.cost", "Vis cost %s%%");
         add("tooltip.thaumcraft.wand.cost.except", "Vis cost %1$s%% (%2$s)");

@@ -49,10 +49,6 @@ public final class CasterHudOverlay implements GuiLayer {
     private static final int AMOUNT_TEXT_Y = -4;
     private static final int COST_TEXT_Y = 32;
     private static final int ITEM_HALF = 8;
-    private static final int COOLDOWN_VEIL_COLOR = 0x7FFFFFFF;
-
-    private static long cooldownTotal;
-    private static long cooldownLastRemaining;
     private static final int COUNT_TEXT_LIFT = 9;
     private static final int COUNT_TEXT_X = 16;
     private static final int COUNT_TEXT_Y = 24;
@@ -167,25 +163,7 @@ public final class CasterHudOverlay implements GuiLayer {
             } else {
                 graphics.item(focusStack, ANCHOR - ITEM_HALF, dialY + ANCHOR - ITEM_HALF);
             }
-            renderCooldownVeil(graphics, mc, player, dialY);
         }
-    }
-
-    private static void renderCooldownVeil(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, int dialY) {
-        long remaining = player.getData(TCAttachments.CASTER_COOLDOWN) - player.level().getGameTime();
-        if (remaining > cooldownLastRemaining) {
-            cooldownTotal = remaining;
-        }
-        cooldownLastRemaining = remaining;
-        if (remaining <= 0 || cooldownTotal <= 0) {
-            return;
-        }
-        float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-        float fraction = Mth.clamp((remaining - partial) / cooldownTotal, 0.0F, 1.0F);
-        int height = Mth.ceil(ITEM_HALF * 2 * fraction);
-        int x = ANCHOR - ITEM_HALF;
-        int yBottom = dialY + ANCHOR + ITEM_HALF;
-        graphics.fill(x, yBottom - height, x + ITEM_HALF * 2, yBottom, COOLDOWN_VEIL_COLOR);
     }
 
     private static void renderTradeHud(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player,

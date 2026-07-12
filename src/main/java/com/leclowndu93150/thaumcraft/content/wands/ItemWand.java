@@ -33,7 +33,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -59,6 +61,7 @@ public class ItemWand extends Item implements ICaster, IArchitect {
     private static final float REFINE_SPARKLE_SPREAD = 2.0F;
     private static final DecimalFormat VIS_FORMAT = new DecimalFormat("#######.##");
     private static final String STAFF_ROD_SUFFIX = "_staff";
+    private static final int NO_AURA_MESSAGE_INTERVAL_TICKS = 20;
 
     public ItemWand(Properties properties) {
         super(properties);
@@ -114,7 +117,6 @@ public class ItemWand extends Item implements ICaster, IArchitect {
             if (core == null) {
                 return InteractionResult.PASS;
             }
-            CasterManager.setCooldown(player, focus.getActivationTime(focusStack));
             if (player.isShiftKeyDown()) {
                 for (IFocusElement element : core.getNodes()) {
                     if (element instanceof IFocusBlockPicker) {
@@ -122,15 +124,21 @@ public class ItemWand extends Item implements ICaster, IArchitect {
                     }
                 }
             }
+            if (!consumeVis(wandStack, player, focus.getVisCost(focusStack), false, level.isClientSide())) {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    sendWandActionBar(serverPlayer, "tc.wand.notenoughvis");
+                }
+                return InteractionResult.FAIL;
+            }
+            int cooldown = focus.getActivationTime(focusStack);
+            CasterManager.setCooldown(player, cooldown);
+            player.getCooldowns().addCooldown(wandStack, cooldown);
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            if (consumeVis(wandStack, player, focus.getVisCost(focusStack), false, false)) {
-                FocusEngine.castFocusPackage(player, core);
-                player.swing(hand);
-                return InteractionResult.SUCCESS;
-            }
-            return InteractionResult.FAIL;
+            FocusEngine.castFocusPackage(player, core);
+            player.swing(hand);
+            return InteractionResult.SUCCESS;
         }
         player.startUsingItem(hand);
         return InteractionResult.CONSUME;
@@ -330,7 +338,14 @@ public class ItemWand extends Item implements ICaster, IArchitect {
         if (gained > 0) {
             WandVisHelper.addRealVis(stack, target, gained, true);
             sendRefineSparkle((ServerLevel) level, player, target);
+        } else if (ticksRemaining % NO_AURA_MESSAGE_INTERVAL_TICKS == 0 && player instanceof ServerPlayer serverPlayer) {
+            sendWandActionBar(serverPlayer, "tc.wand.noaura");
         }
+    }
+
+    private static void sendWandActionBar(ServerPlayer player, String key) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                Component.translatable(key).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
     }
 
     private static void sendRefineSparkle(ServerLevel level, Player player, ResourceKey<IAspect> aspect) {

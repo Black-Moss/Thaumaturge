@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
 import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -69,6 +70,18 @@ public final class ThaumometerAspectOverlay {
             return;
         }
         BlockPos pos = hit.getBlockPos();
+        if (mc.level.getBlockEntity(pos) instanceof BlockEntityNode node) {
+            AspectList nodeAspects = scannedAspects(mc.player, node.getAspects(),
+                    TCIds.rl("node/" + mc.level.dimension().identifier().getPath() + "/" + pos.asLong()));
+            if (nodeAspects.isEmpty()) {
+                resetAnimation();
+                return;
+            }
+            advanceAnimation(pos.immutable());
+            drawTags(event.getPoseStack(), mc, pos.getX(), pos.getY() + SPACE_ABOVE_LIFT, pos.getZ(),
+                    nodeAspects, Direction.UP);
+            return;
+        }
         BlockState state = mc.level.getBlockState(pos);
         ItemStack pick = new ItemStack(state.getBlock().asItem());
         if (pick.isEmpty()) {
