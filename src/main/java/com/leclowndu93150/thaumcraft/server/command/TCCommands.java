@@ -36,6 +36,7 @@ import java.util.Locale;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
@@ -112,6 +113,7 @@ public final class TCCommands {
     private static final double CHAMPION_SPAWN_DISTANCE = 4.0;
 
     private static final DynamicCommandExceptionType ERROR_INVALID_GATE = new DynamicCommandExceptionType((value) -> Component.literal("Unknown Research Entry : " + value));
+    private static final DynamicCommandExceptionType ERROR_INVALID_ASPECT = new DynamicCommandExceptionType((value) -> Component.literal("Unknown Aspect : " + value));
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
@@ -220,7 +222,16 @@ public final class TCCommands {
                         .then(Commands.literal("revoke")
                                 .then(Commands.argument("entry", ResourceKeyArgument.key(IResearchEntry.REGISTRY_KEY)).executes(TCCommands::revokeGate)))
                         .then(Commands.literal("reset").executes(TCCommands::resetResearch))
-                        .then(Commands.literal("all").executes(TCCommands::grantAllResearch)));
+                        .then(Commands.literal("all").executes(TCCommands::grantAllResearch)))
+                .then(Commands.literal("aspect").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("all")
+                                .executes(ctx -> grantAllAspects(ctx, AspectPools.SOFT_CAP))
+                                .then(Commands.argument("amount", IntegerArgumentType.integer(1, 10000))
+                                        .executes(ctx -> grantAllAspects(ctx, IntegerArgumentType.getInteger(ctx, "amount")))))
+                        .then(Commands.argument("aspect", ResourceKeyArgument.key(IAspect.REGISTRY_KEY))
+                                .executes(ctx -> grantAspect(ctx, AspectPools.SOFT_CAP))
+                                .then(Commands.argument("amount", IntegerArgumentType.integer(1, 10000))
+                                        .executes(ctx -> grantAspect(ctx, IntegerArgumentType.getInteger(ctx, "amount"))))));
         event.getDispatcher().register(tc);
     }
 
@@ -264,9 +275,41 @@ public final class TCCommands {
                     : player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()) {
                 ResearchManager.unlock(player, ScanKeys.aspect(aspect.key()));
             }
+            int aspects = AspectPools.grantAllForCommand(player, AspectPools.SOFT_CAP);
             int total = granted;
             ctx.getSource().sendSuccess(() -> Component.literal(
-                    String.format("Granted %d research entries and all aspect discoveries", total)), false);
+                    String.format("Granted %d research entries and %d aspects x%d research points",
+                            total, aspects, AspectPools.SOFT_CAP)), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int grantAllAspects(CommandContext<CommandSourceStack> ctx, int amount) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            int count = AspectPools.grantAllForCommand(player, amount);
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    String.format("Granted %d research points to all %d aspects", amount, count)), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int grantAspect(CommandContext<CommandSourceStack> ctx, int amount) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            ResourceKey<IAspect> key = ResourceKeyArgument.getRegistryKey(ctx, "aspect",
+                    IAspect.REGISTRY_KEY, ERROR_INVALID_ASPECT);
+            Holder<IAspect> aspect = player.registryAccess()
+                    .lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(key);
+            AspectPools.grantForCommand(player, aspect, amount);
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    String.format("Granted %d research points of %s", amount, key.identifier())), false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

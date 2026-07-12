@@ -165,6 +165,34 @@ public final class AspectPools {
                 0.9F + player.getRandom().nextFloat() * 0.2F);
     }
 
+    public static int grantAllForCommand(ServerPlayer player, int amount) {
+        AspectPoolData data = data(player);
+        List<Holder.Reference<IAspect>> aspects = player.registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList();
+        for (Holder.Reference<IAspect> aspect : aspects) {
+            Identifier id = aspect.key().identifier();
+            data.add(id, amount);
+            data.discover(id);
+        }
+        sync(player);
+        PacketDistributor.sendToPlayer(player,
+                new ClientboundAspectGainPayload(aspects.getFirst().key().identifier(), 0));
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
+        return aspects.size();
+    }
+
+    public static void grantForCommand(ServerPlayer player, Holder<IAspect> aspect, int amount) {
+        AspectPoolData data = data(player);
+        Identifier id = idOf(aspect);
+        data.add(id, amount);
+        data.discover(id);
+        sync(player);
+        PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, amount));
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
+    }
+
     public static void discoverWithLearnSound(ServerPlayer player, Holder<IAspect> aspect) {
         AspectPoolData data = data(player);
         Identifier id = idOf(aspect);
