@@ -1,0 +1,38 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.node_tapper_1.title",
+  "parents": [
+    "thaumcraft:base_auromancy"
+  ],
+  "column": -5,
+  "row": 2,
+  "icons": [
+    "thaumcraft:textures/research/r_researcher1.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.node_tapper_1.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.node_tapper_1.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

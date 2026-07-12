@@ -9,6 +9,8 @@ import com.leclowndu93150.thaumcraft.client.screen.AbstractTCContainerScreen;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
 import com.leclowndu93150.thaumcraft.content.recipe.ThaumcraftCraftingManager;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
+import com.leclowndu93150.thaumcraft.content.workbench.WorkbenchPayment;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -19,6 +21,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
 public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneWorkbench> {
+    private static final Identifier WAND_SLOT_TEXTURE = TCIds.rl("textures/gui/workbench_wand_slot.png");
+    private static final int WAND_SLOT_TEX_W = 38;
+    private static final int WAND_SLOT_TEX_H = 34;
+    private static final int WAND_SLOT_TEX_OFFSET_X = 10;
+    private static final int WAND_SLOT_TEX_OFFSET_Y = 6;
+
     public ArcaneWorkbenchScreen(MenuArcaneWorkbench menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TCScreenTextures.ARCANE_WORKBENCH, 190,234);
     }
@@ -33,13 +41,24 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
         IArcaneRecipe recipe = ThaumcraftCraftingManager.findMatchingArcaneRecipe(minecraft.level,menu.getCraftingInventory().asArcaneCraftInput(), minecraft.player);
         AspectList aspects = AspectList.EMPTY;
         int discountPercentage = 0;
+        ItemStack wandStack = menu.getCraftingInventory().wandStack();
         if (recipe != null && recipe.doesPassGate(minecraft.player)) {
-            requiredVis = recipe.getReducedVis(minecraft.player);
+            if (WorkbenchPayment.wandCanPay(wandStack, minecraft.player, recipe)) {
+                requiredVis = recipe.getBaseVis();
+                discountPercentage = GogglesAccess.totalVisDiscount(minecraft.player);
+            } else {
+                requiredVis = WorkbenchPayment.auraCost(recipe);
+            }
             aspects = recipe.getCrystals();
-            discountPercentage = GogglesAccess.totalVisDiscount(minecraft.player);
         }
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
+
+        graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SLOT_TEXTURE,
+                x + MenuArcaneWorkbench.WAND_X - WAND_SLOT_TEX_OFFSET_X,
+                y + MenuArcaneWorkbench.WAND_Y - WAND_SLOT_TEX_OFFSET_Y,
+                0.0F, 0.0F, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H,
+                WAND_SLOT_TEX_W, WAND_SLOT_TEX_H, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H);
 
         if (!aspects.isEmpty()){
             for (AspectInstance instance : aspects.entries()){

@@ -126,6 +126,7 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.CULTIST_PORTAL_LESSER.get(), CultistPortalRenderer::new);
         event.registerEntityRenderer(TCEntities.ELDRITCH_ORB.get(), EldritchOrbRenderer::new);
         event.registerEntityRenderer(TCEntities.GOLEM_ORB.get(), GolemOrbRenderer::new);
+        event.registerEntityRenderer(TCEntities.ASPECT_ORB.get(), AspectOrbRenderer::new);
         event.registerEntityRenderer(TCEntities.TURRET_CROSSBOW.get(), TurretCrossbowRenderer::new);
         event.registerEntityRenderer(TCEntities.TURRET_CROSSBOW_ADVANCED.get(), TurretCrossbowAdvancedRenderer::new);
         event.registerEntityRenderer(TCEntities.ARCANE_BORE.get(), ArcaneBoreRenderer::new);

@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.rod_obsidian.title",
+  "parents": [
+    "thaumcraft:rod_greatwood"
+  ],
+  "column": -5,
+  "row": -2,
+  "icons": [
+    "thaumcraft:wand_rod_obsidian"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.rod_obsidian.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.rod_obsidian.stage_0",
+      "recipes": [
+        "thaumcraft:infusion/wand_rod_obsidian"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:terra",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

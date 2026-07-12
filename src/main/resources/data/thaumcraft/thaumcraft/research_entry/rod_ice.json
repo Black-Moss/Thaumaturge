@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.rod_ice.title",
+  "parents": [
+    "thaumcraft:rod_greatwood"
+  ],
+  "column": -6,
+  "row": -1,
+  "icons": [
+    "thaumcraft:wand_rod_ice"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.rod_ice.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.rod_ice.stage_0",
+      "recipes": [
+        "thaumcraft:infusion/wand_rod_ice"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aqua",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:gelum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

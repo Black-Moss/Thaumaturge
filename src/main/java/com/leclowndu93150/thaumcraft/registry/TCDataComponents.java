@@ -1,6 +1,9 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeData;
 import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.wands.WandParts;
+import com.leclowndu93150.thaumcraft.content.wands.WandVis;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.mojang.serialization.Codec;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
@@ -156,6 +159,21 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("research_note", builder -> builder
                     .persistent(ResearchNoteData.CODEC)
                     .networkSynchronized(ResearchNoteData.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<NodeData>> NODE_DATA =
+            DATA_COMPONENTS.registerComponentType("node_data", builder -> builder
+                    .persistent(NodeData.CODEC)
+                    .networkSynchronized(NodeData.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<WandParts>> WAND_PARTS =
+            DATA_COMPONENTS.registerComponentType("wand_parts", builder -> builder
+                    .persistent(WandParts.CODEC)
+                    .networkSynchronized(WandParts.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<WandVis>> WAND_VIS =
+            DATA_COMPONENTS.registerComponentType("wand_vis", builder -> builder
+                    .persistent(WandVis.CODEC)
+                    .networkSynchronized(WandVis.STREAM_CODEC));
 
     private TCDataComponents() {}
 

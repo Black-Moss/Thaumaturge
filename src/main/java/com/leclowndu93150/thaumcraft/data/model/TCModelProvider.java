@@ -20,6 +20,7 @@ import com.leclowndu93150.thaumcraft.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumcraft.client.color.FocusColorTint;
 import com.leclowndu93150.thaumcraft.client.color.GolemMaterialTint;
 import com.leclowndu93150.thaumcraft.client.model.CentrifugeItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.WandItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.DeconTableItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.GolemBuilderItemSpecialRenderer;
 import com.mojang.math.Axis;
@@ -28,6 +29,8 @@ import com.mojang.math.Transformation;
 import net.minecraft.client.renderer.special.ChestSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarBrainItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.NodeStabilizerItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.WandIsStaffProperty;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockSmelter;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEssentiaTransport;
@@ -106,6 +109,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.registerSimpleItemModel(TCBlocks.FLESH_BLOCK.get().asItem(), ModelLocationUtils.getModelLocation(TCBlocks.FLESH_BLOCK.get()));
         registerInvisibleBlock(blockModels, TCBlocks.EFFECT_SHOCK.get());
         registerInvisibleBlock(blockModels, TCBlocks.BARRIER.get());
+        registerInvisibleBlock(blockModels, TCBlocks.NODE.get());
         registerJar(blockModels, itemModels, TCBlocks.JAR_NORMAL.get(), "jar_normal");
         registerJar(blockModels, itemModels, TCBlocks.JAR_VOID.get(), "jar_void");
         registerJarBrain(blockModels, itemModels);
@@ -129,6 +133,19 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCItems.LOOT_CRATE_RARE.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_RARE.get())));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER.get()))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER_ADVANCED.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER_ADVANCED.get()))));
+        itemModels.itemModelOutput.accept(TCBlocks.NODE_STABILIZER.get().asItem(), new SpecialModelWrapper.Unbaked(
+                TCIds.rl("item/node_stabilizer_base"),
+                Optional.empty(),
+                new NodeStabilizerItemSpecialRenderer.Unbaked(false)
+        ));
+        itemModels.itemModelOutput.accept(TCBlocks.NODE_STABILIZER_ADVANCED.get().asItem(), new SpecialModelWrapper.Unbaked(
+                TCIds.rl("item/node_stabilizer_base"),
+                Optional.empty(),
+                new NodeStabilizerItemSpecialRenderer.Unbaked(true)
+        ));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.JAR_NODE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.JAR_NORMAL.get()))));
         horizontalBlock(blockModels, itemModels, TCBlocks.INFERNAL_FURNACE.get(), "infernal_furnace",true);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.NETHER_BRICKS))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.OBSIDIAN))));
@@ -141,6 +158,43 @@ public final class TCModelProvider extends ModelProvider {
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.itemModelOutput.accept(TCItems.WAND.get(), ItemModelUtils.conditional(
+                new WandIsStaffProperty(),
+                new SpecialModelWrapper.Unbaked(
+                        TCIds.rl("item/wand_staff_base"),
+                        Optional.empty(),
+                        new WandItemSpecialRenderer.Unbaked()),
+                new SpecialModelWrapper.Unbaked(
+                        TCIds.rl("item/wand_base"),
+                        Optional.empty(),
+                        new WandItemSpecialRenderer.Unbaked())));
+        itemModels.generateFlatItem(TCItems.WAND_CAP_IRON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_COPPER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_GOLD.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_SILVER_INERT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_SILVER.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_THAUMIUM_INERT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_THAUMIUM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_VOID_INERT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_CAP_VOID.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_GREATWOOD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_OBSIDIAN.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_BLAZE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_ICE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_QUARTZ.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_BONE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_REED.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.WAND_ROD_SILVERWOOD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_GREATWOOD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_OBSIDIAN.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_BLAZE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_ICE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_QUARTZ.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_BONE.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_REED.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_SILVERWOOD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.STAFF_ROD_PRIMAL.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(TCItems.PRIMAL_CHARM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FABRIC.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.MIRRORED_GLASS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.FILTER.get(), ModelTemplates.FLAT_ITEM);
@@ -828,16 +882,6 @@ public final class TCModelProvider extends ModelProvider {
     }
 
     private static void registerCasters(ItemModelGenerators itemModels) {
-        ItemModel.Unbaked bare = ItemModelUtils.plainModel(
-                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/caster_basic_model"));
-        ItemModel.Unbaked socketed = ItemModelUtils.tintedModel(
-                Identifier.fromNamespaceAndPath(TCIds.MODID, "item/caster_basic_focus_model"),
-                new Constant(0xFFFFFF), new FocusColorTint());
-        itemModels.itemModelOutput.accept(TCItems.CASTER_BASIC.get(),
-                ItemModelUtils.conditional(
-                        ItemModelUtils.hasComponent(TCDataComponents.SOCKETED_FOCUS.get()),
-                        socketed,
-                        bare));
         registerFocusItem(itemModels, TCItems.FOCUS_1.get());
         registerFocusItem(itemModels, TCItems.FOCUS_2.get());
         registerFocusItem(itemModels, TCItems.FOCUS_3.get());

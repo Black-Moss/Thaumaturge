@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectHellbat;
+import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectPrimal;
 import com.leclowndu93150.thaumcraft.api.casters.FocusElementType;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMediumRoot;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
@@ -54,6 +56,12 @@ public final class TCFocusElements {
             element("plan", FocusMediumPlan::new, 8760728);
     public static final DeferredHolder<FocusElementType, FocusElementType> SPELLBAT =
             element("spellbat", FocusMediumSpellBat::new, 8760748);
+
+    public static final DeferredHolder<FocusElementType, FocusElementType> HELLBAT =
+            element("hellbat", FocusEffectHellbat::new, 14431746);
+
+    public static final DeferredHolder<FocusElementType, FocusElementType> PRIMAL =
+            element("primal", FocusEffectPrimal::new, 10854849);
 
     public static final DeferredHolder<FocusElementType, FocusElementType> FIRE =
             element("fire", FocusEffectFire::new, 16734721);

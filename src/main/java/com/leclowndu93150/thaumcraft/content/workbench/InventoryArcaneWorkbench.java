@@ -11,10 +11,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InventoryArcaneWorkbench extends SimpleContainer implements IArcaneWorkbench, CraftingContainer {
+    public static final int CRAFTING_SLOTS = 9;
+    public static final int CRYSTAL_SLOTS = 6;
+    public static final int WAND_SLOT = CRAFTING_SLOTS + CRYSTAL_SLOTS;
+    public static final int SIZE = WAND_SLOT + 1;
+
     private final List<Runnable> changeListeners = new ArrayList<>();
 
     public InventoryArcaneWorkbench() {
-        super(15);
+        super(SIZE);
+    }
+
+    public ItemStack wandStack() {
+        return getItem(WAND_SLOT);
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        if (slot == WAND_SLOT) {
+            return SlotWorkbenchWand.isUsableWand(stack);
+        }
+        return super.canPlaceItem(slot, stack);
     }
 
     public void addChangedListener(Runnable listener) {
@@ -53,6 +70,6 @@ public class InventoryArcaneWorkbench extends SimpleContainer implements IArcane
     }
 
     public ArcaneCraftingInput asArcaneCraftInput() {
-        return ArcaneCraftingInput.of(3, 3, getItems());
+        return ArcaneCraftingInput.of(3, 3, getItems().subList(0, WAND_SLOT));
     }
 }

@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumcraft.data.worldgen.feature;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeFeatureConfig;
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraConfig;
 import com.leclowndu93150.thaumcraft.content.world.tree.BigMagicTreeConfig;
@@ -38,6 +40,8 @@ public final class TCConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_TREES = key("magic_forest_trees");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_FLORA = key("magic_forest_flora");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRYSTALS = key("crystals");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_WILD = key("nodes_wild");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_EERIE = key("nodes_eerie");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_QUARTZ = key("ore_quartz");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_AMBER = key("ore_amber");
@@ -83,10 +87,10 @@ public final class TCConfiguredFeatures {
         context.register(SILVERWOOD_TREE, new ConfiguredFeature<>(TCFeatures.SILVERWOOD_TREE.get(),
                 new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(),
                         SILVERWOOD_NATURAL_MIN_HEIGHT, SILVERWOOD_NATURAL_EXTRA_HEIGHT,
-                        Optional.of(TCBlocks.PLANT_SHIMMERLEAF.get()))));
+                        Optional.of(TCBlocks.PLANT_SHIMMERLEAF.get()), true)));
         context.register(SILVERWOOD_TREE_GROWN, new ConfiguredFeature<>(TCFeatures.SILVERWOOD_TREE.get(),
                 new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(),
-                        SILVERWOOD_GROWN_MIN_HEIGHT, SILVERWOOD_GROWN_EXTRA_HEIGHT, Optional.empty())));
+                        SILVERWOOD_GROWN_MIN_HEIGHT, SILVERWOOD_GROWN_EXTRA_HEIGHT, Optional.empty(), false)));
 
         context.register(MAGIC_FOREST_TREES, new ConfiguredFeature<>(Feature.RANDOM_SELECTOR,
                 new RandomFeatureConfiguration(List.of(
@@ -99,6 +103,13 @@ public final class TCConfiguredFeatures {
         context.register(MAGIC_FOREST_FLORA, new ConfiguredFeature<>(TCFeatures.MAGIC_FOREST_FLORA.get(),
                 new MagicForestFloraConfig(TCBlocks.GRASS_AMBIENT.get(), TCBlocks.PLANT_VISHROOM.get(),
                         FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS)));
+
+        context.register(NODES_WILD, new ConfiguredFeature<>(TCFeatures.NODE.get(),
+                new NodeFeatureConfig(false, false, false,
+                        NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
+        context.register(NODES_EERIE, new ConfiguredFeature<>(TCFeatures.NODE.get(),
+                new NodeFeatureConfig(false, true, false,
+                        NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
 
         context.register(CRYSTALS, new ConfiguredFeature<>(TCFeatures.CRYSTAL_CLUSTER.get(),
                 new CrystalClusterConfig(List.of(

@@ -2,12 +2,13 @@ package com.leclowndu93150.thaumcraft.client.hud;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.content.wands.WandEconomy;
+import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import net.minecraft.resources.ResourceKey;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
-import com.leclowndu93150.thaumcraft.client.aura.ClientAuraCache;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
-import com.leclowndu93150.thaumcraft.network.ServerboundRequestAuraChunkPayload;
 import java.text.DecimalFormat;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -18,10 +19,8 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.gui.GuiLayer;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 public final class CasterHudOverlay implements GuiLayer {
     private static final Identifier HUD = TCIds.rl("textures/gui/hud.png");
@@ -111,17 +110,11 @@ public final class CasterHudOverlay implements GuiLayer {
         }
         ICaster wand = (ICaster) casterStack.getItem();
 
-        ClientAuraCache.tick();
-        ChunkPos pos = ChunkPos.containing(player.blockPosition());
-        if (ClientAuraCache.shouldRequest(pos)) {
-            ClientPacketDistributor.sendToServer(new ServerboundRequestAuraChunkPayload(pos.x(), pos.z()));
+        int max = WandVisHelper.getMaxVis(casterStack) * WandEconomy.PRIMAL_COUNT;
+        int amt = 0;
+        for (ResourceKey<IAspect> primal : TCAspects.PRIMALS) {
+            amt += WandVisHelper.getVis(casterStack, primal);
         }
-        ClientAuraCache.Snapshot snap = ClientAuraCache.get(pos);
-        if (snap == null) {
-            snap = ClientAuraCache.latest();
-        }
-        int max = snap == null ? 0 : snap.base();
-        int amt = snap == null ? 0 : (int) snap.vis();
 
         graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
                 0, dialY, 0.0F, 0.0F, DIAL_SIZE, DIAL_SIZE, DIAL_SRC_SIZE, DIAL_SRC_SIZE, TEX_SIZE, TEX_SIZE);
@@ -145,7 +138,8 @@ public final class CasterHudOverlay implements GuiLayer {
         if (player.isShiftKeyDown()) {
             graphics.pose().pushMatrix();
             graphics.pose().rotate((float) Math.toRadians(-90.0));
-            graphics.text(mc.font, AMOUNT_FORMAT.format(amt), AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
+            graphics.text(mc.font, AMOUNT_FORMAT.format(amt / (float) WandEconomy.CENTIVIS_PER_VIS),
+                    AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
             graphics.pose().popMatrix();
             if (hasFocus && focusStack.getItem() instanceof ItemFocus focus) {
                 float cost = focus.getVisCost(focusStack);

@@ -16,6 +16,8 @@ import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
+import net.minecraft.world.level.levelgen.placement.HeightmapPlacement;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
@@ -31,6 +33,10 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SILVERWOOD_NATURAL = key("silverwood_natural");
     public static final ResourceKey<PlacedFeature> MAGIC_FOREST_FLORA = key("magic_forest_flora");
     public static final ResourceKey<PlacedFeature> CRYSTALS = key("crystals");
+    public static final ResourceKey<PlacedFeature> NODES_WILD = key("nodes_wild");
+    public static final ResourceKey<PlacedFeature> NODES_MAGICAL = key("nodes_magical");
+    public static final ResourceKey<PlacedFeature> NODES_EERIE = key("nodes_eerie");
+    public static final ResourceKey<PlacedFeature> NODES_NETHER = key("nodes_nether");
     public static final ResourceKey<PlacedFeature> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<PlacedFeature> ORE_QUARTZ = key("ore_quartz");
     public static final ResourceKey<PlacedFeature> ORE_AMBER = key("ore_amber");
@@ -45,6 +51,12 @@ public final class TCPlacedFeatures {
     private static final int CINDERPEARL_RARITY = 30;
     private static final int CINDERPEARL_TRIES = 18;
     private static final int CINDERPEARL_XZ_SPREAD = 8;
+    private static final int NODE_WILD_RARITY = 25;
+    private static final int NODE_MAGICAL_RARITY = 12;
+    private static final int NODE_EERIE_RARITY = 8;
+    private static final int NODE_NETHER_RARITY = 40;
+    private static final int NODE_NETHER_MIN_Y = 32;
+    private static final int NODE_NETHER_MAX_Y = 100;
     private static final int CINDERPEARL_Y_SPREAD = 4;
     private static final int ORE_CINNABAR_COUNT = 18;
     private static final int ORE_QUARTZ_COUNT = 18;
@@ -109,6 +121,24 @@ public final class TCPlacedFeatures {
         context.register(CRYSTALS, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.CRYSTALS),
                 List.of(BiomeFilter.biome())));
+
+        context.register(NODES_WILD, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.NODES_WILD),
+                List.of(RarityFilter.onAverageOnceEvery(NODE_WILD_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
+        context.register(NODES_MAGICAL, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.NODES_WILD),
+                List.of(RarityFilter.onAverageOnceEvery(NODE_MAGICAL_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
+        context.register(NODES_EERIE, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.NODES_EERIE),
+                List.of(RarityFilter.onAverageOnceEvery(NODE_EERIE_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
+        context.register(NODES_NETHER, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.NODES_WILD),
+                List.of(RarityFilter.onAverageOnceEvery(NODE_NETHER_RARITY), InSquarePlacement.spread(),
+                        HeightRangePlacement.uniform(VerticalAnchor.absolute(NODE_NETHER_MIN_Y),
+                                VerticalAnchor.absolute(NODE_NETHER_MAX_Y)), BiomeFilter.biome())));
 
         context.register(ORE_CINNABAR, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.ORE_CINNABAR),

@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeFeature;
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeFeatureConfig;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterFeature;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraConfig;
@@ -35,6 +37,9 @@ public final class TCFeatures {
 
     public static final DeferredHolder<Feature<?>, MagicForestFloraFeature> MAGIC_FOREST_FLORA =
             FEATURES.register("magic_forest_flora", () -> new MagicForestFloraFeature(MagicForestFloraConfig.CODEC));
+
+    public static final DeferredHolder<Feature<?>, Feature<NodeFeatureConfig>> NODE =
+            FEATURES.register("node", () -> new NodeFeature(NodeFeatureConfig.CODEC));
 
     private TCFeatures() {}
 

@@ -22,6 +22,10 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 public final class TCBiomeModifiers {
     public static final ResourceKey<BiomeModifier> ADD_ORES = key("add_ores");
     public static final ResourceKey<BiomeModifier> ADD_CRYSTALS = key("add_crystals");
+    public static final ResourceKey<BiomeModifier> ADD_WILD_NODES = key("add_wild_nodes");
+    public static final ResourceKey<BiomeModifier> ADD_MAGICAL_NODES = key("add_magical_nodes");
+    public static final ResourceKey<BiomeModifier> ADD_EERIE_NODES = key("add_eerie_nodes");
+    public static final ResourceKey<BiomeModifier> ADD_NETHER_NODES = key("add_nether_nodes");
     public static final ResourceKey<BiomeModifier> ADD_GREATWOOD = key("add_greatwood");
     public static final ResourceKey<BiomeModifier> ADD_GREATWOOD_RARE = key("add_greatwood_rare");
     public static final ResourceKey<BiomeModifier> ADD_SILVERWOOD = key("add_silverwood");
@@ -58,6 +62,26 @@ public final class TCBiomeModifiers {
                 biomes.getOrThrow(BiomeTags.IS_OVERWORLD),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.CRYSTALS)),
                 GenerationStep.Decoration.UNDERGROUND_ORES));
+
+        context.register(ADD_WILD_NODES, new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_OVERWORLD),
+                HolderSet.direct(features.getOrThrow(TCPlacedFeatures.NODES_WILD)),
+                GenerationStep.Decoration.TOP_LAYER_MODIFICATION));
+
+        context.register(ADD_MAGICAL_NODES, new BiomeModifiers.AddFeaturesBiomeModifier(
+                HolderSet.direct(biomes.getOrThrow(TCBiomes.MAGICAL_FOREST)),
+                HolderSet.direct(features.getOrThrow(TCPlacedFeatures.NODES_MAGICAL)),
+                GenerationStep.Decoration.TOP_LAYER_MODIFICATION));
+
+        context.register(ADD_EERIE_NODES, new BiomeModifiers.AddFeaturesBiomeModifier(
+                HolderSet.direct(biomes.getOrThrow(TCBiomes.EERIE)),
+                HolderSet.direct(features.getOrThrow(TCPlacedFeatures.NODES_EERIE)),
+                GenerationStep.Decoration.TOP_LAYER_MODIFICATION));
+
+        context.register(ADD_NETHER_NODES, new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_NETHER),
+                HolderSet.direct(features.getOrThrow(TCPlacedFeatures.NODES_NETHER)),
+                GenerationStep.Decoration.TOP_LAYER_MODIFICATION));
 
         context.register(ADD_GREATWOOD, new BiomeModifiers.AddFeaturesBiomeModifier(
                 biomes.getOrThrow(TCBiomeTags.HAS_GREATWOOD),

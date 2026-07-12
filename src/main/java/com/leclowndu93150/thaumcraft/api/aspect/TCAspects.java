@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.api.aspect;
 
+import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
@@ -56,6 +57,13 @@ public final class TCAspects {
     public static final ResourceKey<IAspect> EXANIMIS = key("exanimis");
     public static final ResourceKey<IAspect> BESTIA = key("bestia");
     public static final ResourceKey<IAspect> HUMANUS = key("humanus");
+
+    /**
+     * The six primal aspects in canonical display order: aer, ignis, aqua, terra, ordo,
+     * perditio. Matches the legacy Thaumcraft registration order used by wand vis pools and
+     * the arcane workbench crystal slots.
+     */
+    public static final List<ResourceKey<IAspect>> PRIMALS = List.of(AER, IGNIS, AQUA, TERRA, ORDO, PERDITIO);
 
     private TCAspects() {}
 

@@ -4,7 +4,7 @@ import net.minecraft.resources.Identifier;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
-import com.leclowndu93150.thaumcraft.content.casters.ItemCaster;
+import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
@@ -87,7 +87,7 @@ public final class BlockEldritchAltar extends BlockEldritchStructure implements 
             level.playSound(null, pos, TCSounds.CRYSTAL.get(), SoundSource.BLOCKS, 0.2F, 1.0F);
             return InteractionResult.SUCCESS;
         }
-        if (stack.getItem() instanceof ItemCaster) {
+        if (stack.getItem() instanceof ICaster) {
             if (altar.getEyes() < MAX_EYES || altar.isOpen()) {
                 return InteractionResult.PASS;
             }

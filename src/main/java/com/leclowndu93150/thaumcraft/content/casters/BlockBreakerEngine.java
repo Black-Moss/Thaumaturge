@@ -1,11 +1,11 @@
 package com.leclowndu93150.thaumcraft.content.casters;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.BreakerTask;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.SwapContext;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.SwapperTask;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
+import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.ArrayList;
@@ -95,7 +95,7 @@ public final class BlockBreakerEngine {
             if (player == null) {
                 continue;
             }
-            if (task.visCost > 0.0F && AuraHelper.getVis(level, task.pos) < task.visCost) {
+            if (task.visCost > 0.0F && !WandVisHelper.consumeVisFromHotbar(player, task.visCost, false)) {
                 continue;
             }
             if (!player.mayInteract(level, task.pos) || current.getDestroySpeed(level, task.pos) < 0.0F) {
@@ -112,7 +112,7 @@ public final class BlockBreakerEngine {
                     level.destroyBlockProgress(task.pos.hashCode(), task.pos, -1);
                 }
                 if (task.visCost > 0.0F) {
-                    AuraHelper.drainVis(level, task.pos, task.visCost, false);
+                    WandVisHelper.consumeVisFromHotbar(player, task.visCost, true);
                 }
             } else {
                 queues.breakers().add(task);
@@ -173,7 +173,7 @@ public final class BlockBreakerEngine {
             if (task.source != null && task.source != current) {
                 allow = false;
             }
-            if (task.visCost > 0.0F && AuraHelper.getVis(level, task.pos) < task.visCost) {
+            if (task.visCost > 0.0F && !WandVisHelper.consumeVisFromHotbar(player, task.visCost, false)) {
                 allow = false;
             }
             if (!allow || !player.mayInteract(level, task.pos)) {
@@ -211,7 +211,7 @@ public final class BlockBreakerEngine {
                     }
                 }
                 if (task.visCost > 0.0F) {
-                    AuraHelper.drainVis(level, task.pos, task.visCost, false);
+                    WandVisHelper.consumeVisFromHotbar(player, task.visCost, true);
                 }
             }
             if (task.target != null) {

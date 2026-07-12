@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.world.tree;
 
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
 import com.mojang.serialization.Codec;
 import java.util.HashSet;
 import java.util.Set;
@@ -97,6 +98,11 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                     }
                 }
             }
+        }
+
+        if (config.node()) {
+            NodeGenerator.createRandomNodeAt(level, new BlockPos(x + 1, y + height - 1, z), random,
+                    true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
         }
 
         int trunkY;

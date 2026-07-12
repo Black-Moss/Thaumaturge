@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.rod_silverwood.title",
+  "parents": [
+    "thaumcraft:rod_greatwood"
+  ],
+  "column": -4,
+  "row": -3,
+  "icons": [
+    "thaumcraft:wand_rod_silverwood"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.rod_silverwood.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.rod_silverwood.stage_0",
+      "recipes": [
+        "thaumcraft:infusion/wand_rod_silverwood"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:victus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

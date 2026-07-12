@@ -1,0 +1,42 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.node_jar.title",
+  "parents": [
+    "thaumcraft:node_stabilizer"
+  ],
+  "column": -7,
+  "row": 6,
+  "icons": [
+    "thaumcraft:jar_node"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.node_jar.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.node_jar.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:vitreus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:vinculum",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

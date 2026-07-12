@@ -1,6 +1,12 @@
 package com.leclowndu93150.thaumcraft.server.command;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.nodes.NodeModifier;
+import com.leclowndu93150.thaumcraft.api.nodes.NodeType;
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
+import net.minecraft.core.HolderLookup;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
@@ -156,6 +162,16 @@ public final class TCCommands {
                 .then(Commands.literal("crystal")
                         .then(Commands.argument("aspect", StringArgumentType.word())
                                 .executes(TCCommands::giveCrystal)))
+                .then(Commands.literal("node").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .executes(ctx -> spawnNode(ctx, "random", "random"))
+                        .then(Commands.argument("type", StringArgumentType.word())
+                                .suggests(NODE_TYPES)
+                                .executes(ctx -> spawnNode(ctx, StringArgumentType.getString(ctx, "type"), "none"))
+                                .then(Commands.argument("modifier", StringArgumentType.word())
+                                        .suggests(NODE_MODIFIERS)
+                                        .executes(ctx -> spawnNode(ctx,
+                                                StringArgumentType.getString(ctx, "type"),
+                                                StringArgumentType.getString(ctx, "modifier"))))))
                 .then(Commands.literal("focus").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
                                 .then(Commands.argument("elements", StringArgumentType.greedyString())
@@ -740,5 +756,59 @@ public final class TCCommands {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
             return 0;
         }
+    }
+
+    private static final SuggestionProvider<CommandSourceStack> NODE_TYPES = (ctx, builder) -> {
+        for (NodeType type : NodeType.values()) {
+            builder.suggest(type.getSerializedName());
+        }
+        builder.suggest("random");
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> NODE_MODIFIERS = (ctx, builder) -> {
+        for (NodeModifier modifier : NodeModifier.values()) {
+            builder.suggest(modifier.getSerializedName());
+        }
+        builder.suggest("none");
+        return builder.buildFuture();
+    };
+
+    private static int spawnNode(CommandContext<CommandSourceStack> ctx, String typeName, String modifierName) {
+        ServerLevel level = ctx.getSource().getLevel();
+        BlockPos pos = BlockPos.containing(ctx.getSource().getPosition()).above(2);
+        if ("random".equals(typeName)) {
+            boolean placed = NodeGenerator.createRandomNodeAt(level, pos, level.getRandom(), false, false, false,
+                    NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+            ctx.getSource().sendSuccess(() -> Component.literal(placed ? "Random node created" : "Could not place node"), true);
+            return placed ? 1 : 0;
+        }
+        NodeType type = null;
+        for (NodeType candidate : NodeType.values()) {
+            if (candidate.getSerializedName().equals(typeName)) {
+                type = candidate;
+            }
+        }
+        if (type == null) {
+            ctx.getSource().sendFailure(Component.literal("Unknown node type: " + typeName));
+            return 0;
+        }
+        NodeModifier modifier = null;
+        for (NodeModifier candidate : NodeModifier.values()) {
+            if (candidate.getSerializedName().equals(modifierName)) {
+                modifier = candidate;
+            }
+        }
+        HolderLookup.RegistryLookup<IAspect> aspects = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
+        AspectList list = AspectList.EMPTY
+                .add(aspects.getOrThrow(TCAspects.AER), 20)
+                .add(aspects.getOrThrow(TCAspects.IGNIS), 20)
+                .add(aspects.getOrThrow(TCAspects.AQUA), 20)
+                .add(aspects.getOrThrow(TCAspects.TERRA), 20)
+                .add(aspects.getOrThrow(TCAspects.ORDO), 10)
+                .add(aspects.getOrThrow(TCAspects.PERDITIO), 10);
+        boolean placed = NodeGenerator.createNodeAt(level, pos, type, modifier, list);
+        ctx.getSource().sendSuccess(() -> Component.literal(placed ? "Node created" : "Could not place node"), true);
+        return placed ? 1 : 0;
     }
 }

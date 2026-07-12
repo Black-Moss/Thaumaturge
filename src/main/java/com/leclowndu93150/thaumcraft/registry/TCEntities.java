@@ -15,6 +15,7 @@ import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossb
 import com.leclowndu93150.thaumcraft.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.leclowndu93150.thaumcraft.content.entity.projectile.EntityGrapple;
 import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
+import com.leclowndu93150.thaumcraft.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumcraft.content.misc.alumentum.ThrownAlumentum;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -335,6 +336,13 @@ public final class TCEntities {
                     .sized(0.25F, 0.25F)
                     .clientTrackingRange(4)
                     .updateInterval(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityAspectOrb>> ASPECT_ORB = register(
+            "aspect_orb",
+            () -> EntityType.Builder.<EntityAspectOrb>of(EntityAspectOrb::new, MobCategory.MISC)
+                    .sized(0.125F, 0.125F)
+                    .clientTrackingRange(6)
+                    .updateInterval(20));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityThaumcraftGolem>> THAUMCRAFT_GOLEM = register(
             "golem",

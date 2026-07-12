@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.rod_reed.title",
+  "parents": [
+    "thaumcraft:rod_greatwood"
+  ],
+  "column": -6,
+  "row": -3,
+  "icons": [
+    "thaumcraft:wand_rod_reed"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.rod_reed.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.rod_reed.stage_0",
+      "recipes": [
+        "thaumcraft:infusion/wand_rod_reed"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

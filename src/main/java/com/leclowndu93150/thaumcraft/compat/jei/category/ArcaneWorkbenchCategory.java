@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.compat.jei.drawables.AlphaDrawable;
 import com.leclowndu93150.thaumcraft.compat.jei.utils.ResearchUtils;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipe;
+import com.leclowndu93150.thaumcraft.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneShapedCraftingRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneShapelessCraftingRecipe;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
@@ -197,6 +198,8 @@ public final class ArcaneWorkbenchCategory implements IRecipeCategory<RecipeHold
         boolean inTopRow = mouseY > TOP_ZONE_MIN_Y && mouseY < TOP_ZONE_MAX_Y;
         if (inTopRow && mouseX > VIS_ZONE_MIN_X && mouseX < VIS_ZONE_MAX_X) {
             tooltip.add(Component.translatable("jei.thaumcraft.arcane_workbench.vis_cost"));
+            tooltip.add(Component.translatable("jei.thaumcraft.arcane_workbench.vis_cost_aura",
+                    WorkbenchPayment.auraCost(recipe.value())));
             return;
         }
 

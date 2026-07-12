@@ -3,7 +3,11 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
+import com.leclowndu93150.thaumcraft.api.wands.WandCap;
+import com.leclowndu93150.thaumcraft.api.wands.WandRod;
 import com.leclowndu93150.thaumcraft.content.golem.GolemProperties;
+import com.leclowndu93150.thaumcraft.content.wands.ItemWand;
+import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import net.minecraft.world.item.ItemStack;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
@@ -45,7 +49,40 @@ public final class TCCreativeTabs {
                             output.accept(CelestialNotesItem.stackOf(body));
                         }
                         output.accept(TCItems.GOGGLES_REVEALING.get());
-                        output.accept(TCItems.CASTER_BASIC.get());
+                        output.accept(chargedWand(TCWandParts.CAP_IRON.get(), TCWandParts.ROD_WOOD.get(), false));
+                        output.accept(chargedWand(TCWandParts.CAP_GOLD.get(), TCWandParts.ROD_GREATWOOD.get(), false));
+                        output.accept(chargedWand(TCWandParts.CAP_THAUMIUM.get(), TCWandParts.ROD_SILVERWOOD.get(), false));
+                        output.accept(chargedWand(TCWandParts.CAP_THAUMIUM.get(), TCWandParts.ROD_SILVERWOOD.get(), true));
+                        output.accept(chargedWand(TCWandParts.CAP_VOID.get(), TCWandParts.STAFF_PRIMAL.get(), false));
+                        output.accept(TCItems.WAND_CAP_IRON.get());
+                        output.accept(TCItems.WAND_CAP_COPPER.get());
+                        output.accept(TCItems.WAND_CAP_GOLD.get());
+                        output.accept(TCItems.WAND_CAP_SILVER_INERT.get());
+                        output.accept(TCItems.WAND_CAP_SILVER.get());
+                        output.accept(TCItems.WAND_CAP_THAUMIUM_INERT.get());
+                        output.accept(TCItems.WAND_CAP_THAUMIUM.get());
+                        output.accept(TCItems.WAND_CAP_VOID_INERT.get());
+                        output.accept(TCItems.WAND_CAP_VOID.get());
+                        output.accept(TCItems.WAND_ROD_GREATWOOD.get());
+                        output.accept(TCItems.WAND_ROD_OBSIDIAN.get());
+                        output.accept(TCItems.WAND_ROD_BLAZE.get());
+                        output.accept(TCItems.WAND_ROD_ICE.get());
+                        output.accept(TCItems.WAND_ROD_QUARTZ.get());
+                        output.accept(TCItems.WAND_ROD_BONE.get());
+                        output.accept(TCItems.WAND_ROD_REED.get());
+                        output.accept(TCItems.WAND_ROD_SILVERWOOD.get());
+                        output.accept(TCItems.STAFF_ROD_GREATWOOD.get());
+                        output.accept(TCItems.STAFF_ROD_OBSIDIAN.get());
+                        output.accept(TCItems.STAFF_ROD_BLAZE.get());
+                        output.accept(TCItems.STAFF_ROD_ICE.get());
+                        output.accept(TCItems.STAFF_ROD_QUARTZ.get());
+                        output.accept(TCItems.STAFF_ROD_BONE.get());
+                        output.accept(TCItems.STAFF_ROD_REED.get());
+                        output.accept(TCItems.STAFF_ROD_SILVERWOOD.get());
+                        output.accept(TCItems.STAFF_ROD_PRIMAL.get());
+                        output.accept(TCItems.PRIMAL_CHARM.get());
+                        output.accept(TCItems.NODE_STABILIZER.get());
+                        output.accept(TCItems.NODE_STABILIZER_ADVANCED.get());
                         output.accept(TCItems.FOCUS_1.get());
                         output.accept(TCItems.FOCUS_2.get());
                         output.accept(TCItems.FOCUS_3.get());
@@ -436,6 +473,12 @@ public final class TCCreativeTabs {
     }
 
     private TCCreativeTabs() {}
+
+    private static ItemStack chargedWand(WandCap cap, WandRod rod, boolean sceptre) {
+        ItemStack stack = ItemWand.create(TCItems.WAND.get(), cap, rod, sceptre);
+        WandVisHelper.fill(stack);
+        return stack;
+    }
 
     public static void register(IEventBus modBus) {
         CREATIVE_MODE_TABS.register(modBus);

@@ -25,7 +25,7 @@
       "text": "research.thaumcraft.unlock_auromancy.stage_1",
       "recipes": [
         "thaumcraft:arcane_workbench/vis_resonator",
-        "thaumcraft:arcane_workbench/caster_basic"
+        "thaumcraft:wand/assembly/iron_wood"
       ],
       "craft": [
         {
@@ -36,7 +36,7 @@
         },
         {
           "items": [
-            "thaumcraft:caster_basic"
+            "thaumcraft:wand"
           ],
           "amount": 1
         }
@@ -46,7 +46,7 @@
       "text": "research.thaumcraft.unlock_auromancy.stage_2",
       "recipes": [
         "thaumcraft:arcane_workbench/vis_resonator",
-        "thaumcraft:arcane_workbench/caster_basic"
+        "thaumcraft:wand/assembly/iron_wood"
       ]
     }
   ],

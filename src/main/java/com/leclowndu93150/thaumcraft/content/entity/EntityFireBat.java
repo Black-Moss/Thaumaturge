@@ -48,6 +48,23 @@ public final class EntityFireBat extends Monster {
 
     public @Nullable LivingEntity owner;
     public int damBonus;
+    private int summonLife;
+
+    private static final int SUMMON_LIFESPAN_TICKS = 600;
+
+    public void summon(@Nullable LivingEntity summoner, @Nullable LivingEntity target, int bonus) {
+        this.owner = summoner;
+        this.damBonus = bonus;
+        this.summonLife = SUMMON_LIFESPAN_TICKS;
+        this.setHanging(false);
+        if (target != null) {
+            this.setTarget(target);
+        }
+    }
+
+    public boolean isSummoned() {
+        return summonLife > 0;
+    }
 
     public static boolean checkFireBatSpawnRules(EntityType<EntityFireBat> type, ServerLevelAccessor level,
                                                  EntitySpawnReason reason, BlockPos pos, RandomSource random) {
@@ -77,7 +94,8 @@ public final class EntityFireBat extends Monster {
         this.goalSelector.addGoal(5, new FlyingWanderGoal(this, false, () -> !isHanging()));
         this.goalSelector.addGoal(7, new Ghast.GhastLookGoal(this));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class,
+                10, false, false, (target, level) -> target != this.owner));
     }
 
     @Override
@@ -158,6 +176,11 @@ public final class EntityFireBat extends Monster {
     @Override
     public void tick() {
         super.tick();
+        if (!this.level().isClientSide() && this.summonLife > 0 && --this.summonLife == 0) {
+            this.level().levelEvent(2004, this.blockPosition(), 0);
+            this.discard();
+            return;
+        }
         if (isHanging()) {
             this.setDeltaMovement(Vec3.ZERO);
             this.setPosRaw(this.getX(), Mth.floor(this.getY()) + 1.0 - this.getBbHeight(), this.getZ());
@@ -198,6 +221,7 @@ public final class EntityFireBat extends Monster {
         super.addAdditionalSaveData(output);
         output.putBoolean("hang", isHanging());
         output.putByte("damBonus", (byte) this.damBonus);
+        output.putInt("SummonLife", this.summonLife);
     }
 
     @Override
@@ -205,5 +229,6 @@ public final class EntityFireBat extends Monster {
         super.readAdditionalSaveData(input);
         setHanging(input.getBooleanOr("hang", false));
         this.damBonus = input.getByteOr("damBonus", (byte) 0);
+        this.summonLife = input.getIntOr("SummonLife", 0);
     }
 }

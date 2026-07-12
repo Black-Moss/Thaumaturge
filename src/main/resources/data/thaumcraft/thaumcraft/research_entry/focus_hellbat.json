@@ -1,0 +1,45 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.focus_hellbat.title",
+  "parents": [
+    "thaumcraft:focus_spellbat"
+  ],
+  "column": 8,
+  "row": 5,
+  "icons": [
+    "focus:thaumcraft:hellbat"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.focus_hellbat.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumcraft:scanned/entity/thaumcraft/firebat"
+      ]
+    },
+    {
+      "text": "research.thaumcraft.focus_hellbat.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumcraft:bestia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumcraft:aer",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

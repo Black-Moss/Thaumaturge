@@ -12,13 +12,15 @@ public record SilverwoodTreeConfig(
         Block leaves,
         int minHeight,
         int extraHeight,
-        Optional<Block> flower
+        Optional<Block> flower,
+        boolean node
 ) implements FeatureConfiguration {
     public static final Codec<SilverwoodTreeConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BuiltInRegistries.BLOCK.byNameCodec().fieldOf("log").forGetter(SilverwoodTreeConfig::log),
             BuiltInRegistries.BLOCK.byNameCodec().fieldOf("leaves").forGetter(SilverwoodTreeConfig::leaves),
             Codec.intRange(1, 32).fieldOf("min_height").forGetter(SilverwoodTreeConfig::minHeight),
             Codec.intRange(1, 32).fieldOf("extra_height").forGetter(SilverwoodTreeConfig::extraHeight),
-            BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("flower").forGetter(SilverwoodTreeConfig::flower)
+            BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("flower").forGetter(SilverwoodTreeConfig::flower),
+            Codec.BOOL.optionalFieldOf("node", false).forGetter(SilverwoodTreeConfig::node)
     ).apply(instance, SilverwoodTreeConfig::new));
 }

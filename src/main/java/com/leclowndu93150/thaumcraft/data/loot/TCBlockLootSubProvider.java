@@ -81,6 +81,15 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
+        dropSelf(TCBlocks.NODE_STABILIZER.get());
+        dropSelf(TCBlocks.NODE_STABILIZER_ADVANCED.get());
+        add(TCBlocks.JAR_NODE.get(), LootTable.lootTable()
+                .withPool(this.applyExplosionCondition(TCBlocks.JAR_NODE.get(), LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .add(LootItem.lootTableItem(TCBlocks.JAR_NODE.get())
+                                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                                        .include(TCDataComponents.NODE_DATA.get()))))));
+
         for (DyeColor dye : DyeColor.values()) {
             dropSelf(TCBlocks.CANDLES.get(dye).get());
             add(TCBlocks.BANNERS.get(dye).get(), bannerTable(TCItems.BANNERS.get(dye).get()));

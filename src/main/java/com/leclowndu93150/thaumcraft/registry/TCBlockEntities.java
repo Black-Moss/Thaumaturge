@@ -4,6 +4,9 @@ import com.leclowndu93150.thaumcraft.content.research.decon.BlockEntityDeconstru
 import com.leclowndu93150.thaumcraft.content.device.patterncrafter.BlockEntityPatternCrafter;
 import com.leclowndu93150.thaumcraft.content.device.sprayer.BlockEntityPotionSprayer;
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityJarNode;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNodeStabilizer;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.decor.BlockEntityBarrierStone;
 import com.leclowndu93150.thaumcraft.content.device.mirror.BlockEntityMirror;
 import com.leclowndu93150.thaumcraft.content.device.mirror.BlockEntityMirrorEssentia;
@@ -89,6 +92,25 @@ public final class TCBlockEntities {
         blocks.add(TCBlocks.WALL_BANNER_CRIMSON_CULT.get());
         return blocks;
     }
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNode>> NODE =
+            BLOCK_ENTITIES.register(
+                    "node",
+                    () -> new BlockEntityType<>(BlockEntityNode::new, Set.of(TCBlocks.NODE.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNodeStabilizer>> NODE_STABILIZER =
+            BLOCK_ENTITIES.register(
+                    "node_stabilizer",
+                    () -> new BlockEntityType<>(BlockEntityNodeStabilizer::new,
+                            Set.of(TCBlocks.NODE_STABILIZER.get(), TCBlocks.NODE_STABILIZER_ADVANCED.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarNode>> JAR_NODE =
+            BLOCK_ENTITIES.register(
+                    "jar_node",
+                    () -> new BlockEntityType<>(BlockEntityJarNode::new, Set.of(TCBlocks.JAR_NODE.get()))
+            );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityFocalManipulator>> FOCAL_MANIPULATOR =
             BLOCK_ENTITIES.register(

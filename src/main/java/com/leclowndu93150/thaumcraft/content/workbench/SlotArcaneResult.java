@@ -81,7 +81,7 @@ public final class SlotArcaneResult extends Slot {
             }
         }
 
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < InventoryArcaneWorkbench.CRAFTING_SLOTS; i++) {
             ItemStack existing = craftMatrix.getItem(i);
             ItemStack leftover = i < remaining.size() ? remaining.get(i) : ItemStack.EMPTY;
             if (!existing.isEmpty()) {
@@ -101,9 +101,8 @@ public final class SlotArcaneResult extends Slot {
         }
 
         if (arcane != null) {
-            int vis = arcane.getReducedVis(player);
-            if (vis > 0 && tile != null) {
-                tile.spendAura(vis);
+            if (arcane.getBaseVis() > 0) {
+                WorkbenchPayment.pay(arcane, tile, player, craftMatrix.wandStack());
             }
             AspectList crystals = arcane.getCrystals();
             if (!crystals.isEmpty()) {
