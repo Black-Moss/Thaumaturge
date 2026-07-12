@@ -23,9 +23,10 @@ public final class FocusRayTrace {
             Vec3 look, double minRange, double range, float padding, boolean nonCollide) {
         EntityHitResult pointed = null;
         Vec3 end = start.add(look.x * range, look.y * range, look.z * range);
-        AABB bounds = ignore != null
-                ? ignore.getBoundingBox()
-                : new AABB(start.x, start.y, start.z, start.x, start.y, start.z).inflate(CONTAINED_START_GROW);
+        AABB bounds = new AABB(start.x, start.y, start.z, start.x, start.y, start.z).inflate(CONTAINED_START_GROW);
+        if (ignore != null && ignore.getBoundingBox().contains(start)) {
+            bounds = bounds.minmax(ignore.getBoundingBox());
+        }
         List<Entity> candidates = level.getEntities(ignore,
                 bounds.expandTowards(look.x * range, look.y * range, look.z * range).inflate(padding, padding, padding));
         double closest = 0.0;

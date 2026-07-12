@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumcraft.content.casters;
 import com.leclowndu93150.thaumcraft.content.research.DeviceGate;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
+import java.util.function.Consumer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,7 +16,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 public final class FocusPouchItem extends Item {
@@ -35,6 +39,19 @@ public final class FocusPouchItem extends Item {
 
     public static void setInventory(ItemStack pouch, NonNullList<ItemStack> list) {
         pouch.set(TCDataComponents.POUCH_CONTENTS.get(), ItemContainerContents.fromItems(list));
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag flag) {
+        int count = 0;
+        for (ItemStack focus : getInventory(stack)) {
+            if (focus.getItem() instanceof ItemFocus) {
+                count++;
+            }
+        }
+        builder.accept(Component.translatable("tooltip.thaumcraft.focus_pouch.count", count, SIZE)
+                .withStyle(ChatFormatting.DARK_PURPLE));
     }
 
     @Override
