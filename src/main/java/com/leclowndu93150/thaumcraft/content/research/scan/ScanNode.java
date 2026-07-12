@@ -18,6 +18,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public final class ScanNode implements IScanThing {
@@ -56,8 +57,11 @@ public final class ScanNode implements IScanThing {
         if (node == null) {
             return null;
         }
-        return TCIds.rl("node/" + player.level().dimension().identifier().getPath()
-                + "/" + node.getBlockPos().asLong());
+        return researchKey(player.level(), node.getBlockPos());
+    }
+
+    public static Identifier researchKey(Level level, BlockPos pos) {
+        return TCIds.rl("node/" + level.dimension().identifier().getPath() + "/" + pos.asLong());
     }
 
     @Override

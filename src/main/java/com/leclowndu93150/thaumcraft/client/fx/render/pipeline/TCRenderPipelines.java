@@ -103,6 +103,35 @@ public final class TCRenderPipelines {
             .withDepthStencilState(TEST_NO_WRITE)
             .build();
 
+    public static final RenderPipeline ENTITY_CUTOUT_FLAT = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_cutout_flat"))
+            .withVertexShader("core/entity")
+            .withFragmentShader("core/entity")
+            .withShaderDefine("ALPHA_CUTOUT", 0.1F)
+            .withShaderDefine("NO_OVERLAY")
+            .withShaderDefine("NO_CARDINAL_LIGHTING")
+            .withSampler("Sampler0")
+            .withSampler("Sampler2")
+            .withCull(false)
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
+            .withDepthStencilState(DepthStencilState.DEFAULT)
+            .build();
+
+    public static final RenderPipeline ENTITY_TRANSLUCENT_FLAT = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_translucent_flat"))
+            .withVertexShader("core/entity")
+            .withFragmentShader("core/entity")
+            .withShaderDefine("ALPHA_CUTOUT", 0.1F)
+            .withShaderDefine("NO_OVERLAY")
+            .withShaderDefine("NO_CARDINAL_LIGHTING")
+            .withSampler("Sampler0")
+            .withSampler("Sampler2")
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withCull(false)
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
+            .withDepthStencilState(DepthStencilState.DEFAULT)
+            .build();
+
     public static final RenderPipeline ENTITY_ADDITIVE_EMISSIVE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_additive_emissive"))
             .withVertexShader("core/entity")
@@ -158,6 +187,8 @@ public final class TCRenderPipelines {
         event.registerPipeline(GUI_TEXTURED_ADDITIVE);
         event.registerPipeline(SPARKLE);
         event.registerPipeline(SPARKLE_CULLED);
+        event.registerPipeline(ENTITY_CUTOUT_FLAT);
+        event.registerPipeline(ENTITY_TRANSLUCENT_FLAT);
         event.registerPipeline(ENTITY_ADDITIVE_EMISSIVE);
         event.registerPipeline(ENTITY_TRANSLUCENT_NO_DEPTH);
         event.registerPipeline(TAINTED_SWIRL_NO_DEPTH);

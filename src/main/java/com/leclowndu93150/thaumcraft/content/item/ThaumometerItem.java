@@ -15,9 +15,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -27,7 +29,10 @@ import org.jspecify.annotations.Nullable;
 public final class ThaumometerItem extends Item {
     public static final double SCAN_ENTITY_MIN_RANGE = 1.0;
     public static final double SCAN_ENTITY_RANGE = 9.0;
+    public static final int USE_DURATION_TICKS = 25;
+    public static final int SCAN_COMPLETE_ELAPSED_TICKS = 20;
 
+    private static final int SCAN_RELEASE_TOLERANCE_TICKS = 18;
     private static final int AURA_CHECK_INTERVAL_TICKS = 20;
     private static final int FLUX_WARN_BASE_DIVISOR = 3;
 
@@ -37,10 +42,60 @@ public final class ThaumometerItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (!level.isClientSide()) {
-            doScan(level, player);
+        if (!ScanningManager.isThingStillScannable(player, resolveTarget(level, player))) {
+            return InteractionResult.PASS;
         }
-        return InteractionResult.SUCCESS;
+        player.startUsingItem(hand);
+        return InteractionResult.CONSUME.withoutItem();
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        return USE_DURATION_TICKS;
+    }
+
+    @Override
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.NONE;
+    }
+
+    @Override
+    public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remaining) {
+        if (level.isClientSide() || !(entity instanceof Player)) {
+            return;
+        }
+        if (USE_DURATION_TICKS - remaining >= SCAN_COMPLETE_ELAPSED_TICKS) {
+            entity.releaseUsingItem();
+        }
+    }
+
+    @Override
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int remaining) {
+        if (level.isClientSide() || !(entity instanceof Player player)) {
+            return false;
+        }
+        if (USE_DURATION_TICKS - remaining < SCAN_RELEASE_TOLERANCE_TICKS) {
+            return false;
+        }
+        Object target = resolveTarget(level, player);
+        if (!ScanningManager.isThingStillScannable(player, target)) {
+            return false;
+        }
+        ScanningManager.scanTheThing(player, target);
+        return true;
+    }
+
+    public static @Nullable Object resolveTarget(Level level, Player player) {
+        Entity target = PointedEntityHelper.getPointedEntity(
+                level, player, SCAN_ENTITY_MIN_RANGE, SCAN_ENTITY_RANGE, 0.0F, true);
+        if (target != null) {
+            return target;
+        }
+        BlockHitResult hit = level.clip(new ClipContext(
+                player.getEyePosition(),
+                player.getEyePosition().add(player.getLookAngle().scale(player.blockInteractionRange())),
+                ClipContext.Block.OUTLINE, ClipContext.Fluid.SOURCE_ONLY, player));
+        return hit.getType() == HitResult.Type.BLOCK ? hit.getBlockPos() : null;
     }
 
     @Override
@@ -48,21 +103,6 @@ public final class ThaumometerItem extends Item {
         boolean held = slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND;
         if (held && owner.tickCount % AURA_CHECK_INTERVAL_TICKS == 0 && owner instanceof ServerPlayer player) {
             warnAboutFlux(level, player);
-        }
-    }
-
-    private void doScan(Level level, Player player) {
-        Entity target = PointedEntityHelper.getPointedEntity(
-                level, player, SCAN_ENTITY_MIN_RANGE, SCAN_ENTITY_RANGE, 0.0F, true);
-        if (target != null) {
-            ScanningManager.scanTheThing(player, target);
-            return;
-        }
-        BlockHitResult hit = getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY);
-        if (hit.getType() == HitResult.Type.BLOCK) {
-            ScanningManager.scanTheThing(player, hit.getBlockPos());
-        } else {
-            ScanningManager.scanTheThing(player, null);
         }
     }
 

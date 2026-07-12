@@ -13,6 +13,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.mojang.serialization.MapCodec;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -24,6 +25,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -34,6 +36,21 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
 
     private static final Identifier WAND_TEXTURE = TCIds.rl("textures/models/wand.png");
     private static final Identifier SCRIPT_TEXTURE = TCIds.rl("textures/misc/script.png");
+
+    private static final Function<Identifier, RenderType> WAND_CUTOUT = Util.memoize(
+            texture -> RenderType.create("tc_wand_cutout",
+                    RenderSetup.builder(TCRenderPipelines.ENTITY_CUTOUT_FLAT)
+                            .withTexture("Sampler0", texture)
+                            .useLightmap()
+                            .createRenderSetup()));
+
+    private static final Function<Identifier, RenderType> WAND_TRANSLUCENT = Util.memoize(
+            texture -> RenderType.create("tc_wand_translucent",
+                    RenderSetup.builder(TCRenderPipelines.ENTITY_TRANSLUCENT_FLAT)
+                            .withTexture("Sampler0", texture)
+                            .useLightmap()
+                            .sortOnUpload()
+                            .createRenderSetup()));
 
     private static final RenderType RUNES = RenderType.create("tc_wand_runes",
             RenderSetup.builder(TCRenderPipelines.ENTITY_ADDITIVE_EMISSIVE)
@@ -51,6 +68,14 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
     private static final int STAFF_RUNE_SIDES = 4;
     private static final int STAFF_RUNE_LENGTH = 14;
     private static final int SCRIPT_GLYPHS = 16;
+    private static final float STAFF_MODEL_SHIFT = 0.2F;
+    private static final float FOCUS_STAFF_LIFT = -0.0475F;
+    private static final float FOCUS_STAFF_SCALE_Y = 0.5525F;
+    private static final float FOCUS_SCALE = 0.5F;
+    private static final float FOCUS_TOP_PX = 6.0F;
+    private static final float CAP_TOP_PX = 1.0F;
+    private static final float CAP_STAFF_SCALE_Y = 1.1F;
+    private static final float SCEPTRE_CAP_SCALE = 1.3F;
 
     @Override
     public void submit(@Nullable WandArg arg, PoseStack poseStack, SubmitNodeCollector collector,
@@ -65,6 +90,10 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.popPose();
     }
 
+    public static RenderType translucentFlat(Identifier texture) {
+        return WAND_TRANSLUCENT.apply(texture);
+    }
+
     public static void submitParts(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light) {
         boolean staff = arg.rod().staff();
         boolean runes = arg.rod().runes();
@@ -76,7 +105,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         }
 
         int rodLight = arg.rod().glow() ? (int) (200.0F + Mth.sin((int) ticks) * 5.0F + 5.0F) : light;
-        RenderType rodType = RenderTypes.entityCutout(arg.rod().texture());
+        RenderType rodType = WAND_CUTOUT.apply(arg.rod().texture());
         poseStack.pushPose();
         if (staff) {
             poseStack.translate(0.0F, -0.1F, 0.0F);
@@ -88,7 +117,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
                 box(rodPose, buffer, -1.0F, 1.0F, -1.0F, 2, 18, 2, 0, 8, 0xFFFFFFFF, rodLightFinal));
         poseStack.popPose();
 
-        RenderType capType = RenderTypes.entityCutout(arg.cap().texture());
+        RenderType capType = WAND_CUTOUT.apply(arg.cap().texture());
         poseStack.pushPose();
         if (staff) {
             poseStack.scale(1.3F, 1.1F, 1.3F);
@@ -120,7 +149,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.popPose();
 
         if (arg.hasFocus()) {
-            RenderType focusType = RenderTypes.entityTranslucent(WAND_TEXTURE);
+            RenderType focusType = WAND_TRANSLUCENT.apply(WAND_TEXTURE);
             poseStack.pushPose();
             if (staff) {
                 poseStack.translate(0.0F, -0.0475F, 0.0F);
@@ -158,6 +187,23 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         }
 
         poseStack.popPose();
+    }
+
+    public static float tipModelY(WandArg arg) {
+        boolean staff = arg.rod().staff();
+        if (arg.hasFocus()) {
+            if (staff) {
+                return STAFF_MODEL_SHIFT + FOCUS_STAFF_LIFT - FOCUS_TOP_PX * PX * FOCUS_STAFF_SCALE_Y;
+            }
+            return -FOCUS_TOP_PX * PX * FOCUS_SCALE;
+        }
+        if (staff) {
+            return STAFF_MODEL_SHIFT - CAP_TOP_PX * PX * CAP_STAFF_SCALE_Y;
+        }
+        if (arg.sceptre()) {
+            return -CAP_TOP_PX * PX * SCEPTRE_CAP_SCALE;
+        }
+        return -CAP_TOP_PX * PX;
     }
 
     private static float clientTicks() {

@@ -27,8 +27,6 @@ public final class WandHandRenderer {
     private static final float WAVE_ROLL_PERIOD = 10.0F;
     private static final float WAVE_PITCH_PERIOD = 15.0F;
     private static final float WAVE_DEGREES = 10.0F;
-    private static final float CAP_TIP_MODEL_Y = -0.10F;
-    private static final float FOCUS_TIP_MODEL_Y = -0.21F;
 
     private WandHandRenderer() {}
 
@@ -118,7 +116,7 @@ public final class WandHandRenderer {
             poseStack.translate(0.0F, -1.0F, 0.0F);
         }
 
-        WandTipTracker.capture(poseStack, arg.hasFocus() ? FOCUS_TIP_MODEL_Y : CAP_TIP_MODEL_Y);
+        WandTipTracker.capture(poseStack, WandItemSpecialRenderer.tipModelY(arg));
         WandItemSpecialRenderer.submitParts(arg, poseStack, collector, event.getPackedLight());
         poseStack.popPose();
     }

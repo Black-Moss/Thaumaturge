@@ -23,7 +23,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class ThaumometerClientHandler {
@@ -39,18 +39,14 @@ public final class ThaumometerClientHandler {
     private static final float SCAN_VOLUME = 0.5F;
     private static final float SCAN_PITCH = 1.0F;
 
-    private ThaumometerClientHandler() {}
+    private static final int SCAN_TICK_SOUND_INTERVAL = 2;
+    private static final float SCAN_TICK_VOLUME = 0.2F;
+    private static final float SCAN_TICK_PITCH_BASE = 0.45F;
+    private static final float SCAN_TICK_PITCH_SPREAD = 0.1F;
 
-    @SubscribeEvent
-    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
-        if (!event.getLevel().isClientSide() || !event.getItemStack().is(TCItems.THAUMOMETER.get())) {
-            return;
-        }
-        Player player = event.getEntity();
-        player.level().playLocalSound(player.getX(), player.getY(), player.getZ(),
-                TCSounds.SCAN.get(), SoundSource.PLAYERS, SCAN_VOLUME, SCAN_PITCH, false);
-        drawScanFx(player.level(), player);
-    }
+    private static @Nullable String scanTargetKey;
+
+    private ThaumometerClientHandler() {}
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
@@ -59,6 +55,7 @@ public final class ThaumometerClientHandler {
         if (player == null || mc.level == null) {
             return;
         }
+        tickScanning(mc, player);
         boolean held = player.getMainHandItem().is(TCItems.THAUMOMETER.get())
                 || player.getOffhandItem().is(TCItems.THAUMOMETER.get());
         if (!held) {
@@ -81,33 +78,64 @@ public final class ThaumometerClientHandler {
         }
     }
 
-    private static void drawScanFx(Level level, Player player) {
-        RandomSource rand = level.getRandom();
-        Entity target = PointedEntityHelper.getPointedEntity(level, player,
-                ThaumometerItem.SCAN_ENTITY_MIN_RANGE, ThaumometerItem.SCAN_ENTITY_RANGE, 0.0F, true);
-        if (target != null) {
-            for (int a = 0; a < SCAN_RUNE_BURSTS; a++) {
-                FXClient.blockRunes(level,
-                        target.getX() - 0.5,
-                        target.getY() + target.getEyeHeight() / 2.0F,
-                        target.getZ() - 0.5,
-                        0.3F + rand.nextFloat() * 0.7F, 0.0F, 0.3F + rand.nextFloat() * 0.7F,
-                        (int) (target.getBbHeight() * RUNE_ENTITY_HEIGHT_SCALE), RUNE_GRAVITY);
-            }
+    private static void tickScanning(Minecraft mc, LocalPlayer player) {
+        boolean scanning = player.isUsingItem() && player.getUseItem().is(TCItems.THAUMOMETER.get());
+        if (!scanning) {
+            scanTargetKey = null;
             return;
         }
-        BlockHitResult hit = level.clip(new ClipContext(
-                player.getEyePosition(),
-                player.getEyePosition().add(player.getLookAngle().scale(player.blockInteractionRange())),
-                ClipContext.Block.OUTLINE, ClipContext.Fluid.SOURCE_ONLY, player));
-        if (hit.getType() == HitResult.Type.BLOCK) {
-            BlockPos pos = hit.getBlockPos();
-            for (int a = 0; a < SCAN_RUNE_BURSTS; a++) {
-                FXClient.blockRunes(level,
-                        pos.getX(), pos.getY() + 0.25, pos.getZ(),
-                        0.3F + rand.nextFloat() * 0.7F, 0.0F, 0.3F + rand.nextFloat() * 0.7F,
-                        RUNE_BLOCK_DURATION, RUNE_GRAVITY);
-            }
+        Level level = player.level();
+        int elapsed = player.getTicksUsingItem();
+        Object target = ThaumometerItem.resolveTarget(level, player);
+        if (!ScanningManager.isThingStillScannable(player, target)) {
+            player.stopUsingItem();
+            scanTargetKey = null;
+            return;
+        }
+        String key = keyOf(target);
+        if (elapsed <= 1) {
+            scanTargetKey = key;
+        } else if (!key.equals(scanTargetKey)) {
+            player.stopUsingItem();
+            scanTargetKey = null;
+            return;
+        }
+        if (elapsed % SCAN_TICK_SOUND_INTERVAL == 0) {
+            player.level().playLocalSound(player.getX(), player.getY(), player.getZ(),
+                    TCSounds.CAMERA_TICKS.get(), SoundSource.PLAYERS, SCAN_TICK_VOLUME,
+                    SCAN_TICK_PITCH_BASE + level.getRandom().nextFloat() * SCAN_TICK_PITCH_SPREAD, false);
+            drawScanTickFx(level, target);
+        }
+        if (elapsed >= ThaumometerItem.SCAN_COMPLETE_ELAPSED_TICKS) {
+            player.stopUsingItem();
+            scanTargetKey = null;
+        }
+    }
+
+    private static String keyOf(@Nullable Object target) {
+        if (target instanceof Entity entity) {
+            return "e:" + entity.getId();
+        }
+        if (target instanceof BlockPos pos) {
+            return "b:" + pos.asLong();
+        }
+        return "none";
+    }
+
+    private static void drawScanTickFx(Level level, @Nullable Object target) {
+        RandomSource rand = level.getRandom();
+        if (target instanceof Entity entity) {
+            FXClient.blockRunes(level,
+                    entity.getX() - 0.5,
+                    entity.getY() + entity.getEyeHeight() / 2.0F,
+                    entity.getZ() - 0.5,
+                    0.3F + rand.nextFloat() * 0.7F, 0.0F, 0.3F + rand.nextFloat() * 0.7F,
+                    (int) (entity.getBbHeight() * RUNE_ENTITY_HEIGHT_SCALE), RUNE_GRAVITY);
+        } else if (target instanceof BlockPos pos) {
+            FXClient.blockRunes(level,
+                    pos.getX(), pos.getY() + 0.25, pos.getZ(),
+                    0.3F + rand.nextFloat() * 0.7F, 0.0F, 0.3F + rand.nextFloat() * 0.7F,
+                    RUNE_BLOCK_DURATION, RUNE_GRAVITY);
         }
     }
 

@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class AspectTagWorldRenderer {
     public static final float DEFAULT_SCALE = 0.0625F;
-    private static final Identifier UNKNOWN_TEXTURE =
+    public static final Identifier UNKNOWN_TEXTURE =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/aspects/_unknown.png");
     private static final float UNKNOWN_ALPHA = 0.75F;
     private static final float HALF_QUAD = 0.5F;

@@ -3,12 +3,17 @@ package com.leclowndu93150.thaumcraft.client.hud;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectContainer;
+import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
+import com.leclowndu93150.thaumcraft.content.research.scan.ScanNode;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -41,12 +46,21 @@ public final class GogglesWorldOverlay {
             resetAnimation();
             return;
         }
+        if (holdsThaumometer(mc.player)) {
+            resetAnimation();
+            return;
+        }
         if (!(mc.hitResult instanceof BlockHitResult hit) || mc.hitResult.getType() != HitResult.Type.BLOCK) {
             resetAnimation();
             return;
         }
         BlockPos pos = hit.getBlockPos();
         BlockEntity be = mc.level.getBlockEntity(pos);
+        if (be instanceof BlockEntityNode node
+                && !KnowledgeAccess.of(mc.player).isResearchKnown(ScanNode.researchKey(mc.level, pos))) {
+            resetAnimation();
+            return;
+        }
         if (!(be instanceof IAspectContainer container)) {
             resetAnimation();
             return;
@@ -68,6 +82,11 @@ public final class GogglesWorldOverlay {
         Direction dir = spaceAbove ? Direction.UP : mc.player.getDirection().getOpposite();
         double y = pos.getY() + (spaceAbove ? SPACE_ABOVE_LIFT : 0.0F);
         drawTags(event.getPoseStack(), mc, pos.getX(), y, pos.getZ(), aspects, dir);
+    }
+
+    private static boolean holdsThaumometer(Player player) {
+        return player.getMainHandItem().is(TCItems.THAUMOMETER.get())
+                || player.getOffhandItem().is(TCItems.THAUMOMETER.get());
     }
 
     private static void resetAnimation() {

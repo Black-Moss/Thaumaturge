@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumcraft.content.research.scan.ScanNode;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -51,6 +52,12 @@ public final class ThaumometerAspectOverlay {
             resetAnimation();
             return;
         }
+        if (mc.options.getCameraType().isFirstPerson()
+                && mc.player.getMainHandItem().is(TCItems.THAUMOMETER.get())
+                && mc.player.getOffhandItem().isEmpty()) {
+            resetAnimation();
+            return;
+        }
         Entity entityTarget = mc.crosshairPickEntity;
         if (entityTarget != null) {
             AspectList aspects = scannedAspects(mc.player, EntityAspects.of(entityTarget),
@@ -72,7 +79,7 @@ public final class ThaumometerAspectOverlay {
         BlockPos pos = hit.getBlockPos();
         if (mc.level.getBlockEntity(pos) instanceof BlockEntityNode node) {
             AspectList nodeAspects = scannedAspects(mc.player, node.getAspects(),
-                    TCIds.rl("node/" + mc.level.dimension().identifier().getPath() + "/" + pos.asLong()));
+                    ScanNode.researchKey(mc.level, pos));
             if (nodeAspects.isEmpty()) {
                 resetAnimation();
                 return;

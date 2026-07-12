@@ -53,6 +53,7 @@ public final class TCSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> SHOCK = register("shock");
     public static final DeferredHolder<SoundEvent, SoundEvent> SPILL = register("spill");
     public static final DeferredHolder<SoundEvent, SoundEvent> TICKS = register("ticks");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CAMERA_TICKS = register("cameraticks");
     public static final DeferredHolder<SoundEvent, SoundEvent> UPGRADE = register("upgrade");
     public static final DeferredHolder<SoundEvent, SoundEvent> URNBREAK = register("urnbreak");
     public static final DeferredHolder<SoundEvent, SoundEvent> WAND = register("wand");

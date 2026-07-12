@@ -16,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 public final class FocusRayTrace {
     private static final float MIN_COLLISION_BORDER = 0.8F;
     private static final double CONTAINED_START_GROW = 0.5;
+    private static final double CONTAINED_LOCK = -1.0;
 
     private FocusRayTrace() {}
 
@@ -23,23 +24,20 @@ public final class FocusRayTrace {
             Vec3 look, double minRange, double range, float padding, boolean nonCollide) {
         EntityHitResult pointed = null;
         Vec3 end = start.add(look.x * range, look.y * range, look.z * range);
+        BlockHitResult blockClip = clipBlocks(level, ignore, start, end);
+        if (blockClip.getType() != HitResult.Type.MISS) {
+            end = blockClip.getLocation();
+        }
+        Vec3 segment = end.subtract(start);
         AABB bounds = new AABB(start.x, start.y, start.z, start.x, start.y, start.z).inflate(CONTAINED_START_GROW);
         if (ignore != null && ignore.getBoundingBox().contains(start)) {
             bounds = bounds.minmax(ignore.getBoundingBox());
         }
         List<Entity> candidates = level.getEntities(ignore,
-                bounds.expandTowards(look.x * range, look.y * range, look.z * range).inflate(padding, padding, padding));
+                bounds.expandTowards(segment.x, segment.y, segment.z).inflate(padding, padding, padding));
         double closest = 0.0;
         for (Entity entity : candidates) {
-            if (start.distanceTo(entity.position()) < minRange) {
-                continue;
-            }
             if (!entity.isPickable() && !nonCollide) {
-                continue;
-            }
-            Vec3 eyes = new Vec3(entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ());
-            if (level.clip(new ClipContext(start, eyes, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity))
-                    .getType() != HitResult.Type.MISS) {
                 continue;
             }
             float border = Math.max(MIN_COLLISION_BORDER, entity.getPickRadius());
@@ -48,11 +46,14 @@ public final class FocusRayTrace {
             if (box.contains(start)) {
                 if (closest >= 0.0) {
                     pointed = new EntityHitResult(entity, intercept.orElse(start));
-                    closest = 0.0;
+                    closest = CONTAINED_LOCK;
                 }
             } else if (intercept.isPresent()) {
+                if (start.distanceTo(entity.position()) < minRange) {
+                    continue;
+                }
                 double distance = start.distanceTo(intercept.get());
-                if (distance < closest || closest == 0.0) {
+                if (closest == 0.0 || distance < closest) {
                     pointed = new EntityHitResult(entity, intercept.get());
                     closest = distance;
                 }

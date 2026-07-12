@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.client.golem.GolemMeshes;
 import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
 import com.leclowndu93150.thaumcraft.client.model.obj.MeshPart;
@@ -13,10 +14,12 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -29,6 +32,13 @@ public final class NodeStabilizerRenderer
 
     private static final RenderType BASE = RenderTypes.entityCutout(TEXTURE);
     private static final RenderType OVERLAY = RenderTypes.entityTranslucentEmissive(OVERLAY_TEXTURE);
+    private static final Identifier BUBBLE_TEXTURE = TCIds.rl("textures/misc/node_bubble.png");
+    private static final RenderType BUBBLE = RenderType.create("tc_node_bubble",
+            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE)
+                    .withTexture("Sampler0", BUBBLE_TEXTURE)
+                    .useLightmap()
+                    .sortOnUpload()
+                    .createRenderSetup());
 
     private static final String PART_LOCK = "lock";
     private static final String PART_PISTON = "piston";
@@ -40,6 +50,13 @@ public final class NodeStabilizerRenderer
     private static final int WHITE = 0xFFFFFFFF;
     private static final int OVERLAY_LIGHT_BASE = 50;
     private static final int OVERLAY_LIGHT_RANGE = 170;
+    private static final float BUBBLE_HALF = 0.9F;
+    private static final float BUBBLE_LIFT = 1.5F;
+    private static final float BUBBLE_ALPHA_BASE = 0.5F;
+    private static final float BUBBLE_ALPHA_PULSE = 0.1F;
+    private static final float BUBBLE_PULSE_PERIOD = 8.0F;
+    private static final int BUBBLE_ADVANCED_TINT = 0xFF4444;
+    private static final int BUBBLE_LIGHT = 0x00F000F0;
 
     public NodeStabilizerRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -67,6 +84,32 @@ public final class NodeStabilizerRenderer
         poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
         submitParts(state.count, state.advanced, state.ticks, poseStack, collector, state.light);
+        poseStack.popPose();
+        if (state.count > 0) {
+            submitBubble(state, poseStack, collector);
+        }
+    }
+
+    private static void submitBubble(NodeStabilizerRenderState state, PoseStack poseStack,
+                                     SubmitNodeCollector collector) {
+        float pulse = Mth.sin(state.ticks / BUBBLE_PULSE_PERIOD) * BUBBLE_ALPHA_PULSE + BUBBLE_ALPHA_BASE;
+        float alpha = state.count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse;
+        int tint = state.advanced ? BUBBLE_ADVANCED_TINT : 0xFFFFFF;
+        int color = ARGB.color((int) (alpha * 255.0F), tint);
+        poseStack.pushPose();
+        poseStack.translate(0.5F, BUBBLE_LIFT, 0.5F);
+        poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
+        PoseStack.Pose pose = poseStack.last().copy();
+        collector.submitCustomGeometry(poseStack, BUBBLE, (p, buffer) -> {
+            buffer.addVertex(pose, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(0.0F, 1.0F)
+                    .setColor(color).setLight(BUBBLE_LIGHT);
+            buffer.addVertex(pose, BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(1.0F, 1.0F)
+                    .setColor(color).setLight(BUBBLE_LIGHT);
+            buffer.addVertex(pose, BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(1.0F, 0.0F)
+                    .setColor(color).setLight(BUBBLE_LIGHT);
+            buffer.addVertex(pose, -BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(0.0F, 0.0F)
+                    .setColor(color).setLight(BUBBLE_LIGHT);
+        });
         poseStack.popPose();
     }
 

@@ -806,6 +806,17 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("wand.thaumcraft.rod.primal", "Primal");
         add("tooltip.thaumcraft.focus_pouch.count", "Holds %1$s/%2$s foci");
         add("tc.wand.notenoughvis", "The wand does not hold enough vis");
+        add("tc.node.name", "Aura Node");
+        add("tc.node.typemod", "%1$s, %2$s");
+        add("nodetype.thaumcraft.normal", "Normal");
+        add("nodetype.thaumcraft.unstable", "Unstable");
+        add("nodetype.thaumcraft.dark", "Sinister");
+        add("nodetype.thaumcraft.tainted", "Tainted");
+        add("nodetype.thaumcraft.hungry", "Hungry");
+        add("nodetype.thaumcraft.pure", "Pure");
+        add("nodemod.thaumcraft.bright", "Bright");
+        add("nodemod.thaumcraft.pale", "Pale");
+        add("nodemod.thaumcraft.fading", "Fading");
         add("tc.wand.noaura", "The aura here is too weak to draw upon");
         add("tooltip.thaumcraft.wand.capacity", "Capacity %s");
         add("tooltip.thaumcraft.wand.cost", "Vis cost %s%%");
