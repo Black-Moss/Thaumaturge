@@ -2,6 +2,9 @@ package com.leclowndu93150.thaumcraft.client.casters;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
+import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
+import com.leclowndu93150.thaumcraft.content.casters.CasterManager;
+import com.leclowndu93150.thaumcraft.content.casters.FocusPouchItem;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.network.ServerboundFocusChangePayload;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -22,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.gui.GuiLayer;
@@ -49,6 +53,7 @@ public final class RadialFocusOverlay implements GuiLayer {
     private static final int TOOLTIP_X_OFFSET = -4;
     private static final int TOOLTIP_Y_OFFSET = 20;
     private static final int INVENTORY_SIZE = 36;
+    private static final int POUCH_SLOT_OFFSET = 1000;
 
     private static float radialHudScale;
     private static boolean pendingClick;
@@ -59,6 +64,7 @@ public final class RadialFocusOverlay implements GuiLayer {
     private final Map<String, Float> fociScale = new HashMap<>();
     private long lastTime;
     private boolean lastState;
+    private boolean centerHover;
 
     public static boolean isAnimating() {
         return radialHudScale > 0.0F;
@@ -90,7 +96,7 @@ public final class RadialFocusOverlay implements GuiLayer {
                 }
                 if (radialHudScale == 0.0F) {
                     getFociInfo(mc);
-                    if (!foci.isEmpty() && mc.mouseHandler.isMouseGrabbed()) {
+                    if ((!foci.isEmpty() || holdingSocketedCaster(mc)) && mc.mouseHandler.isMouseGrabbed()) {
                         mc.mouseHandler.releaseMouse();
                     }
                 }
@@ -104,6 +110,11 @@ public final class RadialFocusOverlay implements GuiLayer {
             renderRadialHud(graphics, mc, deltaTracker.getGameTimeDeltaPartialTick(false), time);
 
             if (time > lastTime) {
+                if (centerHover && !CasterKeyHandler.radialActive && !CasterKeyHandler.radialLock) {
+                    ClientPacketDistributor.sendToServer(
+                            new ServerboundFocusChangePayload(CasterManager.REMOVE_FOCUS));
+                    CasterKeyHandler.radialLock = true;
+                }
                 for (String key : fociHover.keySet()) {
                     if (fociHover.get(key)) {
                         if (!CasterKeyHandler.radialActive && !CasterKeyHandler.radialLock) {
@@ -138,6 +149,15 @@ public final class RadialFocusOverlay implements GuiLayer {
         lastTime = time;
     }
 
+    private static boolean holdingSocketedCaster(Minecraft mc) {
+        ItemStack stack = mc.player.getMainHandItem();
+        if (!(stack.getItem() instanceof ICaster)) {
+            stack = mc.player.getOffhandItem();
+        }
+        return stack.getItem() instanceof ICaster caster
+                && caster.getFocusStack(stack).getItem() instanceof ItemFocus;
+    }
+
     private static float radialChange(long time, long lastTime, long total) {
         return (float) (time - lastTime) / (float) total;
     }
@@ -147,20 +167,49 @@ public final class RadialFocusOverlay implements GuiLayer {
         fociItem.clear();
         fociHover.clear();
         fociScale.clear();
+        centerHover = false;
+        int pouchCount = 0;
+        if (ModList.get().isLoaded(TCIds.CURIOS)) {
+            for (ThaumcraftCuriosCompat.CurioPouchRef ref : ThaumcraftCuriosCompat.equippedPouches(
+                    mc.player, stack -> stack.getItem() instanceof FocusPouchItem)) {
+                pouchCount++;
+                indexPouch(ref.stack(), pouchCount);
+            }
+        }
         NonNullList<ItemStack> main = mc.player.getInventory().getNonEquipmentItems();
         for (int slot = 0; slot < Math.min(INVENTORY_SIZE, main.size()); slot++) {
             ItemStack item = main.get(slot);
             if (item.getItem() instanceof ItemFocus focus) {
                 String sortKey = focus.getSortingHelper(item);
-                if (sortKey == null) {
-                    continue;
+                if (sortKey != null) {
+                    addEntry(sortKey, slot, item);
                 }
-                foci.put(sortKey, slot);
-                fociItem.put(sortKey, item.copy());
-                fociScale.put(sortKey, 1.0F);
-                fociHover.put(sortKey, false);
+            }
+            if (item.getItem() instanceof FocusPouchItem) {
+                pouchCount++;
+                indexPouch(item, pouchCount);
             }
         }
+    }
+
+    private void indexPouch(ItemStack pouch, int pouchId) {
+        NonNullList<ItemStack> contents = FocusPouchItem.getInventory(pouch);
+        for (int slot = 0; slot < contents.size(); slot++) {
+            ItemStack stack = contents.get(slot);
+            if (stack.getItem() instanceof ItemFocus focus) {
+                String sortKey = focus.getSortingHelper(stack);
+                if (sortKey != null) {
+                    addEntry(sortKey, slot + pouchId * POUCH_SLOT_OFFSET, stack);
+                }
+            }
+        }
+    }
+
+    private void addEntry(String key, int slot, ItemStack stack) {
+        foci.put(key, slot);
+        fociItem.put(key, stack.copy());
+        fociScale.put(key, 1.0F);
+        fociHover.put(key, false);
     }
 
     private void renderRadialHud(GuiGraphicsExtractor graphics, Minecraft mc, float partialTicks, long time) {
@@ -168,7 +217,10 @@ public final class RadialFocusOverlay implements GuiLayer {
         if (!(casterStack.getItem() instanceof ICaster)) {
             casterStack = mc.player.getOffhandItem();
         }
-        if (!(casterStack.getItem() instanceof ICaster wand) || fociItem.isEmpty()) {
+        if (!(casterStack.getItem() instanceof ICaster wand)) {
+            return;
+        }
+        if (fociItem.isEmpty() && !(wand.getFocusStack(casterStack).getItem() instanceof ItemFocus)) {
             return;
         }
         int mouseX = (int) mc.mouseHandler.getScaledXPos(mc.getWindow());
@@ -189,12 +241,26 @@ public final class RadialFocusOverlay implements GuiLayer {
             int my = mouseY - cy;
             if (mx >= -HOVER_BOX && mx <= HOVER_BOX && my >= -HOVER_BOX && my <= HOVER_BOX) {
                 tooltipStack = socketed;
+                if (!CasterKeyHandler.radialLock && CasterKeyHandler.radialActive) {
+                    centerHover = true;
+                    if (pendingClick) {
+                        CasterKeyHandler.radialActive = false;
+                        CasterKeyHandler.radialLock = true;
+                        ClientPacketDistributor.sendToServer(
+                                new ServerboundFocusChangePayload(CasterManager.REMOVE_FOCUS));
+                        if (mc.isWindowActive() && !mc.mouseHandler.isMouseGrabbed()) {
+                            mc.mouseHandler.grabMouse();
+                        }
+                    }
+                }
+            } else {
+                centerHover = false;
             }
         }
 
         float currentRot = -90.0F * radialHudScale;
-        float pieSlice = 360.0F / fociItem.size();
-        String key = foci.firstKey();
+        float pieSlice = fociItem.isEmpty() ? 0.0F : 360.0F / fociItem.size();
+        String key = fociItem.isEmpty() ? null : foci.firstKey();
         for (int a = 0; a < fociItem.size() && key != null; a++) {
             double xx = Mth.cos(currentRot / 180.0F * (float) Math.PI) * width;
             double yy = Mth.sin(currentRot / 180.0F * (float) Math.PI) * width;
