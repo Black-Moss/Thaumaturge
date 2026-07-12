@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumcraft.api.nodes.NodeType;
+import com.leclowndu93150.thaumcraft.client.casters.WandTipTracker;
 import com.leclowndu93150.thaumcraft.client.fx.render.FloatyLineRenderer;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityJarNode;
@@ -143,6 +144,12 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
                     Mth.lerp(partialTicks, drainer.xo, drainer.getX()),
                     Mth.lerp(partialTicks, drainer.yo, drainer.getY()) + drainer.getEyeHeight(),
                     Mth.lerp(partialTicks, drainer.zo, drainer.getZ())).add(offset);
+            if (drainer == player && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+                Vec3 tip = WandTipTracker.firstPersonTip();
+                if (tip != null) {
+                    hand = tip;
+                }
+            }
             Vec3 nodeCenter = Vec3.atCenterOf(node.getBlockPos());
             state.draining = true;
             state.drainFromX = hand.x - nodeCenter.x;

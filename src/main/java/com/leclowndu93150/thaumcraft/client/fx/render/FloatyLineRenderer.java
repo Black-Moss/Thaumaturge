@@ -24,6 +24,8 @@ public final class FloatyLineRenderer {
     private static final float SEGMENTS_PER_BLOCK = 2.0F;
     private static final float TIME_UNITS_PER_TICK = 50.0F / 30.0F;
     private static final int EMISSIVE_LIGHT = 0x00F000F0;
+    private static final float END_ATTACH_START = 0.7F;
+    private static final float END_ATTACH_ALPHA = 0.8F;
 
     private FloatyLineRenderer() {}
 
@@ -66,6 +68,10 @@ public final class FloatyLineRenderer {
                     float pz = dz * f2;
                     float u = (1.0F - f2) * dist - time * speed;
                     float alpha = Math.max(0.0F, mid);
+                    if (f2 > END_ATTACH_START) {
+                        alpha = Math.max(alpha,
+                                (f2 - END_ATTACH_START) / (1.0F - END_ATTACH_START) * END_ATTACH_ALPHA);
+                    }
                     if (hasPrev) {
                         int c0 = ARGB.colorFromFloat(prevAlpha, red, green, blue);
                         int c1 = ARGB.colorFromFloat(alpha, red, green, blue);
