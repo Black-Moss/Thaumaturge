@@ -27,4 +27,5 @@ public class GolemRenderState extends EntityRenderState {
     public boolean haulingItem;
     public boolean heldItemIsBlock;
     public boolean haulerItemIsBlock;
+    public String accessories = "";
 }

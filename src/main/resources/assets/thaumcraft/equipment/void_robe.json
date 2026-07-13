@@ -2,24 +2,24 @@
   "layers": {
     "humanoid": [
       {
-        "texture": "thaumcraft:void_robe",
+        "texture": "thaumcraft:void_robe_overlay",
         "dyeable": {
           "color_when_undyed": 6961280
         }
       },
       {
-        "texture": "thaumcraft:void_robe_overlay"
+        "texture": "thaumcraft:void_robe"
       }
     ],
     "humanoid_leggings": [
       {
-        "texture": "thaumcraft:void_robe",
+        "texture": "thaumcraft:void_robe_overlay",
         "dyeable": {
           "color_when_undyed": 6961280
         }
       },
       {
-        "texture": "thaumcraft:void_robe_overlay"
+        "texture": "thaumcraft:void_robe"
       }
     ]
   }

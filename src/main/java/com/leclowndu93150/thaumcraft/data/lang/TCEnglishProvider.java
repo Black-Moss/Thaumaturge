@@ -1000,6 +1000,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.module_aggression", "Aggression Module");
         add("item.thaumcraft.golem_bell", "Golemancer's Bell");
         add("item.thaumcraft.golem", "Golem");
+        add("item.thaumcraft.golem_top_hat", "Golem Accessory: Top Hat");
+        add("item.thaumcraft.golem_fez", "Golem Accessory: Fez");
+        add("item.thaumcraft.golem_glasses", "Golem Accessory: Spectacles");
+        add("item.thaumcraft.golem_bowtie", "Golem Accessory: Bowtie");
+        add("item.thaumcraft.golem_visor", "Golem Accessory: Visor");
         add("item.thaumcraft.seal_blank", "Blank Seal");
         add("item.thaumcraft.seal_pickup", "Control Seal: Collect");
         add("item.thaumcraft.seal_pickup_advanced", "Advanced Control Seal: Collect");

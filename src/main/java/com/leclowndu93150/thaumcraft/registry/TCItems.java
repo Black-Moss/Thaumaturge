@@ -83,6 +83,7 @@ import com.leclowndu93150.thaumcraft.content.pech.PechWandItem;
 import com.leclowndu93150.thaumcraft.content.world.mound.LootBagItem;
 import com.leclowndu93150.thaumcraft.content.equipment.CultistRobeItem;
 import com.leclowndu93150.thaumcraft.content.equipment.ElementalAxeItem;
+import com.leclowndu93150.thaumcraft.content.golem.ItemGolemAccessory;
 import com.leclowndu93150.thaumcraft.content.golem.ItemGolemBell;
 import com.leclowndu93150.thaumcraft.content.golem.ItemGolemPlacer;
 import com.leclowndu93150.thaumcraft.content.golem.ItemSealPlacer;
@@ -300,6 +301,17 @@ public final class TCItems {
             "golem", ItemGolemPlacer::new);
     public static final DeferredItem<ItemGolemBell> GOLEM_BELL = ITEMS.registerItem(
             "golem_bell", ItemGolemBell::new, props -> props.stacksTo(1));
+
+    public static final DeferredItem<ItemGolemAccessory> GOLEM_TOP_HAT = ITEMS.registerItem(
+            "golem_top_hat", props -> new ItemGolemAccessory(TCGolemAccessories.TOP_HAT, props));
+    public static final DeferredItem<ItemGolemAccessory> GOLEM_FEZ = ITEMS.registerItem(
+            "golem_fez", props -> new ItemGolemAccessory(TCGolemAccessories.FEZ, props));
+    public static final DeferredItem<ItemGolemAccessory> GOLEM_GLASSES = ITEMS.registerItem(
+            "golem_glasses", props -> new ItemGolemAccessory(TCGolemAccessories.GLASSES, props));
+    public static final DeferredItem<ItemGolemAccessory> GOLEM_BOWTIE = ITEMS.registerItem(
+            "golem_bowtie", props -> new ItemGolemAccessory(TCGolemAccessories.BOWTIE, props));
+    public static final DeferredItem<ItemGolemAccessory> GOLEM_VISOR = ITEMS.registerItem(
+            "golem_visor", props -> new ItemGolemAccessory(TCGolemAccessories.VISOR, props));
 
     public static final DeferredItem<ItemSealPlacer> SEAL_BLANK = sealItem("seal_blank", null);
     public static final DeferredItem<ItemSealPlacer> SEAL_PICKUP = sealItem("seal_pickup", "pickup");

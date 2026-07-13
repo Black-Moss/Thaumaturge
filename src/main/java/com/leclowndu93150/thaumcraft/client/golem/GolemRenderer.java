@@ -98,6 +98,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumcraftGolem, G
         state.haulingItem = !hauled.isEmpty();
         state.haulerItemIsBlock = hauled.getItem() instanceof BlockItem;
         itemModelResolver.updateForTopItem(state.haulerItem, hauled, ItemDisplayContext.HEAD, entity.level(), entity, 0);
+        state.accessories = entity.getAccessoryString();
     }
 
     @Override
@@ -177,6 +178,9 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumcraftGolem, G
         for (GolemPartModel part : attachedParts(props, GolemPartModel.AttachPoint.BODY)) {
             renderPartModel(state, part, GolemPartModel.LimbSide.MIDDLE, poseStack, collector, matTexture, xray, color);
         }
+        if (!xray) {
+            GolemAccessoryRenderer.submitBody(state, poseStack, collector);
+        }
         poseStack.popPose();
 
         poseStack.pushPose();
@@ -187,6 +191,9 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumcraftGolem, G
             renderPartModel(state, part, GolemPartModel.LimbSide.MIDDLE, poseStack, collector, matTexture, xray, color);
         }
         submitNamedPart(base, "head", poseStack, collector, matTexture, xray, color, state);
+        if (!xray) {
+            GolemAccessoryRenderer.submitHead(state, poseStack, collector);
+        }
         poseStack.popPose();
 
         List<GolemPartModel> armParts = attachedParts(props, GolemPartModel.AttachPoint.ARMS);

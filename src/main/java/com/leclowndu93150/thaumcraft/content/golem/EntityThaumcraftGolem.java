@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.golem;
 
 import com.leclowndu93150.thaumcraft.api.golems.GolemTrait;
+import com.leclowndu93150.thaumcraft.api.golems.accessory.GolemAccessories;
+import com.leclowndu93150.thaumcraft.api.golems.accessory.GolemAccessory;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumcraft.api.golems.IGolemProperties;
@@ -19,8 +21,10 @@ import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCEntityDataSerializers;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -81,11 +85,14 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
             SynchedEntityData.defineId(EntityThaumcraftGolem.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> CLIMBING =
             SynchedEntityData.defineId(EntityThaumcraftGolem.class, EntityDataSerializers.BYTE);
+    private static final EntityDataAccessor<String> ACCESSORIES =
+            SynchedEntityData.defineId(EntityThaumcraftGolem.class, EntityDataSerializers.STRING);
 
     private static final int FLAG_FOLLOWING = 1 << 1;
     private static final int FLAG_COMBAT = 1 << 3;
     private static final int HOME_RANGE = 32;
     private static final int HOME_RANGE_SCOUT = 48;
+    private static final double BASE_MOVEMENT_SPEED = 0.3;
     private static final int RANGED_TARGET_FORGET_DIST_SQR = 1024;
     private static final int EVENT_EMOTE_TASK = 5;
     private static final int EVENT_EMOTE_FAIL = 6;
@@ -123,6 +130,73 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
         entityData.define(COLOR, (byte) 0);
         entityData.define(FLAGS, (byte) 0);
         entityData.define(CLIMBING, (byte) 0);
+        entityData.define(ACCESSORIES, "");
+    }
+
+    public String getAccessoryString() {
+        return entityData.get(ACCESSORIES);
+    }
+
+    public List<GolemAccessory> getAccessories() {
+        String joined = entityData.get(ACCESSORIES);
+        if (joined.isEmpty()) {
+            return List.of();
+        }
+        List<GolemAccessory> accessories = new ArrayList<>();
+        for (String id : joined.split(",")) {
+            GolemAccessory accessory = GolemAccessories.get(Identifier.parse(id));
+            if (accessory != null) {
+                accessories.add(accessory);
+            }
+        }
+        return accessories;
+    }
+
+    private boolean addAccessory(GolemAccessory accessory) {
+        List<GolemAccessory> current = getAccessories();
+        for (GolemAccessory worn : current) {
+            if (worn == accessory) {
+                return false;
+            }
+            if (accessory.group() != GolemAccessory.Group.NONE && worn.group() == accessory.group()) {
+                return false;
+            }
+        }
+        String joined = entityData.get(ACCESSORIES);
+        entityData.set(ACCESSORIES, joined.isEmpty() ? accessory.id().toString()
+                : joined + "," + accessory.id());
+        updateEntityAttributes();
+        return true;
+    }
+
+    private void dropAccessories() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        for (GolemAccessory accessory : getAccessories()) {
+            ItemStack stack = ItemGolemAccessory.stackFor(accessory);
+            if (!stack.isEmpty()) {
+                spawnAtLocation(serverLevel, stack, 0.5F);
+            }
+        }
+        entityData.set(ACCESSORIES, "");
+    }
+
+    private float accessoryRegenFactor() {
+        float factor = 1.0F;
+        for (GolemAccessory accessory : getAccessories()) {
+            factor *= accessory.regenFactor();
+        }
+        return factor;
+    }
+
+    private boolean hasKillCreditAccessory() {
+        for (GolemAccessory accessory : getAccessories()) {
+            if (accessory.killCredit()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -185,17 +259,31 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
 
     public void updateEntityAttributes() {
         GolemProperties props = props();
+        List<GolemAccessory> accessories = getAccessories();
+        int accessoryHealth = 0;
+        int accessoryArmor = 0;
+        float rangeFactor = 1.0F;
+        float speedFactor = 1.0F;
+        for (GolemAccessory accessory : accessories) {
+            accessoryHealth += accessory.healthBonus();
+            accessoryArmor += accessory.armorBonus();
+            rangeFactor *= accessory.rangeFactor();
+            speedFactor *= accessory.speedFactor();
+        }
         int maxHealth = 10 + props.getMaterial().healthMod();
         if (props.hasTrait(GolemTrait.FRAGILE)) {
             maxHealth = (int) (maxHealth * 0.75);
         }
-        maxHealth += props.getRank();
+        maxHealth += props.getRank() + accessoryHealth;
         getAttribute(Attributes.MAX_HEALTH).setBaseValue(maxHealth);
         getAttribute(Attributes.STEP_HEIGHT).setBaseValue(props.hasTrait(GolemTrait.WHEELED) ? 0.5 : 0.6);
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_MOVEMENT_SPEED * speedFactor);
+        int homeRange = props.hasTrait(GolemTrait.SCOUT) ? HOME_RANGE_SCOUT : HOME_RANGE;
         setHomeTo(getHomePosition().equals(BlockPos.ZERO) ? blockPosition() : getHomePosition(),
-                props.hasTrait(GolemTrait.SCOUT) ? HOME_RANGE_SCOUT : HOME_RANGE);
-        getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(props.hasTrait(GolemTrait.SCOUT) ? 56.0 : 40.0);
-        getAttribute(Attributes.ARMOR).setBaseValue(computeArmor(props));
+                (int) (homeRange * rangeFactor));
+        getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(
+                (props.hasTrait(GolemTrait.SCOUT) ? 56.0 : 40.0) * rangeFactor);
+        getAttribute(Attributes.ARMOR).setBaseValue(computeArmor(props) + accessoryArmor);
         this.navigation = createGolemNavigation();
         if (props.hasTrait(GolemTrait.FLYER)) {
             this.moveControl = new GolemFlyingMoveControl(this);
@@ -342,7 +430,8 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
                     && getTarget() instanceof Player) {
                 setTarget(null);
             }
-            if (tickCount % (props.hasTrait(GolemTrait.REPAIR) ? 40 : 100) == 0) {
+            int healInterval = (int) ((props.hasTrait(GolemTrait.REPAIR) ? 40 : 100) * accessoryRegenFactor());
+            if (tickCount % Math.max(1, healInterval) == 0) {
                 heal(1.0F);
             }
             if (props.hasTrait(GolemTrait.CLIMBER)) {
@@ -446,6 +535,14 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
             toggleFollow(player, hand);
             return InteractionResult.SUCCESS_SERVER;
         }
+        if (player.getItemInHand(hand).getItem() instanceof ItemGolemAccessory accessoryItem) {
+            if (addAccessory(accessoryItem.accessory())) {
+                playSound(TCSounds.CLACK.get(), 1.0F, 1.0F);
+                player.getItemInHand(hand).shrink(1);
+                player.swing(hand, true);
+            }
+            return InteractionResult.SUCCESS_SERVER;
+        }
         DyeColor dyeColor = player.getItemInHand(hand).get(DataComponents.DYE);
         if (dyeColor != null) {
             playSound(TCSounds.ZAP.get(), 1.0F, 1.0F);
@@ -463,6 +560,7 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
             task.setReserved(false);
         }
         dropCarried();
+        dropAccessories();
         ItemStack placer = new ItemStack(TCItems.GOLEM_PLACER.get());
         placer.set(TCDataComponents.GOLEM_PROPERTIES.get(), props().copy());
         placer.set(TCDataComponents.GOLEM_XP.get(), rankXp);
@@ -525,6 +623,7 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean playerKill) {
         super.dropCustomDeathLoot(level, source, playerKill);
+        dropAccessories();
         for (ItemStack stack : props().generateComponents()) {
             ItemStack copy = stack.copy();
             if (random.nextFloat() < 0.3F) {
@@ -547,7 +646,8 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
         float damage = (float) getAttributeValue(Attributes.ATTACK_DAMAGE);
         boolean hurt = target.hurtServer(level, damageSources().mobAttack(this), damage);
         if (hurt) {
-            if (target instanceof LivingEntity living && props().hasTrait(GolemTrait.DEFT)
+            if (target instanceof LivingEntity living
+                    && (props().hasTrait(GolemTrait.DEFT) || hasKillCreditAccessory())
                     && getOwnerReference() != null) {
                 living.setLastHurtByPlayer(getOwnerReference().getUUID(), 100);
             }
@@ -776,6 +876,7 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
         output.putByte("gflags", getFlags());
         output.putInt("rankXP", rankXp);
         output.putByte("color", getGolemColor());
+        output.putString("accessories", entityData.get(ACCESSORIES));
     }
 
     @Override
@@ -786,6 +887,7 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
         entityData.set(FLAGS, input.getByteOr("gflags", (byte) 0));
         rankXp = input.getIntOr("rankXP", 0);
         setGolemColor(input.getByteOr("color", (byte) 0));
+        entityData.set(ACCESSORIES, input.getStringOr("accessories", ""));
         updateEntityAttributes();
     }
 

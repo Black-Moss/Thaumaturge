@@ -522,8 +522,16 @@ public final class TCModelProvider extends ModelProvider {
                 TextureMapping.layer0(TCItems.VOID_ROBE_HELM.get()), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(TCItems.VOID_ROBE_HELM.get(),
                 ItemModelUtils.tintedModel(helmModel, new Dye(ROBES_UNDYED_ARGB)));
-        registerRobeItem(itemModels, TCItems.VOID_ROBE_CHEST.get(), "void_robe_chest");
-        registerRobeItem(itemModels, TCItems.VOID_ROBE_LEGS.get(), "void_robe_legs");
+        registerVoidRobePiece(itemModels, TCItems.VOID_ROBE_CHEST.get(), "void_robe_chest");
+        registerVoidRobePiece(itemModels, TCItems.VOID_ROBE_LEGS.get(), "void_robe_legs");
+    }
+
+    private static void registerVoidRobePiece(ItemModelGenerators itemModels, Item item, String name) {
+        Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name);
+        Material clothTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name + "_over"));
+        Material metalTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/" + name));
+        ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, TextureMapping.layered(clothTex, metalTex), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Dye(ROBES_UNDYED_ARGB)));
     }
 
     private void registerCelestialNotes(ItemModelGenerators itemModels) {
@@ -744,6 +752,11 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.MODULE_VISION.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.MODULE_AGGRESSION.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.GOLEM_BELL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GOLEM_TOP_HAT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GOLEM_FEZ.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GOLEM_GLASSES.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GOLEM_BOWTIE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.GOLEM_VISOR.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SEAL_BLANK.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SEAL_PICKUP.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SEAL_PICKUP_ADVANCED.get(), ModelTemplates.FLAT_ITEM);

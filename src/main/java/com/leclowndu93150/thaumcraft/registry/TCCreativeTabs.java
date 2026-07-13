@@ -332,6 +332,11 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.MODULE_VISION.get());
                         output.accept(TCItems.MODULE_AGGRESSION.get());
                         output.accept(TCItems.GOLEM_BELL.get());
+                        output.accept(TCItems.GOLEM_TOP_HAT.get());
+                        output.accept(TCItems.GOLEM_FEZ.get());
+                        output.accept(TCItems.GOLEM_GLASSES.get());
+                        output.accept(TCItems.GOLEM_BOWTIE.get());
+                        output.accept(TCItems.GOLEM_VISOR.get());
                         output.accept(TCItems.SEAL_BLANK.get());
                         output.accept(TCItems.SEAL_PICKUP.get());
                         output.accept(TCItems.SEAL_PICKUP_ADVANCED.get());
