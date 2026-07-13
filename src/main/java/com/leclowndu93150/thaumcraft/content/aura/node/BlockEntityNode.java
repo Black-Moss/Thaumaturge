@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumcraft.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumcraft.api.nodes.NodeType;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
+import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumcraft.content.entity.EntityBrainyZombie;
 import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
@@ -20,6 +21,7 @@ import com.leclowndu93150.thaumcraft.content.wands.WandChargingEvents;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
 import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
+import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCWandParts;
@@ -39,7 +41,10 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.commands.FillBiomeCommand;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -95,6 +100,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final int UNSTABLE_CURE_ROLL = 10000;
     private static final int UNSTABLE_CURE_MAGIC = 42;
     private static final int FADING_CURE_ROLL = 12500;
+    private static final int BIOME_SPREAD_INTERVAL = 50;
+    private static final int DARK_BIOME_SPREAD_RANGE = 12;
+    private static final int PURE_BIOME_SPREAD_RANGE = 8;
     private static final int FADING_CURE_MAGIC = 69;
     private static final Identifier RESEARCH_NODE_TAPPER_1 = TCIds.rl("node_tapper_1");
     private static final Identifier RESEARCH_NODE_TAPPER_2 = TCIds.rl("node_tapper_2");
@@ -112,6 +120,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private @Nullable UUID drainPlayer;
     private int drainColor = 0xFFFFFF;
     private int drainTicks;
+    private int jarringTicks;
     public int clientDrainRed = 255;
     public int clientDrainGreen = 255;
     public int clientDrainBlue = 255;
@@ -228,6 +237,15 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         return list.add(aspect, amount);
     }
 
+    public boolean isJarring() {
+        return jarringTicks > 0;
+    }
+
+    public void beginJarring(int ticks) {
+        jarringTicks = ticks;
+        setChanged();
+    }
+
     public void nodeChange() {
         regeneration = -1;
         setChanged();
@@ -240,6 +258,14 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (!(tickLevel instanceof ServerLevel serverLevel)) {
             return;
         }
+        if (jarringTicks > 0) {
+            jarringTicks--;
+            setChanged();
+            if (jarringTicks <= 0) {
+                NodeJarRitual.completeJar(serverLevel, pos, this);
+            }
+            return;
+        }
         count++;
         checkLock(serverLevel, pos);
         boolean change = false;
@@ -249,6 +275,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         change = handleDecay(serverLevel, pos, change);
         change = handleStability(serverLevel, pos, change);
         change = handleTypeBehavior(serverLevel, pos, change);
+        handleBiomeSpread(serverLevel, pos);
         if (drainTicks > 0 && --drainTicks == 0) {
             drainPlayer = null;
             change = true;
@@ -525,6 +552,50 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         return primals.isEmpty() ? null : primals.get(random.nextInt(primals.size()));
     }
 
+    private void handleBiomeSpread(ServerLevel serverLevel, BlockPos pos) {
+        if (count % BIOME_SPREAD_INTERVAL != 0 || !allowTypeBehavior()
+                || serverLevel.dimension() != Level.OVERWORLD) {
+            return;
+        }
+        if (nodeType == NodeType.DARK) {
+            spreadBiomeColumn(serverLevel, pos, DARK_BIOME_SPREAD_RANGE, TCBiomes.EERIE);
+        } else if (nodeType == NodeType.PURE && nearSilverwood(serverLevel, pos)) {
+            spreadBiomeColumn(serverLevel, pos, PURE_BIOME_SPREAD_RANGE, TCBiomes.MAGICAL_FOREST);
+        }
+    }
+
+    private static boolean nearSilverwood(ServerLevel serverLevel, BlockPos pos) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    cursor.setWithOffset(pos, dx, dy, dz);
+                    if (serverLevel.getBlockState(cursor).is(TCBlocks.LOG_SILVERWOOD.get())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void spreadBiomeColumn(ServerLevel serverLevel, BlockPos origin, int range,
+            ResourceKey<Biome> biomeKey) {
+        RandomSource random = serverLevel.getRandom();
+        int x = origin.getX() + random.nextInt(range) - random.nextInt(range);
+        int z = origin.getZ() + random.nextInt(range) - random.nextInt(range);
+        BlockPos sample = new BlockPos(x, origin.getY(), z);
+        if (!serverLevel.hasChunkAt(sample) || serverLevel.getBiome(sample).is(biomeKey)) {
+            return;
+        }
+        Holder<Biome> biome = serverLevel.registryAccess()
+                .lookupOrThrow(Registries.BIOME).getOrThrow(biomeKey);
+        FillBiomeCommand.fill(serverLevel,
+                new BlockPos(x, serverLevel.getMinY(), z),
+                new BlockPos(x, serverLevel.getMaxY(), z),
+                biome);
+    }
+
     private boolean handleTypeBehavior(ServerLevel serverLevel, BlockPos pos, boolean change) {
         if (count % BEHAVIOR_INTERVAL != 0 || !allowTypeBehavior()) {
             return change;
@@ -719,8 +790,6 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         drainPlayer = player.getUUID();
         drainColor = chosen.value().color();
         drainTicks = DRAIN_LINGER_TICKS;
-        TCParticleDispatch.spawnVisSparkle(serverLevel, Vec3.atCenterOf(worldPosition),
-                player.getEyePosition(), drainColor);
         setChanged();
         serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         return true;
@@ -770,6 +839,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             output.store("DrainPlayer", UUIDUtil.CODEC, drainPlayer);
             output.putInt("DrainColor", drainColor);
         }
+        if (jarringTicks > 0) {
+            output.putInt("Jarring", jarringTicks);
+        }
     }
 
     @Override
@@ -781,6 +853,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         aspectsBase = input.read("AspectsBase", AspectList.CODEC).orElse(AspectList.EMPTY);
         drainPlayer = input.read("DrainPlayer", UUIDUtil.CODEC).orElse(null);
         drainColor = input.getIntOr("DrainColor", 0xFFFFFF);
+        jarringTicks = input.getIntOr("Jarring", 0);
         regeneration = -1;
     }
 

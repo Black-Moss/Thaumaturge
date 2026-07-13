@@ -29,7 +29,7 @@ public final class FXManagerRegistry {
     }
 
     @SubscribeEvent
-    public static void onRender(RenderLevelStageEvent.AfterTranslucentParticles event) {
+    public static void onRender(RenderLevelStageEvent.AfterWeather event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
         Camera camera = mc.gameRenderer.getMainCamera();

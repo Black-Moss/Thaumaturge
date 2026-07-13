@@ -1,15 +1,18 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.client.fx.render.LateWorldRenderQueue;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.client.golem.GolemMeshes;
 import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
 import com.leclowndu93150.thaumcraft.client.model.obj.MeshPart;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNodeStabilizer;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -86,30 +89,28 @@ public final class NodeStabilizerRenderer
         submitParts(state.count, state.advanced, state.ticks, poseStack, collector, state.light);
         poseStack.popPose();
         if (state.count > 0) {
-            submitBubble(state, poseStack, collector);
+            float pulse = Mth.sin(state.ticks / BUBBLE_PULSE_PERIOD) * BUBBLE_ALPHA_PULSE + BUBBLE_ALPHA_BASE;
+            float alpha = state.count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse;
+            int tint = state.advanced ? BUBBLE_ADVANCED_TINT : 0xFFFFFF;
+            int color = ARGB.color((int) (alpha * 255.0F), tint);
+            Vec3 origin = Vec3.atCenterOf(state.blockPos).add(0.0, BUBBLE_LIFT - 0.5, 0.0);
+            LateWorldRenderQueue.enqueue(origin, (latePose, buffers) -> drawBubble(latePose, buffers, color));
         }
     }
 
-    private static void submitBubble(NodeStabilizerRenderState state, PoseStack poseStack,
-                                     SubmitNodeCollector collector) {
-        float pulse = Mth.sin(state.ticks / BUBBLE_PULSE_PERIOD) * BUBBLE_ALPHA_PULSE + BUBBLE_ALPHA_BASE;
-        float alpha = state.count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse;
-        int tint = state.advanced ? BUBBLE_ADVANCED_TINT : 0xFFFFFF;
-        int color = ARGB.color((int) (alpha * 255.0F), tint);
+    private static void drawBubble(PoseStack poseStack, MultiBufferSource buffers, int color) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, BUBBLE_LIFT, 0.5F);
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
-        PoseStack.Pose pose = poseStack.last().copy();
-        collector.submitCustomGeometry(poseStack, BUBBLE, (p, buffer) -> {
-            buffer.addVertex(pose, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(0.0F, 1.0F)
-                    .setColor(color).setLight(BUBBLE_LIGHT);
-            buffer.addVertex(pose, BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(1.0F, 1.0F)
-                    .setColor(color).setLight(BUBBLE_LIGHT);
-            buffer.addVertex(pose, BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(1.0F, 0.0F)
-                    .setColor(color).setLight(BUBBLE_LIGHT);
-            buffer.addVertex(pose, -BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(0.0F, 0.0F)
-                    .setColor(color).setLight(BUBBLE_LIGHT);
-        });
+        PoseStack.Pose pose = poseStack.last();
+        VertexConsumer buffer = buffers.getBuffer(BUBBLE);
+        buffer.addVertex(pose, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(0.0F, 1.0F)
+                .setColor(color).setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(1.0F, 1.0F)
+                .setColor(color).setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(1.0F, 0.0F)
+                .setColor(color).setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, -BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(0.0F, 0.0F)
+                .setColor(color).setLight(BUBBLE_LIGHT);
         poseStack.popPose();
     }
 

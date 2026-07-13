@@ -18,6 +18,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public final class DustTriggerFx {
+    public static final double SPARKLE_TICKS_PER_BLOCK = 16.0;
+
     private static final int BURST_COUNT = 50;
     private static final float BURST_BASE_AGE = 16.0F;
 
@@ -75,7 +77,7 @@ public final class DustTriggerFx {
         }
     }
 
-    private static void emitBlockSparkles(ServerLevel level, BlockPos p, Vec3 start) {
+    public static void emitBlockSparkles(ServerLevel level, BlockPos p, Vec3 start) {
         BlockState st = level.getBlockState(p);
         VoxelShape shape = st.getShape(level, p);
         AABB box;
@@ -121,7 +123,7 @@ public final class DustTriggerFx {
                 double dy = wy - start.y;
                 double dz = wz - start.z;
                 double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                int delay = rand.nextInt(5) + (int) (dist * 16.0);
+                int delay = rand.nextInt(5) + (int) (dist * SPARKLE_TICKS_PER_BLOCK);
                 float scale = 0.4F + (float) rand.nextGaussian() * 0.1F;
                 FX.simpleSparkle(level, new Vec3(wx, wy, wz))
                         .motion(0.0, 0.0025, 0.0)

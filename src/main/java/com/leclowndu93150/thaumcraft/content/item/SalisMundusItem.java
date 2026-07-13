@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerPlacement;
+import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerFx;
 import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
@@ -81,6 +82,7 @@ public final class SalisMundusItem extends Item {
         if (!trigger.doesPassGate(player)) {
             Thaumcraft.LOGGER.debug("Salis Mundus trigger {} blocked by research gate {}",
                     holder.id(), trigger.researchGate().orElse(null));
+            TCActionBar.sendPurple(player, "tc.dust.noresearch");
             return InteractionResult.PASS;
         }
         ItemStack result = trigger.assemble(input);

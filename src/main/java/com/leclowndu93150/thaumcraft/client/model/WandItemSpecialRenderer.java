@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.wands.WandCap;
 import com.leclowndu93150.thaumcraft.api.wands.WandRod;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumcraft.client.render.TCFlatRenderTypes;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
 import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
@@ -36,21 +37,6 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
 
     private static final Identifier WAND_TEXTURE = TCIds.rl("textures/models/wand.png");
     private static final Identifier SCRIPT_TEXTURE = TCIds.rl("textures/misc/script.png");
-
-    private static final Function<Identifier, RenderType> WAND_CUTOUT = Util.memoize(
-            texture -> RenderType.create("tc_wand_cutout",
-                    RenderSetup.builder(TCRenderPipelines.ENTITY_CUTOUT_FLAT)
-                            .withTexture("Sampler0", texture)
-                            .useLightmap()
-                            .createRenderSetup()));
-
-    private static final Function<Identifier, RenderType> WAND_TRANSLUCENT = Util.memoize(
-            texture -> RenderType.create("tc_wand_translucent",
-                    RenderSetup.builder(TCRenderPipelines.ENTITY_TRANSLUCENT_FLAT)
-                            .withTexture("Sampler0", texture)
-                            .useLightmap()
-                            .sortOnUpload()
-                            .createRenderSetup()));
 
     private static final RenderType RUNES = RenderType.create("tc_wand_runes",
             RenderSetup.builder(TCRenderPipelines.ENTITY_ADDITIVE_EMISSIVE)
@@ -90,10 +76,6 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.popPose();
     }
 
-    public static RenderType translucentFlat(Identifier texture) {
-        return WAND_TRANSLUCENT.apply(texture);
-    }
-
     public static void submitParts(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light) {
         boolean staff = arg.rod().staff();
         boolean runes = arg.rod().runes();
@@ -105,7 +87,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         }
 
         int rodLight = arg.rod().glow() ? (int) (200.0F + Mth.sin((int) ticks) * 5.0F + 5.0F) : light;
-        RenderType rodType = WAND_CUTOUT.apply(arg.rod().texture());
+        RenderType rodType = TCFlatRenderTypes.entityCutoutFlat(arg.rod().texture());
         poseStack.pushPose();
         if (staff) {
             poseStack.translate(0.0F, -0.1F, 0.0F);
@@ -117,7 +99,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
                 box(rodPose, buffer, -1.0F, 1.0F, -1.0F, 2, 18, 2, 0, 8, 0xFFFFFFFF, rodLightFinal));
         poseStack.popPose();
 
-        RenderType capType = WAND_CUTOUT.apply(arg.cap().texture());
+        RenderType capType = TCFlatRenderTypes.entityCutoutFlat(arg.cap().texture());
         poseStack.pushPose();
         if (staff) {
             poseStack.scale(1.3F, 1.1F, 1.3F);
@@ -149,7 +131,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.popPose();
 
         if (arg.hasFocus()) {
-            RenderType focusType = WAND_TRANSLUCENT.apply(WAND_TEXTURE);
+            RenderType focusType = TCFlatRenderTypes.entityTranslucentFlat(WAND_TEXTURE);
             poseStack.pushPose();
             if (staff) {
                 poseStack.translate(0.0F, -0.0475F, 0.0F);
@@ -217,7 +199,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.translate(0.0F, rotationPointY * PX, 0.0F);
         PoseStack.Pose pose = poseStack.last().copy();
         collector.submitCustomGeometry(poseStack, type, (p, buffer) ->
-                box(pose, buffer, -1.0F, -1.0F, -1.0F, 2, 2, 2, 0, 0, 0xFFFFFFFF, light));
+                box(pose, buffer, -1.0F, -1.0F, -1.0F, 2, 2, 2, 0, 0, 0xFFFFFFFF, light, true));
         poseStack.popPose();
     }
 

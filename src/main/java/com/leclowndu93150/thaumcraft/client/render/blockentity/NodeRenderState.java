@@ -11,6 +11,7 @@ public final class NodeRenderState extends BlockEntityRenderState {
     public static final class AspectLayer {
         public int color;
         public int amount;
+        public int blend;
     }
 
     public final List<AspectLayer> layers = new ArrayList<>();
@@ -23,6 +24,7 @@ public final class NodeRenderState extends BlockEntityRenderState {
     public long time;
     public int frameSeed;
     public float size = 1.0F;
+    public boolean jarred;
     public boolean draining;
     public double drainFromX;
     public double drainFromY;

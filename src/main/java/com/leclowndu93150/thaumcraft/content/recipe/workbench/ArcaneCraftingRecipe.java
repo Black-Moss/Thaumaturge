@@ -125,11 +125,6 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
 
     @Override
     public boolean matches(ArcaneCraftingInput input, Level level) {
-        if (aspects.isEmpty()) return true;
-        if (input.getAspects().size() < aspects.size()) return false;
-        for (AspectInstance instance : aspects.entries()) {
-            if (input.getAspects().amountOf(instance.aspect()) < instance.amount()) return false;
-        }
         return true;
     }
 }

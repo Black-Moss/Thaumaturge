@@ -24,7 +24,7 @@ public final class FocusRayTrace {
             Vec3 look, double minRange, double range, float padding, boolean nonCollide) {
         EntityHitResult pointed = null;
         Vec3 end = start.add(look.x * range, look.y * range, look.z * range);
-        BlockHitResult blockClip = clipBlocks(level, ignore, start, end);
+        BlockHitResult blockClip = clipCollidingBlocks(level, ignore, start, end);
         if (blockClip.getType() != HitResult.Type.MISS) {
             end = blockClip.getLocation();
         }
@@ -78,5 +78,10 @@ public final class FocusRayTrace {
     public static BlockHitResult clipBlocks(Level level, @Nullable Entity caster, Vec3 start, Vec3 end) {
         CollisionContext context = caster != null ? CollisionContext.of(caster) : CollisionContext.empty();
         return level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, context));
+    }
+
+    private static BlockHitResult clipCollidingBlocks(Level level, @Nullable Entity caster, Vec3 start, Vec3 end) {
+        CollisionContext context = caster != null ? CollisionContext.of(caster) : CollisionContext.empty();
+        return level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, context));
     }
 }

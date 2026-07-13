@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.screen.research;
 
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
@@ -975,6 +976,21 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         return null;
     }
 
+    private static final float BUTTON_CLACK_VOLUME = 0.4F;
+    private static final float PAGE_OPEN_VOLUME = 0.66F;
+
+    private void playButtonClack() {
+        if (minecraft != null && minecraft.player != null) {
+            minecraft.player.playSound(TCSounds.CLACK.get(), BUTTON_CLACK_VOLUME, 1.0F);
+        }
+    }
+
+    private void playPageOpen() {
+        if (minecraft != null && minecraft.player != null) {
+            minecraft.player.playSound(TCSounds.PAGE.get(), PAGE_OPEN_VOLUME, 1.0F);
+        }
+    }
+
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         popupTimeMs = System.currentTimeMillis() - 1L;
@@ -984,11 +1000,13 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         if (minecraft == null || minecraft.player == null) return super.mouseClicked(event, doubleClick);
         IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
         if (hitSearchButton(mx, my)) {
+            playButtonClack();
             toggleSearch();
             return true;
         }
         if (hitScrollUp(mx, my)) {
             if (catScrollPos > 0) {
+                playButtonClack();
                 catScrollPos--;
                 updateResearch();
             }
@@ -996,6 +1014,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         }
         if (hitScrollDown(mx, my)) {
             if (catScrollPos < catScrollMax) {
+                playButtonClack();
                 catScrollPos++;
                 updateResearch();
             }
@@ -1003,6 +1022,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         }
         Holder.Reference<IResearchCategory> tabHit = hitCategoryButton(mx, my);
         if (tabHit != null && !tabHit.equals(activeCategory)) {
+            playButtonClack();
             searching = false;
             if (searchField != null) {
                 searchField.setVisible(false);
@@ -1021,6 +1041,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             popupTimeMs = System.currentTimeMillis() + POPUP_DURATION_MS;
             popupMessage = Component.translatable("tc.research.popup", Component.translatable(hl.entry.nameKey()).getString());
             persistState();
+            playPageOpen();
             minecraft.setScreen(new EntryDetailScreen(hl.holder, hl.id, this));
             return true;
         } else if (currentHighlight != null && knowledge.isResearchKnown(currentHighlight.id)) {
@@ -1034,6 +1055,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                 ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(hl.id));
             }
             persistState();
+            playPageOpen();
             minecraft.setScreen(new EntryDetailScreen(hl.holder, hl.id, this));
             return true;
         } else if (searching) {
@@ -1053,7 +1075,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                 }
                 if ((sr.kind == SearchResult.Kind.ENTRY || sr.kind == SearchResult.Kind.RECIPE) && sr.entryNode != null) {
                     persistState();
-                    minecraft.setScreen(new EntryDetailScreen(sr.entryNode.holder, sr.entryNode.id, this));
+                    playPageOpen();
+            minecraft.setScreen(new EntryDetailScreen(sr.entryNode.holder, sr.entryNode.id, this));
                     return true;
                 }
             }

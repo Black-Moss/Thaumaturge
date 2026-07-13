@@ -85,7 +85,7 @@ public final class ArchitectOverlayRenderer {
     }
 
     @SubscribeEvent
-    public static void onRender(RenderLevelStageEvent.AfterTranslucentParticles event) {
+    public static void onRender(RenderLevelStageEvent.AfterWeather event) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         if (mc.level == null || player == null || mc.options.hideGui) {

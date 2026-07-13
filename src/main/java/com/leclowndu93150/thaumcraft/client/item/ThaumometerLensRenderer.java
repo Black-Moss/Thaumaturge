@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
-import com.leclowndu93150.thaumcraft.client.model.WandItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.render.TCFlatRenderTypes;
 import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
 import net.minecraft.util.LightCoordsUtil;
 import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
@@ -141,7 +141,7 @@ public final class ThaumometerLensRenderer {
             poseStack.scale(TAG_SIZE, -TAG_SIZE, TAG_SIZE);
             PoseStack.Pose tagPose = poseStack.last().copy();
             collector.submitCustomGeometry(poseStack,
-                    WandItemSpecialRenderer.translucentFlat(known
+                    TCFlatRenderTypes.entityTranslucentFlat(known
                             ? entry.aspect().value().texture()
                             : AspectTagWorldRenderer.UNKNOWN_TEXTURE),
                     (pose, buffer) -> AspectTagWorldRenderer.renderQuad(tagPose, buffer, entry.aspect(),

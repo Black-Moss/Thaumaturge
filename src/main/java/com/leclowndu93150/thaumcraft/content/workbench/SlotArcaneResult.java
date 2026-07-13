@@ -1,15 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.workbench;
 
 import com.leclowndu93150.thaumcraft.content.research.ResearchProgressionEvents;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
-import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.ThaumcraftCraftingManager;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingInput;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipe;
-import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -101,30 +95,8 @@ public final class SlotArcaneResult extends Slot {
         }
 
         if (arcane != null) {
-            if (arcane.getBaseVis() > 0) {
-                WorkbenchPayment.pay(arcane, tile, player, craftMatrix.wandStack());
-            }
-            AspectList crystals = arcane.getCrystals();
-            if (!crystals.isEmpty()) {
-                consumeCrystals(crystals);
-            }
-        }
-    }
-
-    private void consumeCrystals(AspectList crystals) {
-        for (AspectInstance entry : crystals.entries()) {
-            int needed = entry.amount();
-            for (int i = 9; i < 15 && needed > 0; i++) {
-                ItemStack crystal = craftMatrix.getItem(i);
-                if (!crystal.isEmpty() && crystal.getItem() instanceof ItemEssentiaCrystal) {
-                    Holder<IAspect> holder = ItemEssentiaCrystal.aspectOf(crystal);
-                    if (holder != null && holder.value().tag().equals(entry.aspect().value().tag())) {
-                        int remove = Math.min(needed, crystal.getCount());
-                        craftMatrix.removeItem(i, remove);
-                        needed -= remove;
-                    }
-                }
-            }
+            WorkbenchPayment.Plan plan = WorkbenchPayment.plan(arcane, craftMatrix, player);
+            WorkbenchPayment.pay(plan, tile, player, craftMatrix);
         }
     }
 }

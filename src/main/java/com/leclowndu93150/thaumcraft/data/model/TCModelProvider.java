@@ -29,6 +29,7 @@ import com.mojang.math.Transformation;
 import net.minecraft.client.renderer.special.ChestSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarBrainItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.JarItemSpecialRenderer;
+import com.leclowndu93150.thaumcraft.client.model.JarNodeItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.NodeStabilizerItemSpecialRenderer;
 import com.leclowndu93150.thaumcraft.client.model.WandIsStaffProperty;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockJar;
@@ -146,6 +147,21 @@ public final class TCModelProvider extends ModelProvider {
                 new NodeStabilizerItemSpecialRenderer.Unbaked(true)
         ));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.JAR_NODE.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.JAR_NORMAL.get()))));
+        itemModels.itemModelOutput.accept(TCBlocks.JAR_NODE.get().asItem(), new CompositeModel.Unbaked(
+                List.of(
+                        new CuboidItemModelWrapper.Unbaked(
+                                TCIds.rl("block/jar_normal"),
+                                Optional.empty(),
+                                List.of()
+                        ),
+                        new SpecialModelWrapper.Unbaked(
+                                TCIds.rl("block/jar_normal"),
+                                Optional.empty(),
+                                new JarNodeItemSpecialRenderer.Unbaked()
+                        )
+                ),
+                Optional.empty()
+        ));
         horizontalBlock(blockModels, itemModels, TCBlocks.INFERNAL_FURNACE.get(), "infernal_furnace",true);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.NETHER_BRICKS))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(Blocks.OBSIDIAN))));

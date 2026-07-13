@@ -12,6 +12,33 @@
   "stages": [
     {
       "text": "research.thaumcraft.node_jar.stage_0",
+      "construct": {
+        "x_size": 3,
+        "y_size": 4,
+        "z_size": 3,
+        "cells": [
+          "#minecraft:wooden_slabs", "#minecraft:wooden_slabs", "#minecraft:wooden_slabs",
+          "#minecraft:wooden_slabs", "#minecraft:wooden_slabs", "#minecraft:wooden_slabs",
+          "#minecraft:wooden_slabs", "#minecraft:wooden_slabs", "#minecraft:wooden_slabs",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks"
+        ],
+        "cost": [
+          {"aspect": "thaumcraft:ignis", "amount": 70},
+          {"aspect": "thaumcraft:terra", "amount": 70},
+          {"aspect": "thaumcraft:aer", "amount": 70},
+          {"aspect": "thaumcraft:aqua", "amount": 70},
+          {"aspect": "thaumcraft:ordo", "amount": 70},
+          {"aspect": "thaumcraft:perditio", "amount": 70}
+        ]
+      },
       "required_knowledge": [
         {
           "type": "theory",
@@ -21,7 +48,34 @@
       ]
     },
     {
-      "text": "research.thaumcraft.node_jar.stage_0"
+      "text": "research.thaumcraft.node_jar.stage_0",
+      "construct": {
+        "x_size": 3,
+        "y_size": 4,
+        "z_size": 3,
+        "cells": [
+          "#minecraft:wooden_slabs", "#minecraft:wooden_slabs", "#minecraft:wooden_slabs",
+          "#minecraft:wooden_slabs", "#minecraft:wooden_slabs", "#minecraft:wooden_slabs",
+          "#minecraft:wooden_slabs", "#minecraft:wooden_slabs", "#minecraft:wooden_slabs",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks",
+          "#c:glass_blocks", "#c:glass_blocks", "#c:glass_blocks"
+        ],
+        "cost": [
+          {"aspect": "thaumcraft:ignis", "amount": 70},
+          {"aspect": "thaumcraft:terra", "amount": 70},
+          {"aspect": "thaumcraft:aer", "amount": 70},
+          {"aspect": "thaumcraft:aqua", "amount": 70},
+          {"aspect": "thaumcraft:ordo", "amount": 70},
+          {"aspect": "thaumcraft:perditio", "amount": 70}
+        ]
+      }
     }
   ],
   "note_aspects": [

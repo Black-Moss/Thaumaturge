@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumcraft.client.fx.render;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -31,6 +33,19 @@ public final class FloatyLineRenderer {
 
     public static void submit(PoseStack poseStack, SubmitNodeCollector collector, Vec3 fromRelative,
                               float time, int color, float speed, float distanceFraction, float width) {
+        PoseStack.Pose pose = poseStack.last().copy();
+        collector.submitCustomGeometry(poseStack, WISPY_LINE,
+                (p, buffer) -> write(pose, buffer, fromRelative, time, color, speed, distanceFraction, width));
+    }
+
+    public static void draw(PoseStack poseStack, MultiBufferSource buffers, Vec3 fromRelative,
+                            float time, int color, float speed, float distanceFraction, float width) {
+        write(poseStack.last(), buffers.getBuffer(WISPY_LINE), fromRelative, time, color, speed,
+                distanceFraction, width);
+    }
+
+    private static void write(PoseStack.Pose pose, VertexConsumer buffer, Vec3 fromRelative,
+                              float time, int color, float speed, float distanceFraction, float width) {
         float dist = (float) fromRelative.length();
         if (dist < 0.1F) {
             return;
@@ -45,8 +60,7 @@ public final class FloatyLineRenderer {
         float green = ((color >> 8) & 0xFF) / 255.0F;
         float blue = (color & 0xFF) / 255.0F;
         float finalLength = length;
-        PoseStack.Pose pose = poseStack.last().copy();
-        collector.submitCustomGeometry(poseStack, WISPY_LINE, (p, buffer) -> {
+        {
             for (int axis = 0; axis < 2; axis++) {
                 float wx = axis == 0 ? 0.0F : width;
                 float wy = axis == 0 ? width : 0.0F;
@@ -92,7 +106,7 @@ public final class FloatyLineRenderer {
                     hasPrev = true;
                 }
             }
-        });
+        }
     }
 
     public static float time(long gameTime, float partialTicks) {

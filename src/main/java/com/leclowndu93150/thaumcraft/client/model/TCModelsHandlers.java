@@ -20,6 +20,9 @@ public class TCModelsHandlers {
     public static final Identifier JAR_BRAIN_MODEL_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "jar_brain");
 
+    public static final Identifier JAR_NODE_MODEL_ID =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "jar_node");
+
     public static final Identifier CENTRIFUGE_MODEL_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "centrifuge");
 
@@ -45,6 +48,7 @@ public class TCModelsHandlers {
     public static void onRegisterItemModels(RegisterSpecialModelRendererEvent event){
         event.register(JAR_MODEL_ID, JarItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(JAR_BRAIN_MODEL_ID, JarBrainItemSpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(JAR_NODE_MODEL_ID, JarNodeItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(CENTRIFUGE_MODEL_ID, CentrifugeItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(GOLEM_BUILDER_MODEL_ID, GolemBuilderItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(DECON_TABLE_MODEL_ID, DeconTableItemSpecialRenderer.Unbaked.MAP_CODEC);

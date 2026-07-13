@@ -1323,7 +1323,7 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockJarNode> JAR_NODE = BLOCKS.registerBlock(
             "jar_node", BlockJarNode::new,
-            props -> props.mapColor(MapColor.NONE).strength(0.3F).sound(SoundType.GLASS).noOcclusion());
+            props -> props.mapColor(MapColor.NONE).strength(0.3F).sound(TCSoundTypes.JAR.get()).noOcclusion());
 
     public static final DeferredBlock<BlockNodeStabilizer> NODE_STABILIZER = BLOCKS.registerBlock(
             "node_stabilizer", props -> new BlockNodeStabilizer(props, false),

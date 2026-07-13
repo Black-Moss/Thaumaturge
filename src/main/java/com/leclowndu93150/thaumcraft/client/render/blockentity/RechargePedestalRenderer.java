@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
 import com.leclowndu93150.thaumcraft.client.fx.render.FloatyLineRenderer;
+import com.leclowndu93150.thaumcraft.client.fx.render.LateWorldRenderQueue;
 import com.leclowndu93150.thaumcraft.content.aura.BlockEntityRechargePedestal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -54,13 +55,12 @@ public final class RechargePedestalRenderer
                        CameraRenderState camera) {
         delegate.submit(state, poseStack, collector, camera);
         if (state.draining) {
-            poseStack.pushPose();
-            poseStack.translate(0.5F, PEDESTAL_TOP, 0.5F);
-            FloatyLineRenderer.submit(poseStack, collector,
-                    new Vec3(state.drainFromX, state.drainFromY, state.drainFromZ),
-                    FloatyLineRenderer.time(state.time, state.partial),
-                    state.drainColor, LINE_SPEED, 1.0F, LINE_WIDTH);
-            poseStack.popPose();
+            Vec3 from = new Vec3(state.drainFromX, state.drainFromY, state.drainFromZ);
+            float time = FloatyLineRenderer.time(state.time, state.partial);
+            int color = state.drainColor;
+            Vec3 origin = Vec3.atLowerCornerOf(state.blockPos).add(0.5, PEDESTAL_TOP, 0.5);
+            LateWorldRenderQueue.enqueue(origin, (latePose, buffers) ->
+                    FloatyLineRenderer.draw(latePose, buffers, from, time, color, LINE_SPEED, 1.0F, LINE_WIDTH));
         }
     }
 

@@ -114,6 +114,7 @@ public final class TCBiomes {
         mobs.addSpawn(MobCategory.MONSTER, 32, new MobSpawnSettings.SpawnerData(TCEntities.BRAINY_ZOMBIE.get(), 1, 1));
         mobs.addSpawn(MobCategory.MONSTER, 8, new MobSpawnSettings.SpawnerData(TCEntities.GIANT_BRAINY_ZOMBIE.get(), 1, 1));
         mobs.addSpawn(MobCategory.MONSTER, 3, new MobSpawnSettings.SpawnerData(TCEntities.WISP.get(), 1, 1));
+        mobs.addSpawn(MobCategory.MONSTER, 1, new MobSpawnSettings.SpawnerData(TCEntities.ELDRITCH_GUARDIAN.get(), 1, 1));
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(placed, carvers);
         globalGeneration(generation);

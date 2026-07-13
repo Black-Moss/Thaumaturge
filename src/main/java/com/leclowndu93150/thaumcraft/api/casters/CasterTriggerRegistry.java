@@ -10,6 +10,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -26,9 +28,21 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 public final class CasterTriggerRegistry {
     private static final Map<String, LinkedHashMap<BlockState, List<Trigger>>> TRIGGERS = new HashMap<>();
+    private static final Map<TagKey<Block>, List<Trigger>> TAG_TRIGGERS = new LinkedHashMap<>();
     private static final String DEFAULT = "default";
 
     private CasterTriggerRegistry() {}
+
+    /**
+     * Registers a trigger for every block state of every block in a tag.
+     *
+     * @param manager the manager invoked when a matching state is caster-clicked
+     * @param event   the event number handed back to the manager
+     * @param tag     the block tag whose members activate the trigger
+     */
+    public static void registerCasterBlockTagTrigger(ICasterTriggerManager manager, int event, TagKey<Block> tag) {
+        TAG_TRIGGERS.computeIfAbsent(tag, key -> new ArrayList<>()).add(new Trigger(manager, event));
+    }
 
     /**
      * Registers a trigger under an explicit mod id group.
@@ -66,6 +80,11 @@ public final class CasterTriggerRegistry {
                 return true;
             }
         }
+        for (TagKey<Block> tag : TAG_TRIGGERS.keySet()) {
+            if (state.is(tag)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -97,6 +116,16 @@ public final class CasterTriggerRegistry {
         for (LinkedHashMap<BlockState, List<Trigger>> group : TRIGGERS.values()) {
             if (run(group, level, casterStack, player, pos, side, state)) {
                 return true;
+            }
+        }
+        for (Map.Entry<TagKey<Block>, List<Trigger>> entry : TAG_TRIGGERS.entrySet()) {
+            if (!state.is(entry.getKey())) {
+                continue;
+            }
+            for (Trigger trigger : entry.getValue()) {
+                if (trigger.manager().performTrigger(level, casterStack, player, pos, side, trigger.event())) {
+                    return true;
+                }
             }
         }
         return false;

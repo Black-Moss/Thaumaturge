@@ -37,7 +37,7 @@ public final class GogglesWorldOverlay {
     private GogglesWorldOverlay() {}
 
     @SubscribeEvent
-    public static void onRender(RenderLevelStageEvent.AfterTranslucentParticles event) {
+    public static void onRender(RenderLevelStageEvent.AfterWeather event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null || mc.options.hideGui) {
             return;

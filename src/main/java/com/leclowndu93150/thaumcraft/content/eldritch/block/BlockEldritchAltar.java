@@ -8,12 +8,9 @@ import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
+import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -98,20 +95,14 @@ public final class BlockEldritchAltar extends BlockEldritchStructure implements 
                 return InteractionResult.SUCCESS;
             }
             if (!KnowledgeAccess.of(player).isResearchComplete(OCULUS_RESEARCH)) {
-                if (player instanceof ServerPlayer serverPlayer) {
-                    serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                            Component.translatable("gui.thaumcraft.altar.ritual_unknown")
-                                    .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
-                }
+                TCActionBar.sendPurple(player, "gui.thaumcraft.altar.ritual_unknown");
                 return InteractionResult.SUCCESS;
             }
             if (AuraHelper.drainVis(level, pos, RITUAL_CHARGE, true) >= RITUAL_CHARGE) {
                 AuraHelper.drainVis(level, pos, RITUAL_CHARGE, false);
                 altar.openPortal();
-            } else if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                        Component.translatable("gui.thaumcraft.altar.not_enough_vis")
-                                .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
+            } else {
+                TCActionBar.sendPurple(player, "gui.thaumcraft.altar.not_enough_vis");
             }
             return InteractionResult.SUCCESS;
         }

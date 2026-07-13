@@ -33,7 +33,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -344,8 +344,7 @@ public class ItemWand extends Item implements ICaster, IArchitect {
     }
 
     private static void sendWandActionBar(ServerPlayer player, String key) {
-        player.connection.send(new ClientboundSetActionBarTextPacket(
-                Component.translatable(key).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
+        TCActionBar.sendPurple(player, key);
     }
 
     private static void sendRefineSparkle(ServerLevel level, Player player, ResourceKey<IAspect> aspect) {

@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.api.research;
 
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -54,6 +55,16 @@ public interface IResearchStage {
      */
     default List<KnowledgeReward> requiredKnowledge() {
         return List.of();
+    }
+
+    /**
+     * Multiblock structure diagram displayed for this stage, shown as an exploded isometric
+     * view with its activation vis cost.
+     *
+     * @return the construct diagram, or empty when the stage has none
+     */
+    default Optional<ResearchConstruct> construct() {
+        return Optional.empty();
     }
 
     /**

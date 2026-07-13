@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.render.aspect;
 
+import com.leclowndu93150.thaumcraft.client.render.TCFlatRenderTypes;
 import net.minecraft.resources.Identifier;
 import java.util.function.Predicate;
 import com.leclowndu93150.thaumcraft.TCIds;
@@ -93,7 +94,7 @@ public final class AspectTagWorldRenderer {
             poseStack.pushPose();
             poseStack.scale(tagScale, tagScale, tagScale);
             renderQuad(poseStack,
-                    buffers.getBuffer(RenderTypes.entityTranslucent(
+                    buffers.getBuffer(TCFlatRenderTypes.entityTranslucentFlat(
                             known ? entry.aspect().value().texture() : UNKNOWN_TEXTURE)),
                     entry.aspect(), known ? alpha : UNKNOWN_ALPHA, false, LightCoordsUtil.FULL_BRIGHT);
             poseStack.popPose();
@@ -155,8 +156,8 @@ public final class AspectTagWorldRenderer {
         IAspect value = aspect.value();
         int color = AspectTagRenderer.colorOf(value, alpha, bw);
         RenderType type = blend == AspectTagRenderer.BlendMode.ADDITIVE
-                ? RenderTypes.entityTranslucentEmissive(value.texture())
-                : RenderTypes.entityTranslucent(value.texture());
+                ? TCFlatRenderTypes.entityAdditiveFlat(value.texture())
+                : TCFlatRenderTypes.entityTranslucentFlat(value.texture());
         VertexConsumer buffer = buffers.getBuffer(type);
         poseStack.pushPose();
         poseStack.mulPose(camera.rotation());

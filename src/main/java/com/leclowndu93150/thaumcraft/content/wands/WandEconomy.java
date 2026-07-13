@@ -13,6 +13,7 @@ public final class WandEconomy {
     public static final int ROD_SELF_CHARGE_CAP_DIVISOR = 10;
     public static final int RAW_TO_PRIMAL_RATIO = 3;
     public static final float CRAFT_AURA_SURCHARGE = 1.25F;
+    public static final int CRYSTAL_SUBSTITUTE_VIS = 2;
     public static final int CRUDE_REFINE_INTERVAL_TICKS = 5;
     public static final int CRUDE_REFINE_CENTIVIS_PER_OP = 10;
     public static final double CRUDE_REFINE_TARGET_RANGE = 4.5;

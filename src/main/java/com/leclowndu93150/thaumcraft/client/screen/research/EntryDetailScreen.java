@@ -21,6 +21,8 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchAddendum;
 import com.leclowndu93150.thaumcraft.api.research.KnowledgeReward;
+import com.leclowndu93150.thaumcraft.api.research.ResearchConstruct;
+import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.client.render.research.KnowledgeRequirementWidget;
 import com.leclowndu93150.thaumcraft.client.render.research.PageParser;
@@ -35,6 +37,7 @@ import com.leclowndu93150.thaumcraft.network.ServerboundRequestItemRecipePayload
 import com.leclowndu93150.thaumcraft.network.ServerboundClearResearchFlagsPayload;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.ArrayDeque;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +50,8 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
@@ -55,8 +60,10 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.util.Mth;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -251,6 +258,30 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     private static final int INSERT_PAPER_SIZE = 255;
 
+    private static final int CONSTRUCT_PAGE_Y = 26;
+    private static final int CONSTRUCT_TITLE_COLOR = 0x505050;
+    private static final int CONSTRUCT_STRUCT_Y = 108;
+    private static final int CONSTRUCT_LAYER_STRIDE = 50;
+    private static final int CONSTRUCT_LAYER_HALF_STRIDE = 25;
+    private static final float CONSTRUCT_SHRINK_PER_LAYER = 0.2F;
+    private static final int CONSTRUCT_BACKDROP_Y_BASE = -119;
+    private static final float CONSTRUCT_BACKDROP_U = 0.0F;
+    private static final float CONSTRUCT_BACKDROP_V = 144.0F;
+    private static final int CONSTRUCT_BACKDROP_W = 128;
+    private static final int CONSTRUCT_BACKDROP_H = 88;
+    private static final int CONSTRUCT_BACKDROP_DRAW_W = 64;
+    private static final int CONSTRUCT_BACKDROP_DRAW_H = 44;
+    private static final float CONSTRUCT_BACKDROP_ALPHA = 0.5F;
+    private static final float CONSTRUCT_WAND_U = 136.0F;
+    private static final float CONSTRUCT_WAND_V = 152.0F;
+    private static final int CONSTRUCT_WAND_SIZE = 24;
+    private static final int CONSTRUCT_WAND_Y = 174;
+    private static final float CONSTRUCT_WAND_ALPHA = 0.4F;
+    private static final int CONSTRUCT_COST_Y = 182;
+    private static final int CONSTRUCT_COST_STRIDE = 18;
+    private static final int CONSTRUCT_WAND_GAP = 2;
+    private static final int OVERLAY_TEX_SIZE = 512;
+
     private final Holder<IResearchEntry> entry;
     private final Identifier entryId;
     private final @Nullable Screen parent;
@@ -261,6 +292,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private boolean showingAspects;
     private boolean showingKnowledge;
     private @Nullable Identifier shownRecipe;
+    private boolean showingConstruct;
     private int recipePage;
     private int aspectsPage;
     private boolean flagsCleared;
@@ -407,6 +439,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             renderAspectsInsert(graphics, mouseX, mouseY);
         } else if (showingKnowledge) {
             renderKnowledgeInsert(graphics, mouseX, mouseY);
+        } else if (showingConstruct) {
+            renderConstructInsert(graphics, stage, mouseX, mouseY);
         } else if (shownRecipe != null) {
             renderRecipePage(graphics, mouseX, mouseY);
         }
@@ -839,8 +873,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     private void renderRecipeBookmarks(GuiGraphicsExtractor graphics, IResearchStage stage, int mouseX, int mouseY) {
         List<Identifier> recipes = displayRecipes(stage);
-        if (recipes.isEmpty()) return;
-        int space = Math.min(RECIPE_BOOKMARK_MAX_STEP, RECIPE_BOOKMARK_TOTAL_BUDGET / recipes.size());
+        boolean hasConstruct = stage.construct().isPresent();
+        int totalBookmarks = recipes.size() + (hasConstruct ? 1 : 0);
+        if (totalBookmarks == 0) return;
+        int space = Math.min(RECIPE_BOOKMARK_MAX_STEP, RECIPE_BOOKMARK_TOTAL_BUDGET / totalBookmarks);
         int slotY = sh + RECIPE_BOOKMARK_BASE_Y_OFFSET;
         Random rng = new Random(rhash);
         for (Identifier rid : recipes) {
@@ -881,6 +917,44 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             }
             slotY += space;
         }
+        if (hasConstruct) {
+            int x = sw + RECIPE_BOOKMARK_OFFSET_X;
+            int shJitter = rng.nextInt(3);
+            boolean hoverState = mouseInside(x, slotY - 1, RECIPE_BOOKMARK_HOVER_W, RECIPE_BOOKMARK_H, mouseX, mouseY);
+            int le = rng.nextInt(3) + (hoverState ? 0 : 3);
+            int tint = showingConstruct ? RECIPE_BOOKMARK_TINT_SELECTED : RECIPE_BOOKMARK_TINT_NORMAL;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
+                    x + shJitter, slotY - 1,
+                    (float) (RECIPE_BOOKMARK_U_BASE + le), (float) RECIPE_BOOKMARK_V,
+                    RECIPE_BOOKMARK_W, RECIPE_BOOKMARK_H,
+                    RECIPE_BOOKMARK_W, RECIPE_BOOKMARK_H,
+                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
+                    tint);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
+                    x + shJitter, slotY - 1,
+                    (float) RECIPE_BOOKMARK_TIP_U, (float) RECIPE_BOOKMARK_V,
+                    RECIPE_BOOKMARK_TIP_W, RECIPE_BOOKMARK_H,
+                    RECIPE_BOOKMARK_TIP_W, RECIPE_BOOKMARK_H,
+                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
+            ItemStack icon = entryIconStack();
+            if (!icon.isEmpty()) {
+                graphics.item(icon, x + shJitter + RECIPE_BOOKMARK_ICON_OFFSET - le, slotY - 1);
+            }
+            if (hoverState) {
+                graphics.setTooltipForNextFrame(font,
+                        Component.translatable("recipe.type.construct"), mouseX, mouseY);
+            }
+        }
+    }
+
+    private ItemStack entryIconStack() {
+        List<ResearchIcon> icons = entry.value().icons();
+        for (ResearchIcon icon : icons) {
+            if (icon.kind() == ResearchIcon.Kind.ITEM) {
+                return new ItemStack(BuiltInRegistries.ITEM.getValue(icon.id()));
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     private void renderRecipePage(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -919,6 +993,128 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                         ARROW_RIGHT_U, ARROW_V, ARROW_W, ARROW_H, bob);
             }
         }
+    }
+
+    private void renderConstructInsert(GuiGraphicsExtractor graphics, IResearchStage stage, int mouseX, int mouseY) {
+        ResearchConstruct construct = stage.construct().orElse(null);
+        if (construct == null) {
+            showingConstruct = false;
+            return;
+        }
+        int paperX = (width - 256) / 2;
+        int paperY = (height - 256) / 2;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.PAPER,
+                paperX, paperY,
+                0.0F, 0.0F,
+                INSERT_PAPER_SIZE, INSERT_PAPER_SIZE,
+                INSERT_PAPER_SIZE, INSERT_PAPER_SIZE,
+                TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
+        long gameTime = minecraft.player.level().getGameTime();
+        int centerX = paperX + INSERT_PAPER_SIZE / 2;
+        int pageY = paperY + CONSTRUCT_PAGE_Y;
+        Component title = Component.translatable("recipe.type.construct");
+        graphics.text(font, title, centerX - font.width(title) / 2, pageY,
+                CONSTRUCT_TITLE_COLOR, false);
+        int dx = construct.xSize();
+        int dy = construct.ySize();
+        int dz = construct.zSize();
+        int structWidth = (dx + dz - 1) * 16;
+        int yoff = -dy * CONSTRUCT_LAYER_HALF_STRIDE;
+        float shrink = dy > 3 ? (dy - 3) * CONSTRUCT_SHRINK_PER_LAYER : 0.0F;
+        float structScale = 1.0F - shrink;
+        float originX = centerX - structWidth * structScale / 2.0F;
+        float originY = pageY + CONSTRUCT_STRUCT_Y + yoff * structScale;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(originX, originY);
+        graphics.pose().scale(structScale, structScale);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(structWidth / 2.0F - CONSTRUCT_BACKDROP_DRAW_W,
+                CONSTRUCT_BACKDROP_Y_BASE + Math.max(3 - dx, 3 - dz) * 8 + dx * 4 + dz * 4 + dy * CONSTRUCT_LAYER_STRIDE);
+        graphics.pose().scale(2.0F, 2.0F);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK_OVERLAY,
+                0, 0,
+                CONSTRUCT_BACKDROP_U, CONSTRUCT_BACKDROP_V,
+                CONSTRUCT_BACKDROP_DRAW_W, CONSTRUCT_BACKDROP_DRAW_H,
+                CONSTRUCT_BACKDROP_W, CONSTRUCT_BACKDROP_H,
+                OVERLAY_TEX_SIZE, OVERLAY_TEX_SIZE,
+                alphaTint(CONSTRUCT_BACKDROP_ALPHA));
+        graphics.pose().popMatrix();
+        ItemStack hover = ItemStack.EMPTY;
+        List<ConstructCellDraw> layer = new ArrayList<>();
+        int count = 0;
+        for (int j = 0; j < dy; j++) {
+            layer.clear();
+            for (int k = dz - 1; k >= 0; k--) {
+                for (int i = dx - 1; i >= 0; i--) {
+                    int px = i * 16 + k * 16;
+                    int py = -i * 8 + k * 8 + j * CONSTRUCT_LAYER_STRIDE;
+                    ItemStack stack = resolveConstructCell(construct.cells().get(count), gameTime);
+                    count++;
+                    if (!stack.isEmpty()) {
+                        layer.add(new ConstructCellDraw(px, py, stack));
+                    }
+                }
+            }
+            layer.sort(Comparator.comparingInt(ConstructCellDraw::py));
+            for (ConstructCellDraw cell : layer) {
+                graphics.item(cell.stack(), cell.px(), cell.py());
+                if (mouseInside((int) (originX + cell.px() * structScale), (int) (originY + cell.py() * structScale),
+                        (int) (16 * structScale), (int) (16 * structScale), mouseX, mouseY)) {
+                    hover = cell.stack();
+                }
+            }
+        }
+        graphics.pose().popMatrix();
+        AspectList cost = construct.cost();
+        if (!cost.isEmpty()) {
+            List<AspectInstance> entries = cost.entries();
+            int rowWidth = CONSTRUCT_COST_STRIDE * (entries.size() - 1) + 16;
+            int rowX = centerX - rowWidth / 2;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK_OVERLAY,
+                    rowX - CONSTRUCT_WAND_SIZE - CONSTRUCT_WAND_GAP, pageY + CONSTRUCT_WAND_Y,
+                    CONSTRUCT_WAND_U, CONSTRUCT_WAND_V,
+                    CONSTRUCT_WAND_SIZE, CONSTRUCT_WAND_SIZE,
+                    CONSTRUCT_WAND_SIZE, CONSTRUCT_WAND_SIZE,
+                    OVERLAY_TEX_SIZE, OVERLAY_TEX_SIZE,
+                    alphaTint(CONSTRUCT_WAND_ALPHA));
+            int tagIndex = 0;
+            for (AspectInstance costEntry : entries) {
+                int tx = rowX + CONSTRUCT_COST_STRIDE * tagIndex;
+                int ty = pageY + CONSTRUCT_COST_Y;
+                AspectTagRenderer.render(graphics, font, tx, ty, costEntry.aspect(), costEntry.amount());
+                if (mouseInside(tx, ty, 16, 16, mouseX, mouseY)) {
+                    graphics.setTooltipForNextFrame(font, AspectComponents.name(costEntry.aspect()), mouseX, mouseY);
+                }
+                tagIndex++;
+            }
+        }
+        if (!hover.isEmpty()) {
+            graphics.setTooltipForNextFrame(font, hover, mouseX, mouseY);
+        }
+    }
+
+    private record ConstructCellDraw(int px, int py, ItemStack stack) {}
+
+    private static ItemStack resolveConstructCell(String spec, long gameTime) {
+        if (spec.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        if (spec.startsWith("#")) {
+            TagKey<Item> tag = TagKey.create(Registries.ITEM, Identifier.parse(spec.substring(1)));
+            List<Holder<Item>> holders = new ArrayList<>();
+            for (Holder<Item> holder : BuiltInRegistries.ITEM.getTagOrEmpty(tag)) {
+                holders.add(holder);
+            }
+            if (holders.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            return new ItemStack(holders.get((int) (gameTime / 20L % holders.size())));
+        }
+        return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(spec)));
+    }
+
+    private static int alphaTint(float alpha) {
+        return ((int) (alpha * 0xFF)) << 24 | 0x00FFFFFF;
     }
 
     private void renderAspectsInsert(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -1230,7 +1426,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private boolean insertOpen() {
-        return showingAspects || showingKnowledge || shownRecipe != null;
+        return showingAspects || showingKnowledge || showingConstruct || shownRecipe != null;
     }
 
     private float bob() {
@@ -1312,6 +1508,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                     && my >= aspectHitY && my < aspectHitY + BOOKMARK_H) {
                 shownRecipe = null;
                 showingKnowledge = false;
+                showingConstruct = false;
                 showingAspects = !showingAspects;
                 history.clear();
                 if (aspectsPage > maxAspectPages()) aspectsPage = 0;
@@ -1325,6 +1522,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                     && my >= knowHitY && my < knowHitY + BOOKMARK_H) {
                 shownRecipe = null;
                 showingAspects = false;
+                showingConstruct = false;
                 showingKnowledge = !showingKnowledge;
                 history.clear();
                 playSound(TCSounds.PAGE.get(), 0.7F, 0.9F);
@@ -1382,6 +1580,16 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 } else {
                     shownRecipe = rid;
                 }
+                showingAspects = false;
+                showingKnowledge = false;
+                showingConstruct = false;
+                history.clear();
+                playSound(TCSounds.PAGE.get(), 0.7F, 0.9F);
+                return true;
+            }
+            if (hitConstructBookmark(mx, my, stage)) {
+                showingConstruct = !showingConstruct;
+                shownRecipe = null;
                 showingAspects = false;
                 showingKnowledge = false;
                 history.clear();
@@ -1451,6 +1659,11 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private void goBack() {
+        if (showingConstruct) {
+            showingConstruct = false;
+            playSound(TCSounds.PAGE.get(), 0.66F, 1.0F);
+            return;
+        }
         if (!history.isEmpty()) {
             playSound(TCSounds.PAGE.get(), 0.66F, 1.0F);
             shownRecipe = history.pop();
@@ -1472,7 +1685,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private int hitRecipeBookmark(double mx, double my, IResearchStage stage) {
         List<Identifier> recipes = displayRecipes(stage);
         if (recipes.isEmpty()) return -1;
-        int space = Math.min(RECIPE_BOOKMARK_MAX_STEP, RECIPE_BOOKMARK_TOTAL_BUDGET / recipes.size());
+        int space = recipeBookmarkSpace(stage);
         int slotY = sh + RECIPE_BOOKMARK_BASE_Y_OFFSET;
         int x = sw + RECIPE_BOOKMARK_OFFSET_X;
         for (int i = 0; i < recipes.size(); i++) {
@@ -1483,6 +1696,20 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             slotY += space;
         }
         return -1;
+    }
+
+    private int recipeBookmarkSpace(IResearchStage stage) {
+        int total = displayRecipes(stage).size() + (stage.construct().isPresent() ? 1 : 0);
+        return Math.min(RECIPE_BOOKMARK_MAX_STEP, RECIPE_BOOKMARK_TOTAL_BUDGET / Math.max(1, total));
+    }
+
+    private boolean hitConstructBookmark(double mx, double my, IResearchStage stage) {
+        if (stage.construct().isEmpty()) return false;
+        int space = recipeBookmarkSpace(stage);
+        int slotY = sh + RECIPE_BOOKMARK_BASE_Y_OFFSET + space * displayRecipes(stage).size();
+        int x = sw + RECIPE_BOOKMARK_OFFSET_X;
+        return mx >= x && mx < x + RECIPE_BOOKMARK_HOVER_W
+                && my >= slotY - 1 && my < slotY - 1 + RECIPE_BOOKMARK_H;
     }
 
     private boolean handleTheoryNoteClick(double mx, double my, IResearchStage stage) {

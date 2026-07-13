@@ -1,16 +1,14 @@
 package com.leclowndu93150.thaumcraft.content.workbench;
 
-import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
+import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.leclowndu93150.thaumcraft.content.recipe.ThaumcraftCraftingManager;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingInput;
-import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
+import com.leclowndu93150.thaumcraft.content.wands.ItemWand;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCMenus;
-import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -19,6 +17,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.SimpleContainerData;
@@ -145,8 +144,8 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
         IArcaneRecipe arcane = ThaumcraftCraftingManager.findMatchingArcaneRecipe(level, input, sp);
         if (arcane != null) {
             tile.refreshAura();
-            if (WorkbenchPayment.canPay(arcane, tile, sp, craftingInventory.wandStack())
-                    && hasSufficientCrystals(arcane.getCrystals())) {
+            WorkbenchPayment.Plan plan = WorkbenchPayment.plan(arcane, craftingInventory, sp);
+            if (WorkbenchPayment.canCraft(plan, tile)) {
                 result = arcane.assemble(input);
             }
         }
@@ -171,24 +170,6 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
             .map(r -> (RecipeHolder<CraftingRecipe>) r)
             .filter(r -> r.value().matches(input, level))
             .findFirst();
-    }
-
-    private boolean hasSufficientCrystals(AspectList needed) {
-        if (needed.isEmpty()) return true;
-        for (AspectInstance entry : needed.entries()) {
-            int found = 0;
-            for (int i = 9; i < 15; i++) {
-                ItemStack crystal = craftingInventory.getItem(i);
-                if (!crystal.isEmpty() && crystal.getItem() instanceof ItemEssentiaCrystal) {
-                    Holder<IAspect> holder = ItemEssentiaCrystal.aspectOf(crystal);
-                    if (holder != null && holder.value().tag().equals(entry.aspect().value().tag())) {
-                        found += crystal.getCount();
-                    }
-                }
-            }
-            if (found < entry.amount()) return false;
-        }
-        return true;
     }
 
     @Override
@@ -228,6 +209,15 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     @Override
     public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
         return slot.container != resultContainer && super.canTakeItemForPickAll(stack, slot);
+    }
+
+    @Override
+    public void clicked(int slotId, int button, ContainerInput containerInput, Player player) {
+        if (slotId == WAND_SLOT && getCarried().getItem() instanceof ItemWand wand
+                && wand.isStaff(getCarried())) {
+            TCActionBar.sendPurple(player, "tc.workbench.staff");
+        }
+        super.clicked(slotId, button, containerInput, player);
     }
 
     @Override

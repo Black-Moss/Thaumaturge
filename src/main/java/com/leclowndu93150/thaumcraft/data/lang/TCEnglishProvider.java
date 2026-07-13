@@ -175,6 +175,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("gui.thaumcraft.arcane_workbench.vis_available", "%s available");
         add("gui.thaumcraft.arcane_workbench.required_vis", "%s vis");
         add("gui.thaumcraft.arcane_workbench.required_vis_discount", "%s vis (%s%% discount)");
+        add("gui.thaumcraft.arcane_workbench.required_vis_crude", "%s vis (unfocused)");
+        add("gui.thaumcraft.arcane_workbench.wand_pay.tooltip", "Primal vis the wand will contribute in place of crystals (%s per crystal)");
         add("button.thaumcraft.create_theory", "Create Theory");
         add("button.thaumcraft.complete_theory", "Complete Theory");
         add("button.thaumcraft.scrap_theory", "Scrap Theory");
@@ -264,8 +266,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.addendumtext", "§oAddendum %1$s§r");
 
         add("jei.thaumcraft.category.arcane_workbench", "Arcane Workbench");
-        add("jei.thaumcraft.arcane_workbench.vis_cost", "Vis Cost (paid by the wand on the workbench)");
-        add("jei.thaumcraft.arcane_workbench.vis_cost_aura", "Without a wand: %s vis drained from the aura, no discounts");
+        add("jei.thaumcraft.arcane_workbench.vis_cost", "Vis Cost, drained from the local aura");
+        add("jei.thaumcraft.arcane_workbench.vis_cost_wand", "A slotted wand focuses the craft: its cap discount applies and it can pay %s vis per required crystal instead of consuming them");
+        add("jei.thaumcraft.arcane_workbench.vis_cost_aura", "Paying with crystals instead runs unfocused: %s vis");
         add("jei.thaumcraft.category.crucible", "Crucible");
         add("jei.thaumcraft.category.dust_trigger", "Salis Mundus Trigger");
         add("jei.thaumcraft.category.multiblock_dust_trigger", "Multiblock Trigger");
@@ -807,6 +810,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tooltip.thaumcraft.focus_pouch.count", "Holds %1$s/%2$s foci");
         add("tc.wand.notenoughvis", "The wand does not hold enough vis");
         add("tc.node.name", "Aura Node");
+        add("tc.node.jar.aspect", "%1$s %2$s");
         add("tc.node.typemod", "%1$s, %2$s");
         add("nodetype.thaumcraft.normal", "Normal");
         add("nodetype.thaumcraft.unstable", "Unstable");
@@ -818,6 +822,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("nodemod.thaumcraft.pale", "Pale");
         add("nodemod.thaumcraft.fading", "Fading");
         add("tc.wand.noaura", "The aura here is too weak to draw upon");
+        add("tc.jar.noresearch", "You sense potential in this arrangement, but lack the knowledge to exploit it");
+        add("tc.jar.structure", "The ritual fails - the node must be sealed in glass on all sides and capped with a roof of wooden slabs");
+        add("tc.jar.vis", "The ritual fails - it demands %s vis of each primal aspect from wands in your hotbar");
+        add("tc.dust.noresearch", "The dust sparkles with promise, but you lack the knowledge to direct it");
+        add("tc.workbench.staff", "A staff is too unwieldy to use at the workbench");
         add("tooltip.thaumcraft.wand.capacity", "Capacity %s");
         add("tooltip.thaumcraft.wand.cost", "Vis cost %s%%");
         add("tooltip.thaumcraft.wand.cost.except", "Vis cost %1$s%% (%2$s)");

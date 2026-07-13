@@ -2,20 +2,25 @@ package com.leclowndu93150.thaumcraft.client.screen.workbench;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
-import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCContainerScreen;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
 import com.leclowndu93150.thaumcraft.content.recipe.ThaumcraftCraftingManager;
+import com.leclowndu93150.thaumcraft.content.wands.WandEconomy;
+import com.leclowndu93150.thaumcraft.content.wands.WandTooltips;
 import com.leclowndu93150.thaumcraft.content.workbench.MenuArcaneWorkbench;
 import com.leclowndu93150.thaumcraft.content.workbench.WorkbenchPayment;
-import net.minecraft.world.item.ItemStack;
+import java.text.DecimalFormat;
+import java.util.Map;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -26,6 +31,10 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
     private static final int WAND_SLOT_TEX_H = 34;
     private static final int WAND_SLOT_TEX_OFFSET_X = 10;
     private static final int WAND_SLOT_TEX_OFFSET_Y = 6;
+    private static final int WAND_COST_Y_OFFSET = 129;
+    private static final int WAND_COST_HOVER_HEIGHT = 6;
+    private static final int WAND_COST_HOVER_MIN_HALF_WIDTH = 10;
+    private static final DecimalFormat WAND_COST_FORMAT = new DecimalFormat("#.##");
 
     public ArcaneWorkbenchScreen(MenuArcaneWorkbench menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TCScreenTextures.ARCANE_WORKBENCH, 190,234);
@@ -37,20 +46,12 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
     @Override
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         int availableVis = menu.getCachedVis();
-        int requiredVis = 0;
         IArcaneRecipe recipe = ThaumcraftCraftingManager.findMatchingArcaneRecipe(minecraft.level,menu.getCraftingInventory().asArcaneCraftInput(), minecraft.player);
-        AspectList aspects = AspectList.EMPTY;
-        int discountPercentage = 0;
-        ItemStack wandStack = menu.getCraftingInventory().wandStack();
+        WorkbenchPayment.Plan plan = null;
         if (recipe != null && recipe.doesPassGate(minecraft.player)) {
-            if (WorkbenchPayment.wandCanPay(wandStack, minecraft.player, recipe)) {
-                requiredVis = recipe.getBaseVis();
-                discountPercentage = GogglesAccess.totalVisDiscount(minecraft.player);
-            } else {
-                requiredVis = WorkbenchPayment.auraCost(recipe);
-            }
-            aspects = recipe.getCrystals();
+            plan = WorkbenchPayment.plan(recipe, menu.getCraftingInventory(), minecraft.player);
         }
+        int requiredVis = plan == null ? 0 : plan.auraVis();
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
@@ -60,8 +61,8 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
                 0.0F, 0.0F, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H,
                 WAND_SLOT_TEX_W, WAND_SLOT_TEX_H, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H);
 
-        if (!aspects.isEmpty()){
-            for (AspectInstance instance : aspects.entries()){
+        if (plan != null && !plan.crystalsToConsume().isEmpty()) {
+            for (AspectInstance instance : plan.crystalsToConsume().entries()){
                 int color = instance.aspect().value().color();
                 int index = MenuArcaneWorkbench.PRIMAL_ORDER.indexOf(instance.aspect().getKey());
                 graphics.pose().pushMatrix();
@@ -82,15 +83,54 @@ public class ArcaneWorkbenchScreen extends AbstractTCContainerScreen<MenuArcaneW
         graphics.text(font,available,-availableWidth,0,0xFF000000 | (requiredVis > availableVis ? 15625838 : 7237358),false);
         graphics.pose().popMatrix();
 
-        if (requiredVis > 0) {
+        if (plan != null && requiredVis > 0) {
+            int baseVis = recipe.getBaseVis();
+            Component required;
+            if (requiredVis < baseVis) {
+                int discountPercentage = Math.round(100.0F - requiredVis * 100.0F / baseVis);
+                required = Component.translatable("gui.thaumcraft.arcane_workbench.required_vis_discount", requiredVis, discountPercentage);
+            } else if (!plan.crystalsToConsume().isEmpty()) {
+                required = Component.translatable("gui.thaumcraft.arcane_workbench.required_vis_crude", requiredVis);
+            } else {
+                required = Component.translatable("gui.thaumcraft.arcane_workbench.required_vis", requiredVis);
+            }
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + 168, y + 38);
             graphics.pose().scale(0.5f);
-            Component required = discountPercentage > 0 ? Component.translatable("gui.thaumcraft.arcane_workbench.required_vis_discount",requiredVis,discountPercentage) : Component.translatable("gui.thaumcraft.arcane_workbench.required_vis", requiredVis);
             int requiredWidth = font.width(required) / 2;
             graphics.text(font, required, -requiredWidth, 0, 0xFF000000 | 12648447, false);
             graphics.pose().popMatrix();
 
+        }
+
+        if (plan != null && !plan.wandCentivis().isEmpty()) {
+            MutableComponent amounts = null;
+            for (Map.Entry<ResourceKey<IAspect>, Integer> entry : plan.wandCentivis().entrySet()) {
+                float cost = entry.getValue() / (float) WandEconomy.CENTIVIS_PER_VIS;
+                Component chunk = Component.literal(WAND_COST_FORMAT.format(cost))
+                        .withStyle(WandTooltips.primalColor(minecraft.level.registryAccess(), entry.getKey()));
+                if (amounts == null) {
+                    amounts = Component.empty().append(chunk);
+                } else {
+                    amounts.append(Component.literal(" | ").withStyle(ChatFormatting.DARK_GRAY)).append(chunk);
+                }
+            }
+            int lineCenterX = x + MenuArcaneWorkbench.WAND_X + 8;
+            int lineY = y + WAND_COST_Y_OFFSET;
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(lineCenterX, lineY);
+            graphics.pose().scale(0.5f);
+            int amountsWidth = font.width(amounts) / 2;
+            graphics.text(font, amounts, -amountsWidth, 0, 0xFFFFFFFF, false);
+            graphics.pose().popMatrix();
+            int hoverHalfWidth = Math.max(amountsWidth / 2, WAND_COST_HOVER_MIN_HALF_WIDTH);
+            if (mouseX >= lineCenterX - hoverHalfWidth && mouseX < lineCenterX + hoverHalfWidth
+                    && mouseY >= lineY - 1 && mouseY < lineY + WAND_COST_HOVER_HEIGHT) {
+                graphics.setTooltipForNextFrame(font,
+                        Component.translatable("gui.thaumcraft.arcane_workbench.wand_pay.tooltip",
+                                WandEconomy.CRYSTAL_SUBSTITUTE_VIS),
+                        mouseX, mouseY);
+            }
         }
 
     }

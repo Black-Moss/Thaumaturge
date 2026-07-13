@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
+import com.leclowndu93150.thaumcraft.content.aura.node.JarNodeItem;
 import com.leclowndu93150.thaumcraft.content.wands.ItemPrimalCharm;
 import com.leclowndu93150.thaumcraft.content.wands.ItemWand;
 import com.leclowndu93150.thaumcraft.content.wands.ItemWandCap;
@@ -704,7 +705,8 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> NODE_STABILIZER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER);
     public static final DeferredItem<BlockItem> NODE_STABILIZER_ADVANCED = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER_ADVANCED);
-    public static final DeferredItem<BlockItem> JAR_NODE = ITEMS.registerSimpleBlockItem(TCBlocks.JAR_NODE);
+    public static final DeferredItem<JarNodeItem> JAR_NODE = ITEMS.registerItem(
+            "jar_node", props -> new JarNodeItem(TCBlocks.JAR_NODE.get(), props.useBlockDescriptionPrefix()));
 
     public static final DeferredItem<ItemFocus> FOCUS_1 = ITEMS.registerItem(
             "focus_1",

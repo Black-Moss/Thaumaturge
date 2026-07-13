@@ -72,22 +72,6 @@ public final class BlockNode extends Block implements EntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                          Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.getItem() instanceof SalisMundusItem) {
-            if (!(level instanceof ServerLevel serverLevel)) {
-                return InteractionResult.SUCCESS;
-            }
-            if (NodeJarRitual.tryJarNode(serverLevel, pos, player)) {
-                stack.shrink(1);
-                return InteractionResult.SUCCESS;
-            }
-            return InteractionResult.PASS;
-        }
-        return super.useItemOn(stack, state, level, pos, player, hand, hit);
-    }
-
-    @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (level instanceof ServerLevel serverLevel
                 && level.getBlockEntity(pos) instanceof BlockEntityNode node) {

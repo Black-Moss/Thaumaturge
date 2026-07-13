@@ -101,6 +101,24 @@ public final class WandVisHelper {
         return true;
     }
 
+    public static boolean consumeAllVisRaw(ItemStack stack, Map<ResourceKey<IAspect>, Integer> centivisCosts,
+                                           boolean doit) {
+        if (centivisCosts.isEmpty()) {
+            return false;
+        }
+        for (Map.Entry<ResourceKey<IAspect>, Integer> entry : centivisCosts.entrySet()) {
+            if (getVis(stack, entry.getKey()) < entry.getValue()) {
+                return false;
+            }
+        }
+        if (doit) {
+            for (Map.Entry<ResourceKey<IAspect>, Integer> entry : centivisCosts.entrySet()) {
+                storeVis(stack, entry.getKey(), getVis(stack, entry.getKey()) - entry.getValue());
+            }
+        }
+        return true;
+    }
+
     private static final int HOTBAR_SIZE = 9;
 
     public static Map<ResourceKey<IAspect>, Integer> evenSplit(int centivis) {
