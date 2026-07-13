@@ -173,6 +173,9 @@ public final class TCModelProvider extends ModelProvider {
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMONOMICON_CHEAT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.THAUMONOMICON_SHARING.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CREATIVE_NODE_PLACER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.itemModelOutput.accept(TCItems.WAND.get(), ItemModelUtils.conditional(
                 new WandIsStaffProperty(),

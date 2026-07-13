@@ -195,6 +195,16 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumcraft.jar_normal", "Warded Jar");
         add("block.thaumcraft.jar_void", "Void Jar");
         add("item.thaumcraft.thaumonomicon", "Thaumonomicon");
+        add("item.thaumcraft.thaumonomicon_cheat", "Cheater's Thaumonomicon");
+        add("item.thaumcraft.thaumonomicon_sharing", "Thaumonomicon of Sharing");
+        add("item.thaumcraft.creative_node_placer", "Creative Node Placer");
+        add("tooltip.thaumcraft.creative_only", "Creative only");
+        add("tooltip.thaumcraft.sharing.bound", "Attuned to %s");
+        add("tooltip.thaumcraft.sharing.hint", "Use once to attune, then have your research partner use it");
+        add("tc.thaumonomicon.cheat.granted", "The book whispers %s secrets into your mind");
+        add("tc.thaumonomicon.sharing.bound", "The book attunes to your mind - hand it to your research partner");
+        add("tc.thaumonomicon.sharing.self", "The book is already attuned to you - it needs another's touch");
+        add("tc.thaumonomicon.sharing.linked", "Your knowledge now flows freely between you and %s");
         add("item.thaumcraft.jar_brace", "Brass Lid Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");

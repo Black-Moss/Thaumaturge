@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.content.aura.node.NodeData;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.research.share.ShareBinding;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
 import com.leclowndu93150.thaumcraft.content.wands.WandVis;
 import com.leclowndu93150.thaumcraft.TCIds;
@@ -151,6 +152,11 @@ public final class TCDataComponents {
             DATA_COMPONENTS.registerComponentType("mirror_link", builder -> builder
                     .persistent(GlobalPos.CODEC)
                     .networkSynchronized(GlobalPos.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShareBinding>> SHARE_BINDING =
+            DATA_COMPONENTS.registerComponentType("share_binding", builder -> builder
+                    .persistent(ShareBinding.CODEC)
+                    .networkSynchronized(ShareBinding.STREAM_CODEC));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> NOTE_COMPLETE =
             DATA_COMPONENTS.registerComponentType("note_complete", builder -> builder

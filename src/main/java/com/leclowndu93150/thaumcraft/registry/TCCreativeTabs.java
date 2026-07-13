@@ -41,6 +41,9 @@ public final class TCCreativeTabs {
                     .icon(() -> new ItemStack(TCItems.THAUMONOMICON.get()))
                     .displayItems((parameters, output) -> {
                         output.accept(TCItems.THAUMONOMICON.get());
+                        output.accept(TCItems.THAUMONOMICON_CHEAT.get());
+                        output.accept(TCItems.THAUMONOMICON_SHARING.get());
+                        output.accept(TCItems.CREATIVE_NODE_PLACER.get());
                         output.accept(TCItems.SALIS_MUNDUS.get());
                         output.accept(TCItems.THAUMOMETER.get());
                         output.accept(TCItems.SCRIBING_TOOLS.get());

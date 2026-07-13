@@ -41,7 +41,9 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
+import com.leclowndu93150.thaumcraft.content.research.ResearchGrants;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
+import com.leclowndu93150.thaumcraft.content.research.share.ResearchShareData;
 import com.leclowndu93150.thaumcraft.content.research.ResearchRegistration;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
@@ -165,15 +167,22 @@ public final class TCCommands {
                         .then(Commands.argument("aspect", StringArgumentType.word())
                                 .executes(TCCommands::giveCrystal)))
                 .then(Commands.literal("node").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                        .executes(ctx -> spawnNode(ctx, "random", "random"))
+                        .executes(ctx -> spawnNode(ctx, "random", "random", ""))
                         .then(Commands.argument("type", StringArgumentType.word())
                                 .suggests(NODE_TYPES)
-                                .executes(ctx -> spawnNode(ctx, StringArgumentType.getString(ctx, "type"), "none"))
+                                .executes(ctx -> spawnNode(ctx, StringArgumentType.getString(ctx, "type"), "none", ""))
                                 .then(Commands.argument("modifier", StringArgumentType.word())
                                         .suggests(NODE_MODIFIERS)
                                         .executes(ctx -> spawnNode(ctx,
                                                 StringArgumentType.getString(ctx, "type"),
-                                                StringArgumentType.getString(ctx, "modifier"))))))
+                                                StringArgumentType.getString(ctx, "modifier"), ""))
+                                        .then(Commands.argument("aspects", StringArgumentType.greedyString())
+                                                .executes(ctx -> spawnNode(ctx,
+                                                        StringArgumentType.getString(ctx, "type"),
+                                                        StringArgumentType.getString(ctx, "modifier"),
+                                                        StringArgumentType.getString(ctx, "aspects")))))))
+                .then(Commands.literal("share").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("unlink").executes(TCCommands::shareUnlink)))
                 .then(Commands.literal("focus").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
                                 .then(Commands.argument("elements", StringArgumentType.greedyString())
@@ -255,31 +264,9 @@ public final class TCCommands {
     private static int grantAllResearch(CommandContext<CommandSourceStack> ctx) {
         try {
             ServerPlayer player = ctx.getSource().getPlayerOrException();
-            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
-            int granted = 0;
-            for (Holder.Reference<IResearchEntry> entry
-                    : player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList()) {
-                Identifier id = entry.key().identifier();
-                if (knowledge.isResearchComplete(id)) {
-                    continue;
-                }
-                if (ResearchManager.complete(player, id)) {
-                    ResearchManager.setStage(player, id, entry.value().stages().size());
-                    granted++;
-                    Optional<ResourceKey<IResearchCategory>> category = entry.value().category().unwrapKey();
-                    PacketDistributor.sendToPlayer(player,
-                            new ClientboundKnowledgeGainPayload(KnowledgeType.OBSERVATION, category));
-                }
-            }
-            for (Holder.Reference<IAspect> aspect
-                    : player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()) {
-                ResearchManager.unlock(player, ScanKeys.aspect(aspect.key()));
-            }
-            int aspects = AspectPools.grantAllForCommand(player, AspectPools.SOFT_CAP);
-            int total = granted;
+            int granted = ResearchGrants.grantAll(player);
             ctx.getSource().sendSuccess(() -> Component.literal(
-                    String.format("Granted %d research entries and %d aspects x%d research points",
-                            total, aspects, AspectPools.SOFT_CAP)), false);
+                    String.format("Granted %d research entries and all aspect research points", granted)), false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
@@ -817,7 +804,8 @@ public final class TCCommands {
         return builder.buildFuture();
     };
 
-    private static int spawnNode(CommandContext<CommandSourceStack> ctx, String typeName, String modifierName) {
+    private static int spawnNode(CommandContext<CommandSourceStack> ctx, String typeName, String modifierName,
+                                 String aspectSpec) {
         ServerLevel level = ctx.getSource().getLevel();
         BlockPos pos = BlockPos.containing(ctx.getSource().getPosition()).above(2);
         if ("random".equals(typeName)) {
@@ -843,15 +831,59 @@ public final class TCCommands {
             }
         }
         HolderLookup.RegistryLookup<IAspect> aspects = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
-        AspectList list = AspectList.EMPTY
-                .add(aspects.getOrThrow(TCAspects.AER), 20)
-                .add(aspects.getOrThrow(TCAspects.IGNIS), 20)
-                .add(aspects.getOrThrow(TCAspects.AQUA), 20)
-                .add(aspects.getOrThrow(TCAspects.TERRA), 20)
-                .add(aspects.getOrThrow(TCAspects.ORDO), 10)
-                .add(aspects.getOrThrow(TCAspects.PERDITIO), 10);
+        AspectList list;
+        if (aspectSpec.isBlank()) {
+            list = AspectList.EMPTY
+                    .add(aspects.getOrThrow(TCAspects.AER), 20)
+                    .add(aspects.getOrThrow(TCAspects.IGNIS), 20)
+                    .add(aspects.getOrThrow(TCAspects.AQUA), 20)
+                    .add(aspects.getOrThrow(TCAspects.TERRA), 20)
+                    .add(aspects.getOrThrow(TCAspects.ORDO), 10)
+                    .add(aspects.getOrThrow(TCAspects.PERDITIO), 10);
+        } else {
+            String[] tokens = aspectSpec.trim().split("\\s+");
+            if (tokens.length % 2 != 0) {
+                ctx.getSource().sendFailure(Component.literal(
+                        "Aspects must be pairs: <aspect> <amount> [<aspect> <amount> ...]"));
+                return 0;
+            }
+            list = AspectList.EMPTY;
+            for (int i = 0; i < tokens.length; i += 2) {
+                Identifier id = tokens[i].contains(":") ? Identifier.parse(tokens[i]) : TCIds.rl(tokens[i]);
+                Holder<IAspect> holder = aspects.get(ResourceKey.create(IAspect.REGISTRY_KEY, id)).orElse(null);
+                if (holder == null) {
+                    ctx.getSource().sendFailure(Component.literal("Unknown aspect: " + tokens[i]));
+                    return 0;
+                }
+                int amount;
+                try {
+                    amount = Integer.parseInt(tokens[i + 1]);
+                } catch (NumberFormatException e) {
+                    ctx.getSource().sendFailure(Component.literal("Bad amount: " + tokens[i + 1]));
+                    return 0;
+                }
+                if (amount < 1) {
+                    ctx.getSource().sendFailure(Component.literal("Amount must be positive: " + tokens[i + 1]));
+                    return 0;
+                }
+                list = list.add(holder, amount);
+            }
+        }
         boolean placed = NodeGenerator.createNodeAt(level, pos, type, modifier, list);
         ctx.getSource().sendSuccess(() -> Component.literal(placed ? "Node created" : "Could not place node"), true);
         return placed ? 1 : 0;
+    }
+
+    private static int shareUnlink(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            int removed = ResearchShareData.get(player.level().getServer()).unlinkAll(player.getUUID());
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    String.format("Removed %d research share links", removed)), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
     }
 }

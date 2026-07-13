@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
+import com.leclowndu93150.thaumcraft.content.aura.node.CreativeNodePlacerItem;
 import com.leclowndu93150.thaumcraft.content.aura.node.JarNodeItem;
 import com.leclowndu93150.thaumcraft.content.wands.ItemPrimalCharm;
 import com.leclowndu93150.thaumcraft.content.wands.ItemWand;
@@ -31,6 +32,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import com.leclowndu93150.thaumcraft.content.research.book.CheatThaumonomiconItem;
+import com.leclowndu93150.thaumcraft.content.research.book.SharingThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBrainItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
@@ -174,6 +177,21 @@ public final class TCItems {
             "thaumonomicon",
             ThaumonomiconItem::new,
             props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<CheatThaumonomiconItem> THAUMONOMICON_CHEAT = ITEMS.registerItem(
+            "thaumonomicon_cheat",
+            CheatThaumonomiconItem::new,
+            props -> props.stacksTo(1).rarity(Rarity.EPIC));
+
+    public static final DeferredItem<SharingThaumonomiconItem> THAUMONOMICON_SHARING = ITEMS.registerItem(
+            "thaumonomicon_sharing",
+            SharingThaumonomiconItem::new,
+            props -> props.stacksTo(1).rarity(Rarity.RARE));
+
+    public static final DeferredItem<CreativeNodePlacerItem> CREATIVE_NODE_PLACER = ITEMS.registerItem(
+            "creative_node_placer",
+            CreativeNodePlacerItem::new,
+            props -> props.rarity(Rarity.EPIC));
 
     public static final DeferredItem<SalisMundusItem> SALIS_MUNDUS = ITEMS.registerItem(
             "salis_mundus",
