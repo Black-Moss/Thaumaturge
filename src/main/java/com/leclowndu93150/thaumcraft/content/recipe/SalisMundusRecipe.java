@@ -65,7 +65,8 @@ public final class SalisMundusRecipe extends CustomRecipe {
                 if (!stack.is(TCItems.ESSENTIA_CRYSTAL.get()) || aspect == null) {
                     return false;
                 }
-                if (crystals.size() >= REQUIRED_CRYSTALS || !crystals.add(aspect.aspect().getKey().identifier())) {
+                if (crystals.size() >= REQUIRED_CRYSTALS
+                        || !crystals.add(aspect.aspect().getKey().identifier())) {
                     return false;
                 }
             }

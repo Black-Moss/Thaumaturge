@@ -21,7 +21,6 @@ import net.minecraft.server.network.Filterable;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -92,8 +91,7 @@ public final class ResearchProgressionEvents {
     @SubscribeEvent
     public static void onItemPickup(ItemEntityPickupEvent.Post event) {
         if (!(event.getPlayer() instanceof ServerPlayer player)) return;
-        ItemEntity itemEntity = event.getItemEntity();
-        ItemStack stack = itemEntity.getItem();
+        ItemStack stack = event.getOriginalStack();
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         if (stack.is(TCItems.ESSENTIA_CRYSTAL.get()) && !knowledge.isResearchKnown(GOT_CRYSTALS)) {
             knowledge.addResearch(GOT_CRYSTALS);

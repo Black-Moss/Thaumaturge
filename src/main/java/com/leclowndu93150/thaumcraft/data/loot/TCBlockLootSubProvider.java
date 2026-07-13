@@ -1,13 +1,17 @@
 package com.leclowndu93150.thaumcraft.data.loot;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
+import com.leclowndu93150.thaumcraft.content.world.crystal.BlockCrystal;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
-import com.leclowndu93150.thaumcraft.registry.TCItems;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Items;
@@ -18,9 +22,13 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.functions.SetComponentsFunction;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.BonusLevelTableCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
@@ -35,6 +43,22 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
                 LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0F))
                         .add(LootItem.lootTableItem(block)));
+    }
+
+    private LootTable.Builder crystalTable(BlockCrystal block) {
+        Holder<IAspect> aspect = lookupProvider.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(block.aspect());
+        LootPoolSingletonContainer.Builder<?> entry = LootItem.lootTableItem(TCItems.ESSENTIA_CRYSTAL.get())
+                .apply(SetComponentsFunction.setComponent(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1)));
+        for (int size = 1; size <= 3; size++) {
+            entry = entry.apply(SetItemCountFunction.setCount(ConstantValue.exactly(size + 1), false)
+                    .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                            .setProperties(StatePropertiesPredicate.Builder.properties()
+                                    .hasProperty(BlockCrystal.SIZE, size))));
+        }
+        return LootTable.lootTable().withPool(
+                LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .add(entry));
     }
 
     private LootTable.Builder mirrorTable(Block block) {
@@ -132,13 +156,13 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         for (DyeColor dye : DyeColor.values()) {
             dropSelf(TCBlocks.NITORS.get(dye).get());
         }
-        add(TCBlocks.CRYSTAL_AER.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_AER.get()));
-        add(TCBlocks.CRYSTAL_IGNIS.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_IGNIS.get()));
-        add(TCBlocks.CRYSTAL_AQUA.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_AQUA.get()));
-        add(TCBlocks.CRYSTAL_TERRA.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_TERRA.get()));
-        add(TCBlocks.CRYSTAL_ORDO.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_ORDO.get()));
-        add(TCBlocks.CRYSTAL_PERDITIO.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_PERDITIO.get()));
-        add(TCBlocks.CRYSTAL_VITIUM.get(), dropSelfWithoutExplosion(TCBlocks.CRYSTAL_VITIUM.get()));
+        add(TCBlocks.CRYSTAL_AER.get(), crystalTable(TCBlocks.CRYSTAL_AER.get()));
+        add(TCBlocks.CRYSTAL_IGNIS.get(), crystalTable(TCBlocks.CRYSTAL_IGNIS.get()));
+        add(TCBlocks.CRYSTAL_AQUA.get(), crystalTable(TCBlocks.CRYSTAL_AQUA.get()));
+        add(TCBlocks.CRYSTAL_TERRA.get(), crystalTable(TCBlocks.CRYSTAL_TERRA.get()));
+        add(TCBlocks.CRYSTAL_ORDO.get(), crystalTable(TCBlocks.CRYSTAL_ORDO.get()));
+        add(TCBlocks.CRYSTAL_PERDITIO.get(), crystalTable(TCBlocks.CRYSTAL_PERDITIO.get()));
+        add(TCBlocks.CRYSTAL_VITIUM.get(), crystalTable(TCBlocks.CRYSTAL_VITIUM.get()));
         dropSelf(TCBlocks.STONE_ARCANE.get());
         dropSelf(TCBlocks.STONE_ARCANE_BRICK.get());
         dropSelf(TCBlocks.STONE_ANCIENT.get());
