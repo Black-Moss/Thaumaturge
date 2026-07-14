@@ -81,6 +81,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         card("experimentation", "Experimentation",
                 "Sometimes the best way forward is to simply try things. You gain progress in a random category and a small Thaumaturgy bonus.");
 
+        add("resourcePack.thaumcraft.programmer_art.name", "Thaumcraft Programmer Art");
         add("knowledge_type.thaumcraft.theory", "Theory");
         add("knowledge_type.thaumcraft.observation", "Observation");
         add("tc.knowledge.tooltip", "%1$s: %2$s");
