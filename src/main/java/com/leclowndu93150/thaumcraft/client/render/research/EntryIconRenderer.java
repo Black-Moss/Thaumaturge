@@ -6,14 +6,21 @@ import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines
 import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
+import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
+import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
+import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
+import java.util.List;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public final class EntryIconRenderer {
@@ -137,6 +144,32 @@ public final class EntryIconRenderer {
         if (hasNewPageFlag) {
             drawBadge(graphics, iconX + FLAG_BADGE_OFFSET_X, iconY + FLAG_BADGE_BOTTOM_OFFSET_Y, FLAG_PAGE_U);
         }
+    }
+
+    public static Object resolveIcon(IResearchEntry entry, long ticks) {
+        List<ResearchIcon> icons = entry.icons();
+        if (!icons.isEmpty()) {
+            ResearchIcon icon = icons.get((int) (ticks / 20L % icons.size()));
+            if (icon.kind() == ResearchIcon.Kind.FOCUS) {
+                return new FocusIcon(icon.id());
+            }
+            if (icon.texture()) {
+                return icon.id();
+            }
+            return new ItemStack(BuiltInRegistries.ITEM.getValue(icon.id()));
+        }
+        for (IResearchStage stage : entry.stages()) {
+            for (List<ResearchRequirement> reqs : List.of(stage.obtain(), stage.craft())) {
+                if (reqs.isEmpty()) {
+                    continue;
+                }
+                List<Holder<Item>> items = reqs.get(0).items().stream().toList();
+                if (!items.isEmpty()) {
+                    return new ItemStack(items.get((int) (ticks / 20L % items.size())));
+                }
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     public static void drawResearchIcon(GuiGraphicsExtractor graphics, int iconX, int iconY, Object icon, boolean locked) {

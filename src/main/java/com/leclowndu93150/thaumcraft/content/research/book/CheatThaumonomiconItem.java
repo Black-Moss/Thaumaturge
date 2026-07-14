@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.content.research.book;
 
 import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.leclowndu93150.thaumcraft.content.research.ResearchGrants;
+import com.leclowndu93150.thaumcraft.network.ClientboundOpenThaumonomiconPayload;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class CheatThaumonomiconItem extends ThaumonomiconItem {
     public CheatThaumonomiconItem(Properties properties) {
@@ -27,8 +29,9 @@ public final class CheatThaumonomiconItem extends ThaumonomiconItem {
             if (granted > 0) {
                 TCActionBar.sendPurple(player, "tc.thaumonomicon.cheat.granted", granted);
             }
+            PacketDistributor.sendToPlayer(serverPlayer, ClientboundOpenThaumonomiconPayload.INSTANCE);
         }
-        return super.use(level, player, hand);
+        return InteractionResult.SUCCESS;
     }
 
     @Override

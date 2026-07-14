@@ -23,20 +23,16 @@ public final class InfusionCrumbsParticle extends HomingParticleBase {
     private final float vo;
 
     private InfusionCrumbsParticle(ClientLevel level, double x, double y, double z, InfusionCrumbsData data, TextureAtlasSprite sprite) {
-        super(level, x, y, z, data.tx(), data.ty(), data.tz(), 0.005F, sprite);
+        super(level, x, y, z, -1, data.tx(), data.ty(), data.tz(),
+                data.sx(), data.sy(), data.sz(), 0.4F, 0.3F, 0.01F, 0.005F, sprite);
         this.sprite = sprite;
         this.layer = SingleQuadParticle.Layer.bySprite(this.sprite);
         this.uo = this.random.nextFloat() * 3.0F;
         this.vo = this.random.nextFloat() * 3.0F;
-        this.gravity = 0.01F;
         this.rCol = 0.6F;
         this.gCol = 0.6F;
         this.bCol = 0.6F;
         this.alpha = 0.3F;
-        this.quadSize = this.random.nextFloat() * 0.3F + 0.4F;
-        this.xd = data.sx() + this.random.nextGaussian() * 0.01;
-        this.yd = data.sy() + this.random.nextGaussian() * 0.01;
-        this.zd = data.sz() + this.random.nextGaussian() * 0.01;
     }
 
     @Override

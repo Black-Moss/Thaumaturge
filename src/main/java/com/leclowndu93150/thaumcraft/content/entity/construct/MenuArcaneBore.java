@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.tags.ItemTags;
 import org.jspecify.annotations.Nullable;
 
 public final class MenuArcaneBore extends AbstractContainerMenu {
@@ -32,7 +31,7 @@ public final class MenuArcaneBore extends AbstractContainerMenu {
         addSlot(new Slot(new MobEquipmentContainer(bore), 0, PICK_X, PICK_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return !stack.isEmpty() && stack.is(ItemTags.PICKAXES);
+                return EntityArcaneBore.isPickaxe(stack);
             }
         });
         for (int row = 0; row < 3; row++) {

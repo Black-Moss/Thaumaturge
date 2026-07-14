@@ -17,7 +17,8 @@ public final class FXManagerRegistry {
     private static final List<AbstractFXManager<?>> MANAGERS = List.of(
             BeamManager.INSTANCE,
             EssentiaStreamManager.INSTANCE,
-            BoreVoidStreamManager.INSTANCE
+            BoreVoidStreamManager.INSTANCE,
+            BoreDigEffectManager.INSTANCE
     );
 
     private FXManagerRegistry() {}

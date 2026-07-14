@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
 import com.leclowndu93150.thaumcraft.content.fx.helper.Sprites;
 import com.leclowndu93150.thaumcraft.client.fx.render.instance.BeamPayloadIds;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
+import com.leclowndu93150.thaumcraft.network.fx.ClientboundBoreDigPayload;
 import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.core.BlockPos;
@@ -30,6 +31,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class FX {
     static final double DEFAULT_RADIUS = 64.0;
+    private static final double BORE_DIG_RADIUS = 32.0;
     private static final int SLASH_START_FRAME = 342;
     private static final int SLASH_FRAME_COUNT = 9;
 
@@ -58,6 +60,11 @@ public final class FX {
     public static BeamBore beamBore(ServerLevel level, Vec3 source) { return new BeamBore(level, source); }
     public static BoreParticles boreParticles(ServerLevel level, Vec3 pos, BlockState state) { return new BoreParticles(level, pos, state); }
     public static BoreSparkle boreSparkle(ServerLevel level, Vec3 pos) { return new BoreSparkle(level, pos); }
+    public static void boreDig(ServerLevel level, BlockPos target, Entity bore, int delay) {
+        PacketDistributor.sendToPlayersNear(
+                level, null, target.getX(), target.getY(), target.getZ(), BORE_DIG_RADIUS,
+                new ClientboundBoreDigPayload(target, bore.getId(), delay));
+    }
     public static BoreStream boreStream(ServerLevel level, Vec3 source, Entity target) { return new BoreStream(level, source, target); }
     public static VoidStream voidStream(ServerLevel level, Vec3 source) { return new VoidStream(level, source); }
 

@@ -5,16 +5,14 @@ import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
-import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
+import com.leclowndu93150.thaumcraft.client.render.research.EntryIconRenderer;
 import com.leclowndu93150.thaumcraft.network.ServerboundClearResearchFlagsPayload;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -46,7 +44,7 @@ public final class ResearchToastEvents {
                     .ifPresent(holder -> mc.getToastManager().addToast(new ResearchToast(research,
                             Component.translatable("tc.research.complete"),
                             Component.translatable(holder.value().nameKey()),
-                            iconOf(holder.value()))));
+                            EntryIconRenderer.resolveIcon(holder.value(), mc.player.tickCount))));
             knowledge.clearResearchFlag(research, ResearchFlag.POPUP);
             shown.add(research);
         }
@@ -54,14 +52,5 @@ public final class ResearchToastEvents {
             ClientPacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(
                     research, List.of(ResearchFlag.POPUP)));
         }
-    }
-
-    private static ItemStack iconOf(IResearchEntry entry) {
-        for (ResearchIcon icon : entry.icons()) {
-            if (icon.kind() == ResearchIcon.Kind.ITEM) {
-                return new ItemStack(BuiltInRegistries.ITEM.getValue(icon.id()));
-            }
-        }
-        return ItemStack.EMPTY;
     }
 }

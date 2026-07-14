@@ -4,30 +4,39 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 
 public abstract class HomingParticleBase extends SingleQuadParticle {
     protected double targetX;
     protected double targetY;
     protected double targetZ;
     protected final float driftScale;
+    private final int targetEntityId;
+    private Entity targetEntity;
 
     protected HomingParticleBase(ClientLevel level, double x, double y, double z,
-                                 double tx, double ty, double tz, float driftScale, TextureAtlasSprite sprite) {
+                                 int targetEntityId, double tx, double ty, double tz,
+                                 double sx, double sy, double sz, float minScale, float scaleRange,
+                                 float gravity, float driftScale, TextureAtlasSprite sprite) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sprite);
+        this.targetEntityId = targetEntityId;
         this.targetX = tx;
         this.targetY = ty;
         this.targetZ = tz;
         this.driftScale = driftScale;
+        this.quadSize = this.random.nextFloat() * scaleRange + minScale;
         double dx = tx - x;
         double dy = ty - y;
         double dz = tz - z;
         int base = (int)(Mth.sqrt((float)(dx * dx + dy * dy + dz * dz)) * 10.0F);
-        if (base < 1) base = 1;
+        if (base < 1) {
+            base = 1;
+        }
         this.lifetime = base / 2 + this.random.nextInt(base);
-        this.xd = this.random.nextGaussian() * 0.01;
-        this.yd = this.random.nextGaussian() * 0.01;
-        this.zd = this.random.nextGaussian() * 0.01;
-        this.gravity = 0.2F;
+        this.xd = sx + this.random.nextGaussian() * 0.01;
+        this.yd = sy + this.random.nextGaussian() * 0.01;
+        this.zd = sz + this.random.nextGaussian() * 0.01;
+        this.gravity = gravity;
     }
 
     @Override
@@ -35,6 +44,7 @@ public abstract class HomingParticleBase extends SingleQuadParticle {
         this.xo = this.x;
         this.yo = this.y;
         this.zo = this.z;
+        updateTarget();
         int floorX = Mth.floor(this.x);
         int floorY = Mth.floor(this.y);
         int floorZ = Mth.floor(this.z);
@@ -72,5 +82,19 @@ public abstract class HomingParticleBase extends SingleQuadParticle {
         this.xd += this.random.nextGaussian() * this.driftScale;
         this.yd += this.random.nextGaussian() * this.driftScale;
         this.zd += this.random.nextGaussian() * this.driftScale;
+    }
+
+    private void updateTarget() {
+        if (this.targetEntityId < 0) {
+            return;
+        }
+        if (this.targetEntity == null) {
+            this.targetEntity = this.level.getEntity(this.targetEntityId);
+        }
+        if (this.targetEntity != null) {
+            this.targetX = this.targetEntity.getX();
+            this.targetY = this.targetEntity.getEyeY();
+            this.targetZ = this.targetEntity.getZ();
+        }
     }
 }

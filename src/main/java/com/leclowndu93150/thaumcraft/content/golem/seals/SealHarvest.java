@@ -12,7 +12,7 @@ import com.leclowndu93150.thaumcraft.api.golems.seals.ISealGui;
 import com.leclowndu93150.thaumcraft.api.golems.tasks.Task;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.golem.CropUtils;
-import com.leclowndu93150.thaumcraft.content.golem.GolemFakePlayer;
+import com.leclowndu93150.thaumcraft.server.TCFakePlayer;
 import com.leclowndu93150.thaumcraft.content.golem.GolemInteractionHelper;
 import com.leclowndu93150.thaumcraft.content.golem.tasks.TaskHandler;
 import java.util.HashMap;
@@ -118,7 +118,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
     }
 
     private void harvestCrop(ServerLevel level, IGolemAPI golem, Task task) {
-        FakePlayer player = GolemFakePlayer.at(level, golem);
+        FakePlayer player = TCFakePlayer.GOLEM.at(level, golem.getGolemEntity());
         BlockState state = level.getBlockState(task.getPos());
         if (CropUtils.isClickableCrop(state)) {
             Direction face = Direction.getApproximateNearest(
@@ -167,7 +167,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
                 || !golem.isCarrying(info.stack)) {
             return;
         }
-        FakePlayer player = GolemFakePlayer.at(level, golem);
+        FakePlayer player = TCFakePlayer.GOLEM.at(level, golem.getGolemEntity());
         BlockState below = level.getBlockState(task.getPos().below());
         if (info.farmland && below.is(BlockTags.DIRT) && !(below.getBlock() instanceof FarmlandBlock)) {
             ItemStack hoe = new ItemStack(Items.DIAMOND_HOE);

@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumcraft.content.infusion.BlockInfusionMatrix;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPedestal;
 import com.leclowndu93150.thaumcraft.content.aura.BlockRechargePedestal;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPillar;
+import com.leclowndu93150.thaumcraft.content.decor.BlockAmber;
 import com.leclowndu93150.thaumcraft.content.decor.BlockCandle;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerStandingBlock;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerWallBlock;
@@ -456,6 +457,18 @@ public final class TCBlocks {
                 .sound(SoundType.STONE)
                 .noOcclusion()
                 .requiresCorrectToolForDrops();
+    }
+
+    private static BlockBehaviour.Properties amberProps(BlockBehaviour.Properties props) {
+        return props
+                .mapColor(MapColor.COLOR_ORANGE)
+                .strength(0.5F)
+                .sound(SoundType.STONE)
+                .noOcclusion()
+                .isValidSpawn((state, level, pos, entityType) -> false)
+                .isRedstoneConductor((state, level, pos) -> false)
+                .isSuffocating((state, level, pos) -> false)
+                .isViewBlocking((state, level, pos) -> false);
     }
 
     private static BlockBehaviour.Properties taintBlockProps(BlockBehaviour.Properties props) {
@@ -1333,14 +1346,10 @@ public final class TCBlocks {
             "node_stabilizer_advanced", props -> new BlockNodeStabilizer(props, true),
             props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).noOcclusion());
 
-    public static final DeferredBlock<Block> AMBER_BRICK = BLOCKS.registerBlock(
+    public static final DeferredBlock<BlockAmber> AMBER_BRICK = BLOCKS.registerBlock(
             "amber_brick",
-            Block::new,
-            props -> props
-                    .mapColor(MapColor.METAL)
-                    .strength(4.0F, 10.0F)
-                    .sound(SoundType.METAL)
-                    .requiresCorrectToolForDrops()
+            BlockAmber::new,
+            TCBlocks::amberProps
     );
 
     public static final DeferredBlock<Block> FLESH_BLOCK = BLOCKS.registerBlock(
@@ -1465,14 +1474,10 @@ public final class TCBlocks {
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 200000.0F)
                     .lightLevel(state -> 15).noOcclusion().noLootTable().noCollision());
 
-    public static final DeferredBlock<Block> AMBER_BLOCK = BLOCKS.registerBlock(
+    public static final DeferredBlock<BlockAmber> AMBER_BLOCK = BLOCKS.registerBlock(
             "amber_block",
-            Block::new,
-            props -> props
-                    .mapColor(MapColor.METAL)
-                    .strength(4.0F, 10.0F)
-                    .sound(SoundType.METAL)
-                    .requiresCorrectToolForDrops()
+            BlockAmber::new,
+            TCBlocks::amberProps
     );
 
     public static final DeferredBlock<BlockPlaceholder> OBSIDIAN_PLACEHOLDER = BLOCKS.registerBlock(

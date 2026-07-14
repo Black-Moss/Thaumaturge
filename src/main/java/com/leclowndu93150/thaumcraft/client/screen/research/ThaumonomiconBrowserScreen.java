@@ -11,7 +11,6 @@ import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
 import com.leclowndu93150.thaumcraft.api.research.ResearchParent;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.client.render.research.ConnectorRenderer;
-import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
 import com.leclowndu93150.thaumcraft.client.render.research.EntryIconRenderer;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCScreen;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
@@ -37,7 +36,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -655,40 +653,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
     }
 
     private Object resolveDisplayIcon(EntryNode node) {
-        long ticks = tickCount;
-        List<ResearchIcon> icons = node.entry.icons();
-        if (!icons.isEmpty()) {
-            ResearchIcon icon = icons.get((int) (ticks / 20L % icons.size()));
-            if (icon.kind() == ResearchIcon.Kind.FOCUS) {
-                return new EntryIconRenderer.FocusIcon(icon.id());
-            }
-            if (icon.texture()) {
-                return icon.id();
-            }
-            Item item = BuiltInRegistries.ITEM.getValue(icon.id());
-            return new ItemStack(item);
-        }
-        List<? extends IResearchStage> stages = node.entry.stages();
-        if (stages.isEmpty()) return ItemStack.EMPTY;
-        for (IResearchStage stage : stages) {
-            if (!stage.obtain().isEmpty()) {
-                ResearchRequirement req = stage.obtain().get(0);
-                List<Holder<Item>> items = req.items().stream().toList();
-                if (!items.isEmpty()) {
-                    int idx = (int) (ticks / 20L % items.size());
-                    return new ItemStack(items.get(idx));
-                }
-            }
-            if (!stage.craft().isEmpty()) {
-                ResearchRequirement req = stage.craft().get(0);
-                List<Holder<Item>> items = req.items().stream().toList();
-                if (!items.isEmpty()) {
-                    int idx = (int) (ticks / 20L % items.size());
-                    return new ItemStack(items.get(idx));
-                }
-            }
-        }
-        return ItemStack.EMPTY;
+        return EntryIconRenderer.resolveIcon(node.entry, tickCount);
     }
 
     private boolean entryHasWarp(IResearchEntry entry) {

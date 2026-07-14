@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.api.golems.seals.ISealConfigToggles;
 import com.leclowndu93150.thaumcraft.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumcraft.api.golems.tasks.Task;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
-import com.leclowndu93150.thaumcraft.content.golem.GolemFakePlayer;
+import com.leclowndu93150.thaumcraft.server.TCFakePlayer;
 import com.leclowndu93150.thaumcraft.content.golem.tasks.TaskHandler;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,7 +104,7 @@ public class SealBreaker extends SealFiltered implements ISealConfigArea, ISealC
                 return false;
             }
             level.destroyBlockProgress(golem.getGolemEntity().getId(), task.getPos(), 10);
-            BlockBreakerEngine.harvestBlock(serverLevel, GolemFakePlayer.at(serverLevel, golem),
+            BlockBreakerEngine.harvestBlock(serverLevel, TCFakePlayer.GOLEM.at(serverLevel, golem.getGolemEntity()),
                     task.getPos(), silky, 0);
             golem.addRankXp(1);
             cache.remove(task.getId());

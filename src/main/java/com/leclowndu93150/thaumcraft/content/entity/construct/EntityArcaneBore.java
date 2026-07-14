@@ -3,12 +3,14 @@ package com.leclowndu93150.thaumcraft.content.entity.construct;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumcraft.api.items.InvHelper;
+import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
 import com.leclowndu93150.thaumcraft.content.equipment.RefiningResults;
+import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
-import java.util.ArrayList;
+import com.leclowndu93150.thaumcraft.server.TCFakePlayer;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,12 +35,12 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
@@ -47,7 +49,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 public class EntityArcaneBore extends EntityOwnedConstruct {
     private static final EntityDataAccessor<Direction> FACING =
@@ -126,6 +130,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
             findNextBlockToDig();
             if (digTarget != null) {
                 level().broadcastEntityEvent(this, EVENT_DIG_START);
+                FX.boreDig((ServerLevel) level(), digTarget, this, digDelayMax);
             } else {
                 level().broadcastEntityEvent(this, EVENT_DIG_STOP);
                 getLookControl().setLookAt(
@@ -154,9 +159,28 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
         }
     }
 
+    public static boolean isPickaxe(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        if (stack.is(ItemTags.PICKAXES)) {
+            return true;
+        }
+        Tool tool = stack.get(DataComponents.TOOL);
+        if (tool == null) {
+            return false;
+        }
+        for (Tool.Rule rule : tool.rules()) {
+            if (rule.blocks().unwrapKey().map(key -> key.equals(BlockTags.MINEABLE_WITH_PICKAXE)).orElse(false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean validInventory() {
         ItemStack held = getMainHandItem();
-        if (held.isEmpty() || !held.is(ItemTags.PICKAXES)) {
+        if (!isPickaxe(held)) {
             return false;
         }
         return !held.isDamageableItem() || held.getDamageValue() + 1 < held.getMaxDamage();
@@ -165,7 +189,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
     public int getDigRadius() {
         int radius = 0;
         ItemStack held = getMainHandItem();
-        if (!held.isEmpty() && held.is(ItemTags.PICKAXES)) {
+        if (isPickaxe(held)) {
             Enchantable enchantable = held.get(DataComponents.ENCHANTABLE);
             radius = (enchantable == null ? 0 : enchantable.value()) / 3;
             radius += InfusionEnchantmentHelper.level(held, InfusionEnchantment.DESTRUCTIVE) * 2;
@@ -213,42 +237,57 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
         boolean dug = false;
         if (digTarget != null && !level().isEmptyBlock(digTarget) && level() instanceof ServerLevel serverLevel) {
             BlockState state = serverLevel.getBlockState(digTarget);
-            ItemStack held = getMainHandItem();
-            List<ItemStack> items = new ArrayList<>();
-            if (held.isCorrectToolForDrops(state) || !state.requiresCorrectToolForDrops()) {
-                items.addAll(Block.getDrops(state, serverLevel, digTarget, serverLevel.getBlockEntity(digTarget), this, held));
+            dug = breakAsFakePlayer(serverLevel, digTarget);
+            if (dug) {
+                collectAndEjectDrops(serverLevel, digTarget, state);
+                damageTool();
             }
-            List<ItemEntity> nearby = serverLevel.getEntitiesOfClass(ItemEntity.class,
-                    new AABB(digTarget).inflate(1.5, 1.5, 1.5));
-            for (ItemEntity item : nearby) {
-                items.add(item.getItem().copy());
-                item.discard();
-            }
-            int refining = getRefining();
-            boolean silk = hasSilkTouch();
-            for (ItemStack drop : items) {
-                ItemStack ejected = drop;
-                if (!silk && refining > 0 && random.nextFloat() < (refining + 1) * 0.125F) {
-                    Item cluster = RefiningResults.clusterFor(state);
-                    if (cluster != null) {
-                        ejected = new ItemStack(cluster, drop.getCount());
-                    }
-                }
-                ejectStack(serverLevel, ejected);
-            }
-            breakCounter++;
-            if (!held.isEmpty()) {
-                if (breakCounter >= DURABILITY_PER_BREAKS) {
-                    breakCounter -= DURABILITY_PER_BREAKS;
-                    held.hurtAndBreak(1, this, EquipmentSlot.MAINHAND);
-                }
-            } else {
-                breakCounter = 0;
-            }
-            dug = serverLevel.destroyBlock(digTarget, false, this);
         }
         digTarget = null;
         return dug;
+    }
+
+    private boolean breakAsFakePlayer(ServerLevel serverLevel, BlockPos target) {
+        FakePlayer digger = TCFakePlayer.BORE.at(serverLevel, this);
+        digger.setItemInHand(InteractionHand.MAIN_HAND, getMainHandItem().copy());
+        try {
+            BlockBreakerEngine.harvestBlock(serverLevel, digger, target, hasSilkTouch(), getFortune());
+            return serverLevel.getBlockState(target).isAir();
+        } finally {
+            digger.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        }
+    }
+
+    private void collectAndEjectDrops(ServerLevel serverLevel, BlockPos target, BlockState state) {
+        List<ItemEntity> nearby = serverLevel.getEntitiesOfClass(ItemEntity.class,
+                new AABB(target).inflate(1.5, 1.5, 1.5));
+        int refining = getRefining();
+        boolean silk = hasSilkTouch();
+        for (ItemEntity item : nearby) {
+            ItemStack drop = item.getItem().copy();
+            item.discard();
+            ItemStack ejected = drop;
+            if (!silk && refining > 0 && random.nextFloat() < (refining + 1) * 0.125F) {
+                Item cluster = RefiningResults.clusterFor(state);
+                if (cluster != null) {
+                    ejected = new ItemStack(cluster, drop.getCount());
+                }
+            }
+            ejectStack(serverLevel, ejected);
+        }
+    }
+
+    private void damageTool() {
+        ItemStack held = getMainHandItem();
+        breakCounter++;
+        if (!held.isEmpty()) {
+            if (breakCounter >= DURABILITY_PER_BREAKS) {
+                breakCounter -= DURABILITY_PER_BREAKS;
+                held.hurtAndBreak(1, this, EquipmentSlot.MAINHAND);
+            }
+        } else {
+            breakCounter = 0;
+        }
     }
 
     private void ejectStack(ServerLevel serverLevel, ItemStack stack) {

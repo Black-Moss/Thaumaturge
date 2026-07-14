@@ -104,8 +104,7 @@ public final class TCModelProvider extends ModelProvider {
         registerConstructs(blockModels, itemModels);
         decorModels(blockModels);
         eldritchModels(blockModels);
-        blockModels.createTrivialCube(TCBlocks.AMBER_BRICK.get());
-        blockModels.registerSimpleItemModel(TCBlocks.AMBER_BRICK.get().asItem(), ModelLocationUtils.getModelLocation(TCBlocks.AMBER_BRICK.get()));
+        translucentCube(blockModels, TCBlocks.AMBER_BRICK.get());
         blockModels.createTrivialCube(TCBlocks.FLESH_BLOCK.get());
         blockModels.registerSimpleItemModel(TCBlocks.FLESH_BLOCK.get().asItem(), ModelLocationUtils.getModelLocation(TCBlocks.FLESH_BLOCK.get()));
         registerInvisibleBlock(blockModels, TCBlocks.EFFECT_SHOCK.get());
@@ -293,7 +292,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.createTrivialCube(TCBlocks.METAL_BRASS_BLOCK.get());
         blockModels.createTrivialCube(TCBlocks.METAL_THAUMIUM_BLOCK.get());
         blockModels.createTrivialCube(TCBlocks.METAL_VOID_BLOCK.get());
-        blockModels.createTrivialCube(TCBlocks.AMBER_BLOCK.get());
+        translucentCube(blockModels, TCBlocks.AMBER_BLOCK.get());
 
         itemModels.generateFlatItem(TCItems.INGOT_THAUMIUM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.INGOT_BRASS.get(), ModelTemplates.FLAT_ITEM);
@@ -395,6 +394,14 @@ public final class TCModelProvider extends ModelProvider {
                         Optional.empty(),
                         List.of()
                 ), new ClientItem.Properties(true,oversizedInGui,1));
+    }
+
+    private void translucentCube(BlockModelGenerators blockModels, Block block) {
+        Identifier model = ModelTemplates.CUBE_ALL.create(block,
+                TextureMapping.cube(block).forceAllTranslucent(), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(
+                BlockModelGenerators.createSimpleBlock(block, BlockModelGenerators.plainVariant(model)));
+        blockModels.registerSimpleItemModel(block.asItem(), model);
     }
 
     private void registerBellows(BlockModelGenerators blockModels, ItemModelGenerators itemModels){

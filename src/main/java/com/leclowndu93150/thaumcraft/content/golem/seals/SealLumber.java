@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumcraft.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumcraft.api.golems.seals.ISealGui;
 import com.leclowndu93150.thaumcraft.api.golems.tasks.Task;
 import com.leclowndu93150.thaumcraft.content.equipment.EnchantMining;
-import com.leclowndu93150.thaumcraft.content.golem.GolemFakePlayer;
+import com.leclowndu93150.thaumcraft.server.TCFakePlayer;
 import com.leclowndu93150.thaumcraft.content.golem.tasks.TaskHandler;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -60,7 +60,7 @@ public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
                 && level instanceof ServerLevel serverLevel) {
             golem.swingArm();
             if (EnchantMining.breakFurthest(serverLevel, task.getPos(),
-                    level.getBlockState(task.getPos()), GolemFakePlayer.at(serverLevel, golem))) {
+                    level.getBlockState(task.getPos()), TCFakePlayer.GOLEM.at(serverLevel, golem.getGolemEntity()))) {
                 task.setLifespan((short) Math.max(task.getLifespan(), 10L));
                 golem.addRankXp(1);
                 return false;
