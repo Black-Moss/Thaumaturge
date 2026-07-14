@@ -107,7 +107,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
     private static final int SEARCH_BOX_WIDTH = 89;
     private static final int SEARCH_BOX_HEIGHT = 12;
     private static final int SEARCH_RESULT_TEXT_X = 32;
-    private static final int SEARCH_RESULT_TEXT_Y_START = 32;
+    private static final int SEARCH_RESULT_TEXT_Y_START = 33;
     private static final int SEARCH_RESULT_ROW_HEIGHT = 10;
     private static final int SEARCH_RESULT_OVERFLOW_Y_OFFSET = 2;
     private static final int SEARCH_RESULT_HIT_LEFT_X = 22;
@@ -207,7 +207,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         searchField = new EditBox(font, SEARCH_BOX_X, SEARCH_BOX_Y, SEARCH_BOX_WIDTH, SEARCH_BOX_HEIGHT, Component.translatable("tc.search"));
         searchField.setBordered(true);
         searchField.setMaxLength(15);
-        searchField.setTextColor(0xFFFFFF);
+        searchField.setTextColor(0xFFFFFFFF);
         searchField.setResponder(this::onSearchChanged);
         searchField.setVisible(false);
         addRenderableWidget(searchField);
@@ -674,11 +674,11 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                     && mouseY >= textY
                     && mouseY < textY + 8;
             int color = sr.color(hover);
+            graphics.pose().pushMatrix();
+            graphics.pose().scale(SEARCH_RESULT_ICON_SCALE);
+            int iconScreenX = (SEARCH_RESULT_ICON_X * 2);
+            int iconScreenY = textY * 2;
             if (sr.recipeIcon()) {
-                graphics.pose().pushMatrix();
-                graphics.pose().scale(SEARCH_RESULT_ICON_SCALE, SEARCH_RESULT_ICON_SCALE);
-                int iconScreenX = (SEARCH_RESULT_ICON_X * 2);
-                int iconScreenY = textY * 2;
                 graphics.blit(
                         RenderPipelines.GUI_TEXTURED,
                         TCScreenTextures.RESEARCH_BROWSER,
@@ -687,8 +687,19 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                         SEARCH_RESULT_ICON_W, SEARCH_RESULT_ICON_W,
                         SEARCH_RESULT_ICON_W, SEARCH_RESULT_ICON_W,
                         TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
-                graphics.pose().popMatrix();
+            } else if (sr.entryNode != null){
+                Object icon = resolveDisplayIcon(sr.entryNode);
+                EntryIconRenderer.drawResearchIcon(graphics, iconScreenX, iconScreenY, icon,false);
+            } else if (sr.categoryRef != null && sr.categoryRef.isBound()){
+                graphics.blit(RenderPipelines.GUI_TEXTURED, sr.categoryRef.value().icon(),
+                        iconScreenX, iconScreenY,
+                        0.0F, 0.0F,
+                        CATEGORY_ICON_SIZE, CATEGORY_ICON_SIZE,
+                        CATEGORY_ICON_SIZE, CATEGORY_ICON_SIZE,
+                        CATEGORY_ICON_SIZE, CATEGORY_ICON_SIZE,
+                        CATEGORY_TAB_INACTIVE_ICON_TINT);
             }
+            graphics.pose().popMatrix();
             graphics.text(font, sr.displayName(), SEARCH_RESULT_TEXT_X, textY, color, false);
             q++;
             if (SEARCH_RESULT_TEXT_Y_START + (q + 1) * SEARCH_RESULT_ROW_HEIGHT > screenY) {
@@ -1129,7 +1140,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             toggleSearch();
             return true;
         }
-        if (minecraft != null && minecraft.options.keyInventory.matches(event)) {
+        if (minecraft != null && minecraft.options.keyInventory.matches(event) && (searchField == null || !searchField.isFocused())) {
             onClose();
             return true;
         }
