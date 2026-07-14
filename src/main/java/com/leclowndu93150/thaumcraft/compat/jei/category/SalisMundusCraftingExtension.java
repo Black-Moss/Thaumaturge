@@ -24,15 +24,17 @@ public final class SalisMundusCraftingExtension implements ICraftingCategoryExte
 
     @Override
     public List<SlotDisplay> getIngredients(RecipeHolder<SalisMundusRecipe> recipeHolder) {
-        SlotDisplay crystal = crystalDisplay();
+        List<SlotDisplay> primals = primalCrystalDisplays();
         return List.of(
                 new SlotDisplay.ItemSlotDisplay(Items.FLINT),
                 new SlotDisplay.ItemSlotDisplay(Items.BOWL),
                 new SlotDisplay.ItemSlotDisplay(Items.REDSTONE),
-                crystal, crystal, crystal);
+                primals.get(0 % primals.size()),
+                primals.get(1 % primals.size()),
+                primals.get(2 % primals.size()));
     }
 
-    private static SlotDisplay crystalDisplay() {
+    private static List<SlotDisplay> primalCrystalDisplays() {
         RegistryAccess registryAccess = ThaumcraftJEIPlugin.clientRegistryAccess();
         if (registryAccess != null) {
             Optional<Registry<IAspect>> registry = registryAccess.lookup(IAspect.REGISTRY_KEY);
@@ -45,10 +47,11 @@ public final class SalisMundusCraftingExtension implements ICraftingCategoryExte
                     }
                 }
                 if (!variants.isEmpty()) {
-                    return new SlotDisplay.Composite(variants);
+                    return variants;
                 }
             }
         }
-        return new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get());
+        SlotDisplay fallback = new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get());
+        return List.of(fallback);
     }
 }

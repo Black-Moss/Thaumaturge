@@ -497,9 +497,9 @@ public final class ResearchTextEn {
         add.accept("research.thaumcraft.m_hellandback.title", "Visit a hellish place.");
         add.accept("research.thaumcraft.m_endoftheworld.title", "Find the end of everything.");
         add.accept("book.thaumcraft.start.title", "Strange Dreams");
-        add.accept("book.thaumcraft.start.1", "\"I had the strangest dream last night.\\n\\nIn the dream, I took three of those strange crystals I've been finding and ground them with a handful of redstone in a bowl, using a piece of flint.\"");
-        add.accept("book.thaumcraft.start.2", "\"The crystals had to be of different types, but if I did it properly then the result was a strange, glowing dust.\\n\\nIn the dream, I took the dust and sprinkled it on a bookcase, but the dream ended before I saw what happened.\"");
-        add.accept("book.thaumcraft.start.3", "\"I wonder, should I do what the dream showed?\\n\\nI have the impression the dust was going to reveal something wondrous, but dangerous.\"");
+        add.accept("book.thaumcraft.start.1", "\"I had the strangest dream last night.\n\nIn the dream, I took three of those strange crystals I've been finding and ground them with a handful of redstone in a bowl, using a piece of flint.\"");
+        add.accept("book.thaumcraft.start.2", "\"The crystals had to be of different types, but if I did it properly then the result was a strange, glowing dust.\n\nIn the dream, I took the dust and sprinkled it on a bookcase, but the dream ended before I saw what happened.\"");
+        add.accept("book.thaumcraft.start.3", "\"I wonder, should I do what the dream showed?\n\nI have the impression the dust was going to reveal something wondrous, but dangerous.\"");
         add.accept("tc.addaddendum", "§aAddendum added to %1$s§r");
         add.accept("research.thaumcraft.gotdream.title", "Strange Dreams");
         add.accept("research.thaumcraft.gotthaumonomicon.title", "The Thaumonomicon");
