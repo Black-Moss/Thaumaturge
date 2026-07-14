@@ -1,4 +1,4 @@
-package com.leclowndu93150.thaumcraft.content.research.share;
+package com.leclowndu93150.thaumcraft.content.research.link;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
@@ -18,10 +18,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
-public final class ResearchShareEvents {
+public final class ResearchLinkEvents {
     private static final int SYNC_INTERVAL_TICKS = 100;
 
-    private ResearchShareEvents() {}
+    private ResearchLinkEvents() {}
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
@@ -29,16 +29,16 @@ public final class ResearchShareEvents {
         if (server.getTickCount() % SYNC_INTERVAL_TICKS != 0) {
             return;
         }
-        ResearchShareData data = ResearchShareData.get(server);
+        ResearchLinkData data = ResearchLinkData.get(server);
         if (data.links().isEmpty()) {
             return;
         }
-        for (ResearchShareData.ShareLink link : data.links()) {
+        for (ResearchLinkData.Link link : data.links()) {
             syncLink(server, data, link);
         }
     }
 
-    public static void syncLink(MinecraftServer server, ResearchShareData data, ResearchShareData.ShareLink link) {
+    public static void syncLink(MinecraftServer server, ResearchLinkData data, ResearchLinkData.Link link) {
         List<ServerPlayer> online = new ArrayList<>(2);
         ServerPlayer first = server.getPlayerList().getPlayer(link.first());
         ServerPlayer second = server.getPlayerList().getPlayer(link.second());
@@ -66,7 +66,7 @@ public final class ResearchShareEvents {
         }
     }
 
-    private static void applyUnion(ServerPlayer player, ResearchShareData.ShareLink link) {
+    private static void applyUnion(ServerPlayer player, ResearchLinkData.Link link) {
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         HolderLookup.RegistryLookup<IResearchEntry> entries =
                 player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY);

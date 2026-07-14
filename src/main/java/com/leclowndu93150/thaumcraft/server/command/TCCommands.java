@@ -33,27 +33,22 @@ import org.jspecify.annotations.Nullable;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.Arrays;
 import java.util.Locale;
-import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
+
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
-import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.ResearchGrants;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
-import com.leclowndu93150.thaumcraft.content.research.share.ResearchShareData;
-import com.leclowndu93150.thaumcraft.content.research.ResearchRegistration;
+import com.leclowndu93150.thaumcraft.content.research.link.ResearchLinkData;
 import com.leclowndu93150.thaumcraft.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumcraft.content.entity.ThaumicSlime;
-import com.leclowndu93150.thaumcraft.network.ClientboundKnowledgeGainPayload;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
-import java.util.Optional;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -67,7 +62,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceKeyArgument;
-import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -86,7 +80,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
@@ -181,7 +174,7 @@ public final class TCCommands {
                                                         StringArgumentType.getString(ctx, "type"),
                                                         StringArgumentType.getString(ctx, "modifier"),
                                                         StringArgumentType.getString(ctx, "aspects")))))))
-                .then(Commands.literal("share").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(Commands.literal("link").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("unlink").executes(TCCommands::shareUnlink)))
                 .then(Commands.literal("focus").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
@@ -877,9 +870,9 @@ public final class TCCommands {
     private static int shareUnlink(CommandContext<CommandSourceStack> ctx) {
         try {
             ServerPlayer player = ctx.getSource().getPlayerOrException();
-            int removed = ResearchShareData.get(player.level().getServer()).unlinkAll(player.getUUID());
+            int removed = ResearchLinkData.get(player.level().getServer()).unlinkAll(player.getUUID());
             ctx.getSource().sendSuccess(() -> Component.literal(
-                    String.format("Removed %d research share links", removed)), false);
+                    String.format("Removed %d research link links", removed)), false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

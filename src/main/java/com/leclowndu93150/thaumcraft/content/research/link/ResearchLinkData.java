@@ -1,4 +1,4 @@
-package com.leclowndu93150.thaumcraft.content.research.share;
+package com.leclowndu93150.thaumcraft.content.research.link;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.mojang.serialization.Codec;
@@ -16,14 +16,14 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
-public final class ResearchShareData extends SavedData {
+public final class ResearchLinkData extends SavedData {
 
-    public static final class ShareLink {
+    public static final class Link {
         final UUID first;
         final UUID second;
         final Set<Identifier> union;
 
-        ShareLink(UUID first, UUID second, Set<Identifier> union) {
+        Link(UUID first, UUID second, Set<Identifier> union) {
             this.first = first;
             this.second = second;
             this.union = new LinkedHashSet<>(union);
@@ -45,45 +45,45 @@ public final class ResearchShareData extends SavedData {
             return first.equals(player) || second.equals(player);
         }
 
-        static final Codec<ShareLink> CODEC = RecordCodecBuilder.create(builder -> builder.group(
+        static final Codec<Link> CODEC = RecordCodecBuilder.create(builder -> builder.group(
                 UUIDUtil.CODEC.fieldOf("first").forGetter(link -> link.first),
                 UUIDUtil.CODEC.fieldOf("second").forGetter(link -> link.second),
                 Identifier.CODEC.listOf().fieldOf("union")
                         .xmap(list -> (Set<Identifier>) new LinkedHashSet<>(list), List::copyOf)
                         .forGetter(link -> link.union)
-        ).apply(builder, ShareLink::new));
+        ).apply(builder, Link::new));
     }
 
-    public static final Codec<ResearchShareData> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-            ShareLink.CODEC.listOf().fieldOf("links").forGetter(data -> data.links)
-    ).apply(builder, ResearchShareData::new));
+    public static final Codec<ResearchLinkData> CODEC = RecordCodecBuilder.create(builder -> builder.group(
+            Link.CODEC.listOf().fieldOf("links").forGetter(data -> data.links)
+    ).apply(builder, ResearchLinkData::new));
 
-    public static final SavedDataType<ResearchShareData> TYPE = new SavedDataType<>(
+    public static final SavedDataType<ResearchLinkData> TYPE = new SavedDataType<>(
             Identifier.fromNamespaceAndPath(TCIds.MODID, "research_share"),
-            ResearchShareData::new,
+            ResearchLinkData::new,
             CODEC,
             DataFixTypes.LEVEL);
 
-    private final List<ShareLink> links;
+    private final List<Link> links;
 
-    public ResearchShareData() {
+    public ResearchLinkData() {
         this(List.of());
     }
 
-    private ResearchShareData(List<ShareLink> links) {
+    private ResearchLinkData(List<Link> links) {
         this.links = new ArrayList<>(links);
     }
 
-    public static ResearchShareData get(MinecraftServer server) {
+    public static ResearchLinkData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
-    public List<ShareLink> links() {
+    public List<Link> links() {
         return links;
     }
 
-    public @Nullable ShareLink linkBetween(UUID a, UUID b) {
-        for (ShareLink link : links) {
+    public @Nullable Link linkBetween(UUID a, UUID b) {
+        for (Link link : links) {
             if (link.involves(a) && link.involves(b)) {
                 return link;
             }
@@ -91,12 +91,12 @@ public final class ResearchShareData extends SavedData {
         return null;
     }
 
-    public ShareLink link(UUID a, UUID b) {
-        ShareLink existing = linkBetween(a, b);
+    public Link link(UUID a, UUID b) {
+        Link existing = linkBetween(a, b);
         if (existing != null) {
             return existing;
         }
-        ShareLink link = new ShareLink(a, b, Set.of());
+        Link link = new Link(a, b, Set.of());
         links.add(link);
         setDirty();
         return link;

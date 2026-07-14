@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.registry;
 import com.leclowndu93150.thaumcraft.content.aura.node.NodeData;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumcraft.content.research.link.LinkBinding;
 import com.leclowndu93150.thaumcraft.content.research.share.ShareBinding;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
 import com.leclowndu93150.thaumcraft.content.wands.WandVis;
@@ -158,6 +159,11 @@ public final class TCDataComponents {
                     .persistent(ShareBinding.CODEC)
                     .networkSynchronized(ShareBinding.STREAM_CODEC));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<LinkBinding>> LINK_BINDING =
+            DATA_COMPONENTS.registerComponentType("link_binding", builder -> builder
+                    .persistent(LinkBinding.CODEC)
+                    .networkSynchronized(LinkBinding.STREAM_CODEC));
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> NOTE_COMPLETE =
             DATA_COMPONENTS.registerComponentType("note_complete", builder -> builder
                     .persistent(Codec.BOOL)
@@ -183,15 +189,6 @@ public final class TCDataComponents {
                     .persistent(WandVis.CODEC)
                     .networkSynchronized(WandVis.STREAM_CODEC));
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AspectPoolData>> DISCOVERED_ASPECTS =
-            DATA_COMPONENTS.registerComponentType("discovered_aspects", builder -> builder
-                    .persistent(AspectPoolData.CODEC.codec())
-                    .networkSynchronized(AspectPoolData.STREAM_CODEC));
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<PlayerKnowledge>> KNOWLEDGE =
-            DATA_COMPONENTS.registerComponentType("knowledge", builder -> builder
-                    .persistent(PlayerKnowledge.CODEC.codec())
-                    .networkSynchronized(PlayerKnowledge.STREAM_CODEC));
 
     private TCDataComponents() {}
 

@@ -198,6 +198,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.thaumonomicon", "Thaumonomicon");
         add("item.thaumcraft.thaumonomicon_cheat", "Cheater's Thaumonomicon");
         add("item.thaumcraft.thaumonomicon_sharing", "Thaumonomicon of Sharing");
+        add("item.thaumcraft.thaumonomicon_linking", "Thaumonomicon of Binding");
         add("item.thaumcraft.creative_node_placer", "Creative Node Placer");
         add("tooltip.thaumcraft.creative_only", "Creative only");
         add("tooltip.thaumcraft.sharing.bound", "Attuned to %s");
@@ -206,6 +207,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.thaumonomicon.sharing.bound", "The book attunes to your mind - hand it to your research partner");
         add("tc.thaumonomicon.sharing.self", "The book is already attuned to you - it needs another's touch");
         add("tc.thaumonomicon.sharing.linked", "Your knowledge now flows freely between you and %s");
+        add("tc.thaumonomicon.sharing.used", "%s has transmitted you all their knowledge");
         add("item.thaumcraft.jar_brace", "Brass Lid Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");

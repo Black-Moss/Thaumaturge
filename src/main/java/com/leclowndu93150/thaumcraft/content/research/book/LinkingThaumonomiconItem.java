@@ -1,17 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.research.book;
 
-import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
-import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
-import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.content.research.link.ResearchLinkData;
 import com.leclowndu93150.thaumcraft.content.research.link.ResearchLinkEvents;
 import com.leclowndu93150.thaumcraft.content.research.link.LinkBinding;
-import com.leclowndu93150.thaumcraft.content.research.pool.AspectPoolData;
-import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
-import com.leclowndu93150.thaumcraft.content.research.share.ShareBinding;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,10 +19,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-import java.util.function.Consumer;
-
-public final class SharingThaumonomiconItem extends Item {
-    public SharingThaumonomiconItem(Properties properties) {
+public final class LinkingThaumonomiconItem extends Item {
+    public LinkingThaumonomiconItem(Properties properties) {
         super(properties);
     }
 
@@ -37,13 +30,10 @@ public final class SharingThaumonomiconItem extends Item {
             return InteractionResult.SUCCESS;
         }
         ItemStack stack = player.getItemInHand(hand);
-        ShareBinding binding = stack.get(TCDataComponents.SHARE_BINDING.get());
-        IPlayerKnowledge know = ResearchManager.of(serverPlayer);
-        if (!(know instanceof PlayerKnowledge knowledge)) return InteractionResult.SUCCESS_SERVER;
-        AspectPoolData discoveredAspects = AspectPools.data(player);
+        LinkBinding binding = stack.get(TCDataComponents.LINK_BINDING.get());
         if (binding == null) {
-            stack.set(TCDataComponents.SHARE_BINDING.get(),
-                    new ShareBinding(player.getUUID(),player.getGameProfile().name(), discoveredAspects, knowledge));
+            stack.set(TCDataComponents.LINK_BINDING.get(),
+                    new LinkBinding(player.getUUID(), player.getGameProfile().name()));
             player.playSound(TCSounds.WRITE.get(), 1.0F, 1.0F);
             TCActionBar.sendPurple(player, "tc.thaumonomicon.sharing.bound");
             return InteractionResult.SUCCESS_SERVER;
@@ -52,22 +42,24 @@ public final class SharingThaumonomiconItem extends Item {
             TCActionBar.sendPurple(player, "tc.thaumonomicon.sharing.self");
             return InteractionResult.SUCCESS_SERVER;
         }
-        knowledge.copyFrom(binding.knowledge());
-        discoveredAspects.copyFrom(binding.discoveredAspects());
-
-        knowledge.sync(serverPlayer);
-        AspectPools.sync(serverPlayer);
-
+        ResearchLinkData data = ResearchLinkData.get(serverPlayer.level().getServer());
+        ResearchLinkData.Link link = data.link(binding.player(), player.getUUID());
+        ResearchLinkEvents.syncLink(serverPlayer.level().getServer(), data, link);
         player.playSound(TCSounds.WRITE.get(), 1.0F, 1.0F);
-        TCActionBar.sendPurple(player, "tc.thaumonomicon.sharing.used", binding.name());
+        TCActionBar.sendPurple(player, "tc.thaumonomicon.sharing.linked", binding.name());
+        ServerPlayer partner = serverPlayer.level().getServer().getPlayerList().getPlayer(binding.player());
+        if (partner != null) {
+            TCActionBar.sendPurple(partner, "tc.thaumonomicon.sharing.linked",
+                    player.getGameProfile().name());
+        }
         stack.shrink(1);
         return InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
             Consumer<Component> builder, TooltipFlag flag) {
-        ShareBinding binding = stack.get(TCDataComponents.SHARE_BINDING.get());
+        LinkBinding binding = stack.get(TCDataComponents.LINK_BINDING.get());
         if (binding != null) {
             builder.accept(Component.translatable("tooltip.thaumcraft.sharing.bound", binding.name())
                     .withStyle(ChatFormatting.GRAY));

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.registry;
 
+import com.leclowndu93150.thaumcraft.content.research.book.SharingThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.research.note.ItemResearchNote;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
@@ -33,31 +34,23 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import com.leclowndu93150.thaumcraft.content.research.book.CheatThaumonomiconItem;
-import com.leclowndu93150.thaumcraft.content.research.book.SharingThaumonomiconItem;
+import com.leclowndu93150.thaumcraft.content.research.book.LinkingThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.research.book.ThaumonomiconItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBrainItem;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemBottleTaint;
 import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
-import java.util.ArrayList;
+
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlotGroup;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
@@ -186,6 +179,11 @@ public final class TCItems {
     public static final DeferredItem<SharingThaumonomiconItem> THAUMONOMICON_SHARING = ITEMS.registerItem(
             "thaumonomicon_sharing",
             SharingThaumonomiconItem::new,
+            props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
+
+    public static final DeferredItem<LinkingThaumonomiconItem> THAUMONOMICON_LINKING = ITEMS.registerItem(
+            "thaumonomicon_linking",
+            LinkingThaumonomiconItem::new,
             props -> props.stacksTo(1).rarity(Rarity.RARE));
 
     public static final DeferredItem<CreativeNodePlacerItem> CREATIVE_NODE_PLACER = ITEMS.registerItem(
