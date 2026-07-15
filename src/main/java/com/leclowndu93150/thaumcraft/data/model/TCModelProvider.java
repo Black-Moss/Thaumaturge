@@ -271,6 +271,12 @@ public final class TCModelProvider extends ModelProvider {
         registerCelestialNotes(itemModels);
         registerBaubleItems(itemModels);
 
+        // Nitor Models
+        Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/nitor");
+        Material baseTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor"));
+        Material coreTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor_core"));
+        TextureMapping textures = TextureMapping.layered(baseTex, coreTex);
+        ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, textures, itemModels.modelOutput);
         for (DyeColor dye : DyeColor.values()) {
             registerNitor(blockModels, itemModels, dye);
         }
@@ -687,11 +693,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
 
         var item = TCItems.NITORS.get(dye).get();
-        Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/nitor_" + dye.getName());
-        Material baseTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor"));
-        Material coreTex = new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/nitor_core"));
-        TextureMapping textures = TextureMapping.layered(baseTex, coreTex);
-        ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, textures, itemModels.modelOutput);
+        Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/nitor");
         int rgb = dye.getTextureDiffuseColor() & 0xFFFFFF;
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Constant(rgb)));
     }
