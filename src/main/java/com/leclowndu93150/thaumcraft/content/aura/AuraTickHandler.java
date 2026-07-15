@@ -2,11 +2,7 @@ package com.leclowndu93150.thaumcraft.content.aura;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -34,6 +30,7 @@ public final class AuraTickHandler {
     private static final float[] MAX_TABLE = new float[]{0.15F, 0.05F, 0.0F, -0.05F, -0.15F, -0.05F, 0.0F, 0.05F};
 
     private static final Map<ResourceKey<Level>, PhaseState> PHASES = new HashMap<>();
+    private static final int[] SHUFFLED_DIRECTIONS = new int[]{0, 1, 2, 3};
     private static long tickCounter;
 
     private AuraTickHandler() {}
@@ -69,10 +66,10 @@ public final class AuraTickHandler {
         RandomSource rand = level.getRandom();
         Set<ChunkPos> loaded = AuraManager.loadedChunksSnapshot(level);
         for (ChunkPos pos : loaded) {
-            if (!level.hasChunk(pos.x(), pos.z())) {
+            LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
+            if (chunk == null) {
                 continue;
             }
-            LevelChunk chunk = level.getChunk(pos.x(), pos.z());
             AuraData data = chunk.getData(TCAttachments.AURA.get());
             if (data.getBase() == 0) {
                 continue;
@@ -83,8 +80,13 @@ public final class AuraTickHandler {
     }
 
     private static void processAuraChunk(ServerLevel level, LevelChunk chunk, AuraData auraChunk, PhaseState state, RandomSource rand) {
-        List<Integer> directions = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
-        Collections.shuffle(directions, new java.util.Random(rand.nextLong()));
+        int[] directions = SHUFFLED_DIRECTIONS;
+        for (int i = directions.length - 1; i > 0; i--) {
+            int j = rand.nextInt(i + 1);
+            int tmp = directions[i];
+            directions[i] = directions[j];
+            directions[j] = tmp;
+        }
         int x = auraChunk.getChunkPos().x();
         int z = auraChunk.getChunkPos().z();
         float base = auraChunk.getBase() * state.phaseMax;
@@ -98,14 +100,14 @@ public final class AuraTickHandler {
         float lowestVis = Float.MAX_VALUE;
         float lowestFlux = Float.MAX_VALUE;
 
-        for (Integer a : directions) {
+        for (int a : directions) {
             Direction dir = Direction.from2DDataValue(a);
             int nx = x + dir.getStepX();
             int nz = z + dir.getStepZ();
-            if (!level.hasChunk(nx, nz)) {
+            LevelChunk n = level.getChunkSource().getChunkNow(nx, nz);
+            if (n == null) {
                 continue;
             }
-            LevelChunk n = level.getChunk(nx, nz);
             AuraData nd = n.getData(TCAttachments.AURA.get());
             if (nd.getBase() == 0) {
                 continue;
@@ -172,9 +174,10 @@ public final class AuraTickHandler {
 
     @SuppressWarnings("unused")
     private static @Nullable AuraData neighbour(ServerLevel level, int x, int z) {
-        if (!level.hasChunk(x, z)) {
+        LevelChunk chunk = level.getChunkSource().getChunkNow(x, z);
+        if (chunk == null) {
             return null;
         }
-        return level.getChunk(x, z).getData(TCAttachments.AURA.get());
+        return chunk.getData(TCAttachments.AURA.get());
     }
 }
