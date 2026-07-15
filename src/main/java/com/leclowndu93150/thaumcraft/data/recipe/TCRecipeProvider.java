@@ -256,6 +256,19 @@ public final class TCRecipeProvider extends RecipeProvider {
                     .save(output, TCIds.MODID + ":candle_" + dye.getName() + "_from_dye");
         }
 
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY),RecipeCategory.MISC,new ItemStackTemplate(TCItems.THAUMONOMICON_LINKING),Ingredient.of(TCItems.THAUMONOMICON_SHARING))
+                .aspect(TCAspects.COGNITIO, 40)
+                .aspect(TCAspects.SENSUS,20)
+                .aspect(TCAspects.ALIENIS,10)
+                .component(Ingredient.of(TCItems.VOID_SEED))
+                .component(Ingredient.of(TCItems.BRAIN))
+                .component(Ingredient.of(TCItems.VOID_SEED))
+                .component(Ingredient.of(Items.ENDER_EYE))
+                .instability(2)
+                .gate(gate("link_book",1))
+                .unlockedBy("has", has(TCItems.THAUMONOMICON_SHARING))
+                .save(output);
+
     }
 
     private void block3x3(ItemLike block, TagKey<Item> baseTag, ItemLike baseItem, TagKey<Item> blockTag){
@@ -1530,6 +1543,18 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('I',Tags.Items.INGOTS_IRON)
                 .gate(gate("bellows"))
                 .unlockedBy("has",has(Tags.Items.LEATHERS))
+                .save(output);
+
+        arcaneShaped(new ItemStackTemplate(TCItems.THAUMONOMICON_SHARING), 500)
+                .allAspects()
+                .pattern(" B ")
+                .pattern("MQM")
+                .pattern(" B ")
+                .define('B', TCItems.BRAIN)
+                .define('M', TCItems.MIRROR)
+                .define('Q', Items.WRITABLE_BOOK)
+                .gate(gate("share_book",1))
+                .unlockedBy("has", has(TCItems.BRAIN))
                 .save(output);
     }
 

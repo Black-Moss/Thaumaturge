@@ -942,6 +942,9 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         if (knowledge.hasResearchFlag(node.id, ResearchFlag.PAGE)) {
             lines.add(Component.literal("@@").append(Component.translatable("tc.research.newpage")));
         }
+        if (minecraft.options.advancedItemTooltips){
+            lines.add(Component.literal(ChatFormatting.DARK_GRAY + node.id().toString()));
+        }
         TCTooltipRenderer.render(graphics, font, lines, mouseX, mouseY);
     }
 
