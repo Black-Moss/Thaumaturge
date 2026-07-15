@@ -2,38 +2,43 @@
   "x_size": 1,
   "y_size": 3,
   "z_size": 1,
-  "cells": [
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:alchemical_construct"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:thaumatorium_top"
-        }
+  "keys": {
+    "T": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:alchemical_construct"
+      },
+      "target": {
+        "type": "block",
+        "block": "thaumcraft:thaumatorium_top"
       }
     },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:alchemical_construct"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:thaumatorium"
-        }
+    "M": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:alchemical_construct"
+      },
+      "target": {
+        "type": "block",
+        "block": "thaumcraft:thaumatorium"
       }
     },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:crucible"
-        }
+    "B": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:crucible"
       }
     }
+  },
+  "pattern": [
+    [
+      "T"
+    ],
+    [
+      "M"
+    ],
+    [
+      "B"
+    ]
   ]
 }
