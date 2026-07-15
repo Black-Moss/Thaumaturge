@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.research.scan;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
@@ -8,7 +9,6 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.research.scan.IScanThing;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import net.minecraft.core.Holder;
@@ -70,6 +70,6 @@ public final class ScanGeneric implements IScanThing {
             return EntityAspects.of(entity);
         }
         ItemStack stack = ScanningManager.getItemFromParms(player, target);
-        return stack.isEmpty() ? AspectList.EMPTY : AspectIndexHolder.get().of(stack);
+        return stack.isEmpty() ? AspectList.EMPTY : AspectIndexAccess.index().of(stack);
     }
 }

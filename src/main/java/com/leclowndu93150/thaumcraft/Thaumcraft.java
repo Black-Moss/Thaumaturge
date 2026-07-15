@@ -1,11 +1,18 @@
 package com.leclowndu93150.thaumcraft;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
+import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexBuilder;
+import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.api.golems.GolemHelper;
 import com.leclowndu93150.thaumcraft.content.golem.GolemBindings;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumcraft.api.recipe.ArcaneCraftCost;
+import com.leclowndu93150.thaumcraft.api.recipe.RegisterWorkbenchVisSourcesEvent;
 import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
+import com.leclowndu93150.thaumcraft.api.wands.WandAccess;
+import com.leclowndu93150.thaumcraft.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
 import com.leclowndu93150.thaumcraft.content.aura.AuraHelperBindings;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
@@ -64,6 +71,13 @@ public final class Thaumcraft {
         container.registerConfig(ModConfig.Type.SERVER, ThaumcraftServerConfig.SPEC);
 
         KnowledgeAccess.bind(player -> player.getData(TCAttachments.KNOWLEDGE));
+        AspectIndexAccess.bind(AspectIndexHolder::get);
+        AspectIndexBuilder.fireContributorEvent(modBus);
+        WandAccess.bind(TCDataComponents.WAND_VIS);
+        ArcaneCraftCost.bind(WorkbenchPayment::cost);
+        RegisterWorkbenchVisSourcesEvent visSourcesEvent = new RegisterWorkbenchVisSourcesEvent();
+        modBus.post(visSourcesEvent);
+        WorkbenchPayment.registerSources(visSourcesEvent.sources());
         AuraHelper.bind(new AuraHelperBindings());
         TaintApi.bind(new TaintApiBindings());
         WarpHelper.bind(new WarpManager.Bindings());

@@ -1,7 +1,11 @@
 package com.leclowndu93150.thaumcraft.content.workbench;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.recipe.IArcaneWorkbench;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingInput;
+import com.leclowndu93150.thaumcraft.content.taint.item.ItemEssentiaCrystal;
+import net.minecraft.core.Holder;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +28,22 @@ public class InventoryArcaneWorkbench extends SimpleContainer implements IArcane
 
     public ItemStack wandStack() {
         return getItem(WAND_SLOT);
+    }
+
+    @Override
+    public AspectList availableCrystals() {
+        AspectList crystals = AspectList.EMPTY;
+        for (int slot = CRAFTING_SLOTS; slot < WAND_SLOT; slot++) {
+            ItemStack stack = getItem(slot);
+            if (stack.isEmpty() || !(stack.getItem() instanceof ItemEssentiaCrystal)) {
+                continue;
+            }
+            Holder<IAspect> aspect = ItemEssentiaCrystal.aspectOf(stack);
+            if (aspect != null) {
+                crystals = crystals.add(aspect, stack.getCount());
+            }
+        }
+        return crystals;
     }
 
     @Override

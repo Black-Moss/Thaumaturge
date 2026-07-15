@@ -178,6 +178,31 @@ public final class AuraHelper {
     }
 
     /**
+     * Returns how much more aura the chunk can hold before reaching its base, that is
+     * {@code max(0, base - (vis + flux))}. Useful for sizing vis a caller intends to add.
+     *
+     * @param level the level
+     * @param pos   block position resolving to the chunk
+     * @return the remaining headroom in aura units; zero when the chunk is full or has no record
+     */
+    public static float capacityRemaining(Level level, BlockPos pos) {
+        return bindingOrThrow().capacityRemaining(level, pos);
+    }
+
+    /**
+     * Tests whether the chunk can absorb the given amount of vis without exceeding its base.
+     * Equivalent to {@code capacityRemaining(level, pos) >= amount}.
+     *
+     * @param level  the level
+     * @param pos    block position resolving to the chunk
+     * @param amount the vis amount to test; non-positive amounts always fit
+     * @return true when the chunk has room for {@code amount} more aura
+     */
+    public static boolean canAcceptVis(Level level, BlockPos pos, float amount) {
+        return bindingOrThrow().canAcceptVis(level, pos, amount);
+    }
+
+    /**
      * Adds flux to the chunk, optionally broadcasting a small visual cue at {@code pos}. Equivalent
      * to {@link #addFlux} when {@code showEffect} is false.
      *
@@ -232,5 +257,7 @@ public final class AuraHelper {
         float drainVis(Level level, BlockPos pos, float amount, boolean simulate);
         float drainFlux(Level level, BlockPos pos, float amount, boolean simulate);
         void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect);
+        float capacityRemaining(Level level, BlockPos pos);
+        boolean canAcceptVis(Level level, BlockPos pos, float amount);
     }
 }

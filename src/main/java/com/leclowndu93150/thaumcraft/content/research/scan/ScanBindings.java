@@ -1,12 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.research.scan;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
@@ -60,7 +60,7 @@ public final class ScanBindings implements ScanningManager.Bindings {
 
     @Override
     public AspectList itemAspects(ItemStack stack) {
-        return AspectIndexHolder.get().of(stack);
+        return AspectIndexAccess.index().of(stack);
     }
 
     @Override

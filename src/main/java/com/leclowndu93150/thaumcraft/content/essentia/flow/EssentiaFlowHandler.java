@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.essentia.flow;
 
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
+import com.leclowndu93150.thaumcraft.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
@@ -21,7 +21,7 @@ public final class EssentiaFlowHandler {
     private EssentiaFlowHandler() {}
 
     public static @Nullable IEssentiaTransport transport(Level level, BlockPos pos, Direction faceFromNeighbour) {
-        return level.getCapability(EssentiaCapabilities.TRANSPORT, pos, faceFromNeighbour);
+        return EssentiaAccess.transport(level, pos, faceFromNeighbour);
     }
 
     public static void recalculateSuction(Level level, BlockPos pos, BlockEntityTube tube, @Nullable ResourceKey<IAspect> filter, boolean restrict, boolean directional) {

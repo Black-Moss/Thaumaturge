@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.item;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
@@ -7,7 +8,6 @@ import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.client.render.TCFlatRenderTypes;
 import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
 import net.minecraft.util.LightCoordsUtil;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
@@ -76,14 +76,14 @@ public final class ThaumometerLensRenderer {
                 }
                 name = pick.getHoverName();
                 if (KnowledgeAccess.of(player).isResearchKnown(ScanKeys.item(pick.getItem()))) {
-                    aspects = AspectIndexHolder.get().of(pick);
+                    aspects = AspectIndexAccess.index().of(pick);
                 }
             }
         } else if (target instanceof ItemEntity itemEntity) {
             ItemStack stack = itemEntity.getItem();
             name = stack.getHoverName();
             if (KnowledgeAccess.of(player).isResearchKnown(ScanKeys.item(stack.getItem()))) {
-                aspects = AspectIndexHolder.get().of(stack);
+                aspects = AspectIndexAccess.index().of(stack);
             }
         } else if (target instanceof Entity entity) {
             name = entity.getName();

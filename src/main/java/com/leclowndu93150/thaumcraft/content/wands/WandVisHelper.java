@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.content.wands;
 
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.api.wands.WandVis;
 import com.leclowndu93150.thaumcraft.content.casters.CasterManager;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import java.util.LinkedHashMap;

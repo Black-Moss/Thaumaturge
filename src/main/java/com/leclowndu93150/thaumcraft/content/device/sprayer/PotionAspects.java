@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumcraft.content.device.sprayer;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.mixin.world.item.alchemy.PotionBrewingAccessor;
 import com.leclowndu93150.thaumcraft.mixin.world.item.alchemy.PotionBrewingMixAccessor;
@@ -40,7 +40,7 @@ final class PotionAspects {
         boolean anyReagent = false;
         if (potion.isPresent() && !potion.get().is(Potions.WATER)) {
             for (ItemStack reagent : reagentsOf(level, potion.get())) {
-                AspectList reagentAspects = AspectIndexHolder.get().of(reagent);
+                AspectList reagentAspects = AspectIndexAccess.index().of(reagent);
                 for (AspectInstance entry : reagentAspects.entries()) {
                     result = result.add(entry.aspect(), entry.amount());
                 }

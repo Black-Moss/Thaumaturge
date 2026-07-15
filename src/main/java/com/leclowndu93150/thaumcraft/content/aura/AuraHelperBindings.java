@@ -85,4 +85,14 @@ public final class AuraHelperBindings implements AuraHelper.Bindings {
     public void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect) {
         AuraManager.polluteAura(level, pos, amount, showEffect);
     }
+
+    @Override
+    public float capacityRemaining(Level level, BlockPos pos) {
+        return Math.max(0.0F, AuraManager.getAuraBase(level, pos) - AuraManager.getTotalAura(level, pos));
+    }
+
+    @Override
+    public boolean canAcceptVis(Level level, BlockPos pos, float amount) {
+        return capacityRemaining(level, pos) >= amount;
+    }
 }

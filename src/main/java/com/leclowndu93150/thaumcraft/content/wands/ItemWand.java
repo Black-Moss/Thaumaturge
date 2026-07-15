@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumcraft.api.items.IArchitect;
 import com.leclowndu93150.thaumcraft.api.wands.IWandRodOnUpdate;
+import com.leclowndu93150.thaumcraft.api.wands.WandVis;
 import com.leclowndu93150.thaumcraft.content.casters.CasterManager;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;

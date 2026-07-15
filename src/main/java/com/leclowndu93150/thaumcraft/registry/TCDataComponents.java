@@ -6,7 +6,7 @@ import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumcraft.content.research.link.LinkBinding;
 import com.leclowndu93150.thaumcraft.content.research.share.ShareBinding;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
-import com.leclowndu93150.thaumcraft.content.wands.WandVis;
+import com.leclowndu93150.thaumcraft.api.wands.WandVis;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPoolData;
 import com.mojang.serialization.Codec;

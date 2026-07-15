@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.api.essentia;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sided essentia transport contract for blocks that can move essentia between neighbors.
@@ -46,7 +47,7 @@ public interface IEssentiaTransport {
      * @param aspect the aspect to draw, or {@code null} to clear
      * @param amount the suction strength
      */
-    void setSuction(Holder<IAspect> aspect, int amount);
+    void setSuction(@Nullable Holder<IAspect> aspect, int amount);
 
     /**
      * The aspect this device tries to draw on the given side, or {@code null} for any.
@@ -54,7 +55,7 @@ public interface IEssentiaTransport {
      * @param face the side queried, never {@code null}
      * @return the aspect holder, or {@code null} when undirected
      */
-    Holder<IAspect> getSuctionType(Direction face);
+    @Nullable Holder<IAspect> getSuctionType(Direction face);
 
     /**
      * The suction strength on the given side.
@@ -90,7 +91,7 @@ public interface IEssentiaTransport {
      * @param face the side queried, never {@code null}
      * @return the aspect holder, or {@code null} when empty
      */
-    Holder<IAspect> getEssentiaType(Direction face);
+    @Nullable Holder<IAspect> getEssentiaType(Direction face);
 
     /**
      * The amount of essentia currently stored or available on the given side.
@@ -106,4 +107,67 @@ public interface IEssentiaTransport {
      * @return the minimum suction threshold
      */
     int getMinimumSuction();
+
+    /**
+     * Inserts up to {@code amount} of {@code aspect} through the given side, optionally without
+     * committing. When {@code simulate} is true the device state must not change and the return
+     * value reports how much would be accepted.
+     *
+     * <p>The default implementation commits through {@link #addEssentia(Holder, int, Direction)}
+     * when not simulating, and otherwise estimates the acceptance as
+     * {@code min(amount, spaceFor(aspect, face))}. Devices whose acceptance is not a pure function
+     * of free space (filters, one-way valves, buffers) should override this method so that
+     * simulation matches the real transfer.
+     *
+     * @param aspect   the aspect supplied
+     * @param amount   the maximum amount to insert
+     * @param face     the side through which insertion happens
+     * @param simulate when true, do not modify device state
+     * @return the amount accepted, or that would be accepted when simulating
+     */
+    default int addEssentia(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        if (!simulate) {
+            return addEssentia(aspect, amount, face);
+        }
+        return Math.min(amount, spaceFor(aspect, face));
+    }
+
+    /**
+     * Removes up to {@code amount} of {@code aspect} through the given side, optionally without
+     * committing. When {@code simulate} is true the device state must not change and the return
+     * value reports how much would be extracted.
+     *
+     * <p>The default implementation commits through {@link #takeEssentia(Holder, int, Direction)}
+     * when not simulating, and otherwise estimates the extraction as
+     * {@code min(amount, getEssentiaAmount(face))}. Devices whose extraction is not a pure function
+     * of stored amount should override this method so that simulation matches the real transfer.
+     *
+     * @param aspect   the aspect requested
+     * @param amount   the maximum amount to extract
+     * @param face     the side through which extraction happens
+     * @param simulate when true, do not modify device state
+     * @return the amount removed, or that would be removed when simulating
+     */
+    default int takeEssentia(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        if (!simulate) {
+            return takeEssentia(aspect, amount, face);
+        }
+        return Math.min(amount, getEssentiaAmount(face));
+    }
+
+    /**
+     * The amount of {@code aspect} this device could still accept through the given side. Used by
+     * the simulating {@link #addEssentia(Holder, int, Direction, boolean)} default and by
+     * transfer helpers to size batched moves.
+     *
+     * <p>The default returns {@link Integer#MAX_VALUE}, meaning unbounded acceptance. Devices with
+     * a real capacity should override this to report their free space for the aspect.
+     *
+     * @param aspect the aspect queried
+     * @param face   the side queried
+     * @return the free space for the aspect on the side; {@link Integer#MAX_VALUE} when unbounded
+     */
+    default int spaceFor(Holder<IAspect> aspect, Direction face) {
+        return Integer.MAX_VALUE;
+    }
 }

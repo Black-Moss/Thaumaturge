@@ -1,8 +1,10 @@
 package com.leclowndu93150.thaumcraft.content.aspect;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectDataMaps;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectIndex;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectRecipeContributor;
+import com.leclowndu93150.thaumcraft.api.aspect.RegisterAspectContributorsEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.neoforged.bus.api.IEventBus;
 
 public final class AspectIndexBuilder {
     public static final int MAX_AMOUNT_PER_ASPECT = 500;
@@ -32,6 +35,14 @@ public final class AspectIndexBuilder {
 
     public static void registerContributor(IAspectRecipeContributor contributor) {
         CONTRIBUTORS.add(contributor);
+    }
+
+    public static void fireContributorEvent(IEventBus modBus) {
+        RegisterAspectContributorsEvent event = new RegisterAspectContributorsEvent();
+        modBus.post(event);
+        for (IAspectRecipeContributor contributor : event.contributors()) {
+            CONTRIBUTORS.add(contributor);
+        }
     }
 
     public static AspectIndex build(RecipeManager recipes, HolderLookup.Provider registries) {

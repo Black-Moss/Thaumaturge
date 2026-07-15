@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
@@ -7,7 +8,6 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusMediumRoot;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.entity.ai.PechItemGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.PechTradeGoal;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectAir;
@@ -546,7 +546,7 @@ public class EntityPech extends Monster implements RangedAttackMob {
         if (stack.is(Items.ENDER_PEARL)) {
             return true;
         }
-        return AspectIndexHolder.get().of(stack)
+        return AspectIndexAccess.index().of(stack)
                 .amountOf(desiderium()) > 1;
     }
 
@@ -558,7 +558,7 @@ public class EntityPech extends Monster implements RangedAttackMob {
             return PECH_ENDER_PEARL_VALUE;
         }
         return Math.min(MAX_ASPECT_VALUE,
-                AspectIndexHolder.get().of(stack).amountOf(desiderium()) / 2);
+                AspectIndexAccess.index().of(stack).amountOf(desiderium()) / 2);
     }
 
     private Holder<IAspect> desiderium() {

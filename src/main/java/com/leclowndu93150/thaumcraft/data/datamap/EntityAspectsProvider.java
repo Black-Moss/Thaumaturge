@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.data.datamap;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectDataMaps;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectDataMaps;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderGetter;

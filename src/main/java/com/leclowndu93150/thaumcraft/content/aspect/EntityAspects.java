@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.aspect;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectDataMaps;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IEntityAspectSource;
 import net.minecraft.core.registries.BuiltInRegistries;

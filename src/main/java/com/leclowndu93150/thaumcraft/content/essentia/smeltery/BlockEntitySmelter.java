@@ -1,12 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.essentia.smeltery;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.essentia.BellowsHelper;
 import com.leclowndu93150.thaumcraft.content.fx.FX;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -240,7 +240,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
     private void smeltItem() {
         if (!this.canSmelt()) return;
         int flux = 0;
-        AspectList aspects = AspectIndexHolder.get().of(inventory.getResource(0).toStack());
+        AspectList aspects = AspectIndexAccess.index().of(inventory.getResource(0).toStack());
         for (AspectInstance instance : aspects.entries()){
             if (getEfficiency() < 1.0F){
                 int amount = instance.amount();
@@ -317,7 +317,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
     private boolean canSmelt(){
         if (inventory.getAmountAsInt(0) <= 0) return false;
         this.vis = aspects.totalAmount();
-        AspectList aspects = AspectIndexHolder.get().of(inventory.getResource(0).toStack());
+        AspectList aspects = AspectIndexAccess.index().of(inventory.getResource(0).toStack());
         if (!aspects.isEmpty()){
             int total = aspects.totalAmount();
             if (total > MAX_VIS - vis)
@@ -392,7 +392,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
         @Override
         public boolean isValid(int index, ItemResource resource) {
             return switch (index) {
-                case 0 -> !AspectIndexHolder.get().of(resource.toStack()).isEmpty();
+                case 0 -> !AspectIndexAccess.index().of(resource.toStack()).isEmpty();
                 case 1 -> resource.toStack().getBurnTime(null,level.fuelValues()) > 0;
                 default -> false;
             };

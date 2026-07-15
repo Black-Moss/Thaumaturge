@@ -1,11 +1,11 @@
 package com.leclowndu93150.thaumcraft.client.hud;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
@@ -95,7 +95,7 @@ public final class ThaumometerAspectOverlay {
             resetAnimation();
             return;
         }
-        AspectList aspects = scannedAspects(mc.player, AspectIndexHolder.get().of(pick),
+        AspectList aspects = scannedAspects(mc.player, AspectIndexAccess.index().of(pick),
                 ScanKeys.item(pick.getItem()));
         if (aspects.isEmpty()) {
             resetAnimation();

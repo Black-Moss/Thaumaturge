@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.compat.jei;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import java.util.List;
 import java.util.ArrayList;
 import mezz.jei.api.registration.IExtraIngredientRegistration;
@@ -19,7 +20,6 @@ import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientHelpe
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
-import com.leclowndu93150.thaumcraft.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumcraft.content.recipe.SalisMundusRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
@@ -278,7 +278,7 @@ public final class ThaumcraftJEIPlugin implements IModPlugin {
         registration.getIngredientManager()
                 .getAllIngredients(VanillaTypes.ITEM_STACK)
                 .forEach(stack -> {
-                    AspectList aspectList = AspectIndexHolder.get().of(stack);
+                    AspectList aspectList = AspectIndexAccess.index().of(stack);
                     index.put(stack,aspectList);
                     aspectList.entries().forEach(instance -> {
                         invertedIndex
