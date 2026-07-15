@@ -2,319 +2,63 @@
   "x_size": 3,
   "y_size": 3,
   "z_size": 3,
-  "cells": [
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
+  "keys": {
+    "B": {
+      "source": {
+        "type": "block",
+        "block": "minecraft:nether_bricks"
+      },
+      "target": {
+        "type": "block",
+        "block": "thaumcraft:placeholder_nether_bricks"
       }
     },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
+    "O": {
+      "source": {
+        "type": "block",
+        "block": "minecraft:obsidian"
+      },
+      "target": {
+        "type": "block",
+        "block": "thaumcraft:placeholder_obsidian"
       }
     },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
+    "L": {
+      "source": {
+        "type": "block",
+        "block": "minecraft:lava"
+      },
+      "target": {
+        "type": "block",
+        "block": "thaumcraft:infernal_furnace",
+        "opposite": true
       }
     },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:lava"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:infernal_furnace",
-          "opposite": true
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:iron_bars"
-        },
-        "target": {
-          "type": "air"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:obsidian"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_obsidian"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "minecraft:nether_bricks"
-        },
-        "target": {
-          "type": "block",
-          "block": "thaumcraft:placeholder_nether_bricks"
-        }
+    "I": {
+      "source": {
+        "type": "block",
+        "block": "minecraft:iron_bars"
+      },
+      "target": {
+        "type": "air"
       }
     }
+  },
+  "pattern": [
+    [
+      "BOB",
+      "O O",
+      "BOB"
+    ],
+    [
+      "BOB",
+      "OLO",
+      "BIB"
+    ],
+    [
+      "BOB",
+      "OOO",
+      "BOB"
+    ]
   ]
 }

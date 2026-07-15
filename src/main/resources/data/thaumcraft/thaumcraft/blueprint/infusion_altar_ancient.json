@@ -2,151 +2,104 @@
   "x_size": 3,
   "y_size": 3,
   "z_size": 3,
-  "cells": [
-    {},
-    {},
-    {},
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:infusion_matrix"
-        }
+  "keys": {
+    "I": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:infusion_matrix"
       }
     },
-    {},
-    {},
-    {},
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "air"
-        }
+    "A": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:stone_ancient_tile"
+      },
+      "target": {
+        "type": "air"
       }
     },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "air"
-        }
-      }
-    },
-    {},
-    {},
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "air"
-        }
-      }
-    },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "air"
-        }
-      }
-    },
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "state",
-          "state": {
-            "Name": "thaumcraft:pillar_ancient",
-            "Properties": {
-              "facing": "east"
-            }
+    "E": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:stone_ancient_tile"
+      },
+      "target": {
+        "type": "state",
+        "state": {
+          "Name": "thaumcraft:pillar_ancient",
+          "Properties": {
+            "facing": "east"
           }
         }
       }
     },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "state",
-          "state": {
-            "Name": "thaumcraft:pillar_ancient",
-            "Properties": {
-              "facing": "north"
-            }
+    "N": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:stone_ancient_tile"
+      },
+      "target": {
+        "type": "state",
+        "state": {
+          "Name": "thaumcraft:pillar_ancient",
+          "Properties": {
+            "facing": "north"
           }
         }
       }
     },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:pedestal_ancient"
-        }
+    "P": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:pedestal_ancient"
       }
     },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "state",
-          "state": {
-            "Name": "thaumcraft:pillar_ancient",
-            "Properties": {
-              "facing": "south"
-            }
+    "S": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:stone_ancient_tile"
+      },
+      "target": {
+        "type": "state",
+        "state": {
+          "Name": "thaumcraft:pillar_ancient",
+          "Properties": {
+            "facing": "south"
           }
         }
       }
     },
-    {},
-    {
-      "part": {
-        "source": {
-          "type": "block",
-          "block": "thaumcraft:stone_ancient"
-        },
-        "target": {
-          "type": "state",
-          "state": {
-            "Name": "thaumcraft:pillar_ancient",
-            "Properties": {
-              "facing": "west"
-            }
+    "W": {
+      "source": {
+        "type": "block",
+        "block": "thaumcraft:stone_ancient_tile"
+      },
+      "target": {
+        "type": "state",
+        "state": {
+          "Name": "thaumcraft:pillar_ancient",
+          "Properties": {
+            "facing": "west"
           }
         }
       }
     }
+  },
+  "pattern": [
+    [
+      "   ",
+      " I ",
+      "   "
+    ],
+    [
+      "A A",
+      "   ",
+      "A A"
+    ],
+    [
+      "E N",
+      " P ",
+      "S W"
+    ]
   ]
 }
