@@ -29,10 +29,10 @@ public final class AuraManager {
     private AuraManager() {}
 
     public static @Nullable AuraData getAuraChunk(ServerLevel level, ChunkPos pos) {
-        if (!level.hasChunk(pos.x(), pos.z())) {
+        LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
+        if (chunk == null) {
             return null;
         }
-        LevelChunk chunk = level.getChunk(pos.x(), pos.z());
         return chunk.getData(TCAttachments.AURA.get());
     }
 
@@ -150,17 +150,17 @@ public final class AuraManager {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (!serverLevel.hasChunk(pos.getX() >> 4, pos.getZ() >> 4)) {
-            return;
+        LevelChunk chunk = serverLevel.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+        if (chunk != null) {
+            chunk.markUnsaved();
         }
-        serverLevel.getChunk(pos.getX() >> 4, pos.getZ() >> 4).markUnsaved();
     }
 
     static void markChunkDirty(ServerLevel level, ChunkPos pos) {
-        if (!level.hasChunk(pos.x(), pos.z())) {
-            return;
+        LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
+        if (chunk != null) {
+            chunk.markUnsaved();
         }
-        level.getChunk(pos.x(), pos.z()).markUnsaved();
     }
 
     public static void onChunkLoaded(ServerLevel level, ChunkPos pos) {
