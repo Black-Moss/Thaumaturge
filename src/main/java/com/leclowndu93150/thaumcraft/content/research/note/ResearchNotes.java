@@ -71,6 +71,21 @@ public final class ResearchNotes {
         return cost;
     }
 
+    public static int stageObservationAmount(IResearchStage stage) {
+        int amount = -1;
+        for (KnowledgeReward reward : stage.requiredKnowledge()) {
+            if (reward.type() != KnowledgeType.THEORY) {
+                amount = Math.max(amount, reward.amount());
+            }
+        }
+        return amount;
+    }
+
+    public static AspectList stageObservationCost(IResearchEntry entry, IResearchStage stage) {
+        int amount = stageObservationAmount(stage);
+        return amount < 0 ? AspectList.EMPTY : observationCost(entry, amount);
+    }
+
     public static @Nullable ResearchNoteData dataOf(ItemStack stack) {
         return stack.get(TCDataComponents.RESEARCH_NOTE.get());
     }

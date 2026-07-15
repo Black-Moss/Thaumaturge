@@ -298,6 +298,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private boolean flagsCleared;
     private boolean hold;
     private int lastStage;
+    private long holdSince;
+    private static final long HOLD_TIMEOUT_TICKS = 60;
     private int rhash;
     private boolean isComplete;
     private final Deque<Identifier> history = new ArrayDeque<>();
@@ -407,14 +409,15 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
         isComplete = knowledge.isResearchComplete(entryId);
         int total = entry.value().stages().size();
-        int rawStage = knowledge.researchStage(entryId) - 1;
+        int rawStage = knowledge.researchStage(entryId);
         if (rawStage < 0) rawStage = 0;
         if (isComplete) {
             rawStage = total - 1;
         } else if (rawStage >= total) {
             rawStage = total - 1;
         }
-        if (hold && rawStage > lastStage) {
+        if (hold && (isComplete || knowledge.researchStage(entryId) > lastStage
+                || minecraft.player.level().getGameTime() - holdSince > HOLD_TIMEOUT_TICKS)) {
             hold = false;
         }
         return Math.min(Math.max(0, rawStage), total - 1);
@@ -743,6 +746,9 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         int shift = SLOT_BASE_SHIFT;
         int innerX = x + SLOT_INNER_OFFSET_X;
         int theoryOrdinal = ResearchNotes.theoryRowsBefore(entry.value(), currentStageIndex());
+        AspectList observationCost = ResearchNotes.stageObservationCost(entry.value(), entry.value().stages().get(currentStageIndex()));
+        boolean observationAfford = observationCost.isEmpty() || AspectPools.canAfford(minecraft.player, observationCost);
+        boolean observationDrawn = false;
         for (int i = 0; i < rewards.size(); i++) {
             KnowledgeReward reward = rewards.get(i);
             int slotX = innerX + shift;
@@ -765,8 +771,13 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                     graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
                 }
             } else {
-                AspectList cost = ResearchNotes.observationCost(entry.value(), reward.amount());
-                met = AspectPools.canAfford(minecraft.player, cost);
+                met = observationAfford;
+                satisfied[i] = met;
+                if (observationDrawn) {
+                    continue;
+                }
+                observationDrawn = true;
+                AspectList cost = observationCost;
                 List<AspectInstance> entries = cost.entries();
                 for (int a = 0; a < entries.size(); a++) {
                     AspectInstance instance = entries.get(a);
@@ -1603,7 +1614,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 if (hitStageComplete(mx, my, stage)) {
                     ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(entryId));
                     playSound(TCSounds.WRITE.get(), 0.66F, 1.0F);
-                    lastStage = currentStageIndex();
+                    lastStage = KnowledgeAccess.of(minecraft.player).researchStage(entryId);
+                    holdSince = minecraft.player.level().getGameTime();
                     hold = true;
                     return true;
                 }

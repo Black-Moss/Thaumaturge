@@ -394,7 +394,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                 searchResults.add(SearchResult.entry(entryName, node));
             }
             int stage = knowledge.researchStage(known);
-            int sIdx = node.entry.stages().size() - 1 < stage + 1 ? node.entry.stages().size() - 1 : stage + 1;
+            int sIdx = node.entry.stages().size() - 1 < stage + 2 ? node.entry.stages().size() - 1 : stage + 2;
             if (sIdx >= 0 && sIdx < node.entry.stages().size()) {
                 IResearchStage st = node.entry.stages().get(sIdx);
                 for (ResearchRequirement req : st.craft()) {
@@ -913,10 +913,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         if (canUnlock) {
             if (!knowledge.isResearchComplete(node.id) && !node.entry.stages().isEmpty()) {
                 int stage = knowledge.researchStage(node.id);
-                if (stage > 0) {
+                if (stage >= 0) {
                     MutableComponent stageLine = Component.literal("@@")
                             .append(Component.literal(ChatFormatting.AQUA + Component.translatable("tc.research.stage").getString()
-                                    + " " + stage + "/" + node.entry.stages().size() + ChatFormatting.RESET));
+                                    + " " + (stage + 1) + "/" + node.entry.stages().size() + ChatFormatting.RESET));
                     lines.add(stageLine);
                 } else {
                     MutableComponent begin = Component.literal("@@")
@@ -1030,7 +1030,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             ClientPacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(
                     hl.id, List.of(ResearchFlag.RESEARCH, ResearchFlag.PAGE)));
             int stage = knowledge.researchStage(hl.id);
-            if (stage > 1 && stage >= hl.entry.stages().size()) {
+            if (stage > 0 && stage >= hl.entry.stages().size() - 1) {
                 ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(hl.id));
             }
             persistState();

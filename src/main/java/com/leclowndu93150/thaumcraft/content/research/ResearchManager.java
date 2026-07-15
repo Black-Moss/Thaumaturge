@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.content.research;
 import com.leclowndu93150.thaumcraft.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumcraft.content.research.note.ResearchNotes;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
@@ -185,10 +186,10 @@ public final class ResearchManager {
             if (cost.type() == KnowledgeType.THEORY) {
                 if (!knowledge.isResearchKnown(ResearchNoteData.learnKey(entryId, theoryOrdinal))) return false;
                 theoryOrdinal++;
-            } else {
-                if (!AspectPools.canAfford(player, ResearchNotes.observationCost(entry, cost.amount()))) return false;
             }
         }
+        AspectList observation = ResearchNotes.stageObservationCost(entry, stage);
+        if (!observation.isEmpty() && !AspectPools.canAfford(player, observation)) return false;
         return true;
     }
 
@@ -227,10 +228,9 @@ public final class ResearchManager {
                 }
             }
         }
-        for (KnowledgeReward cost : stage.requiredKnowledge()) {
-            if (cost.type() != KnowledgeType.THEORY) {
-                AspectPools.spendAll(player, ResearchNotes.observationCost(entry, cost.amount()));
-            }
+        AspectList observation = ResearchNotes.stageObservationCost(entry, stage);
+        if (!observation.isEmpty()) {
+            AspectPools.spendAll(player, observation);
         }
     }
 
@@ -248,6 +248,7 @@ public final class ResearchManager {
         if (!changed) return false;
         IResearchEntry entry = entry(player, research).orElse(null);
         if (entry != null) {
+            knowledge.setResearchStage(research, entry.stages().size());
             knowledge.setResearchFlag(research, ResearchFlag.POPUP);
             knowledge.setResearchFlag(research, ResearchFlag.RESEARCH);
             notifyAddenda(player, knowledge, research);
