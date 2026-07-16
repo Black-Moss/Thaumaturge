@@ -208,6 +208,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.thaumonomicon.sharing.self", "The book is already attuned to you - it needs another's touch");
         add("tc.thaumonomicon.sharing.linked", "Your knowledge now flows freely between you and %s");
         add("tc.thaumonomicon.sharing.used", "%s has transmitted you all their knowledge");
+        add("tc.elemental_sword.whirlwind_on", "The blade's winds stir once more");
+        add("tc.elemental_sword.whirlwind_off", "The blade's winds fall still");
+        add("tooltip.thaumcraft.elemental_sword.toggle", "Sneak + right-click to toggle the whirlwind");
         add("item.thaumcraft.jar_brace", "Brass Lid Brace");
         add("item.thaumcraft.label", "Label");
         add("item.thaumcraft.salis_mundus", "Salis Mundus");

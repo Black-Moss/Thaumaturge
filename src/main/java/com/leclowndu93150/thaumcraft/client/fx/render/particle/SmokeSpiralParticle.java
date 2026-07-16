@@ -17,7 +17,8 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 
 public final class SmokeSpiralParticle extends SingleQuadParticle {
-    private static final int GRID = 16;
+    private static final int ROW_WIDTH = 16;
+    private static final float CELL = 1.0F / 64.0F;
     private static final float QUAD_RADIUS = 0.15F;
     private static final float ALPHA = 0.66F;
 
@@ -94,22 +95,22 @@ public final class SmokeSpiralParticle extends SingleQuadParticle {
 
     @Override
     protected float getU0() {
-        return (this.currentCell % GRID) * (1.0F / GRID);
+        return (this.currentCell % ROW_WIDTH) * CELL;
     }
 
     @Override
     protected float getU1() {
-        return (this.currentCell % GRID) * (1.0F / GRID) + (1.0F / GRID);
+        return getU0() + CELL;
     }
 
     @Override
     protected float getV0() {
-        return 0.0F;
+        return (this.currentCell / ROW_WIDTH) * CELL;
     }
 
     @Override
     protected float getV1() {
-        return 1.0F / GRID;
+        return getV0() + CELL;
     }
 
     @Override

@@ -169,6 +169,11 @@ public final class TCDataComponents {
                     .persistent(Codec.BOOL)
                     .networkSynchronized(ByteBufCodecs.BOOL));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> WHIRLWIND_DISABLED =
+            DATA_COMPONENTS.registerComponentType("whirlwind_disabled", builder -> builder
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL));
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResearchNoteData>> RESEARCH_NOTE =
             DATA_COMPONENTS.registerComponentType("research_note", builder -> builder
                     .persistent(ResearchNoteData.CODEC)

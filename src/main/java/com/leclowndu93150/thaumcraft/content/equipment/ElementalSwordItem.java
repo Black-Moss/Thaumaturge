@@ -1,10 +1,17 @@
 package com.leclowndu93150.thaumcraft.content.equipment;
 
 import com.leclowndu93150.thaumcraft.client.fx.FXClient;
+import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.leclowndu93150.thaumcraft.mixin.server.network.ServerGamePacketListenerImplAccessor;
+import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.List;
+import java.util.function.Consumer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -31,6 +38,13 @@ public final class ElementalSwordItem extends Item {
     }
 
     @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag flag) {
+        builder.accept(Component.translatable("tooltip.thaumcraft.elemental_sword.toggle")
+                .withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    @Override
     public ItemUseAnimation getUseAnimation(ItemStack stack) {
         return ItemUseAnimation.NONE;
     }
@@ -42,6 +56,22 @@ public final class ElementalSwordItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (player.isSecondaryUseActive()) {
+            boolean disabled = !stack.getOrDefault(TCDataComponents.WHIRLWIND_DISABLED.get(), false);
+            stack.set(TCDataComponents.WHIRLWIND_DISABLED.get(), disabled);
+            if (!level.isClientSide()) {
+                TCActionBar.sendPurple(player, disabled
+                        ? "tc.elemental_sword.whirlwind_off"
+                        : "tc.elemental_sword.whirlwind_on");
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), TCSounds.KEY.get(),
+                        SoundSource.PLAYERS, 0.5F, disabled ? 0.8F : 1.2F);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        if (stack.getOrDefault(TCDataComponents.WHIRLWIND_DISABLED.get(), false)) {
+            return InteractionResult.PASS;
+        }
         player.startUsingItem(hand);
         return InteractionResult.SUCCESS;
     }
