@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.toast;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.render.research.EntryIconRenderer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -11,7 +12,20 @@ import net.minecraft.resources.Identifier;
 
 public final class ResearchToast implements Toast {
     private static final long DURATION_MS = 5000L;
-    private static final Identifier TOAST_SPRITE = Identifier.withDefaultNamespace("toast/recipe");
+    private static final Identifier HUD = TCIds.rl("textures/gui/hud.png");
+    private static final int TEX_SIZE = 256;
+    private static final int BACKGROUND_U = 0;
+    private static final int BACKGROUND_V = 224;
+    private static final int BACKGROUND_W = 160;
+    private static final int BACKGROUND_H = 32;
+    private static final int ICON_X = 6;
+    private static final int ICON_Y = 8;
+    private static final int TEXT_X = 30;
+    private static final int TITLE_Y = 7;
+    private static final int NAME_Y = 18;
+    private static final int TITLE_COLOR = 0xFFA23BF1;
+    private static final int NAME_COLOR = 0xFFFFAB09;
+    private static final float NAME_MAX_WIDTH = 124.0F;
 
     private final Component title;
     private final Component subtitle;
@@ -38,10 +52,24 @@ public final class ResearchToast implements Toast {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, Font font, long fullyVisibleForMs) {
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, TOAST_SPRITE, 0, 0, width(), height());
-        graphics.text(font, title, 30, 7, 0xFF552200, false);
-        graphics.text(font, subtitle, 30, 18, 0xFF000000, false);
-        EntryIconRenderer.drawResearchIcon(graphics, 8, 8, icon, false);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, HUD, 0, 0,
+                (float) BACKGROUND_U, (float) BACKGROUND_V,
+                BACKGROUND_W, BACKGROUND_H,
+                BACKGROUND_W, BACKGROUND_H,
+                TEX_SIZE, TEX_SIZE);
+        EntryIconRenderer.drawResearchIcon(graphics, ICON_X, ICON_Y, icon, false);
+        graphics.text(font, title, TEXT_X, TITLE_Y, TITLE_COLOR, false);
+        float nameWidth = font.width(subtitle);
+        if (nameWidth > NAME_MAX_WIDTH) {
+            float scale = NAME_MAX_WIDTH / nameWidth;
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(TEXT_X, NAME_Y);
+            graphics.pose().scale(scale, scale);
+            graphics.text(font, subtitle, 0, 0, NAME_COLOR, false);
+            graphics.pose().popMatrix();
+        } else {
+            graphics.text(font, subtitle, TEXT_X, NAME_Y, NAME_COLOR, false);
+        }
     }
 
     @Override

@@ -53,7 +53,7 @@ public final class AspectPools {
     }
 
     public static boolean isDiscovered(Player player, Holder<IAspect> aspect) {
-        return data(player).isDiscovered(idOf(aspect));
+        return aspect.value().isPrimal() || data(player).isDiscovered(idOf(aspect));
     }
 
     public static int amount(Player player, Holder<IAspect> aspect) {
