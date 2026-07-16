@@ -99,7 +99,6 @@ import com.leclowndu93150.thaumcraft.content.world.plant.BlockGrassAmbient;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantCinderpearl;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantShimmerleaf;
 import com.leclowndu93150.thaumcraft.content.world.plant.BlockPlantVishroom;
-import com.leclowndu93150.thaumcraft.content.world.tree.BlockLeavesTC;
 import com.leclowndu93150.thaumcraft.content.world.tree.BlockSaplingTC;
 import com.leclowndu93150.thaumcraft.content.world.tree.TCTreeGrowers;
 
@@ -107,12 +106,16 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PoweredRailBlock;
+import net.minecraft.world.level.block.TintedParticleLeavesBlock;
+import net.minecraft.world.level.block.UntintedParticleLeavesBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -127,6 +130,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class TCBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TCIds.MODID);
+
+    private static final float LEAF_PARTICLE_CHANCE = 0.01F;
+    private static final int SILVERWOOD_LEAF_PARTICLE_COLOR = 0xFF4C72AE;
 
     public static final DeferredBlock<BlockFocalManipulator> FOCAL_MANIPULATOR = BLOCKS.registerBlock(
             "focal_manipulator",
@@ -1112,15 +1118,16 @@ public final class TCBlocks {
                     .ignitedByLava()
     );
 
-    public static final DeferredBlock<BlockLeavesTC> LEAVES_GREATWOOD = BLOCKS.registerBlock(
+    public static final DeferredBlock<TintedParticleLeavesBlock> LEAVES_GREATWOOD = BLOCKS.registerBlock(
             "leaves_greatwood",
-            props -> new BlockLeavesTC(0.01F, props),
+            props -> new TintedParticleLeavesBlock(LEAF_PARTICLE_CHANCE, props),
             TCBlocks::leavesProps
     );
 
-    public static final DeferredBlock<BlockLeavesTC> LEAVES_SILVERWOOD = BLOCKS.registerBlock(
+    public static final DeferredBlock<UntintedParticleLeavesBlock> LEAVES_SILVERWOOD = BLOCKS.registerBlock(
             "leaves_silverwood",
-            props -> new BlockLeavesTC(0.01F, props),
+            props -> new UntintedParticleLeavesBlock(LEAF_PARTICLE_CHANCE,
+                    ColorParticleOption.create(ParticleTypes.TINTED_LEAVES, SILVERWOOD_LEAF_PARTICLE_COLOR), props),
             props -> leavesProps(props).mapColor(MapColor.COLOR_LIGHT_BLUE)
     );
 
