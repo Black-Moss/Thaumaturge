@@ -1,14 +1,15 @@
 package com.leclowndu93150.thaumcraft.client.hud;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.research.scan.ScanNode;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
-import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagWorldRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -61,7 +62,8 @@ public final class GogglesWorldOverlay {
             resetAnimation();
             return;
         }
-        if (!(be instanceof IAspectContainer container)) {
+        IAspectContainer container = mc.level.getCapability(AspectCapabilities.CONTAINER, pos, null);
+        if (container == null) {
             resetAnimation();
             return;
         }
