@@ -78,7 +78,9 @@ public final class BlockEldritchAltar extends BlockEldritchStructure implements 
             }
             altar.setEyes((byte) (altar.getEyes() + 1));
             altar.checkForMaze();
-            stack.shrink(1);
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
             altar.setChanged();
             level.sendBlockUpdated(pos, state, state, 3);
             level.playSound(null, pos, TCSounds.CRYSTAL.get(), SoundSource.BLOCKS, 0.2F, 1.0F);

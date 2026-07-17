@@ -114,10 +114,12 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
                     return InteractionResult.SUCCESS;
                 }
                 if (jar.addEssentia(first.aspect(),first.amount(),Direction.UP) == first.amount()) {
-                    ItemStack empty = new ItemStack(TCItems.PHIAL.get());
-                    if (!player.getAbilities().instabuild) stack.shrink(1);
-                    if (!player.addItem(empty)) {
-                        player.drop(empty,false);
+                    if (!player.getAbilities().instabuild) {
+                        stack.shrink(1);
+                        ItemStack empty = new ItemStack(TCItems.PHIAL.get());
+                        if (!player.addItem(empty)) {
+                            player.drop(empty,false);
+                        }
                     }
                     level.playSound(null, pos, TCSounds.JAR.get(), SoundSource.BLOCKS, 0.25F, 1.0F);
                     return InteractionResult.SUCCESS;
