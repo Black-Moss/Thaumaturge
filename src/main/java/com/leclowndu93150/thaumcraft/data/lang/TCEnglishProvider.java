@@ -1250,6 +1250,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.cultist_knight_spawn_egg", "Crimson Knight Spawn Egg");
         add("item.thaumcraft.cultist_cleric_spawn_egg", "Crimson Cleric Spawn Egg");
         add("item.thaumcraft.cultist_portal_lesser_spawn_egg", "Lesser Crimson Portal Spawn Egg");
+        add("item.thaumcraft.cultist_leader_spawn_egg", "Cultist Leader Spawn Egg");
+        add("item.thaumcraft.cultist_portal_greater_spawn_egg", "Greater Crimson Portal Spawn Egg");
+        add("item.thaumcraft.eldritch_warden_spawn_egg", "Eldritch Warden Spawn Egg");
+        add("item.thaumcraft.eldritch_golem_spawn_egg", "Eldritch Golem Spawn Egg");
+        add("item.thaumcraft.taintacle_giant_spawn_egg", "Giant Taintacle Spawn Egg");
         add("item.thaumcraft.pech_wand", "Pech Wand");
         add("item.thaumcraft.crimson_blade", "Crimson Blade");
         add("item.thaumcraft.crimson_boots", "Crimson Cult Boots");

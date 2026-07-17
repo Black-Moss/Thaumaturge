@@ -395,6 +395,16 @@ public final class TCItems {
             registerSpawnEgg("taintacle_spawn_egg", TCEntities.TAINTACLE);
     public static final DeferredItem<SpawnEggItem> TAINT_SWARM_SPAWN_EGG =
             registerSpawnEgg("taint_swarm_spawn_egg", TCEntities.TAINT_SWARM);
+    public static final DeferredItem<SpawnEggItem> ELDRITCH_WARDEN_SPAWN_EGG =
+            registerSpawnEgg("eldritch_warden_spawn_egg", TCEntities.ELDRITCH_WARDEN);
+    public static final DeferredItem<SpawnEggItem> ELDRITCH_GOLEM_SPAWN_EGG =
+            registerSpawnEgg("eldritch_golem_spawn_egg", TCEntities.ELDRITCH_GOLEM);
+    public static final DeferredItem<SpawnEggItem> CULTIST_LEADER_SPAWN_EGG =
+            registerSpawnEgg("cultist_leader_spawn_egg", TCEntities.CULTIST_LEADER);
+    public static final DeferredItem<SpawnEggItem> CULTIST_PORTAL_GREATER_SPAWN_EGG =
+            registerSpawnEgg("cultist_portal_greater_spawn_egg", TCEntities.CULTIST_PORTAL_GREATER);
+    public static final DeferredItem<SpawnEggItem> TAINTACLE_GIANT_SPAWN_EGG =
+            registerSpawnEgg("taintacle_giant_spawn_egg", TCEntities.TAINTACLE_GIANT);
     public static final DeferredItem<SpawnEggItem> TAINT_SEED_SPAWN_EGG =
             registerSpawnEgg("taint_seed_spawn_egg", TCEntities.TAINT_SEED);
     public static final DeferredItem<SpawnEggItem> TAINT_SEED_PRIME_SPAWN_EGG =

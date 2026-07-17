@@ -252,6 +252,11 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TCItems.CULTIST_KNIGHT_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.CULTIST_CLERIC_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.CULTIST_PORTAL_LESSER_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CULTIST_LEADER_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.CULTIST_PORTAL_GREATER_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ELDRITCH_WARDEN_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ELDRITCH_GOLEM_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.TAINTACLE_GIANT_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.LOOT_BAG_COMMON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.LOOT_BAG_UNCOMMON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.LOOT_BAG_RARE.get(), ModelTemplates.FLAT_ITEM);

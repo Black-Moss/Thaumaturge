@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.world.mound;
 
+import java.util.HashMap;
+import java.util.Map;
 import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
@@ -78,6 +80,7 @@ public class MoundPiece extends ScatteredFeaturePiece {
             int id = data.charAt(i + 3) - 'A';
             this.placeBlock(level, stateFor(id).mirror(Mirror.LEFT_RIGHT), x, y, z, chunkBB);
         }
+        fillFoundation(level, chunkBB);
         this.placeBlock(level, lootContainer(random), URN_A.getX(), URN_A.getY(), URN_A.getZ(), chunkBB);
         this.placeBlock(level, lootContainer(random), URN_B.getX(), URN_B.getY(), URN_B.getZ(), chunkBB);
         placeChest(level, random, chunkBB);
@@ -85,6 +88,35 @@ public class MoundPiece extends ScatteredFeaturePiece {
         placeSpawner(level, chunkBB, SPAWNER_B, EntityType.ZOMBIE, random);
         spawnPortal(level, chunkBB);
         placeNode(level, random, chunkBB);
+    }
+
+    private void fillFoundation(WorldGenLevel level, BoundingBox chunkBB) {
+        String data = MoundLayout.DATA;
+        Map<Integer, Integer> columnMinY = new HashMap<>();
+        for (int i = 0; i < data.length(); i += MoundLayout.ENTRY_CHARS) {
+            int x = data.charAt(i) - 'A';
+            int y = data.charAt(i + 1) - 'A';
+            int z = data.charAt(i + 2) - 'A';
+            int id = data.charAt(i + 3) - 'A';
+            if (!stateFor(id).blocksMotion()) {
+                continue;
+            }
+            columnMinY.merge(x << 8 | z, y, Math::min);
+        }
+        for (Map.Entry<Integer, Integer> column : columnMinY.entrySet()) {
+            int x = column.getKey() >> 8;
+            int z = column.getKey() & 0xFF;
+            int below = column.getValue() - 1;
+            BlockPos worldPos = this.getWorldPos(x, below, z);
+            if (!chunkBB.isInside(worldPos)) {
+                continue;
+            }
+            if (!this.isReplaceableByStructures(level.getBlockState(worldPos))) {
+                continue;
+            }
+            this.placeBlock(level, Blocks.DIRT.defaultBlockState(), x, below, z, chunkBB);
+            this.fillColumnDown(level, Blocks.STONE.defaultBlockState(), x, below - 1, z, chunkBB);
+        }
     }
 
     private void placeNode(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {

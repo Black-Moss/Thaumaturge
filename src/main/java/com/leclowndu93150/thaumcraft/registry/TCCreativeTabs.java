@@ -457,6 +457,11 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.CULTIST_KNIGHT_SPAWN_EGG.get());
                         output.accept(TCItems.CULTIST_CLERIC_SPAWN_EGG.get());
                         output.accept(TCItems.CULTIST_PORTAL_LESSER_SPAWN_EGG.get());
+                        output.accept(TCItems.CULTIST_LEADER_SPAWN_EGG.get());
+                        output.accept(TCItems.CULTIST_PORTAL_GREATER_SPAWN_EGG.get());
+                        output.accept(TCItems.ELDRITCH_WARDEN_SPAWN_EGG.get());
+                        output.accept(TCItems.ELDRITCH_GOLEM_SPAWN_EGG.get());
+                        output.accept(TCItems.TAINTACLE_GIANT_SPAWN_EGG.get());
                     })
                     .build()
     );
