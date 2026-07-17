@@ -167,7 +167,7 @@ public final class ArcaneShapedRecipePattern {
     }
 
     public boolean matches(ArcaneCraftingInput input) {
-        if (input.ingredientCount() >= this.ingredientCount) {
+        if (input.ingredientCount() == this.ingredientCount) {
             if (input.width() == this.width && input.height() == this.height) {
                 if (!this.symmetrical && this.matches(input, true)) {
                     return true;
