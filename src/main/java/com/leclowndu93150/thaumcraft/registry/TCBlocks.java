@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumcraft.content.aura.BlockRechargePedestal;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockPillar;
 import com.leclowndu93150.thaumcraft.content.decor.BlockAmber;
 import com.leclowndu93150.thaumcraft.content.decor.BlockCandle;
+import com.leclowndu93150.thaumcraft.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerStandingBlock;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerWallBlock;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
@@ -1386,6 +1387,10 @@ public final class TCBlocks {
 
     public static final DeferredBlock<Block> OBSIDIAN_TILE = BLOCKS.registerBlock(
             "obsidian_tile", Block::new,
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<BlockObsidianTotem> OBSIDIAN_TOTEM = BLOCKS.registerBlock(
+            "obsidian_totem", BlockObsidianTotem::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
     public static final DeferredBlock<Block> ELDRITCH_STONE = BLOCKS.registerBlock(

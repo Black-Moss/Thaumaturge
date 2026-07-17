@@ -26,6 +26,8 @@ public final class TCBiomeModifiers {
     public static final ResourceKey<BiomeModifier> ADD_MAGICAL_NODES = key("add_magical_nodes");
     public static final ResourceKey<BiomeModifier> ADD_EERIE_NODES = key("add_eerie_nodes");
     public static final ResourceKey<BiomeModifier> ADD_NETHER_NODES = key("add_nether_nodes");
+    public static final ResourceKey<BiomeModifier> ADD_OBSIDIAN_TOTEMS = key("add_obsidian_totems");
+    public static final ResourceKey<BiomeModifier> ADD_HILLTOP_STONES = key("add_hilltop_stones");
     public static final ResourceKey<BiomeModifier> ADD_GREATWOOD = key("add_greatwood");
     public static final ResourceKey<BiomeModifier> ADD_GREATWOOD_RARE = key("add_greatwood_rare");
     public static final ResourceKey<BiomeModifier> ADD_SILVERWOOD = key("add_silverwood");
@@ -82,6 +84,16 @@ public final class TCBiomeModifiers {
                 biomes.getOrThrow(BiomeTags.IS_NETHER),
                 HolderSet.direct(features.getOrThrow(TCPlacedFeatures.NODES_NETHER)),
                 GenerationStep.Decoration.TOP_LAYER_MODIFICATION));
+
+        context.register(ADD_OBSIDIAN_TOTEMS, new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_OVERWORLD),
+                HolderSet.direct(features.getOrThrow(TCPlacedFeatures.OBSIDIAN_TOTEM)),
+                GenerationStep.Decoration.SURFACE_STRUCTURES));
+
+        context.register(ADD_HILLTOP_STONES, new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(BiomeTags.IS_OVERWORLD),
+                HolderSet.direct(features.getOrThrow(TCPlacedFeatures.HILLTOP_STONES)),
+                GenerationStep.Decoration.SURFACE_STRUCTURES));
 
         context.register(ADD_GREATWOOD, new BiomeModifiers.AddFeaturesBiomeModifier(
                 biomes.getOrThrow(TCBiomeTags.HAS_GREATWOOD),

@@ -37,6 +37,8 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> NODES_MAGICAL = key("nodes_magical");
     public static final ResourceKey<PlacedFeature> NODES_EERIE = key("nodes_eerie");
     public static final ResourceKey<PlacedFeature> NODES_NETHER = key("nodes_nether");
+    public static final ResourceKey<PlacedFeature> OBSIDIAN_TOTEM = key("obsidian_totem");
+    public static final ResourceKey<PlacedFeature> HILLTOP_STONES = key("hilltop_stones");
     public static final ResourceKey<PlacedFeature> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<PlacedFeature> ORE_QUARTZ = key("ore_quartz");
     public static final ResourceKey<PlacedFeature> ORE_AMBER = key("ore_amber");
@@ -55,6 +57,8 @@ public final class TCPlacedFeatures {
     private static final int NODE_MAGICAL_RARITY = 12;
     private static final int NODE_EERIE_RARITY = 8;
     private static final int NODE_NETHER_RARITY = 40;
+    private static final int OBSIDIAN_TOTEM_RARITY = 360;
+    private static final int HILLTOP_STONES_RARITY = 40;
     private static final int NODE_NETHER_MIN_Y = 32;
     private static final int NODE_NETHER_MAX_Y = 100;
     private static final int CINDERPEARL_Y_SPREAD = 4;
@@ -139,6 +143,15 @@ public final class TCPlacedFeatures {
                 List.of(RarityFilter.onAverageOnceEvery(NODE_NETHER_RARITY), InSquarePlacement.spread(),
                         HeightRangePlacement.uniform(VerticalAnchor.absolute(NODE_NETHER_MIN_Y),
                                 VerticalAnchor.absolute(NODE_NETHER_MAX_Y)), BiomeFilter.biome())));
+
+        context.register(OBSIDIAN_TOTEM, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.OBSIDIAN_TOTEM),
+                List.of(RarityFilter.onAverageOnceEvery(OBSIDIAN_TOTEM_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
+        context.register(HILLTOP_STONES, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.HILLTOP_STONES),
+                List.of(RarityFilter.onAverageOnceEvery(HILLTOP_STONES_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
 
         context.register(ORE_CINNABAR, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.ORE_CINNABAR),

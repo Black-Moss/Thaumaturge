@@ -315,6 +315,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.AMBER_BRICK.get());
                         output.accept(TCItems.FLESH_BLOCK.get());
                         output.accept(TCItems.OBSIDIAN_TILE.get());
+                        output.accept(TCItems.OBSIDIAN_TOTEM.get());
                         output.accept(TCItems.ELDRITCH_STONE.get());
                         output.accept(TCItems.ELDRITCH_ROCK.get());
                         output.accept(TCItems.ELDRITCH_CRUST.get());

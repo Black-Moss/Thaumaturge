@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.world.mound;
 
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
@@ -42,6 +43,7 @@ public class MoundPiece extends ScatteredFeaturePiece {
     private static final BlockPos SPAWNER_A = new BlockPos(4, 6, 4);
     private static final BlockPos SPAWNER_B = new BlockPos(4, 6, 14);
     private static final BlockPos PORTAL = new BlockPos(9, 2, 9);
+    private static final BlockPos NODE = new BlockPos(9, 8, 9);
 
     private boolean spawnedPortal;
 
@@ -81,6 +83,15 @@ public class MoundPiece extends ScatteredFeaturePiece {
         placeSpawner(level, chunkBB, SPAWNER_A, EntityType.SKELETON, random);
         placeSpawner(level, chunkBB, SPAWNER_B, EntityType.ZOMBIE, random);
         spawnPortal(level, chunkBB);
+        placeNode(level, random, chunkBB);
+    }
+
+    private void placeNode(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {
+        BlockPos pos = this.getWorldPos(NODE.getX(), NODE.getY(), NODE.getZ());
+        if (chunkBB.isInside(pos)) {
+            NodeGenerator.createRandomNodeAt(level, pos, random, false, true, false,
+                    NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+        }
     }
 
     private void placeChest(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {

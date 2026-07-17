@@ -391,6 +391,10 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(TCItems.FLESH_BLOCK))
                 .save(output, TCIds.MODID + ":rotten_flesh_from_flesh_block");
 
+        stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, TCItems.OBSIDIAN_TILE, Items.OBSIDIAN, 1);
+        stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, TCItems.OBSIDIAN_TOTEM, Items.OBSIDIAN, 1);
+        stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, TCItems.OBSIDIAN_TOTEM, TCItems.OBSIDIAN_TILE, 1);
+
         shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.AMBER_BRICK, 4)
                 .pattern("##")
                 .pattern("##")

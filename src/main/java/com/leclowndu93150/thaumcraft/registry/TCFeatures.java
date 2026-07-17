@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumcraft.content.aura.node.NodeFeature;
 import com.leclowndu93150.thaumcraft.content.aura.node.NodeFeatureConfig;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumcraft.content.world.crystal.CrystalClusterFeature;
+import com.leclowndu93150.thaumcraft.content.world.objects.HilltopStonesFeature;
+import com.leclowndu93150.thaumcraft.content.world.objects.ObsidianTotemFeature;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraConfig;
 import com.leclowndu93150.thaumcraft.content.world.plant.MagicForestFloraFeature;
 import com.leclowndu93150.thaumcraft.content.world.tree.BigMagicTreeConfig;
@@ -15,6 +17,7 @@ import com.leclowndu93150.thaumcraft.content.world.tree.SilverwoodTreeConfig;
 import com.leclowndu93150.thaumcraft.content.world.tree.SilverwoodTreeFeature;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -40,6 +43,12 @@ public final class TCFeatures {
 
     public static final DeferredHolder<Feature<?>, Feature<NodeFeatureConfig>> NODE =
             FEATURES.register("node", () -> new NodeFeature(NodeFeatureConfig.CODEC));
+
+    public static final DeferredHolder<Feature<?>, ObsidianTotemFeature> OBSIDIAN_TOTEM =
+            FEATURES.register("obsidian_totem", () -> new ObsidianTotemFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final DeferredHolder<Feature<?>, HilltopStonesFeature> HILLTOP_STONES =
+            FEATURES.register("hilltop_stones", () -> new HilltopStonesFeature(NoneFeatureConfiguration.CODEC));
 
     private TCFeatures() {}
 

@@ -13,6 +13,7 @@ import com.leclowndu93150.thaumcraft.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCBlockLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCEntityLootSubProvider;
 import com.leclowndu93150.thaumcraft.data.loot.TCGameplayLootSubProvider;
+import com.leclowndu93150.thaumcraft.data.loot.TCGlobalLootModifierProvider;
 import com.leclowndu93150.thaumcraft.data.model.TCModelProvider;
 import com.leclowndu93150.thaumcraft.data.recipe.TCRecipeProvider;
 import com.leclowndu93150.thaumcraft.data.tag.TCBiomeTagsProvider;
@@ -91,5 +92,7 @@ public final class TCDataGenerators {
                         )),
                 lookupProvider
         ));
+
+        event.createProvider(TCGlobalLootModifierProvider::new);
     }
 }

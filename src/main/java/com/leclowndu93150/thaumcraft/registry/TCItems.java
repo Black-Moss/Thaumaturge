@@ -864,6 +864,7 @@ public final class TCItems {
             "focus_pouch", FocusPouchItem::new, props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
     public static final DeferredItem<BlockItem> ACTIVATOR_RAIL = ITEMS.registerSimpleBlockItem(TCBlocks.ACTIVATOR_RAIL);
     public static final DeferredItem<BlockItem> OBSIDIAN_TILE = ITEMS.registerSimpleBlockItem(TCBlocks.OBSIDIAN_TILE);
+    public static final DeferredItem<BlockItem> OBSIDIAN_TOTEM = ITEMS.registerSimpleBlockItem(TCBlocks.OBSIDIAN_TOTEM);
     public static final DeferredItem<BlockItem> ELDRITCH_STONE = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_STONE);
     public static final DeferredItem<BlockItem> ELDRITCH_STONE_INERT = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_STONE_INERT);
     public static final DeferredItem<BlockItem> ELDRITCH_ROCK = ITEMS.registerSimpleBlockItem(TCBlocks.ELDRITCH_ROCK);

@@ -82,6 +82,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(TCBlocks.OBSIDIAN_TILE.get())
+                .add(TCBlocks.OBSIDIAN_TOTEM.get())
                 .add(TCBlocks.ELDRITCH_STONE.get())
                 .add(TCBlocks.ELDRITCH_STONE_INERT.get())
                 .add(TCBlocks.ELDRITCH_ROCK.get())

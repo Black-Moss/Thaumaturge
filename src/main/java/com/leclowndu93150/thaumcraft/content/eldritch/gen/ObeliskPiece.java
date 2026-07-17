@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.eldritch.gen;
 
+import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumcraft.content.decor.banner.BannerStandingBlock;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchAltar;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
@@ -79,6 +80,15 @@ public class ObeliskPiece extends ScatteredFeaturePiece {
             }
         }
         configureAltar(level, random, chunkBB);
+        placeNode(level, random, chunkBB);
+    }
+
+    private void placeNode(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {
+        BlockPos pos = this.getWorldPos(CENTER, GROUND + 2, CENTER);
+        if (chunkBB.isInside(pos)) {
+            NodeGenerator.createRandomNodeAt(level, pos, random, false, true, false,
+                    NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+        }
     }
 
     private void configureAltar(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {

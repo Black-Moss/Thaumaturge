@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumcraft.data.model;
 
 import com.leclowndu93150.thaumcraft.client.color.NoteColorTint;
 import com.leclowndu93150.thaumcraft.client.color.AspectColorTint;
+import com.leclowndu93150.thaumcraft.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumcraft.content.item.PrimordialPearlItem;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintFibre;
@@ -1548,6 +1549,7 @@ public final class TCModelProvider extends ModelProvider {
 
     private void eldritchModels(BlockModelGenerators blockModels) {
         cube(blockModels, TCBlocks.OBSIDIAN_TILE.get(), "obsidian_tile", true);
+        obsidianTotem(blockModels);
         cube(blockModels, TCBlocks.ELDRITCH_STONE.get(), "eldritch_stone", true);
         cube(blockModels, TCBlocks.ELDRITCH_STONE_INERT.get(), "eldritch_stone", true);
         cube(blockModels, TCBlocks.ELDRITCH_ROCK.get(), "eldritch_rock", true);
@@ -1585,6 +1587,36 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
                 BlockModelGenerators.plainVariant(model)));
         blockModels.registerSimpleItemModel(block.asItem(), model);
+    }
+
+    private void obsidianTotem(BlockModelGenerators blockModels) {
+        Block block = TCBlocks.OBSIDIAN_TOTEM.get();
+        Identifier baseModel = ModelTemplates.CUBE_COLUMN.createWithSuffix(block, "_base",
+                new TextureMapping().put(TextureSlot.SIDE, texture("obsidian_totem_base"))
+                        .put(TextureSlot.END, texture("obsidian_tile")), blockModels.modelOutput);
+        Identifier shadedModel = ModelTemplates.CUBE_COLUMN.createWithSuffix(block, "_shaded",
+                new TextureMapping().put(TextureSlot.SIDE, texture("obsidian_totem_base_shaded"))
+                        .put(TextureSlot.END, texture("obsidian_tile")), blockModels.modelOutput);
+        WeightedList.Builder<Variant> carvings = WeightedList.builder();
+        for (int i = 1; i <= 4; i++) {
+            Identifier model = ModelTemplates.CUBE_COLUMN.createWithSuffix(block, "_carved_" + i,
+                    new TextureMapping().put(TextureSlot.SIDE, texture("obsidian_totem_" + i))
+                            .put(TextureSlot.END, texture("obsidian_tile")), blockModels.modelOutput);
+            carvings.add(new Variant(model), 1);
+            carvings.add(new Variant(model).with(BlockModelGenerators.Y_ROT_90), 1);
+            carvings.add(new Variant(model).with(BlockModelGenerators.Y_ROT_180), 1);
+            carvings.add(new Variant(model).with(BlockModelGenerators.Y_ROT_270), 1);
+        }
+        MultiVariant carved = new MultiVariant(carvings.build());
+        MultiVariant base = BlockModelGenerators.plainVariant(baseModel);
+        MultiVariant shaded = BlockModelGenerators.plainVariant(shadedModel);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
+                .with(PropertyDispatch.initial(BlockObsidianTotem.UP, BlockObsidianTotem.DOWN)
+                        .select(true, true, shaded)
+                        .select(true, false, shaded)
+                        .select(false, true, carved)
+                        .select(false, false, base)));
+        blockModels.registerSimpleItemModel(block.asItem(), baseModel);
     }
 
     private void trap(BlockModelGenerators blockModels) {
