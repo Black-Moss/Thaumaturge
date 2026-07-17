@@ -6,6 +6,11 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.LivingEntity;
@@ -47,6 +52,9 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
     private static final MapCodec<BlockInfernalFurnace> CODEC = simpleCodec(BlockInfernalFurnace::new);
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+    private static final int BLAZE_REGEN_TICKS = 6000;
+    private static final int BLAZE_RESIST_TICKS = 12000;
 
     public BlockInfernalFurnace(Properties properties) {
         super(properties);
@@ -93,6 +101,15 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
             level.setBlock(barsPos, Blocks.IRON_BARS.defaultBlockState(), Block.UPDATE_ALL);
         }
         level.setBlock(pos, Blocks.LAVA.defaultBlockState(), Block.UPDATE_ALL);
+        if (level instanceof ServerLevel serverLevel) {
+            Blaze blaze = EntityType.BLAZE.create(serverLevel, EntitySpawnReason.TRIGGERED);
+            if (blaze != null) {
+                blaze.snapTo(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 0.0F, 0.0F);
+                blaze.addEffect(new MobEffectInstance(MobEffects.REGENERATION, BLAZE_REGEN_TICKS, 2));
+                blaze.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, BLAZE_RESIST_TICKS, 0));
+                serverLevel.addFreshEntity(blaze);
+            }
+        }
     }
 
     @Override

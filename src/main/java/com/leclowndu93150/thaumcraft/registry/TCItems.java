@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.content.research.note.ItemResearchNote;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarBraceItem;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.JarItem;
+import com.leclowndu93150.thaumcraft.content.infernalfurnace.ItemInfernalFurnace;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.content.aura.node.CreativeNodePlacerItem;
 import com.leclowndu93150.thaumcraft.content.aura.node.JarNodeItem;
@@ -130,7 +131,8 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> SMELTER_VENT = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_VENT);
 
-    public static final DeferredItem<BlockItem> INFERNAL_FURNACE = ITEMS.registerSimpleBlockItem(TCBlocks.INFERNAL_FURNACE);
+    public static final DeferredItem<BlockItem> INFERNAL_FURNACE =
+            registerSimpleBlockItem(TCBlocks.INFERNAL_FURNACE, ItemInfernalFurnace::new);
 
     public static final DeferredItem<BlockItem> JAR_NORMAL = registerSimpleBlockItem(TCBlocks.JAR_NORMAL, JarItem::new);
 
