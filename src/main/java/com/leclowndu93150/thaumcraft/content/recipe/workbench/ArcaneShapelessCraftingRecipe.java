@@ -71,7 +71,7 @@ public class ArcaneShapelessCraftingRecipe extends ArcaneCraftingRecipe {
 
     public boolean matches(ArcaneCraftingInput input, Level level) {
         if (!super.matches(input, level)) return false;
-        if (input.ingredientCount() < this.ingredients.size()) {
+        if (input.ingredientCount() != this.ingredients.size()) {
             return false;
         } else if (!this.isSimple) {
             ArrayList<ItemStack> nonEmptyItems = new ArrayList<>(input.ingredientCount());

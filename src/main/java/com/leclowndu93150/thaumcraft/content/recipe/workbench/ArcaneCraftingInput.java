@@ -28,7 +28,7 @@ public class ArcaneCraftingInput  implements RecipeInput {
         this.items = items;
         int ingredientCount = 0;
 
-        for(ItemStack item : items) {
+        for(ItemStack item : items.subList(0,Math.min(items.size(),width*height))) {
             if (!item.isEmpty()) {
                 ++ingredientCount;
                 this.stackedContents.accountStack(item, 1);
