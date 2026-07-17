@@ -2,7 +2,8 @@ package com.leclowndu93150.thaumcraft.content.entity;
 
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
-import net.minecraft.core.particles.ParticleTypes;
+import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,6 +17,15 @@ public final class EntityCausalityCollapser extends ThrowableItemProjectile {
     private static final float EXPLOSION_STRENGTH = 2.0F;
     private static final double RIFT_COLLAPSE_RANGE = 3.0;
     private static final int TRAIL_STEPS = 3;
+    private static final float TRAIL_JITTER = 0.0125F;
+    private static final float MOTE_ALPHA = 0.5F;
+    private static final float MOTE_SCALE = 4.0F;
+    private static final int SPARK_SPRITE_START = 448;
+    private static final int SPARK_SPRITE_COUNT = 8;
+    private static final int SPARK_AGE = 8;
+    private static final float SPARK_ALPHA = 0.7F;
+    private static final float SPARK_SCALE = 0.3F;
+    private static final double SPARK_SPREAD = 0.2;
 
     public EntityCausalityCollapser(EntityType<? extends EntityCausalityCollapser> type, Level level) {
         super(type, level);
@@ -41,13 +51,32 @@ public final class EntityCausalityCollapser extends ThrowableItemProjectile {
         if (this.level().isClientSide()) {
             for (int i = 0; i < TRAIL_STEPS; i++) {
                 double coeff = (double) i / TRAIL_STEPS;
-                this.level().addParticle(ParticleTypes.FLAME,
+                this.level().addParticle(
+                        FX.fireMoteData(this.random,
+                                TRAIL_JITTER * (this.random.nextFloat() - 0.5F),
+                                TRAIL_JITTER * (this.random.nextFloat() - 0.5F),
+                                TRAIL_JITTER * (this.random.nextFloat() - 0.5F),
+                                0.8F + this.random.nextFloat() * 0.2F,
+                                0.3F + this.random.nextFloat() * 0.1F,
+                                this.random.nextFloat() * 0.1F,
+                                MOTE_ALPHA, MOTE_SCALE),
                         this.xOld + (this.getX() - this.xOld) * coeff,
                         this.yOld + (this.getY() - this.yOld) * coeff + this.getBbHeight() / 2.0F,
                         this.zOld + (this.getZ() - this.zOld) * coeff,
-                        0.0125F * (this.random.nextFloat() - 0.5F),
-                        0.0125F * (this.random.nextFloat() - 0.5F),
-                        0.0125F * (this.random.nextFloat() - 0.5F));
+                        0.0, 0.0, 0.0);
+                this.level().addParticle(
+                        FXGenericData.builder()
+                                .maxAge(SPARK_AGE)
+                                .color(1.0F, 1.0F, 1.0F)
+                                .alpha(SPARK_ALPHA)
+                                .particles(SPARK_SPRITE_START, SPARK_SPRITE_COUNT, 1)
+                                .scale(SPARK_SCALE)
+                                .layer(1)
+                                .build(),
+                        this.getX() + this.random.nextGaussian() * SPARK_SPREAD,
+                        this.getY() + this.random.nextGaussian() * SPARK_SPREAD,
+                        this.getZ() + this.random.nextGaussian() * SPARK_SPREAD,
+                        0.0, 0.0, 0.0);
             }
         }
     }
