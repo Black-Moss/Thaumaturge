@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.eldritch.gen;
 
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchLock;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.EldritchArenaShapes;
 import com.leclowndu93150.thaumcraft.content.eldritch.maze.MazeCell;
@@ -118,7 +119,7 @@ public final class GenContext {
                 case EAST -> 4;
                 default -> 5;
             });
-            case GLOW_TILE -> state = TCBlocks.STONE_ELDRITCH_TILE.get().defaultBlockState();
+            case GLOW_TILE -> state = TCBlocks.ELDRITCH_CRUST_GLOWING.get().defaultBlockState();
             case VOID -> state = TCBlocks.ELDRITCH_NOTHING.get().defaultBlockState();
             case AIR_REPL -> {
                 state = Blocks.AIR.defaultBlockState();
@@ -145,7 +146,7 @@ public final class GenContext {
             Block block = state.getBlock();
             int flags = block != TCBlocks.ELDRITCH_NOTHING.get() && block != Blocks.BEDROCK && block != Blocks.AIR ? 3 : 2;
             level.setBlock(pos, state, flags);
-            if (block instanceof StairBlock) {
+            if (block instanceof StairBlock || block instanceof BlockEldritchInset) {
                 level.getChunk(pos).markPosForPostprocessing(pos);
             }
         }

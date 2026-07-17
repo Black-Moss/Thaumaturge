@@ -291,7 +291,8 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.ELDRITCH_CRUST_GLOWING.get());
         dropSelf(TCBlocks.STAIRS_ELDRITCH.get());
         dropSelf(TCBlocks.ELDRITCH_PEDESTAL.get());
-        add(TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), noDrop());
+        add(TCBlocks.ELDRITCH_STONE_CRYSTAL.get(),
+                createSingleItemTable(TCItems.CURIO_KNOWLEDGE.get()));
         dropSelf(TCBlocks.ELDRITCH_DOOR.get());
         dropSelf(TCBlocks.VOID_SIPHON.get());
         dropOther(TCBlocks.THAUMATORIUM.get(), TCBlocks.ALCHEMICAL_CONSTRUCT.get());

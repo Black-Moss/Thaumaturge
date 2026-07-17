@@ -1,9 +1,12 @@
 package com.leclowndu93150.thaumcraft.data.model;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import com.leclowndu93150.thaumcraft.client.color.NoteColorTint;
 import com.leclowndu93150.thaumcraft.client.color.AspectColorTint;
 import com.leclowndu93150.thaumcraft.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumcraft.content.item.PrimordialPearlItem;
 import com.leclowndu93150.thaumcraft.content.taint.block.BlockTaintFibre;
 import net.minecraft.client.color.item.GrassColorSource;
@@ -51,6 +54,7 @@ import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelInstance;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.ModelTemplates;
@@ -1554,9 +1558,9 @@ public final class TCModelProvider extends ModelProvider {
         cube(blockModels, TCBlocks.ELDRITCH_STONE_INERT.get(), "eldritch_stone", true);
         cube(blockModels, TCBlocks.ELDRITCH_ROCK.get(), "eldritch_rock", true);
         cube(blockModels, TCBlocks.ELDRITCH_CRUST.get(), "eldritch_crust", true);
-        cube(blockModels, TCBlocks.ELDRITCH_CRUST_GLOWING.get(), "eldritch_crust_glowing", true);
+        insetBlock(blockModels, TCBlocks.ELDRITCH_CRUST_GLOWING.get(), "eldritch_crust_glowing");
         cube(blockModels, TCBlocks.ELDRITCH_DOOR.get(), "eldritch_door", true);
-        cube(blockModels, TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), "eldritch_stone_crystal", true);
+        insetBlock(blockModels, TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), "eldritch_stone_crystal");
         cube(blockModels, TCBlocks.ELDRITCH_LOCK.get(), "eldritch_deco", true);
         crabSpawner(blockModels);
         column(blockModels, TCBlocks.ELDRITCH_PEDESTAL.get(), "eldritch_pedestal_side", "eldritch_stone");
@@ -1568,6 +1572,71 @@ public final class TCModelProvider extends ModelProvider {
         invisible(blockModels, TCBlocks.ELDRITCH_NOTHING.get());
         invisible(blockModels, TCBlocks.ELDRITCH_PORTAL.get());
         stairsFromTexture(blockModels, TCBlocks.STAIRS_ELDRITCH.get(), texture("eldritch_stone"));
+    }
+
+    private static final int INSET_DEPTH = 2;
+    private static final int INSET_ALL_EXPOSED = 63;
+
+    private void insetBlock(BlockModelGenerators blockModels, Block block, String textureName) {
+        Identifier texture = TCIds.rl("block/" + textureName);
+        MultiPartGenerator generator = MultiPartGenerator.multiPart(block);
+        for (int mask = 0; mask <= INSET_ALL_EXPOSED; mask++) {
+            Identifier model = TCIds.rl("block/" + textureName + "_inset_" + mask);
+            blockModels.modelOutput.accept(model, insetModel(texture, mask));
+            ConditionBuilder condition = new ConditionBuilder();
+            for (Direction dir : Direction.values()) {
+                condition = condition.term(BlockEldritchInset.EXPOSED.get(dir), insetExposed(mask, dir));
+            }
+            generator = generator.with(condition, new MultiVariant(WeightedList.of(new Variant(model))));
+        }
+        blockModels.blockStateOutput.accept(generator);
+        blockModels.registerSimpleItemModel(block.asItem(),
+                TCIds.rl("block/" + textureName + "_inset_" + INSET_ALL_EXPOSED));
+    }
+
+    private static boolean insetExposed(int mask, Direction dir) {
+        return (mask & (1 << dir.get3DDataValue())) != 0;
+    }
+
+    private static ModelInstance insetModel(Identifier texture, int mask) {
+        return () -> {
+            JsonObject root = new JsonObject();
+            JsonObject textures = new JsonObject();
+            textures.addProperty("particle", texture.toString());
+            textures.addProperty("all", texture.toString());
+            root.add("textures", textures);
+            JsonObject element = new JsonObject();
+            element.add("from", insetCoords(
+                    insetExposed(mask, Direction.WEST) ? INSET_DEPTH : 0,
+                    insetExposed(mask, Direction.DOWN) ? INSET_DEPTH : 0,
+                    insetExposed(mask, Direction.NORTH) ? INSET_DEPTH : 0));
+            element.add("to", insetCoords(
+                    insetExposed(mask, Direction.EAST) ? 16 - INSET_DEPTH : 16,
+                    insetExposed(mask, Direction.UP) ? 16 - INSET_DEPTH : 16,
+                    insetExposed(mask, Direction.SOUTH) ? 16 - INSET_DEPTH : 16));
+            JsonObject faces = new JsonObject();
+            for (Direction dir : Direction.values()) {
+                JsonObject face = new JsonObject();
+                face.addProperty("texture", "#all");
+                if (!insetExposed(mask, dir)) {
+                    face.addProperty("cullface", dir.getSerializedName());
+                }
+                faces.add(dir.getSerializedName(), face);
+            }
+            element.add("faces", faces);
+            JsonArray elements = new JsonArray();
+            elements.add(element);
+            root.add("elements", elements);
+            return root;
+        };
+    }
+
+    private static JsonArray insetCoords(int x, int y, int z) {
+        JsonArray coords = new JsonArray();
+        coords.add(x);
+        coords.add(y);
+        coords.add(z);
+        return coords;
     }
 
     private void cube(BlockModelGenerators blockModels, Block block, String textureName, boolean item) {

@@ -26,6 +26,7 @@ import com.leclowndu93150.thaumcraft.content.decor.BlockTable;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchAltar;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCap;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchLock;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchNothing;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchObelisk;
@@ -113,6 +114,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.valueproviders.ConstantInt;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PoweredRailBlock;
@@ -1415,10 +1418,10 @@ public final class TCBlocks {
             "eldritch_crust", Block::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(TCSoundTypes.GORE.get()));
 
-    public static final DeferredBlock<Block> ELDRITCH_CRUST_GLOWING = BLOCKS.registerBlock(
-            "eldritch_crust_glowing", Block::new,
-            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(TCSoundTypes.GORE.get())
-                    .lightLevel(state -> 15));
+    public static final DeferredBlock<BlockEldritchInset> ELDRITCH_CRUST_GLOWING = BLOCKS.registerBlock(
+            "eldritch_crust_glowing", props -> new BlockEldritchInset(ConstantInt.of(0), props),
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 30.0F).sound(SoundType.STONE)
+                    .lightLevel(state -> 12).noOcclusion());
 
     public static final DeferredBlock<BlockMirror> MIRROR = BLOCKS.registerBlock(
             "mirror", props -> new BlockMirror(props, false),
@@ -1442,10 +1445,10 @@ public final class TCBlocks {
             "eldritch_pedestal", Block::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
-    public static final DeferredBlock<Block> ELDRITCH_STONE_CRYSTAL = BLOCKS.registerBlock(
-            "eldritch_stone_crystal", Block::new,
+    public static final DeferredBlock<BlockEldritchInset> ELDRITCH_STONE_CRYSTAL = BLOCKS.registerBlock(
+            "eldritch_stone_crystal", props -> new BlockEldritchInset(UniformInt.of(1, 4), props),
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 30.0F).sound(SoundType.STONE)
-                    .lightLevel(state -> 12));
+                    .lightLevel(state -> 12).noOcclusion());
 
     public static final DeferredBlock<BlockEldritchNothing> ELDRITCH_NOTHING = BLOCKS.registerBlock(
             "eldritch_nothing", BlockEldritchNothing::new,

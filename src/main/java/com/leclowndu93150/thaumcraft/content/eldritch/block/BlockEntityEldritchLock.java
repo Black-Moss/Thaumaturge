@@ -34,6 +34,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -160,6 +161,11 @@ public final class BlockEntityEldritchLock extends BlockEntity {
 
     private static BlockState stairState(int legacyMeta) {
         return EldritchArenaShapes.stairFromLegacyMeta(TCBlocks.STAIRS_ELDRITCH.get(), legacyMeta);
+    }
+
+    private static void placeCrystal(Level level, BlockPos pos) {
+        BlockState crystal = TCBlocks.ELDRITCH_STONE_CRYSTAL.get().defaultBlockState();
+        level.setBlock(pos, Block.updateFromNeighbourShapes(crystal, level, pos), 3);
     }
 
     private void spawnWardenBossRoom(ServerLevel level, BlockPos lockPos, int cx, int cz, int exit) {
@@ -293,10 +299,10 @@ public final class BlockEntityEldritchLock extends BlockEntity {
                     int px = x - 8 + b * 4;
                     int pz = z - 8 + a * 4;
                     level.setBlock(new BlockPos(px, y + 2, pz), TCBlocks.ELDRITCH_STONE.get().defaultBlockState(), 3);
-                    level.setBlock(new BlockPos(px, y + 3, pz), TCBlocks.ELDRITCH_STONE_CRYSTAL.get().defaultBlockState(), 3);
+                    placeCrystal(level, new BlockPos(px, y + 3, pz));
                     level.setBlock(new BlockPos(px, y + 4, pz), TCBlocks.SLAB_ARCANE_STONE.get().defaultBlockState(), 3);
                     level.setBlock(new BlockPos(px, y + 10, pz), TCBlocks.ELDRITCH_STONE.get().defaultBlockState(), 3);
-                    level.setBlock(new BlockPos(px, y + 9, pz), TCBlocks.ELDRITCH_STONE_CRYSTAL.get().defaultBlockState(), 3);
+                    placeCrystal(level, new BlockPos(px, y + 9, pz));
                     level.setBlock(new BlockPos(px, y + 8, pz), TCBlocks.SLAB_ARCANE_STONE.get().defaultBlockState()
                             .setValue(SlabBlock.TYPE, SlabType.TOP), 3);
                 }

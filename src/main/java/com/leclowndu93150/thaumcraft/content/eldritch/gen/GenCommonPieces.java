@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.eldritch.gen;
 
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchCrabSpawner;
+import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumcraft.content.eldritch.maze.MazeCell;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import net.minecraft.core.BlockPos;
@@ -103,12 +104,15 @@ public class GenCommonPieces {
                     && (exposed == 1 || !isBedrockShowing(ctx, pos))
                     && !isAdjacentToEldritchDeco(ctx, pos)) {
                 BlockState state = ctx.random.nextInt(3) != 0
-                        ? TCBlocks.STONE_ELDRITCH_TILE.get().defaultBlockState()
+                        ? TCBlocks.ELDRITCH_CRUST_GLOWING.get().defaultBlockState()
                         : ctx.random.nextInt(8) != 0
                         ? TCBlocks.ELDRITCH_STONE_CRYSTAL.get().defaultBlockState()
                         : TCBlocks.ELDRITCH_TRAP.get().defaultBlockState();
                 ctx.level.setBlock(pos, state, 3);
-                if (state.is(TCBlocks.STONE_ELDRITCH_TILE.get()) && ctx.random.nextInt(12) == 0) {
+                if (state.getBlock() instanceof BlockEldritchInset) {
+                    ctx.level.getChunk(pos).markPosForPostprocessing(pos);
+                }
+                if (state.is(TCBlocks.ELDRITCH_CRUST_GLOWING.get()) && ctx.random.nextInt(12) == 0) {
                     for (Direction dir : Direction.values()) {
                         BlockPos side = pos.relative(dir);
                         if (ctx.level.isEmptyBlock(side)) {
@@ -162,7 +166,7 @@ public class GenCommonPieces {
     private static boolean isAdjacentToEldritchDeco(GenContext ctx, BlockPos pos) {
         for (Direction dir : Direction.values()) {
             BlockState neighbor = ctx.level.getBlockState(pos.relative(dir));
-            if (neighbor.is(TCBlocks.STONE_ELDRITCH_TILE.get())
+            if (neighbor.is(TCBlocks.ELDRITCH_CRUST_GLOWING.get())
                     || neighbor.is(TCBlocks.ELDRITCH_STONE_CRYSTAL.get())
                     || neighbor.is(TCBlocks.ELDRITCH_TRAP.get())
                     || neighbor.is(TCBlocks.ELDRITCH_CRAB_SPAWNER.get())) {
