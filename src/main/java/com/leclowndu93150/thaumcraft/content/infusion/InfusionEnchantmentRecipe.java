@@ -12,11 +12,14 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -152,6 +155,20 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
     @Override
     public Optional<ResearchGate> researchGate() {
         return research;
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        ItemStack out = resultItem();
+        SlotDisplay resultDisplay = out.isEmpty()
+                ? SlotDisplay.Empty.INSTANCE
+                : new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(out));
+        return List.of(new InfusionRecipeDisplay(
+                displayCatalyst.display(),
+                components().stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(),
+                aspects(),
+                instability(),
+                resultDisplay));
     }
 
     @Override

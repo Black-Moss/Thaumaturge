@@ -12,6 +12,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -71,6 +73,12 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
 
     public ItemStack result() {
         return this.result.create();
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        return List.of(new MultiblockRecipeDisplay(blueprintId,
+                new SlotDisplay.ItemStackSlotDisplay(result)));
     }
 
     @Override

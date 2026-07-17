@@ -8,6 +8,8 @@ import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSimpleRecipe
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -17,6 +19,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
 import java.util.Optional;
 
 public class CrucibleRecipe implements Recipe<CrucibleRecipeInput>, ResearchGated {
@@ -124,6 +127,14 @@ public class CrucibleRecipe implements Recipe<CrucibleRecipeInput>, ResearchGate
 
     public ItemStackTemplate rawResult() {
         return result;
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        return List.of(new CrucibleRecipeDisplay(
+                catalyst.display(),
+                aspects,
+                new SlotDisplay.ItemStackSlotDisplay(result)));
     }
 
     @Override

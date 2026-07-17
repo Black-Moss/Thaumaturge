@@ -20,7 +20,7 @@
     {
       "text": "research.thaumcraft.deconstructor.stage.2",
       "recipes": [
-        "thaumcraft:deconstruction_table"
+        "thaumcraft:arcane_workbench/deconstruction_table"
       ]
     }
   ],
@@ -28,7 +28,7 @@
     "round"
   ],
   "icons": [
-    "thaumcraft:deconstruction_table"
+    "thaumcraft:arcane_workbench/deconstruction_table"
   ],
   "note_aspects": [
     {

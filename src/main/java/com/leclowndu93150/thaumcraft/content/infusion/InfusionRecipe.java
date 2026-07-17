@@ -10,6 +10,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -127,6 +129,20 @@ public final class InfusionRecipe implements Recipe<InfusionInput>, IInfusionRec
     @Override
     public Optional<ResearchGate> researchGate() {
         return research;
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        ItemStack out = resultItem();
+        SlotDisplay resultDisplay = out.isEmpty()
+                ? SlotDisplay.Empty.INSTANCE
+                : new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(out));
+        return List.of(new InfusionRecipeDisplay(
+                catalyst.display(),
+                components.stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(),
+                aspects,
+                instability,
+                resultDisplay));
     }
 
     @Override

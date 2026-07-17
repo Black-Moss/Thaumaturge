@@ -1,12 +1,36 @@
 package com.leclowndu93150.thaumcraft.client.render.research;
 
+import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.recipe.Blueprint;
+import com.leclowndu93150.thaumcraft.api.recipe.BlueprintPart;
+import com.leclowndu93150.thaumcraft.api.recipe.BlueprintSource;
+import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
+import com.leclowndu93150.thaumcraft.client.screen.pip.BlockPreviewRenderState;
+import com.leclowndu93150.thaumcraft.mixin.client.gui.GuiGraphicsExtractorAccessor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import java.util.HashMap;
+import org.joml.Matrix3x2f;
+import com.leclowndu93150.thaumcraft.content.infusion.InfusionRecipeDisplay;
+import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipeDisplay;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.MultiblockRecipeDisplay;
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipeDisplay;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -105,6 +129,18 @@ public final class RecipeDisplayWidget {
         int cx = x + CENTER_OFFSET;
         int cy = y + CENTER_OFFSET;
         ContextMap context = SlotDisplayContext.fromLevel(Minecraft.getInstance().level);
+        if (display instanceof CrucibleRecipeDisplay crucible) {
+            drawCruciblePage(graphics, cx, cy, crucible, context);
+            return;
+        }
+        if (display instanceof InfusionRecipeDisplay infusion) {
+            drawInfusionPage(graphics, cx, cy, infusion, context);
+            return;
+        }
+        if (display instanceof MultiblockRecipeDisplay multiblock) {
+            drawConstructPage(graphics, cx, cy, multiblock, context);
+            return;
+        }
         Layout layout = collect(display, context);
         Font font = Minecraft.getInstance().font;
         if (layout.kind == Kind.ARCANE_SHAPED || layout.kind == Kind.ARCANE_SHAPELESS) {
@@ -132,6 +168,15 @@ public final class RecipeDisplayWidget {
         int cx = x + CENTER_OFFSET;
         int cy = y + CENTER_OFFSET;
         ContextMap context = SlotDisplayContext.fromLevel(Minecraft.getInstance().level);
+        if (display instanceof CrucibleRecipeDisplay crucible) {
+            return hoverCruciblePage(cx, cy, crucible, context, mouseX, mouseY);
+        }
+        if (display instanceof InfusionRecipeDisplay infusion) {
+            return hoverInfusionPage(cx, cy, infusion, context, mouseX, mouseY);
+        }
+        if (display instanceof MultiblockRecipeDisplay multiblock) {
+            return hoverConstructPage(cx, cy, multiblock, context, mouseX, mouseY);
+        }
         Layout layout = collect(display, context);
         ItemStack inputHover = hoverInput(cx, cy, layout, mouseX, mouseY);
         if (inputHover != null && !inputHover.isEmpty()) {
@@ -163,6 +208,14 @@ public final class RecipeDisplayWidget {
         int cx = x + CENTER_OFFSET;
         int cy = y + CENTER_OFFSET;
         ContextMap context = SlotDisplayContext.fromLevel(Minecraft.getInstance().level);
+        if (display instanceof CrucibleRecipeDisplay crucible) {
+            List<AspectInstance> sorted = sortedAspects(crucible.aspects());
+            return hoverAspectGrid(cx + CRUCIBLE_ASPECT_X, cy + CRUCIBLE_ASPECT_Y, sorted, 3, mouseX, mouseY);
+        }
+        if (display instanceof InfusionRecipeDisplay infusion) {
+            List<AspectInstance> sorted = sortedAspects(infusion.aspects());
+            return hoverAspectGrid(cx + INFUSION_ASPECT_X, cy + INFUSION_ASPECT_Y, sorted, 5, mouseX, mouseY);
+        }
         Layout layout = collect(display, context);
         if (layout.kind != Kind.ARCANE_SHAPED && layout.kind != Kind.ARCANE_SHAPELESS) {
             return null;
@@ -425,6 +478,317 @@ public final class RecipeDisplayWidget {
 
     private static boolean isBareCrystal(ItemStack stack) {
         return stack.is(TCItems.ESSENTIA_CRYSTAL.get()) && stack.get(TCDataComponents.CRYSTAL_ASPECT.get()) == null;
+    }
+
+    private static final int CRUCIBLE_HEADER_Y = -29;
+    private static final int CRUCIBLE_BODY_Y = -12;
+    private static final int CRUCIBLE_DRIP_X = -25;
+    private static final int CRUCIBLE_DRIP_Y = -26;
+    private static final int CRUCIBLE_RESULT_X = -8;
+    private static final int CRUCIBLE_RESULT_Y = -50;
+    private static final int CRUCIBLE_CATALYST_X = -64;
+    private static final int CRUCIBLE_CATALYST_Y = -56;
+    private static final int CRUCIBLE_ASPECT_X = -28;
+    private static final int CRUCIBLE_ASPECT_Y = 8;
+
+    private static final int INFUSION_PANEL_SHIFT_Y = 20;
+    private static final int INFUSION_HEADER_Y = -56;
+    private static final int INFUSION_BODY_Y = -36;
+    private static final int INFUSION_RESULT_Y = -85;
+    private static final int INFUSION_CATALYST_Y = -16;
+    private static final int INFUSION_RING_CENTER_Y = -8;
+    private static final int INFUSION_RING_RADIUS = 40;
+    private static final int INFUSION_ASPECT_X = -48;
+    private static final int INFUSION_ASPECT_Y = 50;
+    private static final int INFUSION_INSTABILITY_Y = 94;
+    private static final int INFUSION_INSTABILITY_MAX = 5;
+
+    private static final int CONSTRUCT_INGREDIENT_X = -85;
+    private static final int CONSTRUCT_INGREDIENT_STRIDE = 17;
+    private static final int CONSTRUCT_INGREDIENT_Y = 90;
+
+    private static final float PREVIEW_ROT_X = 25.0F;
+    private static final float PREVIEW_SPIN_DEG_PER_SEC = 7.5F;
+    private static final float PREVIEW_SCALE = 15.0F;
+    private static final int PREVIEW_HALF_WIDTH = 70;
+    private static final int PREVIEW_TOP = -60;
+    private static final int PREVIEW_BOTTOM = 84;
+
+    private static final int ASPECT_CELL = 20;
+    private static final int ASPECT_HALF_CELL = 10;
+
+    private static void drawCruciblePage(GuiGraphicsExtractor graphics, int cx, int cy,
+                                         CrucibleRecipeDisplay display, ContextMap context) {
+        Font font = Minecraft.getInstance().font;
+        drawKindLabel(graphics, font, cx, cy, "recipe.type.crucible");
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(cx, cy);
+        graphics.pose().scale(PANEL_SCALE, PANEL_SCALE);
+        blitOverlay(graphics, -28, CRUCIBLE_HEADER_Y, 0, 3, 56, 17);
+        blitOverlay(graphics, -28, CRUCIBLE_BODY_Y, 0, 20, 56, 48);
+        blitOverlay(graphics, CRUCIBLE_DRIP_X, CRUCIBLE_DRIP_Y, 100, 84, 11, 13);
+        graphics.pose().popMatrix();
+        drawAspectGrid(graphics, font, cx + CRUCIBLE_ASPECT_X, cy + CRUCIBLE_ASPECT_Y, display.aspects(), 3);
+        ItemStack result = display.result().resolveForFirstStack(context);
+        if (!result.isEmpty()) {
+            graphics.item(result, cx + CRUCIBLE_RESULT_X, cy + CRUCIBLE_RESULT_Y);
+        }
+        ItemStack catalyst = pickRotating(resolveCycle(display.catalyst(), context), 0);
+        if (!catalyst.isEmpty()) {
+            graphics.item(catalyst, cx + CRUCIBLE_CATALYST_X, cy + CRUCIBLE_CATALYST_Y);
+        }
+    }
+
+    private static void drawInfusionPage(GuiGraphicsExtractor graphics, int cx, int cy,
+                                         InfusionRecipeDisplay display, ContextMap context) {
+        Font font = Minecraft.getInstance().font;
+        drawKindLabel(graphics, font, cx, cy, "recipe.type.infusion");
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(cx, cy + INFUSION_PANEL_SHIFT_Y);
+        graphics.pose().scale(PANEL_SCALE, PANEL_SCALE);
+        blitOverlay(graphics, -28, INFUSION_HEADER_Y, 0, 3, 56, 17);
+        blitOverlay(graphics, -28, INFUSION_BODY_Y, 200, 77, 56, 44);
+        graphics.pose().popMatrix();
+        drawAspectGrid(graphics, font, cx + INFUSION_ASPECT_X, cy + INFUSION_ASPECT_Y, display.aspects(), 5);
+        ItemStack result = display.result().resolveForFirstStack(context);
+        if (!result.isEmpty()) {
+            graphics.item(result, cx + CRUCIBLE_RESULT_X, cy + INFUSION_RESULT_Y);
+        }
+        ItemStack catalyst = pickRotating(resolveCycle(display.catalyst(), context), 0);
+        if (!catalyst.isEmpty()) {
+            graphics.item(catalyst, cx + CRUCIBLE_RESULT_X, cy + INFUSION_CATALYST_Y);
+        }
+        List<SlotDisplay> components = display.components();
+        for (int a = 0; a < components.size(); a++) {
+            ItemStack stack = pickRotating(resolveCycle(components.get(a), context), a + 1);
+            if (!stack.isEmpty()) {
+                int[] offset = infusionRingOffset(a, components.size());
+                graphics.item(stack, cx + offset[0], cy + INFUSION_RING_CENTER_Y + offset[1]);
+            }
+        }
+        int inst = Math.min(INFUSION_INSTABILITY_MAX, display.instability() / 2);
+        Component text = Component.translatable("tc.inst")
+                .append(Component.translatable("tc.inst." + inst));
+        int offset = font.width(text);
+        graphics.text(font, text, cx - offset / 2, cy + INFUSION_INSTABILITY_Y, LABEL_COLOR, false);
+    }
+
+    private static void drawConstructPage(GuiGraphicsExtractor graphics, int cx, int cy,
+                                          MultiblockRecipeDisplay display, ContextMap context) {
+        Font font = Minecraft.getInstance().font;
+        drawKindLabel(graphics, font, cx, cy, "recipe.type.construct");
+        drawSlotFrame(graphics, cx, cy);
+        ItemStack result = display.result().resolveForFirstStack(context);
+        if (!result.isEmpty()) {
+            graphics.item(result, cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y);
+        }
+        drawBlueprintPreview(graphics, cx, cy, display.blueprint());
+        List<ItemStack> ingredients = blueprintIngredients(display.blueprint());
+        for (int a = 0; a < ingredients.size(); a++) {
+            int ix = cx + CONSTRUCT_INGREDIENT_X + a * CONSTRUCT_INGREDIENT_STRIDE;
+            graphics.item(ingredients.get(a), ix, cy + CONSTRUCT_INGREDIENT_Y);
+            graphics.itemDecorations(font, ingredients.get(a), ix, cy + CONSTRUCT_INGREDIENT_Y);
+        }
+    }
+
+    private static void drawBlueprintPreview(GuiGraphicsExtractor graphics, int cx, int cy, Identifier blueprintId) {
+        Blueprint blueprint = lookupBlueprint(blueprintId);
+        if (blueprint == null) {
+            return;
+        }
+        Map<BlockPos, BlockState> blocks = new HashMap<>();
+        for (int y = 0; y < blueprint.ySize(); y++) {
+            for (int x = 0; x < blueprint.xSize(); x++) {
+                for (int z = 0; z < blueprint.zSize(); z++) {
+                    BlueprintPart part = blueprint.cell(y, x, z);
+                    if (part != null) {
+                        blocks.put(new BlockPos(x, -y + (blueprint.ySize() - 1), z), part.source().getState());
+                    }
+                }
+            }
+        }
+        Matrix3x2f pose = graphics.pose();
+        int px = Math.round(pose.m20);
+        int py = Math.round(pose.m21);
+        float rotY = System.currentTimeMillis() % 2_880_000L / 1000.0F * PREVIEW_SPIN_DEG_PER_SEC + 90.0F;
+        ((GuiGraphicsExtractorAccessor) graphics).thaumcraft$getGuiRenderState()
+                .addPicturesInPictureState(new BlockPreviewRenderState(
+                        blocks,
+                        PREVIEW_ROT_X,
+                        rotY,
+                        1,
+                        PREVIEW_SCALE,
+                        0,
+                        0,
+                        px + cx - PREVIEW_HALF_WIDTH,
+                        py + cy + PREVIEW_TOP,
+                        px + cx + PREVIEW_HALF_WIDTH,
+                        py + cy + PREVIEW_BOTTOM,
+                        null
+                ));
+    }
+
+    private static void drawKindLabel(GuiGraphicsExtractor graphics, Font font, int cx, int cy, String key) {
+        Component text = Component.translatable(key);
+        int offset = font.width(text);
+        graphics.text(font, text, cx - offset / 2, cy + LABEL_OFFSET_Y, LABEL_COLOR, false);
+    }
+
+    private static void blitOverlay(GuiGraphicsExtractor graphics, int ox, int oy, int u, int v, int w, int h) {
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                TCScreenTextures.RESEARCH_BOOK_OVERLAY,
+                ox, oy,
+                (float) u, (float) v,
+                w, h,
+                w, h,
+                TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE
+        );
+    }
+
+    private static List<AspectInstance> sortedAspects(AspectList aspects) {
+        return aspects.entries().stream()
+                .sorted(Comparator.comparing(e -> e.aspect().getKey().identifier().toString()))
+                .toList();
+    }
+
+    private static void drawAspectGrid(GuiGraphicsExtractor graphics, Font font, int sx, int sy,
+                                       AspectList aspects, int perRow) {
+        Font chipFont = font;
+        List<AspectInstance> sorted = sortedAspects(aspects);
+        int rows = (sorted.size() - 1) / perRow;
+        int startY = sy - ASPECT_HALF_CELL * rows;
+        int total = 0;
+        for (AspectInstance instance : sorted) {
+            int[] pos = aspectCell(sx, startY, total, sorted.size(), perRow, rows);
+            AspectTagRenderer.render(graphics, chipFont, pos[0], pos[1], instance.aspect(), instance.amount());
+            total++;
+        }
+    }
+
+    private static int[] aspectCell(int sx, int sy, int index, int count, int perRow, int rows) {
+        int shift = (perRow - count % perRow) * ASPECT_HALF_CELL;
+        int m = index / perRow >= rows && (rows > 1 || count < perRow) ? 1 : 0;
+        return new int[]{sx + index % perRow * ASPECT_CELL + shift * m, sy + index / perRow * ASPECT_CELL};
+    }
+
+    private static int[] infusionRingOffset(int index, int count) {
+        float pieSlice = 360.0F / count;
+        float rot = -90.0F + pieSlice * index;
+        int xx = (int) (Mth.cos(rot / 180.0F * (float) Math.PI) * INFUSION_RING_RADIUS) - 8;
+        int yy = (int) (Mth.sin(rot / 180.0F * (float) Math.PI) * INFUSION_RING_RADIUS) - 8;
+        return new int[]{xx, yy};
+    }
+
+    private static @Nullable Blueprint lookupBlueprint(Identifier blueprintId) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) {
+            return null;
+        }
+        Registry<Blueprint> registry = mc.level.registryAccess().lookup(Blueprint.REGISTRY_KEY).orElse(null);
+        if (registry == null) {
+            return null;
+        }
+        return registry.get(ResourceKey.create(Blueprint.REGISTRY_KEY, blueprintId))
+                .map(Holder::value).orElse(null);
+    }
+
+    private static List<ItemStack> blueprintIngredients(Identifier blueprintId) {
+        Blueprint blueprint = lookupBlueprint(blueprintId);
+        if (blueprint == null) {
+            return List.of();
+        }
+        Map<BlueprintSource, Integer> counts = new LinkedHashMap<>();
+        for (int y = 0; y < blueprint.ySize(); y++) {
+            for (int x = 0; x < blueprint.xSize(); x++) {
+                for (int z = 0; z < blueprint.zSize(); z++) {
+                    BlueprintPart part = blueprint.cell(y, x, z);
+                    if (part != null && !part.source().getRepresentations().isEmpty()) {
+                        counts.merge(part.source(), 1, Integer::sum);
+                    }
+                }
+            }
+        }
+        List<ItemStack> out = new ArrayList<>();
+        counts.entrySet().stream()
+                .sorted(Comparator.comparingInt((Map.Entry<BlueprintSource, Integer> e) -> e.getValue()).reversed())
+                .forEach(e -> {
+                    ItemStack stack = e.getKey().getRepresentations().getFirst().copy();
+                    stack.setCount(e.getValue());
+                    out.add(stack);
+                });
+        return out;
+    }
+
+    private static @Nullable ItemStack hoverCruciblePage(int cx, int cy, CrucibleRecipeDisplay display,
+                                                         ContextMap context, double mouseX, double mouseY) {
+        ItemStack result = display.result().resolveForFirstStack(context);
+        if (!result.isEmpty() && hitItem(cx + CRUCIBLE_RESULT_X, cy + CRUCIBLE_RESULT_Y, mouseX, mouseY)) {
+            return result;
+        }
+        ItemStack catalyst = pickRotating(resolveCycle(display.catalyst(), context), 0);
+        if (!catalyst.isEmpty() && hitItem(cx + CRUCIBLE_CATALYST_X, cy + CRUCIBLE_CATALYST_Y, mouseX, mouseY)) {
+            return catalyst;
+        }
+        return null;
+    }
+
+    private static @Nullable ItemStack hoverInfusionPage(int cx, int cy, InfusionRecipeDisplay display,
+                                                         ContextMap context, double mouseX, double mouseY) {
+        ItemStack result = display.result().resolveForFirstStack(context);
+        if (!result.isEmpty() && hitItem(cx + CRUCIBLE_RESULT_X, cy + INFUSION_RESULT_Y, mouseX, mouseY)) {
+            return result;
+        }
+        ItemStack catalyst = pickRotating(resolveCycle(display.catalyst(), context), 0);
+        if (!catalyst.isEmpty() && hitItem(cx + CRUCIBLE_RESULT_X, cy + INFUSION_CATALYST_Y, mouseX, mouseY)) {
+            return catalyst;
+        }
+        List<SlotDisplay> components = display.components();
+        for (int a = 0; a < components.size(); a++) {
+            int[] offset = infusionRingOffset(a, components.size());
+            if (hitItem(cx + offset[0], cy + INFUSION_RING_CENTER_Y + offset[1], mouseX, mouseY)) {
+                ItemStack stack = pickRotating(resolveCycle(components.get(a), context), a + 1);
+                if (!stack.isEmpty()) {
+                    return stack;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable ItemStack hoverConstructPage(int cx, int cy, MultiblockRecipeDisplay display,
+                                                          ContextMap context, double mouseX, double mouseY) {
+        ItemStack result = display.result().resolveForFirstStack(context);
+        if (!result.isEmpty() && hitItem(cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y, mouseX, mouseY)) {
+            return result;
+        }
+        List<ItemStack> ingredients = blueprintIngredients(display.blueprint());
+        for (int a = 0; a < ingredients.size(); a++) {
+            if (hitItem(cx + CONSTRUCT_INGREDIENT_X + a * CONSTRUCT_INGREDIENT_STRIDE,
+                    cy + CONSTRUCT_INGREDIENT_Y, mouseX, mouseY)) {
+                return ingredients.get(a);
+            }
+        }
+        return null;
+    }
+
+    private static boolean hitItem(int x, int y, double mouseX, double mouseY) {
+        return mouseX >= x && mouseX < x + ITEM_HIT_SIZE && mouseY >= y && mouseY < y + ITEM_HIT_SIZE;
+    }
+
+    private static @Nullable Component hoverAspectGrid(int sx, int sy, List<AspectInstance> sorted, int perRow,
+                                                       double mouseX, double mouseY) {
+        int rows = (sorted.size() - 1) / perRow;
+        int startY = sy - ASPECT_HALF_CELL * rows;
+        for (int index = 0; index < sorted.size(); index++) {
+            int[] pos = aspectCell(sx, startY, index, sorted.size(), perRow, rows);
+            if (hitItem(pos[0], pos[1], mouseX, mouseY)) {
+                AspectInstance instance = sorted.get(index);
+                return AspectComponents.name(instance.aspect()).append("\n")
+                        .append(AspectComponents.description(instance.aspect()));
+            }
+        }
+        return null;
     }
 
     private static ItemStack pickRotating(List<ItemStack> stacks, int counter) {

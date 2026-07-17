@@ -24,7 +24,7 @@
     {
       "text": "research.thaumcraft.link_book.stage_1",
       "recipes": [
-        "thaumcraft:infusion/thaumonomicon_binding"
+        "thaumcraft:infusion/thaumonomicon_linking"
       ]
     }
   ],

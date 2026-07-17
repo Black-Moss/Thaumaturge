@@ -23,7 +23,7 @@
     {
       "text": "research.thaumcraft.share_book.stage_1",
       "recipes": [
-        "thaumcraft:arcane_crafting/thaumonomicon_sharing"
+        "thaumcraft:arcane_workbench/thaumonomicon_sharing"
       ]
     }
   ],
