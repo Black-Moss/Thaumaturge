@@ -2,6 +2,9 @@ package com.leclowndu93150.thaumcraft.client.render.research;
 
 import com.leclowndu93150.thaumcraft.content.recipe.workbench.ArcaneCraftingRecipeDisplay;
 import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
+import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
+import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
+import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -10,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.context.ContextMap;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
@@ -339,7 +343,7 @@ public final class RecipeDisplayWidget {
             for (int j = 0; j < rh && j < GRID_DIM_MAX; j++) {
                 int index = i + j * rw;
                 if (index >= ingredients.size()) continue;
-                List<ItemStack> cycle = ingredients.get(index).resolveForStacks(context);
+                List<ItemStack> cycle = resolveCycle(ingredients.get(index), context);
                 if (cycle.isEmpty()) continue;
                 slots.add(new Slot(i, j, index, cycle));
             }
@@ -358,7 +362,7 @@ public final class RecipeDisplayWidget {
         if (arcane.shapeless()) {
             int cap = Math.min(ingredients.size(), 9);
             for (int i = 0; i < cap; i++) {
-                List<ItemStack> cycle = ingredients.get(i).resolveForStacks(context);
+                List<ItemStack> cycle = resolveCycle(ingredients.get(i), context);
                 if (cycle.isEmpty()) continue;
                 slots.add(new Slot(i % GRID_DIM_MAX, i / GRID_DIM_MAX, i, cycle));
             }
@@ -371,7 +375,7 @@ public final class RecipeDisplayWidget {
             for (int j = 0; j < rh && j < GRID_DIM_MAX; j++) {
                 int index = i + j * rw;
                 if (index >= ingredients.size()) continue;
-                List<ItemStack> cycle = ingredients.get(index).resolveForStacks(context);
+                List<ItemStack> cycle = resolveCycle(ingredients.get(index), context);
                 if (cycle.isEmpty()) continue;
                 slots.add(new Slot(i, j, index, cycle));
             }
@@ -385,11 +389,42 @@ public final class RecipeDisplayWidget {
         List<Slot> slots = new ArrayList<>();
         int cap = Math.min(ingredients.size(), 9);
         for (int i = 0; i < cap; i++) {
-            List<ItemStack> cycle = ingredients.get(i).resolveForStacks(context);
+            List<ItemStack> cycle = resolveCycle(ingredients.get(i), context);
             if (cycle.isEmpty()) continue;
             slots.add(new Slot(i % GRID_DIM_MAX, i / GRID_DIM_MAX, i, cycle));
         }
         return new Layout(Kind.WORKBENCH_SHAPELESS, slots, shapeless.result().resolveForFirstStack(context), 0, List.of());
+    }
+
+    private static List<ItemStack> resolveCycle(SlotDisplay slot, ContextMap context) {
+        List<ItemStack> cycle = slot.resolveForStacks(context);
+        boolean bareCrystal = false;
+        for (ItemStack stack : cycle) {
+            if (isBareCrystal(stack)) {
+                bareCrystal = true;
+                break;
+            }
+        }
+        if (!bareCrystal) {
+            return cycle;
+        }
+        Player player = Minecraft.getInstance().player;
+        if (player == null) {
+            return cycle;
+        }
+        List<ItemStack> expanded = new ArrayList<>();
+        for (ItemStack stack : cycle) {
+            if (isBareCrystal(stack)) {
+                expanded.addAll(EssentiaCrystalFactory.discoveredCrystals(player));
+            } else {
+                expanded.add(stack);
+            }
+        }
+        return expanded.isEmpty() ? cycle : expanded;
+    }
+
+    private static boolean isBareCrystal(ItemStack stack) {
+        return stack.is(TCItems.ESSENTIA_CRYSTAL.get()) && stack.get(TCDataComponents.CRYSTAL_ASPECT.get()) == null;
     }
 
     private static ItemStack pickRotating(List<ItemStack> stacks, int counter) {

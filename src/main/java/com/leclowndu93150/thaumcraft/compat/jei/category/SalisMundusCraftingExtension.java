@@ -1,17 +1,14 @@
 package com.leclowndu93150.thaumcraft.compat.jei.category;
 
-import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.compat.jei.ThaumcraftJEIPlugin;
 import com.leclowndu93150.thaumcraft.content.recipe.SalisMundusRecipe;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -22,36 +19,43 @@ public final class SalisMundusCraftingExtension implements ICraftingCategoryExte
 
     private SalisMundusCraftingExtension() {}
 
+    private static final int CRYSTAL_SLOTS = 3;
+
     @Override
     public List<SlotDisplay> getIngredients(RecipeHolder<SalisMundusRecipe> recipeHolder) {
-        List<SlotDisplay> primals = primalCrystalDisplays();
-        return List.of(
-                new SlotDisplay.ItemSlotDisplay(Items.FLINT),
-                new SlotDisplay.ItemSlotDisplay(Items.BOWL),
-                new SlotDisplay.ItemSlotDisplay(Items.REDSTONE),
-                primals.get(0 % primals.size()),
-                primals.get(1 % primals.size()),
-                primals.get(2 % primals.size()));
+        List<SlotDisplay> crystals = crystalDisplays();
+        List<SlotDisplay> slots = new ArrayList<>();
+        slots.add(new SlotDisplay.ItemSlotDisplay(Items.FLINT));
+        slots.add(new SlotDisplay.ItemSlotDisplay(Items.BOWL));
+        slots.add(new SlotDisplay.ItemSlotDisplay(Items.REDSTONE));
+        for (int slot = 0; slot < CRYSTAL_SLOTS; slot++) {
+            slots.add(rotated(crystals, slot));
+        }
+        return slots;
     }
 
-    private static List<SlotDisplay> primalCrystalDisplays() {
-        RegistryAccess registryAccess = ThaumcraftJEIPlugin.clientRegistryAccess();
-        if (registryAccess != null) {
-            Optional<Registry<IAspect>> registry = registryAccess.lookup(IAspect.REGISTRY_KEY);
-            if (registry.isPresent()) {
-                List<SlotDisplay> variants = new ArrayList<>();
-                for (Holder.Reference<IAspect> aspect : registry.get().listElements().toList()) {
-                    if (aspect.value().isPrimal()) {
-                        variants.add(new SlotDisplay.ItemStackSlotDisplay(
-                                ItemStackTemplate.fromNonEmptyStack(EssentiaCrystalFactory.of(aspect))));
-                    }
-                }
-                if (!variants.isEmpty()) {
-                    return variants;
-                }
+    private static SlotDisplay rotated(List<SlotDisplay> displays, int offset) {
+        if (displays.size() <= 1) {
+            return displays.isEmpty() ? SlotDisplay.Empty.INSTANCE : displays.get(0);
+        }
+        List<SlotDisplay> shifted = new ArrayList<>(displays.size());
+        for (int i = 0; i < displays.size(); i++) {
+            shifted.add(displays.get((i + offset) % displays.size()));
+        }
+        return new SlotDisplay.Composite(shifted);
+    }
+
+    private static List<SlotDisplay> crystalDisplays() {
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            List<SlotDisplay> variants = new ArrayList<>();
+            for (ItemStack crystal : EssentiaCrystalFactory.discoveredCrystals(player)) {
+                variants.add(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(crystal)));
+            }
+            if (!variants.isEmpty()) {
+                return variants;
             }
         }
-        SlotDisplay fallback = new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get());
-        return List.of(fallback);
+        return List.of(new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get()));
     }
 }
