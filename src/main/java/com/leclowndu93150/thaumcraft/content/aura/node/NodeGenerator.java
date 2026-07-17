@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataMaps;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -42,6 +43,15 @@ public final class NodeGenerator {
 
     public static boolean createRandomNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random,
             boolean silverwood, boolean eerie, boolean small, int specialRarity, int baseAura) {
+        NodeData data = rollRandomNodeData(level, pos, random, silverwood, eerie, small, specialRarity, baseAura);
+        if (data == null) {
+            return false;
+        }
+        return createNodeAt(level, pos, data.type(), data.modifier().orElse(null), data.aspects());
+    }
+
+    public static @Nullable NodeData rollRandomNodeData(ServerLevelAccessor level, BlockPos pos, RandomSource random,
+            boolean silverwood, boolean eerie, boolean small, int specialRarity, int baseAura) {
         HolderLookup.RegistryLookup<IAspect> aspectRegistry =
                 level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
         List<Holder<IAspect>> basicAspects = new ArrayList<>();
@@ -54,7 +64,7 @@ public final class NodeGenerator {
             }
         });
         if (basicAspects.isEmpty() || complexAspects.isEmpty()) {
-            return false;
+            return null;
         }
 
         NodeType type = NodeType.NORMAL;
@@ -129,7 +139,7 @@ public final class NodeGenerator {
             }
         }
 
-        return createNodeAt(level, pos, type, modifier, distributed);
+        return new NodeData(type, Optional.ofNullable(modifier), distributed, distributed);
     }
 
     public static boolean createNodeAt(ServerLevelAccessor level, BlockPos pos, NodeType type,

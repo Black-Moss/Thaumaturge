@@ -85,6 +85,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PRIMAL_CHARM.get());
                         output.accept(TCItems.NODE_STABILIZER.get());
                         output.accept(TCItems.NODE_STABILIZER_ADVANCED.get());
+                        output.accept(TCItems.JAR_NODE.get());
                         output.accept(TCItems.FOCUS_1.get());
                         output.accept(TCItems.FOCUS_2.get());
                         output.accept(TCItems.FOCUS_3.get());

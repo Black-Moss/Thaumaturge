@@ -7,7 +7,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -17,6 +21,17 @@ import net.minecraft.world.level.block.Block;
 public final class JarNodeItem extends BlockItem {
     public JarNodeItem(Block block, Item.Properties properties) {
         super(block, properties);
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
+        if (stack.get(TCDataComponents.NODE_DATA.get()) == null) {
+            NodeData data = NodeGenerator.rollRandomNodeData(level, entity.blockPosition(), level.getRandom(),
+                    false, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+            if (data != null) {
+                stack.set(TCDataComponents.NODE_DATA.get(), data);
+            }
+        }
     }
 
     @Override
