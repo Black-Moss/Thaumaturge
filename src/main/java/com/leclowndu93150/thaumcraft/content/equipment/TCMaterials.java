@@ -33,6 +33,7 @@ public final class TCMaterials {
     public static final ResourceKey<EquipmentAsset> ASSET_VOID_ROBE = asset("void_robe");
     public static final ResourceKey<EquipmentAsset> ASSET_FORTRESS = asset("fortress");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_PLATE = asset("cultist_plate");
+    public static final ResourceKey<EquipmentAsset> ASSET_ZOMBIE_PLATE = asset("zombie_plate");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_ROBE = asset("cultist_robe");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_BOOTS = asset("cultist_boots");
     public static final ResourceKey<EquipmentAsset> ASSET_CULTIST_LEADER = asset("cultist_leader");
