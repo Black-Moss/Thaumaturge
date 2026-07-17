@@ -122,7 +122,7 @@ public final class TCEntityRenderers {
                 context -> new TaintacleRenderer(context, TCModelLayers.TAINTACLE_GIANT,
                         TAINTACLE_GIANT_LENGTH, TAINTACLE_GIANT_SHADOW));
         event.registerEntityRenderer(TCEntities.CULTIST_KNIGHT.get(), CultistRenderer::new);
-        event.registerEntityRenderer(TCEntities.CULTIST_CLERIC.get(), CultistRenderer::new);
+        event.registerEntityRenderer(TCEntities.CULTIST_CLERIC.get(), CultistClericRenderer::new);
         event.registerEntityRenderer(TCEntities.CULTIST_PORTAL_LESSER.get(), CultistPortalRenderer::new);
         event.registerEntityRenderer(TCEntities.ELDRITCH_ORB.get(), EldritchOrbRenderer::new);
         event.registerEntityRenderer(TCEntities.GOLEM_ORB.get(), GolemOrbRenderer::new);

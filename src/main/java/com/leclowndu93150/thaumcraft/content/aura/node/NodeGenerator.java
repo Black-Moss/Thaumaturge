@@ -134,19 +134,27 @@ public final class NodeGenerator {
 
     public static boolean createNodeAt(ServerLevelAccessor level, BlockPos pos, NodeType type,
             @Nullable NodeModifier modifier, AspectList aspects) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityNode existing) {
+            return configureNode(existing, type, modifier, aspects);
+        }
         BlockState current = level.getBlockState(pos);
         if (!current.isAir() && !current.canBeReplaced() && !current.is(BlockTags.LEAVES)) {
             return false;
         }
         level.setBlock(pos, TCBlocks.NODE.get().defaultBlockState(), PLACE_FLAGS);
         if (level.getBlockEntity(pos) instanceof BlockEntityNode node) {
-            node.setNodeType(type);
-            node.setNodeModifier(modifier);
-            node.setAspects(aspects);
-            node.setChanged();
-            return true;
+            return configureNode(node, type, modifier, aspects);
         }
         return false;
+    }
+
+    private static boolean configureNode(BlockEntityNode node, NodeType type,
+            @Nullable NodeModifier modifier, AspectList aspects) {
+        node.setNodeType(type);
+        node.setNodeModifier(modifier);
+        node.setAspects(aspects);
+        node.setChanged();
+        return true;
     }
 
     private static @Nullable Holder<IAspect> randomBiomeAspect(HolderLookup.RegistryLookup<IAspect> registry,

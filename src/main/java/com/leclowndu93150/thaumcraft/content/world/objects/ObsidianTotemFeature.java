@@ -89,7 +89,7 @@ public final class ObsidianTotemFeature extends Feature<NoneFeatureConfiguration
     }
 
     private static void placeCapNode(WorldGenLevel level, BlockPos pos, RandomSource random) {
-        level.setBlock(pos, Blocks.AIR.defaultBlockState(), PLACE_FLAGS);
+        level.setBlock(pos, TCBlocks.OBSIDIAN_TOTEM_CHARGED.get().defaultBlockState(), PLACE_FLAGS);
         NodeGenerator.createRandomNodeAt(level, pos, random, false, true, false,
                 NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
     }

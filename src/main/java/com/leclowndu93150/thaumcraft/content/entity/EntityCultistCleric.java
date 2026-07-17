@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
+import com.leclowndu93150.thaumcraft.content.entity.ai.AltarFocusGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.LongRangeAttackGoal;
+import net.minecraft.core.BlockPos;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -38,6 +40,11 @@ import net.minecraft.world.phys.Vec3;
 public class EntityCultistCleric extends EntityCultist implements RangedAttackMob {
     private static final EntityDataAccessor<Boolean> DATA_RITUALIST =
             SynchedEntityData.defineId(EntityCultistCleric.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<BlockPos> DATA_RITUAL_ANCHOR =
+            SynchedEntityData.defineId(EntityCultistCleric.class, EntityDataSerializers.BLOCK_POS);
+
+    private static final float RITUAL_PITCH_STEP = 10.0F;
+    private static final double RITUAL_ANCHOR_HEIGHT = 1.5;
 
     private static final float BOOTS_CHANCE_HARD = 0.3F;
     private static final float BOOTS_CHANCE = 0.1F;
@@ -60,6 +67,7 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
 
     @Override
     protected void registerGoals() {
+        this.goalSelector.addGoal(1, new AltarFocusGoal(this));
         this.goalSelector.addGoal(2, new LongRangeAttackGoal(this, 2.0, 1.0, 20, 40, 24.0F));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0, false));
         this.goalSelector.addGoal(5, new OpenDoorGoal(this, true));
@@ -77,6 +85,7 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
         entityData.define(DATA_RITUALIST, false);
+        entityData.define(DATA_RITUAL_ANCHOR, BlockPos.ZERO);
     }
 
     public boolean isRitualist() {
@@ -85,6 +94,13 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
 
     public void setRitualist(boolean ritualist) {
         this.entityData.set(DATA_RITUALIST, ritualist);
+        if (ritualist && this.hasHome()) {
+            this.entityData.set(DATA_RITUAL_ANCHOR, this.getHomePosition());
+        }
+    }
+
+    public BlockPos ritualAnchor() {
+        return this.entityData.get(DATA_RITUAL_ANCHOR);
     }
 
     @Override
@@ -144,9 +160,29 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
     @Override
     public void tick() {
         super.tick();
+        if (this.level().isClientSide() && this.isRitualist()) {
+            faceRitualAnchor();
+        }
         if (!this.level().isClientSide() && this.isRitualist() && this.rage >= 5) {
             this.setRitualist(false);
         }
+    }
+
+    private void faceRitualAnchor() {
+        BlockPos anchor = ritualAnchor();
+        double dx = anchor.getX() + 0.5 - this.getX();
+        double dy = anchor.getY() + RITUAL_ANCHOR_HEIGHT - (this.getY() + this.getEyeHeight());
+        double dz = anchor.getZ() + 0.5 - this.getZ();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        float yaw = (float) (Math.atan2(dz, dx) * 180.0 / Math.PI) - 90.0F;
+        float pitch = (float) (-(Math.atan2(dy, horizontal) * 180.0 / Math.PI));
+        this.setXRot(rotateTowards(this.getXRot(), pitch, RITUAL_PITCH_STEP));
+        this.yHeadRot = rotateTowards(this.yHeadRot, yaw, this.getMaxHeadXRot());
+    }
+
+    private static float rotateTowards(float current, float target, float step) {
+        float delta = Mth.wrapDegrees(target - current);
+        return current + Mth.clamp(delta, -step, step);
     }
 
     @Override

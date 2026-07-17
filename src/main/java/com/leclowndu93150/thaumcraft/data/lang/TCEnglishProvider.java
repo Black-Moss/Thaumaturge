@@ -1202,6 +1202,7 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langOuterLands() {
         add("block.thaumcraft.obsidian_tile", "Obsidian Tile");
         add("block.thaumcraft.obsidian_totem", "Obsidian Totem");
+        add("block.thaumcraft.obsidian_totem_charged", "Charged Obsidian Totem");
         add("block.thaumcraft.eldritch_stone", "Eldritch Stone");
         add("block.thaumcraft.eldritch_stone_inert", "Inert Eldritch Stone");
         add("block.thaumcraft.eldritch_rock", "Eldritch Rock");

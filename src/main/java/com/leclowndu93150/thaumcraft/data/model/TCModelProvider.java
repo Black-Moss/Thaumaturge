@@ -1610,12 +1610,14 @@ public final class TCModelProvider extends ModelProvider {
         MultiVariant carved = new MultiVariant(carvings.build());
         MultiVariant base = BlockModelGenerators.plainVariant(baseModel);
         MultiVariant shaded = BlockModelGenerators.plainVariant(shadedModel);
-        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
-                .with(PropertyDispatch.initial(BlockObsidianTotem.UP, BlockObsidianTotem.DOWN)
-                        .select(true, true, shaded)
-                        .select(true, false, shaded)
-                        .select(false, true, carved)
-                        .select(false, false, base)));
+        for (Block totem : List.of(block, TCBlocks.OBSIDIAN_TOTEM_CHARGED.get())) {
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(totem)
+                    .with(PropertyDispatch.initial(BlockObsidianTotem.UP, BlockObsidianTotem.DOWN)
+                            .select(true, true, shaded)
+                            .select(true, false, shaded)
+                            .select(false, true, carved)
+                            .select(false, false, base)));
+        }
         blockModels.registerSimpleItemModel(block.asItem(), baseModel);
     }
 
