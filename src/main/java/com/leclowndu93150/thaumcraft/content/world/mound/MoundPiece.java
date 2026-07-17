@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -75,7 +76,7 @@ public class MoundPiece extends ScatteredFeaturePiece {
             int y = data.charAt(i + 1) - 'A';
             int z = data.charAt(i + 2) - 'A';
             int id = data.charAt(i + 3) - 'A';
-            this.placeBlock(level, stateFor(id), x, y, z, chunkBB);
+            this.placeBlock(level, stateFor(id).mirror(Mirror.LEFT_RIGHT), x, y, z, chunkBB);
         }
         this.placeBlock(level, lootContainer(random), URN_A.getX(), URN_A.getY(), URN_A.getZ(), chunkBB);
         this.placeBlock(level, lootContainer(random), URN_B.getX(), URN_B.getY(), URN_B.getZ(), chunkBB);
@@ -160,6 +161,7 @@ public class MoundPiece extends ScatteredFeaturePiece {
             case MoundLayout.MOSSY_COBBLESTONE -> Blocks.MOSSY_COBBLESTONE.defaultBlockState();
             case MoundLayout.SHORT_GRASS -> Blocks.SHORT_GRASS.defaultBlockState();
             case MoundLayout.STAIRS_EAST -> stairs(Direction.EAST, Half.BOTTOM);
+            case MoundLayout.STAIRS_NORTH -> stairs(Direction.NORTH, Half.BOTTOM);
             case MoundLayout.STAIRS_WEST -> stairs(Direction.WEST, Half.BOTTOM);
             case MoundLayout.STAIRS_SOUTH -> stairs(Direction.SOUTH, Half.BOTTOM);
             case MoundLayout.STAIRS_EAST_TOP -> stairs(Direction.EAST, Half.TOP);
