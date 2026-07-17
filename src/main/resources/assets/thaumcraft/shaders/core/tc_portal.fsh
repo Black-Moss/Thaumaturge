@@ -7,7 +7,7 @@
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
 
-in vec4 texProj0;
+in vec3 worldPos;
 in float sphericalVertexDistance;
 in float cylindricalVertexDistance;
 
@@ -45,8 +45,15 @@ vec2 layer_uv(vec2 base, int i) {
 }
 
 void main() {
-    vec2 ndc = texProj0.xy / texProj0.w * 2.0 - 1.0;
-    vec2 base = vec2(-ndc.x / ProjMat[0][0], -ndc.y / ProjMat[1][1]);
+    vec3 nrm = abs(normalize(cross(dFdx(worldPos), dFdy(worldPos))));
+    vec2 base;
+    if (nrm.y > max(nrm.x, nrm.z)) {
+        base = worldPos.xz;
+    } else if (nrm.x > nrm.z) {
+        base = worldPos.zy;
+    } else {
+        base = worldPos.xy;
+    }
     vec3 color = texture(Sampler0, layer_uv(base, 0)).rgb * COLORS[0];
     for (int i = 1; i < 16; i++) {
         vec4 tex = texture(Sampler1, layer_uv(base, i));
