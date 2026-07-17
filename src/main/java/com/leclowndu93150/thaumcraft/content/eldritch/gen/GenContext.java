@@ -12,6 +12,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class GenContext {
@@ -144,6 +145,9 @@ public final class GenContext {
             Block block = state.getBlock();
             int flags = block != TCBlocks.ELDRITCH_NOTHING.get() && block != Blocks.BEDROCK && block != Blocks.AIR ? 3 : 2;
             level.setBlock(pos, state, flags);
+            if (block instanceof StairBlock) {
+                level.getChunk(pos).markPosForPostprocessing(pos);
+            }
         }
     }
 
