@@ -44,8 +44,7 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
     private static final float TABLET_FACE_OFFSET = 0.525F;
     private static final float TABLET_HEIGHT = 0.285F;
     private static final float FLAT_ITEM_LIFT = 0.125F;
-    private static final float IN_FRAME_SCALE = 0.5128205F;
-    private static final float IN_FRAME_DROP = -0.05F;
+    private static final float TABLET_SCALE = 1.0256410F;
     private static final float DOOR_MIN = -2.0F;
     private static final float DOOR_MAX = 3.0F;
     private static final float DOOR_PLANE = 0.5F;
@@ -129,8 +128,8 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
             default -> 0.0F;
         };
         poseStack.mulPose(Axis.YP.rotationDegrees(yRot));
-        poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
-        poseStack.translate(0.0F, IN_FRAME_DROP + FLAT_ITEM_LIFT, 0.0F);
+        poseStack.translate(0.0F, FLAT_ITEM_LIFT, 0.0F);
+        poseStack.scale(TABLET_SCALE, TABLET_SCALE, TABLET_SCALE);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         state.tablet.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
@@ -140,11 +139,11 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
         boolean zAxis = state.facing.getAxis() == Direction.Axis.Z;
         collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> {
             if (zAxis) {
-                EldritchPortalSurface.quad(pose, buffer,
+                EldritchPortalSurface.quad(pose, buffer, state.blockPos,
                         DOOR_MIN, DOOR_MIN, DOOR_PLANE, DOOR_MIN, DOOR_MAX, DOOR_PLANE,
                         DOOR_MAX, DOOR_MAX, DOOR_PLANE, DOOR_MAX, DOOR_MIN, DOOR_PLANE);
             } else {
-                EldritchPortalSurface.quad(pose, buffer,
+                EldritchPortalSurface.quad(pose, buffer, state.blockPos,
                         DOOR_PLANE, DOOR_MIN, DOOR_MIN, DOOR_PLANE, DOOR_MAX, DOOR_MIN,
                         DOOR_PLANE, DOOR_MAX, DOOR_MAX, DOOR_PLANE, DOOR_MIN, DOOR_MAX);
             }

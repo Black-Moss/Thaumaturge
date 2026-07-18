@@ -262,6 +262,7 @@ public final class GenRooms extends GenCommonPieces {
         EntitySpecialItem item = new EntitySpecialItem(ctx.level.getLevel(),
                 x + 8.5, y + 3.5, z + 8.5, new ItemStack(TCItems.RUNED_TABLET.get()));
         item.setDeltaMovement(0.0, 0.0, 0.0);
+        item.setUnlimitedLifetime();
         ctx.level.addFreshEntity(item);
         Difficulty difficulty = ctx.level.getDifficulty();
         int guardians = 2 + (difficulty == Difficulty.HARD ? 2 : difficulty == Difficulty.NORMAL ? 1 : 0);

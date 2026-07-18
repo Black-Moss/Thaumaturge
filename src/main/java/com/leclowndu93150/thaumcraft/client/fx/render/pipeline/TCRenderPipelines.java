@@ -91,6 +91,7 @@ public final class TCRenderPipelines {
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/portal_surface"))
             .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_portal"))
             .withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_portal"))
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
             .withCull(false)
             .build();
 

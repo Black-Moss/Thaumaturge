@@ -61,16 +61,16 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
         float base = COLUMN_BASE + bob;
         float top = base + COLUMN_HEIGHT;
         collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> {
-            EldritchPortalSurface.quad(pose, buffer,
+            EldritchPortalSurface.quad(pose, buffer, state.blockPos,
                     0.0F, base, PLANE_INSET, 0.0F, top, PLANE_INSET,
                     1.0F, top, PLANE_INSET, 1.0F, base, PLANE_INSET);
-            EldritchPortalSurface.quad(pose, buffer,
+            EldritchPortalSurface.quad(pose, buffer, state.blockPos,
                     0.0F, base, 1.0F - PLANE_INSET, 0.0F, top, 1.0F - PLANE_INSET,
                     1.0F, top, 1.0F - PLANE_INSET, 1.0F, base, 1.0F - PLANE_INSET);
-            EldritchPortalSurface.quad(pose, buffer,
+            EldritchPortalSurface.quad(pose, buffer, state.blockPos,
                     PLANE_INSET, base, 0.0F, PLANE_INSET, top, 0.0F,
                     PLANE_INSET, top, 1.0F, PLANE_INSET, base, 1.0F);
-            EldritchPortalSurface.quad(pose, buffer,
+            EldritchPortalSurface.quad(pose, buffer, state.blockPos,
                     1.0F - PLANE_INSET, base, 0.0F, 1.0F - PLANE_INSET, top, 0.0F,
                     1.0F - PLANE_INSET, top, 1.0F, 1.0F - PLANE_INSET, base, 1.0F);
         });
