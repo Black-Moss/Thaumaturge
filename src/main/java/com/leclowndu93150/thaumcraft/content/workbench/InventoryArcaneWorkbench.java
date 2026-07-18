@@ -90,6 +90,6 @@ public class InventoryArcaneWorkbench extends SimpleContainer implements IArcane
     }
 
     public ArcaneCraftingInput asArcaneCraftInput() {
-        return ArcaneCraftingInput.of(3, 3, getItems().subList(0, WAND_SLOT));
+        return ArcaneCraftingInput.of(3, 3, getItems());
     }
 }

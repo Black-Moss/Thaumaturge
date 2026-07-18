@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.recipe.workbench;
 
+import com.leclowndu93150.thaumcraft.content.workbench.WorkbenchPayment;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import java.util.List;
 import java.util.ArrayList;
@@ -125,6 +126,7 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
 
     @Override
     public boolean matches(ArcaneCraftingInput input, Level level) {
-        return true;
+        WorkbenchPayment.Plan plan = WorkbenchPayment.plan(this,input,input.player());
+        return plan.crystalsSatisfied();
     }
 }
