@@ -53,27 +53,27 @@ public final class EldritchNothingRenderer implements BlockEntityRenderer<BlockE
         collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> {
             for (Direction dir : Direction.values()) {
                 if (state.exposed[dir.ordinal()]) {
-                    faceQuad(pose, buffer, dir);
+                    faceQuad(pose, buffer, state.blockPos, dir);
                 }
             }
         });
     }
 
-    private static void faceQuad(PoseStack.Pose pose, VertexConsumer buffer, Direction dir) {
+    private static void faceQuad(PoseStack.Pose pose, VertexConsumer buffer, BlockPos worldPos, Direction dir) {
         float near = INSET;
         float far = 1.0F - INSET;
         switch (dir) {
-            case DOWN -> EldritchPortalSurface.quad(pose, buffer,
+            case DOWN -> EldritchPortalSurface.quad(pose, buffer, worldPos,
                     0.0F, near, 0.0F, 1.0F, near, 0.0F, 1.0F, near, 1.0F, 0.0F, near, 1.0F);
-            case UP -> EldritchPortalSurface.quad(pose, buffer,
+            case UP -> EldritchPortalSurface.quad(pose, buffer, worldPos,
                     0.0F, far, 0.0F, 1.0F, far, 0.0F, 1.0F, far, 1.0F, 0.0F, far, 1.0F);
-            case NORTH -> EldritchPortalSurface.quad(pose, buffer,
+            case NORTH -> EldritchPortalSurface.quad(pose, buffer, worldPos,
                     0.0F, 0.0F, near, 0.0F, 1.0F, near, 1.0F, 1.0F, near, 1.0F, 0.0F, near);
-            case SOUTH -> EldritchPortalSurface.quad(pose, buffer,
+            case SOUTH -> EldritchPortalSurface.quad(pose, buffer, worldPos,
                     0.0F, 0.0F, far, 0.0F, 1.0F, far, 1.0F, 1.0F, far, 1.0F, 0.0F, far);
-            case WEST -> EldritchPortalSurface.quad(pose, buffer,
+            case WEST -> EldritchPortalSurface.quad(pose, buffer, worldPos,
                     near, 0.0F, 0.0F, near, 1.0F, 0.0F, near, 1.0F, 1.0F, near, 0.0F, 1.0F);
-            case EAST -> EldritchPortalSurface.quad(pose, buffer,
+            case EAST -> EldritchPortalSurface.quad(pose, buffer, worldPos,
                     far, 0.0F, 0.0F, far, 1.0F, 0.0F, far, 1.0F, 1.0F, far, 0.0F, 1.0F);
         }
     }

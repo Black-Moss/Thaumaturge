@@ -132,7 +132,13 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER.get()))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_TRANSDUCER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_TRANSDUCER.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER_ADVANCED.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER_ADVANCED.get()))));
+        itemModels.itemModelOutput.accept(TCBlocks.NODE_TRANSDUCER.get().asItem(), new SpecialModelWrapper.Unbaked(
+                TCIds.rl("item/node_stabilizer_base"),
+                Optional.empty(),
+                new NodeStabilizerItemSpecialRenderer.Unbaked(false, true)
+        ));
         itemModels.itemModelOutput.accept(TCBlocks.NODE_STABILIZER.get().asItem(), new SpecialModelWrapper.Unbaked(
                 TCIds.rl("item/node_stabilizer_base"),
                 Optional.empty(),
@@ -384,6 +390,25 @@ public final class TCModelProvider extends ModelProvider {
         plantModels(blockModels, itemModels);
         taintModels(blockModels, itemModels);
         containerItemModels(itemModels);
+    }
+
+    private void eldritchLock(BlockModelGenerators blockModels) {
+        Identifier model = ModelTemplates.CUBE_ORIENTABLE.create(TCBlocks.ELDRITCH_LOCK.get(),
+                new TextureMapping()
+                        .put(TextureSlot.FRONT, texture("eldritch_lock_face"))
+                        .put(TextureSlot.SIDE, texture("eldritch_lock_side"))
+                        .put(TextureSlot.TOP, texture("eldritch_lock_side")),
+                blockModels.modelOutput);
+        PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.FACING)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_90)
+                .select(Direction.UP, BlockModelGenerators.X_ROT_270)
+                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270)
+                .select(Direction.EAST, BlockModelGenerators.Y_ROT_90);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.ELDRITCH_LOCK.get(),
+                BlockModelGenerators.plainVariant(model)).with(rotations));
+        blockModels.registerSimpleItemModel(TCBlocks.ELDRITCH_LOCK.get().asItem(), model);
     }
 
     private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName){
@@ -1566,7 +1591,7 @@ public final class TCModelProvider extends ModelProvider {
         insetBlock(blockModels, TCBlocks.ELDRITCH_CRUST_GLOWING.get(), "eldritch_crust_glowing");
         cube(blockModels, TCBlocks.ELDRITCH_DOOR.get(), "eldritch_door", true);
         insetBlock(blockModels, TCBlocks.ELDRITCH_STONE_CRYSTAL.get(), "eldritch_stone_crystal");
-        cube(blockModels, TCBlocks.ELDRITCH_LOCK.get(), "eldritch_deco", true);
+        eldritchLock(blockModels);
         crabSpawner(blockModels);
         column(blockModels, TCBlocks.ELDRITCH_PEDESTAL.get(), "eldritch_pedestal_side", "eldritch_stone");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar");

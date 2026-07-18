@@ -200,6 +200,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumcraft.thaumonomicon_sharing", "Thaumonomicon of Sharing");
         add("item.thaumcraft.thaumonomicon_linking", "Thaumonomicon of Binding");
         add("item.thaumcraft.creative_node_placer", "Creative Node Placer");
+        add("block.thaumcraft.node_transducer", "Node Transducer");
         add("tooltip.thaumcraft.creative_only", "Creative only");
         add("tooltip.thaumcraft.sharing.bound", "Attuned to %s");
         add("tooltip.thaumcraft.sharing.hint", "Use once to attune, then have your research partner use it");

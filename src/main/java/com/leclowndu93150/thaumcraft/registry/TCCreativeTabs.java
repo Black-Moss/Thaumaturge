@@ -85,7 +85,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PRIMAL_CHARM.get());
                         output.accept(TCItems.NODE_STABILIZER.get());
                         output.accept(TCItems.NODE_STABILIZER_ADVANCED.get());
-                        output.accept(TCItems.JAR_NODE.get());
+                        output.accept(TCItems.NODE_TRANSDUCER.get());
                         output.accept(TCItems.FOCUS_1.get());
                         output.accept(TCItems.FOCUS_2.get());
                         output.accept(TCItems.FOCUS_3.get());
@@ -113,6 +113,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.JAR_NORMAL.get());
                         output.accept(TCItems.JAR_VOID.get());
                         output.accept(TCItems.JAR_BRAIN.get());
+                        output.accept(TCItems.JAR_NODE.get());
                         output.accept(TCItems.TUBE.get());
                         output.accept(TCItems.TUBE_VALVE.get());
                         output.accept(TCItems.TUBE_RESTRICT.get());
@@ -358,21 +359,11 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SEAL_USE.get());
                         output.accept(TCItems.SEAL_PROVIDER.get());
                         output.accept(TCItems.SEAL_STOCK.get());
-                        output.accept(golemPlacer(GolemProperties.createDefault()));
-                        GolemProperties smartFine = GolemProperties.createDefault();
-                        smartFine.setHead(TCGolemParts.HEAD_SMART.get());
-                        smartFine.setArms(TCGolemParts.ARMS_FINE.get());
-                        output.accept(golemPlacer(smartFine));
-                        GolemProperties ironClaws = GolemProperties.createDefault();
-                        ironClaws.setMaterial(TCGolemParts.IRON.get());
-                        ironClaws.setHead(TCGolemParts.HEAD_SMART.get());
-                        ironClaws.setArms(TCGolemParts.ARMS_CLAWS.get());
-                        output.accept(golemPlacer(ironClaws));
-                        GolemProperties thaumiumBreakers = GolemProperties.createDefault();
-                        thaumiumBreakers.setMaterial(TCGolemParts.THAUMIUM.get());
-                        thaumiumBreakers.setHead(TCGolemParts.HEAD_SMART.get());
-                        thaumiumBreakers.setArms(TCGolemParts.ARMS_BREAKERS.get());
-                        output.accept(golemPlacer(thaumiumBreakers));
+                        TCGolemParts.MATERIALS.getEntries().forEach(material -> {
+                            GolemProperties properties = GolemProperties.createDefault();
+                            properties.setMaterial(material.get());
+                            output.accept(golemPlacer(properties));
+                        });
                         output.accept(TCItems.TRAVELLER_BOOTS.get());
                         output.accept(TCItems.CLOTH_CHEST.get());
                         output.accept(TCItems.CLOTH_LEGS.get());

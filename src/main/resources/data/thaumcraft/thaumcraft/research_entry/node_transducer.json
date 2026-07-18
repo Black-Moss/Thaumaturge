@@ -1,0 +1,50 @@
+{
+  "category": "thaumcraft:auromancy",
+  "name": "research.thaumcraft.node_transducer.title",
+  "parents": [
+    "thaumcraft:node_stabilizer_advanced"
+  ],
+  "column": -7,
+  "row": 8,
+  "icons": [
+    "thaumcraft:node_transducer"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumcraft.node_transducer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumcraft:auromancy",
+          "amount": 2
+        },
+        {
+          "type": "observation",
+          "category": "thaumcraft:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumcraft.node_transducer.stage_1",
+      "recipes": [
+        "thaumcraft:node_transducer"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumcraft:auram",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumcraft:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumcraft:machina",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

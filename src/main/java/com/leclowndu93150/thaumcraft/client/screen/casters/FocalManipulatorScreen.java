@@ -306,10 +306,11 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
                     leftPos + STAT_TEXT_X, topPos + INFO_COMPLEXITY_Y + STAT_TEXT_Y_NUDGE,
                     totalComplexity > maxComplexity ? COLOR_STAT_BAD : COLOR_STAT_GOOD, true);
         }
+        boolean creative = minecraft != null && minecraft.player != null && minecraft.player.getAbilities().instabuild;
         int playerLevel = minecraft != null && minecraft.player != null ? minecraft.player.experienceLevel : 0;
         graphics.text(font, Component.literal(Integer.toString(costXp)),
                 leftPos + STAT_TEXT_X, topPos + INFO_XP_Y + STAT_TEXT_Y_NUDGE,
-                costXp > playerLevel ? COLOR_STAT_BAD : COLOR_STAT_NEUTRAL, true);
+                costXp > playerLevel && !creative ? COLOR_STAT_BAD : COLOR_STAT_NEUTRAL, true);
         int visShown = table != null && table.vis > 0.0F ? (int) table.vis : costVis;
         graphics.text(font, Component.literal(Integer.toString(visShown)).withStyle(ChatFormatting.AQUA),
                 leftPos + STAT_TEXT_X, topPos + INFO_VIS_Y + STAT_TEXT_Y_NUDGE, COLOR_STAT_NEUTRAL, true);
@@ -1008,8 +1009,9 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             components = stacks;
         }
         gatherPartsList();
+        boolean creative = minecraft != null && minecraft.player != null && minecraft.player.getAbilities().instabuild;
         int playerLevel = minecraft != null && minecraft.player != null ? minecraft.player.experienceLevel : 0;
-        valid = totalComplexity <= maxComplexity && !emptyNodes && validCrystals && costXp <= playerLevel;
+        valid = totalComplexity <= maxComplexity && !emptyNodes && validCrystals && (creative || costXp <= playerLevel);
         updateConfirmTooltip(emptyNodes, validCrystals, playerLevel);
         calcScrollBounds();
         clampScroll();
@@ -1100,7 +1102,8 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             if (components == null || components.isEmpty()) {
                 text.append(newline("gui.thaumcraft.wandtable.problem.no_effects"));
             }
-            if (costXp > playerLevel) {
+            if (costXp > playerLevel
+                    && !(minecraft != null && minecraft.player != null && minecraft.player.getAbilities().instabuild)) {
                 text.append(newline("gui.thaumcraft.wandtable.problem.xp", costXp));
             }
             if (valid) {

@@ -7,7 +7,7 @@
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
 
-in vec4 texProj0;
+in vec2 texCoord0;
 in float sphericalVertexDistance;
 in float cylindricalVertexDistance;
 
@@ -44,9 +44,10 @@ vec2 layer_uv(vec2 base, int i) {
     return uv;
 }
 
+const float UV_SHARPNESS = 3.0;
+
 void main() {
-    vec2 ndc = texProj0.xy / texProj0.w * 2.0 - 1.0;
-    vec2 base = vec2(-ndc.x / ProjMat[0][0], -ndc.y / ProjMat[1][1]);
+    vec2 base = texCoord0 * UV_SHARPNESS;
     vec3 color = texture(Sampler0, layer_uv(base, 0)).rgb * COLORS[0];
     for (int i = 1; i < 16; i++) {
         vec4 tex = texture(Sampler1, layer_uv(base, i));

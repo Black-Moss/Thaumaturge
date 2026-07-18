@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumcraft.content.device.sprayer.BlockEntityPotionSpr
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNodeStabilizer;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNodeTransducer;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.decor.BlockEntityBarrierStone;
 import com.leclowndu93150.thaumcraft.content.device.mirror.BlockEntityMirror;
@@ -105,6 +106,13 @@ public final class TCBlockEntities {
                     "node_stabilizer",
                     () -> new BlockEntityType<>(BlockEntityNodeStabilizer::new,
                             Set.of(TCBlocks.NODE_STABILIZER.get(), TCBlocks.NODE_STABILIZER_ADVANCED.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNodeTransducer>> NODE_TRANSDUCER =
+            BLOCK_ENTITIES.register(
+                    "node_transducer",
+                    () -> new BlockEntityType<>(BlockEntityNodeTransducer::new,
+                            Set.of(TCBlocks.NODE_TRANSDUCER.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarNode>> JAR_NODE =

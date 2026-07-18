@@ -55,6 +55,7 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.NODE.get(), NodeRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.JAR_NODE.get(), NodeRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.NODE_STABILIZER.get(), NodeStabilizerRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.NODE_TRANSDUCER.get(), NodeTransducerRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.MIRROR.get(), MirrorRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.MIRROR_ESSENTIA.get(), MirrorRenderer::new);
     }

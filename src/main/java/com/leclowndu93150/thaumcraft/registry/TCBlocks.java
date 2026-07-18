@@ -38,6 +38,7 @@ import com.leclowndu93150.thaumcraft.content.decor.BlockEffectShock;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockJarNode;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockNode;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockNodeStabilizer;
+import com.leclowndu93150.thaumcraft.content.aura.node.BlockNodeTransducer;
 import com.leclowndu93150.thaumcraft.content.decor.BlockBarrier;
 import com.leclowndu93150.thaumcraft.content.decor.BlockPavingStone;
 import com.leclowndu93150.thaumcraft.content.equipment.BlockEffectGlimmer;
@@ -1356,6 +1357,10 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockNodeStabilizer> NODE_STABILIZER_ADVANCED = BLOCKS.registerBlock(
             "node_stabilizer_advanced", props -> new BlockNodeStabilizer(props, true),
+            props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).noOcclusion());
+
+    public static final DeferredBlock<BlockNodeTransducer> NODE_TRANSDUCER = BLOCKS.registerBlock(
+            "node_transducer", BlockNodeTransducer::new,
             props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).noOcclusion());
 
     public static final DeferredBlock<BlockAmber> AMBER_BRICK = BLOCKS.registerBlock(
