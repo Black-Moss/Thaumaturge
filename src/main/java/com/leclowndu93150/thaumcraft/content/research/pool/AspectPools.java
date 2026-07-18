@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.research.pool;
 
+import com.leclowndu93150.thaumcraft.network.ClientboundUpdateJEIAspectListPayload;
 import net.neoforged.neoforge.network.PacketDistributor;
 import com.leclowndu93150.thaumcraft.network.ClientboundAspectGainPayload;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
@@ -39,6 +40,7 @@ public final class AspectPools {
 
     public static void sync(ServerPlayer player) {
         player.syncData(TCAttachments.ASPECT_POOL);
+        PacketDistributor.sendToPlayer(player, ClientboundUpdateJEIAspectListPayload.INSTANCE);
     }
 
     public static void seedIfNew(ServerPlayer player) {
