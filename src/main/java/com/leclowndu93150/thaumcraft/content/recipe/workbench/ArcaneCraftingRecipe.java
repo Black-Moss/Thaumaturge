@@ -126,7 +126,7 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
 
     @Override
     public boolean matches(ArcaneCraftingInput input, Level level) {
-        WorkbenchPayment.Plan plan = WorkbenchPayment.plan(this,input,input.player());
+        WorkbenchPayment.Plan plan = WorkbenchPayment.plan(this, input, input.player());
         return plan.crystalsSatisfied();
     }
 }

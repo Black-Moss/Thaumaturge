@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.infernalfurnace;
 
+import com.leclowndu93150.thaumcraft.config.ThaumcraftServerConfig;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.mojang.serialization.MapCodec;
@@ -100,14 +101,17 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
         if (level.isEmptyBlock(barsPos) && !barsPos.equals(startpos)) {
             level.setBlock(barsPos, Blocks.IRON_BARS.defaultBlockState(), Block.UPDATE_ALL);
         }
-        level.setBlock(pos, Blocks.LAVA.defaultBlockState(), Block.UPDATE_ALL);
-        if (level instanceof ServerLevel serverLevel) {
-            Blaze blaze = EntityType.BLAZE.create(serverLevel, EntitySpawnReason.TRIGGERED);
-            if (blaze != null) {
-                blaze.snapTo(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 0.0F, 0.0F);
-                blaze.addEffect(new MobEffectInstance(MobEffects.REGENERATION, BLAZE_REGEN_TICKS, 2));
-                blaze.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, BLAZE_RESIST_TICKS, 0));
-                serverLevel.addFreshEntity(blaze);
+        if (!ThaumcraftServerConfig.INFERNAL_FURNACE_TURN_TO_BLAZE.get())
+            level.setBlock(pos, Blocks.LAVA.defaultBlockState(), Block.UPDATE_ALL);
+        else {
+            if (level instanceof ServerLevel serverLevel) {
+                Blaze blaze = EntityType.BLAZE.create(serverLevel, EntitySpawnReason.TRIGGERED);
+                if (blaze != null) {
+                    blaze.snapTo(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 0.0F, 0.0F);
+                    blaze.addEffect(new MobEffectInstance(MobEffects.REGENERATION, BLAZE_REGEN_TICKS, 2));
+                    blaze.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, BLAZE_RESIST_TICKS, 0));
+                    serverLevel.addFreshEntity(blaze);
+                }
             }
         }
     }
