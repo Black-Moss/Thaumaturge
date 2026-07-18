@@ -1,0 +1,9 @@
+{
+  "loader": "thaumcraft:obj",
+  "parent": "block/block",
+  "model": "thaumcraft:models/obj/node_stabilizer.obj",
+  "textures": {
+    "texture": "thaumcraft:block/node_converter",
+    "particle": "#texture"
+  }
+}

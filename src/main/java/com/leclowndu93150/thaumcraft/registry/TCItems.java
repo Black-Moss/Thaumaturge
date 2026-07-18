@@ -745,6 +745,7 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> NODE_STABILIZER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER);
     public static final DeferredItem<BlockItem> NODE_STABILIZER_ADVANCED = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER_ADVANCED);
+    public static final DeferredItem<BlockItem> NODE_TRANSDUCER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_TRANSDUCER);
     public static final DeferredItem<JarNodeItem> JAR_NODE = ITEMS.registerItem(
             "jar_node", props -> new JarNodeItem(TCBlocks.JAR_NODE.get(), props.useBlockDescriptionPrefix()));
 

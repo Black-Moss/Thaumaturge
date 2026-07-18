@@ -132,7 +132,13 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER.get()))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_TRANSDUCER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_TRANSDUCER.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER_ADVANCED.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER_ADVANCED.get()))));
+        itemModels.itemModelOutput.accept(TCBlocks.NODE_TRANSDUCER.get().asItem(), new SpecialModelWrapper.Unbaked(
+                TCIds.rl("item/node_stabilizer_base"),
+                Optional.empty(),
+                new NodeStabilizerItemSpecialRenderer.Unbaked(false, true)
+        ));
         itemModels.itemModelOutput.accept(TCBlocks.NODE_STABILIZER.get().asItem(), new SpecialModelWrapper.Unbaked(
                 TCIds.rl("item/node_stabilizer_base"),
                 Optional.empty(),

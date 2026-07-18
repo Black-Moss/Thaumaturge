@@ -35,6 +35,12 @@ public final class NodeStabilizerRenderer
 
     private static final RenderType BASE = RenderTypes.entityCutout(TEXTURE);
     private static final RenderType OVERLAY = RenderTypes.entityTranslucentEmissive(OVERLAY_TEXTURE);
+    private static final Identifier TRANSDUCER_TEXTURE = TCIds.rl("textures/block/node_converter.png");
+    private static final Identifier TRANSDUCER_OVERLAY_TEXTURE = TCIds.rl("textures/block/node_converter_over.png");
+    private static final RenderType TRANSDUCER_BASE = RenderTypes.entityCutout(TRANSDUCER_TEXTURE);
+    private static final RenderType TRANSDUCER_OVERLAY = RenderTypes.entityTranslucentEmissive(TRANSDUCER_OVERLAY_TEXTURE);
+    private static final float TRANSDUCER_EXTEND = 0.4F;
+    private static final float TRANSDUCER_GLOW_GAIN = 2.5F;
     private static final Identifier BUBBLE_TEXTURE = TCIds.rl("textures/misc/node_bubble.png");
     private static final RenderType BUBBLE = RenderType.create("tc_node_bubble",
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE)
@@ -141,6 +147,38 @@ public final class NodeStabilizerRenderer
                 int tint = advanced ? ADVANCED_TINT : WHITE;
                 collector.submitCustomGeometry(poseStack, OVERLAY, (pose, buffer) ->
                         GolemMeshes.renderPart(mesh, piston, armPose, buffer, glowLight, tint));
+                poseStack.popPose();
+            }
+        }
+    }
+
+    public static void submitTransducerParts(float chargeFraction, float ticks,
+                                             PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        MeshModel mesh = GolemMeshes.get(MODEL);
+        MeshPart lock = findPart(mesh, PART_LOCK);
+        MeshPart piston = findPart(mesh, PART_PISTON);
+        if (lock != null) {
+            PoseStack.Pose lockPose = poseStack.last().copy();
+            collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) ->
+                    GolemMeshes.renderPart(mesh, lock, lockPose, buffer, light, WHITE));
+            float pulse = Mth.sin(ticks / 3.0F) * 0.1F + 0.9F;
+            int glow = OVERLAY_LIGHT_BASE
+                    + (int) (OVERLAY_LIGHT_RANGE * Math.min(1.0F, chargeFraction * TRANSDUCER_GLOW_GAIN * pulse));
+            int glowUnit = Mth.clamp(glow / 16, 0, 15);
+            int glowLight = (glowUnit << 4) | (glowUnit << 20);
+            collector.submitCustomGeometry(poseStack, TRANSDUCER_OVERLAY, (pose, buffer) ->
+                    GolemMeshes.renderPart(mesh, lock, lockPose, buffer, glowLight, WHITE));
+        }
+        if (piston != null) {
+            for (int arm = 0; arm < ARM_COUNT; arm++) {
+                poseStack.pushPose();
+                poseStack.mulPose(Axis.ZP.rotationDegrees(ARM_ANGLE_STEP * arm));
+                poseStack.mulPose(Axis.YP.rotationDegrees(ARM_TWIST));
+                float armPulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
+                poseStack.translate(0.0F, 0.0F, chargeFraction * armPulse * TRANSDUCER_EXTEND);
+                PoseStack.Pose armPose = poseStack.last().copy();
+                collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) ->
+                        GolemMeshes.renderPart(mesh, piston, armPose, buffer, light, WHITE));
                 poseStack.popPose();
             }
         }
