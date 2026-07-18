@@ -18,9 +18,5 @@ import net.minecraft.world.item.crafting.Recipe;
 public interface IArcaneRecipe extends ResearchGated, Recipe<ArcaneCraftingInput> {
     int getBaseVis();
 
-    default int getReducedVis(Player player){
-        return getBaseVis() * (100 - GogglesAccess.totalVisDiscount(player)) / 100;
-    }
-
     AspectList getCrystals();
 }

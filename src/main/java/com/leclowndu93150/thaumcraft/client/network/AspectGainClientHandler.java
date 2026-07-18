@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.client.network;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.client.hud.KnowledgeGainOverlay;
 import com.leclowndu93150.thaumcraft.network.ClientboundAspectGainPayload;
+import com.leclowndu93150.thaumcraft.network.ClientboundUpdateJEIAspectListPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceKey;
 import com.leclowndu93150.thaumcraft.compat.jei.AspectJeiSync;
@@ -32,6 +33,16 @@ public final class AspectGainClientHandler {
                                     mc.level.getRandom().nextLong());
                         }
                     });
+            handleJEISync(ClientboundUpdateJEIAspectListPayload.INSTANCE, ctx);
+        });
+    }
+
+    public static void handleJEISync(ClientboundUpdateJEIAspectListPayload payload, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null || mc.level == null) {
+                return;
+            }
             if (ModList.get().isLoaded("jei")) {
                 AspectJeiSync.syncDiscovered();
             }

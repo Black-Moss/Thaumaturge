@@ -86,6 +86,11 @@ public final class TCPayloads {
                 ClientboundAspectGainPayload.STREAM_CODEC,
                 (payload, context) -> AspectGainClientHandler.handle(payload, context)
         );
+        registrar.playToClient(
+                ClientboundUpdateJEIAspectListPayload.TYPE,
+                ClientboundUpdateJEIAspectListPayload.STREAM_CODEC,
+                (payload, context) -> AspectGainClientHandler.handleJEISync(payload, context)
+        );
         registrar.playToServer(
                 ServerboundObtainNotePayload.TYPE,
                 ServerboundObtainNotePayload.STREAM_CODEC,
@@ -215,6 +220,11 @@ public final class TCPayloads {
                 ServerboundCasterKeyPayload.TYPE,
                 ServerboundCasterKeyPayload.STREAM_CODEC,
                 ServerboundCasterKeyPayload::handle
+        );
+        registrar.playToServer(
+                ServerboundRequestSyncAspectPoolPayload.TYPE,
+                ServerboundRequestSyncAspectPoolPayload.STREAM_CODEC,
+                ServerboundRequestSyncAspectPoolPayload::handle
         );
     }
 }

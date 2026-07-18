@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.compat.jei.ingredient.AspectIngredientType;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumcraft.network.ServerboundRequestSyncAspectPoolPayload;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 public final class AspectJeiSync {
@@ -48,6 +50,7 @@ public final class AspectJeiSync {
                 }
             });
         }
+        ClientPacketDistributor.sendToServer(ServerboundRequestSyncAspectPoolPayload.INSTANCE);
     }
 
     private static @Nullable Identifier gatedAspectOf(ItemStack stack) {

@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.api.recipe;
 
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Contract for the arcane workbench inventory, exposing the crystal payment currently loaded in
@@ -20,4 +21,11 @@ public interface IArcaneWorkbench {
      * @return the available crystal aspects, or {@link AspectList#EMPTY} when no crystals are loaded
      */
     AspectList availableCrystals();
+
+    /**
+     * The wand currently loaded in the wand slot, or {@link ItemStack#EMPTY} when no wand is loaded.
+     *
+     * @return the loaded wand stack
+     */
+    ItemStack wandStack();
 }
