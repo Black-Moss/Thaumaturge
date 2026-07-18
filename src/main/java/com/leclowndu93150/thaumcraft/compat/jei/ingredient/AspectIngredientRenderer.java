@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.client.render.aspect.AspectTagRenderer;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectDiscoveryView;
 import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.ingredients.IIngredientRenderer;
@@ -21,6 +22,10 @@ public final class AspectIngredientRenderer implements IIngredientRenderer<Aspec
 
     @Override
     public void render(GuiGraphicsExtractor guiGraphics, AspectInstance ingredient) {
+        if (!AspectDiscoveryView.isDiscovered(ingredient.aspect())) {
+            AspectTagRenderer.renderUnknownChip(guiGraphics, 0, 0, ingredient.aspect());
+            return;
+        }
         if (ingredient.amount() > 1){
             AspectTagRenderer.render(guiGraphics, Minecraft.getInstance().font, 0, 0, ingredient.aspect(),ingredient.amount());
         } else {
@@ -31,9 +36,14 @@ public final class AspectIngredientRenderer implements IIngredientRenderer<Aspec
     @Override
     public List<Component> getTooltip(AspectInstance instance, TooltipFlag tooltipFlag) {
         Holder<IAspect> ingredient = instance.aspect();
-        List<Component> lines = new ArrayList<>(2);
         IAspect value = ingredient.value();
         int color = value.color() | 0xFF000000;
+        if (!AspectDiscoveryView.isDiscovered(ingredient)) {
+            List<Component> lines = new ArrayList<>(1);
+            lines.add(Component.translatable("tc.aspect.unknown").withStyle(style -> style.withColor(color)));
+            return lines;
+        }
+        List<Component> lines = new ArrayList<>(2);
         lines.add(AspectComponents.name(ingredient).withStyle(style -> style.withColor(color)));
         lines.add(AspectComponents.description(ingredient).withStyle(ChatFormatting.GRAY));
         return lines;

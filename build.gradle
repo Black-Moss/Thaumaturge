@@ -36,7 +36,10 @@ base {
     archivesName = mod_id+"-26.1.2-NeoForge-BETA"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    withSourcesJar()
+}
 
 neoForge {
     version = project.neo_version

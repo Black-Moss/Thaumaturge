@@ -24,28 +24,30 @@ import org.jspecify.annotations.Nullable;
 
 public final class AspectJeiSync {
     private static @Nullable IJeiRuntime runtime;
-    private static final Set<Identifier> visibleAspects = new HashSet<>();
-    private static final Set<Identifier> hiddenStackAspects = new HashSet<>();
+    private static final Set<Identifier> discoveredAspects = new HashSet<>();
     private static final Map<Identifier, List<ItemStack>> gatedStacks = new HashMap<>();
 
     private AspectJeiSync() {}
 
     static void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtime = jeiRuntime;
-        visibleAspects.clear();
-        hiddenStackAspects.clear();
+        discoveredAspects.clear();
         gatedStacks.clear();
         IIngredientManager ingredients = jeiRuntime.getIngredientManager();
-        for (AspectInstance instance : ingredients.getAllIngredients(AspectIngredientType.INSTANCE)) {
-            visibleAspects.add(AspectPools.idOf(instance.aspect()));
-        }
         for (ItemStack stack : ingredients.getAllIngredients(VanillaTypes.ITEM_STACK)) {
             Identifier aspect = gatedAspectOf(stack);
             if (aspect != null) {
                 gatedStacks.computeIfAbsent(aspect, k -> new ArrayList<>()).add(stack);
             }
         }
-        syncDiscovered();
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
+                if (AspectPools.isDiscovered(player, ref)) {
+                    discoveredAspects.add(AspectPools.idOf(ref));
+                }
+            });
+        }
     }
 
     private static @Nullable Identifier gatedAspectOf(ItemStack stack) {
@@ -71,40 +73,33 @@ public final class AspectJeiSync {
             return;
         }
         IIngredientManager ingredients = current.getIngredientManager();
-        List<AspectInstance> addedAspects = new ArrayList<>();
-        List<AspectInstance> removedAspects = new ArrayList<>();
-        List<ItemStack> addedStacks = new ArrayList<>();
-        List<ItemStack> removedStacks = new ArrayList<>();
+        List<AspectInstance> changedAspects = new ArrayList<>();
+        List<ItemStack> changedStacks = new ArrayList<>();
         player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
             Identifier id = ref.key().identifier();
             boolean discovered = AspectPools.isDiscovered(player, ref);
-            if (discovered && !visibleAspects.contains(id)) {
-                visibleAspects.add(id);
-                addedAspects.add(new AspectInstance(ref, 1));
-            } else if (!discovered && visibleAspects.contains(id)) {
-                visibleAspects.remove(id);
-                removedAspects.add(new AspectInstance(ref, 1));
+            boolean known = discoveredAspects.contains(id);
+            if (discovered == known) {
+                return;
             }
+            if (discovered) {
+                discoveredAspects.add(id);
+            } else {
+                discoveredAspects.remove(id);
+            }
+            changedAspects.add(new AspectInstance(ref, 1));
             List<ItemStack> stacks = gatedStacks.get(id);
             if (stacks != null) {
-                if (discovered && hiddenStackAspects.remove(id)) {
-                    addedStacks.addAll(stacks);
-                } else if (!discovered && hiddenStackAspects.add(id)) {
-                    removedStacks.addAll(stacks);
-                }
+                changedStacks.addAll(stacks);
             }
         });
-        if (!removedAspects.isEmpty()) {
-            ingredients.removeIngredientsAtRuntime(AspectIngredientType.INSTANCE, removedAspects);
+        if (!changedAspects.isEmpty()) {
+            ingredients.removeIngredientsAtRuntime(AspectIngredientType.INSTANCE, changedAspects);
+            ingredients.addIngredientsAtRuntime(AspectIngredientType.INSTANCE, changedAspects);
         }
-        if (!addedAspects.isEmpty()) {
-            ingredients.addIngredientsAtRuntime(AspectIngredientType.INSTANCE, addedAspects);
-        }
-        if (!removedStacks.isEmpty()) {
-            ingredients.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, removedStacks);
-        }
-        if (!addedStacks.isEmpty()) {
-            ingredients.addIngredientsAtRuntime(VanillaTypes.ITEM_STACK, addedStacks);
+        if (!changedStacks.isEmpty()) {
+            ingredients.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, changedStacks);
+            ingredients.addIngredientsAtRuntime(VanillaTypes.ITEM_STACK, changedStacks);
         }
     }
 }

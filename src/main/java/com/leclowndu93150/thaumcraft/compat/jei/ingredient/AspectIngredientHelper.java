@@ -4,10 +4,12 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectDiscoveryView;
 import mezz.jei.api.ingredients.IIngredientHelper;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +28,9 @@ public final class AspectIngredientHelper implements IIngredientHelper<AspectIns
 
     @Override
     public String getDisplayName(AspectInstance ingredient) {
+        if (!AspectDiscoveryView.isDiscovered(ingredient.aspect())) {
+            return Component.translatable("tc.aspect.unknown").getString();
+        }
         return AspectComponents.name(ingredient.aspect()).getString();
     }
 
