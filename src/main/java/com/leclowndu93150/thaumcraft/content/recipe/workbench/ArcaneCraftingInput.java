@@ -180,8 +180,8 @@ public class ArcaneCraftingInput  implements RecipeInput, IArcaneWorkbench {
     @Override
     public AspectList availableCrystals() {
         if (items.size() < 10 && height == 3 && width == 3) return AspectList.EMPTY;
-        if (items.size() - 6 < 0) return AspectList.EMPTY;
-        List<ItemStack> crystals = items.subList(items.size() - 6,items.size());
+        if (items.size() - 7 < 0) return AspectList.EMPTY;
+        List<ItemStack> crystals = items.subList(items.size()-7,items.size() - 1);
         List<AspectInstance> aspects = new ArrayList<>();
         for (ItemStack crystal : crystals) {
             if (crystal.is(TCItems.ESSENTIA_CRYSTAL) && crystal.has(TCDataComponents.CRYSTAL_ASPECT)){
