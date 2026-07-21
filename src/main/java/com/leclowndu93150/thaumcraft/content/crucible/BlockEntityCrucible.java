@@ -48,6 +48,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
@@ -371,16 +372,17 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
                     tank.extract(FluidResource.of(Fluids.WATER),50,ctx);
                     ctx.commit();
                 }
-                ejectItem(out);
-                if (owner instanceof ServerPlayer serverPlayer) {
-                    ResearchProgressionEvents.recordCrafted(serverPlayer, out);
-                }
+                ejectItem(out.copy());
+                NeoForge.EVENT_BUS.post(new CrucibleEvent.CrucibleCraftedEvent(owner,getBlockPos(),getBlockState(),this,out.copy(), recipe.aspects()));
                 craftDone = true;
                 count--;
                 this.counter = -250L;
             } else {
                 AspectList aspects = AspectIndexAccess.index().of(stack);
-                if (!aspects.isEmpty()){
+                CrucibleEvent.CrucibleDecomposeItemEvent event = new CrucibleEvent.CrucibleDecomposeItemEvent(owner,getBlockPos(),getBlockState(),this,stack,aspects);
+                NeoForge.EVENT_BUS.post(event);
+                aspects = event.getAspects();
+                if (!aspects.isEmpty() && !event.isCanceled()){
                     for (AspectInstance aspect : aspects.entries()){
                         this.aspects = this.aspects.add(aspect);
                     }

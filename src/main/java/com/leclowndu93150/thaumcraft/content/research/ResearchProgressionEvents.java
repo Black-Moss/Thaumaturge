@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
+import com.leclowndu93150.thaumcraft.content.crucible.CrucibleEvent;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -53,6 +54,13 @@ public final class ResearchProgressionEvents {
     private static final Identifier F_ONFIRE = TCIds.rl("f_onfire");
 
     private ResearchProgressionEvents() {}
+
+    @SubscribeEvent
+    public static void onCrucibleCraft(CrucibleEvent.CrucibleCraftedEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer player) {
+            recordCrafted(player, event.getCraftedStack());
+        }
+    }
 
     @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
