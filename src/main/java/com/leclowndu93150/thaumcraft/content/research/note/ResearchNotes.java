@@ -128,8 +128,8 @@ public final class ResearchNotes {
         if (!player.getInventory().add(note)) {
             player.drop(note, false);
         }
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                TCSounds.WRITE.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
+        player.level().playSound(null, player,
+                TCSounds.WRITE.get(), SoundSource.UI, 0.5F, 1.0F);
         return true;
     }
 

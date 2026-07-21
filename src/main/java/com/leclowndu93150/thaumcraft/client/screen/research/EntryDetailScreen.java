@@ -1772,7 +1772,6 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 return false;
             }
             ClientPacketDistributor.sendToServer(new ServerboundObtainNotePayload(entryId, ordinal));
-            playSound(TCSounds.WRITE.get(), 0.5F, 1.0F);
             return true;
         }
         return false;
