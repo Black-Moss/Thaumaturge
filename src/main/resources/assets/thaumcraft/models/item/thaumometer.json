@@ -1,6 +1,6 @@
 {
-    "loader": "thaumcraft:obj",
-    "model": "thaumcraft:models/obj/scanner.obj",
+    "loader": "thaumcraft:mesh",
+    "model": "thaumcraft:models/mesh/scanner.tcmesh",
     "flip_v": true,
     "textures": {
         "body": "thaumcraft:item/scanner",

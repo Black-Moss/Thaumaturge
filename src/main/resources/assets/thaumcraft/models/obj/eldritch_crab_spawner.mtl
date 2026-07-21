@@ -1,4 +1,0 @@
-newmtl texture
-	d 1.0000
-	Kd 1.0000 1.0000 1.0000
-	map_Kd thaumcraft:block/eldritch_crab_spawner

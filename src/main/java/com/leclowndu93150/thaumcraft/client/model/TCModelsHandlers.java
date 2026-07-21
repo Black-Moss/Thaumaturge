@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.model;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.model.obj.TCObjUnbakedModel;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMeshUnbakedModel;
 import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -41,8 +41,8 @@ public class TCModelsHandlers {
     public static final Identifier WAND_IS_STAFF_PROPERTY_ID =
             Identifier.fromNamespaceAndPath(TCIds.MODID, "wand_is_staff");
 
-    public static final Identifier OBJ_LOADER_ID =
-            Identifier.fromNamespaceAndPath(TCIds.MODID, "obj");
+    public static final Identifier MESH_LOADER_ID =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "mesh");
 
     @SubscribeEvent
     public static void onRegisterItemModels(RegisterSpecialModelRendererEvent event){
@@ -63,7 +63,7 @@ public class TCModelsHandlers {
 
     @SubscribeEvent
     public static void onRegisterLoaders(ModelEvent.RegisterLoaders event) {
-        event.register(OBJ_LOADER_ID, TCObjUnbakedModel.Loader.INSTANCE);
+        event.register(MESH_LOADER_ID, TCMeshUnbakedModel.Loader.INSTANCE);
     }
 
 }

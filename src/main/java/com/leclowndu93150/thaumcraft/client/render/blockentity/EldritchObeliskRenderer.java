@@ -2,8 +2,8 @@ package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.golem.GolemMeshes;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshPart;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMesh;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMeshPart;
 import com.leclowndu93150.thaumcraft.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumcraft.content.eldritch.block.BlockEntityEldritchObelisk;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -25,7 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockEntityEldritchObelisk, EldritchObeliskRenderState> {
-    public static final Identifier CAP_MODEL = TCIds.rl("models/obj/obelisk_cap.obj");
+    public static final Identifier CAP_MODEL = TCIds.rl("models/mesh/obelisk_cap.tcmesh");
     public static final String CAP_PART = "Cap";
 
     private static final Identifier SIDE_TEXTURE = TCIds.rl("textures/entity/obelisk_side.png");
@@ -98,11 +98,11 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
     }
 
     static void submitCap(PoseStack poseStack, SubmitNodeCollector collector, RenderType type, int light) {
-        MeshModel mesh = GolemMeshes.get(CAP_MODEL);
-        for (MeshPart part : mesh.parts()) {
+        TCMesh mesh = GolemMeshes.get(CAP_MODEL);
+        for (TCMeshPart part : mesh.parts()) {
             if (CAP_PART.equals(part.name())) {
                 collector.submitCustomGeometry(poseStack, type,
-                        (pose, buffer) -> GolemMeshes.renderPart(mesh, part, pose, buffer, light, -1));
+                        (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
             }
         }
     }

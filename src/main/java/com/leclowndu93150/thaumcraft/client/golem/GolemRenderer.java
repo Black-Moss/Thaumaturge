@@ -5,8 +5,8 @@ import com.leclowndu93150.thaumcraft.api.golems.GolemTrait;
 import com.leclowndu93150.thaumcraft.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumcraft.api.golems.parts.GolemPartModel;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshPart;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMesh;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMeshPart;
 import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
 import com.leclowndu93150.thaumcraft.content.golem.GolemProperties;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -35,7 +35,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public final class GolemRenderer extends EntityRenderer<EntityThaumcraftGolem, GolemRenderState> {
-    private static final Identifier BASE_MODEL = TCIds.rl("models/obj/golem_base.obj");
+    private static final Identifier BASE_MODEL = TCIds.rl("models/mesh/golem_base.tcmesh");
     private static final float GHOST_ALPHA = 0.15F;
     private static final int XRAY_COLOR = ARGB.colorFromFloat(0.25F, 0.25F, 0.25F, 0.25F);
     private static final Map<Identifier, RenderType> XRAY_TYPES = new ConcurrentHashMap<>();
@@ -164,7 +164,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumcraftGolem, G
         float lean = rolling ? 75.0F : 25.0F;
         poseStack.mulPose(Axis.XN.rotationDegrees((float) (state.speedSq * lean)));
         poseStack.mulPose(Axis.ZN.rotationDegrees((float) (state.speedSq * lean * 0.06 * state.yawDelta)));
-        MeshModel base = GolemMeshes.get(BASE_MODEL);
+        TCMesh base = GolemMeshes.get(BASE_MODEL);
 
         poseStack.pushPose();
         poseStack.translate(0.0, 0.5, 0.0);
@@ -283,34 +283,34 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumcraftGolem, G
     private void renderPartModel(GolemRenderState state, GolemPartModel part, GolemPartModel.LimbSide side,
                                  PoseStack poseStack, SubmitNodeCollector collector, Identifier matTexture,
                                  boolean xray, int color) {
-        MeshModel mesh = GolemMeshes.get(part.objModel());
+        TCMesh mesh = GolemMeshes.get(part.objModel());
         GolemPartRenderHook hook = GolemPartRenderHooks.hookFor(part);
-        for (MeshPart objectPart : mesh.parts()) {
+        for (TCMeshPart objectPart : mesh.parts()) {
             poseStack.pushPose();
             Identifier texture = part.useMaterialTextureForObjectPart(objectPart.name()) || part.texture() == null
                     ? matTexture : part.texture();
             hook.preRenderObjectPart(objectPart.name(), state, poseStack, side, 0.0F);
-            submitMeshPart(mesh, objectPart, poseStack, collector, texture, xray, color, state);
+            submitMeshPart(objectPart, poseStack, collector, texture, xray, color, state);
             hook.postRenderObjectPart(objectPart.name(), state, poseStack, collector, side);
             poseStack.popPose();
         }
     }
 
-    private static void submitNamedPart(MeshModel mesh, String name, PoseStack poseStack, SubmitNodeCollector collector,
+    private static void submitNamedPart(TCMesh mesh, String name, PoseStack poseStack, SubmitNodeCollector collector,
                                         Identifier texture, boolean xray, int color, GolemRenderState state) {
-        for (MeshPart part : mesh.parts()) {
+        for (TCMeshPart part : mesh.parts()) {
             if (name.equals(part.name())) {
-                submitMeshPart(mesh, part, poseStack, collector, texture, xray, color, state);
+                submitMeshPart(part, poseStack, collector, texture, xray, color, state);
             }
         }
     }
 
-    private static void submitMeshPart(MeshModel mesh, MeshPart part, PoseStack poseStack, SubmitNodeCollector collector,
+    private static void submitMeshPart(TCMeshPart part, PoseStack poseStack, SubmitNodeCollector collector,
                                        Identifier texture, boolean xray, int color, GolemRenderState state) {
         RenderType type = xray ? xrayType(texture)
                 : ARGB.alpha(color) < 255 ? RenderTypes.entityTranslucent(texture) : RenderTypes.entityCutout(texture);
         int light = state.lightCoords;
         collector.submitCustomGeometry(poseStack, type,
-                (pose, buffer) -> GolemMeshes.renderPart(mesh, part, pose, buffer, light, color));
+                (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
     }
 }

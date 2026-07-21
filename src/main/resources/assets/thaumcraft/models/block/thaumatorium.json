@@ -1,7 +1,7 @@
 {
-  "loader": "thaumcraft:obj",
+  "loader": "thaumcraft:mesh",
   "parent": "block/block",
-  "model": "thaumcraft:models/obj/thaumatorium.obj",
+  "model": "thaumcraft:models/mesh/thaumatorium.tcmesh",
   "textures": {
     "texture": "thaumcraft:block/thaumatorium",
     "particle": "#texture"

@@ -208,7 +208,7 @@ public final class TCGolemParts {
     }
 
     private static Identifier obj(String name) {
-        return TCIds.rl("models/obj/" + name + ".obj");
+        return TCIds.rl("models/mesh/" + name + ".tcmesh");
     }
 
     private static Supplier<ItemStack> stack(Supplier<? extends ItemLike> item) {

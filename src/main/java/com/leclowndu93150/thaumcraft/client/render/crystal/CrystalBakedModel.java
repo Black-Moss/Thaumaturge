@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.crystal;
 
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshPart;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMesh;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMeshPart;
 import com.leclowndu93150.thaumcraft.content.world.crystal.BlockCrystal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,10 +24,10 @@ public final class CrystalBakedModel implements DynamicBlockStateModel {
     private static final List<Integer> PART_INDICES = List.of(0, 1, 2, 3, 4, 5, 6, 7);
     private static final Direction[] FACES = Direction.values();
 
-    private final MeshModel mesh;
+    private final TCMesh mesh;
     private final Material.Baked particleMaterial;
 
-    public CrystalBakedModel(MeshModel mesh, Material.Baked particleMaterial) {
+    public CrystalBakedModel(TCMesh mesh, Material.Baked particleMaterial) {
         this.mesh = mesh;
         this.particleMaterial = particleMaterial;
     }
@@ -49,9 +49,9 @@ public final class CrystalBakedModel implements DynamicBlockStateModel {
             List<Integer> shuffled = new ArrayList<>(PART_INDICES);
             Collections.shuffle(shuffled, new Random(seed + CrystalFaceTransforms.seedOffset(face)));
             for (int i = 0; i < partsPerFace; i++) {
-                MeshPart part = mesh.parts().get(shuffled.get(i));
+                TCMeshPart part = mesh.parts().get(shuffled.get(i));
                 List<BakedQuad> quads = new ArrayList<>();
-                CrystalQuadBaker.bakePart(mesh, part, particleMaterial, 0, transform, quads);
+                CrystalQuadBaker.bakePart(part, particleMaterial, 0, transform, quads);
                 for (BakedQuad q : quads) {
                     builder.addUnculledFace(q);
                     any = true;
@@ -61,9 +61,9 @@ public final class CrystalBakedModel implements DynamicBlockStateModel {
         if (!any) {
             int unsupportedSeed = (int)(seed & 0x7);
             Matrix4f transform = CrystalFaceTransforms.forFace(Direction.DOWN);
-            MeshPart part = mesh.parts().get(unsupportedSeed % 8);
+            TCMeshPart part = mesh.parts().get(unsupportedSeed % 8);
             List<BakedQuad> quads = new ArrayList<>();
-            CrystalQuadBaker.bakePart(mesh, part, particleMaterial, 0, transform, quads);
+            CrystalQuadBaker.bakePart(part, particleMaterial, 0, transform, quads);
             for (BakedQuad q : quads) {
                 builder.addUnculledFace(q);
             }

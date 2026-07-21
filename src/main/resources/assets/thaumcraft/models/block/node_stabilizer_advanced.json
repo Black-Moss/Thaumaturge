@@ -1,7 +1,7 @@
 {
-  "loader": "thaumcraft:obj",
+  "loader": "thaumcraft:mesh",
   "parent": "block/block",
-  "model": "thaumcraft:models/obj/node_stabilizer.obj",
+  "model": "thaumcraft:models/mesh/node_stabilizer.tcmesh",
   "textures": {
     "texture": "thaumcraft:block/node_stabilizer_over",
     "particle": "#texture"

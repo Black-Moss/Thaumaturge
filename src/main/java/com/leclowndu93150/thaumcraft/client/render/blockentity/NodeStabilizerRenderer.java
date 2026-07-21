@@ -4,8 +4,8 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.fx.render.LateWorldRenderQueue;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.client.golem.GolemMeshes;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshModel;
-import com.leclowndu93150.thaumcraft.client.model.obj.MeshPart;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMesh;
+import com.leclowndu93150.thaumcraft.client.model.mesh.TCMeshPart;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNodeStabilizer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class NodeStabilizerRenderer
         implements BlockEntityRenderer<BlockEntityNodeStabilizer, NodeStabilizerRenderState> {
-    private static final Identifier MODEL = TCIds.rl("models/obj/node_stabilizer.obj");
+    private static final Identifier MODEL = TCIds.rl("models/mesh/node_stabilizer.tcmesh");
     private static final Identifier TEXTURE = TCIds.rl("textures/block/node_stabilizer.png");
     private static final Identifier OVERLAY_TEXTURE = TCIds.rl("textures/block/node_stabilizer_over.png");
 
@@ -122,13 +122,13 @@ public final class NodeStabilizerRenderer
 
     public static void submitParts(int count, boolean advanced, float ticks,
                                    PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        MeshModel mesh = GolemMeshes.get(MODEL);
-        MeshPart lock = findPart(mesh, PART_LOCK);
-        MeshPart piston = findPart(mesh, PART_PISTON);
+        TCMesh mesh = GolemMeshes.get(MODEL);
+        TCMeshPart lock = findPart(mesh, PART_LOCK);
+        TCMeshPart piston = findPart(mesh, PART_PISTON);
         if (lock != null) {
             PoseStack.Pose lockPose = poseStack.last().copy();
             collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) ->
-                    GolemMeshes.renderPart(mesh, lock, lockPose, buffer, light, WHITE));
+                    GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
         }
         if (piston != null) {
             for (int arm = 0; arm < ARM_COUNT; arm++) {
@@ -138,7 +138,7 @@ public final class NodeStabilizerRenderer
                 poseStack.translate(0.0F, 0.0F, count / EXTEND_DIVISOR);
                 PoseStack.Pose armPose = poseStack.last().copy();
                 collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) ->
-                        GolemMeshes.renderPart(mesh, piston, armPose, buffer, light, WHITE));
+                        GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
                 float pulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
                 int glow = OVERLAY_LIGHT_BASE
                         + (int) (OVERLAY_LIGHT_RANGE * (count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse));
@@ -146,7 +146,7 @@ public final class NodeStabilizerRenderer
                 int glowLight = (glowUnit << 4) | (glowUnit << 20);
                 int tint = advanced ? ADVANCED_TINT : WHITE;
                 collector.submitCustomGeometry(poseStack, OVERLAY, (pose, buffer) ->
-                        GolemMeshes.renderPart(mesh, piston, armPose, buffer, glowLight, tint));
+                        GolemMeshes.renderPart(piston, armPose, buffer, glowLight, tint));
                 poseStack.popPose();
             }
         }
@@ -154,20 +154,20 @@ public final class NodeStabilizerRenderer
 
     public static void submitTransducerParts(float chargeFraction, float ticks,
                                              PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        MeshModel mesh = GolemMeshes.get(MODEL);
-        MeshPart lock = findPart(mesh, PART_LOCK);
-        MeshPart piston = findPart(mesh, PART_PISTON);
+        TCMesh mesh = GolemMeshes.get(MODEL);
+        TCMeshPart lock = findPart(mesh, PART_LOCK);
+        TCMeshPart piston = findPart(mesh, PART_PISTON);
         if (lock != null) {
             PoseStack.Pose lockPose = poseStack.last().copy();
             collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) ->
-                    GolemMeshes.renderPart(mesh, lock, lockPose, buffer, light, WHITE));
+                    GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
             float pulse = Mth.sin(ticks / 3.0F) * 0.1F + 0.9F;
             int glow = OVERLAY_LIGHT_BASE
                     + (int) (OVERLAY_LIGHT_RANGE * Math.min(1.0F, chargeFraction * TRANSDUCER_GLOW_GAIN * pulse));
             int glowUnit = Mth.clamp(glow / 16, 0, 15);
             int glowLight = (glowUnit << 4) | (glowUnit << 20);
             collector.submitCustomGeometry(poseStack, TRANSDUCER_OVERLAY, (pose, buffer) ->
-                    GolemMeshes.renderPart(mesh, lock, lockPose, buffer, glowLight, WHITE));
+                    GolemMeshes.renderPart(lock, lockPose, buffer, glowLight, WHITE));
         }
         if (piston != null) {
             for (int arm = 0; arm < ARM_COUNT; arm++) {
@@ -178,14 +178,14 @@ public final class NodeStabilizerRenderer
                 poseStack.translate(0.0F, 0.0F, chargeFraction * armPulse * TRANSDUCER_EXTEND);
                 PoseStack.Pose armPose = poseStack.last().copy();
                 collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) ->
-                        GolemMeshes.renderPart(mesh, piston, armPose, buffer, light, WHITE));
+                        GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
                 poseStack.popPose();
             }
         }
     }
 
-    private static @Nullable MeshPart findPart(MeshModel mesh, String name) {
-        for (MeshPart part : mesh.parts()) {
+    private static @Nullable TCMeshPart findPart(TCMesh mesh, String name) {
+        for (TCMeshPart part : mesh.parts()) {
             if (name.equals(part.name())) {
                 return part;
             }
