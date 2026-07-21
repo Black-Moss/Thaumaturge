@@ -15,17 +15,7 @@
       "required_knowledge": [
         {
           "type": "theory",
-          "category": "thaumcraft:golemancy",
-          "amount": 1
-        },
-        {
-          "type": "theory",
           "category": "thaumcraft:artifice",
-          "amount": 1
-        },
-        {
-          "type": "theory",
-          "category": "thaumcraft:auromancy",
           "amount": 1
         }
       ],
