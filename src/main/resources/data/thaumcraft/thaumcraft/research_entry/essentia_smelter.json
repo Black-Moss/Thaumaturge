@@ -24,37 +24,67 @@
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:aer"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:terra"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:ignis"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:aqua"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:ordo"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:perditio"
+            }
+          }
         }
       ]
     },
@@ -65,61 +95,111 @@
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:vacuos"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:lux"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:motus"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:gelum"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:vitreus"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:metallum"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:victus"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:mortuus"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:potentia"
+            }
+          }
         },
         {
           "items": [
             "thaumcraft:essentia_crystal"
           ],
-          "amount": 1
+          "amount": 1,
+          "components": {
+            "thaumcraft:crystal_aspect": {
+              "aspect": "thaumcraft:permutatio"
+            }
+          }
         }
       ]
     },

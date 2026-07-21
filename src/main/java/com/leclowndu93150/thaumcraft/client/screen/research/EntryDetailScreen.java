@@ -50,6 +50,8 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -1471,7 +1473,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         if (size == 0) return ItemStack.EMPTY;
         int index = (int) ((slotIndex + System.currentTimeMillis() / 1000L) % size);
         if (index < 0) index += size;
-        return new ItemStack(req.items().get(index), Math.max(1, req.amount()));
+        return new ItemStack(req.items().get(index), Math.max(1, req.amount()), req.components());
     }
 
     private int countMatching(Player player, ResearchRequirement req) {
@@ -1480,11 +1482,22 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
             if (stack.isEmpty()) continue;
-            if (req.items().contains(stack.getItem().builtInRegistryHolder())) {
+            if (req.items().contains(stack.getItem().builtInRegistryHolder()) && testComponents(req.components(), stack)) {
                 total += stack.getCount();
             }
         }
         return total;
+    }
+
+    private boolean testComponents(DataComponentPatch components, DataComponentGetter getter) {
+        for (var entry : components.entrySet()) {
+            var type = entry.getKey();
+            var value = entry.getValue();
+            if (value.isEmpty() && getter.has(type) || value.isPresent() && !value.get().equals(getter.get(type))) {
+                return false; // One of the patch entries doesn't match
+            }
+        }
+        return true; // Empty patch always matches or all components match
     }
 
     @Override
