@@ -59,7 +59,6 @@ public final class ThaumometerClientHandler {
         boolean held = player.getMainHandItem().is(TCItems.THAUMOMETER.get())
                 || player.getOffhandItem().is(TCItems.THAUMOMETER.get());
         if (!held) {
-            ThaumometerTargetOverlay.setTarget(null);
             return;
         }
         if (player.tickCount % HIGHLIGHT_INTERVAL_TICKS != 0) {
@@ -70,7 +69,6 @@ public final class ThaumometerClientHandler {
         if (target != null && ScanningManager.isThingStillScannable(player, target)) {
             FXClient.scanHighlight(target);
         }
-        ThaumometerTargetOverlay.setTarget(target);
         BlockHitResult wild = wildBlockRay(mc.level, player);
         if (wild.getType() == HitResult.Type.BLOCK
                 && ScanningManager.isThingStillScannable(player, wild.getBlockPos())) {
