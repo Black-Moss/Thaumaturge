@@ -313,6 +313,14 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
     }
 
     private void drawHelperButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        BlockEntityResearchTable table = table();
+        if (table != null && minecraft.player != null) {
+            ResearchNoteData data = noteData();
+            if (data != null && data.complete()
+                    && KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+                return;
+            }
+        }
         graphics.item(new ItemStack(TCItems.THAUMONOMICON.get()), leftPos + HELPER_X, topPos + HELPER_Y);
         if (inRect(mouseX, mouseY, leftPos + HELPER_X, topPos + HELPER_Y, HELPER_SIZE, HELPER_SIZE)) {
             graphics.setTooltipForNextFrame(font, Component.translatable("tc.table.helper"), mouseX, mouseY);
@@ -522,13 +530,20 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
         double mx = event.x();
         double my = event.y();
         if (event.button() == 0) {
-            if (inRect(mx, my, leftPos + HELPER_X, topPos + HELPER_Y, HELPER_SIZE, HELPER_SIZE)) {
-                helperOpen = !helperOpen;
-                playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
-                return true;
-            }
-            if (helperOpen && handleHelperArrows(mx, my)) {
-                return true;
+            BlockEntityResearchTable table = table();
+            if (table != null && minecraft.player != null) {
+                ResearchNoteData data = noteData();
+                if (data == null || !data.complete()
+                        || !KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+                    if (inRect(mx, my, leftPos + HELPER_X, topPos + HELPER_Y, HELPER_SIZE, HELPER_SIZE)) {
+                        helperOpen = !helperOpen;
+                        playSound(TCSounds.KEY.get(), 0.3F, 1.0F);
+                        return true;
+                    }
+                    if (helperOpen && handleHelperArrows(mx, my)) {
+                        return true;
+                    }
+                }
             }
             if (handleArrows(mx, my) || handleCombineButton(mx, my)
                     || handleSelectRemove(mx, my) || handleDuplicate(mx, my)) {
