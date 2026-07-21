@@ -189,8 +189,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
     private @Nullable EditBox searchField;
     private boolean searching;
     private @Nullable EntryNode currentHighlight;
-    private long popupTimeMs;
-    private @Nullable Component popupMessage;
     private int tickCount;
 
     public ThaumonomiconBrowserScreen() {
@@ -458,9 +456,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         renderCategoryButtons(graphics, mouseX, mouseY);
         renderSearchButton(graphics, mouseX, mouseY);
         renderScrollButtons(graphics, mouseX, mouseY);
-        if (popupMessage != null && popupTimeMs > System.currentTimeMillis()) {
-            graphics.setTooltipForNextFrame(font, List.of(popupMessage), Optional.empty(), POPUP_X, POPUP_Y);
-        }
         if (currentHighlight != null && minecraft != null && minecraft.player != null) {
             IPlayerKnowledge knowledge = KnowledgeAccess.of(minecraft.player);
             renderEntryTooltip(graphics, knowledge, currentHighlight, mouseX + TOOLTIP_OFFSET_X, mouseY + TOOLTIP_OFFSET_Y);
@@ -972,7 +967,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        popupTimeMs = System.currentTimeMillis() - 1L;
         if (event.button() != 0) return super.mouseClicked(event, doubleClick);
         int mx = (int) event.x();
         int my = (int) event.y();
@@ -1017,8 +1011,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             EntryNode hl = currentHighlight;
             updateResearch();
             ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(hl.id));
-            popupTimeMs = System.currentTimeMillis() + POPUP_DURATION_MS;
-            popupMessage = Component.translatable("tc.research.popup", Component.translatable(hl.entry.nameKey()).getString());
             persistState();
             playPageOpen();
             minecraft.setScreen(new EntryDetailScreen(hl.holder, hl.id, this));
