@@ -619,6 +619,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                             COMPLETE_LABEL_COLOR, true);
                 }
             }
+        } else {
+            ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(entryId));
         }
     }
 
