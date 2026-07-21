@@ -52,7 +52,7 @@ public final class TravellerBootsItem extends Item implements IRechargable {
         }
         boolean active = RechargeAccess.getCharge(stack) > 0
                 && !player.getAbilities().flying
-                && player.getLastClientInput().forward()
+                && (player.getLastClientInput().forward() || player.getLastClientInput().backward() || player.getLastClientInput().left() || player.getLastClientInput().right())
                 && !player.isShiftKeyDown();
         AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
         if (stepHeight != null) {
