@@ -26,6 +26,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ambient.Bat;
+import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.animal.parrot.Parrot;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Ghast;
@@ -130,6 +131,7 @@ public final class ScanBootstrap {
         ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_brain"), TCItems.BRAIN.get()));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), EntityThaumcraftGolem.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), EntityOwnedConstruct.class, true));
+        ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_golem"), AbstractGolem.class, true));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_arrow"), AbstractArrow.class, true));
         ScanningManager.addScannableThing(new ScanItem(TCIds.rl("f_arrow"), Items.ARROW));
         ScanningManager.addScannableThing(new ScanEntity(TCIds.rl("f_fireball"), AbstractHurtingProjectile.class, true));
