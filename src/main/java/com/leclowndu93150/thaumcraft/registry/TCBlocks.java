@@ -1600,6 +1600,7 @@ public final class TCBlocks {
                     .requiresCorrectToolForDrops()
                     .noOcclusion()
                     .noLootTable()
+                    .lightLevel(_ ->13)
     );
 
 
