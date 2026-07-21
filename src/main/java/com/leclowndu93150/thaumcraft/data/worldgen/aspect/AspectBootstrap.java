@@ -28,7 +28,7 @@ public final class AspectBootstrap {
         compound(ctx, TCAspects.VITREUS, 0x80FFFF, Aspect.DEFAULT_BLEND, TCAspects.TERRA, TCAspects.AER);
         compound(ctx, TCAspects.METALLUM, 0xB5B5CD, Aspect.DEFAULT_BLEND, TCAspects.TERRA, TCAspects.ORDO);
         compound(ctx, TCAspects.VICTUS, 0xDE0005, Aspect.DEFAULT_BLEND, TCAspects.TERRA, TCAspects.AQUA);
-        compound(ctx, TCAspects.MORTUUS, 0x6A0005, Aspect.DEFAULT_BLEND, TCAspects.AQUA, TCAspects.PERDITIO);
+        compound(ctx, TCAspects.MORTUUS, 0x6A0005, Aspect.DEFAULT_BLEND, TCAspects.VICTUS, TCAspects.PERDITIO);
         compound(ctx, TCAspects.POTENTIA, 0xC0FFFF, Aspect.DEFAULT_BLEND, TCAspects.ORDO, TCAspects.IGNIS);
         compound(ctx, TCAspects.PERMUTATIO, 0x578357, Aspect.DEFAULT_BLEND, TCAspects.PERDITIO, TCAspects.ORDO);
         compound(ctx, TCAspects.PRAECANTATIO, 0xCF00FF, Aspect.DEFAULT_BLEND, TCAspects.POTENTIA, TCAspects.AER);
