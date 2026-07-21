@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumcraft.content.research.PlayerKnowledge;
+import com.leclowndu93150.thaumcraft.content.research.table.MenuResearchTable;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
@@ -139,6 +140,14 @@ public final class ResearchNotes {
             if (stack.getItem() instanceof IScribeTools && stack.getDamageValue() < stack.getMaxDamage()) {
                 if (!simulate) {
                     stack.setDamageValue(stack.getDamageValue() + 1);
+                }
+                return true;
+            }
+        }
+        if (player.containerMenu instanceof MenuResearchTable table){
+            if (table.blockEntity() != null && table.blockEntity().hasInkReady()) {
+                if (!simulate) {
+                    return table.blockEntity().consumeInk();
                 }
                 return true;
             }
