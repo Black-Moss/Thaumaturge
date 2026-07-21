@@ -1286,7 +1286,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         AspectList list = AspectList.EMPTY;
         for (Holder.Reference<IAspect> ref : lookup.listElements().toList()) {
             if (AspectPools.isDiscovered(minecraft.player, ref)) {
-                list = list.add(ref, AspectPools.amount(minecraft.player, ref));
+                list = list.add(ref, 1);
             }
         }
         return list;
