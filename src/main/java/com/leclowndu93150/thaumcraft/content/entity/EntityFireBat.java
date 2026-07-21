@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.content.entity.ai.FireBatAttackGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.FlyingWanderGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -46,11 +47,20 @@ public final class EntityFireBat extends Monster {
     private static final float BAT_VOLUME = 0.1F;
     private static final float BAT_PITCH_FACTOR = 0.95F;
 
+    private static final float TICKS_PER_FLAP = 10.0F;
+
+    public final AnimationState flyAnimationState = new AnimationState();
+    public final AnimationState restAnimationState = new AnimationState();
+
     public @Nullable LivingEntity owner;
     public int damBonus;
     private int summonLife;
 
     private static final int SUMMON_LIFESPAN_TICKS = 600;
+
+    public boolean isFlapping() {
+        return !isHanging() && (float) this.tickCount % TICKS_PER_FLAP == 0.0F;
+    }
 
     public void summon(@Nullable LivingEntity summoner, @Nullable LivingEntity target, int bonus) {
         this.owner = summoner;
@@ -187,6 +197,17 @@ public final class EntityFireBat extends Monster {
         } else {
             Vec3 movement = this.getDeltaMovement();
             this.setDeltaMovement(movement.x, movement.y * VERTICAL_DRAG, movement.z);
+        }
+        this.setupAnimationStates();
+    }
+
+    private void setupAnimationStates() {
+        if (isHanging()) {
+            this.flyAnimationState.stop();
+            this.restAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.restAnimationState.stop();
+            this.flyAnimationState.startIfStopped(this.tickCount);
         }
     }
 

@@ -9,7 +9,6 @@ import com.leclowndu93150.thaumcraft.client.model.entity.EldritchCrabModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.GrapplerModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.EldritchGolemModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.EldritchGuardianModel;
-import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.PechModel;
 import com.leclowndu93150.thaumcraft.client.model.gear.FortressArmorModel;
 import com.leclowndu93150.thaumcraft.client.model.gear.KnightArmorModel;
@@ -24,8 +23,8 @@ import com.leclowndu93150.thaumcraft.client.model.entity.TCBannerModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintSeedModel;
 import com.leclowndu93150.thaumcraft.client.model.entity.TaintacleModel;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
+import net.minecraft.client.model.ambient.BatModel;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
-import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -52,7 +51,7 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.TAINTACLE_SMALL,
                 () -> TaintacleModel.createLayer(TaintacleModel.TAINTACLE_SMALL_LENGTH));
         event.registerLayerDefinition(TCModelLayers.TAINT_SEED, TaintSeedModel::createLayer);
-        event.registerLayerDefinition(TCModelLayers.FIRE_BAT, FireBatModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.FIRE_BAT, BatModel::createBodyLayer);
         event.registerLayerDefinition(TCModelLayers.TC_BANNER, TCBannerModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.BRAIN, BrainModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.JAR_BRINE, JarBrineModel::createLayer);

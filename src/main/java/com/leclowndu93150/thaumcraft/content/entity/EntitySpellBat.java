@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
@@ -63,6 +64,10 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
     private static final int DEFAULT_COLOR = 0xFFFFFF;
     private static final float COLOR_DIVISOR = 255.0F;
 
+    private static final float TICKS_PER_FLAP = 10.0F;
+
+    public final AnimationState flyAnimationState = new AnimationState();
+
     public int damBonus;
 
     private @Nullable FocusPackage focusPackage;
@@ -105,6 +110,10 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
 
     public int getColor() {
         return this.color;
+    }
+
+    public boolean isFlapping() {
+        return (float) this.tickCount % TICKS_PER_FLAP == 0.0F;
     }
 
     public void setOwner(@Nullable LivingEntity owner) {
@@ -208,6 +217,7 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
         }
         Vec3 movement = this.getDeltaMovement();
         this.setDeltaMovement(movement.x, movement.y * VERTICAL_DRAG, movement.z);
+        this.flyAnimationState.startIfStopped(this.tickCount);
         if (this.isAlive() && this.level().isClientSide()) {
             this.clientParticles();
         }

@@ -1,33 +1,36 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.model.entity.FireBatModel;
 import com.leclowndu93150.thaumcraft.content.entity.EntityFireBat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.model.ambient.BatModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.BatRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 
-public final class FireBatRenderer extends MobRenderer<EntityFireBat, FireBatRenderState, FireBatModel> {
+public final class FireBatRenderer extends MobRenderer<EntityFireBat, BatRenderState, BatModel> {
     private static final Identifier TEXTURE = TCIds.rl("textures/entity/firebat.png");
     private static final float SHADOW = 0.25F;
-    private static final float SCALE = 0.35F;
+    private static final float SCALE = 1F;
     private static final int FULLBRIGHT_BLOCK_LIGHT = 15;
 
     public FireBatRenderer(EntityRendererProvider.Context context) {
-        super(context, new FireBatModel(context.bakeLayer(TCModelLayers.FIRE_BAT)), SHADOW);
+        super(context, new BatModel(context.bakeLayer(TCModelLayers.FIRE_BAT)), SHADOW);
     }
 
     @Override
-    public FireBatRenderState createRenderState() {
-        return new FireBatRenderState();
+    public BatRenderState createRenderState() {
+        return new BatRenderState();
     }
 
     @Override
-    public void extractRenderState(EntityFireBat entity, FireBatRenderState state, float partialTicks) {
+    public void extractRenderState(EntityFireBat entity, BatRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
-        state.hanging = entity.isHanging();
+        state.isResting = entity.isHanging();
+        state.flyAnimationState.copyFrom(entity.flyAnimationState);
+        state.restAnimationState.copyFrom(entity.restAnimationState);
     }
 
     @Override
@@ -36,12 +39,12 @@ public final class FireBatRenderer extends MobRenderer<EntityFireBat, FireBatRen
     }
 
     @Override
-    public Identifier getTextureLocation(FireBatRenderState state) {
+    public Identifier getTextureLocation(BatRenderState state) {
         return TEXTURE;
     }
 
     @Override
-    protected void scale(FireBatRenderState state, PoseStack poseStack) {
+    protected void scale(BatRenderState state, PoseStack poseStack) {
         poseStack.scale(SCALE, SCALE, SCALE);
     }
 }
