@@ -1175,8 +1175,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + ASPECT_TAG_OFFSET_X, rowY + ASPECT_TAG_OFFSET_Y);
             graphics.pose().scale(ASPECT_TAG_SCALE, ASPECT_TAG_SCALE);
-            AspectTagRenderer.render(graphics, font, 0, 0, entry.aspect(),
-                    aspect.components().isEmpty() ? 0.0F : ASPECT_COMBINE_YIELD);
+            drawAspectTag(graphics, 0, 0, entry.aspect());
             graphics.pose().popMatrix();
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + ASPECT_NAME_OFFSET_X, rowY + ASPECT_NAME_OFFSET_Y);
