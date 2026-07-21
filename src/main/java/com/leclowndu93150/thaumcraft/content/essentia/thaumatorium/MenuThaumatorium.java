@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class MenuThaumatorium extends AbstractContainerMenu {
-    public static final int CATALYST_X = 55;
+    public static final int CATALYST_X = 56;
     public static final int CATALYST_Y = 24;
     private static final int PLAYER_GRID_Y = 135;
     private static final int HOTBAR_Y = 193;

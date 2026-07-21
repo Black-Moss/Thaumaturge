@@ -15,9 +15,11 @@ import net.minecraft.world.item.ItemStack;
 
 public final class MenuFocusPouch extends AbstractContainerMenu {
     private static final int POUCH_COLUMNS = 6;
-    private static final int POUCH_SLOT_X = 37;
+    private static final int POUCH_SLOT_X = 40;
     private static final int POUCH_SLOT_Y = 51;
     private static final int SLOT_SIZE = 18;
+    private static final int SLOT_X_SPACING = -1;
+    private static final int SLOT_Y_SPACING = -1;
     private static final int PLAYER_INV_X = 8;
     private static final int PLAYER_INV_Y = 151;
     private static final int HOTBAR_Y = 209;
@@ -43,8 +45,8 @@ public final class MenuFocusPouch extends AbstractContainerMenu {
         }
         for (int slot = 0; slot < FocusPouchItem.SIZE; slot++) {
             addSlot(new FocusSlot(pouchInventory, slot,
-                    POUCH_SLOT_X + slot % POUCH_COLUMNS * SLOT_SIZE,
-                    POUCH_SLOT_Y + slot / POUCH_COLUMNS * SLOT_SIZE));
+                    POUCH_SLOT_X + slot % POUCH_COLUMNS * (SLOT_SIZE + SLOT_X_SPACING),
+                    POUCH_SLOT_Y + slot / POUCH_COLUMNS * (SLOT_SIZE + SLOT_Y_SPACING)));
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {

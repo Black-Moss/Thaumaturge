@@ -73,7 +73,7 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
 
     private static final int ARROW_PREV_X = 27;
     private static final int ARROW_NEXT_X = 51;
-    private static final int ARROW_Y = 121;
+    private static final int ARROW_Y = 119;
     private static final int ARROW_W = 24;
     private static final int ARROW_H = 8;
     private static final int ARROW_PREV_U = 184;
@@ -212,9 +212,13 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
             int x = leftPos + PALETTE_X + (drawn / PALETTE_ROWS) * PALETTE_CELL;
             int y = topPos + PALETTE_Y + (drawn % PALETTE_ROWS) * PALETTE_CELL;
             float alpha = availableOf(aspect) > 0 ? 1.0F : 0.33F;
-            AspectTagRenderer.render(graphics, font, (double) x, (double) y, aspect,
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(x,y);
+            graphics.pose().scale(0.8F);
+            AspectTagRenderer.render(graphics, font, 1,1, aspect,
                     pool().amount(AspectPools.idOf(aspect)), 0, 0.0,
                     AspectTagRenderer.BlendMode.ALPHA, alpha, false);
+            graphics.pose().popMatrix();
             if (mouseX >= x && mouseX < x + PALETTE_CELL && mouseY >= y && mouseY < y + PALETTE_CELL) {
                 hovered = aspect;
             }
