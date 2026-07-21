@@ -10,6 +10,9 @@ import net.minecraft.world.level.block.Block;
 public final class TCBlockTags {
     public static final TagKey<Block> CRUCIBLE_HEAT_SOURCES = key("crucible_heat_sources");
 
+    public static final TagKey<Block> GREATWOOD_LOGS = key("greatwood_logs");
+    public static final TagKey<Block> SILVERWOOD_LOGS = key("silverwood_logs");
+
     public static final TagKey<Block> ORES_AMBER = common("ores/amber");
     public static final TagKey<Block> ORES_CINNABAR = common("ores/cinnabar");
 

@@ -117,8 +117,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.METAL_VOID_BLOCK.get());
 
         tag(BlockTags.LOGS_THAT_BURN)
-                .add(TCBlocks.LOG_GREATWOOD.get())
-                .add(TCBlocks.LOG_SILVERWOOD.get());
+                .addTag(TCBlockTags.GREATWOOD_LOGS)
+                .addTag(TCBlockTags.SILVERWOOD_LOGS);
 
         tag(BlockTags.LEAVES)
                 .add(TCBlocks.LEAVES_GREATWOOD.get())
@@ -129,12 +129,6 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.SAPLING_SILVERWOOD.get());
 
         tag(BlockTags.PLANKS)
-                .add(TCBlocks.PLANK_GREATWOOD.get())
-                .add(TCBlocks.PLANK_SILVERWOOD.get());
-
-        tag(BlockTags.MINEABLE_WITH_AXE)
-                .add(TCBlocks.LOG_GREATWOOD.get())
-                .add(TCBlocks.LOG_SILVERWOOD.get())
                 .add(TCBlocks.PLANK_GREATWOOD.get())
                 .add(TCBlocks.PLANK_SILVERWOOD.get());
 
@@ -184,5 +178,10 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.STORAGE_BLOCKS_VOID_METAL).add(TCBlocks.METAL_VOID_BLOCK.get());
         tag(Tags.Blocks.STORAGE_BLOCKS).addTags(TCBlockTags.STORAGE_BLOCKS_AMBER,TCBlockTags.STORAGE_BLOCKS_BRASS,TCBlockTags.STORAGE_BLOCKS_THAUMIUM,TCBlockTags.STORAGE_BLOCKS_VOID_METAL);
 
+        tag(TCBlockTags.GREATWOOD_LOGS).add(TCBlocks.LOG_GREATWOOD.get());
+        tag(TCBlockTags.SILVERWOOD_LOGS).add(TCBlocks.LOG_SILVERWOOD.get());
+        tag(Tags.Blocks.OVERWORLD_NATURAL_LOGS).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
+        tag(BlockTags.OVERWORLD_NATURAL_LOGS).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
+        tag(BlockTags.SNAPS_GOAT_HORN).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
     }
 }

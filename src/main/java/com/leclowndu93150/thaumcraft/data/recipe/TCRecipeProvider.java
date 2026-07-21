@@ -193,6 +193,16 @@ public final class TCRecipeProvider extends RecipeProvider {
             });
         });
 
+        shapeless(RecipeCategory.BUILDING_BLOCKS, TCItems.PLANK_GREATWOOD, 4)
+                .requires(TCBlocks.LOG_GREATWOOD)
+                .unlockedBy("has", has(TCBlocks.LOG_GREATWOOD))
+                .save(output);
+
+        shapeless(RecipeCategory.BUILDING_BLOCKS, TCItems.PLANK_SILVERWOOD, 4)
+                .requires(TCBlocks.LOG_SILVERWOOD)
+                .unlockedBy("has", has(TCBlocks.LOG_SILVERWOOD))
+                .save(output);
+
         shaped(RecipeCategory.MISC,TCItems.PHIAL,8)
                 .pattern(" C ")
                 .pattern("P P")
