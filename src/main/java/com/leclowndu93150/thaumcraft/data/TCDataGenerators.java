@@ -65,6 +65,7 @@ public final class TCDataGenerators {
         event.createProvider(ChampionWhitelistProvider::new);
         event.createProvider(InfernalBonusProvider::new);
         event.createProvider(StrippingProvider::new);
+        event.createProvider(FuelValuesProvider::new);
         event.createProvider(TCCurioProvider::new);
 
         event.createBlockAndItemTags(TCBlockTagsProvider::new, TCItemTagsProvider::new);
