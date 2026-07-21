@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumcraft.content.entity.EntityCultist;
 import com.leclowndu93150.thaumcraft.content.entity.EntityInhabitedZombie;
 import com.leclowndu93150.thaumcraft.content.entity.construct.EntityOwnedConstruct;
 import com.leclowndu93150.thaumcraft.content.golem.EntityThaumcraftGolem;
+import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -86,10 +87,16 @@ public final class ScanBootstrap {
                 TCBlocks.CRYSTAL_VITIUM.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("plants"),
                 TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get(),
+                TCBlocks.WOOD_GREATWOOD.get(), TCBlocks.WOOD_SILVERWOOD.get(),
+                TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_LOG_SILVERWOOD.get(),
+                TCBlocks.STRIPPED_WOOD_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get(),
                 TCBlocks.SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get(),
                 TCBlocks.PLANT_CINDERPEARL.get(), TCBlocks.PLANT_SHIMMERLEAF.get(), TCBlocks.PLANT_VISHROOM.get()));
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("scanned/plantwood"),
                 TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get(),
+                TCBlocks.WOOD_GREATWOOD.get(), TCBlocks.WOOD_SILVERWOOD.get(),
+                TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_LOG_SILVERWOOD.get(),
+                TCBlocks.STRIPPED_WOOD_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get(),
                 TCBlocks.SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get()));
 
         ScanningManager.addScannableThing(new ScanBlock(TCIds.rl("f_teleport"),

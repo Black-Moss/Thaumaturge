@@ -474,8 +474,14 @@ public final class TCEnglishProvider extends LanguageProvider {
 
         add("block.thaumcraft.sapling_greatwood", "Greatwood Sapling");
         add("block.thaumcraft.sapling_silverwood", "Silverwood Sapling");
-        add("block.thaumcraft.log_greatwood", "Greatwood");
-        add("block.thaumcraft.log_silverwood", "Silverwood");
+        add("block.thaumcraft.log_greatwood", "Greatwood Log");
+        add("block.thaumcraft.log_silverwood", "Silverwood Log");
+        add("block.thaumcraft.greatwood", "Greatwood");
+        add("block.thaumcraft.silverwood", "Silverwood");
+        add("block.thaumcraft.stripped_log_greatwood", "Stripped Greatwood Log");
+        add("block.thaumcraft.stripped_log_silverwood", "Stripped Silverwood Log");
+        add("block.thaumcraft.stripped_greatwood", "Stripped Greatwood");
+        add("block.thaumcraft.stripped_silverwood", "Stripped Silverwood");
         add("block.thaumcraft.leaves_greatwood", "Greatwood Leaves");
         add("block.thaumcraft.leaves_silverwood", "Silverwood Leaves");
         add("block.thaumcraft.plank_greatwood", "Greatwood Planks");

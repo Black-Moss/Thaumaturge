@@ -1302,19 +1302,16 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCBlocks.LEAVES_GREATWOOD.get().asItem(), ItemModelUtils.tintedModel(
                 Identifier.fromNamespaceAndPath(TCIds.MODID, "block/leaves_greatwood"),
                 new Constant(FOLIAGE_DEFAULT_COLOR)));
-        log(blockModels, TCBlocks.LOG_GREATWOOD.get(), "log_greatwood", "log_greatwood_horizontal");
-        log(blockModels, TCBlocks.LOG_SILVERWOOD.get(), "log_silverwood", "log_silverwood_horizontal");
+        log(blockModels, TCBlocks.LOG_GREATWOOD.get(),TCBlocks.WOOD_GREATWOOD.get());
+        log(blockModels, TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.WOOD_SILVERWOOD.get());
+        log(blockModels, TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_GREATWOOD.get());
+        log(blockModels, TCBlocks.STRIPPED_LOG_SILVERWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get());
     }
 
-    private void log(BlockModelGenerators blockModels, Block block, String verticalName, String horizontalName) {
-        MultiVariant vertical = variantOf(verticalName);
-        MultiVariant horizontal = variantOf(horizontalName);
-        PropertyDispatch<MultiVariant> dispatch = PropertyDispatch.initial(BlockStateProperties.AXIS)
-                .select(Direction.Axis.Y, vertical)
-                .select(Direction.Axis.Z, horizontal.with(BlockModelGenerators.X_ROT_90))
-                .select(Direction.Axis.X, horizontal.with(BlockModelGenerators.X_ROT_90).with(BlockModelGenerators.Y_ROT_90));
-        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(dispatch));
+    private void log(BlockModelGenerators blockModels, Block block,Block wood) {
+        blockModels.woodProvider(block).logWithHorizontal(block).wood(wood);
     }
+
 
     private void plantModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         cross(blockModels, TCBlocks.PLANT_SHIMMERLEAF.get());

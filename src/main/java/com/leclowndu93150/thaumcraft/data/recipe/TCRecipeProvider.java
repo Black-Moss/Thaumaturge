@@ -194,13 +194,13 @@ public final class TCRecipeProvider extends RecipeProvider {
         });
 
         shapeless(RecipeCategory.BUILDING_BLOCKS, TCItems.PLANK_GREATWOOD, 4)
-                .requires(TCBlocks.LOG_GREATWOOD)
-                .unlockedBy("has", has(TCBlocks.LOG_GREATWOOD))
+                .requires(TCItemTags.GREATWOOD_LOGS)
+                .unlockedBy("has", has(TCItemTags.GREATWOOD_LOGS))
                 .save(output);
 
         shapeless(RecipeCategory.BUILDING_BLOCKS, TCItems.PLANK_SILVERWOOD, 4)
-                .requires(TCBlocks.LOG_SILVERWOOD)
-                .unlockedBy("has", has(TCBlocks.LOG_SILVERWOOD))
+                .requires(TCItemTags.SILVERWOOD_LOGS)
+                .unlockedBy("has", has(TCItemTags.SILVERWOOD_LOGS))
                 .save(output);
 
         shaped(RecipeCategory.MISC,TCItems.PHIAL,8)
@@ -278,6 +278,11 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .gate(gate("link_book",1))
                 .unlockedBy("has", has(TCItems.THAUMONOMICON_SHARING))
                 .save(output);
+
+        woodFromLogs( TCItems.WOOD_GREATWOOD,TCItems.LOG_GREATWOOD);
+        woodFromLogs( TCItems.STRIPPED_WOOD_GREATWOOD,TCItems.STRIPPED_LOG_GREATWOOD);
+        woodFromLogs( TCItems.WOOD_SILVERWOOD,TCItems.LOG_SILVERWOOD);
+        woodFromLogs( TCItems.STRIPPED_WOOD_SILVERWOOD,TCItems.STRIPPED_LOG_SILVERWOOD);
 
     }
 
@@ -2299,9 +2304,9 @@ public final class TCRecipeProvider extends RecipeProvider {
 
         arcaneShaped(new ItemStackTemplate(TCItems.WAND_ROD_GREATWOOD.get()), WAND_ROD_GREATWOOD_VIS)
                 .pattern(" G").pattern("G ")
-                .define('G', TCItems.LOG_GREATWOOD)
+                .define('G', TCItemTags.GREATWOOD_LOGS)
                 .gate(gate("rod_greatwood"))
-                .unlockedBy("has", has(TCItems.LOG_GREATWOOD))
+                .unlockedBy("has", has(TCItemTags.GREATWOOD_LOGS))
                 .save(output, TCIds.MODID + ":wand/part/wand_rod_greatwood");
 
         elementalRodInfusion(aspects, TCItems.WAND_ROD_OBSIDIAN, Ingredient.of(Blocks.OBSIDIAN),
@@ -2318,14 +2323,14 @@ public final class TCRecipeProvider extends RecipeProvider {
                 TCAspects.PERDITIO, TCAspects.EXANIMIS, "rod_bone");
 
         InfusionRecipeBuilder silverwoodRod = new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
-                new ItemStackTemplate(TCItems.WAND_ROD_SILVERWOOD.get()), Ingredient.of(TCItems.LOG_SILVERWOOD.get()))
+                new ItemStackTemplate(TCItems.WAND_ROD_SILVERWOOD.get()), Ingredient.of(items.getOrThrow(TCItemTags.SILVERWOOD_LOGS)))
                 .component(Ingredient.of(TCItems.SALIS_MUNDUS.get()));
         for (ResourceKey<IAspect> primal : TCAspects.PRIMALS) {
             silverwoodRod.component(crystal(primal)).aspect(primal, 9);
         }
         silverwoodRod.aspect(TCAspects.PRAECANTATIO, 9)
                 .instability(5).gate(gate("rod_silverwood"))
-                .unlockedBy("has", has(TCItems.LOG_SILVERWOOD.get()))
+                .unlockedBy("has", has(TCItemTags.SILVERWOOD_LOGS))
                 .save(output);
 
         staffCoreRecipe(TCItems.STAFF_ROD_GREATWOOD, TCItems.WAND_ROD_GREATWOOD, STAFF_GREATWOOD_VIS);

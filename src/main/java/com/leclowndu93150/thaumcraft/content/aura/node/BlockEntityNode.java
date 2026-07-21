@@ -21,10 +21,8 @@ import com.leclowndu93150.thaumcraft.content.wands.WandChargingEvents;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
 import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
-import com.leclowndu93150.thaumcraft.registry.TCBlocks;
-import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
-import com.leclowndu93150.thaumcraft.registry.TCEntities;
-import com.leclowndu93150.thaumcraft.registry.TCWandParts;
+import com.leclowndu93150.thaumcraft.registry.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -600,7 +598,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             for (int dy = -1; dy <= 1; dy++) {
                 for (int dz = -1; dz <= 1; dz++) {
                     cursor.setWithOffset(pos, dx, dy, dz);
-                    if (serverLevel.getBlockState(cursor).is(TCBlocks.LOG_SILVERWOOD.get())) {
+                    if (serverLevel.getBlockState(cursor).is(TCBlockTags.SILVERWOOD_LOGS)) {
                         return true;
                     }
                 }

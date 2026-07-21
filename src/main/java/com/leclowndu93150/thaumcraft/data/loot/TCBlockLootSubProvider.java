@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumcraft.data.loot;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.content.world.crystal.BlockCrystal;
+import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -180,6 +181,12 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.SAPLING_SILVERWOOD.get());
         dropSelf(TCBlocks.LOG_GREATWOOD.get());
         dropSelf(TCBlocks.LOG_SILVERWOOD.get());
+        dropSelf(TCBlocks.WOOD_GREATWOOD.get());
+        dropSelf(TCBlocks.WOOD_SILVERWOOD.get());
+        dropSelf(TCBlocks.STRIPPED_LOG_GREATWOOD.get());
+        dropSelf(TCBlocks.STRIPPED_LOG_SILVERWOOD.get());
+        dropSelf(TCBlocks.STRIPPED_WOOD_GREATWOOD.get());
+        dropSelf(TCBlocks.STRIPPED_WOOD_SILVERWOOD.get());
         dropSelf(TCBlocks.PLANK_GREATWOOD.get());
         dropSelf(TCBlocks.PLANK_SILVERWOOD.get());
         add(TCBlocks.LEAVES_GREATWOOD.get(),

@@ -556,7 +556,13 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> SAPLING_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.SAPLING_GREATWOOD);
     public static final DeferredItem<BlockItem> SAPLING_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.SAPLING_SILVERWOOD);
     public static final DeferredItem<BlockItem> LOG_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.LOG_GREATWOOD);
+    public static final DeferredItem<BlockItem> WOOD_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.WOOD_GREATWOOD);
+    public static final DeferredItem<BlockItem> STRIPPED_LOG_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.STRIPPED_LOG_GREATWOOD);
+    public static final DeferredItem<BlockItem> STRIPPED_WOOD_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.STRIPPED_WOOD_GREATWOOD);
     public static final DeferredItem<BlockItem> LOG_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.LOG_SILVERWOOD);
+    public static final DeferredItem<BlockItem> WOOD_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.WOOD_SILVERWOOD);
+    public static final DeferredItem<BlockItem> STRIPPED_LOG_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.STRIPPED_LOG_SILVERWOOD);
+    public static final DeferredItem<BlockItem> STRIPPED_WOOD_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.STRIPPED_WOOD_SILVERWOOD);
     public static final DeferredItem<BlockItem> LEAVES_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.LEAVES_GREATWOOD);
     public static final DeferredItem<BlockItem> LEAVES_SILVERWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.LEAVES_SILVERWOOD);
     public static final DeferredItem<BlockItem> PLANK_GREATWOOD = ITEMS.registerSimpleBlockItem(TCBlocks.PLANK_GREATWOOD);

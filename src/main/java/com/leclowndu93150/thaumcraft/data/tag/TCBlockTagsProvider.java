@@ -178,10 +178,21 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.STORAGE_BLOCKS_VOID_METAL).add(TCBlocks.METAL_VOID_BLOCK.get());
         tag(Tags.Blocks.STORAGE_BLOCKS).addTags(TCBlockTags.STORAGE_BLOCKS_AMBER,TCBlockTags.STORAGE_BLOCKS_BRASS,TCBlockTags.STORAGE_BLOCKS_THAUMIUM,TCBlockTags.STORAGE_BLOCKS_VOID_METAL);
 
-        tag(TCBlockTags.GREATWOOD_LOGS).add(TCBlocks.LOG_GREATWOOD.get());
-        tag(TCBlockTags.SILVERWOOD_LOGS).add(TCBlocks.LOG_SILVERWOOD.get());
+        tag(TCBlockTags.GREATWOOD_LOGS).add(TCBlocks.LOG_GREATWOOD.get(),TCBlocks.WOOD_GREATWOOD.get(), TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_GREATWOOD.get());
+        tag(TCBlockTags.SILVERWOOD_LOGS).add(TCBlocks.LOG_SILVERWOOD.get(),TCBlocks.WOOD_SILVERWOOD.get(), TCBlocks.STRIPPED_LOG_SILVERWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get());
         tag(Tags.Blocks.OVERWORLD_NATURAL_LOGS).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
         tag(BlockTags.OVERWORLD_NATURAL_LOGS).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
         tag(BlockTags.SNAPS_GOAT_HORN).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
+        tag(Tags.Blocks.NATURAL_WOODS)
+                .add(TCBlocks.WOOD_GREATWOOD.get())
+                .add(TCBlocks.WOOD_SILVERWOOD.get());
+
+        tag(Tags.Blocks.STRIPPED_LOGS)
+                .add(TCBlocks.STRIPPED_LOG_GREATWOOD.get())
+                .add(TCBlocks.STRIPPED_LOG_SILVERWOOD.get());
+
+        tag(Tags.Blocks.STRIPPED_WOODS)
+                .add(TCBlocks.STRIPPED_LOG_GREATWOOD.get())
+                .add(TCBlocks.STRIPPED_LOG_SILVERWOOD.get());
     }
 }

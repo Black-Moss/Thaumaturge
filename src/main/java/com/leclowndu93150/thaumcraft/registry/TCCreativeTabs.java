@@ -226,7 +226,13 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SAPLING_GREATWOOD.get());
                         output.accept(TCItems.SAPLING_SILVERWOOD.get());
                         output.accept(TCItems.LOG_GREATWOOD.get());
+                        output.accept(TCItems.WOOD_GREATWOOD.get());
+                        output.accept(TCItems.STRIPPED_LOG_GREATWOOD.get());
+                        output.accept(TCItems.STRIPPED_WOOD_GREATWOOD.get());
                         output.accept(TCItems.LOG_SILVERWOOD.get());
+                        output.accept(TCItems.WOOD_SILVERWOOD.get());
+                        output.accept(TCItems.STRIPPED_LOG_SILVERWOOD.get());
+                        output.accept(TCItems.STRIPPED_WOOD_SILVERWOOD.get());
                         output.accept(TCItems.LEAVES_GREATWOOD.get());
                         output.accept(TCItems.LEAVES_SILVERWOOD.get());
                         output.accept(TCItems.PLANK_GREATWOOD.get());

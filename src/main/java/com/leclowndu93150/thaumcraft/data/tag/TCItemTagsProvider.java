@@ -34,6 +34,10 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         copy(BlockTags.PLANKS, ItemTags.PLANKS);
         copy(TCBlockTags.GREATWOOD_LOGS, TCItemTags.GREATWOOD_LOGS);
         copy(TCBlockTags.SILVERWOOD_LOGS, TCItemTags.SILVERWOOD_LOGS);
+        copy(Tags.Blocks.OVERWORLD_NATURAL_LOGS, Tags.Items.OVERWORLD_NATURAL_LOGS);
+        copy(Tags.Blocks.NATURAL_WOODS, Tags.Items.NATURAL_WOODS);
+        copy(Tags.Blocks.STRIPPED_LOGS, Tags.Items.STRIPPED_LOGS);
+        copy(Tags.Blocks.STRIPPED_WOODS, Tags.Items.STRIPPED_WOODS);
 
         for (DyeColor dye : DyeColor.values()) {
             tag(TCItemTags.CANDLES).add(TCItems.CANDLES.get(dye).get());

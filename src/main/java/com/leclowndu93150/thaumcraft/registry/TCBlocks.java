@@ -1113,8 +1113,73 @@ public final class TCBlocks {
                     .ignitedByLava()
     );
 
+    public static final DeferredBlock<RotatedPillarBlock> WOOD_GREATWOOD = BLOCKS.registerBlock(
+            "greatwood",
+            RotatedPillarBlock::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .ignitedByLava()
+    );
+
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_LOG_GREATWOOD = BLOCKS.registerBlock(
+            "stripped_log_greatwood",
+            RotatedPillarBlock::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .ignitedByLava()
+    );
+
+
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_WOOD_GREATWOOD = BLOCKS.registerBlock(
+            "stripped_greatwood",
+            RotatedPillarBlock::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .ignitedByLava()
+    );
+
+
     public static final DeferredBlock<RotatedPillarBlock> LOG_SILVERWOOD = BLOCKS.registerBlock(
             "log_silverwood",
+            RotatedPillarBlock::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(state -> 5)
+                    .ignitedByLava()
+    );
+
+    public static final DeferredBlock<RotatedPillarBlock> WOOD_SILVERWOOD = BLOCKS.registerBlock(
+            "silverwood",
+            RotatedPillarBlock::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(state -> 5)
+                    .ignitedByLava()
+    );
+
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_LOG_SILVERWOOD = BLOCKS.registerBlock(
+            "stripped_log_silverwood",
+            RotatedPillarBlock::new,
+            props -> props
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0F, 5.0F)
+                    .sound(SoundType.WOOD)
+                    .lightLevel(state -> 5)
+                    .ignitedByLava()
+    );
+
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_WOOD_SILVERWOOD = BLOCKS.registerBlock(
+            "stripped_silverwood",
             RotatedPillarBlock::new,
             props -> props
                     .mapColor(MapColor.WOOD)
