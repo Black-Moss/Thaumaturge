@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumcraft.content.aspect.Aspect;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectDiscoveryView;
 import com.leclowndu93150.thaumcraft.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
@@ -54,6 +55,9 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
             return Component.translatable(this.getDescriptionId() + ".empty");
         }
         Holder<IAspect> first = aspects.entries().getFirst().aspect();
+        if (!AspectDiscoveryView.isDiscovered(first)) {
+            return Component.translatable(this.getDescriptionId() + ".unknown");
+        }
         MutableComponent aspectName = AspectComponents.name(first);
         return Component.translatable(this.getDescriptionId() + ".filled", aspectName);
     }

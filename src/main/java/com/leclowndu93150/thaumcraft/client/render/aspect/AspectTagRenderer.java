@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.render.aspect;
 
+import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.config.ThaumcraftClientConfig;
@@ -11,10 +12,15 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 
 public final class AspectTagRenderer {
     public static final int TAG_SIZE = 16;
     public static final int TEXTURE_SIZE = 32;
+
+    private static final Identifier UNKNOWN_TEXTURE = TCIds.rl("textures/aspects/_unknown.png");
+    private static final float UNKNOWN_ALPHA = 0.75F;
 
     public enum BlendMode {
         ALPHA,
@@ -40,6 +46,23 @@ public final class AspectTagRenderer {
 
     public static void renderUnknown(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect) {
         render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, 0.0F, 0, 0.0, BlendMode.ALPHA, 1.0F, true);
+    }
+
+    public static void renderUnknownChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect) {
+        int tint = ARGB.colorFromFloat(UNKNOWN_ALPHA, 1.0F, 1.0F, 1.0F);
+        int color = aspect != null && aspect.value() != null
+                ? (tint & 0xFF000000) | (aspect.value().color() & 0x00FFFFFF)
+                : tint;
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                UNKNOWN_TEXTURE,
+                x, y,
+                0.0F, 0.0F,
+                TAG_SIZE, TAG_SIZE,
+                TEXTURE_SIZE, TEXTURE_SIZE,
+                TEXTURE_SIZE, TEXTURE_SIZE,
+                color
+        );
     }
 
     public static void render(GuiGraphicsExtractor graphics, Font font, int x, int y, Holder<IAspect> aspect, float amount) {

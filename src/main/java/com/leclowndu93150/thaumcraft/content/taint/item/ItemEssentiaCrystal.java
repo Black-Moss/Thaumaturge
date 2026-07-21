@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
+import com.leclowndu93150.thaumcraft.content.research.pool.AspectDiscoveryView;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import java.util.function.Consumer;
 
@@ -22,7 +23,7 @@ public final class ItemEssentiaCrystal extends Item implements IEssentiaContaine
     @Override
     public Component getName(ItemStack stack) {
         Holder<IAspect> aspect = aspectOf(stack);
-        if (aspect == null) {
+        if (aspect == null || !AspectDiscoveryView.isDiscovered(aspect)) {
             return Component.translatable("item.thaumcraft.essentia_crystal.unknown");
         }
         Component aspectName = Component.translatable("aspect.thaumcraft." + aspect.value().tag());

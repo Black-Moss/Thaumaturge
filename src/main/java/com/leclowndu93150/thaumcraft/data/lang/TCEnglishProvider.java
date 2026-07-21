@@ -509,6 +509,7 @@ public final class TCEnglishProvider extends LanguageProvider {
 
         add("item.thaumcraft.phial.empty", "Glass Phial");
         add("item.thaumcraft.phial.filled", "Phial of %1$s Essentia");
+        add("item.thaumcraft.phial.unknown", "Phial of Unknown Essentia");
         add("item.thaumcraft.primordial_pearl.pearl", "Primordial Pearl");
         add("item.thaumcraft.primordial_pearl.nodule", "Primordial Nodule");
         add("item.thaumcraft.primordial_pearl.mote", "Primordial Mote");
