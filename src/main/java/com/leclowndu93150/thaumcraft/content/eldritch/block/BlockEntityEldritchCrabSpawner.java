@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.eldritch.block;
 
 import com.leclowndu93150.thaumcraft.content.entity.EntityEldritchCrab;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionHelper;
-import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
+import com.leclowndu93150.thaumcraft.content.particle.VentParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
@@ -95,7 +95,7 @@ public final class BlockEntityEldritchCrabSpawner extends BlockEntity {
         double z = dir.getAxis() == Direction.Axis.Z
                 ? surface + (rand.nextFloat() - rand.nextFloat()) / 4.0
                 : rand.nextFloat() / 2.0 + 0.25;
-        level.addParticle(new VentData(
+        level.addParticle(new VentParticleOptions(
                         dir.getStepX() * VENT_SPEED,
                         dir.getStepY() * VENT_SPEED,
                         dir.getStepZ() * VENT_SPEED,

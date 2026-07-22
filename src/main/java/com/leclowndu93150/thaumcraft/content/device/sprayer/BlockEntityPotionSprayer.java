@@ -12,7 +12,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.content.essentia.flow.EssentiaFlowHandler;
-import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
+import com.leclowndu93150.thaumcraft.content.particle.VentParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import java.util.ArrayList;
 import java.util.List;
@@ -180,7 +180,7 @@ public final class BlockEntityPotionSprayer extends BlockEntity implements IEsse
             double mx = rand.nextGaussian() * 0.06 + facing.getStepX() * VENT_SPEED;
             double my = rand.nextGaussian() * 0.06 + facing.getStepY() * VENT_SPEED;
             double mz = rand.nextGaussian() * 0.06 + facing.getStepZ() * VENT_SPEED;
-            level.addParticle(new VentData(mx, my, mz, color, 4.0F, false),
+            level.addParticle(new VentParticleOptions(mx, my, mz, color, 4.0F, false),
                     pos.getX() + 0.5F + fx + facing.getStepX() / 2.0F,
                     pos.getY() + 0.5F + fy + facing.getStepY() / 2.0F,
                     pos.getZ() + 0.5F + fz + facing.getStepZ() / 2.0F,

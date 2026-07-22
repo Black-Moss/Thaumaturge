@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.content.recipe.ThaumcraftCraftingManager;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumcraft.content.recipe.crucible.CrucibleRecipeInput;
@@ -141,17 +141,17 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
         if (level == null || level.isClientSide()) return;
         ServerLevel level = (ServerLevel) this.level;
         if (this.heat > 150) {
-            FX.crucibleFroth(level,new Vec3(
+            Effects.crucibleFroth(level,new Vec3(
                     getBlockPos().getX() + 0.2F + level.getRandom().nextFloat() * 0.6F,
                             getBlockPos().getY() + getFluidHeight(),
                             getBlockPos().getZ() + 0.2F + level.getRandom().nextFloat() * 0.6F
                             )).send();
             if (this.aspects.totalAmount() > MAX_ASPECT) {
                 for (int a = 0; a < 2; a++) {
-                    FX.crucibleFrothDown(level, new Vec3(getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ() + level.getRandom().nextFloat())).send();
-                    FX.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + level.getRandom().nextFloat())).send();
-                    FX.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + level.getRandom().nextFloat(), getBlockPos().getY() + 1, getBlockPos().getZ())).send();
-                    FX.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + level.getRandom().nextFloat(), getBlockPos().getY() + 1, getBlockPos().getZ() + 1)).send();
+                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ() + level.getRandom().nextFloat())).send();
+                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + level.getRandom().nextFloat())).send();
+                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + level.getRandom().nextFloat(), getBlockPos().getY() + 1, getBlockPos().getZ())).send();
+                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + level.getRandom().nextFloat(), getBlockPos().getY() + 1, getBlockPos().getZ() + 1)).send();
                 }
             }
         }
@@ -168,7 +168,7 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
             float r = c.getRed() / 255.0F;
             float g = c.getGreen() / 255.0F;
             float b = c.getBlue() / 255.0F;
-            FX.crucibleBubble(level,new Vec3(
+            Effects.crucibleBubble(level,new Vec3(
                             getBlockPos().getX() + x / 32.0F + 1/64F,
                             getBlockPos().getY() + 0.05F + getFluidHeight(),
                             getBlockPos().getX() + x / 32.0F + 1/64F
@@ -307,7 +307,7 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
         if (event == 99){
             level.playLocalSound(getBlockPos().getX() + 0.5f, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, TCSounds.SPILL.get(), SoundSource.BLOCKS,0.2f,1.0F,false);
             if (!level.isClientSide()){
-                FX.bamf((ServerLevel) level,Vec3.atCenterOf(getBlockPos()).add(0F,0.75F,0F))
+                Effects.bamf((ServerLevel) level,Vec3.atCenterOf(getBlockPos()).add(0F,0.75F,0F))
                         .withSound()
                         .fancy()
                         .side(Direction.UP)
@@ -326,7 +326,7 @@ public class BlockEntityCrucible extends BlockEntity implements IAspectContainer
                     } else {
                         color = new Color(aspects.entries().get(level.getRandom().nextInt(aspects.size())).aspect().value().color());
                     }
-                    FX.crucibleBoil((ServerLevel) level,new Vec3(
+                    Effects.crucibleBoil((ServerLevel) level,new Vec3(
                             getBlockPos().getX() + 0.2F - level.getRandom().nextFloat() * 0.6F,
                             getBlockPos().getY() + 0.1F + getFluidHeight(),
                             getBlockPos().getZ() + 0.2F - level.getRandom().nextFloat() * 0.6F

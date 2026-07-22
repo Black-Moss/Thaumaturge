@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.content.essentia.tube;
 import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -183,7 +183,7 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
             double ox = pos.getX() + 0.33 + rand.nextFloat() * 0.33;
             double oy = pos.getY() + 0.33 + rand.nextFloat() * 0.33;
             double oz = pos.getZ() + 0.33 + rand.nextFloat() * 0.33;
-            FX.vent2(server, new Vec3(ox, oy, oz))
+            Effects.vent2(server, new Vec3(ox, oy, oz))
                     .motion(0.0, 0.1 + rand.nextFloat() * 0.2, 0.0)
                     .color(0x800080)
                     .scale(FLUX_VENT_SCALE)

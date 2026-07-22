@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.eldritch.block;
 
-import com.leclowndu93150.thaumcraft.content.fx.data.BlockRunesData;
+import com.leclowndu93150.thaumcraft.content.particle.BlockRunesParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -55,7 +55,7 @@ public final class BlockEldritchTrap extends BaseEntityBlock {
         int y = pos.getY() + random.nextInt(2) - random.nextInt(2);
         int z = pos.getZ() + random.nextInt(2) - random.nextInt(2);
         if (level.isEmptyBlock(new BlockPos(x, y, z))) {
-            level.addParticle(new BlockRunesData(0.5F + random.nextFloat() * 0.5F, random.nextFloat() * 0.3F,
+            level.addParticle(new BlockRunesParticleOptions(0.5F + random.nextFloat() * 0.5F, random.nextFloat() * 0.3F,
                             0.9F + random.nextFloat() * 0.1F, RUNE_DURATION_BASE + random.nextInt(4), 0.0F, false),
                     x + 0.5, y + 0.5, z + 0.5, 0.0, 0.0, 0.0);
         }

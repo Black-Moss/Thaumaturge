@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.spa;
 
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.BubbleParticleOptions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -25,16 +25,8 @@ public class BlockPurifyingFluid extends LiquidBlock {
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (random.nextInt(MOTE_CHANCE) == 0) {
             int amount = level.getFluidState(pos).getAmount();
-            FXGenericData data = FXGenericData.builder()
-                    .maxAge(10 + random.nextInt(10))
-                    .scale(random.nextFloat() * 0.3F + 0.3F)
-                    .color(1.0F, 1.0F, 1.0F)
-                    .random(0.001F, 0.001F, 0.001F)
-                    .gravity(-0.01F)
-                    .alpha(0.25F)
-                    .particle(MOTE_FRAME)
-                    .finalFrames(65, 66)
-                    .build();
+            BubbleParticleOptions data = new BubbleParticleOptions(
+                    0xFFFFFF, 0.25F, random.nextFloat() * 0.3F + 0.3F, 10 + random.nextInt(10), -0.01F, false);
             level.addParticle(data,
                     pos.getX() + random.nextFloat(),
                     pos.getY() + LEVEL_HEIGHT * amount,

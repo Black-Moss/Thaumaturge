@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.hud;
 
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.client.aura.ClientAuraCache;

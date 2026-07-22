@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumcraft.content.entity.EntityGolemOrb;
 import com.leclowndu93150.thaumcraft.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionModifier;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.content.world.mound.BlockLoot;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.core.BlockPos;
@@ -282,7 +282,7 @@ public class EntityEldritchGolem extends EntityThaumcraftBoss implements IEldrit
     private void sendJacobsArc(ServerLevel level) {
         if (this.arcing > 0) {
             this.arcing--;
-            FX.arcLightning(level, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
+            Effects.arcLightning(level, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
                     .to(Vec3.atBottomCenterOf(this.arcTarget.above())).color(ARC_COLOR).send();
             return;
         }

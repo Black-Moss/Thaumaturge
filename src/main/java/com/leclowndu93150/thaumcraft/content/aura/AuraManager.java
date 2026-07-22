@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.aura;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,7 +99,7 @@ public final class AuraManager {
     public static void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect) {
         addFlux(level, pos, amount);
         if (!level.isClientSide() && showEffect && amount > 0F) {
-            FX.pollution((ServerLevel) level, pos)
+            Effects.pollution((ServerLevel) level, pos)
                     .send();
         }
     }

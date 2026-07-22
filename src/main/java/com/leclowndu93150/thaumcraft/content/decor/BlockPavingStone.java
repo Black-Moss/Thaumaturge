@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.decor;
 
-import com.leclowndu93150.thaumcraft.content.fx.data.BlockRunesData;
+import com.leclowndu93150.thaumcraft.content.particle.BlockRunesParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.mojang.serialization.Codec;
@@ -111,7 +111,7 @@ public final class BlockPavingStone extends BaseEntityBlock {
         List<Entity> nearby = level.getEntities(null, new AABB(pos).inflate(1.0));
         for (Entity entity : nearby) {
             if (entity instanceof LivingEntity && !(entity instanceof Player)) {
-                level.addParticle(new BlockRunesData(0.6F + random.nextFloat() * 0.4F, 0.0F,
+                level.addParticle(new BlockRunesParticleOptions(0.6F + random.nextFloat() * 0.4F, 0.0F,
                                 0.3F + random.nextFloat() * 0.7F, RUNE_DURATION_POWERED, 0.0F, false),
                         pos.getX() + 0.5,
                         pos.getY() + 0.6F + random.nextFloat() * Math.max(0.8F, entity.getEyeHeight()) + 0.5,
@@ -122,7 +122,7 @@ public final class BlockPavingStone extends BaseEntityBlock {
     }
 
     private static void spawnRune(Level level, BlockPos pos, float r, float g, float b, int duration, float gravity) {
-        level.addParticle(new BlockRunesData(r, g, b, duration, gravity, false),
+        level.addParticle(new BlockRunesParticleOptions(r, g, b, duration, gravity, false),
                 pos.getX() + 0.5, pos.getY() + 0.7F + 0.5, pos.getZ() + 0.5, 0.0, 0.0, 0.0);
     }
 }

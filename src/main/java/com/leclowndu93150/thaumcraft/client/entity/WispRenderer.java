@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumcraft.content.entity.WispEntity;
 import com.mojang.blaze3d.vertex.PoseStack;

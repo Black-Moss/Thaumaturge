@@ -8,22 +8,22 @@ import com.leclowndu93150.thaumcraft.client.network.AspectIndexClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.AuraSnapshotClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.KnowledgeGainClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.WispZapClientHandler;
-import com.leclowndu93150.thaumcraft.client.fx.network.FXStreamClientHandler;
-import com.leclowndu93150.thaumcraft.client.fx.network.BoreDigClientHandler;
-import com.leclowndu93150.thaumcraft.client.fx.network.FocusImpactClientHandler;
-import com.leclowndu93150.thaumcraft.client.fx.network.InfusionSourceClientHandler;
-import com.leclowndu93150.thaumcraft.client.fx.network.SpawnParticleClientHandler;
+import com.leclowndu93150.thaumcraft.client.network.StreamEffectClientHandler;
+import com.leclowndu93150.thaumcraft.client.network.BoreDigClientHandler;
+import com.leclowndu93150.thaumcraft.client.network.FocusImpactClientHandler;
+import com.leclowndu93150.thaumcraft.client.network.InfusionSourceClientHandler;
+import com.leclowndu93150.thaumcraft.client.network.SpawnParticleClientHandler;
 import com.leclowndu93150.thaumcraft.client.golem.GolemPressClientHandler;
 import com.leclowndu93150.thaumcraft.client.golem.SealClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.OpenThaumonomiconHandler;
 import com.leclowndu93150.thaumcraft.client.network.RecipeDisplayClientHandler;
 import com.leclowndu93150.thaumcraft.client.network.TubeEventClientHandler;
 import com.leclowndu93150.thaumcraft.client.warp.WarpFXClientHandler;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundFXStreamPayload;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundBoreDigPayload;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundFocusImpactPayload;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundInfusionSourcePayload;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundSpawnParticlePayload;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundStreamEffectPayload;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundBoreDigPayload;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundFocusImpactPayload;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundInfusionSourcePayload;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundSpawnParticlePayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -182,9 +182,9 @@ public final class TCPayloads {
                 (payload, context) -> AuraSnapshotClientHandler.handle(payload, context)
         );
         registrar.playToClient(
-                ClientboundFXStreamPayload.TYPE,
-                ClientboundFXStreamPayload.STREAM_CODEC,
-                (payload, context) -> FXStreamClientHandler.handle(payload, context)
+                ClientboundStreamEffectPayload.TYPE,
+                ClientboundStreamEffectPayload.STREAM_CODEC,
+                (payload, context) -> StreamEffectClientHandler.handle(payload, context)
         );
         registrar.playToClient(
                 ClientboundInfusionSourcePayload.TYPE,

@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.FrostFlakeParticleOptions;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -114,18 +114,7 @@ public final class FocusEffectFrost extends FocusEffect {
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .maxAge(40 + level.getRandom().nextInt(40))
-                .alpha(1.0F, 0.0F)
-                .particles(8, 1, 1)
-                .gravity(0.033F)
-                .slowDown(0.8)
-                .random(0.0025F, 1.0E-4F, 0.0025F)
-                .scale((float) (0.7F + level.getRandom().nextGaussian() * 0.3F))
-                .rotation(level.getRandom().nextFloat() * 3.0F, (float) level.getRandom().nextGaussian() / 4.0F)
-                .build();
+        FrostFlakeParticleOptions data = new FrostFlakeParticleOptions((float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

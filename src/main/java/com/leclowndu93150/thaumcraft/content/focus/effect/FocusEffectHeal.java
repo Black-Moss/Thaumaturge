@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.registry.TCParticles;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -86,23 +86,7 @@ public final class FocusEffectHeal extends FocusEffect {
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx + level.getRandom().nextGaussian() * 0.01,
-                        my + level.getRandom().nextGaussian() * 0.01,
-                        mz + level.getRandom().nextGaussian() * 0.01)
-                .drift(dx, dy, dz)
-                .maxAge((int) (10.0F + 10.0F * level.getRandom().nextFloat()))
-                .color(1.0F, 1.0F, 1.0F)
-                .alpha(0.0F, 0.7F, 0.7F, 0.0F)
-                .grid(64)
-                .particles(0, 1, 1)
-                .scale(level.getRandom().nextFloat() * 2.0F, level.getRandom().nextFloat())
-                .slowDown(0.8)
-                .gravity((float) (level.getRandom().nextGaussian() * 0.1F))
-                .random(0.0125F, 0.0125F, 0.0125F)
-                .rotation((float) level.getRandom().nextGaussian())
-                .delay(level.getRandom().nextInt(4))
-                .build();
+        var data = TCParticles.HEAL_FLASH.get();
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 }

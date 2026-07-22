@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumcraft.content.entity.EntityCultist;
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultistCleric;
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultistKnight;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -158,7 +158,7 @@ public class EntityCultistPortalGreater extends EntityThaumcraftBoss {
             BlockState banner = TCBlocks.BANNER_CRIMSON_CULT.get().defaultBlockState()
                     .setValue(BlockStateProperties.ROTATION_16, rotation);
             server.setBlock(pos, banner, Block.UPDATE_ALL);
-            FX.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
+            Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
                     .to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
             this.playSound(TCSounds.WANDFAIL.get(), 1.0F, 1.0F);
         }
@@ -180,7 +180,7 @@ public class EntityCultistPortalGreater extends EntityThaumcraftBoss {
             crate = TCBlocks.LOOT_CRATE_UNCOMMON.get();
         }
         server.setBlock(pos, crate.defaultBlockState(), Block.UPDATE_ALL);
-        FX.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
+        Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
                 .to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
         this.playSound(TCSounds.WANDFAIL.get(), 1.0F, 1.0F);
     }

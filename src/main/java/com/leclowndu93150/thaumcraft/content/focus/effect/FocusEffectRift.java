@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.focus.BlockEntityHole;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.RiftShardParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import java.util.Optional;
@@ -117,17 +117,7 @@ public final class FocusEffectRift extends FocusEffect {
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .maxAge(16 + level.getRandom().nextInt(16))
-                .particles(PARTICLE_START_BASE + level.getRandom().nextInt(16), 1, 1)
-                .slowDown(0.75)
-                .alpha(1.0F, 0.0F)
-                .scale((float) (0.7F + level.getRandom().nextGaussian() * 0.3F))
-                .color(0.25F, 0.25F, 1.0F)
-                .random(0.01F, 0.01F, 0.01F)
-                .build();
+        RiftShardParticleOptions data = new RiftShardParticleOptions((float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

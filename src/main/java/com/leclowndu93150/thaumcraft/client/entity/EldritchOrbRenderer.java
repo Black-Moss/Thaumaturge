@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumcraft.content.entity.EntityEldritchOrb;
 import com.mojang.blaze3d.vertex.PoseStack;

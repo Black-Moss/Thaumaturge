@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.misc.nitor;
 
-import com.leclowndu93150.thaumcraft.client.fx.FXClient;
+import com.leclowndu93150.thaumcraft.client.effect.ClientEffects;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -24,9 +24,9 @@ public final class BlockEntityNitor extends BlockEntity {
         double vx = level.getRandom().nextGaussian() * 0.0025;
         double vy = level.getRandom().nextFloat() * 0.06;
         double vz = level.getRandom().nextGaussian() * 0.0025;
-        FXClient.nitorFlames(level, cx, cy, cz, vx, vy, vz, rgb, 0);
+        ClientEffects.nitorFlames(level, cx, cy, cz, vx, vy, vz, rgb, 0);
         if (be.count++ % 10 == 0) {
-            FXClient.nitorCore(level, pos.getX() + 0.5, pos.getY() + 0.49, pos.getZ() + 0.5, 0.0, 0.0, 0.0, rgb);
+            ClientEffects.nitorCore(level, pos.getX() + 0.5, pos.getY() + 0.49, pos.getZ() + 0.5, 0.0, 0.0, 0.0, rgb);
         }
     }
 }

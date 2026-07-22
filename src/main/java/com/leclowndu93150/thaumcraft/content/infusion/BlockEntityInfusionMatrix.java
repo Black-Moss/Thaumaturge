@@ -6,8 +6,8 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumcraft.api.items.IGogglesDisplayExtended;
-import com.leclowndu93150.thaumcraft.content.fx.data.BoreSparkleData;
-import com.leclowndu93150.thaumcraft.content.fx.data.InfusionCrumbsData;
+import com.leclowndu93150.thaumcraft.content.particle.BoreSparkleParticleOptions;
+import com.leclowndu93150.thaumcraft.content.particle.InfusionCrumbsParticleOptions;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,7 +15,7 @@ import java.util.Map;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCRecipeTypes;
@@ -154,7 +154,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
                 level.playSound(null, worldPosition, TCSounds.INFUSER.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
             }
             RandomSource rand = level.getRandom();
-            FX.blockRunes(level, Vec3.atLowerCornerOf(centralPedestal()))
+            Effects.blockRunes(level, Vec3.atLowerCornerOf(centralPedestal()))
                     .color(0.5F + rand.nextFloat() * 0.2F, 0.1F, 0.7F + rand.nextFloat() * 0.3F)
                     .duration(25)
                     .gravity(-0.03F)
@@ -489,7 +489,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         double ty = worldPosition.getY() - 0.5;
         double tz = worldPosition.getZ() + 0.5;
         if (rand.nextInt(3) == 0) {
-            level.addParticle(new BoreSparkleData(tx, ty, tz,
+            level.addParticle(new BoreSparkleParticleOptions(tx, ty, tz,
                             0.4F + rand.nextFloat() * 0.2F, 0.2F, 0.6F + rand.nextFloat() * 0.3F),
                     loc.getX() + rand.nextFloat(), loc.getY() + rand.nextFloat() + 1.0F, loc.getZ() + rand.nextFloat(),
                     0.0, 0.0, 0.0);
@@ -498,13 +498,13 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         ItemStackTemplate template = new ItemStackTemplate(stack.getItem());
         if (stack.getItem() instanceof BlockItem) {
             for (int a = 0; a < 4; a++) {
-                level.addParticle(new InfusionCrumbsData(template, tx, ty, tz, 0.0, 0.0, 0.0),
+                level.addParticle(new InfusionCrumbsParticleOptions(template, tx, ty, tz, 0.0, 0.0, 0.0),
                         loc.getX() + rand.nextFloat(), loc.getY() + rand.nextFloat() + 1.0F, loc.getZ() + rand.nextFloat(),
                         0.0, 0.0, 0.0);
             }
         } else {
             for (int a = 0; a < 4; a++) {
-                level.addParticle(new InfusionCrumbsData(template, tx, ty, tz,
+                level.addParticle(new InfusionCrumbsParticleOptions(template, tx, ty, tz,
                                 rand.nextGaussian() * 0.03F, rand.nextGaussian() * 0.03F, rand.nextGaussian() * 0.03F),
                         loc.getX() + 0.4F + rand.nextFloat() * 0.2F,
                         loc.getY() + 1.23F + rand.nextFloat() * 0.2F,

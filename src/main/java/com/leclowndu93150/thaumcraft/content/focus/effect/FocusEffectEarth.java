@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.EarthPebbleParticleOptions;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -92,18 +92,7 @@ public final class FocusEffectEarth extends FocusEffect {
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
         float s = (float) (1.0 + level.getRandom().nextGaussian() * 0.2F);
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .gravity(0.4F)
-                .layer(1)
-                .maxAge(20 + level.getRandom().nextInt(10))
-                .alpha(1.0F, 0.0F)
-                .particles(PARTICLE_START_BASE + level.getRandom().nextInt(4), 1, 1)
-                .slowDown(0.9)
-                .rotation((float) level.getRandom().nextGaussian())
-                .scale(s, s / 2.0F)
-                .build();
+        EarthPebbleParticleOptions data = new EarthPebbleParticleOptions(s);
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

@@ -12,7 +12,8 @@ import com.leclowndu93150.thaumcraft.content.entity.construct.ConstructFollowOwn
 import com.leclowndu93150.thaumcraft.content.entity.construct.ConstructOwnerHurtByTargetGoal;
 import com.leclowndu93150.thaumcraft.content.entity.construct.ConstructOwnerHurtTargetGoal;
 import com.leclowndu93150.thaumcraft.content.entity.construct.EntityOwnedConstruct;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.GolemEmoteParticleOptions;
+import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumcraft.content.golem.ai.GotoBlockGoal;
 import com.leclowndu93150.thaumcraft.content.golem.ai.GotoEntityGoal;
 import com.leclowndu93150.thaumcraft.content.golem.ai.GotoHomeGoal;
@@ -832,40 +833,27 @@ public class EntityThaumcraftGolem extends EntityOwnedConstruct implements IGole
     @Override
     public void handleEntityEvent(byte id) {
         switch (id) {
-            case EVENT_EMOTE_TASK -> emote(0.0, 1.0F, 1.0F, 1.0F,
-                    704 + (random.nextBoolean() ? 0 : 3), 3, 6, 2.0F);
-            case EVENT_EMOTE_FAIL -> emote(0.025, 0.1F, 1.0F, 1.0F, 15, 1, 10, 2.0F);
-            case EVENT_EMOTE_CONFUSED -> emote(0.05, 1.0F, 1.0F, 1.0F, 640, 10, 10, 2.0F);
-            case EVENT_EMOTE_STAY -> emote(0.01, 1.0F, 1.0F, 0.1F, 14, 1, 20, 2.0F);
+            case EVENT_EMOTE_TASK -> emote(0.0, 1.0F, 1.0F, 1.0F, GolemEmoteParticleOptions.ICON_TASK, 6, 2.0F);
+            case EVENT_EMOTE_FAIL -> emote(0.025, 0.1F, 1.0F, 1.0F, GolemEmoteParticleOptions.ICON_FAIL, 10, 2.0F);
+            case EVENT_EMOTE_CONFUSED -> emote(0.05, 1.0F, 1.0F, 1.0F, GolemEmoteParticleOptions.ICON_CONFUSED, 10, 2.0F);
+            case EVENT_EMOTE_STAY -> emote(0.01, 1.0F, 1.0F, 0.1F, GolemEmoteParticleOptions.ICON_STAY, 20, 2.0F);
             case EVENT_EMOTE_RANKUP -> {
                 for (int i = 0; i < 5; i++) {
-                    FXGenericData data = FXGenericData.builder()
-                            .motion(random.nextGaussian() * 0.01F, random.nextFloat() * 0.02, random.nextGaussian() * 0.01F)
-                            .color(1.0F, 1.0F, 1.0F)
-                            .alpha(0.5F)
-                            .particles(13, 1, 1)
-                            .maxAge(20 + random.nextInt(20))
-                            .scale(0.3F + random.nextFloat() * 0.4F)
-                            .layer(1)
-                            .build();
-                    level().addParticle(data, getX(), getY() + getBbHeight(), getZ(), 0.0, 0.0, 0.0);
+                    GolemEmoteParticleOptions data = new GolemEmoteParticleOptions(
+                            0xFFFFFF, GolemEmoteParticleOptions.ICON_HEART,
+                            20 + random.nextInt(20), 0.3F + random.nextFloat() * 0.4F);
+                    level().addParticle(data, getX(), getY() + getBbHeight(), getZ(),
+                            random.nextGaussian() * 0.01F, random.nextFloat() * 0.02, random.nextGaussian() * 0.01F);
                 }
             }
             default -> super.handleEntityEvent(id);
         }
     }
 
-    private void emote(double vy, float r, float g, float b, int particle, int num, int age, float scale) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(0.0, vy, 0.0)
-                .color(r, g, b)
-                .alpha(0.5F)
-                .particles(particle, num, 1)
-                .maxAge(age)
-                .scale(scale)
-                .layer(1)
-                .build();
-        level().addParticle(data, getX(), getY() + getBbHeight() + 0.1, getZ(), 0.0, 0.0, 0.0);
+    private void emote(double vy, float r, float g, float b, int icon, int age, float scale) {
+        GolemEmoteParticleOptions data = new GolemEmoteParticleOptions(
+                ARGB.colorFromFloat(1.0F, r, g, b), icon, age, scale);
+        level().addParticle(data, getX(), getY() + getBbHeight() + 0.1, getZ(), 0.0, vy, 0.0);
     }
 
     @Override

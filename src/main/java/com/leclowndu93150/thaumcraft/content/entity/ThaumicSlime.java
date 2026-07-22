@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.content.entity;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumcraft.content.entity.ai.ThaumicSlimeSpitGoal;
-import com.leclowndu93150.thaumcraft.content.fx.data.FluxGooDropletData;
+import com.leclowndu93150.thaumcraft.content.particle.FluxGooDropletParticleOptions;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.mixin.world.entity.monster.SlimeAccessor;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
@@ -76,7 +76,7 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
 
     @Override
     protected ParticleOptions getParticleType() {
-        return new FluxGooDropletData(PARTICLE_COLOR, PARTICLE_ALPHA, 0);
+        return new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, 0);
     }
 
     @Override
@@ -136,7 +136,7 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
             float ox = Mth.sin(angle) * size * 0.5F * radius;
             float oz = Mth.cos(angle) * size * 0.5F * radius;
             int lifetime = (int) (66.0F / (this.random.nextFloat() * 0.9F + 0.1F));
-            this.level().addParticle(new FluxGooDropletData(PARTICLE_COLOR, PARTICLE_ALPHA, lifetime),
+            this.level().addParticle(new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, lifetime),
                     this.getX() + ox, midY, this.getZ() + oz, 0.0, 0.0, 0.0);
         }
     }

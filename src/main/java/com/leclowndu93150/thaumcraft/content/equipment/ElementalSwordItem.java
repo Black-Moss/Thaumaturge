@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.equipment;
 
-import com.leclowndu93150.thaumcraft.client.fx.FXClient;
+import com.leclowndu93150.thaumcraft.client.effect.ClientEffects;
 import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.leclowndu93150.thaumcraft.mixin.server.network.ServerGamePacketListenerImplAccessor;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
@@ -114,7 +114,7 @@ public final class ElementalSwordItem extends Item {
                 miny = Mth.floor(player.getBoundingBox().minY);
             }
             for (int a = 0; a < 5; a++) {
-                FXClient.smokeSpiral(level, player.getX(),
+                ClientEffects.smokeSpiral(level, player.getX(),
                         player.getBoundingBox().minY + player.getBbHeight() / 2.0F, player.getZ(),
                         1.5F, level.getRandom().nextInt(360), miny, SMOKE_COLOR);
             }

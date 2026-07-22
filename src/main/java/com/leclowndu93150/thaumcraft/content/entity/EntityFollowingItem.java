@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
-import com.leclowndu93150.thaumcraft.client.fx.FXClient;
+import com.leclowndu93150.thaumcraft.client.effect.ClientEffects;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
@@ -93,11 +93,11 @@ public class EntityFollowingItem extends EntitySpecialItem implements IEntityWit
                 double fy = this.yo + h + (this.random.nextFloat() - this.random.nextFloat()) * 0.125F;
                 double fz = this.zo + (this.random.nextFloat() - this.random.nextFloat()) * 0.125F;
                 if (this.type != BUBBLE_TYPE) {
-                    FXClient.nitorCore(this.level(), fx, fy, fz,
+                    ClientEffects.nitorCore(this.level(), fx, fy, fz,
                             this.random.nextGaussian() * 0.01, this.random.nextGaussian() * 0.01, this.random.nextGaussian() * 0.01,
                             0xFFFFFF);
                 } else {
-                    FXClient.followingBubble(this.level(), fx, fy, fz);
+                    ClientEffects.followingBubble(this.level(), fx, fy, fz);
                 }
             }
         }

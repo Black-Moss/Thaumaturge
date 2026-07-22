@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumcraft.content.entity.EntityFluxRift;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

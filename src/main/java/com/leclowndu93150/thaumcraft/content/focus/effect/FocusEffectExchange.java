@@ -11,7 +11,8 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.ShieldSparkParticleOptions;
+import net.minecraft.util.ARGB;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -111,22 +112,9 @@ public final class FocusEffectExchange extends FocusEffect implements IFocusBloc
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx + level.getRandom().nextGaussian() * 0.01,
-                        my + level.getRandom().nextGaussian() * 0.01,
-                        mz + level.getRandom().nextGaussian() * 0.01)
-                .drift(dx, dy, dz)
-                .maxAge(9)
-                .color(0.25F + level.getRandom().nextFloat() * 0.25F,
-                        0.25F + level.getRandom().nextFloat() * 0.25F,
-                        0.25F + level.getRandom().nextFloat() * 0.25F)
-                .alpha(0.0F, 0.6F, 0.6F, 0.0F)
-                .grid(64)
-                .particles(PARTICLE_START, PARTICLE_NUM, 1)
-                .scale(0.5F, 0.25F)
-                .gravity((float) (level.getRandom().nextGaussian() * 0.01F))
-                .random(0.0025F, 0.0025F, 0.0025F)
-                .build();
+        float shade = 0.25F + level.getRandom().nextFloat() * 0.25F;
+        ShieldSparkParticleOptions data = new ShieldSparkParticleOptions(
+                ARGB.colorFromFloat(1.0F, shade, shade, shade), 0.6F, 0.5F, 9, true);
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

@@ -8,7 +8,7 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.focus.FocusRayTrace;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
@@ -81,7 +81,7 @@ public class FocusMediumBolt extends FocusMediumTouch {
             r /= effects.size();
             g /= effects.size();
             b /= effects.size();
-            FX.arcBolt(level, trajectory.source())
+            Effects.arcBolt(level, trajectory.source())
                     .to(end)
                     .color((r << 16) | (g << 8) | b)
                     .width(getPackage().getPower() * BOLT_WIDTH_FACTOR)

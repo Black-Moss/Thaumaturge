@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.taint.flux;
 
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.BubbleParticleOptions;
+import net.minecraft.util.ARGB;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -54,20 +55,8 @@ public final class BlockFluxGoo extends LiquidBlock {
             double z = pos.getZ() + random.nextFloat();
             float scale = 0.2F + random.nextFloat() * 0.3F;
             int maxAge = 2 + random.nextInt(3);
-            FXGenericData data = FXGenericData.builder()
-                    .motion(0.0, 0.0, 0.0)
-                    .maxAge(maxAge)
-                    .color(FUME_R, FUME_G, FUME_B)
-                    .alpha(FUME_ALPHA, FUME_ALPHA)
-                    .grid(FUME_GRID)
-                    .particle(FUME_PARTICLE_INDEX)
-                    .finalFrames(FUME_FINAL_FRAME_A, FUME_FINAL_FRAME_B)
-                    .scale(scale, scale / 2.0F)
-                    .layer(1)
-                    .gravity(-0.01F)
-                    .slowDown(0.98)
-                    .random(0.001F, 0.001F, 0.001F)
-                    .build();
+            BubbleParticleOptions data = new BubbleParticleOptions(
+                    ARGB.colorFromFloat(1.0F, FUME_R, FUME_G, FUME_B), FUME_ALPHA, scale, maxAge, -0.01F, false);
             level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
         }
     }

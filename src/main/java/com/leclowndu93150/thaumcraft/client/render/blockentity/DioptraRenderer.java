@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCFXPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCFXPipelines;
 import com.leclowndu93150.thaumcraft.content.device.BlockEntityDioptra;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;

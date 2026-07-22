@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.equipment;
 
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -41,7 +41,7 @@ public final class ElementalHoeItem extends HoeItem {
                         new BlockHitResult(Vec3.atCenterOf(pp), context.getClickedFace(), pp, false));
                 if (super.useOn(offset) == InteractionResult.SUCCESS) {
                     if (level instanceof ServerLevel serverLevel) {
-                        FX.Bamf bamf = FX.bamf(serverLevel, new Vec3(pp.getX() + 0.5, pp.getY() + 1.01, pp.getZ() + 0.5))
+                        Effects.Bamf bamf = Effects.bamf(serverLevel, new Vec3(pp.getX() + 0.5, pp.getY() + 1.01, pp.getZ() + 0.5))
                                 .color(0.3F, 0.12F, 0.1F);
                         if (xx == 0 && zz == 0) {
                             bamf.withSound();

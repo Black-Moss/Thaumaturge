@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCRenderPipelines;
-import com.leclowndu93150.thaumcraft.client.fx.render.rendertype.BeamRenderType;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.rendertype.BeamRenderType;
 import com.leclowndu93150.thaumcraft.client.model.entity.ArcaneBoreModel;
 import com.leclowndu93150.thaumcraft.content.entity.construct.EntityArcaneBore;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -60,7 +60,7 @@ public final class ArcaneBoreRenderer
         super.extractRenderState(entity, state, partialTicks);
         state.yRot = Mth.wrapDegrees(Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot));
         state.bodyRot = 0.0F;
-        state.digging = entity.clientDigging && entity.isActive() && entity.validInventory();
+        state.digging = entity.clientDiggingSmoothed() && entity.isActive() && entity.validInventory();
         state.headPitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
         state.eyeHeight = entity.getEyeHeight();
         state.beamUvScroll = (entity.tickCount + partialTicks) * 0.2F;

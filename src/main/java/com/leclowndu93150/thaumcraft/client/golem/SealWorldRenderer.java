@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.client.golem;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumcraft.api.golems.seals.ISealConfigArea;
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCFXPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCFXPipelines;
 import com.leclowndu93150.thaumcraft.content.golem.seals.ClientSealHolder;
 import com.leclowndu93150.thaumcraft.content.golem.seals.SealEntity;
 import com.mojang.blaze3d.pipeline.RenderPipeline;

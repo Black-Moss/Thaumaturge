@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
 import com.leclowndu93150.thaumcraft.api.entity.ITaintedMob;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
-import com.leclowndu93150.thaumcraft.content.fx.helper.Sprites;
+import com.leclowndu93150.thaumcraft.content.particle.TaintFumeParticleOptions;
+import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -109,17 +109,9 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
                 double x = box.minX + this.random.nextDouble() * (box.maxX - box.minX);
                 double y = box.minY + this.random.nextDouble() * (box.maxY - box.minY);
                 double z = box.minZ + this.random.nextDouble() * (box.maxZ - box.minZ);
-                FXGenericData data = FXGenericData.builder()
-                        .maxAge(10 + this.random.nextInt(10))
-                        .grid(Sprites.TAINT.grid())
-                        .particles(Sprites.TAINT.start(), Sprites.TAINT.num(), Sprites.TAINT.inc())
-                        .color(SWARM_PARTICLE_R, SWARM_PARTICLE_G, SWARM_PARTICLE_B)
-                        .alpha(0.66F, 0.0F)
-                        .scale(SWARM_PARTICLE_SCALE)
-                        .layer(1)
-                        .slowDown(0.9)
-                        .random(0.02F, 0.02F, 0.02F)
-                        .build();
+                TaintFumeParticleOptions data = new TaintFumeParticleOptions(
+                        ARGB.colorFromFloat(1.0F, SWARM_PARTICLE_R, SWARM_PARTICLE_G, SWARM_PARTICLE_B),
+                        SWARM_PARTICLE_SCALE);
                 this.level().addParticle(data, x, y, z,
                         this.getDeltaMovement().x, this.getDeltaMovement().y, this.getDeltaMovement().z);
             }

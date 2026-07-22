@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.world.plant;
 
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
-import com.leclowndu93150.thaumcraft.content.fx.helper.Sprites;
+import com.leclowndu93150.thaumcraft.content.particle.WispyMoteParticleOptions;
+import net.minecraft.util.ARGB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -47,20 +47,12 @@ public final class BlockGrassAmbient extends GrassBlock {
     }
 
     private static void spawnMote(Level level, BlockPos pos, RandomSource random) {
-        FXGenericData data = FXGenericData.builder()
-                .maxAge((int) (MOTE_AGE + MOTE_AGE / 2 * random.nextFloat()))
-                .color(0.4F + random.nextFloat() * 0.6F,
+        WispyMoteParticleOptions data = new WispyMoteParticleOptions(
+                ARGB.colorFromFloat(1.0F,
+                        0.4F + random.nextFloat() * 0.6F,
                         0.6F + random.nextFloat() * 0.4F,
-                        0.6F + random.nextFloat() * 0.4F)
-                .alpha(0.0F, 0.6F, 0.6F, 0.0F)
-                .grid(Sprites.WISPY_LOOP.grid())
-                .particles(Sprites.WISPY_LOOP.start(), Sprites.WISPY_LOOP.num(), Sprites.WISPY_LOOP.inc())
-                .scale(1.0F, 0.5F)
-                .loop(true)
-                .wind(0.001)
-                .gravity(MOTE_GRAVITY)
-                .random(0.0025F, 0.0F, 0.0025F)
-                .build();
+                        0.6F + random.nextFloat() * 0.4F),
+                MOTE_AGE, MOTE_GRAVITY, WispyMoteParticleOptions.NO_ENTITY);
         level.addParticle(data,
                 pos.getX() + random.nextFloat(), pos.getY(), pos.getZ() + random.nextFloat(),
                 0.0, 0.0, 0.0);

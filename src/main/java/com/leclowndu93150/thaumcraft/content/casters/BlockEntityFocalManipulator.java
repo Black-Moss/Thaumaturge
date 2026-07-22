@@ -7,8 +7,9 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.casters.FocusModSplit;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
+import com.leclowndu93150.thaumcraft.content.particle.ShieldSparkParticleOptions;
+import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -115,7 +116,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
                     worldPosition.getX() + rand.nextInt(3) - rand.nextInt(3),
                     worldPosition.getY() + rand.nextInt(3),
                     worldPosition.getZ() + rand.nextInt(3) - rand.nextInt(3));
-            TCParticleDispatch.spawnVisSparkle(level, origin,
+            EffectDispatch.spawnVisSparkle(level, origin,
                     new Vec3(worldPosition.getX(), worldPosition.getY() + 1, worldPosition.getZ()));
             vis -= amount;
             setChanged();
@@ -131,14 +132,9 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
             return;
         }
         RandomSource rand = level.getRandom();
-        FXGenericData fx = FXGenericData.builder()
-                .maxAge(6 + rand.nextInt(5))
-                .color(0.5F + rand.nextFloat() * 0.4F, 1.0F - rand.nextFloat() * 0.4F, 1.0F - rand.nextFloat() * 0.4F)
-                .alpha(0.8F)
-                .particles(448, 9, 1)
-                .scale(0.3F + rand.nextFloat() * 0.3F)
-                .layer(0)
-                .build();
+        ShieldSparkParticleOptions fx = new ShieldSparkParticleOptions(
+                ARGB.colorFromFloat(1.0F, 0.5F + rand.nextFloat() * 0.4F, 1.0F - rand.nextFloat() * 0.4F, 1.0F - rand.nextFloat() * 0.4F),
+                0.8F, 0.3F + rand.nextFloat() * 0.3F, 6 + rand.nextInt(5), true);
         level.addParticle(fx,
                 worldPosition.getX() + 0.5 + (rand.nextFloat() - rand.nextFloat()) * 0.3F,
                 worldPosition.getY() + 1.4 + (rand.nextFloat() - rand.nextFloat()) * 0.3F,

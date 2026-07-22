@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.entity;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.fx.render.FloatyLineRenderer;
+import com.leclowndu93150.thaumcraft.client.effect.FloatyLineRenderer;
 import com.leclowndu93150.thaumcraft.content.entity.EntityCultistCleric;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.HumanoidModel;

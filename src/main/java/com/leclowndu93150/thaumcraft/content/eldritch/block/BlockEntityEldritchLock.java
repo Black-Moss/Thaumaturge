@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.content.entity.boss.EntityEldritchWarden;
 import com.leclowndu93150.thaumcraft.content.entity.boss.EntityTaintacleGiant;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumcraft.Thaumcraft;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
@@ -127,7 +127,7 @@ public final class BlockEntityEldritchLock extends BlockEntity {
                 for (int c = -2; c <= 2; c++) {
                     BlockPos barrier = pos.offset(a, b, c);
                     if (serverLevel.getBlockState(barrier).is(Blocks.BARRIER)) {
-                        FX.smokeSpiral(serverLevel, Vec3.atCenterOf(barrier))
+                        Effects.smokeSpiral(serverLevel, Vec3.atCenterOf(barrier))
                                 .radius(0.5F).start(90).minY(barrier.getY()).color(0x400040).send();
                         serverLevel.removeBlock(barrier, false);
                     }

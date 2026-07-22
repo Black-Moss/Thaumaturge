@@ -7,7 +7,7 @@ import com.leclowndu93150.thaumcraft.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.api.items.InvHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
-import com.leclowndu93150.thaumcraft.content.fx.data.VentData;
+import com.leclowndu93150.thaumcraft.content.particle.VentParticleOptions;
 import com.leclowndu93150.thaumcraft.content.golem.GolemProperties;
 import com.leclowndu93150.thaumcraft.content.golem.ItemGolemPlacer;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
@@ -157,7 +157,7 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
     }
 
     private void spawnVent(Level level, BlockPos pos) {
-        level.addParticle(new VentData(level.getRandom().nextGaussian() * 0.1, 0.0,
+        level.addParticle(new VentParticleOptions(level.getRandom().nextGaussian() * 0.1, 0.0,
                         level.getRandom().nextGaussian() * 0.1, VENT_COLOR, 1.0F, false),
                 pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, 0.0, 0.0, 0.0);
     }

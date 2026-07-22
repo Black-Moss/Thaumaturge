@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.client.extensions;
 
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.client.fx.FXClient;
+import com.leclowndu93150.thaumcraft.client.effect.ClientEffects;
 import com.leclowndu93150.thaumcraft.content.misc.nitor.BlockNitor;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
@@ -45,9 +45,9 @@ public final class NitorClientExtensions implements IClientBlockExtensions {
             double vx = rand.nextGaussian() * 0.04;
             double vy = rand.nextFloat() * 0.1 + 0.02;
             double vz = rand.nextGaussian() * 0.04;
-            FXClient.nitorFlames(level, cx, cy, cz, vx, vy, vz, rgb, 0);
+            ClientEffects.nitorFlames(level, cx, cy, cz, vx, vy, vz, rgb, 0);
         }
-        FXClient.nitorCore(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0.0, 0.05, 0.0, rgb);
+        ClientEffects.nitorCore(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0.0, 0.05, 0.0, rgb);
         return true;
     }
 
@@ -65,7 +65,7 @@ public final class NitorClientExtensions implements IClientBlockExtensions {
             double vx = rand.nextGaussian() * 0.02;
             double vy = rand.nextFloat() * 0.06 + 0.01;
             double vz = rand.nextGaussian() * 0.02;
-            FXClient.nitorFlames(level, cx, cy, cz, vx, vy, vz, rgb, 0);
+            ClientEffects.nitorFlames(level, cx, cy, cz, vx, vy, vz, rgb, 0);
         }
         return true;
     }

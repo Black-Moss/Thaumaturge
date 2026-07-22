@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.equipment;
 
-import com.leclowndu93150.thaumcraft.client.fx.FXClient;
+import com.leclowndu93150.thaumcraft.client.effect.ClientEffects;
 import java.util.List;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -62,7 +62,7 @@ public final class ElementalAxeItem extends Item {
             double mz = Mth.clamp(motion.z - dz * MAGNET_STRENGTH, -MAGNET_SPEED_CAP, MAGNET_SPEED_CAP);
             e.setDeltaMovement(mx, my, mz);
             if (level.isClientSide()) {
-                FXClient.followingBubble(level,
+                ClientEffects.followingBubble(level,
                         e.getX() + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F,
                         e.getY() + e.getBbHeight() + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F,
                         e.getZ() + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F);

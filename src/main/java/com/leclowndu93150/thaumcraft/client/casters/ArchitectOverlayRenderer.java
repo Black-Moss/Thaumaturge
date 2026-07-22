@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.client.casters;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.items.IArchitect;
-import com.leclowndu93150.thaumcraft.client.fx.render.pipeline.TCFXPipelines;
+import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCFXPipelines;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

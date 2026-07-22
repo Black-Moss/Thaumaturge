@@ -6,7 +6,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.entity.EntityFollowingItem;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
@@ -92,7 +92,7 @@ public final class InfusionEnchantmentEvents {
                 EnchantmentHelper.doPostAttackEffects(level, living, level.damageSources().playerAttack(player));
                 float yaw = player.getYRot() * ((float) Math.PI / 180.0F);
                 living.push(-Mth.sin(yaw) * 0.5F, 0.1, Mth.cos(yaw) * 0.5F);
-                FX.slash(level, target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(),
+                Effects.slash(level, target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(),
                         living.getX(), living.getY() + living.getBbHeight() / 2.0, living.getZ(), SLASH_LIFE);
                 count++;
             }
@@ -100,7 +100,7 @@ public final class InfusionEnchantmentEvents {
         if (count > 0) {
             level.playSound(null, player.getX(), player.getY(), player.getZ(), TCSounds.WIND.get(), SoundSource.PLAYERS,
                     1.0F, 0.9F + level.getRandom().nextFloat() * 0.2F);
-            FX.slash(level, player.getX(), player.getY() + player.getBbHeight() / 2.0, player.getZ(),
+            Effects.slash(level, player.getX(), player.getY() + player.getBbHeight() / 2.0, player.getZ(),
                     target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(), SLASH_LIFE);
         }
     }

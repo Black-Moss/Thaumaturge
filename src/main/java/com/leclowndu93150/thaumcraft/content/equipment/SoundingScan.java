@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.equipment;
 
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -51,7 +51,7 @@ public final class SoundingScan {
             cy /= group.size();
             cz /= group.size();
             double distance = Math.sqrt(source.distToCenterSqr(cx, cy, cz));
-            FX.scanGlyph(viewer, cx, cy, cz, color, (int) (distance * DELAY_PER_DISTANCE));
+            Effects.scanGlyph(viewer, cx, cy, cz, color, (int) (distance * DELAY_PER_DISTANCE));
         }
     }
 

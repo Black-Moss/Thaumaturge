@@ -6,7 +6,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IEntityAspectSource;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.content.entity.ai.FlyingWanderGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.WispZapGoal;
-import com.leclowndu93150.thaumcraft.content.fx.WispFx;
+import com.leclowndu93150.thaumcraft.content.effect.WispEffects;
 import com.leclowndu93150.thaumcraft.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.List;
@@ -146,15 +146,15 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
 
     private void clientAmbientFx() {
         if (this.tickCount <= 1) {
-            this.level().addParticle(WispFx.burst(SPAWN_BURST_SIZE), this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+            this.level().addParticle(WispEffects.burst(SPAWN_BURST_SIZE), this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
         }
         if (this.isDeadOrDying() && this.deathTime == 1) {
-            this.level().addParticle(WispFx.burst(DEATH_BURST_SIZE),
+            this.level().addParticle(WispEffects.burst(DEATH_BURST_SIZE),
                     this.getX(), this.getY() + DEATH_BURST_Y_OFFSET, this.getZ(), 0.0, 0.0, 0.0);
         }
         Holder<IAspect> self = aspect();
         if (self != null && this.random.nextBoolean()) {
-            this.level().addParticle(WispFx.mote(this.random, self.value().color()),
+            this.level().addParticle(WispEffects.mote(this.random, self.value().color()),
                     this.getX() + (this.random.nextFloat() - this.random.nextFloat()) * MOTE_SPREAD,
                     this.getY() + (this.random.nextFloat() - this.random.nextFloat()) * MOTE_SPREAD,
                     this.getZ() + (this.random.nextFloat() - this.random.nextFloat()) * MOTE_SPREAD,

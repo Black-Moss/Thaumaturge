@@ -11,7 +11,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.CrackShardParticleOptions;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -101,14 +101,8 @@ public final class FocusEffectBreak extends FocusEffect {
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
         int q = level.getRandom().nextInt(4);
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .maxAge(6 + level.getRandom().nextInt(6))
-                .particles(PARTICLE_START_BASE + q * 3, 3, 1)
-                .slowDown(0.8)
-                .scale((float) (1.7F + level.getRandom().nextGaussian() * 0.3F))
-                .build();
+        CrackShardParticleOptions data = new CrackShardParticleOptions(0xFFFFFF, q,
+                (float) (1.7F + level.getRandom().nextGaussian() * 0.3F), 6 + level.getRandom().nextInt(6));
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

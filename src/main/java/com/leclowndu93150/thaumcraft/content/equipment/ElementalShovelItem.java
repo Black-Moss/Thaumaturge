@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.equipment;
 
 import com.leclowndu93150.thaumcraft.api.items.IArchitect;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCDataComponents;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +78,7 @@ public final class ElementalShovelItem extends Item implements IArchitect {
         level.setBlockAndUpdate(p2, state);
         context.getItemInHand().hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
         if (level instanceof ServerLevel serverLevel) {
-            FX.bamf(serverLevel, p2)
+            Effects.bamf(serverLevel, p2)
                     .color(((BAMF_COLOR >> 16) & 0xFF) / 255.0F, ((BAMF_COLOR >> 8) & 0xFF) / 255.0F,
                             (BAMF_COLOR & 0xFF) / 255.0F)
                     .side(side)

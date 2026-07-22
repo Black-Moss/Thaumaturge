@@ -15,7 +15,7 @@ import com.leclowndu93150.thaumcraft.api.wands.IWandRodOnUpdate;
 import com.leclowndu93150.thaumcraft.api.wands.WandVis;
 import com.leclowndu93150.thaumcraft.content.casters.CasterManager;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumcraft.api.wands.WandCap;
 import com.leclowndu93150.thaumcraft.api.wands.WandRod;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
@@ -358,7 +358,7 @@ public class ItemWand extends Item implements ICaster, IArchitect {
                 (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * REFINE_SPARKLE_SPREAD);
         Vec3 hand = player.getEyePosition().add(player.getLookAngle().scale(0.5))
                 .add(0.0, -0.3, 0.0);
-        TCParticleDispatch.spawnVisSparkle(level, origin, hand, color);
+        EffectDispatch.spawnVisSparkle(level, origin, hand, color);
     }
 
     private @Nullable ResourceKey<IAspect> refineTarget(Player player, ItemStack stack) {

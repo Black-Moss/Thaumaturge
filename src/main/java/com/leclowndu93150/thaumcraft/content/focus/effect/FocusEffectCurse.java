@@ -8,8 +8,8 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.registry.TCParticles;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -71,7 +71,7 @@ public final class FocusEffectCurse extends FocusEffect {
         if (!(getPackage().getLevel() instanceof ServerLevel level)) {
             return false;
         }
-        FX.bamf(level, target.getLocation())
+        Effects.bamf(level, target.getLocation())
                 .color(((BAMF_COLOR >> 16) & 0xFF) / COLOR_DIVISOR,
                         ((BAMF_COLOR >> 8) & 0xFF) / COLOR_DIVISOR,
                         (BAMF_COLOR & 0xFF) / COLOR_DIVISOR)
@@ -136,23 +136,7 @@ public final class FocusEffectCurse extends FocusEffect {
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .maxAge(8)
-                .color(0.41F + level.getRandom().nextFloat() * 0.2F, 0.0F,
-                        0.019F + level.getRandom().nextFloat() * 0.2F)
-                .alpha(0.0F, level.getRandom().nextFloat(), level.getRandom().nextFloat(),
-                        level.getRandom().nextFloat(), 0.0F)
-                .grid(16)
-                .particles(72 + level.getRandom().nextInt(4), 1, 1)
-                .scale(2.0F + level.getRandom().nextFloat() * 4.0F)
-                .loop(false)
-                .slowDown(0.9)
-                .gravity(0.0F)
-                .rotation(level.getRandom().nextFloat(), 0.0F)
-                .delay(level.getRandom().nextInt(4))
-                .build();
+        var data = TCParticles.CURSE_SMOKE.get();
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.device;
 
 import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.registry.TCParticles;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -150,19 +150,7 @@ public final class BlockEntityLevitator extends BlockEntity {
 
     private static void spawnParticle(Level level, RandomSource rand, double x, double y, double z,
                                       double vx, double vy, double vz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(vx, vy, vz)
-                .maxAge(200 + rand.nextInt(100))
-                .color(0.5F, 0.5F, 0.2F)
-                .alpha(0.3F, 0.0F)
-                .grid(PARTICLE_GRID)
-                .particles(PARTICLE_START, 1, 1)
-                .scale(2.0F, 5.0F)
-                .layer(0)
-                .slowDown(1.0)
-                .rotation(rand.nextFloat(), rand.nextBoolean() ? -1.0F : 1.0F)
-                .build();
-        level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
+        level.addParticle(TCParticles.LEVITATOR_MIST.get(), x, y, z, vx, vy, vz);
     }
 
     public int getCost() {

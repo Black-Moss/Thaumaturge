@@ -3,8 +3,8 @@ package com.leclowndu93150.thaumcraft.content.misc.alumentum;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.leclowndu93150.thaumcraft.content.fx.FX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.content.particle.ShieldSparkParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -51,7 +51,7 @@ public class ThrownAlumentum extends ThrowableItemProjectile {
         if (!level().isClientSide()){
             for (int i = 0; i < 3; i++) {
                 double coeff = i / 3.0;
-                FX.alumentum((ServerLevel) level(),new Vec3(
+                Effects.alumentum((ServerLevel) level(),new Vec3(
                         (float)(this.xOld + (this.getX() - this.xOld) * coeff),
                         (float)(this.yOld + (this.getY() - this.yOld) * coeff) + this.getBbHeight() / 2.0F,
                         (float)(this.zOld + (this.getZ() - this.zOld) * coeff)
@@ -64,17 +64,7 @@ public class ThrownAlumentum extends ThrowableItemProjectile {
                         this.random.nextFloat() * 0.1F
                 ).alpha(0.5F).scale(4.0F).send();
 
-                FX.spawn((ServerLevel) level(), FXGenericData.builder()
-                                .grid(16)
-                                .color(1.0F, 1.0F, 1.0F)
-                                .alpha(0.7F)
-                                .maxAge(8)
-                                .layer(1)
-                                .particles(448,8,1)
-                                .loop(false)
-                                .scale(0.3F)
-                                .motion(0.0, 0.0, 0.0)
-                                .build(),getX() + level().getRandom().nextGaussian() * 0.2F,
+                Effects.spawn((ServerLevel) level(), new ShieldSparkParticleOptions(0xFFFFFF, 0.7F, 0.3F, 8, false),getX() + level().getRandom().nextGaussian() * 0.2F,
                         getY() + level().getRandom().nextGaussian() * 0.2F,
                         getZ() + level().getRandom().nextGaussian() * 0.2F
                 );

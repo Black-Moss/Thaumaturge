@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.recipe.dust;
 
 import com.leclowndu93150.thaumcraft.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumcraft.api.recipe.DustTriggerPlacement;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -55,7 +55,7 @@ public final class DustTriggerFx {
             int delay = rand.nextInt(5);
             float decay = floaty ? 0.3F + rand.nextFloat() * 0.5F : 0.85F;
             float grav = floaty ? 0.2F : 0.5F;
-            FX.simpleSparkle(level, v1)
+            Effects.simpleSparkle(level, v1)
                     .motion(vx, vy, vz)
                     .scale(0.5F)
                     .color(r, g, b)
@@ -125,7 +125,7 @@ public final class DustTriggerFx {
                 double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 int delay = rand.nextInt(5) + (int) (dist * SPARKLE_TICKS_PER_BLOCK);
                 float scale = 0.4F + (float) rand.nextGaussian() * 0.1F;
-                FX.simpleSparkle(level, new Vec3(wx, wy, wz))
+                Effects.simpleSparkle(level, new Vec3(wx, wy, wz))
                         .motion(0.0, 0.0025, 0.0)
                         .scale(scale)
                         .color(r, g, b)

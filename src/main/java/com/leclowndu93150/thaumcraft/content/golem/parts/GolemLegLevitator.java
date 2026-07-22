@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.golem.parts;
 
 import com.leclowndu93150.thaumcraft.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumcraft.api.golems.parts.GolemLeg;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.registry.TCParticles;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -20,18 +20,7 @@ public final class GolemLegLevitator implements GolemLeg.ILegFunction {
             return;
         }
         RandomSource rand = level.getRandom();
-        FXGenericData data = FXGenericData.builder()
-                .motion(rand.nextGaussian() / 100.0, -0.1, rand.nextGaussian() / 100.0)
-                .maxAge(20 + rand.nextInt(5))
-                .alpha(0.3F, 0.0F)
-                .grid(PARTICLE_GRID)
-                .particles(PARTICLE_START, 1, 1)
-                .scale(1.5F, 3.0F, 8.0F)
-                .layer(0)
-                .slowDown(1.0)
-                .wind(0.001)
-                .rotation(rand.nextFloat(), rand.nextBoolean() ? -1.0F : 1.0F)
-                .build();
-        level.addParticle(data, entity.getX(), entity.getY() + 0.1, entity.getZ(), 0.0, 0.0, 0.0);
+        level.addParticle(TCParticles.GOLEM_TRAIL.get(), entity.getX(), entity.getY() + 0.1, entity.getZ(),
+                rand.nextGaussian() / 100.0, -0.1, rand.nextGaussian() / 100.0);
     }
 }

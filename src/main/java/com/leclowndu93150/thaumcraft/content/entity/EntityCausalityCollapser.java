@@ -2,8 +2,8 @@ package com.leclowndu93150.thaumcraft.content.entity;
 
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.content.particle.ShieldSparkParticleOptions;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -52,7 +52,7 @@ public final class EntityCausalityCollapser extends ThrowableItemProjectile {
             for (int i = 0; i < TRAIL_STEPS; i++) {
                 double coeff = (double) i / TRAIL_STEPS;
                 this.level().addParticle(
-                        FX.fireMoteData(this.random,
+                        Effects.fireMoteData(this.random,
                                 TRAIL_JITTER * (this.random.nextFloat() - 0.5F),
                                 TRAIL_JITTER * (this.random.nextFloat() - 0.5F),
                                 TRAIL_JITTER * (this.random.nextFloat() - 0.5F),
@@ -65,14 +65,7 @@ public final class EntityCausalityCollapser extends ThrowableItemProjectile {
                         this.zOld + (this.getZ() - this.zOld) * coeff,
                         0.0, 0.0, 0.0);
                 this.level().addParticle(
-                        FXGenericData.builder()
-                                .maxAge(SPARK_AGE)
-                                .color(1.0F, 1.0F, 1.0F)
-                                .alpha(SPARK_ALPHA)
-                                .particles(SPARK_SPRITE_START, SPARK_SPRITE_COUNT, 1)
-                                .scale(SPARK_SCALE)
-                                .layer(1)
-                                .build(),
+                        new ShieldSparkParticleOptions(0xFFFFFF, SPARK_ALPHA, SPARK_SCALE, SPARK_AGE, false),
                         this.getX() + this.random.nextGaussian() * SPARK_SPREAD,
                         this.getY() + this.random.nextGaussian() * SPARK_SPREAD,
                         this.getZ() + this.random.nextGaussian() * SPARK_SPREAD,

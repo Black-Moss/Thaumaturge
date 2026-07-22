@@ -4,7 +4,8 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.registry.TCParticles;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import java.util.ArrayList;
@@ -180,15 +181,13 @@ public final class EntityFocusCloud extends Entity implements TraceableEntity, I
         for (int a = 0; a < radius; a++) {
             FocusEffect effect = this.effects.get(this.random.nextInt(this.effects.size()));
             this.level().addParticle(
-                    FX.focusCloudData(this.random,
-                            this.random.nextGaussian() * PARTICLE_MOTION,
-                            this.random.nextGaussian() * PARTICLE_MOTION,
-                            this.random.nextGaussian() * PARTICLE_MOTION,
-                            FocusEngine.getElementColor(effect.getKey())),
+                    TCParticles.colorOf(TCParticles.FOCUS_CLOUD, FocusEngine.getElementColor(effect.getKey())),
                     this.getX() + this.random.nextGaussian() * radius / 2.0 * PARTICLE_SPREAD_FACTOR,
                     this.getY() + this.random.nextGaussian() * radius / 2.0 * PARTICLE_SPREAD_FACTOR,
                     this.getZ() + this.random.nextGaussian() * radius / 2.0 * PARTICLE_SPREAD_FACTOR,
-                    0.0, 0.0, 0.0);
+                    this.random.nextGaussian() * PARTICLE_MOTION,
+                    this.random.nextGaussian() * PARTICLE_MOTION,
+                    this.random.nextGaussian() * PARTICLE_MOTION);
             effect.renderParticleFX(this.level(),
                     this.getX() + this.random.nextGaussian() * radius / 2.0,
                     this.getY() + this.random.nextGaussian() * radius / 2.0,

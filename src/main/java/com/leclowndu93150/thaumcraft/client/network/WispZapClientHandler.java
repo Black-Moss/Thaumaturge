@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.client.network;
 
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.content.entity.WispEntity;
-import com.leclowndu93150.thaumcraft.content.fx.data.BoltData;
+import com.leclowndu93150.thaumcraft.content.particle.BoltParticleOptions;
 import com.leclowndu93150.thaumcraft.network.ClientboundWispZapPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
@@ -39,7 +39,7 @@ public final class WispZapClientHandler {
                 }
             }
             mc.level.addParticle(
-                    new BoltData(target.getX(), target.getY(), target.getZ(), r, g, b, BOLT_WIDTH),
+                    new BoltParticleOptions(target.getX(), target.getY(), target.getZ(), r, g, b, BOLT_WIDTH),
                     source.getX(), source.getY(), source.getZ(), 0.0, 0.0, 0.0);
         });
     }

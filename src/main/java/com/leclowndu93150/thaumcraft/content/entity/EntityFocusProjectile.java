@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -257,7 +257,7 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         double y = this.yOld + (this.getY() - this.yOld) * coeff + this.getBbHeight() / 2.0F;
         double z = this.zOld + (this.getZ() - this.zOld) * coeff;
         this.level().addParticle(
-                FX.fireMoteData(this.random,
+                Effects.fireMoteData(this.random,
                         FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
                         FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
                         FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),

@@ -8,7 +8,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.BellowsHelper;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -274,7 +274,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
                                 float fz2 = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
                                 float fy2 = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
                                 int color = 11184810;
-                                FX.vent(
+                                Effects.vent(
                                         (ServerLevel) level,
                                         new Vec3(
                                                 this.getBlockPos().getX() + 0.5F + fx + dir.getStepX(),

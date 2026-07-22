@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectSource;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
@@ -52,7 +52,7 @@ public final class EssentiaSources {
                     && source.takeFromContainer(aspect, 1)) {
                 BlockEntity be = level.getBlockEntity(sourcePos);
                 if (be != null) be.setChanged();
-                TCParticleDispatch.spawnEssentiaStream(level,
+                EffectDispatch.spawnEssentiaStream(level,
                         Vec3.atCenterOf(sourcePos),
                         Vec3.atCenterOf(center.below()),
                         aspect.value().color(),
@@ -84,7 +84,7 @@ public final class EssentiaSources {
                     && source.addToContainer(aspect, 1) == 0) {
                 BlockEntity be = level.getBlockEntity(sourcePos);
                 if (be != null) be.setChanged();
-                TCParticleDispatch.spawnEssentiaStream(level,
+                EffectDispatch.spawnEssentiaStream(level,
                         Vec3.atCenterOf(center),
                         Vec3.atCenterOf(sourcePos),
                         aspect.value().color(),

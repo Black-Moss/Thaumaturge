@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.AirGustParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
@@ -96,18 +96,7 @@ public final class FocusEffectAir extends FocusEffect {
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
         float s = (float) (2.0 + level.getRandom().nextGaussian() * 0.5);
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .gravity(-0.1F)
-                .maxAge(20 + level.getRandom().nextInt(10))
-                .alpha(0.5F, 0.0F)
-                .grid(PARTICLE_GRID)
-                .particles(PARTICLE_START, PARTICLE_NUM, 1)
-                .slowDown(0.75)
-                .rotation((float) level.getRandom().nextGaussian() / 2.0F)
-                .scale(s, s * 2.0F)
-                .build();
+        AirGustParticleOptions data = new AirGustParticleOptions(s);
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

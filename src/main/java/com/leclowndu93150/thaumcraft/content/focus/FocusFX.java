@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.focus;
 
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundFocusImpactPayload;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundFocusImpactPayload;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.Identifier;

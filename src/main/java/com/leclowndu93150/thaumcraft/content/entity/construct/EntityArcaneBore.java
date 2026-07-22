@@ -6,7 +6,7 @@ import com.leclowndu93150.thaumcraft.api.items.InvHelper;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantmentHelper;
 import com.leclowndu93150.thaumcraft.content.equipment.RefiningResults;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
@@ -67,6 +67,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
     private static final double MOVE_DAMPING = 5.0;
     private static final byte EVENT_DIG_START = 16;
     private static final byte EVENT_DIG_STOP = 17;
+    private static final int DIG_VISUAL_GRACE_TICKS = 4;
     private static final long SOUND_DELAY_TICKS = 24;
 
     private BlockPos digTarget;
@@ -80,6 +81,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
     private float currentRadius;
     private float charge;
     public boolean clientDigging;
+    private long clientDigStopTime;
 
     public EntityArcaneBore(EntityType<? extends EntityArcaneBore> type, Level level) {
         super(type, level);
@@ -130,7 +132,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
             findNextBlockToDig();
             if (digTarget != null) {
                 level().broadcastEntityEvent(this, EVENT_DIG_START);
-                FX.boreDig((ServerLevel) level(), digTarget, this, digDelayMax);
+                Effects.boreDig((ServerLevel) level(), digTarget, this, digDelayMax);
             } else {
                 level().broadcastEntityEvent(this, EVENT_DIG_STOP);
                 getLookControl().setLookAt(
@@ -547,8 +549,13 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
             clientDigging = true;
         } else if (event == EVENT_DIG_STOP) {
             clientDigging = false;
+            clientDigStopTime = level().getGameTime();
         } else {
             super.handleEntityEvent(event);
         }
+    }
+
+    public boolean clientDiggingSmoothed() {
+        return clientDigging || level().getGameTime() - clientDigStopTime <= DIG_VISUAL_GRACE_TICKS;
     }
 }

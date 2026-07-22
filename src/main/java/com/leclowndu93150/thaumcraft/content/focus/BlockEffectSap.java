@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumcraft.content.focus;
 
 import com.leclowndu93150.thaumcraft.api.entity.IEldritchMob;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
-import com.leclowndu93150.thaumcraft.content.fx.helper.Sprites;
+import com.leclowndu93150.thaumcraft.content.particle.SparkParticleOptions;
+import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -100,16 +100,7 @@ public final class BlockEffectSap extends Block {
     private static void spawnSpark(Level level, double x, double y, double z, float size,
             float r, float g, float b, float alpha) {
         RandomSource rand = level.getRandom();
-        int sparkStart = Sprites.SPARK_LOOP.start() + rand.nextInt(3) * 16;
-        FXGenericData data = FXGenericData.builder()
-                .maxAge(5 + rand.nextInt(5))
-                .alpha(alpha)
-                .color(r, g, b)
-                .grid(Sprites.SPARK_LOOP.grid())
-                .particles(sparkStart, Sprites.SPARK_LOOP.num(), Sprites.SPARK_LOOP.inc())
-                .scale(size)
-                .flipped(rand.nextBoolean())
-                .build();
-        level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
+        level.addParticle(new SparkParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, size),
+                x, y, z, 0.0, 0.0, 0.0);
     }
 }

@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumcraft.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumcraft.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumcraft.content.essentia.tube.BlockEntityTube;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -93,6 +93,6 @@ public final class EssentiaFlowHandler {
         double tx = pos.getX() + 0.5;
         double ty = pos.getY() + 0.5;
         double tz = pos.getZ() + 0.5;
-        TCParticleDispatch.spawnEssentiaStream(server, new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, 0, server.getRandom().nextInt(8), 0.15F, 20, 0.0);
+        EffectDispatch.spawnEssentiaStream(server, new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, 0, server.getRandom().nextInt(8), 0.15F, 20, 0.0);
     }
 }

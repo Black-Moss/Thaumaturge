@@ -10,8 +10,8 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.registry.TCParticles;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -66,7 +66,7 @@ public final class FocusEffectPrimal extends FocusEffect {
             return false;
         }
         Vec3 origin = target.getLocation();
-        FX.bamf(level, origin).withSound().fancy().send();
+        Effects.bamf(level, origin).withSound().fancy().send();
         if (target instanceof EntityHitResult entityHit && entityHit.getEntity() != null) {
             Entity struck = entityHit.getEntity();
             struck.hurtServer(level, level.damageSources().indirectMagic(struck, getPackage().getCaster()),
@@ -96,18 +96,7 @@ public final class FocusEffectPrimal extends FocusEffect {
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .maxAge(8)
-                .color(level.getRandom().nextFloat(), level.getRandom().nextFloat(), level.getRandom().nextFloat())
-                .alpha(0.0F, 0.8F, 0.8F, 0.8F, 0.0F)
-                .grid(PARTICLE_GRID)
-                .particles(72 + level.getRandom().nextInt(4), 1, 1)
-                .scale(1.5F + level.getRandom().nextFloat() * 2.0F)
-                .loop(false)
-                .slowDown(0.9)
-                .build();
+        var data = TCParticles.PRIMAL_FLARE.get();
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 }

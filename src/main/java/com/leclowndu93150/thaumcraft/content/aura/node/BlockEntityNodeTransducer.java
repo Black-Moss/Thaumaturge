@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -95,7 +95,7 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
         if (level instanceof ServerLevel serverLevel && count > REVERT_THRESHOLD && count < CHARGE_TARGET
                 && level.getGameTime() % BOLT_INTERVAL == 0) {
             if (level.getRandom().nextBoolean()) {
-                FX.arcBolt(serverLevel, new Vec3(
+                Effects.arcBolt(serverLevel, new Vec3(
                                 pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5,
                                 pos.getY() + 0.5,
                                 pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
@@ -104,7 +104,7 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
                         .send();
             }
             if (level.getRandom().nextBoolean() && hasStabilizer(level, pos)) {
-                FX.arcBolt(serverLevel, new Vec3(
+                Effects.arcBolt(serverLevel, new Vec3(
                                 pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5,
                                 pos.getY() - 1.5,
                                 pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))

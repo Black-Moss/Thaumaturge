@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.content.wands.ItemWand;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
 import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.registry.TCWandParts;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumcraft.content.infusion.BlockEntityPedestal;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import java.util.List;
@@ -155,6 +155,6 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
                 worldPosition.getX() + 0.4 + rand.nextFloat() * 0.2F,
                 worldPosition.getY() + 1 + 0.4 + rand.nextFloat() * 0.2F,
                 worldPosition.getZ() + 0.4 + rand.nextFloat() * 0.2F);
-        TCParticleDispatch.spawnVisSparkle(level, from, to, color);
+        EffectDispatch.spawnVisSparkle(level, from, to, color);
     }
 }

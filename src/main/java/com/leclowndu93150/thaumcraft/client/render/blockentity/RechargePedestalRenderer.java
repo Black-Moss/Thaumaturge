@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.client.render.blockentity;
 
-import com.leclowndu93150.thaumcraft.client.fx.render.FloatyLineRenderer;
-import com.leclowndu93150.thaumcraft.client.fx.render.LateWorldRenderQueue;
+import com.leclowndu93150.thaumcraft.client.effect.FloatyLineRenderer;
+import com.leclowndu93150.thaumcraft.client.effect.LateWorldRenderQueue;
 import com.leclowndu93150.thaumcraft.content.aura.BlockEntityRechargePedestal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;

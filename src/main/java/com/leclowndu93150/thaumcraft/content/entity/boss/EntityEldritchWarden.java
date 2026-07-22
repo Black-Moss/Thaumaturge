@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumcraft.content.entity.EntityEldritchOrb;
 import com.leclowndu93150.thaumcraft.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionModifier;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.core.BlockPos;
@@ -222,7 +222,7 @@ public class EntityEldritchWarden extends EntityThaumcraftBoss implements Ranged
         if (this.getSpawnTimer() > 0 && this.tickCount % 4 == 0) {
             float height = Math.max(1.0F, this.getBbHeight() * ((SPAWN_TICKS - this.getSpawnTimer()) / (float) SPAWN_TICKS));
             for (int spiral = 0; spiral < SMOKE_SPIRAL_COUNT; spiral++) {
-                FX.smokeSpiral(server, this.position().add(0.0, height / 2.0F, 0.0))
+                Effects.smokeSpiral(server, this.position().add(0.0, height / 2.0F, 0.0))
                         .radius(height)
                         .start(this.random.nextInt(360))
                         .minY(Mth.floor(this.getBoundingBox().minY) - 1)
@@ -256,7 +256,7 @@ public class EntityEldritchWarden extends EntityThaumcraftBoss implements Ranged
                     server.scheduleTick(pos, TCBlocks.EFFECT_SAP.get(),
                             SAP_TICK_MIN + this.random.nextInt(SAP_TICK_SPREAD));
                     if (this.random.nextFloat() < 0.3F) {
-                        FX.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
+                        Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
                                 .to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
                     }
                 }

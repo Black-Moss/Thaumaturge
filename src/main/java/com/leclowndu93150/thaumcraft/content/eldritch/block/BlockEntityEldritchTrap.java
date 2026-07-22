@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumcraft.content.eldritch.block;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.content.warp.WarpManager;
 import net.minecraft.server.level.ServerPlayer;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -39,7 +39,7 @@ public final class BlockEntityEldritchTrap extends BlockEntity {
         if (level.getRandom().nextBoolean() && player instanceof ServerPlayer serverPlayer) {
             WarpManager.addWarp(serverPlayer, 1 + level.getRandom().nextInt(2), WarpType.TEMPORARY);
         }
-        FX.arcBolt(serverLevel, new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+        Effects.arcBolt(serverLevel, new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                 .to(new Vec3(player.getX(), player.getEyeY(), player.getZ()))
                 .send();
     }

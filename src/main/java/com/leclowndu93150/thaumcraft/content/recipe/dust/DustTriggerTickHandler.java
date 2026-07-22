@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.content.recipe.dust;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +109,7 @@ public final class DustTriggerTickHandler {
                 level.addFreshEntity(drop);
             }
         }
-        FX.bamf(level, pos).withSound().fancy().send();
+        Effects.bamf(level, pos).withSound().fancy().send();
         DustTriggerSwapQueue.clearBlocked(level, pos);
     }
 }

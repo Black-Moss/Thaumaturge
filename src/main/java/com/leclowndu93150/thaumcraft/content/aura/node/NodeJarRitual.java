@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.nodes.NodeModifier;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.content.misc.TCActionBar;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerFx;
 import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSwapQueue;
@@ -111,7 +111,7 @@ public final class NodeJarRitual {
             jar.setChanged();
             level.sendBlockUpdated(nodePos, jar.getBlockState(), jar.getBlockState(), Block.UPDATE_ALL);
         }
-        FX.bamf(level, nodePos).withSound().fancy().send();
+        Effects.bamf(level, nodePos).withSound().fancy().send();
     }
 
     public static boolean fitsStructure(Level level, BlockPos nodePos) {

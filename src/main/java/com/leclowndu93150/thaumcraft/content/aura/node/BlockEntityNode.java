@@ -14,8 +14,8 @@ import com.leclowndu93150.thaumcraft.api.taint.TaintApi;
 import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumcraft.content.entity.EntityBrainyZombie;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumcraft.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumcraft.content.wands.WandChargingEvents;
 import com.leclowndu93150.thaumcraft.content.wands.WandParts;
@@ -532,7 +532,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             other.wait = other.regeneration / 2;
             other.setChanged();
             serverLevel.sendBlockUpdated(otherPos, other.getBlockState(), other.getBlockState(), 3);
-            FX.arcBolt(serverLevel, Vec3.atCenterOf(otherPos))
+            Effects.arcBolt(serverLevel, Vec3.atCenterOf(otherPos))
                     .to(Vec3.atCenterOf(pos))
                     .width(ZAP_WIDTH)
                     .send();

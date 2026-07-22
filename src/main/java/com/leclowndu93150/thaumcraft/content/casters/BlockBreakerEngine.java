@@ -6,7 +6,7 @@ import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.SwapContext
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.SwapperTask;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
-import com.leclowndu93150.thaumcraft.content.fx.FX;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.ArrayList;
 import java.util.List;
@@ -220,7 +220,7 @@ public final class BlockBreakerEngine {
                 level.removeBlock(task.pos, false);
             }
             if (task.fx) {
-                FX.Bamf bamf = FX.bamf(level, task.pos)
+                Effects.Bamf bamf = Effects.bamf(level, task.pos)
                         .color(((task.color >> 16) & 0xFF) / COLOR_DIVISOR,
                                 ((task.color >> 8) & 0xFF) / COLOR_DIVISOR,
                                 (task.color & 0xFF) / COLOR_DIVISOR)

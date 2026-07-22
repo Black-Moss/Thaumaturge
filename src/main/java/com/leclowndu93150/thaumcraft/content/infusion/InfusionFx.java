@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumcraft.content.infusion;
 
-import com.leclowndu93150.thaumcraft.content.fx.FX;
-import com.leclowndu93150.thaumcraft.network.fx.ClientboundInfusionSourcePayload;
+import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.network.effect.ClientboundInfusionSourcePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -18,6 +18,6 @@ public final class InfusionFx {
     }
 
     public static void pedestalBamf(ServerLevel level, BlockPos pedestalPos) {
-        FX.bamf(level, pedestalPos.above()).withSound().fancy().send();
+        Effects.bamf(level, pedestalPos.above()).withSound().fancy().send();
     }
 }

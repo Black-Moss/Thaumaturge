@@ -12,7 +12,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
-import com.leclowndu93150.thaumcraft.content.fx.TCParticleDispatch;
+import com.leclowndu93150.thaumcraft.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
 import java.util.List;
@@ -122,7 +122,7 @@ public final class InstabilityEvents {
                         1.0F, Level.ExplosionInteraction.NONE);
                 default -> {}
             }
-            TCParticleDispatch.spawnArc(level, Vec3.atCenterOf(matrixPos),
+            EffectDispatch.spawnArc(level, Vec3.atCenterOf(matrixPos),
                     Vec3.atCenterOf(pedestalPos.above()), ARC_COLOR, 0.0F);
             return;
         }
@@ -131,7 +131,7 @@ public final class InstabilityEvents {
     private static void zap(ServerLevel level, BlockPos matrixPos, boolean all) {
         RandomSource rand = level.getRandom();
         for (LivingEntity target : nearbyLiving(level, matrixPos)) {
-            TCParticleDispatch.spawnArc(level, Vec3.atCenterOf(matrixPos),
+            EffectDispatch.spawnArc(level, Vec3.atCenterOf(matrixPos),
                     target.position().add(0.0, target.getBbHeight() / 2.0, 0.0), ARC_COLOR, 0.0F);
             target.hurt(level.damageSources().magic(), 4 + rand.nextInt(4));
             if (!all) {

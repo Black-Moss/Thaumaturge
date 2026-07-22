@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.api.damagesource.TCDamageSources;
 import com.leclowndu93150.thaumcraft.content.focus.FocusFX;
-import com.leclowndu93150.thaumcraft.content.fx.data.FXGenericData;
+import com.leclowndu93150.thaumcraft.content.particle.FlameFanParticleOptions;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -105,16 +105,7 @@ public final class FocusEffectFire extends FocusEffect {
     @Override
     public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
             double dx, double dy, double dz) {
-        FXGenericData data = FXGenericData.builder()
-                .motion(mx, my, mz)
-                .drift(dx, dy, dz)
-                .gravity(-0.2F)
-                .maxAge(10)
-                .alpha(0.7F)
-                .particles(PARTICLE_START, PARTICLE_NUM, 1)
-                .slowDown(0.75)
-                .scale((float) (1.5 + level.getRandom().nextGaussian() * 0.2F))
-                .build();
+        FlameFanParticleOptions data = new FlameFanParticleOptions((float) (1.5 + level.getRandom().nextGaussian() * 0.2F), -0.2F, 0.7F);
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 
