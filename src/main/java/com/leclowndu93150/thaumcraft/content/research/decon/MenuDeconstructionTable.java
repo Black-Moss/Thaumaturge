@@ -15,8 +15,8 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
 public final class MenuDeconstructionTable extends AbstractContainerMenu {
-    public static final int INPUT_X = 64;
-    public static final int INPUT_Y = 16;
+    public static final int INPUT_X = 63;
+    public static final int INPUT_Y = 15;
     private static final int PLAYER_GRID_X = 8;
     private static final int PLAYER_GRID_Y = 84;
     private static final int HOTBAR_Y = 142;

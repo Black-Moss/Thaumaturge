@@ -42,11 +42,11 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
     private static final int RESULT_X = 160;
     private static final int RESULT_Y = 64;
-    private static final int CRAFT_ORIGIN_X = 40;
-    private static final int CRAFT_ORIGIN_Y = 40;
-    private static final int CRAFT_SPACING = 24;
-    public static final int[] CRYSTAL_X = {64, 17, 112, 17, 112, 64};
-    public static final int[] CRYSTAL_Y = {13, 35, 35, 93, 93, 115};
+    private static final int CRAFT_ORIGIN_X = 41;
+    private static final int CRAFT_ORIGIN_Y = 41;
+    private static final int CRAFT_SPACING = 23;
+    public static final int[] CRYSTAL_X = {64, 16, 112, 16, 112, 64};
+    public static final int[] CRYSTAL_Y = {13, 35, 35, 94, 94, 116};
     public static final int WAND_X = 160;
     public static final int WAND_Y = 100;
     private static final int PLAYER_INV_X = 16;

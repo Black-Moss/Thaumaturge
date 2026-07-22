@@ -32,8 +32,8 @@ public final class DeconstructionTableScreen extends AbstractTCContainerScreen<M
     private static final int BAR_U = 176;
     private static final int BAR_W = 9;
     private static final int BAR_MAX_H = 46;
-    private static final int RESULT_X = 64;
-    private static final int RESULT_Y = 48;
+    private static final int RESULT_X = 63;
+    private static final int RESULT_Y = 47;
     private static final int RESULT_SIZE = 16;
 
     public DeconstructionTableScreen(MenuDeconstructionTable menu, Inventory inventory, Component title) {

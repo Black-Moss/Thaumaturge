@@ -16,9 +16,9 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 public final class MenuSmelter extends AbstractContainerMenu {
     public static final int ITEM_X = 80;
-    public static final int ITEM_Y = 8;
+    public static final int ITEM_Y = 7;
     public static final int FUEL_X = 80;
-    public static final int FUEL_Y = 48;
+    public static final int FUEL_Y = 47;
 
     public static final int PLAYER_GRID_X = 8;
     public static final int PLAYER_GRID_Y = 84;
