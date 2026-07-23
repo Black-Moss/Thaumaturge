@@ -1,0 +1,168 @@
+{
+  "trades": [
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:aer"
+          }
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:terra"
+          }
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:ignis"
+          }
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:aqua"
+          }
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:ordo"
+          }
+        }
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:perditio"
+          }
+        }
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:potion",
+        "components": {
+          "minecraft:potion_contents": {
+            "potion": "minecraft:regeneration"
+          }
+        }
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:potion",
+        "components": {
+          "minecraft:potion_contents": {
+            "potion": "minecraft:healing"
+          }
+        }
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:vitium"
+          }
+        }
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:experience_bottle"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:experience_bottle"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "thaumcraft:essentia_crystal",
+        "components": {
+          "thaumcraft:crystal_aspect": {
+            "aspect": "thaumcraft:auram"
+          }
+        }
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:golden_apple"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:cloth_boots"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:cloth_chest"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:cloth_legs"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "minecraft:enchanted_golden_apple"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "thaumcraft:pech_wand"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "thaumcraft:curio_knowledge"
+      }
+    }
+  ]
+}

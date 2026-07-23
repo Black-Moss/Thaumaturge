@@ -136,11 +136,11 @@ public final class MenuPech extends AbstractContainerMenu {
                     pech.loot.set(slot, ItemStack.EMPTY);
                 }
             } else if (amount < 4 || !rand.nextBoolean()) {
-                PechTrades.Entry entry;
-                do {
-                    entry = trades.get(rand.nextInt(trades.size()));
-                } while (entry.tier() != amount);
-                addStack(entry.stack().copy());
+                int wanted = amount;
+                List<PechTrades.Entry> pool = trades.stream().filter(entry -> entry.tier() == wanted).toList();
+                if (!pool.isEmpty()) {
+                    addStack(pool.get(rand.nextInt(pool.size())).stack().copy());
+                }
             }
         }
         tradeContainer.removeItem(INPUT_SLOT, 1);

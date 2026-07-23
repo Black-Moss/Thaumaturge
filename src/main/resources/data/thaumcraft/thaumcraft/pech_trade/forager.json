@@ -1,0 +1,124 @@
+{
+  "trades": [
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:cluster_iron"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:cluster_gold"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:cluster_cinnabar"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:cluster_quartz"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:cluster_copper"
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:blaze_rod"
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "thaumcraft:sapling_greatwood"
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:dragon_breath"
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:compass"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:experience_bottle"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:experience_bottle"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:golden_apple"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:thaumium_pickaxe"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:thaumium_axe"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:thaumium_hoe"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "minecraft:spectral_arrow"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "minecraft:enchanted_golden_apple"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "thaumcraft:sapling_silverwood"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "minecraft:totem_of_undying"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "thaumcraft:curio_knowledge"
+      }
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "trades": [
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_orange"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_magenta"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_light_blue"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_yellow"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_lime"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_pink"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_gray"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_light_gray"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_cyan"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_purple"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_blue"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_brown"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_green"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_red"
+      }
+    },
+    {
+      "tier": 1,
+      "result": {
+        "id": "thaumcraft:candle_black"
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:ghast_tear"
+      }
+    },
+    {
+      "tier": 2,
+      "result": {
+        "id": "minecraft:enchanted_book",
+        "components": {
+          "minecraft:stored_enchantments": {
+            "minecraft:power": 1
+          }
+        }
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:experience_bottle"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:experience_bottle"
+      }
+    },
+    {
+      "tier": 3,
+      "result": {
+        "id": "minecraft:golden_apple"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "thaumcraft:eldritch_eye"
+      }
+    },
+    {
+      "tier": 4,
+      "result": {
+        "id": "minecraft:enchanted_golden_apple"
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "minecraft:enchanted_book",
+        "components": {
+          "minecraft:stored_enchantments": {
+            "minecraft:flame": 1
+          }
+        }
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "minecraft:enchanted_book",
+        "components": {
+          "minecraft:stored_enchantments": {
+            "minecraft:infinity": 1
+          }
+        }
+      }
+    },
+    {
+      "tier": 5,
+      "result": {
+        "id": "thaumcraft:curio_knowledge"
+      }
+    }
+  ]
+}
