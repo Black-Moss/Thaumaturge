@@ -53,71 +53,80 @@ public final class WandHandRenderer {
 
         poseStack.pushPose();
         if (!using) {
-            float swaySin = Mth.sin(swing * Mth.PI);
-            float swaySqrtSin = Mth.sin(Mth.sqrt(swing) * Mth.PI);
-            poseStack.translate(mirror * -swaySqrtSin * 0.4F,
-                    Mth.sin(Mth.sqrt(swing) * Mth.PI * 2.0F) * 0.2F,
-                    -swaySin * 0.2F);
+            applyMissSway(poseStack, mirror, swing);
         }
+        applyCarryPose(poseStack, mirror, equip, swing);
+        if (using) {
+            applyDrawPose(poseStack, mirror, player.getTicksUsingItem() + partial);
+        }
+        applyModelBasis(poseStack, mirror, arg.rod().staff());
+        if (using) {
+            applyUseWave(poseStack, mirror, player.getTicksUsingItem() + partial);
+        }
+        WandTipTracker.capture(poseStack, WandItemSpecialRenderer.tipModelY(arg));
+        WandItemSpecialRenderer.submitParts(arg, poseStack, collector, event.getPackedLight());
+        poseStack.popPose();
+    }
+
+    private static void applyMissSway(PoseStack poseStack, float mirror, float swing) {
+        float lateral = Mth.sin(Mth.sqrt(swing) * Mth.PI);
+        float vertical = Mth.sin(Mth.sqrt(swing) * Mth.PI * 2.0F);
+        float forward = Mth.sin(swing * Mth.PI);
+        poseStack.translate(mirror * -lateral * 0.4F, vertical * 0.2F, -forward * 0.2F);
+    }
+
+    private static void applyCarryPose(PoseStack poseStack, float mirror, float equip, float swing) {
         poseStack.translate(mirror * 0.7F * BASE_SCALE,
                 -0.65F * BASE_SCALE - equip * 0.6F,
                 -0.9F * BASE_SCALE);
         poseStack.mulPose(Axis.YP.rotationDegrees(mirror * 45.0F));
-        float swingCurve = Mth.sin(swing * swing * Mth.PI);
-        float swingSqrtCurve = Mth.sin(Mth.sqrt(swing) * Mth.PI);
-        poseStack.mulPose(Axis.YP.rotationDegrees(mirror * -swingCurve * 20.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * -swingSqrtCurve * 20.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-swingSqrtCurve * 80.0F));
+        float snap = Mth.sin(swing * swing * Mth.PI);
+        float arc = Mth.sin(Mth.sqrt(swing) * Mth.PI);
+        poseStack.mulPose(Axis.YP.rotationDegrees(mirror * -snap * 20.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * -arc * 20.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-arc * 80.0F));
         poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
+    }
 
-        if (using) {
-            float bowTicks = Math.max(0.0F, player.getTicksUsingItem() + partial - 1.0F);
-            float draw = bowTicks / 20.0F;
-            draw = (draw * draw + draw * 2.0F) / 3.0F;
-            if (draw > 1.0F) {
-                draw = 1.0F;
-            }
-            poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * -18.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(mirror * -12.0F));
-            poseStack.mulPose(Axis.XP.rotationDegrees(-8.0F));
-            poseStack.translate(mirror * -0.9F, 0.2F, 0.0F);
-            if (draw > 0.1F) {
-                poseStack.translate(0.0F, Mth.sin((bowTicks - 0.1F) * 1.3F) * 0.01F * (draw - 0.1F), 0.0F);
-            }
-            poseStack.translate(0.0F, 0.0F, draw * 0.1F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * -335.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(mirror * -50.0F));
-            poseStack.translate(0.0F, 0.5F, 0.0F);
-            poseStack.scale(1.0F, 1.0F, 1.0F + draw * 0.2F);
-            poseStack.translate(0.0F, -0.5F, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(mirror * 50.0F));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * 335.0F));
+    private static void applyDrawPose(PoseStack poseStack, float mirror, float useTicks) {
+        float drawTicks = Math.max(0.0F, useTicks - 1.0F);
+        float draw = drawTicks / 20.0F;
+        draw = Math.min(1.0F, (draw * draw + draw * 2.0F) / 3.0F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * -18.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(mirror * -12.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-8.0F));
+        poseStack.translate(mirror * -0.9F, 0.2F, 0.0F);
+        if (draw > 0.1F) {
+            poseStack.translate(0.0F, Mth.sin((drawTicks - 0.1F) * 1.3F) * 0.01F * (draw - 0.1F), 0.0F);
         }
+        poseStack.translate(0.0F, 0.0F, draw * 0.1F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * -335.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(mirror * -50.0F));
+        poseStack.translate(0.0F, 0.5F, 0.0F);
+        poseStack.scale(1.0F, 1.0F, 1.0F + draw * 0.2F);
+        poseStack.translate(0.0F, -0.5F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(mirror * 50.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * 335.0F));
+    }
 
+    private static void applyModelBasis(PoseStack poseStack, float mirror, boolean staff) {
         poseStack.translate(mirror * -0.5F, -0.5F, -0.5F);
-        if (arg.rod().staff()) {
+        if (staff) {
             poseStack.translate(0.0F, 0.5F, 0.0F);
         }
         poseStack.translate(mirror * 0.5F, 1.5F, 0.5F);
         poseStack.scale(1.0F, 1.1F, 1.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+    }
 
-        if (using) {
-            float useTicks = player.getTicksUsingItem() + partial;
-            float tilt = Math.min(useTicks, USE_TILT_MAX_TICKS);
-            poseStack.translate(0.0F, 1.0F, 0.0F);
-            poseStack.mulPose(Axis.XP.rotationDegrees(10.0F));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * 10.0F));
-            poseStack.mulPose(Axis.XN.rotationDegrees(USE_TILT_DEGREES * (tilt / USE_TILT_MAX_TICKS)));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(
-                    mirror * Mth.sin(useTicks / WAVE_ROLL_PERIOD) * WAVE_DEGREES));
-            poseStack.mulPose(Axis.XP.rotationDegrees(
-                    Mth.sin(useTicks / WAVE_PITCH_PERIOD) * WAVE_DEGREES));
-            poseStack.translate(0.0F, -1.0F, 0.0F);
-        }
-
-        WandTipTracker.capture(poseStack, WandItemSpecialRenderer.tipModelY(arg));
-        WandItemSpecialRenderer.submitParts(arg, poseStack, collector, event.getPackedLight());
-        poseStack.popPose();
+    private static void applyUseWave(PoseStack poseStack, float mirror, float useTicks) {
+        float tilt = Math.min(useTicks, USE_TILT_MAX_TICKS);
+        poseStack.translate(0.0F, 1.0F, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(10.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * 10.0F));
+        poseStack.mulPose(Axis.XN.rotationDegrees(USE_TILT_DEGREES * (tilt / USE_TILT_MAX_TICKS)));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * Mth.sin(useTicks / WAVE_ROLL_PERIOD) * WAVE_DEGREES));
+        poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(useTicks / WAVE_PITCH_PERIOD) * WAVE_DEGREES));
+        poseStack.translate(0.0F, -1.0F, 0.0F);
     }
 }
