@@ -1,8 +1,0 @@
-{
-  "key": "thaumcraft:f_spider",
-  "entities": [
-    "minecraft:spider",
-    "minecraft:cave_spider",
-    "thaumcraft:mind_spider"
-  ]
-}

@@ -1,9 +1,0 @@
-{
-  "key": "thaumcraft:f_matbrass",
-  "items": [
-    "thaumcraft:ingot_brass"
-  ],
-  "blocks": [
-    "thaumcraft:metal_brass"
-  ]
-}

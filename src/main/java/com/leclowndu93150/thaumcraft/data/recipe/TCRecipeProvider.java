@@ -10,6 +10,10 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.content.item.PhialItem;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerMultiblockRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerSimpleRecipe;
+import com.leclowndu93150.thaumcraft.content.recipe.dust.DustTriggerTagRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import com.leclowndu93150.thaumcraft.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumcraft.content.equipment.InfusionEnchantments;
 import com.leclowndu93150.thaumcraft.data.recipe.builders.CrucibleRecipeBuilder;
@@ -97,6 +101,7 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
+        buildDustTriggerRecipes();
         buildSalisMundusRecipe();
         buildArcaneWorkbenchRecipes();
         buildBannerRecipes();
@@ -2780,6 +2785,49 @@ public final class TCRecipeProvider extends RecipeProvider {
         public String getName() {
             return "Thaumcraft Recipes";
         }
+    }
+
+    private void buildDustTriggerRecipes() {
+        dustTrigger("bookshelf_to_thaumonomicon", new DustTriggerTagRecipe(
+                Tags.Blocks.BOOKSHELVES,
+                new ItemStackTemplate(TCItems.THAUMONOMICON.get()),
+                Optional.of(gate("gotdream"))));
+        dustTrigger("crafting_tables_to_arcane_workbench", new DustTriggerTagRecipe(
+                Tags.Blocks.PLAYER_WORKSTATIONS_CRAFTING_TABLES,
+                new ItemStackTemplate(TCBlocks.ARCANE_WORKBENCH.get().asItem()),
+                Optional.of(gate("first_steps", 0))));
+        dustTrigger("cauldron_to_crucible", new DustTriggerSimpleRecipe(
+                Blocks.CAULDRON,
+                new ItemStackTemplate(TCBlocks.CRUCIBLE.get().asItem()),
+                Optional.of(gate("unlock_alchemy", 0))));
+        dustTrigger("golem_press", new DustTriggerMultiblockRecipe(
+                TCIds.rl("golem_press"),
+                new ItemStackTemplate(TCBlocks.GOLEM_BUILDER.get().asItem()),
+                Optional.of(gate("mind_clockwork"))));
+        dustTrigger("infernal_furnace", new DustTriggerMultiblockRecipe(
+                TCIds.rl("infernal_furnace"),
+                new ItemStackTemplate(TCBlocks.INFERNAL_FURNACE.get().asItem()),
+                Optional.of(gate("infernal_furnace"))));
+        dustTrigger("infusion_altar", new DustTriggerMultiblockRecipe(
+                TCIds.rl("infusion_altar"),
+                new ItemStackTemplate(TCBlocks.INFUSION_MATRIX.get().asItem()),
+                Optional.of(gate("infusion"))));
+        dustTrigger("infusion_altar_ancient", new DustTriggerMultiblockRecipe(
+                TCIds.rl("infusion_altar_ancient"),
+                new ItemStackTemplate(TCBlocks.INFUSION_MATRIX.get().asItem()),
+                Optional.of(gate("infusion_ancient"))));
+        dustTrigger("infusion_altar_eldritch", new DustTriggerMultiblockRecipe(
+                TCIds.rl("infusion_altar_eldritch"),
+                new ItemStackTemplate(TCBlocks.INFUSION_MATRIX.get().asItem()),
+                Optional.of(gate("infusion_eldritch"))));
+        dustTrigger("thaumatorium", new DustTriggerMultiblockRecipe(
+                TCIds.rl("thaumatorium"),
+                new ItemStackTemplate(TCBlocks.THAUMATORIUM.get().asItem()),
+                Optional.of(gate("thaumatorium"))));
+    }
+
+    private void dustTrigger(String name, Recipe<?> recipe) {
+        output.accept(ResourceKey.create(Registries.RECIPE, TCIds.rl("dust_trigger/" + name)), recipe, null);
     }
 
     private void buildSalisMundusRecipe() {

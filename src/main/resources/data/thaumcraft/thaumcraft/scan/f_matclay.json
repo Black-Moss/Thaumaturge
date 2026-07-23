@@ -1,7 +1,0 @@
-{
-  "key": "thaumcraft:f_matclay",
-  "items": [
-    "minecraft:clay_ball"
-  ],
-  "blocks": "#thaumcraft:scan/f_matclay"
-}
