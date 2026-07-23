@@ -1010,6 +1010,24 @@
         "amount": 5
       }
     ],
+    "minecraft:axolotl_bucket": [
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 10
+      }
+    ],
     "minecraft:azalea": [
       {
         "aspect": "thaumcraft:herba",
@@ -1140,6 +1158,20 @@
         "amount": 1
       }
     ],
+    "minecraft:bell": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:desiderium",
+        "amount": 5
+      }
+    ],
     "minecraft:big_dripleaf": [
       {
         "aspect": "thaumcraft:herba",
@@ -1240,6 +1272,62 @@
         "amount": 5
       }
     ],
+    "minecraft:brain_coral": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:brain_coral_block": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:brain_coral_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:brain_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
     "minecraft:breeze_rod": [
       {
         "aspect": "thaumcraft:aer",
@@ -1334,6 +1422,62 @@
       {
         "aspect": "thaumcraft:herba",
         "amount": 4
+      }
+    ],
+    "minecraft:bubble_coral": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:bubble_coral_block": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:bubble_coral_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:bubble_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
       }
     ],
     "minecraft:cactus": [
@@ -1472,6 +1616,20 @@
         "amount": 5
       }
     ],
+    "minecraft:chipped_anvil": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 40
+      },
+      {
+        "aspect": "thaumcraft:fabrico",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 10
+      }
+    ],
     "minecraft:chorus_flower": [
       {
         "aspect": "thaumcraft:alienis",
@@ -1598,6 +1756,24 @@
       {
         "aspect": "thaumcraft:aqua",
         "amount": 5
+      }
+    ],
+    "minecraft:cod_bucket": [
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 10
       }
     ],
     "minecraft:comparator": [
@@ -1752,6 +1928,98 @@
         "amount": 5
       }
     ],
+    "minecraft:copper_chest": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:copper_door": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:copper_golem_statue": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:copper_horse_armor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:praemunio",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:copper_nautilus_armor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:praemunio",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:copper_trapdoor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      }
+    ],
     "minecraft:crafting_table": [
       {
         "aspect": "thaumcraft:fabrico",
@@ -1838,6 +2106,20 @@
         "amount": 5
       }
     ],
+    "minecraft:damaged_anvil": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumcraft:fabrico",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 20
+      }
+    ],
     "minecraft:daylight_detector": [
       {
         "aspect": "thaumcraft:sensus",
@@ -1852,6 +2134,118 @@
         "amount": 5
       }
     ],
+    "minecraft:dead_brain_coral": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_brain_coral_block": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_brain_coral_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_brain_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_bubble_coral": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_bubble_coral_block": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_bubble_coral_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_bubble_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
     "minecraft:dead_bush": [
       {
         "aspect": "thaumcraft:herba",
@@ -1859,6 +2253,174 @@
       },
       {
         "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_fire_coral": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_fire_coral_block": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_fire_coral_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_fire_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_horn_coral": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_horn_coral_block": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_horn_coral_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_horn_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_tube_coral": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_tube_coral_block": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_tube_coral_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_tube_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
         "amount": 1
       }
     ],
@@ -1894,6 +2456,24 @@
       {
         "aspect": "thaumcraft:vitreus",
         "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:praemunio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:diamond_nautilus_armor": [
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
       },
       {
         "aspect": "thaumcraft:praemunio",
@@ -2174,6 +2754,110 @@
         "amount": 20
       }
     ],
+    "minecraft:exposed_copper": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 27
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 12
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_chest": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_door": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_golem_statue": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_trapdoor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_lightning_rod": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 1
+      }
+    ],
     "minecraft:farmland": [
       {
         "aspect": "thaumcraft:terra",
@@ -2212,6 +2896,62 @@
       {
         "aspect": "thaumcraft:perditio",
         "amount": 5
+      }
+    ],
+    "minecraft:fire_coral": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:fire_coral_block": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:fire_coral_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:fire_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
       }
     ],
     "minecraft:firefly_bush": [
@@ -2256,6 +2996,20 @@
       {
         "aspect": "thaumcraft:instrumentum",
         "amount": 5
+      }
+    ],
+    "minecraft:flow_banner_pattern": [
+      {
+        "aspect": "thaumcraft:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:motus",
+        "amount": 2
       }
     ],
     "minecraft:flower_pot": [
@@ -2316,6 +3070,24 @@
         "amount": 10
       }
     ],
+    "minecraft:gilded_blackstone": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:ignis",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:desiderium",
+        "amount": 5
+      }
+    ],
     "minecraft:glass_bottle": [
       {
         "aspect": "thaumcraft:vacuos",
@@ -2326,6 +3098,20 @@
       {
         "aspect": "thaumcraft:alkimia",
         "amount": 5
+      }
+    ],
+    "minecraft:globe_banner_pattern": [
+      {
+        "aspect": "thaumcraft:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 2
       }
     ],
     "minecraft:glow_berries": [
@@ -2442,6 +3228,24 @@
         "amount": 5
       }
     ],
+    "minecraft:golden_nautilus_armor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:praemunio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      }
+    ],
     "minecraft:grass_block": [
       {
         "aspect": "thaumcraft:terra",
@@ -2449,6 +3253,20 @@
       },
       {
         "aspect": "thaumcraft:herba",
+        "amount": 2
+      }
+    ],
+    "minecraft:guster_banner_pattern": [
+      {
+        "aspect": "thaumcraft:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:aer",
         "amount": 2
       }
     ],
@@ -2556,10 +3374,186 @@
         "amount": 5
       }
     ],
+    "minecraft:horn_coral": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:horn_coral_block": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:horn_coral_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:horn_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
     "minecraft:ice": [
       {
         "aspect": "thaumcraft:gelum",
         "amount": 20
+      }
+    ],
+    "minecraft:infested_chiseled_stone_bricks": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_cobblestone": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_cracked_stone_bricks": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_deepslate": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_mossy_stone_bricks": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_stone": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_stone_bricks": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:ink_sac": [
+      {
+        "aspect": "thaumcraft:sensus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:tenebrae",
+        "amount": 2
       }
     ],
     "minecraft:iron_door": [
@@ -2576,6 +3570,24 @@
       {
         "aspect": "thaumcraft:metallum",
         "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:praemunio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:iron_nautilus_armor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
       },
       {
         "aspect": "thaumcraft:praemunio",
@@ -3052,6 +4064,110 @@
         "amount": 3
       }
     ],
+    "minecraft:oxidized_copper": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 21
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 12
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_chest": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_door": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_golem_statue": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_trapdoor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_lightning_rod": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
     "minecraft:packed_ice": [
       {
         "aspect": "thaumcraft:gelum",
@@ -3144,6 +4260,20 @@
         "amount": 1
       }
     ],
+    "minecraft:petrified_oak_slab": [
+      {
+        "aspect": "thaumcraft:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 3
+      }
+    ],
     "minecraft:phantom_membrane": [
       {
         "aspect": "thaumcraft:exanimis",
@@ -3155,6 +4285,20 @@
       },
       {
         "aspect": "thaumcraft:alkimia",
+        "amount": 2
+      }
+    ],
+    "minecraft:piglin_banner_pattern": [
+      {
+        "aspect": "thaumcraft:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:desiderium",
         "amount": 2
       }
     ],
@@ -3380,6 +4524,24 @@
         "amount": 5
       }
     ],
+    "minecraft:pufferfish_bucket": [
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 10
+      }
+    ],
     "minecraft:pumpkin": [
       {
         "aspect": "thaumcraft:herba",
@@ -3490,6 +4652,20 @@
         "amount": 2
       }
     ],
+    "minecraft:reinforced_deepslate": [
+      {
+        "aspect": "thaumcraft:terra",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:praemunio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumcraft:alienis",
+        "amount": 15
+      }
+    ],
     "minecraft:repeater": [
       {
         "aspect": "thaumcraft:machina",
@@ -3582,6 +4758,24 @@
       {
         "aspect": "thaumcraft:aqua",
         "amount": 5
+      }
+    ],
+    "minecraft:salmon_bucket": [
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 10
       }
     ],
     "minecraft:sculk": [
@@ -3974,6 +5168,12 @@
         "amount": 1
       }
     ],
+    "minecraft:stripped_bamboo_block": [
+      {
+        "aspect": "thaumcraft:herba",
+        "amount": 5
+      }
+    ],
     "minecraft:sugar": [
       {
         "aspect": "thaumcraft:desiderium",
@@ -4056,6 +5256,28 @@
       {
         "aspect": "thaumcraft:aversio",
         "amount": 1
+      }
+    ],
+    "minecraft:tadpole_bucket": [
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 2
       }
     ],
     "minecraft:tall_dry_grass": [
@@ -4196,6 +5418,80 @@
         "amount": 5
       }
     ],
+    "minecraft:tropical_fish_bucket": [
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:tube_coral": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:tube_coral_block": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:tube_coral_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:tube_coral_wall_fan": [
+      {
+        "aspect": "thaumcraft:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:vitreus",
+        "amount": 1
+      }
+    ],
     "minecraft:tuff": [
       {
         "aspect": "thaumcraft:terra",
@@ -4334,6 +5630,110 @@
       {
         "aspect": "thaumcraft:aqua",
         "amount": 20
+      }
+    ],
+    "minecraft:weathered_copper": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 24
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 12
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_chest": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumcraft:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_door": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_golem_statue": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumcraft:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_trapdoor": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_lightning_rod": [
+      {
+        "aspect": "thaumcraft:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumcraft:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumcraft:perditio",
+        "amount": 2
       }
     ],
     "minecraft:weeping_vines": [

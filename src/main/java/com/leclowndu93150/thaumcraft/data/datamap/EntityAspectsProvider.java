@@ -125,6 +125,8 @@ public final class EntityAspectsProvider extends DataMapProvider {
         add(b, EntityType.PARCHED, list(TCAspects.EXANIMIS, 15, TCAspects.HUMANUS, 8, TCAspects.TERRA, 3));
         add(b, EntityType.NAUTILUS, list(TCAspects.BESTIA, 8, TCAspects.AQUA, 8, TCAspects.PRAEMUNIO, 3));
         add(b, EntityType.ZOMBIE_NAUTILUS, list(TCAspects.EXANIMIS, 12, TCAspects.BESTIA, 5, TCAspects.AQUA, 5));
+        add(b, EntityType.ZOMBIE_VILLAGER, list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 15, TCAspects.TERRA, 5));
+        add(b, EntityType.MANNEQUIN, list(TCAspects.HUMANUS, 10, TCAspects.SENSUS, 5));
 
         add(b, TCEntities.THAUMIC_SLIME.get(), list(TCAspects.VICTUS, 5, TCAspects.AQUA, 5, TCAspects.VITIUM, 5, TCAspects.ALKIMIA, 5));
         add(b, TCEntities.TAINTACLE.get(), list(TCAspects.VITIUM, 15, TCAspects.BESTIA, 10));
@@ -141,6 +143,11 @@ public final class EntityAspectsProvider extends DataMapProvider {
         add(b, TCEntities.CULTIST_KNIGHT.get(), list(TCAspects.ALIENIS, 5, TCAspects.HUMANUS, 15, TCAspects.AVERSIO, 5));
         add(b, TCEntities.CULTIST_CLERIC.get(), list(TCAspects.ALIENIS, 5, TCAspects.HUMANUS, 15, TCAspects.AVERSIO, 5));
         add(b, TCEntities.ELDRITCH_CRAB.get(), list(TCAspects.ALIENIS, 10, TCAspects.BESTIA, 10, TCAspects.VINCULUM, 10));
+        add(b, TCEntities.CULTIST_LEADER.get(), list(TCAspects.ALIENIS, 15, TCAspects.HUMANUS, 25, TCAspects.AVERSIO, 10, TCAspects.PRAECANTATIO, 15, TCAspects.COGNITIO, 10));
+        add(b, TCEntities.ELDRITCH_GOLEM.get(), list(TCAspects.ALIENIS, 25, TCAspects.METALLUM, 20, TCAspects.MOTUS, 15));
+        add(b, TCEntities.INHABITED_ZOMBIE.get(), list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 10, TCAspects.ALIENIS, 10, TCAspects.BESTIA, 10));
+        add(b, TCEntities.TAINTACLE_GIANT.get(), list(TCAspects.VITIUM, 30, TCAspects.BESTIA, 20));
+        add(b, TCEntities.THAUMCRAFT_GOLEM.get(), list(TCAspects.MOTUS, 10, TCAspects.MACHINA, 10, TCAspects.PRAECANTATIO, 5));
     }
 
     private void add(Builder<AspectList, EntityType<?>> b, EntityType<?> type, AspectList value) {
