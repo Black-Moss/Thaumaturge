@@ -1,0 +1,10 @@
+{
+  "key": "thaumcraft:f_matvoid",
+  "items": [
+    "thaumcraft:ingot_void",
+    "thaumcraft:plate_void"
+  ],
+  "blocks": [
+    "thaumcraft:metal_void"
+  ]
+}

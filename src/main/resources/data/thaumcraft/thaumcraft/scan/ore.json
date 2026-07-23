@@ -1,0 +1,14 @@
+{
+  "key": "thaumcraft:ore",
+  "blocks": [
+    "thaumcraft:ore_amber",
+    "thaumcraft:ore_cinnabar",
+    "thaumcraft:crystal_aer",
+    "thaumcraft:crystal_ignis",
+    "thaumcraft:crystal_aqua",
+    "thaumcraft:crystal_terra",
+    "thaumcraft:crystal_ordo",
+    "thaumcraft:crystal_perditio",
+    "thaumcraft:crystal_vitium"
+  ]
+}

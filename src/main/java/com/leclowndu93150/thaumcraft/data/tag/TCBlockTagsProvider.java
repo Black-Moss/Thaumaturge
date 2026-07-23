@@ -145,6 +145,10 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(Blocks.MAGMA_BLOCK)
                 .addAll(TCBlocks.NITORS.values().stream().map(DeferredHolder::get));
 
+        tag(TCBlockTags.SCAN_CLAY)
+                .add(Blocks.CLAY)
+                .addTag(BlockTags.TERRACOTTA);
+
         tag(TCBlockTags.ORES_AMBER).add(TCBlocks.ORE_AMBER.get());
         tag(TCBlockTags.ORES_CINNABAR).add(TCBlocks.ORE_CINNABAR.get());
         tag(Tags.Blocks.ORES_QUARTZ).add(TCBlocks.ORE_QUARTZ.get());

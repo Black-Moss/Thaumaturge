@@ -1,0 +1,14 @@
+{
+  "key": "thaumcraft:f_teleport",
+  "blocks": [
+    "minecraft:nether_portal",
+    "minecraft:end_portal",
+    "minecraft:end_portal_frame"
+  ],
+  "items": [
+    "minecraft:ender_pearl"
+  ],
+  "entities": [
+    "minecraft:enderman"
+  ]
+}

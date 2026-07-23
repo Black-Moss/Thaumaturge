@@ -1,0 +1,12 @@
+{
+  "key": "thaumcraft:f_arrow",
+  "entities": [
+    "minecraft:arrow",
+    "minecraft:spectral_arrow",
+    "minecraft:trident",
+    "thaumcraft:golem_dart"
+  ],
+  "items": [
+    "minecraft:arrow"
+  ]
+}

@@ -52,6 +52,7 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         copy(TCBlockTags.ORES_CINNABAR, TCItemTags.ORES_CINNABAR);
         tag(Tags.Items.ORES_QUARTZ).add(TCItems.ORE_QUARTZ.get());
         tag(Tags.Items.ORES).addTags(TCItemTags.ORES_AMBER,TCItemTags.ORES_CINNABAR);
+        tag(TCItemTags.SCAN_IRON).addTags(Tags.Items.ORES_IRON, Tags.Items.INGOTS_IRON, Tags.Items.STORAGE_BLOCKS_IRON);
 
         copy(TCBlockTags.STORAGE_BLOCKS_AMBER, TCItemTags.STORAGE_BLOCKS_AMBER);
         copy(TCBlockTags.STORAGE_BLOCKS_BRASS, TCItemTags.STORAGE_BLOCKS_BRASS);

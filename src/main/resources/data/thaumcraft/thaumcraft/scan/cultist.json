@@ -1,0 +1,7 @@
+{
+  "key": "thaumcraft:scanned/entity/thaumcraft/cultist",
+  "entities": [
+    "thaumcraft:cultist_knight",
+    "thaumcraft:cultist_cleric"
+  ]
+}

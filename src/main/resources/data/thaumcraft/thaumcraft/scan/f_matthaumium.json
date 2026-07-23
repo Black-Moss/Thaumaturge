@@ -1,0 +1,10 @@
+{
+  "key": "thaumcraft:f_matthaumium",
+  "items": [
+    "thaumcraft:ingot_thaumium",
+    "thaumcraft:plate_thaumium"
+  ],
+  "blocks": [
+    "thaumcraft:metal_thaumium"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "key": "thaumcraft:scanned/plantwood",
+  "blocks": [
+    "thaumcraft:log_greatwood",
+    "thaumcraft:log_silverwood",
+    "thaumcraft:greatwood",
+    "thaumcraft:silverwood",
+    "thaumcraft:stripped_log_greatwood",
+    "thaumcraft:stripped_log_silverwood",
+    "thaumcraft:stripped_greatwood",
+    "thaumcraft:stripped_silverwood",
+    "thaumcraft:sapling_greatwood",
+    "thaumcraft:sapling_silverwood"
+  ]
+}

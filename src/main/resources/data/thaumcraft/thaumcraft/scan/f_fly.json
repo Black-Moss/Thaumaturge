@@ -1,0 +1,10 @@
+{
+  "key": "thaumcraft:f_fly",
+  "entities": [
+    "minecraft:bat",
+    "minecraft:parrot",
+    "minecraft:ghast",
+    "minecraft:blaze",
+    "thaumcraft:taint_swarm"
+  ]
+}

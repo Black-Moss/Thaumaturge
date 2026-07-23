@@ -1,0 +1,6 @@
+{
+  "key": "thaumcraft:f_spit",
+  "entities": [
+    "minecraft:llama_spit"
+  ]
+}

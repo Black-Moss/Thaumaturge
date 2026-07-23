@@ -1,0 +1,10 @@
+{
+  "key": "thaumcraft:f_brain",
+  "entities": [
+    "thaumcraft:brainy_zombie",
+    "thaumcraft:giant_brainy_zombie"
+  ],
+  "items": [
+    "thaumcraft:brain"
+  ]
+}
