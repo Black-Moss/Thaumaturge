@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityMirrorEssentia extends BlockEntityMirrorBase implements IAspectSource {
@@ -43,7 +44,7 @@ public final class BlockEntityMirrorEssentia extends BlockEntityMirrorBase imple
             return null;
         }
         if (targetSources == null || !link.pos().equals(targetSourcesCenter)) {
-            targetSources = new EssentiaSources(link.pos(), TARGET_RANGE);
+            targetSources = new EssentiaSources(link.pos(), TARGET_RANGE).drainEffectTarget(Vec3.atCenterOf(link.pos()));
             targetSourcesCenter = link.pos();
         }
         return targetSources;

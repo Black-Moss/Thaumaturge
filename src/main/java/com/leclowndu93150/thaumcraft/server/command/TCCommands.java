@@ -20,6 +20,7 @@ import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
 import com.leclowndu93150.thaumcraft.api.warp.WarpHelper;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
 import com.leclowndu93150.thaumcraft.content.warp.WarpEvents;
+import com.leclowndu93150.thaumcraft.content.effect.StreamPathfinder;
 import com.leclowndu93150.thaumcraft.content.entity.EntityFluxRift;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumcraft.content.entity.champion.ChampionModifier;
@@ -32,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
@@ -62,6 +64,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceKeyArgument;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -152,6 +155,10 @@ public final class TCCommands {
                                                 ResourceArgument.resource(event.getBuildContext(), Registries.ENTITY_TYPE))
                                         .executes(ctx -> spawnChampion(ctx,
                                                 ResourceArgument.getResource(ctx, "entity", Registries.ENTITY_TYPE))))))
+                .then(Commands.literal("streampath").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.argument("from", Vec3Argument.vec3())
+                                .then(Commands.argument("to", Vec3Argument.vec3())
+                                        .executes(TCCommands::traceStreamPath))))
                 .then(Commands.literal("rift").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .executes(ctx -> spawnRift(ctx, DEFAULT_RIFT_SIZE))
                         .then(Commands.argument("size", IntegerArgumentType.integer(1, COMMAND_MAX_RIFT_SIZE))
@@ -526,6 +533,41 @@ public final class TCCommands {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
             return 0;
         }
+    }
+
+    private static int traceStreamPath(CommandContext<CommandSourceStack> ctx) {
+        ServerLevel level = ctx.getSource().getLevel();
+        Vec3 from = Vec3Argument.getVec3(ctx, "from");
+        Vec3 to = Vec3Argument.getVec3(ctx, "to");
+        StreamPathfinder.Result result = StreamPathfinder.explore(level, from, to);
+        if (result.directSight()) {
+            ctx.getSource().sendSuccess(() -> Component.literal("LOS direct=true waypoints=0"), false);
+            return Command.SINGLE_SUCCESS;
+        }
+        List<Vec3> waypoints = result.waypoints();
+        if (waypoints == null) {
+            ctx.getSource().sendSuccess(() -> Component.literal("NOPATH expanded=" + result.expanded()), false);
+            return 0;
+        }
+        StringBuilder report = new StringBuilder("ROUTE n=").append(waypoints.size())
+                .append(" expanded=").append(result.expanded());
+        Vec3 cursor = from;
+        boolean clean = true;
+        for (int i = 0; i <= waypoints.size(); i++) {
+            Vec3 next = i < waypoints.size() ? waypoints.get(i) : to;
+            if (!StreamPathfinder.hasLineOfSight(level, cursor, next)) {
+                report.append(" SEGMENT_BLOCKED=").append(i);
+                clean = false;
+            }
+            cursor = next;
+        }
+        report.append(clean ? " SEGMENTS_OK" : " SEGMENTS_BAD");
+        for (Vec3 wp : waypoints) {
+            report.append(String.format(Locale.ROOT, " (%.1f,%.1f,%.1f)", wp.x, wp.y, wp.z));
+        }
+        String text = report.toString();
+        ctx.getSource().sendSuccess(() -> Component.literal(text), false);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int spawnRift(CommandContext<CommandSourceStack> ctx, int size) {

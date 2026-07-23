@@ -1,18 +1,28 @@
 package com.leclowndu93150.thaumcraft.client.effect.manager;
 
+import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaStreamPort;
 import com.leclowndu93150.thaumcraft.client.effect.geometry.PolyCone;
+import com.leclowndu93150.thaumcraft.content.effect.StreamPathfinder;
 import com.leclowndu93150.thaumcraft.client.effect.instance.EssentiaStreamInstance;
+import com.leclowndu93150.thaumcraft.client.effect.instance.StreamInstance;
 import com.leclowndu93150.thaumcraft.client.effect.rendertype.EssentiaStreamRenderType;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStreamInstance> {
     public static final EssentiaStreamManager INSTANCE = new EssentiaStreamManager();
@@ -21,6 +31,8 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
 
     private EssentiaStreamManager() {}
 
+    private static final double PORT_ROUTING_MIN_DISTANCE = 1.75;
+
     public static void spawn(double sx, double sy, double sz, double tx, double ty, double tz, int color, int count, float scale, int extend, double my) {
         String key = key(sx, sy, sz, tx, ty, tz, color);
         EssentiaStreamInstance existing = ACTIVE.get(key);
@@ -28,7 +40,52 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
             existing.extend(extend);
             return;
         }
-        ACTIVE.put(key, new EssentiaStreamInstance(sx, sy, sz, tx, ty, tz, color, count, scale, extend, my));
+        ACTIVE.put(key, routed(new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, count, scale, extend, my));
+    }
+
+    private static EssentiaStreamInstance routed(Vec3 from, Vec3 to, int color, int count, float scale, int extend, double my) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null || from.distanceTo(to) < PORT_ROUTING_MIN_DISTANCE) {
+            return new EssentiaStreamInstance(from, List.of(to), null, 1, color, count, scale, extend, my);
+        }
+        Vec3 start = from;
+        Vec3 launch = null;
+        List<Vec3> route = new ArrayList<>();
+        IEssentiaStreamPort.StreamPort exit = portAt(level, from, to, true);
+        if (exit != null) {
+            start = exit.anchor();
+            launch = exit.clearance().subtract(exit.anchor());
+            if (launch.lengthSqr() < 1.0E-6) {
+                launch = null;
+            }
+            route.add(exit.clearance());
+        }
+        IEssentiaStreamPort.StreamPort entry = portAt(level, to, from, false);
+        Vec3 pathFrom = exit != null ? exit.clearance() : from;
+        Vec3 pathTo = entry != null ? entry.clearance() : to;
+        List<Vec3> detour = StreamPathfinder.findRoute(level, pathFrom, pathTo);
+        if (detour != null) {
+            route.addAll(detour);
+        }
+        int fixedTail;
+        if (entry != null) {
+            route.add(entry.clearance());
+            route.add(entry.anchor());
+            fixedTail = 2;
+        } else {
+            route.add(to);
+            fixedTail = 1;
+        }
+        return new EssentiaStreamInstance(start, route, launch, fixedTail, color, count, scale, extend, my);
+    }
+
+    private static IEssentiaStreamPort.@Nullable StreamPort portAt(ClientLevel level, Vec3 at, Vec3 far, boolean outgoing) {
+        BlockPos pos = BlockPos.containing(at);
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof IEssentiaStreamPort port) {
+            return port.essentiaStreamPort(level, pos, state, far, outgoing);
+        }
+        return null;
     }
 
     private static String key(double sx, double sy, double sz, double tx, double ty, double tz, int color) {
@@ -61,7 +118,7 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
         double cy = camera.position().y;
         double cz = camera.position().z;
         for (EssentiaStreamInstance inst : ACTIVE.values()) {
-            EssentiaStreamInstance.Snapshot snap = inst.snapshot(partialTick);
+            StreamInstance.Snapshot snap = inst.snapshot(partialTick);
             if (snap == null) continue;
             poseStack.pushPose();
             poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);

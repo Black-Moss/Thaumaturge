@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.device.mirror;
 
+import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaStreamPort;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -27,17 +28,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockMirror extends BaseEntityBlock {
+public final class BlockMirror extends BaseEntityBlock implements IEssentiaStreamPort {
     public static final MapCodec<BlockMirror> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
             propertiesCodec(),
             Codec.BOOL.fieldOf("essentia").forGetter(BlockMirror::isEssentia))
             .apply(inst, BlockMirror::new));
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
+
+    private static final double PANE_SURFACE = -0.34;
+    private static final double PANE_CLEARANCE = 0.3;
 
     private static final VoxelShape SHAPE_UP = Block.box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0);
     private static final VoxelShape SHAPE_DOWN = Block.box(0.0, 14.0, 0.0, 16.0, 16.0, 16.0);
@@ -88,6 +93,14 @@ public final class BlockMirror extends BaseEntityBlock {
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
+    }
+
+    @Override
+    public StreamPort essentiaStreamPort(BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
+        Direction facing = state.getValue(FACING);
+        Vec3 normal = new Vec3(facing.getStepX(), facing.getStepY(), facing.getStepZ());
+        Vec3 center = Vec3.atCenterOf(pos);
+        return new StreamPort(center.add(normal.scale(PANE_SURFACE)), center.add(normal.scale(PANE_CLEARANCE)));
     }
 
     @Override

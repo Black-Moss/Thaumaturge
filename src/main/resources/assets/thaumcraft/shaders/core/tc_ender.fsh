@@ -3,8 +3,6 @@
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:globals.glsl>
 
-#define M_PI 3.1415926535897932384626433832795
-
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
 
@@ -12,57 +10,50 @@ in vec3 eyePos;
 
 out vec4 fragColor;
 
-mat4 rotationMatrix(vec3 axis, float angle) {
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
+const float TAU = 6.283185307179586;
+const float PI = 3.141592653589793;
+const int LAYER_COUNT = 16;
+const vec3 SPACE_TINT = vec3(0.044, 0.036, 0.063);
+const float SCROLL_RATE = 0.00006;
 
-    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                0.0,                                0.0,                                0.0,                                1.0);
+float layerHash(float seed) {
+    return fract(sin(seed * 12.9898) * 43758.5453);
+}
+
+vec3 spin(vec3 v, float yaw, float tilt) {
+    float cy = cos(yaw);
+    float sy = sin(yaw);
+    v = vec3(v.x * cy - v.z * sy, v.y, v.x * sy + v.z * cy);
+    float ct = cos(tilt);
+    float st = sin(tilt);
+    return vec3(v.x, v.y * ct - v.z * st, v.y * st + v.z * ct);
+}
+
+vec3 starfield(vec3 look, float scroll) {
+    vec3 col = SPACE_TINT;
+    for (int layer = 0; layer < LAYER_COUNT; layer++) {
+        float seed = float(layer) * 7.31 + 1.0;
+        vec3 ray = spin(look, layerHash(seed) * TAU, layerHash(seed + 17.0) * TAU);
+
+        float around = atan(ray.z, ray.x) / TAU + 0.5;
+        float band = asin(clamp(ray.y, -1.0, 1.0)) / PI + 0.5;
+
+        float zoom = 2.75 + 0.5 * float(LAYER_COUNT - layer);
+        float star = texture(Sampler0, vec2(around * zoom, (band + scroll) * zoom * 0.6)).r;
+
+        float depth = 1.0 / float(LAYER_COUNT - layer);
+        float poleFade = 1.0 - smoothstep(0.15, 0.48, abs(band - 0.5));
+        float glow = star * (0.05 + depth * 0.65) * poleFade;
+
+        vec3 tint = vec3(0.1 + 0.5 * layerHash(seed + 3.0),
+                         0.4 + 0.5 * layerHash(seed + 5.0),
+                         0.5 + 0.5 * layerHash(seed + 7.0));
+        col = mix(col, tint, glow);
+    }
+    return col;
 }
 
 void main() {
-    vec4 col = vec4(0.044, 0.036, 0.063, 1.0);
-
-    float time = GameTime * 24000.0;
-
-    vec3 eyeDir = normalize(-eyePos);
-    vec4 dir = vec4(normalize(transpose(mat3(ModelViewMat)) * eyeDir), 0.0);
-
-    vec4 ray;
-
-    for (int i = 0; i < 16; i++) {
-        int mult = 16 - i;
-
-        int j = i + 7;
-        float rand1 = float(j * j * 4321 + j * 8) * 2.0;
-        int k = j + 1;
-        float rand2 = float(k * k * k * 239 + k * 37) * 3.6;
-        float rand3 = rand1 * 347.4 + rand2 * 63.4;
-
-        vec3 axis = normalize(vec3(sin(rand1), sin(rand2), cos(rand3)));
-
-        ray = dir * rotationMatrix(axis, mod(rand3, 2.0 * M_PI));
-
-        float u = 0.5 + (atan(ray.z, ray.x) / (2.0 * M_PI));
-        float v = 0.5 + (asin(clamp(ray.y, -1.0, 1.0)) / M_PI);
-
-        float scale = float(mult) * 0.5 + 2.75;
-        vec2 tex = vec2(u * scale, (v + time * 0.00006) * scale * 0.6);
-
-        vec4 tcol = texture(Sampler0, tex);
-
-        float a = tcol.r * (0.05 + (1.0 / float(mult)) * 0.65) * (1.0 - smoothstep(0.15, 0.48, abs(v - 0.5)));
-
-        float r = (mod(rand1, 29.0) / 29.0) * 0.5 + 0.1;
-        float g = (mod(rand2, 35.0) / 35.0) * 0.5 + 0.4;
-        float b = (mod(rand1, 17.0) / 17.0) * 0.5 + 0.5;
-
-        col = col * (1.0 - a) + vec4(r, g, b, 1.0) * a;
-    }
-
-    fragColor = vec4(col.rgb, 1.0);
+    vec3 look = normalize(transpose(mat3(ModelViewMat)) * normalize(-eyePos));
+    fragColor = vec4(starfield(look, GameTime * 24000.0 * SCROLL_RATE), 1.0);
 }

@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.blocks.ILabelable;
 import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaContainerItem;
+import com.leclowndu93150.thaumcraft.api.essentia.IEssentiaStreamPort;
 import com.leclowndu93150.thaumcraft.content.essentia.smeltery.BlockAlembic;
 import com.leclowndu93150.thaumcraft.registry.TCBlockEntities;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
@@ -28,14 +29,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-public class BlockJar extends BaseEntityBlock implements ILabelable {
+public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaStreamPort {
     public static final MapCodec<BlockJar> CODEC = simpleCodec(BlockJar::new);
 
     private static final VoxelShape SHAPE = box(3.0, 0.0, 3.0, 13.0, 12.0, 13.0);
+    private static final double MOUTH_HEIGHT = 0.8;
+    private static final double MOUTH_CLEARANCE = 1.4;
 
     public BlockJar(BlockBehaviour.Properties properties) {
         super(properties);
@@ -44,6 +48,12 @@ public class BlockJar extends BaseEntityBlock implements ILabelable {
     @Override
     protected MapCodec<? extends BlockJar> codec() {
         return CODEC;
+    }
+
+    @Override
+    public StreamPort essentiaStreamPort(BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
+        Vec3 base = Vec3.atBottomCenterOf(pos);
+        return new StreamPort(base.add(0.0, MOUTH_HEIGHT, 0.0), base.add(0.0, MOUTH_CLEARANCE, 0.0));
     }
 
     @Override

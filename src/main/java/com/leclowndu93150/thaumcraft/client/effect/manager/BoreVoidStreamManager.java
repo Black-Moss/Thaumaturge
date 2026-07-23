@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumcraft.client.effect.manager;
 
 import com.leclowndu93150.thaumcraft.client.effect.geometry.PolyCone;
 import com.leclowndu93150.thaumcraft.client.effect.instance.BoreStreamInstance;
-import com.leclowndu93150.thaumcraft.client.effect.instance.EssentiaStreamInstance;
+import com.leclowndu93150.thaumcraft.client.effect.instance.StreamInstance;
 import com.leclowndu93150.thaumcraft.client.effect.instance.VoidStreamInstance;
 import com.leclowndu93150.thaumcraft.client.effect.rendertype.EssentiaStreamRenderType;
 import com.leclowndu93150.thaumcraft.client.effect.rendertype.VoidStreamRenderType;
@@ -59,7 +59,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
             MultiBufferSource.BufferSource buf = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
             VertexConsumer consumer = buf.getBuffer(EssentiaStreamRenderType.RENDER_TYPE);
             for (BoreStreamInstance inst : BORES) {
-                EssentiaStreamInstance.Snapshot snap = inst.snapshot(partialTick);
+                StreamInstance.Snapshot snap = inst.snapshot(partialTick);
                 if (snap == null) continue;
                 poseStack.pushPose();
                 poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
@@ -78,7 +78,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
             MultiBufferSource.BufferSource bufA = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
             VertexConsumer addConsumer = bufA.getBuffer(VoidStreamRenderType.ADDITIVE);
             for (VoidStreamInstance inst : VOIDS) {
-                EssentiaStreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 1.5F);
+                StreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 1.5F);
                 if (snap == null) continue;
                 packYawPitch(snap.colours(), yawNorm, pitchNorm);
                 poseStack.pushPose();
@@ -91,7 +91,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
             MultiBufferSource.BufferSource bufT = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
             VertexConsumer trConsumer = bufT.getBuffer(VoidStreamRenderType.TRANSLUCENT);
             for (VoidStreamInstance inst : VOIDS) {
-                EssentiaStreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 0.5F);
+                StreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 0.5F);
                 if (snap == null) continue;
                 packYawPitch(snap.colours(), yawNorm, pitchNorm);
                 poseStack.pushPose();

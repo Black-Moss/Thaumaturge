@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityEssentiaPort extends BlockEntity implements IEssentiaTransport {
@@ -31,7 +32,7 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
     public BlockEntityEssentiaPort(BlockPos pos, BlockState state, boolean input) {
         super(TCBlockEntities.ESSENTIA_PORT.get(), pos, state);
         this.input = input;
-        this.sources = new EssentiaSources(pos, SEARCH_RANGE);
+        this.sources = new EssentiaSources(pos, SEARCH_RANGE).drainEffectTarget(Vec3.atCenterOf(pos));
     }
 
     private Direction facing() {

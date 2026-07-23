@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumcraft.client.effect.instance;
 
 import com.leclowndu93150.thaumcraft.client.effect.manager.IFXInstance;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,81 +8,90 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.phys.Vec3;
 
 public final class BoltInstance implements IFXInstance {
     static final int MAX_AGE = 3;
+    private static final float WAVE_PERIOD_X = 4.0F;
+    private static final float WAVE_PERIOD_Y = 3.0F;
+    private static final float WAVE_PERIOD_Z = 2.0F;
+    private static final float AMPLITUDE_PER_TICK = 0.1F;
+    private static final float JITTER = 0.1F;
+    private static final float THIN_DECAY = 0.25F;
+    private static final int THIN_CHANCE = 4;
 
     public final double startX;
     public final double startY;
     public final double startZ;
-    public final double targetX;
-    public final double targetY;
-    public final double targetZ;
     public final float colorR;
     public final float colorG;
     public final float colorB;
     public final float width;
     public final float length;
-    public final float dr;
-    public final long seed;
-    int age = 0;
-    boolean expired = false;
+    private final double spanX;
+    private final double spanY;
+    private final double spanZ;
+    private final float phaseOffset;
+    private final long seed;
+    private int age;
+    private boolean expired;
 
     public BoltInstance(double sx, double sy, double sz, double tx, double ty, double tz, int color, float width) {
         this.startX = sx;
         this.startY = sy;
         this.startZ = sz;
-        this.targetX = tx - sx;
-        this.targetY = ty - sy;
-        this.targetZ = tz - sz;
+        this.spanX = tx - sx;
+        this.spanY = ty - sy;
+        this.spanZ = tz - sz;
         this.colorR = ((color >> 16) & 0xFF) / 255.0F;
         this.colorG = ((color >> 8) & 0xFF) / 255.0F;
         this.colorB = (color & 0xFF) / 255.0F;
         this.width = width;
-        double dist = Math.sqrt(this.targetX * this.targetX + this.targetY * this.targetY + this.targetZ * this.targetZ);
-        this.length = (float)(dist * Math.PI);
+        double span = Math.sqrt(this.spanX * this.spanX + this.spanY * this.spanY + this.spanZ * this.spanZ);
+        this.length = (float) (span * Math.PI);
         ClientLevel level = Minecraft.getInstance().level;
-        RandomSource rand = level != null ? level.getRandom() : RandomSource.create();
-        this.dr = (float)(rand.nextInt(50) * Math.PI);
-        this.seed = rand.nextInt(1000);
+        RandomSource random = level != null ? level.getRandom() : RandomSource.create();
+        this.phaseOffset = (float) (random.nextInt(50) * Math.PI);
+        this.seed = random.nextInt(1000);
     }
 
+    @Override
     public void tick() {
-        if (this.age++ >= MAX_AGE) this.expired = true;
+        if (this.age++ >= MAX_AGE) {
+            this.expired = true;
+        }
     }
 
-    public boolean isExpired() { return this.expired; }
+    @Override
+    public boolean isExpired() {
+        return this.expired;
+    }
 
     public List<PathStep> computePath(float partialTick) {
-        Random rr = new Random(this.seed);
-        int steps = (int)this.length;
-        if (steps < 3) steps = 3;
-        List<PathStep> result = new ArrayList<>(steps);
-        result.add(new PathStep(0, 0, 0, this.width));
-        float ampl = (this.age + partialTick) / 10.0F;
-        for (int a = 1; a < steps - 1; a++) {
-            float dist = a * (this.length / steps) + this.dr;
-            double dx = this.targetX / steps * a + Mth.sin(dist / 4.0F) * ampl;
-            double dy = this.targetY / steps * a + Mth.sin(dist / 3.0F) * ampl;
-            double dz = this.targetZ / steps * a + Mth.sin(dist / 2.0F) * ampl;
-            dx += (rr.nextFloat() - rr.nextFloat()) * 0.1F;
-            dy += (rr.nextFloat() - rr.nextFloat()) * 0.1F;
-            dz += (rr.nextFloat() - rr.nextFloat()) * 0.1F;
-            float w = (rr.nextInt(4) == 0 ? 1.0F - this.age * 0.25F : 1.0F) * this.width;
-            result.add(new PathStep(dx, dy, dz, w));
+        int steps = Math.max(3, (int) this.length);
+        float amplitude = (this.age + partialTick) * AMPLITUDE_PER_TICK;
+        float stride = this.length / steps;
+        Random noise = new Random(this.seed);
+        List<PathStep> path = new ArrayList<>(steps);
+        path.add(new PathStep(0.0, 0.0, 0.0, this.width));
+        for (int i = 1; i < steps - 1; i++) {
+            float phase = i * stride + this.phaseOffset;
+            double x = this.spanX * i / steps + Mth.sin(phase / WAVE_PERIOD_X) * amplitude + sway(noise);
+            double y = this.spanY * i / steps + Mth.sin(phase / WAVE_PERIOD_Y) * amplitude + sway(noise);
+            double z = this.spanZ * i / steps + Mth.sin(phase / WAVE_PERIOD_Z) * amplitude + sway(noise);
+            float thin = noise.nextInt(THIN_CHANCE) == 0 ? 1.0F - this.age * THIN_DECAY : 1.0F;
+            path.add(new PathStep(x, y, z, thin * this.width));
         }
-        result.add(new PathStep(this.targetX, this.targetY, this.targetZ, this.width));
-        return result;
+        path.add(new PathStep(this.spanX, this.spanY, this.spanZ, this.width));
+        return path;
+    }
+
+    private static double sway(Random noise) {
+        return (noise.nextFloat() - noise.nextFloat()) * JITTER;
     }
 
     public float alpha(float partialTick) {
-        return Mth.clamp(1.0F - (this.age + partialTick) / (float)MAX_AGE, 0.1F, 1.0F);
+        return Mth.clamp(1.0F - (this.age + partialTick) / MAX_AGE, 0.1F, 1.0F);
     }
 
     public record PathStep(double x, double y, double z, float width) {}
-
-    public Vec3 origin() {
-        return new Vec3(this.startX, this.startY, this.startZ);
-    }
 }

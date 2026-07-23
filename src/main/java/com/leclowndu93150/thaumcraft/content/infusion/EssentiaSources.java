@@ -21,6 +21,7 @@ public final class EssentiaSources {
 
     private final BlockPos center;
     private final int range;
+    private @Nullable Vec3 drainEffectTarget;
     private @Nullable List<BlockPos> sources;
     private long retryAt;
 
@@ -36,6 +37,11 @@ public final class EssentiaSources {
     public void invalidate() {
         this.sources = null;
         this.retryAt = 0L;
+    }
+
+    public EssentiaSources drainEffectTarget(Vec3 target) {
+        this.drainEffectTarget = target;
+        return this;
     }
 
     public boolean drain(ServerLevel level, Holder<IAspect> aspect, int fxExtendTicks) {
@@ -54,7 +60,7 @@ public final class EssentiaSources {
                 if (be != null) be.setChanged();
                 EffectDispatch.spawnEssentiaStream(level,
                         Vec3.atCenterOf(sourcePos),
-                        Vec3.atCenterOf(center.below()),
+                        drainEffectTarget != null ? drainEffectTarget : Vec3.atCenterOf(center.below()),
                         aspect.value().color(),
                         0,
                         level.getRandom().nextInt(8),
