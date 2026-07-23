@@ -72,148 +72,207 @@ public final class PageParser {
         return paginate(font, stageTextKey, addendaTextKeys, heightRemaining);
     }
 
+    private static final String[][] MARKUP_SENTINELS = {
+            {"<BR>", "~B\n\n"}, {"<BR/>", "~B\n\n"},
+            {"<LINE>", "~L"}, {"<LINE/>", "~L"},
+            {"<DIV>", "~D"}, {"<DIV/>", "~D"},
+            {"<PAGE>", "~P"}, {"<PAGE/>", "~P"},
+    };
+    private static final String MARKER_PRECEDENCE = "PDLI";
+    private static final String IMAGE_OPEN = "<IMG>";
+    private static final String IMAGE_CLOSE = "</IMG>";
+
     private static List<Page> paginate(Font font, String stageTextKey, List<String> addendaTextKeys, int initialBudget) {
-        String rawText = Component.translatable(stageTextKey).getString();
+        StringBuilder assembled = new StringBuilder(Component.translatable(stageTextKey).getString());
         for (int i = 0; i < addendaTextKeys.size(); i++) {
-            String key = addendaTextKeys.get(i);
-            String addendumHeader = Component.translatable(ADDENDUM_TEXT_KEY, i + 1).getString();
-            String addendumBody = Component.translatable(key).getString();
-            rawText = rawText + "<PAGE>" + addendumHeader + "<BR>" + addendumBody;
+            assembled.append("<PAGE>")
+                    .append(Component.translatable(ADDENDUM_TEXT_KEY, i + 1).getString())
+                    .append("<BR>")
+                    .append(Component.translatable(addendaTextKeys.get(i)).getString());
         }
-        rawText = rawText.replaceAll("<BR>", "~B\n\n");
-        rawText = rawText.replaceAll("<BR/>", "~B\n\n");
-        rawText = rawText.replaceAll("<LINE>", "~L");
-        rawText = rawText.replaceAll("<LINE/>", "~L");
-        rawText = rawText.replaceAll("<DIV>", "~D");
-        rawText = rawText.replaceAll("<DIV/>", "~D");
-        rawText = rawText.replaceAll("<PAGE>", "~P");
-        rawText = rawText.replaceAll("<PAGE/>", "~P");
+        String normalized = assembled.toString();
+        for (String[] sentinel : MARKUP_SENTINELS) {
+            normalized = normalized.replace(sentinel[0], sentinel[1]);
+        }
         List<PageImage> images = new ArrayList<>();
-        String[] imgSplit = rawText.split("<IMG>");
-        for (String s : imgSplit) {
-            int i = s.indexOf("</IMG>");
-            if (i >= 0) {
-                String clean = s.substring(0, i);
-                PageImage pi = PageImage.parse(clean);
-                if (pi == null) {
-                    rawText = rawText.replaceFirst(clean, "\n");
-                } else {
-                    images.add(pi);
-                    rawText = rawText.replaceFirst(clean, "~I");
-                }
-            }
+        normalized = extractImages(normalized, images);
+
+        Paginator paginator = new Paginator(font, initialBudget, images);
+        for (String token : tokenize(normalized)) {
+            paginator.feed(token);
         }
-        rawText = rawText.replaceAll("<IMG>", "");
-        rawText = rawText.replaceAll("</IMG>", "");
-        List<String> firstPassText = new ArrayList<>();
-        String[] temp = rawText.split("~P");
-        for (int a = 0; a < temp.length; a++) {
-            String t = temp[a];
-            String[] temp1 = t.split("~D");
-            for (int x = 0; x < temp1.length; x++) {
-                String t1 = temp1[x];
-                String[] temp2 = t1.split("~L");
-                for (int b = 0; b < temp2.length; b++) {
-                    String t2 = temp2[b];
-                    String[] temp3 = t2.split("~I");
-                    for (int c = 0; c < temp3.length; c++) {
-                        String t3 = temp3[c];
-                        firstPassText.add(t3);
-                        if (c != temp3.length - 1) {
-                            firstPassText.add("~I");
-                        }
-                    }
-                    if (b != temp2.length - 1) {
-                        firstPassText.add("~L");
-                    }
-                }
-                if (x != temp1.length - 1) {
-                    firstPassText.add("~D");
-                }
+        return paginator.finish();
+    }
+
+    private static String extractImages(String text, List<PageImage> images) {
+        StringBuilder out = new StringBuilder(text.length());
+        int cursor = 0;
+        while (true) {
+            int open = text.indexOf(IMAGE_OPEN, cursor);
+            if (open < 0) {
+                return out.append(text, cursor, text.length()).toString().replace(IMAGE_CLOSE, "");
             }
-            if (a != temp.length - 1) {
-                firstPassText.add("~P");
+            int close = text.indexOf(IMAGE_CLOSE, open + IMAGE_OPEN.length());
+            if (close < 0) {
+                return out.append(text, cursor, text.length()).toString()
+                        .replace(IMAGE_OPEN, "").replace(IMAGE_CLOSE, "");
             }
-        }
-        List<StyledLine> parsedText = new ArrayList<>();
-        for (String sx : firstPassText) {
-            List<FormattedText> split = font.getSplitter().splitLines(sx, PAGE_WIDTH, Style.EMPTY);
-            for (FormattedText ln : split) {
-                parsedText.add(new StyledLine(ln.getString(), lineStyle(ln)));
-            }
-        }
-        int lineHeight = font.lineHeight;
-        int heightRemaining = initialBudget;
-        List<Page> pages = new ArrayList<>();
-        Page page1 = new Page();
-        List<PageImage> tempImages = new ArrayList<>();
-        for (StyledLine styled : parsedText) {
-            String line = styled.content;
-            if (line.contains("~I")) {
-                if (!images.isEmpty()) {
-                    tempImages.add(images.remove(0));
-                }
-                line = "";
-            }
-            if (line.contains("~L")) {
-                tempImages.add(PageImage.LINE_DIVIDER);
-                line = "";
-            }
-            if (line.contains("~D")) {
-                tempImages.add(PageImage.SECTION_DIVIDER);
-                line = "";
-            }
-            if (line.contains("~P")) {
-                heightRemaining = PAGE_RESET_HEIGHT;
-                pages.add(page1);
-                page1 = new Page();
-                line = "";
-            }
-            if (!line.isEmpty()) {
-                line = line.trim();
-                boolean paragraphBreak = line.endsWith("~B");
-                if (paragraphBreak) {
-                    line = line.substring(0, line.length() - 2).stripTrailing();
-                }
-                page1.add(new PageElement.Text(line, styled.style, paragraphBreak));
-                heightRemaining -= lineHeight;
-                if (paragraphBreak) {
-                    heightRemaining = (int) (heightRemaining - lineHeight * BONUS_BREAK_FRACTION);
-                }
-            }
-            while (!tempImages.isEmpty() && heightRemaining >= tempImages.get(0).renderedHeight() + IMAGE_GAP) {
-                heightRemaining -= tempImages.get(0).renderedHeight() + IMAGE_GAP;
-                page1.add(new PageElement.Image(tempImages.remove(0)));
-            }
-            if (heightRemaining < lineHeight && !page1.elements().isEmpty()) {
-                heightRemaining = PAGE_RESET_HEIGHT;
-                pages.add(page1);
-                page1 = new Page();
-            }
-        }
-        if (!page1.elements().isEmpty()) {
-            pages.add(page1);
-        }
-        page1 = new Page();
-        heightRemaining = PAGE_RESET_HEIGHT;
-        while (!tempImages.isEmpty()) {
-            PageImage head = tempImages.get(0);
-            if (heightRemaining < head.renderedHeight() + IMAGE_GAP) {
-                heightRemaining = PAGE_RESET_HEIGHT;
-                pages.add(page1);
-                page1 = new Page();
+            out.append(text, cursor, open);
+            PageImage image = PageImage.parse(text.substring(open + IMAGE_OPEN.length(), close));
+            if (image == null) {
+                out.append('\n');
             } else {
-                heightRemaining -= head.renderedHeight() + IMAGE_GAP;
-                page1.add(new PageElement.Image(tempImages.remove(0)));
+                images.add(image);
+                out.append("~I");
+            }
+            cursor = close + IMAGE_CLOSE.length();
+        }
+    }
+
+    private static List<String> tokenize(String text) {
+        List<String> tokens = new ArrayList<>();
+        int cursor = 0;
+        while (cursor <= text.length()) {
+            int marker = nextMarker(text, cursor);
+            if (marker < 0) {
+                tokens.add(text.substring(cursor));
+                break;
+            }
+            tokens.add(text.substring(cursor, marker));
+            if (markerSurvives(text, marker)) {
+                tokens.add(text.substring(marker, marker + 2));
+            }
+            cursor = marker + 2;
+        }
+        return tokens;
+    }
+
+    private static int nextMarker(String text, int from) {
+        for (int i = from; i < text.length() - 1; i++) {
+            if (text.charAt(i) == '~' && MARKER_PRECEDENCE.indexOf(text.charAt(i + 1)) >= 0) {
+                return i;
             }
         }
-        if (!page1.elements().isEmpty()) {
-            pages.add(page1);
+        return -1;
+    }
+
+    private static boolean markerSurvives(String text, int at) {
+        int precedence = MARKER_PRECEDENCE.indexOf(text.charAt(at + 1));
+        int cursor = at + 2;
+        while (cursor < text.length()) {
+            int next = nextMarker(text, cursor);
+            if (next != cursor) {
+                return true;
+            }
+            int otherPrecedence = MARKER_PRECEDENCE.indexOf(text.charAt(next + 1));
+            if (otherPrecedence < precedence) {
+                return false;
+            }
+            if (otherPrecedence > precedence) {
+                return true;
+            }
+            cursor = next + 2;
         }
-        if (pages.isEmpty()) {
-            pages.add(new Page());
+        return false;
+    }
+
+    private static final class Paginator {
+        private final Font font;
+        private final List<PageImage> images;
+        private final List<PageImage> pendingImages = new ArrayList<>();
+        private final List<Page> pages = new ArrayList<>();
+        private Page current = new Page();
+        private int budget;
+
+        Paginator(Font font, int budget, List<PageImage> images) {
+            this.font = font;
+            this.budget = budget;
+            this.images = images;
         }
-        return pages;
+
+        void feed(String token) {
+            switch (token) {
+                case "~I" -> {
+                    if (!images.isEmpty()) {
+                        pendingImages.add(images.remove(0));
+                    }
+                    settle();
+                }
+                case "~L" -> {
+                    pendingImages.add(PageImage.LINE_DIVIDER);
+                    settle();
+                }
+                case "~D" -> {
+                    pendingImages.add(PageImage.SECTION_DIVIDER);
+                    settle();
+                }
+                case "~P" -> {
+                    budget = PAGE_RESET_HEIGHT;
+                    pages.add(current);
+                    current = new Page();
+                    settle();
+                }
+                default -> {
+                    for (FormattedText wrapped : font.getSplitter().splitLines(token, PAGE_WIDTH, Style.EMPTY)) {
+                        appendLine(wrapped.getString().trim(), lineStyle(wrapped));
+                        settle();
+                    }
+                }
+            }
+        }
+
+        private void appendLine(String line, Style style) {
+            if (line.isEmpty()) {
+                return;
+            }
+            boolean paragraphBreak = line.endsWith("~B");
+            if (paragraphBreak) {
+                line = line.substring(0, line.length() - 2).stripTrailing();
+            }
+            current.add(new PageElement.Text(line, style, paragraphBreak));
+            budget -= font.lineHeight;
+            if (paragraphBreak) {
+                budget = (int) (budget - font.lineHeight * BONUS_BREAK_FRACTION);
+            }
+        }
+
+        private void settle() {
+            while (!pendingImages.isEmpty() && budget >= pendingImages.get(0).renderedHeight() + IMAGE_GAP) {
+                budget -= pendingImages.get(0).renderedHeight() + IMAGE_GAP;
+                current.add(new PageElement.Image(pendingImages.remove(0)));
+            }
+            if (budget < font.lineHeight && !current.elements().isEmpty()) {
+                budget = PAGE_RESET_HEIGHT;
+                pages.add(current);
+                current = new Page();
+            }
+        }
+
+        List<Page> finish() {
+            if (!current.elements().isEmpty()) {
+                pages.add(current);
+            }
+            current = new Page();
+            budget = PAGE_RESET_HEIGHT;
+            while (!pendingImages.isEmpty()) {
+                PageImage head = pendingImages.get(0);
+                if (budget < head.renderedHeight() + IMAGE_GAP) {
+                    budget = PAGE_RESET_HEIGHT;
+                    pages.add(current);
+                    current = new Page();
+                } else {
+                    budget -= head.renderedHeight() + IMAGE_GAP;
+                    current.add(new PageElement.Image(pendingImages.remove(0)));
+                }
+            }
+            if (!current.elements().isEmpty()) {
+                pages.add(current);
+            }
+            if (pages.isEmpty()) {
+                pages.add(new Page());
+            }
+            return pages;
+        }
     }
 
     public static final class Page {
