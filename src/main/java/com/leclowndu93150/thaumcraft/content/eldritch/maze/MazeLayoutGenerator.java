@@ -11,15 +11,22 @@ public final class MazeLayoutGenerator {
     private static final int S = 2;
     private static final int E = 4;
     private static final int W = 8;
-    private static final int TEMP_MARK = 25344;
     private static final int FEATURE_TEMP = 99;
+    private static final int RESCUE_MARK = FEATURE_TEMP << 8;
+    private static final float PICK_NEWEST_CHANCE = 0.45F;
+    private static final float PICK_RANDOM_CHANCE = 0.9F;
+    private static final int DECORATION_ROLL = 25;
+    private static final int[] DECORATION_TABLE = {8, 10, 11, 11, 12, 12, 13, 14};
+    private static final int DEAD_END_FEATURE_BASE = MazeCell.FEATURE_NEST;
+    private static final int DEAD_END_FEATURE_SPREAD = 3;
 
     private final int width;
     private final int height;
     private final Random rand;
+    private final List<Integer> deck = new ArrayList<>(Arrays.asList(N, S, E, W));
     public final int[][] grid;
 
-    private record Loc(int x, int y) {}
+    private record Spot(int col, int row) {}
 
     public MazeLayoutGenerator(int width, int height, long seed) {
         this.width = width;
@@ -38,262 +45,280 @@ public final class MazeLayoutGenerator {
         };
     }
 
-    private static int dx(int dir) {
-        return switch (dir) {
-            case E -> 1;
-            case W -> -1;
-            case N, S -> 0;
-            default -> -99;
-        };
+    private static int stepX(int dir) {
+        return dir == E ? 1 : dir == W ? -1 : 0;
     }
 
-    private static int dy(int dir) {
-        return switch (dir) {
-            case N -> -1;
-            case S -> 1;
-            case E, W -> 0;
-            default -> -99;
-        };
+    private static int stepY(int dir) {
+        return dir == S ? 1 : dir == N ? -1 : 0;
+    }
+
+    private boolean inside(int col, int row) {
+        return 0 < col && col < width - 1 && 0 < row && row < height - 1;
+    }
+
+    private MazeCell cellAt(int col, int row) {
+        return new MazeCell((short) grid[row][col]);
     }
 
     public boolean generate() {
-        int bx = 0;
-        int by = 0;
-        switch (rand.nextInt(4)) {
-            case 0 -> {
-                bx = 0;
-                by = 0;
-            }
-            case 1 -> {
-                bx = width - 2;
-                by = height - 2;
-            }
-            case 2 -> {
-                bx = width - 2;
-                by = 0;
-            }
-            case 3 -> {
-                bx = 0;
-                by = height - 2;
-            }
+        Spot boss = stampBossRoom();
+        int portalCol = 1 + width / 2;
+        int portalRow = 1 + height / 2;
+        grid[portalRow][portalCol] = MazeCell.FEATURE_PORTAL << 8;
+        scatterBlobs();
+        List<Spot> frontier = new ArrayList<>();
+        seedFromPortal(portalCol, portalRow, frontier);
+        if (!expand(frontier)) {
+            return false;
         }
-        grid[by][bx] = MazeCell.FEATURE_BOSS_NW << 8;
-        grid[by][bx + 1] = MazeCell.FEATURE_BOSS_NE << 8;
-        grid[by + 1][bx] = MazeCell.FEATURE_BOSS_SW << 8;
-        grid[by + 1][bx + 1] = MazeCell.FEATURE_BOSS_SE << 8;
-        int px = 1 + width / 2;
-        int py = 1 + height / 2;
-        grid[py][px] = MazeCell.FEATURE_PORTAL << 8;
-        List<Loc> cells = new ArrayList<>();
-        int blobs = (width + height) / 4;
-        for (int z = 0; z < blobs; z++) {
-            int w = 1 + rand.nextInt(3);
-            if (w > 2) {
-                blobs--;
+        clearBlobLeftovers();
+        openExtraPortalDoors(portalCol, portalRow);
+        if (!linkBossRoom(boss) && !carveRescueTunnel(boss, frontier)) {
+            return false;
+        }
+        clearRescueMarks();
+        if (!placeDeadEndFeatures()) {
+            return false;
+        }
+        sprinkleDecorations();
+        return true;
+    }
+
+    private Spot stampBossRoom() {
+        int col = 0;
+        int row = 0;
+        switch (rand.nextInt(4)) {
+            case 1 -> {
+                col = width - 2;
+                row = height - 2;
             }
-            int qq = rand.nextInt(width - w);
-            int ww = rand.nextInt(height - w);
-            for (int a = qq; a < qq + w; a++) {
-                for (int b = ww; b < ww + w; b++) {
-                    if (grid[b][a] == 0) {
-                        grid[b][a] = -1;
+            case 2 -> col = width - 2;
+            case 3 -> row = height - 2;
+        }
+        grid[row][col] = MazeCell.FEATURE_BOSS_NW << 8;
+        grid[row][col + 1] = MazeCell.FEATURE_BOSS_NE << 8;
+        grid[row + 1][col] = MazeCell.FEATURE_BOSS_SW << 8;
+        grid[row + 1][col + 1] = MazeCell.FEATURE_BOSS_SE << 8;
+        return new Spot(col, row);
+    }
+
+    private void scatterBlobs() {
+        int budget = (width + height) / 4;
+        for (int placed = 0; placed < budget; placed++) {
+            int size = 1 + rand.nextInt(3);
+            if (size > 2) {
+                budget--;
+            }
+            int originCol = rand.nextInt(width - size);
+            int originRow = rand.nextInt(height - size);
+            for (int col = originCol; col < originCol + size; col++) {
+                for (int row = originRow; row < originRow + size; row++) {
+                    if (grid[row][col] == 0) {
+                        grid[row][col] = -1;
                     }
                 }
             }
         }
-        List<Integer> directions = new ArrayList<>(Arrays.asList(N, S, E, W));
-        Collections.shuffle(directions, rand);
-        int xx = px + dx(directions.get(0));
-        int yy = py + dy(directions.get(0));
-        grid[py][px] |= directions.get(0);
-        if (grid[yy][xx] < 0) {
-            grid[yy][xx] = 0;
+    }
+
+    private void seedFromPortal(int portalCol, int portalRow, List<Spot> frontier) {
+        Collections.shuffle(deck, rand);
+        int dir = deck.get(0);
+        int col = portalCol + stepX(dir);
+        int row = portalRow + stepY(dir);
+        grid[portalRow][portalCol] |= dir;
+        if (grid[row][col] < 0) {
+            grid[row][col] = 0;
         }
-        grid[yy][xx] |= opposite(directions.get(0));
-        cells.add(new Loc(xx, yy));
-        boolean success = false;
-        while (!cells.isEmpty()) {
-            int index = getNextIndex(cells.size());
-            int x = cells.get(index).x();
-            int y = cells.get(index).y();
-            Collections.shuffle(directions, rand);
+        grid[row][col] |= opposite(dir);
+        frontier.add(new Spot(col, row));
+    }
+
+    private boolean expand(List<Spot> frontier) {
+        boolean grew = false;
+        while (!frontier.isEmpty()) {
+            int index = pickFrontierIndex(frontier.size());
+            Spot spot = frontier.get(index);
+            Collections.shuffle(deck, rand);
             boolean carved = false;
-            for (int dir : directions) {
-                int nx = x + dx(dir);
-                int ny = y + dy(dir);
-                if (0 < nx && nx < width - 1 && 0 < ny && ny < height - 1) {
-                    if (grid[ny][nx] == 0) {
-                        grid[y][x] |= dir;
-                        grid[ny][nx] |= opposite(dir);
-                        cells.add(new Loc(nx, ny));
-                        carved = true;
-                    }
-                    if (carved) {
-                        success = true;
-                        break;
-                    }
+            for (int dir : deck) {
+                int col = spot.col() + stepX(dir);
+                int row = spot.row() + stepY(dir);
+                if (!inside(col, row)) {
+                    continue;
+                }
+                if (grid[row][col] == 0) {
+                    grid[spot.row()][spot.col()] |= dir;
+                    grid[row][col] |= opposite(dir);
+                    frontier.add(new Spot(col, row));
+                    carved = true;
+                }
+                if (carved) {
+                    grew = true;
+                    break;
                 }
             }
             if (!carved) {
-                cells.remove(index);
+                frontier.remove(index);
             }
         }
-        if (!success) {
-            return false;
+        return grew;
+    }
+
+    private int pickFrontierIndex(int size) {
+        float roll = rand.nextFloat();
+        if (roll <= PICK_NEWEST_CHANCE) {
+            return size - 1;
         }
-        for (int aa = 0; aa < height; aa++) {
-            for (int bb = 0; bb < width; bb++) {
-                if (grid[aa][bb] < 0) {
-                    grid[aa][bb] = 0;
+        return roll <= PICK_RANDOM_CHANCE ? rand.nextInt(size) : 0;
+    }
+
+    private void clearBlobLeftovers() {
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                if (grid[row][col] < 0) {
+                    grid[row][col] = 0;
                 }
             }
         }
-        Collections.shuffle(directions, rand);
-        for (int dir : directions) {
-            int nx = px + dx(dir);
-            int ny = py + dy(dir);
-            if (0 < nx && nx < width - 1 && 0 < ny && ny < height - 1 && grid[ny][nx] > 0 && rand.nextBoolean()) {
-                grid[ny][nx] |= opposite(dir);
-                grid[py][px] |= dir;
+    }
+
+    private void openExtraPortalDoors(int portalCol, int portalRow) {
+        Collections.shuffle(deck, rand);
+        for (int dir : deck) {
+            int col = portalCol + stepX(dir);
+            int row = portalRow + stepY(dir);
+            if (inside(col, row) && grid[row][col] > 0 && rand.nextBoolean()) {
+                grid[row][col] |= opposite(dir);
+                grid[portalRow][portalCol] |= dir;
             }
         }
-        Collections.shuffle(directions, rand);
-        boolean connected = false;
-        connect:
-        for (int ax = 0; ax < 2; ax++) {
-            for (int ay = 0; ay < 2; ay++) {
-                for (int dir : directions) {
-                    int nx = bx + ax + dx(dir);
-                    int ny = by + ay + dy(dir);
-                    if (0 < nx && nx < width - 1 && 0 < ny && ny < height - 1 && grid[ny][nx] > 0
-                            && new MazeCell((short) grid[ny][nx]).feature == 0) {
-                        grid[ny][nx] |= opposite(dir);
-                        grid[by + ay][bx + ax] |= dir;
-                        connected = true;
-                        break connect;
+    }
+
+    private boolean linkBossRoom(Spot boss) {
+        Collections.shuffle(deck, rand);
+        for (int dc = 0; dc < 2; dc++) {
+            for (int dr = 0; dr < 2; dr++) {
+                for (int dir : deck) {
+                    int col = boss.col() + dc + stepX(dir);
+                    int row = boss.row() + dr + stepY(dir);
+                    if (inside(col, row) && grid[row][col] > 0 && cellAt(col, row).feature == 0) {
+                        grid[row][col] |= opposite(dir);
+                        grid[boss.row() + dr][boss.col() + dc] |= dir;
+                        return true;
                     }
                 }
             }
         }
-        if (!connected) {
-            List<Integer> directions2 = new ArrayList<>(Arrays.asList(N, S, E, W));
-            Collections.shuffle(directions2, rand);
-            success = false;
-            carveOut:
-            for (int ax = 0; ax < 2; ax++) {
-                for (int ay = 0; ay < 2; ay++) {
-                    for (int dir2 : directions2) {
-                        int qx = bx + ax + dx(dir2);
-                        int qy = by + ay + dy(dir2);
-                        if (0 < qx && qx < width - 1 && 0 < qy && qy < height - 1 && grid[qy][qx] == 0) {
-                            cells.add(new Loc(qx, qy));
-                            while (!cells.isEmpty()) {
-                                int index = getNextIndex(cells.size());
-                                int x = cells.get(index).x();
-                                int y = cells.get(index).y();
-                                Collections.shuffle(directions, rand);
-                                boolean carved = false;
-                                for (int dir : directions) {
-                                    int nx = x + dx(dir);
-                                    int ny = y + dy(dir);
-                                    if (0 < nx && nx < width - 1 && 0 < ny && ny < height - 1) {
-                                        if (grid[ny][nx] == 0) {
-                                            grid[y][x] |= dir;
-                                            grid[y][x] |= TEMP_MARK;
-                                            grid[ny][nx] |= opposite(dir);
-                                            grid[ny][nx] |= TEMP_MARK;
-                                            cells.add(new Loc(nx, ny));
-                                            carved = true;
-                                        } else if (new MazeCell((short) grid[ny][nx]).feature == 0) {
-                                            grid[y][x] |= dir;
-                                            grid[ny][nx] |= opposite(dir);
-                                            grid[qy][qx] |= opposite(dir2);
-                                            grid[by + ay][bx + ax] |= dir2;
-                                            success = true;
-                                            break carveOut;
-                                        }
-                                        if (carved) {
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!carved) {
-                                    cells.remove(index);
-                                }
+        return false;
+    }
+
+    private boolean carveRescueTunnel(Spot boss, List<Spot> frontier) {
+        List<Integer> doorDeck = new ArrayList<>(Arrays.asList(N, S, E, W));
+        Collections.shuffle(doorDeck, rand);
+        for (int dc = 0; dc < 2; dc++) {
+            for (int dr = 0; dr < 2; dr++) {
+                for (int doorDir : doorDeck) {
+                    int startCol = boss.col() + dc + stepX(doorDir);
+                    int startRow = boss.row() + dr + stepY(doorDir);
+                    if (!inside(startCol, startRow) || grid[startRow][startCol] != 0) {
+                        continue;
+                    }
+                    frontier.add(new Spot(startCol, startRow));
+                    while (!frontier.isEmpty()) {
+                        int index = pickFrontierIndex(frontier.size());
+                        Spot spot = frontier.get(index);
+                        Collections.shuffle(deck, rand);
+                        boolean carved = false;
+                        for (int dir : deck) {
+                            int col = spot.col() + stepX(dir);
+                            int row = spot.row() + stepY(dir);
+                            if (!inside(col, row)) {
+                                continue;
                             }
+                            if (grid[row][col] == 0) {
+                                grid[spot.row()][spot.col()] |= dir | RESCUE_MARK;
+                                grid[row][col] |= opposite(dir) | RESCUE_MARK;
+                                frontier.add(new Spot(col, row));
+                                carved = true;
+                            } else if (cellAt(col, row).feature == 0) {
+                                grid[spot.row()][spot.col()] |= dir;
+                                grid[row][col] |= opposite(dir);
+                                grid[startRow][startCol] |= opposite(doorDir);
+                                grid[boss.row() + dr][boss.col() + dc] |= doorDir;
+                                return true;
+                            }
+                            if (carved) {
+                                break;
+                            }
+                        }
+                        if (!carved) {
+                            frontier.remove(index);
                         }
                     }
                 }
             }
-            if (!success) {
-                return false;
-            }
         }
-        for (int aa = 0; aa < height; aa++) {
-            for (int bb = 0; bb < width; bb++) {
-                MazeCell c = new MazeCell((short) grid[aa][bb]);
-                if (c.feature == FEATURE_TEMP) {
-                    c.feature = 0;
-                    grid[aa][bb] = c.pack();
+        return false;
+    }
+
+    private void clearRescueMarks() {
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                MazeCell cell = cellAt(col, row);
+                if (cell.feature == FEATURE_TEMP) {
+                    cell.feature = 0;
+                    grid[row][col] = cell.pack();
                 }
             }
         }
-        List<Loc> deadEnds = new ArrayList<>();
-        for (int aa = 0; aa < height; aa++) {
-            for (int bb = 0; bb < width; bb++) {
-                MazeCell c = new MazeCell((short) grid[aa][bb]);
-                if (c.openingCount() == 1 && c.feature == 0) {
-                    deadEnds.add(new Loc(aa, bb));
+    }
+
+    private boolean placeDeadEndFeatures() {
+        List<Spot> deadEnds = new ArrayList<>();
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                MazeCell cell = cellAt(col, row);
+                if (cell.openingCount() == 1 && cell.feature == 0) {
+                    deadEnds.add(new Spot(col, row));
                 }
             }
         }
         if (deadEnds.isEmpty()) {
             return false;
         }
-        int r = rand.nextInt(deadEnds.size());
-        Loc keyLoc = deadEnds.get(r);
-        MazeCell keyCell = new MazeCell((short) grid[keyLoc.x()][keyLoc.y()]);
-        keyCell.feature = MazeCell.FEATURE_KEY;
-        grid[keyLoc.x()][keyLoc.y()] = keyCell.pack();
-        deadEnds.remove(r);
-        if (!deadEnds.isEmpty()) {
-            int filled = 0;
-            while (filled < deadEnds.size() / 2) {
-                int rx = rand.nextInt(deadEnds.size());
-                Loc loc = deadEnds.get(rx);
-                MazeCell cell = new MazeCell((short) grid[loc.x()][loc.y()]);
-                if (cell.feature == 0) {
-                    cell.feature = (byte) (7 + rand.nextInt(3));
-                    grid[loc.x()][loc.y()] = cell.pack();
-                    deadEnds.remove(rx);
-                    filled++;
-                }
-            }
-        }
-        for (int aa = 0; aa < height; aa++) {
-            for (int bb = 0; bb < width; bb++) {
-                MazeCell c = new MazeCell((short) grid[aa][bb]);
-                if (c.feature == 0 && c.hasAnyOpening() && rand.nextInt(25) == 0) {
-                    switch (rand.nextInt(8)) {
-                        case 0 -> c.feature = 8;
-                        case 1 -> c.feature = 10;
-                        case 2, 3 -> c.feature = 11;
-                        case 4, 5 -> c.feature = 12;
-                        case 6 -> c.feature = 13;
-                        case 7 -> c.feature = 14;
-                    }
-                    grid[aa][bb] = c.pack();
-                }
+        int keyIndex = rand.nextInt(deadEnds.size());
+        setFeature(deadEnds.get(keyIndex), MazeCell.FEATURE_KEY);
+        deadEnds.remove(keyIndex);
+        int filled = 0;
+        while (filled < deadEnds.size() / 2) {
+            int pick = rand.nextInt(deadEnds.size());
+            Spot spot = deadEnds.get(pick);
+            if (cellAt(spot.col(), spot.row()).feature == 0) {
+                setFeature(spot, DEAD_END_FEATURE_BASE + rand.nextInt(DEAD_END_FEATURE_SPREAD));
+                deadEnds.remove(pick);
+                filled++;
             }
         }
         return true;
     }
 
-    private int getNextIndex(int ceil) {
-        float r = rand.nextFloat();
-        if (r <= 0.45F) {
-            return ceil - 1;
+    private void setFeature(Spot spot, int feature) {
+        MazeCell cell = cellAt(spot.col(), spot.row());
+        cell.feature = (byte) feature;
+        grid[spot.row()][spot.col()] = cell.pack();
+    }
+
+    private void sprinkleDecorations() {
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                MazeCell cell = cellAt(col, row);
+                if (cell.feature == 0 && cell.hasAnyOpening() && rand.nextInt(DECORATION_ROLL) == 0) {
+                    cell.feature = (byte) DECORATION_TABLE[rand.nextInt(DECORATION_TABLE.length)];
+                    grid[row][col] = cell.pack();
+                }
+            }
         }
-        return r <= 0.9F ? rand.nextInt(ceil) : 0;
     }
 }
