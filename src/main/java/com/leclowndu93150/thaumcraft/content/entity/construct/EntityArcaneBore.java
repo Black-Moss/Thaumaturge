@@ -321,43 +321,51 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
         if (radInc == 0.0F) {
             radInc = 1.0F;
         }
-        int digDepth = getDigDepth();
+        if (acquireTargetThrough(digTargetPrev)) {
+            return;
+        }
+        digTargetPrev = advanceSpiral(digRadius);
+    }
+
+    private boolean acquireTargetThrough(BlockPos scanPoint) {
+        Direction facing = getFacing();
+        BlockPos end = scanPoint.relative(facing, getDigDepth());
+        BlockHitResult hit = level().clip(new ClipContext(
+                Vec3.atCenterOf(scanPoint), Vec3.atCenterOf(end),
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        if (hit.getType() == HitResult.Type.MISS) {
+            return false;
+        }
+        Vec3 digger = new Vec3(
+                getX() + facing.getStepX(),
+                getY() + getEyeHeight() + facing.getStepY(),
+                getZ() + facing.getStepZ());
+        hit = level().clip(new ClipContext(digger, Vec3.atCenterOf(hit.getBlockPos()),
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        if (hit.getType() == HitResult.Type.MISS) {
+            return false;
+        }
+        BlockPos target = hit.getBlockPos();
+        BlockState state = level().getBlockState(target);
+        if (state.getDestroySpeed(level(), target) <= -1.0F
+                || state.getCollisionShape(level(), target).isEmpty()) {
+            return false;
+        }
+        digDelay = Math.max(1, Math.max(10 - getDigSpeed(state),
+                (int) (state.getDestroySpeed(level(), target) * 2.0F) - getDigSpeed(state) * 2));
+        digDelayMax = digDelay;
+        if (target.equals(blockPosition()) || target.equals(blockPosition().below())) {
+            return false;
+        }
+        digTarget = target;
+        return true;
+    }
+
+    private BlockPos advanceSpiral(int digRadius) {
+        Direction facing = getFacing();
         int x = digTargetPrev.getX();
         int y = digTargetPrev.getY();
         int z = digTargetPrev.getZ();
-        Direction facing = getFacing();
-        BlockPos end = new BlockPos(
-                x + facing.getStepX() * digDepth,
-                y + facing.getStepY() * digDepth,
-                z + facing.getStepZ() * digDepth);
-        BlockHitResult hit = level().clip(new ClipContext(
-                Vec3.atCenterOf(digTargetPrev), Vec3.atCenterOf(end),
-                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-        if (hit.getType() != HitResult.Type.MISS) {
-            Vec3 digger = new Vec3(
-                    getX() + facing.getStepX(),
-                    getY() + getEyeHeight() + facing.getStepY(),
-                    getZ() + facing.getStepZ());
-            hit = level().clip(new ClipContext(digger, Vec3.atCenterOf(hit.getBlockPos()),
-                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-            if (hit.getType() != HitResult.Type.MISS) {
-                BlockPos target = hit.getBlockPos();
-                BlockState state = level().getBlockState(target);
-                if (state.getDestroySpeed(level(), target) > -1.0F
-                        && !state.getCollisionShape(level(), target).isEmpty()) {
-                    digDelay = Math.max(10 - getDigSpeed(state),
-                            (int) (state.getDestroySpeed(level(), target) * 2.0F) - getDigSpeed(state) * 2);
-                    if (digDelay < 1) {
-                        digDelay = 1;
-                    }
-                    digDelayMax = digDelay;
-                    if (!target.equals(blockPosition()) && !target.equals(blockPosition().below())) {
-                        digTarget = target;
-                        return;
-                    }
-                }
-            }
-        }
         while (x == digTargetPrev.getX() && z == digTargetPrev.getZ() && y == digTargetPrev.getY()) {
             if (Math.abs(currentRadius) > digRadius) {
                 currentRadius = digRadius;
@@ -370,20 +378,24 @@ public class EntityArcaneBore extends EntityOwnedConstruct {
                     currentRadius = 0.0F;
                 }
             }
-            Vec3 source = new Vec3(
-                    (int) getX() + 0.5 + facing.getStepX(),
-                    getY() + facing.getStepY() + getEyeHeight(),
-                    (int) getZ() + 0.5 + facing.getStepZ());
-            Vec3 target = new Vec3(0.0, currentRadius, 0.0);
-            target = rotateAroundZ(target, spiral / 180.0F * (float) Math.PI);
-            target = rotateAroundY(target, (float) (Math.PI / 2) * facing.getStepX());
-            target = rotateAroundX(target, (float) (Math.PI / 2) * facing.getStepY());
-            Vec3 result = source.add(target);
-            x = Mth.floor(result.x);
-            y = Mth.floor(result.y);
-            z = Mth.floor(result.z);
+            Vec3 scan = spiralScanPoint(facing);
+            x = Mth.floor(scan.x);
+            y = Mth.floor(scan.y);
+            z = Mth.floor(scan.z);
         }
-        digTargetPrev = new BlockPos(x, y, z);
+        return new BlockPos(x, y, z);
+    }
+
+    private Vec3 spiralScanPoint(Direction facing) {
+        Vec3 source = new Vec3(
+                (int) getX() + 0.5 + facing.getStepX(),
+                getY() + facing.getStepY() + getEyeHeight(),
+                (int) getZ() + 0.5 + facing.getStepZ());
+        Vec3 offset = new Vec3(0.0, currentRadius, 0.0);
+        offset = rotateAroundZ(offset, spiral / 180.0F * (float) Math.PI);
+        offset = rotateAroundY(offset, (float) (Math.PI / 2) * facing.getStepX());
+        offset = rotateAroundX(offset, (float) (Math.PI / 2) * facing.getStepY());
+        return source.add(offset);
     }
 
     private static Vec3 rotateAroundX(Vec3 vec, float angle) {

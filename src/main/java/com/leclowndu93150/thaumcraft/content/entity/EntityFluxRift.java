@@ -410,34 +410,54 @@ public final class EntityFluxRift extends Entity {
         discard();
     }
 
-    private void calcSteps(List<Vec3> pp, List<Float> ww, RandomSource rr) {
-        pp.clear();
-        ww.clear();
-        Vec3 right = new Vec3(rr.nextGaussian(), rr.nextGaussian(), rr.nextGaussian()).normalize();
-        Vec3 left = right.scale(-1.0);
-        Vec3 lr = Vec3.ZERO;
-        Vec3 ll = Vec3.ZERO;
-        int steps = Mth.ceil(getRiftSize() / 3.0F);
-        float girth = getRiftSize() / 300.0F;
-        double angle = 0.33;
-        float dec = girth / steps;
+    private static final double WANDER_ANGLE = 0.33;
+    private static final double STEP_LENGTH = 0.2;
+    private static final double TIP_LENGTH = 0.1;
+    private static final float GIRTH_PER_SIZE = 1.0F / 300.0F;
+    private static final float SIZE_PER_STEP = 3.0F;
+
+    private void calcSteps(List<Vec3> outPoints, List<Float> outWidths, RandomSource rand) {
+        outPoints.clear();
+        outWidths.clear();
+        Vec3 heading = new Vec3(rand.nextGaussian(), rand.nextGaussian(), rand.nextGaussian()).normalize();
+        Arm right = new Arm(heading);
+        Arm left = new Arm(heading.scale(-1.0));
+        int steps = Mth.ceil(getRiftSize() / SIZE_PER_STEP);
+        float girth = getRiftSize() * GIRTH_PER_SIZE;
+        float taper = girth / steps;
         for (int a = 0; a < steps; a++) {
-            girth -= dec;
-            right = right.xRot((float) (rr.nextGaussian() * angle)).yRot((float) (rr.nextGaussian() * angle));
-            lr = lr.add(right.scale(0.2));
-            pp.add(lr);
-            ww.add(girth);
-            left = left.xRot((float) (rr.nextGaussian() * angle)).yRot((float) (rr.nextGaussian() * angle));
-            ll = ll.add(left.scale(0.2));
-            pp.add(0, ll);
-            ww.add(0, girth);
+            girth -= taper;
+            right.wander(rand);
+            outPoints.add(right.advance(STEP_LENGTH));
+            outWidths.add(girth);
+            left.wander(rand);
+            outPoints.add(0, left.advance(STEP_LENGTH));
+            outWidths.add(0, girth);
         }
-        lr = lr.add(right.scale(0.1));
-        pp.add(lr);
-        ww.add(0.0F);
-        ll = ll.add(left.scale(0.1));
-        pp.add(0, ll);
-        ww.add(0, 0.0F);
+        outPoints.add(right.advance(TIP_LENGTH));
+        outWidths.add(0.0F);
+        outPoints.add(0, left.advance(TIP_LENGTH));
+        outWidths.add(0, 0.0F);
+    }
+
+    private static final class Arm {
+        private Vec3 heading;
+        private Vec3 tip = Vec3.ZERO;
+
+        Arm(Vec3 heading) {
+            this.heading = heading;
+        }
+
+        void wander(RandomSource rand) {
+            heading = heading
+                    .xRot((float) (rand.nextGaussian() * WANDER_ANGLE))
+                    .yRot((float) (rand.nextGaussian() * WANDER_ANGLE));
+        }
+
+        Vec3 advance(double distance) {
+            tip = tip.add(heading.scale(distance));
+            return tip;
+        }
     }
 
     @Override
