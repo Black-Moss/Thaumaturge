@@ -81,8 +81,10 @@ public final class FocusEffectEarth implements FocusEffect {
             if (ctx.caster() instanceof Player player
                     && level.getBlockState(pos).getDestroySpeed(level, pos)
                             <= damageForDisplay(settings, ctx.power()) / HARDNESS_DIVISOR) {
-                BlockBreakerEngine.addBreaker(level, pos, level.getBlockState(pos), player,
-                        false, false, 0, 1.0F, 0.0F, 1.0F, index, BREAK_VIS_COST);
+                BlockBreakerEngine.breaker(pos, level.getBlockState(pos), player)
+                        .delay(index)
+                        .visCost(BREAK_VIS_COST)
+                        .queue(level);
             }
         }
         return false;

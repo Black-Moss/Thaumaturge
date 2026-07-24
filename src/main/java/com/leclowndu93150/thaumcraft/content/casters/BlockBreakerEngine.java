@@ -2,15 +2,13 @@ package com.leclowndu93150.thaumcraft.content.casters;
 
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.BreakerTask;
-import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.SwapContext;
 import com.leclowndu93150.thaumcraft.content.casters.BlockWorkQueues.SwapperTask;
 import com.leclowndu93150.thaumcraft.content.entity.EntitySpecialItem;
-import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumcraft.registry.TCAttachments;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -37,29 +35,19 @@ import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class BlockBreakerEngine {
-    public static final Predicate<SwapContext> DEFAULT_PREDICATE = context -> true;
-
     private static final int BREAK_PROGRESS_STEPS = 10;
     private static final int LEVEL_EVENT_BLOCK_BREAK = 2001;
     private static final float COLOR_DIVISOR = 255.0F;
 
     private BlockBreakerEngine() {}
 
-    public static void addBreaker(ServerLevel level, BlockPos pos, BlockState source, Player player, boolean fx,
-            boolean silk, int fortune, float strength, float durabilityCurrent, float durabilityMax, int delay,
-            float visCost) {
-        level.getData(TCAttachments.BLOCK_WORK_QUEUES).breakers().add(new BreakerTask(
-                pos.immutable(), source, player.getUUID(), fx, silk, fortune,
-                strength, durabilityCurrent, durabilityMax, delay, visCost));
+    public static BreakerTask.Builder breaker(BlockPos pos, BlockState source, Player player) {
+        return new BreakerTask.Builder(pos, source, player);
     }
 
-    public static void addSwapper(ServerLevel level, BlockPos pos, @Nullable BlockState source,
-            @Nullable BlockState target, boolean consumeTarget, int lifespan, Player player, boolean fx,
-            boolean fancy, int color, boolean pickup, boolean silk, int fortune,
-            Predicate<SwapContext> allowSwap, float visCost) {
-        level.getData(TCAttachments.BLOCK_WORK_QUEUES).swappers().add(new SwapperTask(
-                pos.immutable(), source, target, consumeTarget, lifespan, player.getUUID(), fx, fancy, color,
-                pickup, silk, fortune, allowSwap, visCost));
+    public static SwapperTask.Builder swapper(BlockPos pos, @Nullable BlockState source,
+            @Nullable BlockState target, Player player) {
+        return new SwapperTask.Builder(pos, source, target, player);
     }
 
     @SubscribeEvent
@@ -79,43 +67,42 @@ public final class BlockBreakerEngine {
         List<BreakerTask> pending = new ArrayList<>(queues.breakers());
         queues.breakers().clear();
         for (BreakerTask task : pending) {
-            if (task.delay > 0) {
-                task.delay--;
-                queues.breakers().add(task);
+            if (task.delay() > 0) {
+                queues.breakers().add(task.withDelay(task.delay() - 1));
                 continue;
             }
-            BlockState current = level.getBlockState(task.pos);
-            if (current != task.source) {
-                if (task.fx) {
-                    level.destroyBlockProgress(task.pos.hashCode(), task.pos, -1);
+            BlockState current = level.getBlockState(task.pos());
+            if (current != task.source()) {
+                if (task.fx()) {
+                    level.destroyBlockProgress(task.pos().hashCode(), task.pos(), -1);
                 }
                 continue;
             }
-            Player player = level.getPlayerByUUID(task.playerId);
+            Player player = level.getPlayerByUUID(task.playerId());
             if (player == null) {
                 continue;
             }
-            if (task.visCost > 0.0F && !WandVisHelper.consumeVisFromHotbar(player, task.visCost, false)) {
+            if (task.visCost() > 0.0F && !WandVisHelper.consumeVisFromHotbar(player, task.visCost(), false)) {
                 continue;
             }
-            if (!player.mayInteract(level, task.pos) || current.getDestroySpeed(level, task.pos) < 0.0F) {
+            if (!player.mayInteract(level, task.pos()) || current.getDestroySpeed(level, task.pos()) < 0.0F) {
                 continue;
             }
-            if (task.fx) {
-                level.destroyBlockProgress(task.pos.hashCode(), task.pos,
-                        (int) ((1.0F - task.durabilityCurrent / task.durabilityMax) * BREAK_PROGRESS_STEPS));
+            if (task.fx()) {
+                level.destroyBlockProgress(task.pos().hashCode(), task.pos(),
+                        (int) ((1.0F - task.durability() / task.durabilityMax()) * BREAK_PROGRESS_STEPS));
             }
-            task.durabilityCurrent -= task.strength;
-            if (task.durabilityCurrent <= 0.0F) {
-                harvestBlock(level, player, task.pos, task.silk, task.fortune);
-                if (task.fx) {
-                    level.destroyBlockProgress(task.pos.hashCode(), task.pos, -1);
+            float remaining = task.durability() - task.strength();
+            if (remaining <= 0.0F) {
+                harvestBlock(level, player, task.pos(), task.silk(), task.fortune());
+                if (task.fx()) {
+                    level.destroyBlockProgress(task.pos().hashCode(), task.pos(), -1);
                 }
-                if (task.visCost > 0.0F) {
-                    WandVisHelper.consumeVisFromHotbar(player, task.visCost, true);
+                if (task.visCost() > 0.0F) {
+                    WandVisHelper.consumeVisFromHotbar(player, task.visCost(), true);
                 }
             } else {
-                queues.breakers().add(task);
+                queues.breakers().add(task.withDurability(remaining));
             }
         }
     }
@@ -164,76 +151,88 @@ public final class BlockBreakerEngine {
         List<SwapperTask> pending = new ArrayList<>(queues.swappers());
         queues.swappers().clear();
         for (SwapperTask task : pending) {
-            Player player = level.getPlayerByUUID(task.playerId);
-            if (player == null) {
+            Player player = level.getPlayerByUUID(task.playerId());
+            if (player == null || !allowSwap(level, queues, task, player)) {
                 continue;
             }
-            BlockState current = level.getBlockState(task.pos);
-            boolean allow = current.getDestroySpeed(level, task.pos) >= 0.0F;
-            if (task.source != null && task.source != current) {
-                allow = false;
-            }
-            if (task.visCost > 0.0F && !WandVisHelper.consumeVisFromHotbar(player, task.visCost, false)) {
-                allow = false;
-            }
-            if (!allow || !player.mayInteract(level, task.pos)) {
-                continue;
-            }
-            if (task.target != null && current.is(task.target.getBlock())) {
-                continue;
-            }
-            if (EventHooks.onBlockPlace(player, BlockSnapshot.create(level.dimension(), level, task.pos), Direction.UP)) {
-                continue;
-            }
-            if (!task.allowSwap.test(new SwapContext(level, player, task.pos))) {
-                continue;
-            }
-            ItemStack targetItem = task.target != null ? new ItemStack(task.target.getBlock()) : ItemStack.EMPTY;
             int slot = 1;
-            if (task.consumeTarget && !targetItem.isEmpty() && !player.hasInfiniteMaterials()) {
+            ItemStack targetItem = task.target() != null ? new ItemStack(task.target().getBlock()) : ItemStack.EMPTY;
+            if (task.consumeTarget() && !targetItem.isEmpty() && !player.hasInfiniteMaterials()) {
                 slot = findInventorySlot(player, targetItem);
             }
             if (slot < 0) {
                 continue;
             }
             if (!player.hasInfiniteMaterials()) {
-                if (task.consumeTarget && !targetItem.isEmpty()) {
+                if (task.consumeTarget() && !targetItem.isEmpty()) {
                     player.getInventory().removeItem(slot, 1);
                 }
-                if (task.pickup) {
-                    List<ItemStack> drops = Block.getDrops(current, level, task.pos, level.getBlockEntity(task.pos),
-                            player, harvestTool(level, player, task.silk, task.fortune));
-                    for (ItemStack drop : drops) {
-                        if (!player.getInventory().add(drop)) {
-                            level.addFreshEntity(new EntitySpecialItem(level,
-                                    task.pos.getX() + 0.5, task.pos.getY() + 0.5, task.pos.getZ() + 0.5, drop));
-                        }
-                    }
+                if (task.pickup()) {
+                    collectDrops(level, task, player);
                 }
-                if (task.visCost > 0.0F) {
-                    WandVisHelper.consumeVisFromHotbar(player, task.visCost, true);
+                if (task.visCost() > 0.0F) {
+                    WandVisHelper.consumeVisFromHotbar(player, task.visCost(), true);
                 }
             }
-            if (task.target != null) {
-                level.setBlock(task.pos, task.target, Block.UPDATE_ALL);
+            if (task.target() != null) {
+                level.setBlock(task.pos(), task.target(), Block.UPDATE_ALL);
             } else {
-                level.removeBlock(task.pos, false);
+                level.removeBlock(task.pos(), false);
             }
-            if (task.fx) {
-                Effects.Bamf bamf = Effects.bamf(level, task.pos)
-                        .color(((task.color >> 16) & 0xFF) / COLOR_DIVISOR,
-                                ((task.color >> 8) & 0xFF) / COLOR_DIVISOR,
-                                (task.color & 0xFF) / COLOR_DIVISOR)
-                        .withSound();
-                if (task.fancy) {
-                    bamf = bamf.fancy();
-                }
-                bamf.send();
+            if (task.fx()) {
+                sendSwapFx(level, task);
             }
-            if (task.lifespan > 0) {
+            if (task.lifespan() > 0) {
                 spread(level, queues, task);
             }
         }
+    }
+
+    private static boolean allowSwap(ServerLevel level, BlockWorkQueues queues, SwapperTask task, Player player) {
+        BlockState current = level.getBlockState(task.pos());
+        if (current.getDestroySpeed(level, task.pos()) < 0.0F) {
+            return false;
+        }
+        if (task.source() != null && task.source() != current) {
+            return false;
+        }
+        if (task.visCost() > 0.0F && !WandVisHelper.consumeVisFromHotbar(player, task.visCost(), false)) {
+            return false;
+        }
+        if (!player.mayInteract(level, task.pos())) {
+            return false;
+        }
+        if (task.target() != null && current.is(task.target().getBlock())) {
+            return false;
+        }
+        if (EventHooks.onBlockPlace(player, BlockSnapshot.create(level.dimension(), level, task.pos()), Direction.UP)) {
+            return false;
+        }
+        return task.allowSwap().test(new BlockWorkQueues.SwapContext(level, player, task.pos()));
+    }
+
+    private static void collectDrops(ServerLevel level, SwapperTask task, Player player) {
+        BlockState current = level.getBlockState(task.pos());
+        List<ItemStack> drops = Block.getDrops(current, level, task.pos(), level.getBlockEntity(task.pos()),
+                player, harvestTool(level, player, task.silk(), task.fortune()));
+        for (ItemStack drop : drops) {
+            if (!player.getInventory().add(drop)) {
+                level.addFreshEntity(new EntitySpecialItem(level,
+                        task.pos().getX() + 0.5, task.pos().getY() + 0.5, task.pos().getZ() + 0.5, drop));
+            }
+        }
+    }
+
+    private static void sendSwapFx(ServerLevel level, SwapperTask task) {
+        Effects.Bamf bamf = Effects.bamf(level, task.pos())
+                .color(((task.color() >> 16) & 0xFF) / COLOR_DIVISOR,
+                        ((task.color() >> 8) & 0xFF) / COLOR_DIVISOR,
+                        (task.color() & 0xFF) / COLOR_DIVISOR)
+                .withSound();
+        if (task.fancy()) {
+            bamf = bamf.fancy();
+        }
+        bamf.send();
     }
 
     private static void spread(ServerLevel level, BlockWorkQueues queues, SwapperTask task) {
@@ -243,19 +242,17 @@ public final class BlockBreakerEngine {
                     if (xx == 0 && yy == 0 && zz == 0) {
                         continue;
                     }
-                    BlockPos neighbour = task.pos.offset(xx, yy, zz);
-                    if (task.source != null && level.getBlockState(neighbour) == task.source
+                    BlockPos neighbour = task.pos().offset(xx, yy, zz);
+                    if (task.source() != null && level.getBlockState(neighbour) == task.source()
                             && isExposed(level, neighbour)) {
-                        queues.swappers().add(new SwapperTask(neighbour, task.source, task.target,
-                                task.consumeTarget, task.lifespan - 1, task.playerId, task.fx, task.fancy,
-                                task.color, task.pickup, task.silk, task.fortune, task.allowSwap, task.visCost));
+                        queues.swappers().add(task.spreadTo(neighbour));
                     }
                 }
             }
         }
     }
 
-    static boolean isExposed(ServerLevel level, BlockPos pos) {
+    private static boolean isExposed(ServerLevel level, BlockPos pos) {
         for (Direction face : Direction.values()) {
             if (!level.getBlockState(pos.relative(face)).isSolidRender()) {
                 return true;

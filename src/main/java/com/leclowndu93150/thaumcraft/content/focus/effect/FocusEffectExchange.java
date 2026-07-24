@@ -90,10 +90,15 @@ public final class FocusEffectExchange implements FocusEffect, IFocusBlockPicker
         int fortune = settings.value("fortune");
         BlockState picked = ((ICaster) casterStack.getItem()).getPickedBlock(casterStack);
         if (caster instanceof Player player && picked != null && !picked.isAir()) {
-            BlockBreakerEngine.addSwapper(level, blockHit.getBlockPos(),
-                    level.getBlockState(blockHit.getBlockPos()), picked, true, 0, player, true, false,
-                    SWAP_FX_COLOR, true, silk, fortune, BlockBreakerEngine.DEFAULT_PREDICATE,
-                    BASE_VIS_COST + (silk ? SILK_VIS_COST : 0.0F) + fortune * FORTUNE_VIS_COST);
+            BlockBreakerEngine.swapper(blockHit.getBlockPos(),
+                            level.getBlockState(blockHit.getBlockPos()), picked, player)
+                    .consumeTarget()
+                    .showFx(SWAP_FX_COLOR, false)
+                    .pickupDrops()
+                    .silkTouch(silk)
+                    .fortune(fortune)
+                    .visCost(BASE_VIS_COST + (silk ? SILK_VIS_COST : 0.0F) + fortune * FORTUNE_VIS_COST)
+                    .queue(level);
         }
         return true;
     }
