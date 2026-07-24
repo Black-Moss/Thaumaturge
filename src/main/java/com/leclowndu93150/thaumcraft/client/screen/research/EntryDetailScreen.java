@@ -13,7 +13,6 @@ import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumcraft.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumcraft.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumcraft.api.research.IResearchCategory;
@@ -24,7 +23,6 @@ import com.leclowndu93150.thaumcraft.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumcraft.api.research.ResearchConstruct;
 import com.leclowndu93150.thaumcraft.api.research.ResearchIcon;
 import com.leclowndu93150.thaumcraft.api.research.ResearchRequirement;
-import com.leclowndu93150.thaumcraft.client.render.research.KnowledgeRequirementWidget;
 import com.leclowndu93150.thaumcraft.client.render.research.PageParser;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.client.render.research.RecipeDisplayCache;
@@ -55,7 +53,6 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
@@ -560,25 +557,25 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         if (!stage.requiredResearch().isEmpty()) {
             reqY -= REQ_ROW_STEP;
             hasAny = true;
-            renderRowLabel(graphics, x, reqY, LABEL_RESEARCH_V);
+            renderRowLabel(graphics, x, reqY, LABEL_RESEARCH_V, mouseX, mouseY);
             renderResearchPrereqs(graphics, stage.requiredResearch(), knowledge, x, reqY, mouseX, mouseY, researchSatisfied);
         }
         if (!stage.obtain().isEmpty()) {
             reqY -= REQ_ROW_STEP;
             hasAny = true;
-            renderRowLabel(graphics, x, reqY, LABEL_OBTAIN_V);
+            renderRowLabel(graphics, x, reqY, LABEL_OBTAIN_V, mouseX, mouseY);
             renderItemRow(graphics, stage.obtain(), x, reqY, gameTime, mouseX, mouseY, true, obtainSatisfied);
         }
         if (!stage.craft().isEmpty()) {
             reqY -= REQ_ROW_STEP;
             hasAny = true;
-            renderRowLabel(graphics, x, reqY, LABEL_CRAFT_V);
+            renderRowLabel(graphics, x, reqY, LABEL_CRAFT_V, mouseX, mouseY);
             renderItemRow(graphics, stage.craft(), x, reqY, gameTime, mouseX, mouseY, false, craftSatisfied);
         }
         if (!stage.requiredKnowledge().isEmpty()) {
             reqY -= REQ_ROW_STEP;
             hasAny = true;
-            renderRowLabel(graphics, x, reqY, LABEL_KNOW_V);
+            renderRowLabel(graphics, x, reqY, LABEL_KNOW_V, mouseX, mouseY);
             renderKnowledgeRow(graphics, stage.requiredKnowledge(), knowledge, x, reqY, mouseX, mouseY, knowSatisfied);
         }
         if (hasAny) {
@@ -672,7 +669,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 FORBIDDEN_NODE_TINT);
     }
 
-    private void renderRowLabel(GuiGraphicsExtractor graphics, int x, int y, int v) {
+    private void renderRowLabel(GuiGraphicsExtractor graphics, int x, int y, int v, int mouseX, int mouseY) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
                 x + LABEL_OFFSET_X, y - 1,
                 (float) REQUIREMENT_LABEL_U, (float) v,
@@ -680,6 +677,14 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 LABEL_WIDTH, LABEL_HEIGHT,
                 TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
                 LABEL_TINT);
+        if (mouseInside(x + LABEL_OFFSET_X,y,LABEL_WIDTH / 4,LABEL_HEIGHT,mouseX,mouseY)) {
+            switch (v){
+                case LABEL_KNOW_V ->  graphics.setTooltipForNextFrame(Component.translatable("tc.need.know"),mouseX,mouseY);
+                case LABEL_CRAFT_V ->  graphics.setTooltipForNextFrame(Component.translatable("tc.need.craft"),mouseX,mouseY);
+                case LABEL_OBTAIN_V ->  graphics.setTooltipForNextFrame(Component.translatable("tc.need.obtain"),mouseX,mouseY);
+                case LABEL_RESEARCH_V ->  graphics.setTooltipForNextFrame(Component.translatable("tc.need.research"),mouseX,mouseY);
+            }
+        }
     }
 
     private void renderItemRow(GuiGraphicsExtractor graphics, List<ResearchRequirement> reqs, int x, int y, long gameTime, int mouseX, int mouseY, boolean obtain, boolean[] satisfied) {
