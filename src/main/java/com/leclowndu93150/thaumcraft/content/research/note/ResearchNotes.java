@@ -114,7 +114,7 @@ public final class ResearchNotes {
         if (knowledge.isResearchKnown(learnKey) || hasNoteFor(player, learnKey)) {
             return false;
         }
-        if (!consumeInk(player, true) || !hasItem(player, Items.PAPER)) {
+        if ((!consumeInk(player, true) || !hasItem(player, Items.PAPER)) && !player.getAbilities().instabuild) {
             player.sendSystemMessage(Component.translatable("tc.researchnote.missing")
                     .withStyle(ChatFormatting.DARK_PURPLE));
             return false;
