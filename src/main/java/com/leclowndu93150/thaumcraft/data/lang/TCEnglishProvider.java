@@ -144,6 +144,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.researchnote.table", "Complete these notes at a research table");
         add("tc.researchnote.use", "Right-click to learn this theory");
         add("tc.researchnote.learned", "You have completed your research on %s!");
+        add("tc.researchnote.missing", "You need scribing tools and paper to get this research note!");
         add("tc.addaspectdiscovery", "You have discovered the aspect %s!");
         add("tc.discoveryerror", "To understand this you need to study %1$s.");
         add("tc.aspectcost", "Required research points:");
