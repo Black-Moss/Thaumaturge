@@ -18,14 +18,9 @@ import com.leclowndu93150.thaumcraft.client.screen.TCScreenTextures;
 import com.leclowndu93150.thaumcraft.client.screen.tooltip.TCTooltipRenderer;
 import com.leclowndu93150.thaumcraft.network.ServerboundClearResearchFlagsPayload;
 import com.leclowndu93150.thaumcraft.network.ServerboundUnlockResearchPayload;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
@@ -275,6 +270,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
                         categoriesOther.add(ref);
                     }
                 })));
+        categoriesTC.sort(Comparator.comparing(ref -> ref.value().index()));
         minecraft.player.registryAccess().lookup(IResearchEntry.REGISTRY_KEY).ifPresent(lookup ->
                 lookup.listElements().forEach(holder -> holder.unwrapKey().ifPresent(key -> {
                     IResearchEntry entry = holder.value();

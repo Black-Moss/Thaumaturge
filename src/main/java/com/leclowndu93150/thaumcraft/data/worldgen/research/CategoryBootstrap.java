@@ -35,7 +35,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.AQUA, 5)
                 )),
                 tex("textures/items/thaumonomicon_cheat.png"),
-                tex("textures/gui/gui_research_back_1.png"));
+                tex("textures/gui/gui_research_back_1.png"),
+                0);
 
         register(ctx, TCResearchCategories.AUROMANCY,
                 Optional.of(unlock("auromancy")),
@@ -48,7 +49,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.AER, 5)
                 )),
                 tex("textures/research/cat_auromancy.png"),
-                tex("textures/gui/gui_research_back_2.png"));
+                tex("textures/gui/gui_research_back_2.png"),
+                1);
 
         register(ctx, TCResearchCategories.ALCHEMY,
                 Optional.of(unlock("alchemy")),
@@ -62,7 +64,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.AQUA, 5)
                 )),
                 tex("textures/research/cat_alchemy.png"),
-                tex("textures/gui/gui_research_back_3.png"));
+                tex("textures/gui/gui_research_back_3.png"),
+                2);
 
         register(ctx, TCResearchCategories.ARTIFICE,
                 Optional.of(unlock("artifice")),
@@ -78,7 +81,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.IGNIS, 5)
                 )),
                 tex("textures/research/cat_artifice.png"),
-                tex("textures/gui/gui_research_back_4.png"));
+                tex("textures/gui/gui_research_back_4.png"),
+                3);
 
         register(ctx, TCResearchCategories.INFUSION,
                 Optional.of(unlock("infusion")),
@@ -92,7 +96,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.TERRA, 3)
                 )),
                 tex("textures/research/cat_infusion.png"),
-                tex("textures/gui/gui_research_back_7.png"));
+                tex("textures/gui/gui_research_back_7.png"),
+                4);
 
         register(ctx, TCResearchCategories.GOLEMANCY,
                 Optional.of(unlock("golemancy")),
@@ -107,7 +112,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.ORDO, 5)
                 )),
                 tex("textures/research/cat_golemancy.png"),
-                tex("textures/gui/gui_research_back_5.png"));
+                tex("textures/gui/gui_research_back_5.png"),
+                5);
 
         register(ctx, TCResearchCategories.ELDRITCH,
                 Optional.of(unlock("eldritch")),
@@ -122,7 +128,8 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.PERDITIO, 5)
                 )),
                 tex("textures/research/cat_eldritch.png"),
-                tex("textures/gui/gui_research_back_6.png"));
+                tex("textures/gui/gui_research_back_6.png"),
+                6);
     }
 
     private static AspectInstance e(HolderGetter<IAspect> aspects, ResourceKey<IAspect> key, int amount) {
@@ -135,9 +142,10 @@ public final class CategoryBootstrap {
             Optional<Identifier> requiredResearch,
             AspectList formula,
             Identifier icon,
-            Identifier background
+            Identifier background,
+            int index
     ) {
-        ctx.register(key, new ResearchCategory(requiredResearch, formula, icon, background, Optional.of(BACK_OVER)));
+        ctx.register(key, new ResearchCategory(requiredResearch, formula, icon, background, Optional.of(BACK_OVER),index));
     }
 
     private static Identifier tex(String path) {

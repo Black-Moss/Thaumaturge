@@ -91,4 +91,11 @@ public interface IResearchCategory {
      * @return the texture identifier, or empty when the category uses a single layer
      */
     Optional<Identifier> overlayBackground();
+
+    /**
+     * An index used for ordering categories in the Thaumonomicon. Categories with lower indices are drawn first.
+     *
+     * @return the index, non-negative
+     */
+    int index();
 }
