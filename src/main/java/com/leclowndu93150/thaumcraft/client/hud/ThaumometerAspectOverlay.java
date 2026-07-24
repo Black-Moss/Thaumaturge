@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumcraft.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumcraft.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumcraft.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumcraft.content.research.scan.ScanNode;
+import com.leclowndu93150.thaumcraft.content.research.scan.ScanRaycastHelper;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -19,8 +20,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -58,8 +61,9 @@ public final class ThaumometerAspectOverlay {
             resetAnimation();
             return;
         }
-        Entity entityTarget = mc.crosshairPickEntity;
-        if (entityTarget != null) {
+        HitResult result = ScanRaycastHelper.performRaycast(mc.player, ClipContext.Fluid.SOURCE_ONLY);
+        if (result instanceof EntityHitResult entityResult) {
+            Entity entityTarget = entityResult.getEntity();
             AspectList aspects = scannedAspects(mc.player, EntityAspects.of(entityTarget),
                     ScanKeys.entity(entityTarget.getType()));
             if (aspects.isEmpty()) {
@@ -72,7 +76,7 @@ public final class ThaumometerAspectOverlay {
                     pos.z - 0.5, aspects, Direction.UP);
             return;
         }
-        if (!(mc.hitResult instanceof BlockHitResult hit) || mc.hitResult.getType() != HitResult.Type.BLOCK) {
+        if (!(result instanceof BlockHitResult hit) || result.getType() != HitResult.Type.BLOCK) {
             resetAnimation();
             return;
         }

@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumcraft.client.effect.ClientEffects;
 import com.leclowndu93150.thaumcraft.content.item.ThaumometerItem;
-import com.leclowndu93150.thaumcraft.content.research.scan.PointedEntityHelper;
+import com.leclowndu93150.thaumcraft.content.research.scan.ScanRaycastHelper;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.client.Minecraft;
@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -64,15 +65,14 @@ public final class ThaumometerClientHandler {
         if (player.tickCount % HIGHLIGHT_INTERVAL_TICKS != 0) {
             return;
         }
-        Entity target = PointedEntityHelper.getPointedEntity(mc.level, player,
-                ThaumometerItem.SCAN_ENTITY_MIN_RANGE, HIGHLIGHT_ENTITY_RANGE, HIGHLIGHT_ENTITY_PADDING, true);
-        if (target != null && ScanningManager.isThingStillScannable(player, target)) {
-            ClientEffects.scanHighlight(target);
+        HitResult hitResult = ScanRaycastHelper.performRaycast(player, ClipContext.Fluid.SOURCE_ONLY);
+        // Here we use the Type instead of an instanceof because, a miss is an instance of BlockHitResult
+        if (hitResult.getType() == HitResult.Type.BLOCK
+                && ScanningManager.isThingStillScannable(player, ((BlockHitResult)hitResult).getBlockPos())) {
+            ClientEffects.scanHighlight(mc.level, ((BlockHitResult)hitResult).getBlockPos());
         }
-        BlockHitResult wild = wildBlockRay(mc.level, player);
-        if (wild.getType() == HitResult.Type.BLOCK
-                && ScanningManager.isThingStillScannable(player, wild.getBlockPos())) {
-            ClientEffects.scanHighlight(mc.level, wild.getBlockPos());
+        if (hitResult instanceof EntityHitResult result && ScanningManager.isThingStillScannable(player, result.getEntity())) {
+            ClientEffects.scanHighlight(result.getEntity());
         }
     }
 
@@ -84,7 +84,7 @@ public final class ThaumometerClientHandler {
         }
         Level level = player.level();
         int elapsed = player.getTicksUsingItem();
-        Object target = ThaumometerItem.resolveTarget(level, player);
+        Object target = ThaumometerItem.resolveTarget(level,player);
         if (!ScanningManager.isThingStillScannable(player, target)) {
             player.stopUsingItem();
             scanTargetKey = null;

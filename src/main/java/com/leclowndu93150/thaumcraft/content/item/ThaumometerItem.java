@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumcraft.api.research.TCResearchEntries;
 import com.leclowndu93150.thaumcraft.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
-import com.leclowndu93150.thaumcraft.content.research.scan.PointedEntityHelper;
+import com.leclowndu93150.thaumcraft.content.research.scan.ScanRaycastHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jspecify.annotations.Nullable;
 
@@ -86,16 +87,9 @@ public final class ThaumometerItem extends Item {
     }
 
     public static @Nullable Object resolveTarget(Level level, Player player) {
-        Entity target = PointedEntityHelper.getPointedEntity(
-                level, player, SCAN_ENTITY_MIN_RANGE, SCAN_ENTITY_RANGE, 0.0F, true);
-        if (target != null) {
-            return target;
-        }
-        BlockHitResult hit = level.clip(new ClipContext(
-                player.getEyePosition(),
-                player.getEyePosition().add(player.getLookAngle().scale(player.blockInteractionRange())),
-                ClipContext.Block.OUTLINE, ClipContext.Fluid.SOURCE_ONLY, player));
-        return hit.getType() == HitResult.Type.BLOCK ? hit.getBlockPos() : null;
+        HitResult hitResult = ScanRaycastHelper.performRaycast(player, ClipContext.Fluid.SOURCE_ONLY);
+        return hitResult.getType() == HitResult.Type.BLOCK ? ((BlockHitResult) hitResult).getBlockPos()
+                : hitResult instanceof EntityHitResult result ? result.getEntity() : null;
     }
 
     @Override
