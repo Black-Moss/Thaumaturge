@@ -1,10 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.casters;
 
+import com.leclowndu93150.thaumcraft.api.casters.FocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
-import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,8 +23,8 @@ public final class FocusElementNode {
             Codec.INT.optionalFieldOf("parent", -1).forGetter(n -> n.parent),
             Codec.INT.listOf().optionalFieldOf("children", List.of()).forGetter(FocusElementNode::childList),
             Codec.FLOAT.optionalFieldOf("complexity", 1.0F).forGetter(n -> n.complexityMultiplier),
-            Identifier.CODEC.optionalFieldOf("key").forGetter(FocusElementNode::nodeKey),
-            Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf("settings", Map.of()).forGetter(FocusElementNode::settingValues)
+            Identifier.CODEC.optionalFieldOf("key").forGetter(n -> Optional.ofNullable(n.element)),
+            Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf("settings", Map.of()).forGetter(n -> n.settings)
     ).apply(inst, FocusElementNode::decode));
 
     public int x;
@@ -33,41 +35,37 @@ public final class FocusElementNode {
     public int parent = -1;
     public int[] children = new int[0];
     public float complexityMultiplier = 1.0F;
-    public @Nullable FocusNode node;
+    public @Nullable Identifier element;
+    public Map<String, Integer> settings = new HashMap<>();
+
+    public @Nullable FocusElement resolve() {
+        return element != null ? FocusEngine.element(element) : null;
+    }
+
+    public FocusSettings resolvedSettings() {
+        FocusElement resolved = resolve();
+        return resolved != null ? FocusSettings.of(resolved, settings) : FocusSettings.empty();
+    }
 
     public float getPower(Map<Integer, FocusElementNode> data) {
-        if (node == null) {
+        FocusElement resolved = resolve();
+        if (resolved == null) {
             return 1.0F;
         }
-        float pow = node.getPowerMultiplier();
+        float pow = resolved.powerMultiplier(resolvedSettings());
         FocusElementNode p = data.get(parent);
-        if (p != null && p.node != null) {
+        if (p != null && p.element != null) {
             pow *= p.getPower(data);
         }
         return pow;
     }
 
     private List<Integer> childList() {
-        List<Integer> list = new java.util.ArrayList<>(children.length);
+        List<Integer> list = new ArrayList<>(children.length);
         for (int c : children) {
             list.add(c);
         }
         return list;
-    }
-
-    private Optional<Identifier> nodeKey() {
-        return node == null ? Optional.empty() : Optional.of(node.getKey());
-    }
-
-    private Map<String, Integer> settingValues() {
-        if (node == null || node.getSettingList() == null || node.getSettingList().isEmpty()) {
-            return Map.of();
-        }
-        Map<String, Integer> values = new java.util.HashMap<>();
-        for (String key : node.getSettingList()) {
-            values.put(key, node.getSettingValue(key));
-        }
-        return values;
     }
 
     private static FocusElementNode decode(int x, int y, int id, boolean target, boolean trajectory, int parent,
@@ -85,17 +83,8 @@ public final class FocusElementNode {
             result.children[i] = children.get(i);
         }
         result.complexityMultiplier = complexity;
-        key.ifPresent(k -> {
-            IFocusElement element = FocusEngine.getElement(k);
-            if (element instanceof FocusNode focusNode) {
-                result.node = focusNode;
-                for (Map.Entry<String, Integer> entry : settings.entrySet()) {
-                    if (focusNode.getSetting(entry.getKey()) != null) {
-                        focusNode.getSetting(entry.getKey()).setValue(entry.getValue());
-                    }
-                }
-            }
-        });
+        result.element = key.orElse(null);
+        result.settings = new HashMap<>(settings);
         return result;
     }
 }

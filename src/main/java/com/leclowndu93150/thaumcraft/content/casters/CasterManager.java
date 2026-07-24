@@ -1,9 +1,12 @@
 package com.leclowndu93150.thaumcraft.content.casters;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.casters.FocusElement;
+import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
+import com.leclowndu93150.thaumcraft.api.casters.FocusUnit;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.items.GogglesAccess;
 import com.leclowndu93150.thaumcraft.api.items.IArchitect;
 import com.leclowndu93150.thaumcraft.compat.curio.ThaumcraftCuriosCompat;
@@ -243,12 +246,29 @@ public final class CasterManager {
     }
 
     private static boolean containsArchitect(FocusPackage core) {
-        for (IFocusElement element : core.getNodes()) {
-            if (element instanceof IArchitect) {
+        for (FocusUnit unit : core.units()) {
+            if (FocusEngine.element(unit.element()) instanceof IArchitect) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static int socketedPlanMethod(ItemStack casterStack) {
+        if (!(casterStack.getItem() instanceof ICaster caster)) {
+            return 0;
+        }
+        FocusPackage core = ItemFocus.getPackage(caster.getFocusStack(casterStack));
+        if (core == null) {
+            return 0;
+        }
+        for (FocusUnit unit : core.units()) {
+            FocusElement element = FocusEngine.element(unit.element());
+            if (element instanceof IArchitect) {
+                return FocusSettings.of(element, unit.settings()).value("method");
+            }
+        }
+        return 0;
     }
 
     private static CasterArea area(ItemStack stack) {

@@ -1,50 +1,47 @@
 package com.leclowndu93150.thaumcraft.content.focus.mod;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.casters.CastContext;
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSplit;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
-import com.leclowndu93150.thaumcraft.api.casters.FocusModSplit;
-import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.Nullable;
 
-public final class FocusModSplitTrajectory extends FocusModSplit {
+public final class FocusModSplitTrajectory implements FocusSplit {
     private static final Identifier KEY = TCIds.rl("split_trajectory");
 
     private static final int COMPLEXITY = 5;
 
     @Override
-    public Identifier getKey() {
+    public Identifier id() {
         return KEY;
     }
 
     @Override
-    public ResearchGate getResearch() {
+    public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_split"), Optional.empty(), false);
     }
 
     @Override
-    public int getComplexity() {
+    public int complexity(FocusSettings settings) {
         return COMPLEXITY;
     }
 
     @Override
-    public EnumSupplyType[] mustBeSupplied() {
-        return new EnumSupplyType[]{EnumSupplyType.TRAJECTORY};
+    public Set<SupplyType> requires() {
+        return SUPPLIES_TRAJECTORIES;
     }
 
     @Override
-    public EnumSupplyType[] willSupply() {
-        return new EnumSupplyType[]{EnumSupplyType.TRAJECTORY};
+    public Set<SupplyType> supplies() {
+        return SUPPLIES_TRAJECTORIES;
     }
 
     @Override
-    public Trajectory @Nullable [] supplyTrajectories() {
-        return getParent().supplyTrajectories();
-    }
-
-    @Override
-    public boolean execute() {
-        return true;
+    public CastStreams branchStreams(CastContext ctx, FocusSettings settings, CastStreams incoming) {
+        return new CastStreams(incoming.trajectories(), null);
     }
 }

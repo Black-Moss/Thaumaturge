@@ -9,11 +9,11 @@ import com.leclowndu93150.thaumcraft.content.aura.node.NodeGenerator;
 import net.minecraft.core.HolderLookup;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
+import com.leclowndu93150.thaumcraft.api.casters.FocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
-import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.content.casters.ItemFocus;
 import com.leclowndu93150.thaumcraft.registry.TCFocusElements;
 import com.leclowndu93150.thaumcraft.api.warp.IPlayerWarp;
@@ -679,30 +679,28 @@ public final class TCCommands {
             ServerPlayer player = ctx.getSource().getPlayerOrException();
             int tier = IntegerArgumentType.getInteger(ctx, "tier");
             String[] tokens = StringArgumentType.getString(ctx, "elements").trim().split("\\s+");
-            FocusPackage core = new FocusPackage(player);
+            FocusPackage.Builder core = FocusPackage.builder().caster(player);
             int complexity = 0;
             for (String token : tokens) {
                 Identifier id = token.contains(":")
                         ? Identifier.parse(token)
                         : Identifier.fromNamespaceAndPath(TCIds.MODID, token);
-                IFocusElement element = FocusEngine.getElement(id);
+                FocusElement element = FocusEngine.element(id);
                 if (element == null) {
                     ctx.getSource().sendFailure(Component.literal("Unknown focus element: " + id));
                     return 0;
                 }
-                if (element instanceof FocusNode node) {
-                    complexity += node.getComplexity();
-                }
-                core.addNode(element);
+                complexity += element.complexity(FocusSettings.defaults(element));
+                core.add(id);
             }
-            core.setComplexity(complexity);
+            core.complexity(complexity);
             ItemFocus focusItem = switch (tier) {
                 case 1 -> TCItems.FOCUS_1.get();
                 case 2 -> TCItems.FOCUS_2.get();
                 default -> TCItems.FOCUS_3.get();
             };
             ItemStack focusStack = new ItemStack(focusItem);
-            ItemFocus.setPackage(focusStack, core);
+            ItemFocus.setPackage(focusStack, core.build());
             int finalComplexity = complexity;
             if (complexity > focusItem.getMaxComplexity()) {
                 ctx.getSource().sendSuccess(() -> Component.literal("Warning: complexity " + finalComplexity

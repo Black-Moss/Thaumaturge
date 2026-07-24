@@ -3,26 +3,21 @@ package com.leclowndu93150.thaumcraft.content.entity;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
+import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
-import com.leclowndu93150.thaumcraft.api.casters.FocusMediumRoot;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
 import com.leclowndu93150.thaumcraft.content.entity.ai.PechItemGoal;
 import com.leclowndu93150.thaumcraft.content.entity.ai.PechTradeGoal;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectAir;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectCurse;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectEarth;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectFire;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectFlux;
-import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumProjectile;
 import com.leclowndu93150.thaumcraft.content.pech.MenuPech;
 import com.leclowndu93150.thaumcraft.registry.TCItems;
 import com.leclowndu93150.thaumcraft.registry.TCSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
@@ -239,35 +234,28 @@ public class EntityPech extends Monster implements RangedAttackMob {
                     1.0F / (this.random.nextFloat() * 0.4F + 0.8F));
             this.level().addFreshEntity(arrow);
         } else if (this.getPechType() == TYPE_MAGE) {
-            FocusPackage pack = new FocusPackage(this);
-            FocusMediumRoot root = new FocusMediumRoot();
             double offset = this.distanceTo(target) / MAGE_BLAST_OFFSET_DIVISOR;
-            root.setupFromCasterToTarget(this, target, offset);
-            pack.addNode(root);
-            FocusMediumProjectile projectile = new FocusMediumProjectile();
-            projectile.initialize();
-            NodeSetting speed = projectile.getSetting("speed");
-            if (speed != null) {
-                speed.setValue(2);
-            }
-            pack.addNode(projectile);
-            pack.addNode(randomMageEffect());
-            FocusEngine.castFocusPackage(this, pack, true);
+            FocusPackage pack = FocusPackage.builder()
+                    .caster(this)
+                    .add(TCIds.rl("projectile"), Map.of("speed", 2))
+                    .add(randomMageEffect())
+                    .build();
+            FocusEngine.cast(this, pack, CastStreams.fromCasterToTarget(this, target, offset));
             this.swing(this.getUsedItemHand());
         }
     }
 
-    private IFocusElement randomMageEffect() {
+    private Identifier randomMageEffect() {
         if (this.random.nextBoolean()) {
-            return new FocusEffectCurse();
+            return TCIds.rl("curse");
         }
         if (this.random.nextBoolean()) {
-            return new FocusEffectFlux();
+            return TCIds.rl("flux");
         }
         if (this.random.nextBoolean()) {
-            return new FocusEffectEarth();
+            return TCIds.rl("earth");
         }
-        return this.random.nextBoolean() ? new FocusEffectAir() : new FocusEffectFire();
+        return this.random.nextBoolean() ? TCIds.rl("air") : TCIds.rl("fire");
     }
 
     @Override

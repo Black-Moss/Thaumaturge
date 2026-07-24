@@ -1,11 +1,8 @@
 package com.leclowndu93150.thaumcraft.registry;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectHellbat;
-import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectPrimal;
+import com.leclowndu93150.thaumcraft.api.casters.FocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.FocusElementType;
-import com.leclowndu93150.thaumcraft.api.casters.FocusMediumRoot;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectAir;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectBreak;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectCurse;
@@ -15,18 +12,20 @@ import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectFire;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectFlux;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectFrost;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectHeal;
+import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectHellbat;
+import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectPrimal;
 import com.leclowndu93150.thaumcraft.content.focus.effect.FocusEffectRift;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumBolt;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumCloud;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumMine;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumPlan;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumProjectile;
+import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumRoot;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumSpellBat;
 import com.leclowndu93150.thaumcraft.content.focus.medium.FocusMediumTouch;
 import com.leclowndu93150.thaumcraft.content.focus.mod.FocusModScatter;
 import com.leclowndu93150.thaumcraft.content.focus.mod.FocusModSplitTarget;
 import com.leclowndu93150.thaumcraft.content.focus.mod.FocusModSplitTrajectory;
-import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -40,62 +39,62 @@ public final class TCFocusElements {
             ELEMENTS.makeRegistry(builder -> builder.sync(false));
 
     public static final DeferredHolder<FocusElementType, FocusElementType> ROOT =
-            element("root", FocusMediumRoot::new, 10066329);
+            element("root", new FocusMediumRoot(), 10066329);
 
     public static final DeferredHolder<FocusElementType, FocusElementType> TOUCH =
-            element("touch", FocusMediumTouch::new, 11371909);
+            element("touch", new FocusMediumTouch(), 11371909);
     public static final DeferredHolder<FocusElementType, FocusElementType> BOLT =
-            element("bolt", FocusMediumBolt::new, 11377029);
+            element("bolt", new FocusMediumBolt(), 11377029);
     public static final DeferredHolder<FocusElementType, FocusElementType> PROJECTILE =
-            element("projectile", FocusMediumProjectile::new, 11382149);
+            element("projectile", new FocusMediumProjectile(), 11382149);
     public static final DeferredHolder<FocusElementType, FocusElementType> CLOUD =
-            element("cloud", FocusMediumCloud::new, 10071429);
+            element("cloud", new FocusMediumCloud(), 10071429);
     public static final DeferredHolder<FocusElementType, FocusElementType> MINE =
-            element("mine", FocusMediumMine::new, 8760709);
+            element("mine", new FocusMediumMine(), 8760709);
     public static final DeferredHolder<FocusElementType, FocusElementType> PLAN =
-            element("plan", FocusMediumPlan::new, 8760728);
+            element("plan", new FocusMediumPlan(), 8760728);
     public static final DeferredHolder<FocusElementType, FocusElementType> SPELLBAT =
-            element("spellbat", FocusMediumSpellBat::new, 8760748);
+            element("spellbat", new FocusMediumSpellBat(), 8760748);
 
     public static final DeferredHolder<FocusElementType, FocusElementType> HELLBAT =
-            element("hellbat", FocusEffectHellbat::new, 14431746);
+            element("hellbat", new FocusEffectHellbat(), 14431746);
 
     public static final DeferredHolder<FocusElementType, FocusElementType> PRIMAL =
-            element("primal", FocusEffectPrimal::new, 10854849);
+            element("primal", new FocusEffectPrimal(), 10854849);
 
     public static final DeferredHolder<FocusElementType, FocusElementType> FIRE =
-            element("fire", FocusEffectFire::new, 16734721);
+            element("fire", new FocusEffectFire(), 16734721);
     public static final DeferredHolder<FocusElementType, FocusElementType> FROST =
-            element("frost", FocusEffectFrost::new, 14811135);
+            element("frost", new FocusEffectFrost(), 14811135);
     public static final DeferredHolder<FocusElementType, FocusElementType> AIR =
-            element("air", FocusEffectAir::new, 16777086);
+            element("air", new FocusEffectAir(), 16777086);
     public static final DeferredHolder<FocusElementType, FocusElementType> EARTH =
-            element("earth", FocusEffectEarth::new, 5685248);
+            element("earth", new FocusEffectEarth(), 5685248);
     public static final DeferredHolder<FocusElementType, FocusElementType> FLUX =
-            element("flux", FocusEffectFlux::new, 8388736);
+            element("flux", new FocusEffectFlux(), 8388736);
     public static final DeferredHolder<FocusElementType, FocusElementType> BREAK =
-            element("break", FocusEffectBreak::new, 9063176);
+            element("break", new FocusEffectBreak(), 9063176);
     public static final DeferredHolder<FocusElementType, FocusElementType> RIFT =
-            element("rift", FocusEffectRift::new, 3084645);
+            element("rift", new FocusEffectRift(), 3084645);
     public static final DeferredHolder<FocusElementType, FocusElementType> EXCHANGE =
-            element("exchange", FocusEffectExchange::new, 5735255);
+            element("exchange", new FocusEffectExchange(), 5735255);
     public static final DeferredHolder<FocusElementType, FocusElementType> CURSE =
-            element("curse", FocusEffectCurse::new, 6946821);
+            element("curse", new FocusEffectCurse(), 6946821);
     public static final DeferredHolder<FocusElementType, FocusElementType> HEAL =
-            element("heal", FocusEffectHeal::new, 14548997);
+            element("heal", new FocusEffectHeal(), 14548997);
 
     public static final DeferredHolder<FocusElementType, FocusElementType> SCATTER =
-            element("scatter", FocusModScatter::new, 10066329);
+            element("scatter", new FocusModScatter(), 10066329);
     public static final DeferredHolder<FocusElementType, FocusElementType> SPLIT_TARGET =
-            element("split_target", FocusModSplitTarget::new, 10066329);
+            element("split_target", new FocusModSplitTarget(), 10066329);
     public static final DeferredHolder<FocusElementType, FocusElementType> SPLIT_TRAJECTORY =
-            element("split_trajectory", FocusModSplitTrajectory::new, 10066329);
+            element("split_trajectory", new FocusModSplitTrajectory(), 10066329);
 
     private TCFocusElements() {}
 
     private static DeferredHolder<FocusElementType, FocusElementType> element(String path,
-            Supplier<? extends IFocusElement> factory, int color) {
-        return ELEMENTS.register(path, () -> new FocusElementType(factory,
+            FocusElement element, int color) {
+        return ELEMENTS.register(path, () -> new FocusElementType(element,
                 TCIds.rl("textures/foci/" + path + ".png"), color));
     }
 

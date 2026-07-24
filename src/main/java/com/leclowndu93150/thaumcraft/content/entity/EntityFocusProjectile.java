@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
@@ -8,6 +9,7 @@ import com.leclowndu93150.thaumcraft.content.effect.Effects;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -59,15 +61,14 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
     private @Nullable Entity target;
     private boolean firstParticle;
     private float lastRenderTick;
-    private @Nullable List<FocusEffect> effects;
+    private @Nullable List<Identifier> effects;
 
     public EntityFocusProjectile(EntityType<? extends EntityFocusProjectile> type, Level level) {
         super(type, level);
     }
 
-    public EntityFocusProjectile(FocusPackage pack, float speed, Trajectory trajectory, int special) {
-        super(TCEntities.FOCUS_PROJECTILE.get(), pack.getCaster().level());
-        LivingEntity caster = pack.getCaster();
+    public EntityFocusProjectile(FocusPackage pack, LivingEntity caster, float speed, Trajectory trajectory, int special) {
+        super(TCEntities.FOCUS_PROJECTILE.get(), caster.level());
         this.focusPackage = pack;
         this.setOwner(caster);
         double width = caster.getBbWidth();
@@ -136,10 +137,10 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         Vec3 previous = new Vec3(this.xOld, this.yOld, this.zOld);
         Vec3 motion = this.getDeltaMovement();
         if (this.focusPackage != null) {
-            this.focusPackage.bindLevel(this.level());
-            FocusEngine.runFocusPackage(this.focusPackage,
+            LivingEntity caster = this.getOwner() instanceof LivingEntity living ? living : null;
+            FocusEngine.run(this.level(), this.focusPackage, caster, new CastStreams(
                     new Trajectory[]{new Trajectory(previous, motion.normalize())},
-                    new HitResult[]{reported});
+                    new HitResult[]{reported}));
         }
         this.discard();
     }
@@ -248,8 +249,8 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         if (this.effects.isEmpty()) {
             return;
         }
-        FocusEffect effect = this.effects.get(this.random.nextInt(this.effects.size()));
-        int color = FocusEngine.getElementColor(effect.getKey());
+        Identifier effectId = this.effects.get(this.random.nextInt(this.effects.size()));
+        int color = FocusEngine.color(effectId);
         float r = ((color >> 16) & 0xFF) / COLOR_DIVISOR;
         float g = ((color >> 8) & 0xFF) / COLOR_DIVISOR;
         float b = (color & 0xFF) / COLOR_DIVISOR;
@@ -263,15 +264,15 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
                         FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
                         r, g, b, FIRE_MOTE_ALPHA, FIRE_MOTE_SCALE),
                 x, y, z, 0.0, 0.0, 0.0);
-        if (this.firstParticle) {
+        if (this.firstParticle && FocusEngine.element(effectId) instanceof FocusEffect effect) {
             this.firstParticle = false;
-            effect.renderParticleFX(this.level(),
-                    x + this.random.nextGaussian() * EFFECT_FX_SPREAD,
-                    y + this.random.nextGaussian() * EFFECT_FX_SPREAD,
-                    z + this.random.nextGaussian() * EFFECT_FX_SPREAD,
-                    this.random.nextGaussian() * EFFECT_FX_MOTION,
-                    this.random.nextGaussian() * EFFECT_FX_MOTION,
-                    this.random.nextGaussian() * EFFECT_FX_MOTION);
+            effect.impactParticles(this.level(),
+                    new Vec3(x + this.random.nextGaussian() * EFFECT_FX_SPREAD,
+                            y + this.random.nextGaussian() * EFFECT_FX_SPREAD,
+                            z + this.random.nextGaussian() * EFFECT_FX_SPREAD),
+                    new Vec3(this.random.nextGaussian() * EFFECT_FX_MOTION,
+                            this.random.nextGaussian() * EFFECT_FX_MOTION,
+                            this.random.nextGaussian() * EFFECT_FX_MOTION));
         }
     }
 }

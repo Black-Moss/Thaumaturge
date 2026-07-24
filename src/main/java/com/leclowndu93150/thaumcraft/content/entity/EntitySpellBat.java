@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
@@ -7,6 +8,7 @@ import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -74,17 +76,17 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
     private @Nullable EntityReference<LivingEntity> owner;
     private @Nullable BlockPos currentFlightTarget;
     private int attackTime;
-    private @Nullable List<FocusEffect> effects;
+    private @Nullable List<Identifier> effects;
     private int color = DEFAULT_COLOR;
 
     public EntitySpellBat(EntityType<? extends EntitySpellBat> type, Level level) {
         super(type, level);
     }
 
-    public EntitySpellBat(FocusPackage pack, boolean friendly) {
-        super(TCEntities.SPELL_BAT.get(), pack.getCaster().level());
+    public EntitySpellBat(FocusPackage pack, LivingEntity caster, boolean friendly) {
+        super(TCEntities.SPELL_BAT.get(), caster.level());
         this.focusPackage = pack;
-        this.setOwner(pack.getCaster());
+        this.setOwner(caster);
         this.setFriendly(friendly);
     }
 
@@ -231,23 +233,25 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
         if (this.effects.isEmpty()) {
             return;
         }
-        FocusEffect effect = this.effects.get(this.random.nextInt(this.effects.size()));
-        effect.renderParticleFX(this.level(),
-                this.getX() + this.random.nextGaussian() * EFFECT_FX_SPREAD,
-                this.getY() + this.getBbHeight() / 2.0F + this.random.nextGaussian() * EFFECT_FX_SPREAD,
-                this.getZ() + this.random.nextGaussian() * EFFECT_FX_SPREAD,
-                0.0, 0.0, 0.0);
+        Identifier effectId = this.effects.get(this.random.nextInt(this.effects.size()));
+        if (FocusEngine.element(effectId) instanceof FocusEffect effect) {
+            effect.impactParticles(this.level(),
+                    new Vec3(this.getX() + this.random.nextGaussian() * EFFECT_FX_SPREAD,
+                            this.getY() + this.getBbHeight() / 2.0F + this.random.nextGaussian() * EFFECT_FX_SPREAD,
+                            this.getZ() + this.random.nextGaussian() * EFFECT_FX_SPREAD),
+                    Vec3.ZERO);
+        }
     }
 
-    private static int averageEffectColor(List<FocusEffect> effects) {
+    private static int averageEffectColor(List<Identifier> effects) {
         if (effects.isEmpty()) {
             return DEFAULT_COLOR;
         }
         int r = 0;
         int g = 0;
         int b = 0;
-        for (FocusEffect effect : effects) {
-            int c = FocusEngine.getElementColor(effect.getKey());
+        for (Identifier effectId : effects) {
+            int c = FocusEngine.color(effectId);
             r += (c >> 16) & 0xFF;
             g += (c >> 8) & 0xFF;
             b += c & 0xFF;
@@ -339,8 +343,8 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
                         target.position().add(0.0, target.getBbHeight() / 2.0F, 0.0));
                 Trajectory trajectory = new Trajectory(this.position(),
                         ray.getLocation().subtract(this.position()));
-                FocusEngine.runFocusPackage(this.focusPackage.copy(currentOwner),
-                        new Trajectory[]{trajectory}, new HitResult[]{ray});
+                FocusEngine.run(this.level(), this.focusPackage, currentOwner, new CastStreams(
+                        new Trajectory[]{trajectory}, new HitResult[]{ray}));
             }
             this.setHealth(this.getHealth() - ATTACK_SELF_DAMAGE);
         }

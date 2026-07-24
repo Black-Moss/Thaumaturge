@@ -6,9 +6,9 @@ import com.leclowndu93150.thaumcraft.api.aura.AuraHelper;
 import com.leclowndu93150.thaumcraft.api.casters.CasterTriggerRegistry;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
+import com.leclowndu93150.thaumcraft.api.casters.FocusUnit;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusBlockPicker;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumcraft.api.items.IArchitect;
 import com.leclowndu93150.thaumcraft.api.wands.IWandRodOnUpdate;
@@ -118,12 +118,8 @@ public class ItemWand extends Item implements ICaster, IArchitect {
             if (core == null) {
                 return InteractionResult.PASS;
             }
-            if (player.isShiftKeyDown()) {
-                for (IFocusElement element : core.getNodes()) {
-                    if (element instanceof IFocusBlockPicker) {
-                        return InteractionResult.PASS;
-                    }
-                }
+            if (player.isShiftKeyDown() && containsElement(core, IFocusBlockPicker.class)) {
+                return InteractionResult.PASS;
             }
             if (!consumeVis(wandStack, player, focus.getVisCost(focusStack), false, level.isClientSide())) {
                 if (player instanceof ServerPlayer serverPlayer) {
@@ -137,7 +133,7 @@ public class ItemWand extends Item implements ICaster, IArchitect {
             if (level.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            FocusEngine.castFocusPackage(player, core);
+            FocusEngine.cast(player, core);
             player.swing(hand);
             return InteractionResult.SUCCESS;
         }
@@ -190,15 +186,19 @@ public class ItemWand extends Item implements ICaster, IArchitect {
     @Override
     public @Nullable BlockState getPickedBlock(ItemStack stack) {
         FocusPackage core = ItemFocus.getPackage(getFocusStack(stack));
-        if (core == null) {
-            return null;
-        }
-        for (IFocusElement element : core.getNodes()) {
-            if (element instanceof IFocusBlockPicker) {
-                return stack.get(TCDataComponents.PICKED_BLOCK.get());
-            }
+        if (core != null && containsElement(core, IFocusBlockPicker.class)) {
+            return stack.get(TCDataComponents.PICKED_BLOCK.get());
         }
         return null;
+    }
+
+    private static boolean containsElement(FocusPackage core, Class<?> marker) {
+        for (FocusUnit unit : core.units()) {
+            if (marker.isInstance(FocusEngine.element(unit.element()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -229,19 +229,15 @@ public class ItemWand extends Item implements ICaster, IArchitect {
         ItemStack focusStack = getFocusStack(stack);
         if (!focusStack.isEmpty() && player.isShiftKeyDown() && blockEntity == null) {
             FocusPackage core = ItemFocus.getPackage(focusStack);
-            if (core != null) {
-                for (IFocusElement element : core.getNodes()) {
-                    if (element instanceof IFocusBlockPicker) {
-                        if (!level.isClientSide()) {
-                            if (!state.isAir()) {
-                                stack.set(TCDataComponents.PICKED_BLOCK.get(), state);
-                            }
-                            return InteractionResult.SUCCESS;
-                        }
-                        player.swing(hand);
-                        return InteractionResult.SUCCESS;
+            if (core != null && containsElement(core, IFocusBlockPicker.class)) {
+                if (!level.isClientSide()) {
+                    if (!state.isAir()) {
+                        stack.set(TCDataComponents.PICKED_BLOCK.get(), state);
                     }
+                    return InteractionResult.SUCCESS;
                 }
+                player.swing(hand);
+                return InteractionResult.SUCCESS;
             }
         }
         return InteractionResult.PASS;
@@ -252,8 +248,8 @@ public class ItemWand extends Item implements ICaster, IArchitect {
         if (core == null) {
             return null;
         }
-        for (IFocusElement element : core.getNodes()) {
-            if (element instanceof IArchitect architect) {
+        for (FocusUnit unit : core.units()) {
+            if (FocusEngine.element(unit.element()) instanceof IArchitect architect) {
                 return architect;
             }
         }

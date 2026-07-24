@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumcraft.content.entity;
 
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusPackage;
@@ -11,6 +12,7 @@ import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -52,17 +54,17 @@ public final class EntityFocusCloud extends Entity implements TraceableEntity, I
     private @Nullable FocusPackage focusPackage;
     private @Nullable EntityReference<LivingEntity> owner;
     private int duration;
-    private @Nullable List<FocusEffect> effects;
+    private @Nullable List<Identifier> effects;
 
     public EntityFocusCloud(EntityType<? extends EntityFocusCloud> type, Level level) {
         super(type, level);
     }
 
-    public EntityFocusCloud(FocusPackage pack, Trajectory trajectory, float radius, int durationSeconds) {
-        super(TCEntities.FOCUS_CLOUD.get(), pack.getCaster().level());
+    public EntityFocusCloud(FocusPackage pack, LivingEntity caster, Trajectory trajectory, float radius, int durationSeconds) {
+        super(TCEntities.FOCUS_CLOUD.get(), caster.level());
         this.focusPackage = pack;
         this.setPos(trajectory.source().x, trajectory.source().y, trajectory.source().z);
-        this.setOwner(pack.getCaster());
+        this.setOwner(caster);
         this.setRadius(radius);
         this.setDuration(durationSeconds);
     }
@@ -179,22 +181,24 @@ public final class EntityFocusCloud extends Entity implements TraceableEntity, I
             return;
         }
         for (int a = 0; a < radius; a++) {
-            FocusEffect effect = this.effects.get(this.random.nextInt(this.effects.size()));
+            Identifier effectId = this.effects.get(this.random.nextInt(this.effects.size()));
             this.level().addParticle(
-                    TCParticles.colorOf(TCParticles.FOCUS_CLOUD, FocusEngine.getElementColor(effect.getKey())),
+                    TCParticles.colorOf(TCParticles.FOCUS_CLOUD, FocusEngine.color(effectId)),
                     this.getX() + this.random.nextGaussian() * radius / 2.0 * PARTICLE_SPREAD_FACTOR,
                     this.getY() + this.random.nextGaussian() * radius / 2.0 * PARTICLE_SPREAD_FACTOR,
                     this.getZ() + this.random.nextGaussian() * radius / 2.0 * PARTICLE_SPREAD_FACTOR,
                     this.random.nextGaussian() * PARTICLE_MOTION,
                     this.random.nextGaussian() * PARTICLE_MOTION,
                     this.random.nextGaussian() * PARTICLE_MOTION);
-            effect.renderParticleFX(this.level(),
-                    this.getX() + this.random.nextGaussian() * radius / 2.0,
-                    this.getY() + this.random.nextGaussian() * radius / 2.0,
-                    this.getZ() + this.random.nextGaussian() * radius / 2.0,
-                    this.random.nextGaussian() * PARTICLE_MOTION,
-                    this.random.nextGaussian() * PARTICLE_MOTION,
-                    this.random.nextGaussian() * PARTICLE_MOTION);
+            if (FocusEngine.element(effectId) instanceof FocusEffect effect) {
+                effect.impactParticles(this.level(),
+                        new Vec3(this.getX() + this.random.nextGaussian() * radius / 2.0,
+                                this.getY() + this.random.nextGaussian() * radius / 2.0,
+                                this.getZ() + this.random.nextGaussian() * radius / 2.0),
+                        new Vec3(this.random.nextGaussian() * PARTICLE_MOTION,
+                                this.random.nextGaussian() * PARTICLE_MOTION,
+                                this.random.nextGaussian() * PARTICLE_MOTION));
+            }
         }
     }
 
@@ -235,9 +239,9 @@ public final class EntityFocusCloud extends Entity implements TraceableEntity, I
         }
         LivingEntity currentOwner = this.getOwner();
         if (!targets.isEmpty() && currentOwner != null && this.focusPackage != null) {
-            FocusEngine.runFocusPackage(this.focusPackage.copy(currentOwner),
+            FocusEngine.run(this.level(), this.focusPackage, currentOwner, new CastStreams(
                     trajectories.toArray(new Trajectory[0]),
-                    targets.toArray(new HitResult[0]));
+                    targets.toArray(new HitResult[0])));
         }
     }
 }

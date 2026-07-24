@@ -3,12 +3,13 @@ package com.leclowndu93150.thaumcraft.content.focus.medium;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
-import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
-import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
+import com.leclowndu93150.thaumcraft.api.casters.CastContext;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
-import com.leclowndu93150.thaumcraft.content.focus.FocusRayTrace;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.effect.Effects;
+import com.leclowndu93150.thaumcraft.content.focus.FocusRayTrace;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
@@ -27,39 +28,38 @@ public class FocusMediumBolt extends FocusMediumTouch {
     private static final float BOLT_WIDTH_FACTOR = 0.66F;
 
     @Override
-    public Identifier getKey() {
+    public Identifier id() {
         return KEY;
     }
 
     @Override
-    public ResearchGate getResearch() {
+    public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_bolt"), Optional.empty(), false);
     }
 
     @Override
-    public int getComplexity() {
+    public int complexity(FocusSettings settings) {
         return COMPLEXITY;
     }
 
     @Override
-    public ResourceKey<IAspect> getAspect() {
+    public ResourceKey<IAspect> aspect() {
         return TCAspects.POTENTIA;
     }
 
     @Override
-    protected double range() {
+    protected double range(CastContext ctx) {
         return BOLT_RANGE;
     }
 
     @Override
-    public boolean execute(Trajectory trajectory) {
+    protected void onTrajectory(CastContext ctx, Trajectory trajectory) {
         Vec3 end = trajectory.direction().normalize();
-        HitResult ray = FocusRayTrace.pointedEntity(getPackage().getLevel(), getPackage().getCaster(),
+        HitResult ray = FocusRayTrace.pointedEntity(ctx.level(), ctx.caster(),
                 trajectory.source(), end, RAY_MIN_RANGE, BOLT_RANGE, RAY_PADDING, false);
         if (ray == null) {
             end = end.scale(BOLT_RANGE).add(trajectory.source());
-            HitResult blockRay = FocusRayTrace.clipBlocks(getPackage().getLevel(), getPackage().getCaster(),
-                    trajectory.source(), end);
+            HitResult blockRay = FocusRayTrace.clipBlocks(ctx.level(), ctx.caster(), trajectory.source(), end);
             if (blockRay.getType() != HitResult.Type.MISS) {
                 end = blockRay.getLocation();
             }
@@ -67,13 +67,13 @@ public class FocusMediumBolt extends FocusMediumTouch {
             end = end.scale(trajectory.source().distanceTo(entityHit.getEntity().position()));
             end = end.add(trajectory.source());
         }
-        List<FocusEffect> effects = getPackage().getFocusEffects();
-        if (!effects.isEmpty() && getPackage().getLevel() instanceof ServerLevel level) {
+        List<Identifier> effects = ctx.effects();
+        if (!effects.isEmpty() && ctx.level() instanceof ServerLevel level) {
             int r = 0;
             int g = 0;
             int b = 0;
-            for (FocusEffect effect : effects) {
-                int color = FocusEngine.getElementColor(effect.getKey());
+            for (Identifier effectId : effects) {
+                int color = FocusEngine.color(effectId);
                 r += (color >> 16) & 0xFF;
                 g += (color >> 8) & 0xFF;
                 b += color & 0xFF;
@@ -84,9 +84,8 @@ public class FocusMediumBolt extends FocusMediumTouch {
             Effects.arcBolt(level, trajectory.source())
                     .to(end)
                     .color((r << 16) | (g << 8) | b)
-                    .width(getPackage().getPower() * BOLT_WIDTH_FACTOR)
+                    .width(ctx.power() * BOLT_WIDTH_FACTOR)
                     .send();
         }
-        return true;
     }
 }

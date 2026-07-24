@@ -1,45 +1,38 @@
 package com.leclowndu93150.thaumcraft.api.casters;
 
+import java.util.Set;
+import org.jspecify.annotations.Nullable;
+
 /**
- * A node that carries the spell from a trajectory to one or more targets, such as touch,
- * projectile, or bolt.
+ * An element that carries the spell from rays to hits, such as touch, bolt, or projectile.
  *
+ * <p>A medium either resolves its output immediately, or defers by launching an
+ * intermediary such as a projectile entity: it spawns the carrier with
+ * {@link CastContext#continuation()} and returns null, which halts the current branch. The
+ * intermediary later resumes the spell through
+ * {@link FocusEngine#run(net.minecraft.world.level.Level, FocusPackage, CastStreams)}.
  *
  * @since 1.0.0
  */
-public abstract class FocusMedium extends FocusNode {
+public non-sealed interface FocusMedium extends FocusElement {
     @Override
-    public final EnumUnitType getType() {
-        return EnumUnitType.MEDIUM;
+    default Set<SupplyType> requires() {
+        return SUPPLIES_TRAJECTORIES;
     }
 
     @Override
-    public EnumSupplyType[] mustBeSupplied() {
-        return new EnumSupplyType[]{EnumSupplyType.TRAJECTORY};
-    }
-
-    @Override
-    public EnumSupplyType[] willSupply() {
-        return new EnumSupplyType[]{EnumSupplyType.TARGET};
+    default Set<SupplyType> supplies() {
+        return SUPPLIES_TARGETS;
     }
 
     /**
-     * Whether this medium resolves its targets later through an intermediary such as a
-     * spawned projectile. When true, the engine stops after this medium and the intermediary
-     * continues the package on arrival via {@link FocusNode#getRemainingPackage()}.
+     * Executes this medium over the incoming streams.
      *
-     * @return true when target resolution is deferred
+     * @param ctx      the execution scope
+     * @param settings the configured settings
+     * @param incoming the streams supplied by the previous node
+     * @return the streams for the next node, or null to halt the branch because target
+     *         resolution was deferred to an intermediary or the medium could not act
      */
-    public boolean hasIntermediary() {
-        return false;
-    }
-
-    /**
-     * Executes this medium along one incoming trajectory, resolving targets or launching an
-     * intermediary.
-     *
-     * @param trajectory the incoming trajectory
-     * @return true when execution succeeded
-     */
-    public abstract boolean execute(Trajectory trajectory);
+    @Nullable CastStreams cast(CastContext ctx, FocusSettings settings, CastStreams incoming);
 }

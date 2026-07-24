@@ -1,50 +1,47 @@
 package com.leclowndu93150.thaumcraft.content.focus.mod;
 
 import com.leclowndu93150.thaumcraft.TCIds;
+import com.leclowndu93150.thaumcraft.api.casters.CastContext;
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSplit;
 import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
-import com.leclowndu93150.thaumcraft.api.casters.FocusModSplit;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.phys.HitResult;
-import org.jspecify.annotations.Nullable;
 
-public final class FocusModSplitTarget extends FocusModSplit {
+public final class FocusModSplitTarget implements FocusSplit {
     private static final Identifier KEY = TCIds.rl("split_target");
 
     private static final int COMPLEXITY = 4;
 
     @Override
-    public Identifier getKey() {
+    public Identifier id() {
         return KEY;
     }
 
     @Override
-    public ResearchGate getResearch() {
+    public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_split"), Optional.empty(), false);
     }
 
     @Override
-    public int getComplexity() {
+    public int complexity(FocusSettings settings) {
         return COMPLEXITY;
     }
 
     @Override
-    public EnumSupplyType[] mustBeSupplied() {
-        return new EnumSupplyType[]{EnumSupplyType.TARGET};
+    public Set<SupplyType> requires() {
+        return SUPPLIES_TARGETS;
     }
 
     @Override
-    public EnumSupplyType[] willSupply() {
-        return new EnumSupplyType[]{EnumSupplyType.TARGET};
+    public Set<SupplyType> supplies() {
+        return SUPPLIES_TARGETS;
     }
 
     @Override
-    public HitResult @Nullable [] supplyTargets() {
-        return getParent().supplyTargets();
-    }
-
-    @Override
-    public boolean execute() {
-        return true;
+    public CastStreams branchStreams(CastContext ctx, FocusSettings settings, CastStreams incoming) {
+        return new CastStreams(null, incoming.targets());
     }
 }

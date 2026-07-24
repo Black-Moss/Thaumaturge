@@ -1,20 +1,22 @@
 package com.leclowndu93150.thaumcraft.content.focus.mod;
 
 import com.leclowndu93150.thaumcraft.TCIds;
-import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumcraft.api.casters.CastContext;
+import com.leclowndu93150.thaumcraft.api.casters.CastStreams;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMod;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
+import com.leclowndu93150.thaumcraft.api.casters.SettingDefinition;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
-public final class FocusModScatter extends FocusMod {
+public final class FocusModScatter implements FocusMod {
     private static final Identifier KEY = TCIds.rl("scatter");
 
     private static final float MIN_COMPLEXITY = 2.0F;
@@ -23,52 +25,48 @@ public final class FocusModScatter extends FocusMod {
     private static final float POWER_FORKS_DIVISOR = 2.0F;
 
     @Override
-    public Identifier getKey() {
+    public Identifier id() {
         return KEY;
     }
 
     @Override
-    public ResearchGate getResearch() {
+    public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_scatter"), Optional.empty(), false);
     }
 
     @Override
-    public int getComplexity() {
+    public int complexity(FocusSettings settings) {
         return (int) Math.max(MIN_COMPLEXITY,
-                2.0F * (getSettingValue("forks") - getSettingValue("cone") / CONE_COMPLEXITY_DIVISOR));
+                2.0F * (settings.value("forks") - settings.value("cone") / CONE_COMPLEXITY_DIVISOR));
     }
 
     @Override
-    public NodeSetting[] createSettings() {
+    public List<SettingDefinition> settings() {
         int[] angles = new int[]{10, 30, 60, 90, 180, 270, 360};
         String[] anglesDesc = new String[]{"10", "30", "60", "90", "180", "270", "360"};
-        return new NodeSetting[]{
-                new NodeSetting("forks", "focus.scatter.forks", new NodeSettingIntRange(2, 10)),
-                new NodeSetting("cone", "focus.scatter.cone", new NodeSettingIntList(angles, anglesDesc))
-        };
+        return List.of(
+                new SettingDefinition("forks", "focus.scatter.forks", new SettingDefinition.IntRange(2, 10)),
+                new SettingDefinition("cone", "focus.scatter.cone", new SettingDefinition.IntList(angles, anglesDesc)));
     }
 
     @Override
-    public EnumSupplyType[] mustBeSupplied() {
-        return new EnumSupplyType[]{EnumSupplyType.TRAJECTORY};
+    public Set<SupplyType> requires() {
+        return SUPPLIES_TRAJECTORIES;
     }
 
     @Override
-    public EnumSupplyType[] willSupply() {
-        return new EnumSupplyType[]{EnumSupplyType.TRAJECTORY};
+    public Set<SupplyType> supplies() {
+        return SUPPLIES_TRAJECTORIES;
     }
 
     @Override
-    public Trajectory[] supplyTrajectories() {
-        if (getParent() == null) {
-            return new Trajectory[0];
-        }
+    public CastStreams modify(CastContext ctx, FocusSettings settings, CastStreams incoming) {
+        Trajectory[] supplied = incoming.trajectories();
         List<Trajectory> out = new ArrayList<>();
-        int forks = getSettingValue("forks");
-        int angle = getSettingValue("cone");
-        Trajectory[] supplied = getParent().supplyTrajectories();
         if (supplied != null) {
-            RandomSource rand = getPackage().getLevel().getRandom();
+            int forks = settings.value("forks");
+            int angle = settings.value("cone");
+            RandomSource rand = ctx.level().getRandom();
             for (Trajectory sT : supplied) {
                 for (int a = 0; a < forks; a++) {
                     Vec3 direction = sT.direction().normalize().add(
@@ -79,21 +77,16 @@ public final class FocusModScatter extends FocusMod {
                 }
             }
         }
-        return out.toArray(new Trajectory[0]);
+        return new CastStreams(out.toArray(new Trajectory[0]), null);
     }
 
     @Override
-    public float getPowerMultiplier() {
-        return 1.0F / (getSettingValue("forks") / POWER_FORKS_DIVISOR);
+    public float powerMultiplier(FocusSettings settings) {
+        return 1.0F / (settings.value("forks") / POWER_FORKS_DIVISOR);
     }
 
     @Override
-    public boolean execute() {
-        return true;
-    }
-
-    @Override
-    public boolean isExclusive() {
+    public boolean exclusive() {
         return true;
     }
 }

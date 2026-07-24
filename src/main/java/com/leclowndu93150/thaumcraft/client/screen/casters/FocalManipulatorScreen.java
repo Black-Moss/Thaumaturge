@@ -3,14 +3,13 @@ package com.leclowndu93150.thaumcraft.client.screen.casters;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
+import com.leclowndu93150.thaumcraft.api.casters.FocusElement;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.api.casters.FocusMedium;
-import com.leclowndu93150.thaumcraft.api.casters.FocusMediumRoot;
-import com.leclowndu93150.thaumcraft.api.casters.FocusModSplit;
-import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
+import com.leclowndu93150.thaumcraft.api.casters.FocusMod;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSplit;
+import com.leclowndu93150.thaumcraft.api.casters.SettingDefinition;
 import com.leclowndu93150.thaumcraft.client.screen.AbstractTCContainerScreen;
 import com.leclowndu93150.thaumcraft.client.screen.widget.TCImageButton;
 import com.leclowndu93150.thaumcraft.content.casters.BlockEntityFocalManipulator;
@@ -373,14 +372,14 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             if (++count - 1 < partsStart) {
                 continue;
             }
-            IFocusElement element = FocusEngine.getElement(key);
-            if (element instanceof FocusNode node) {
+            FocusElement element = FocusEngine.element(key);
+            if (element != null) {
                 boolean hover = isHovering(PART_HOVER_X, PART_HOVER_Y + PART_HOVER_SPACING * index,
                         PART_HOVER_SIZE, PART_HOVER_SIZE, mouseX, mouseY);
-                float scale = node.getType() == IFocusElement.EnumUnitType.MOD ? 24.0F : 32.0F;
-                drawPart(graphics, node, leftPos + PART_LIST_X, topPos + PART_LIST_Y + PART_DRAW_SPACING * index, scale, hover);
+                float scale = element instanceof FocusMod || element instanceof FocusSplit ? 24.0F : 32.0F;
+                drawPart(graphics, key, element, leftPos + PART_LIST_X, topPos + PART_LIST_Y + PART_DRAW_SPACING * index, scale, hover);
                 if (hover) {
-                    graphics.setComponentTooltipForNextFrame(font, genPartText(node, -1), mouseX, mouseY);
+                    graphics.setComponentTooltipForNextFrame(font, genPartText(key, element, -1), mouseX, mouseY);
                 }
             }
             if (++index >= PARTS_SHOWN) {
@@ -402,9 +401,10 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             if (mouseover && fn.parent >= 0) {
                 hover = fn.id;
             }
-            if (fn.node != null) {
+            FocusElement fnElement = fn.resolve();
+            if (fn.element != null && fnElement != null) {
                 if (inClipRegion(xx - leftPos - 8, yy - topPos - 8, NODE_CLIP_X, NODE_CLIP_Y, NODE_CLIP_W, NODE_CLIP_H)) {
-                    drawPart(graphics, fn.node, xx, yy, 32.0F, mouseover);
+                    drawPart(graphics, fn.element, fnElement, xx, yy, 32.0F, mouseover);
                 }
             } else {
                 drawClippedRect(graphics, TEX, xx - 12, yy - 12, U_BLANK, V_NODE_CHROME, NODE_CHROME_SIZE, NODE_CHROME_SIZE);
@@ -415,7 +415,7 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             FocusElementNode parent = table.data.get(fn.parent);
             if (parent != null) {
                 drawClippedRect(graphics, TEX, xx - 6, yy - 22, U_LINK, V_NODE_CHROME, LINK_SIZE, LINK_SIZE);
-                if (parent.node instanceof FocusModSplit) {
+                if (parent.resolve() instanceof FocusSplit) {
                     int q = Math.abs(fn.x - parent.x);
                     for (int a = 0; a < q; a++) {
                         if (fn.x < parent.x) {
@@ -431,7 +431,7 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
                         }
                     }
                 }
-                if (fn.node == null) {
+                if (fn.element == null) {
                     int s = parent.target && parent.trajectory ? 4 : 0;
                     if (inClipRegion(xx - leftPos - 4, yy - topPos - 4, NODE_CLIP_X, NODE_CLIP_Y, 168, NODE_CLIP_H)) {
                         if (parent.target) {
@@ -452,8 +452,8 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         lastNodeHover = hover;
         if (hover >= 0) {
             FocusElementNode fn = table.data.get(hover);
-            if (fn != null && fn.node != null) {
-                graphics.setComponentTooltipForNextFrame(font, genPartText(fn.node, hover), mouseX, mouseY);
+            if (fn != null && fn.element != null && fn.resolve() != null) {
+                graphics.setComponentTooltipForNextFrame(font, genPartText(fn.element, fn.resolve(), hover), mouseX, mouseY);
             }
         }
     }
@@ -468,20 +468,20 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         return px >= x && px < x + w && py >= y && py < y + h;
     }
 
-    private void drawPart(GuiGraphicsExtractor graphics, FocusNode node, int x, int y, float scale, boolean mouseover) {
-        boolean big = node.getType() == IFocusElement.EnumUnitType.MOD || node instanceof FocusMediumRoot;
+    private void drawPart(GuiGraphicsExtractor graphics, Identifier key, FocusElement element, int x, int y, float scale, boolean mouseover) {
+        boolean big = element instanceof FocusMod || element instanceof FocusSplit || key.equals(ROOT_KEY);
         if (big) {
             scale *= 2.0F;
         }
-        int color = 0xFF000000 | FocusEngine.getElementColor(node.getKey());
+        int color = 0xFF000000 | FocusEngine.color(key);
         float backSize = scale * 0.9F + (mouseover ? 2 : 0);
-        if (node.getType() == IFocusElement.EnumUnitType.EFFECT) {
+        if (element instanceof FocusEffect) {
             blitCentered(graphics, ICON_EFFECT, x, y, backSize, color);
-        } else if (node.getType() == IFocusElement.EnumUnitType.MEDIUM && !big) {
+        } else if (element instanceof FocusMedium && !big) {
             blitCentered(graphics, ICON_MEDIUM, x, y, backSize, color);
         }
         float iconSize = scale / 2.0F + (mouseover ? 2 : 0);
-        blitCentered(graphics, FocusEngine.getElementIcon(node.getKey()), x, y, iconSize, 0xFFFFFFFF);
+        blitCentered(graphics, FocusEngine.icon(key), x, y, iconSize, 0xFFFFFFFF);
     }
 
     private static void blitCentered(GuiGraphicsExtractor graphics, Identifier texture, int cx, int cy, float size, int color) {
@@ -490,21 +490,22 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         graphics.blit(RenderPipelines.GUI_TEXTURED, texture, cx - half, cy - half, 0.0F, 0.0F, s, s, 32, 32, 32, 32, color);
     }
 
-    private List<Component> genPartText(FocusNode node, int idx) {
+    private List<Component> genPartText(Identifier key, FocusElement element, int idx) {
         List<Component> list = new ArrayList<>();
         FocusElementNode placed = idx >= 0 && table != null ? table.data.get(idx) : null;
-        list.add(Component.translatable(node.getNameKey()));
-        list.add(Component.translatable(node.getDescriptionKey()).withStyle(ChatFormatting.DARK_PURPLE));
-        int c = node.getComplexity();
+        FocusSettings settings = placed != null ? placed.resolvedSettings() : FocusSettings.defaults(element);
+        list.add(Component.translatable(element.nameKey()));
+        list.add(Component.translatable(element.descriptionKey()).withStyle(ChatFormatting.DARK_PURPLE));
+        int c = element.complexity(settings);
         if (placed != null) {
-            c = (int) (node.getComplexity() * placed.complexityMultiplier);
+            c = (int) (c * placed.complexityMultiplier);
         }
         Component complexity = Component.translatable("gui.thaumcraft.wandtable.part_complexity")
                 .append(Component.literal(" " + c)
                         .withStyle(placed != null && placed.complexityMultiplier > 1.0F ? ChatFormatting.RED : ChatFormatting.GOLD))
                 .withStyle(ChatFormatting.GOLD);
         list.add(complexity);
-        float p = node.getPowerMultiplier();
+        float p = element.powerMultiplier(settings);
         if (placed != null && table != null) {
             p = placed.getPower(table.data);
         }
@@ -514,8 +515,9 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
                             .withStyle(p < 1.0F ? ChatFormatting.RED : ChatFormatting.GREEN))
                     .withStyle(ChatFormatting.GOLD));
         }
-        if (node instanceof FocusEffect effect) {
-            float d = effect.getDamageForDisplay(placed == null || table == null ? 1.0F : placed.getPower(table.data));
+        if (element instanceof FocusEffect effect) {
+            float d = effect.damageForDisplay(settings,
+                    placed == null || table == null ? 1.0F : placed.getPower(table.data));
             if (d > 0.0F) {
                 list.add(Component.translatable("attribute.modifier.equals.0", format.format(d),
                         Component.translatable("attribute.name.attack_damage")).withStyle(ChatFormatting.DARK_RED));
@@ -554,10 +556,10 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             if (lastNodeHover >= 0) {
                 selectedNode = lastNodeHover;
                 FocusElementNode fn = table.data.get(selectedNode);
-                if (button == 1 && fn != null && fn.node != null) {
+                if (button == 1 && fn != null && fn.element != null) {
                     FocusElementNode parent = table.data.get(fn.parent);
-                    if (parent != null && parent.node != null) {
-                        addNodeAt(parent.node.getKey(), fn.parent, true);
+                    if (parent != null && parent.element != null) {
+                        addNodeAt(parent.element, fn.parent, true);
                     }
                 }
                 gatherInfo(false);
@@ -685,22 +687,25 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         if (table.data.containsKey(idx)) {
             cullChildren(idx);
             FocusElementNode existing = table.data.get(idx);
-            if (existing.node != null && existing.node.getKey().equals(elementKey)) {
+            if (existing.element != null && existing.element.equals(elementKey)) {
                 same = true;
             } else {
                 previous = table.data.remove(idx);
             }
         }
         FocusElementNode fn;
-        FocusNode node;
+        FocusElement element;
         if (!same) {
-            IFocusElement element = FocusEngine.getElement(elementKey);
-            if (!(element instanceof FocusNode created)) {
+            FocusElement created = FocusEngine.element(elementKey);
+            if (created == null) {
                 return;
             }
             fn = new FocusElementNode();
-            node = created;
-            fn.node = node;
+            element = created;
+            fn.element = elementKey;
+            for (SettingDefinition definition : created.settings()) {
+                fn.settings.put(definition.key(), definition.defaultValue());
+            }
             if (previous != null) {
                 fn.x = previous.x;
                 fn.y = previous.y;
@@ -717,15 +722,15 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
                     }
                 }
             }
-            fn.target = node.canSupply(FocusNode.EnumSupplyType.TARGET);
-            fn.trajectory = node.canSupply(FocusNode.EnumSupplyType.TRAJECTORY);
+            fn.target = element.supplies().contains(FocusElement.SupplyType.TARGET);
+            fn.trajectory = element.supplies().contains(FocusElement.SupplyType.TRAJECTORY);
             table.data.put(fn.id, fn);
         } else {
             fn = table.data.get(idx);
-            node = fn.node;
+            element = fn.resolve();
         }
         if (fn.target || fn.trajectory) {
-            if (node instanceof FocusModSplit) {
+            if (element instanceof FocusSplit) {
                 FocusElementNode blank1 = new FocusElementNode();
                 blank1.parent = fn.id;
                 blank1.id = getNextId();
@@ -810,7 +815,7 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         }
         int fsi = -1;
         for (FocusElementNode node : table.data.values()) {
-            if (fsi < 0 && node.node instanceof FocusModSplit) {
+            if (fsi < 0 && node.resolve() instanceof FocusSplit) {
                 fsi = node.id;
             }
         }
@@ -820,9 +825,9 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             moveNodes(table.data.get(fsi), bounds[0] / 2);
         }
         for (FocusElementNode node : table.data.values()) {
-            if (node.node instanceof FocusModSplit) {
+            if (node.resolve() instanceof FocusSplit) {
                 FocusElementNode parent = table.data.get(node.parent);
-                if (parent != null && parent.node != null && !(parent.node instanceof FocusModSplit)) {
+                if (parent != null && parent.element != null && !(parent.resolve() instanceof FocusSplit)) {
                     node.x = parent.x;
                 } else if (node.children.length > 0) {
                     int xx = 0;
@@ -868,39 +873,41 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         boolean hasExclusive = false;
         boolean hasMedium = false;
         for (FocusElementNode fn : table.data.values()) {
-            if (fn.node instanceof FocusMedium medium) {
-                hasMedium = !(fn.node instanceof FocusMediumRoot);
-                if (medium.isExclusive()) {
+            FocusElement placed = fn.resolve();
+            if (placed instanceof FocusMedium) {
+                hasMedium = !ROOT_KEY.equals(fn.element);
+                if (placed.exclusive()) {
                     hasExclusive = true;
                     break;
                 }
             }
-            if (fn.node != null && fn.node.isExclusive()) {
-                excluded.add(fn.node.getKey());
+            if (placed != null && placed.exclusive()) {
+                excluded.add(fn.element);
             }
         }
         FocusElementNode node = table.data.get(selectedNode);
         FocusElementNode parent = table.data.get(node.parent);
-        if (parent == null || parent.node == null) {
+        if (parent == null || parent.resolve() == null) {
             return;
         }
+        FocusElement parentElement = parent.resolve();
         for (Identifier key : TCFocusElements.registry().keySet()) {
             if (key.equals(ROOT_KEY)) {
                 continue;
             }
-            IFocusElement element = FocusEngine.getElement(key);
-            if (!(element instanceof FocusNode fn)) {
+            FocusElement element = FocusEngine.element(key);
+            if (element == null) {
                 continue;
             }
-            if (!ResearchManager.doesPassGate(minecraft.player, element.getResearch())) {
+            if (!ResearchManager.doesPassGate(minecraft.player, element.research())) {
                 continue;
             }
-            if (excluded.contains(fn.getKey()) || fn.mustBeSupplied() == null) {
+            if (excluded.contains(key) || element.requires().isEmpty()) {
                 continue;
             }
             boolean supplied = false;
-            for (FocusNode.EnumSupplyType type : fn.mustBeSupplied()) {
-                if (parent.node.canSupply(type)) {
+            for (FocusElement.SupplyType type : element.requires()) {
+                if (parentElement.supplies().contains(type)) {
                     supplied = true;
                     break;
                 }
@@ -908,15 +915,14 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             if (!supplied) {
                 continue;
             }
-            switch (element.getType()) {
-                case EFFECT -> pEff.add(key);
-                case MEDIUM -> {
-                    if (!hasExclusive && (!((FocusMedium) element).isExclusive() || !hasMedium)) {
-                        pMed.add(key);
-                    }
+            if (element instanceof FocusEffect) {
+                pEff.add(key);
+            } else if (element instanceof FocusMedium) {
+                if (!hasExclusive && (!element.exclusive() || !hasMedium)) {
+                    pMed.add(key);
                 }
-                case MOD -> pMod.add(key);
-                default -> { }
+            } else {
+                pMod.add(key);
             }
         }
         Collections.sort(pMed);
@@ -948,16 +954,17 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             return;
         }
         FocusElementNode selected = table.data.get(selectedNode);
-        if (selected != null && selected.node != null && !selected.node.getSettingList().isEmpty()) {
+        FocusElement selectedElement = selected != null ? selected.resolve() : null;
+        if (selected != null && selectedElement != null && !selectedElement.settings().isEmpty()) {
             int a = 0;
-            int settingCount = selected.node.getSettingList().size();
-            for (String settingKey : selected.node.getSettingList()) {
-                NodeSetting setting = selected.node.getSetting(settingKey);
-                int w = setting.getType() instanceof NodeSettingIntList ? 72 : 32;
+            List<SettingDefinition> definitions = selectedElement.settings();
+            int settingCount = definitions.size();
+            for (SettingDefinition definition : definitions) {
+                int w = definition.values() instanceof SettingDefinition.IntList ? 72 : 32;
                 FocusSettingSpinner spinner = new FocusSettingSpinner(
                         leftPos + imageWidth,
                         topPos + imageHeight + 3 - settingCount * 26 + a * 26,
-                        w, setting, () -> gatherInfo(true));
+                        w, definition, selected.settings, () -> gatherInfo(true));
                 spinners.add(spinner);
                 addRenderableWidget(spinner);
                 a++;
@@ -979,13 +986,14 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         Map<String, Integer> compCount = new HashMap<>();
         Map<ResourceKey<IAspect>, Integer> crystalAspects = new LinkedHashMap<>();
         for (FocusElementNode fn : table.data.values()) {
-            if (fn.node != null) {
-                int a = compCount.getOrDefault(fn.node.getKey().toString(), 0);
+            FocusElement placed = fn.resolve();
+            if (placed != null) {
+                int a = compCount.getOrDefault(fn.element.toString(), 0);
                 fn.complexityMultiplier = 0.5F * (++a + 1);
-                compCount.put(fn.node.getKey().toString(), a);
-                totalComplexity = (int) (totalComplexity + fn.node.getComplexity() * fn.complexityMultiplier);
-                if (fn.node.getAspect() != null) {
-                    crystalAspects.merge(fn.node.getAspect(), 1, Integer::sum);
+                compCount.put(fn.element.toString(), a);
+                totalComplexity = (int) (totalComplexity + placed.complexity(fn.resolvedSettings()) * fn.complexityMultiplier);
+                if (placed.aspect() != null) {
+                    crystalAspects.merge(placed.aspect(), 1, Integer::sum);
                 }
             } else {
                 emptyNodes = true;

@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumcraft.client.network;
 
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
 import com.leclowndu93150.thaumcraft.network.effect.ClientboundFocusImpactPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -43,22 +42,21 @@ public final class FocusImpactClientHandler {
         int amount = Math.max(1, budget / payload.parts().size());
         RandomSource rand = level.getRandom();
         for (Identifier key : payload.parts()) {
-            IFocusElement element = FocusEngine.getElement(key);
-            if (!(element instanceof FocusEffect effect)) {
+            if (!(FocusEngine.element(key) instanceof FocusEffect effect)) {
                 continue;
             }
             for (int a = 0; a < amount; a++) {
                 if (payload.burst()) {
-                    effect.renderParticleFX(level, origin.x, origin.y, origin.z,
-                            payload.mx() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
-                            payload.my() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
-                            payload.mz() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
-                            casterVelocity.x, casterVelocity.y, casterVelocity.z);
+                    effect.impactParticles(level, origin,
+                            new Vec3(payload.mx() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
+                                    payload.my() + rand.nextGaussian() / BURST_JITTER_DIVISOR,
+                                    payload.mz() + rand.nextGaussian() / BURST_JITTER_DIVISOR),
+                            casterVelocity);
                 } else {
-                    effect.renderParticleFX(level, origin.x, origin.y, origin.z,
-                            rand.nextGaussian() * IMPACT_SPREAD,
-                            rand.nextGaussian() * IMPACT_SPREAD,
-                            rand.nextGaussian() * IMPACT_SPREAD);
+                    effect.impactParticles(level, origin,
+                            new Vec3(rand.nextGaussian() * IMPACT_SPREAD,
+                                    rand.nextGaussian() * IMPACT_SPREAD,
+                                    rand.nextGaussian() * IMPACT_SPREAD));
                 }
             }
         }

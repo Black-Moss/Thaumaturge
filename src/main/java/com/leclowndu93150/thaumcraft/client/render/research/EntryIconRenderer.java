@@ -3,8 +3,9 @@ package com.leclowndu93150.thaumcraft.client.render.research;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEngine;
 import com.leclowndu93150.thaumcraft.client.effect.pipeline.TCRenderPipelines;
-import com.leclowndu93150.thaumcraft.api.casters.FocusNode;
-import com.leclowndu93150.thaumcraft.api.casters.IFocusElement;
+import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
+import com.leclowndu93150.thaumcraft.api.casters.FocusElement;
+import com.leclowndu93150.thaumcraft.api.casters.FocusMedium;
 import com.leclowndu93150.thaumcraft.api.research.IResearchEntry;
 import com.leclowndu93150.thaumcraft.api.research.IResearchStage;
 import com.leclowndu93150.thaumcraft.api.research.ResearchEntryMeta;
@@ -193,18 +194,18 @@ public final class EntryIconRenderer {
     public record FocusIcon(Identifier elementId) {}
 
     public static void drawFocusIcon(GuiGraphicsExtractor graphics, int centerX, int centerY, Identifier elementId, boolean locked) {
-        IFocusElement element = FocusEngine.getElement(elementId);
-        if (!(element instanceof FocusNode node)) {
+        FocusElement element = FocusEngine.element(elementId);
+        if (element == null) {
             return;
         }
-        int color = (FOCUS_BACK_ALPHA << 24) | (FocusEngine.getElementColor(elementId) & 0x00FFFFFF);
-        if (node.getType() == IFocusElement.EnumUnitType.EFFECT) {
+        int color = (FOCUS_BACK_ALPHA << 24) | (FocusEngine.color(elementId) & 0x00FFFFFF);
+        if (element instanceof FocusEffect) {
             blitCentered(graphics, FOCUS_EFFECT_BACK, centerX, centerY, Math.round(FOCUS_PART_SCALE * 0.9F), color);
-        } else if (node.getType() == IFocusElement.EnumUnitType.MEDIUM) {
+        } else if (element instanceof FocusMedium) {
             blitCentered(graphics, FOCUS_MEDIUM_BACK, centerX, centerY, Math.round(FOCUS_PART_SCALE * 0.9F), color);
         }
         int glyphAlpha = locked ? FOCUS_GLYPH_LOCKED_ALPHA : FOCUS_GLYPH_ALPHA;
-        Identifier glyph = FocusEngine.getElementIcon(elementId);
+        Identifier glyph = FocusEngine.icon(elementId);
         if (glyph != null) {
             blitCentered(graphics, glyph, centerX, centerY, Math.round(FOCUS_PART_SCALE / 2.0F), (glyphAlpha << 24) | 0x00FFFFFF);
         }

@@ -1,31 +1,20 @@
 package com.leclowndu93150.thaumcraft.api.casters;
 
-import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
-import net.minecraft.resources.ResourceKey;
-import org.jspecify.annotations.Nullable;
-
 /**
- * A node that alters how the rest of the package executes, such as splitting the spell into
- * branches or scattering its trajectories.
- *
+ * An element that transforms the streams flowing to the nodes after it, such as scattering
+ * one trajectory into a cone of many.
  *
  * @since 1.0.0
  */
-public abstract class FocusMod extends FocusNode {
-    @Override
-    public final EnumUnitType getType() {
-        return EnumUnitType.MOD;
-    }
-
+public non-sealed interface FocusMod extends FocusElement {
     /**
-     * Executes this modifier's transformation.
+     * Transforms the incoming streams. The result replaces both streams entirely; a null
+     * array in the result clears that stream for the following nodes.
      *
-     * @return true when the modifier did something
+     * @param ctx      the execution scope
+     * @param settings the configured settings
+     * @param incoming the streams supplied by the previous node
+     * @return the streams for the next node, never null
      */
-    public abstract boolean execute();
-
-    @Override
-    public @Nullable ResourceKey<IAspect> getAspect() {
-        return null;
-    }
+    CastStreams modify(CastContext ctx, FocusSettings settings, CastStreams incoming);
 }

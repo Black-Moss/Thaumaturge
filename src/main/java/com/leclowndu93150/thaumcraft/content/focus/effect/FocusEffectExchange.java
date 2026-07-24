@@ -3,23 +3,24 @@ package com.leclowndu93150.thaumcraft.content.focus.effect;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
-import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumcraft.api.casters.CastContext;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
 import com.leclowndu93150.thaumcraft.api.casters.ICaster;
 import com.leclowndu93150.thaumcraft.api.casters.IFocusBlockPicker;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
+import com.leclowndu93150.thaumcraft.api.casters.SettingDefinition;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumcraft.content.particle.ShieldSparkParticleOptions;
-import net.minecraft.util.ARGB;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,9 +28,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class FocusEffectExchange extends FocusEffect implements IFocusBlockPicker {
+public final class FocusEffectExchange implements FocusEffect, IFocusBlockPicker {
     private static final Identifier KEY = TCIds.rl("exchange");
 
     private static final int BASE_COMPLEXITY = 5;
@@ -39,40 +41,39 @@ public final class FocusEffectExchange extends FocusEffect implements IFocusBloc
     private static final float BASE_VIS_COST = 0.25F;
     private static final float SILK_VIS_COST = 0.25F;
     private static final float FORTUNE_VIS_COST = 0.1F;
-    private static final int PARTICLE_START = 448;
-    private static final int PARTICLE_NUM = 9;
 
     @Override
-    public Identifier getKey() {
+    public Identifier id() {
         return KEY;
     }
 
     @Override
-    public ResearchGate getResearch() {
+    public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_exchange"), Optional.empty(), false);
     }
 
     @Override
-    public ResourceKey<IAspect> getAspect() {
+    public ResourceKey<IAspect> aspect() {
         return TCAspects.PERMUTATIO;
     }
 
     @Override
-    public int getComplexity() {
-        return BASE_COMPLEXITY + getSettingValue("silk") * SILK_COMPLEXITY_FACTOR + getSettingValue("fortune") == 0
+    public int complexity(FocusSettings settings) {
+        return BASE_COMPLEXITY + settings.value("silk") * SILK_COMPLEXITY_FACTOR + settings.value("fortune") == 0
                 ? 0
-                : (getSettingValue("fortune") + 1) * FORTUNE_COMPLEXITY_FACTOR;
+                : (settings.value("fortune") + 1) * FORTUNE_COMPLEXITY_FACTOR;
     }
 
     @Override
-    public boolean execute(HitResult target, @Nullable Trajectory trajectory, float finalPower, int num) {
+    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target,
+            @Nullable Trajectory trajectory, int index) {
         if (!(target instanceof BlockHitResult blockHit)) {
             return false;
         }
-        if (!(getPackage().getLevel() instanceof ServerLevel level)) {
+        if (!(ctx.level() instanceof ServerLevel level)) {
             return false;
         }
-        LivingEntity caster = getPackage().getCaster();
+        LivingEntity caster = ctx.caster();
         if (caster == null) {
             return false;
         }
@@ -85,8 +86,8 @@ public final class FocusEffectExchange extends FocusEffect implements IFocusBloc
         if (casterStack.isEmpty()) {
             return false;
         }
-        boolean silk = getSettingValue("silk") > 0;
-        int fortune = getSettingValue("fortune");
+        boolean silk = settings.value("silk") > 0;
+        int fortune = settings.value("fortune");
         BlockState picked = ((ICaster) casterStack.getItem()).getPickedBlock(casterStack);
         if (caster instanceof Player player && picked != null && !picked.isAir()) {
             BlockBreakerEngine.addSwapper(level, blockHit.getBlockPos(),
@@ -98,28 +99,26 @@ public final class FocusEffectExchange extends FocusEffect implements IFocusBloc
     }
 
     @Override
-    public NodeSetting[] createSettings() {
+    public List<SettingDefinition> settings() {
         int[] silk = new int[]{0, 1};
         String[] silkDesc = new String[]{"focus.common.no", "focus.common.yes"};
         int[] fortune = new int[]{0, 1, 2, 3, 4};
         String[] fortuneDesc = new String[]{"focus.common.no", "I", "II", "III", "IV"};
-        return new NodeSetting[]{
-                new NodeSetting("fortune", "focus.common.fortune", new NodeSettingIntList(fortune, fortuneDesc)),
-                new NodeSetting("silk", "focus.common.silk", new NodeSettingIntList(silk, silkDesc))
-        };
+        return List.of(
+                new SettingDefinition("fortune", "focus.common.fortune", new SettingDefinition.IntList(fortune, fortuneDesc)),
+                new SettingDefinition("silk", "focus.common.silk", new SettingDefinition.IntList(silk, silkDesc)));
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
-            double dx, double dy, double dz) {
+    public void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
         float shade = 0.25F + level.getRandom().nextFloat() * 0.25F;
         ShieldSparkParticleOptions data = new ShieldSparkParticleOptions(
                 ARGB.colorFromFloat(1.0F, shade, shade, shade), 0.6F, 0.5F, 9, true);
-        level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
+        level.addParticle(data, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0);
     }
 
     @Override
-    public void onCast(Entity caster) {
+    public void onCast(LivingEntity caster) {
         caster.level().playSound(null, caster.blockPosition().above(), SoundEvents.ENCHANTMENT_TABLE_USE,
                 SoundSource.PLAYERS, 0.2F, 2.0F + (float) (caster.level().getRandom().nextGaussian() * 0.05F));
     }

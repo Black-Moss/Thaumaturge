@@ -3,16 +3,17 @@ package com.leclowndu93150.thaumcraft.content.focus.effect;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.TCAspects;
-import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumcraft.api.casters.CastContext;
 import com.leclowndu93150.thaumcraft.api.casters.FocusEffect;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSetting;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntList;
-import com.leclowndu93150.thaumcraft.api.casters.NodeSettingIntRange;
+import com.leclowndu93150.thaumcraft.api.casters.FocusSettings;
+import com.leclowndu93150.thaumcraft.api.casters.SettingDefinition;
 import com.leclowndu93150.thaumcraft.api.casters.Trajectory;
+import com.leclowndu93150.thaumcraft.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumcraft.content.focus.BlockEntityHole;
 import com.leclowndu93150.thaumcraft.content.particle.RiftShardParticleOptions;
 import com.leclowndu93150.thaumcraft.registry.TCBlockTags;
 import com.leclowndu93150.thaumcraft.registry.TCBlocks;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,16 +21,17 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class FocusEffectRift extends FocusEffect {
+public final class FocusEffectRift implements FocusEffect {
     private static final Identifier KEY = TCIds.rl("rift");
 
     private static final int BASE_COMPLEXITY = 3;
@@ -37,37 +39,37 @@ public final class FocusEffectRift extends FocusEffect {
     private static final int DEPTH_COMPLEXITY_DIVISOR = 4;
     private static final int DURATION_TICKS_FACTOR = 20;
     private static final float INDESTRUCTIBLE = -1.0F;
-    private static final int PARTICLE_START_BASE = 384;
 
     @Override
-    public Identifier getKey() {
+    public Identifier id() {
         return KEY;
     }
 
     @Override
-    public ResearchGate getResearch() {
+    public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_rift"), Optional.empty(), false);
     }
 
     @Override
-    public ResourceKey<IAspect> getAspect() {
+    public ResourceKey<IAspect> aspect() {
         return TCAspects.ALIENIS;
     }
 
     @Override
-    public int getComplexity() {
-        return BASE_COMPLEXITY + getSettingValue("duration") / DURATION_COMPLEXITY_DIVISOR
-                + getSettingValue("depth") / DEPTH_COMPLEXITY_DIVISOR;
+    public int complexity(FocusSettings settings) {
+        return BASE_COMPLEXITY + settings.value("duration") / DURATION_COMPLEXITY_DIVISOR
+                + settings.value("depth") / DEPTH_COMPLEXITY_DIVISOR;
     }
 
     @Override
-    public boolean execute(HitResult target, @Nullable Trajectory trajectory, float finalPower, int num) {
+    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target,
+            @Nullable Trajectory trajectory, int index) {
         if (!(target instanceof BlockHitResult blockHit)) {
             return false;
         }
-        Level level = getPackage().getLevel();
-        float maxdis = getSettingValue("depth") * finalPower;
-        int dur = DURATION_TICKS_FACTOR * getSettingValue("duration");
+        Level level = ctx.level();
+        float maxdis = settings.value("depth") * ctx.power();
+        int dur = DURATION_TICKS_FACTOR * settings.value("duration");
         int distance = 0;
         BlockPos pos = blockHit.getBlockPos();
         for (distance = 0; distance < maxdis; distance++) {
@@ -105,24 +107,23 @@ public final class FocusEffectRift extends FocusEffect {
     }
 
     @Override
-    public NodeSetting[] createSettings() {
+    public List<SettingDefinition> settings() {
         int[] depth = new int[]{8, 16, 24, 32};
         String[] depthDesc = new String[]{"8", "16", "24", "32"};
-        return new NodeSetting[]{
-                new NodeSetting("depth", "focus.rift.depth", new NodeSettingIntList(depth, depthDesc)),
-                new NodeSetting("duration", "focus.common.duration", new NodeSettingIntRange(2, 10))
-        };
+        return List.of(
+                new SettingDefinition("depth", "focus.rift.depth", new SettingDefinition.IntList(depth, depthDesc)),
+                new SettingDefinition("duration", "focus.common.duration", new SettingDefinition.IntRange(2, 10)));
     }
 
     @Override
-    public void renderParticleFX(Level level, double x, double y, double z, double mx, double my, double mz,
-            double dx, double dy, double dz) {
-        RiftShardParticleOptions data = new RiftShardParticleOptions((float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
-        level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
+    public void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
+        RiftShardParticleOptions data = new RiftShardParticleOptions(
+                (float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
+        level.addParticle(data, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0);
     }
 
     @Override
-    public void onCast(Entity caster) {
+    public void onCast(LivingEntity caster) {
         caster.level().playSound(null, caster.blockPosition().above(), SoundEvents.ENCHANTMENT_TABLE_USE,
                 SoundSource.PLAYERS, 0.2F, 0.7F);
     }
