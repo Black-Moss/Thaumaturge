@@ -774,6 +774,14 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                     }
                     graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
                 }
+                if (met) {
+                    graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
+                            slotX + CHECKMARK_OFFSET_X, y,
+                            (float) CHECKMARK_U, (float) CHECKMARK_V,
+                            CHECKMARK_SIZE, CHECKMARK_SIZE,
+                            CHECKMARK_SIZE, CHECKMARK_SIZE,
+                            TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
+                }
             } else {
                 met = observationAfford;
                 satisfied[i] = met;
@@ -802,6 +810,15 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                                     .withStyle(have >= instance.amount() ? ChatFormatting.GREEN : ChatFormatting.RED));
                             graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
                         }
+
+                        if (have >= instance.amount()) {
+                            graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
+                                    chipX + CHECKMARK_OFFSET_X, y,
+                                    (float) CHECKMARK_U, (float) CHECKMARK_V,
+                                    CHECKMARK_SIZE, CHECKMARK_SIZE,
+                                    CHECKMARK_SIZE, CHECKMARK_SIZE,
+                                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
+                        }
                     } else {
                         graphics.blit(RenderPipelines.GUI_TEXTURED, UNKNOWN_ASPECT_TEXTURE, chipX, y,
                                 0.0F, 0.0F, 16, 16, 32, 32, 32, 32, UNKNOWN_ASPECT_TINT);
@@ -821,14 +838,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 }
             }
             satisfied[i] = met;
-            if (met) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK,
-                        slotX + CHECKMARK_OFFSET_X, y,
-                        (float) CHECKMARK_U, (float) CHECKMARK_V,
-                        CHECKMARK_SIZE, CHECKMARK_SIZE,
-                        CHECKMARK_SIZE, CHECKMARK_SIZE,
-                        TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
-            }
+
             if (reward.type() == KnowledgeType.THEORY
                     && mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                 reward.category().unwrapKey().ifPresent(k ->
