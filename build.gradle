@@ -89,6 +89,10 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+jar {
+    exclude("com/leclowndu93150/thaumcraft/debug/**")
+}
+
 
 dependencies {
     implementation "curse.maven:terrablender-neoforge-940057:8046313"
