@@ -1,21 +1,21 @@
 package com.leclowndu93150.thaumcraft.content.warp;
 
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
 import com.leclowndu93150.thaumcraft.TCIds;
 import com.leclowndu93150.thaumcraft.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumcraft.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
-import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
-import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumcraft.api.warp.WarpType;
+import com.leclowndu93150.thaumcraft.config.ThaumcraftCommonConfig;
 import com.leclowndu93150.thaumcraft.content.entity.EntityMindSpider;
+import com.leclowndu93150.thaumcraft.content.equipment.FortressArmorItem;
+import com.leclowndu93150.thaumcraft.content.research.ResearchManager;
 import com.leclowndu93150.thaumcraft.network.ClientboundWarpFXPayload;
 import com.leclowndu93150.thaumcraft.registry.TCEntities;
 import com.leclowndu93150.thaumcraft.registry.TCMobEffects;
+import java.util.List;
+import java.util.function.IntPredicate;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -25,9 +25,12 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public final class WarpEvents {
     private static final int GRINNING_DEVIL_MASK = 0;
@@ -39,6 +42,59 @@ public final class WarpEvents {
     private static final int MAX_GUARDIANS = 8;
     private static final int MAX_SPIDERS = 50;
     private static final int SPAWN_ATTEMPTS = 50;
+
+    private static final int BATH_SALTS_WARP_THRESHOLD = 10;
+    private static final int ELDRITCH_MINOR_WARP_THRESHOLD = 25;
+    private static final int ELDRITCH_MAJOR_WARP_THRESHOLD = 50;
+    private static final Identifier BATH_SALTS_ENTRY = TCIds.rl("bath_salts");
+    private static final Identifier BATHSALTS_FLAG = TCIds.rl("bathsalts");
+    private static final Identifier ELDRITCH_MINOR_FLAG = TCIds.rl("eldritchminor");
+    private static final Identifier ELDRITCH_MAJOR_FLAG = TCIds.rl("eldritchmajor");
+
+    @FunctionalInterface
+    private interface Action {
+        void apply(ServerPlayer player, Roll roll);
+    }
+
+    private record Roll(int warp, int normalWarp, RandomSource rand) {}
+
+    private record Event(IntPredicate matches, Action action) {}
+
+    private static final List<Event> EVENTS = List.of(
+            upTo(4, (player, roll) -> creeperHiss(player)),
+            upTo(8, (player, roll) -> distantExplosion(player, roll.rand())),
+            message(12, "warp.thaumcraft.text.11"),
+            upTo(16, (player, roll) -> applyEffect(player, TCMobEffects.VIS_EXHAUST,
+                    5000, ampFor(roll.warp()), "warp.thaumcraft.text.1")),
+            upTo(20, (player, roll) -> applyEffect(player, TCMobEffects.THAUMARHIA,
+                    Math.min(32000, 10 * roll.warp()), 0, "warp.thaumcraft.text.15")),
+            upTo(24, (player, roll) -> applyEffect(player, TCMobEffects.UNNATURAL_HUNGER,
+                    5000, ampFor(roll.warp()), "warp.thaumcraft.text.2")),
+            message(28, "warp.thaumcraft.text.12"),
+            upTo(32, (player, roll) -> spawnMist(player, 1)),
+            upTo(36, (player, roll) -> applyEffect(player, TCMobEffects.BLURRED_VISION,
+                    Math.min(32000, 10 * roll.warp()), 0, null)),
+            upTo(40, (player, roll) -> applyEffect(player, TCMobEffects.SUN_SCORNED,
+                    5000, ampFor(roll.warp()), "warp.thaumcraft.text.5")),
+            upTo(44, (player, roll) -> applyEffect(player, MobEffects.MINING_FATIGUE,
+                    1200, ampFor(roll.warp()), "warp.thaumcraft.text.9")),
+            upTo(48, (player, roll) -> applyEffect(player, TCMobEffects.INFECTIOUS_VIS_EXHAUST,
+                    6000, ampFor(roll.warp()), "warp.thaumcraft.text.1")),
+            upTo(52, (player, roll) -> applyEffect(player, MobEffects.NIGHT_VISION,
+                    Math.min(40 * roll.warp(), 6000), 0, "warp.thaumcraft.text.10")),
+            upTo(56, (player, roll) -> applyEffect(player, TCMobEffects.DEATH_GAZE,
+                    6000, ampFor(roll.warp()), "warp.thaumcraft.text.4")),
+            upTo(60, (player, roll) -> suddenlySpiders(player, roll.warp(), false)),
+            message(64, "warp.thaumcraft.text.13"),
+            upTo(68, (player, roll) -> spawnMist(player, roll.warp() / 30)),
+            upTo(72, (player, roll) -> applyEffect(player, MobEffects.BLINDNESS,
+                    Math.min(32000, 5 * roll.warp()), 0, null)),
+            exactly(76, WarpEvents::easeNormalWarp),
+            upTo(80, (player, roll) -> applyEffect(player, TCMobEffects.UNNATURAL_HUNGER,
+                    6000, ampFor(roll.warp()), "warp.thaumcraft.text.2")),
+            upTo(88, (player, roll) -> GuardianSpawner.spawnPortal(player)),
+            upTo(92, (player, roll) -> suddenlySpiders(player, roll.warp(), true)),
+            new Event(eff -> true, (player, roll) -> spawnMist(player, roll.warp() / 15)));
 
     private WarpEvents() {}
 
@@ -68,18 +124,31 @@ public final class WarpEvents {
         }
         PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.heartbeat());
         if (eff > 0) {
-            dispatchEvent(player, eff, warp, nw, rand);
+            dispatchEvent(player, eff, new Roll(warp, nw, rand));
         }
         checkWarpMilestones(player, nw + pw);
     }
 
-    private static final int BATH_SALTS_WARP_THRESHOLD = 10;
-    private static final int ELDRITCH_MINOR_WARP_THRESHOLD = 25;
-    private static final int ELDRITCH_MAJOR_WARP_THRESHOLD = 50;
-    private static final Identifier BATH_SALTS_ENTRY = TCIds.rl("bath_salts");
-    private static final Identifier BATHSALTS_FLAG = TCIds.rl("bathsalts");
-    private static final Identifier ELDRITCH_MINOR_FLAG = TCIds.rl("eldritchminor");
-    private static final Identifier ELDRITCH_MAJOR_FLAG = TCIds.rl("eldritchmajor");
+    private static void dispatchEvent(ServerPlayer player, int eff, Roll roll) {
+        for (Event event : EVENTS) {
+            if (event.matches().test(eff)) {
+                event.action().apply(player, roll);
+                return;
+            }
+        }
+    }
+
+    private static Event upTo(int bound, Action action) {
+        return new Event(eff -> eff <= bound, action);
+    }
+
+    private static Event exactly(int value, Action action) {
+        return new Event(eff -> eff == value, action);
+    }
+
+    private static Event message(int bound, String key) {
+        return upTo(bound, (player, roll) -> WarpManager.sendActionBar(player, key));
+    }
 
     private static void checkWarpMilestones(ServerPlayer player, int actualWarp) {
         IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
@@ -97,68 +166,29 @@ public final class WarpEvents {
         }
     }
 
-    private static void dispatchEvent(ServerPlayer player, int eff, int warp, int normalWarp, RandomSource rand) {
-        ServerLevel level = player.level();
-        if (eff <= 4) {
-            if (!ThaumcraftCommonConfig.NO_STRESS.get()) {
-                level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                        SoundEvents.CREEPER_PRIMED, SoundSource.AMBIENT, 1.0F, 0.5F);
-            }
-        } else if (eff <= 8) {
-            if (!ThaumcraftCommonConfig.NO_STRESS.get()) {
-                level.playSound(null,
-                        player.getX() + rand.nextInt(10) - rand.nextInt(10),
-                        player.getY() + rand.nextInt(10) - rand.nextInt(10),
-                        player.getZ() + rand.nextInt(10) - rand.nextInt(10),
-                        SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, 4.0F,
-                        (1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.2F) * 0.7F);
-            }
-        } else if (eff <= 12) {
-            WarpManager.sendActionBar(player, "warp.thaumcraft.text.11");
-        } else if (eff <= 16) {
-            applyEffect(player, TCMobEffects.VIS_EXHAUST, 5000, ampFor(warp), "warp.thaumcraft.text.1");
-        } else if (eff <= 20) {
-            applyEffect(player, TCMobEffects.THAUMARHIA, Math.min(32000, 10 * warp), 0, "warp.thaumcraft.text.15");
-        } else if (eff <= 24) {
-            applyEffect(player, TCMobEffects.UNNATURAL_HUNGER, 5000, ampFor(warp), "warp.thaumcraft.text.2");
-        } else if (eff <= 28) {
-            WarpManager.sendActionBar(player, "warp.thaumcraft.text.12");
-        } else if (eff <= 32) {
-            spawnMist(player, 1);
-        } else if (eff <= 36) {
-            applyEffect(player, TCMobEffects.BLURRED_VISION, Math.min(32000, 10 * warp), 0, null);
-        } else if (eff <= 40) {
-            applyEffect(player, TCMobEffects.SUN_SCORNED, 5000, ampFor(warp), "warp.thaumcraft.text.5");
-        } else if (eff <= 44) {
-            applyEffect(player, MobEffects.MINING_FATIGUE, 1200, ampFor(warp), "warp.thaumcraft.text.9");
-        } else if (eff <= 48) {
-            applyEffect(player, TCMobEffects.INFECTIOUS_VIS_EXHAUST, 6000, ampFor(warp), "warp.thaumcraft.text.1");
-        } else if (eff <= 52) {
-            applyEffect(player, MobEffects.NIGHT_VISION, Math.min(40 * warp, 6000), 0, "warp.thaumcraft.text.10");
-        } else if (eff <= 56) {
-            applyEffect(player, TCMobEffects.DEATH_GAZE, 6000, ampFor(warp), "warp.thaumcraft.text.4");
-        } else if (eff <= 60) {
-            suddenlySpiders(player, warp, false);
-        } else if (eff <= 64) {
-            WarpManager.sendActionBar(player, "warp.thaumcraft.text.13");
-        } else if (eff <= 68) {
-            spawnMist(player, warp / 30);
-        } else if (eff <= 72) {
-            applyEffect(player, MobEffects.BLINDNESS, Math.min(32000, 5 * warp), 0, null);
-        } else if (eff == 76) {
-            if (normalWarp > 0) {
-                WarpManager.addWarp(player, -1, WarpType.NORMAL);
-            }
-            WarpManager.sendActionBar(player, "warp.thaumcraft.text.14");
-        } else if (eff <= 80) {
-            applyEffect(player, TCMobEffects.UNNATURAL_HUNGER, 6000, ampFor(warp), "warp.thaumcraft.text.2");
-        } else if (eff <= 88) {
-            GuardianSpawner.spawnPortal(player);
-        } else if (eff <= 92) {
-            suddenlySpiders(player, warp, true);
-        } else {
-            spawnMist(player, warp / 15);
+    private static void creeperHiss(ServerPlayer player) {
+        if (!ThaumcraftCommonConfig.NO_STRESS.get()) {
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundEvents.CREEPER_PRIMED, SoundSource.AMBIENT, 1.0F, 0.5F);
         }
+    }
+
+    private static void distantExplosion(ServerPlayer player, RandomSource rand) {
+        if (!ThaumcraftCommonConfig.NO_STRESS.get()) {
+            player.level().playSound(null,
+                    player.getX() + rand.nextInt(10) - rand.nextInt(10),
+                    player.getY() + rand.nextInt(10) - rand.nextInt(10),
+                    player.getZ() + rand.nextInt(10) - rand.nextInt(10),
+                    SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, 4.0F,
+                    (1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.2F) * 0.7F);
+        }
+    }
+
+    private static void easeNormalWarp(ServerPlayer player, Roll roll) {
+        if (roll.normalWarp() > 0) {
+            WarpManager.addWarp(player, -1, WarpType.NORMAL);
+        }
+        WarpManager.sendActionBar(player, "warp.thaumcraft.text.14");
     }
 
     private static int ampFor(int warp) {
@@ -166,7 +196,7 @@ public final class WarpEvents {
     }
 
     private static void applyEffect(ServerPlayer player, Holder<MobEffect> effect, int duration, int amplifier,
-                                    String messageKey) {
+                                    @Nullable String messageKey) {
         player.addEffect(new MobEffectInstance(effect, duration, amplifier, true, true));
         if (messageKey != null) {
             WarpManager.sendActionBar(player, messageKey);
