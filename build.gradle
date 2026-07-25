@@ -89,6 +89,21 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+tasks.register('generateData', Exec) {
+    workingDir projectDir
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', new File(projectDir, 'gradlew.bat').absolutePath, 'runData', '-PdatagenPass=true'
+    } else {
+        commandLine new File(projectDir, 'gradlew').absolutePath, 'runData', '-PdatagenPass=true'
+    }
+}
+
+if (!project.hasProperty('datagenPass')) {
+    tasks.named('processResources') {
+        dependsOn 'generateData'
+    }
+}
+
 jar {
     exclude("com/leclowndu93150/thaumcraft/debug/**")
 }
