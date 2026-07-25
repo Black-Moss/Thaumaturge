@@ -80,7 +80,8 @@ public final class CraftingAspectContributor implements IAspectRecipeContributor
 
     private static ItemStack safeAssemble(CraftingRecipe recipe) {
         try {
-            return recipe.assemble(EMPTY_INPUT);
+            ItemStack result = recipe.assemble(EMPTY_INPUT);
+            return result == null ? ItemStack.EMPTY : result;
         } catch (Throwable ignored) {
             return ItemStack.EMPTY;
         }
@@ -88,7 +89,8 @@ public final class CraftingAspectContributor implements IAspectRecipeContributor
 
     private static ItemStack safeAssembleArcane(ArcaneCraftingRecipe recipe) {
         try {
-            return recipe.assemble(ArcaneCraftingInput.EMPTY);
+            ItemStack result = recipe.assemble(ArcaneCraftingInput.EMPTY);
+            return result == null ? ItemStack.EMPTY : result;
         } catch (Throwable ignored) {
             return ItemStack.EMPTY;
         }
