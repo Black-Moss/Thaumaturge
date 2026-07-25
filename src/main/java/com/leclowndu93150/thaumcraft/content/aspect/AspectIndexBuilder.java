@@ -1,7 +1,10 @@
 package com.leclowndu93150.thaumcraft.content.aspect;
 
+import com.leclowndu93150.thaumcraft.Thaumcraft;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectDataMaps;
 import com.leclowndu93150.thaumcraft.api.aspect.AspectList;
+import com.leclowndu93150.thaumcraft.api.aspect.Aspects;
+import com.leclowndu93150.thaumcraft.api.aspect.IAspect;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectIndex;
 import com.leclowndu93150.thaumcraft.api.aspect.IAspectRecipeContributor;
 import com.leclowndu93150.thaumcraft.api.aspect.RegisterAspectContributorsEvent;
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
@@ -46,29 +50,39 @@ public final class AspectIndexBuilder {
     }
 
     public static AspectIndex build(RecipeManager recipes, HolderLookup.Provider registries) {
-        RecursiveIndex index = new RecursiveIndex(collectBase(), recipes, registries);
+        RecursiveIndex index = new RecursiveIndex(collectBase(registries), recipes, registries);
         for (Item item : BuiltInRegistries.ITEM) {
             index.resolve(item);
         }
         return AspectIndex.of(index.resolved());
     }
 
-    private static Map<Item, AspectList> collectBase() {
+    private static Map<Item, AspectList> collectBase(HolderLookup.Provider registries) {
         Map<Item, AspectList> map = new HashMap<>();
         for (Item item : BuiltInRegistries.ITEM) {
             AspectList declared = item.builtInRegistryHolder().getData(AspectDataMaps.BASE_ASPECTS);
             if (declared != null && !declared.isEmpty()) {
-                map.put(item, cap(declared));
+                AspectList capped = cap(declared, registries);
+                if (!capped.isEmpty()) {
+                    map.put(item, capped);
+                }
             }
         }
         return map;
     }
 
-    private static AspectList cap(AspectList list) {
+    private static AspectList cap(AspectList list, HolderLookup.Provider registries) {
         AspectList result = AspectList.EMPTY;
         for (var entry : list.entries()) {
+            Holder<IAspect> bound = entry.aspect().unwrapKey()
+                    .map(key -> Aspects.resolve(registries, key))
+                    .orElse(null);
+            if (bound == null) {
+                Thaumcraft.LOGGER.warn("Dropping aspect {} while building the aspect index: not resolvable in the active registries", entry.aspect());
+                continue;
+            }
             int capped = Math.min(MAX_AMOUNT_PER_ASPECT, entry.amount());
-            result = result.add(entry.aspect(), capped);
+            result = result.add(bound, capped);
         }
         return result;
     }
@@ -103,7 +117,7 @@ public final class AspectIndexBuilder {
                 for (IAspectRecipeContributor contributor : CONTRIBUTORS) {
                     Optional<AspectList> result = contributor.derive(item, recipes, registries, this);
                     if (result.isPresent() && !result.get().isEmpty()) {
-                        AspectList capped = cap(result.get());
+                        AspectList capped = cap(result.get(), registries);
                         resolved.put(item, capped);
                         computed.add(item);
                         return capped;

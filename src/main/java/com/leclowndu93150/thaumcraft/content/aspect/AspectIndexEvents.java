@@ -9,6 +9,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.datamaps.DataMapsUpdatedEvent;
 
@@ -42,6 +43,13 @@ public final class AspectIndexEvents {
         } else {
             pendingServer = server;
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        datamapsReady = false;
+        pendingServer = null;
+        AspectIndexHolder.set(AspectIndex.EMPTY);
     }
 
     @SubscribeEvent
