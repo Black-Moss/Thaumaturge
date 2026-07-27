@@ -14,6 +14,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -243,7 +244,8 @@ public class EntityThaumaturgeBoss extends Monster {
 
     @Override
     public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
-        return super.isInvulnerableTo(level, source) || this.getSpawnTimer() > 0;
+        return super.isInvulnerableTo(level, source)
+                || (this.getSpawnTimer() > 0 && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY));
     }
 
     @Override
