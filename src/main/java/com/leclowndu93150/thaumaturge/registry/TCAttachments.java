@@ -63,6 +63,9 @@ public final class TCAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CASTER_COOLDOWN =
             register("caster_cooldown", () -> AttachmentType.builder(() -> 0L).build());
 
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CLOUD_JUMP_TIME =
+            register("cloud_jump_time", () -> AttachmentType.builder(() -> 0L).build());
+
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<FocusCloudCooldowns>> FOCUS_CLOUD_COOLDOWNS =
             register("focus_cloud_cooldowns", () -> AttachmentType.builder(FocusCloudCooldowns::new).build());
 
