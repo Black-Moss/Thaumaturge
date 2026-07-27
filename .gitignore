@@ -21,6 +21,7 @@ hs_err_pid*
 
 # Common working directory
 run
+run-gametest
 
 sources/
 

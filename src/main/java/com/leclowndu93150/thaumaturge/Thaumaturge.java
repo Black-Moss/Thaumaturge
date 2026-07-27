@@ -24,9 +24,11 @@ import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
 import com.leclowndu93150.thaumaturge.registry.*;
+import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
@@ -87,5 +89,24 @@ public final class Thaumaturge {
 
         if (ModList.get().isLoaded(TCIds.CURIOS))
             ThaumaturgeCuriosCompat.init(modBus);
+
+        wireGameTests(modBus);
+    }
+
+    private static void wireGameTests(IEventBus modBus) {
+        try {
+            Class<?> registration = Class.forName("com.leclowndu93150.thaumaturge.gametest.TCGameTestRegistration");
+            Method handler = registration.getMethod("registerTests", RegisterGameTestsEvent.class);
+            modBus.addListener(RegisterGameTestsEvent.class, event -> {
+                try {
+                    handler.invoke(null, event);
+                } catch (ReflectiveOperationException e) {
+                    LOGGER.error("Failed to invoke TCGameTestRegistration.registerTests", e);
+                }
+            });
+        } catch (ClassNotFoundException expected) {
+        } catch (ReflectiveOperationException e) {
+            LOGGER.error("Failed to wire gametest hooks", e);
+        }
     }
 }

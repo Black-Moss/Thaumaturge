@@ -48,6 +48,15 @@ java {
     withSourcesJar()
 }
 
+sourceSets {
+    test {
+        compileClasspath += main.output + main.compileClasspath
+        runtimeClasspath += main.output + main.runtimeClasspath
+    }
+}
+
+tasks.named('test') { enabled = false }
+
 neoForge {
     version = project.neo_version
 
@@ -73,6 +82,7 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            gameDirectory = project.file('run-gametest')
         }
 
         data {
@@ -90,8 +100,17 @@ neoForge {
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            sourceSet(sourceSets.test)
         }
     }
+}
+
+configurations {
+    runGameTestServerAdditionalRuntimeClasspath.extendsFrom runtimeClasspath
+}
+
+dependencies {
+    runGameTestServerAdditionalRuntimeClasspath files(sourceSets.test.output)
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
