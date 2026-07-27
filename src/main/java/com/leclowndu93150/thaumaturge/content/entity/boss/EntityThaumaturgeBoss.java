@@ -221,7 +221,7 @@ public class EntityThaumaturgeBoss extends Monster {
         if (source.getEntity() instanceof LivingEntity attacker) {
             this.aggro.merge(attacker.getId(), (int) damage, Integer::sum);
         }
-        if (damage > ENRAGE_THRESHOLD) {
+        if (damage > ENRAGE_THRESHOLD && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             if (this.getAnger() == 0) {
                 this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, ENRAGE_TICKS,
                         (int) (damage / ENRAGE_REGEN_DIVISOR)));
