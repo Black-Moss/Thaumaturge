@@ -1591,7 +1591,7 @@ public final class TCModelProvider extends ModelProvider {
         eldritchLock(blockModels);
         crabSpawner(blockModels);
         column(blockModels, TCBlocks.ELDRITCH_PEDESTAL.get(), "eldritch_pedestal_side", "eldritch_stone");
-        invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar");
+        invisibleWithMeshItem(blockModels, TCBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar", "eldritch_altar_item");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_OBELISK.get(), "eldritch_deco");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_PILLAR.get(), "eldritch_deco");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_CAPSTONE.get(), "eldritch_deco");
@@ -1751,6 +1751,14 @@ public final class TCModelProvider extends ModelProvider {
         Identifier itemModel = ModelTemplates.CUBE_ALL.createWithSuffix(block, "_inventory",
                 new TextureMapping().put(TextureSlot.ALL, texture(textureName)), blockModels.modelOutput);
         blockModels.registerSimpleItemModel(block.asItem(), itemModel);
+        Identifier model = ModelTemplates.PARTICLE_ONLY.create(block,
+                TextureMapping.particle(texture(textureName)), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+    }
+
+    private void invisibleWithMeshItem(BlockModelGenerators blockModels, Block block, String textureName, String itemModelName) {
+        blockModels.registerSimpleItemModel(block.asItem(), TCIds.rl("block/" + itemModelName));
         Identifier model = ModelTemplates.PARTICLE_ONLY.create(block,
                 TextureMapping.particle(texture(textureName)), blockModels.modelOutput);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
