@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.rod_bone.title",
+  "parents": [
+    "thaumaturge:rod_greatwood"
+  ],
+  "column": -7,
+  "row": -3,
+  "icons": [
+    "thaumaturge:wand_rod_bone"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.rod_bone.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.rod_bone.stage_0",
+      "recipes": [
+        "thaumaturge:infusion/wand_rod_bone"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:exanimis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

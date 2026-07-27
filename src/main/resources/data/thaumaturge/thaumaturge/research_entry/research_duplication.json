@@ -1,0 +1,41 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.research_duplication.title",
+  "parents": [
+    "thaumaturge:research_mastery"
+  ],
+  "column": -4,
+  "row": -5,
+  "stages": [
+    {
+      "text": "research.thaumaturge.research_duplication.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.research_duplication.stage.2"
+    }
+  ],
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "minecraft:paper"
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 6
+    }
+  ],
+  "complexity": 2
+}

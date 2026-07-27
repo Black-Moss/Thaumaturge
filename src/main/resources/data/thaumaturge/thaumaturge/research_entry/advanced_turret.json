@@ -1,0 +1,51 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.advanced_turret.title",
+  "parents": [
+    "thaumaturge:mind_biothaumic",
+    "thaumaturge:basic_turret"
+  ],
+  "column": -4,
+  "row": -4,
+  "icons": [
+    "thaumaturge:turret_advanced"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.advanced_turret.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.advanced_turret.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/turret_advanced"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:aversio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

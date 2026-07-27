@@ -1,0 +1,43 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.control_seals.title",
+  "parents": [
+    "thaumaturge:mind_clockwork"
+  ],
+  "siblings": [
+    "thaumaturge:seal_collect"
+  ],
+  "column": -2,
+  "row": 5,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:seal_blank"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.control_seals.stage_0",
+      "recipes": [
+        "thaumaturge:golem_bell",
+        "thaumaturge:arcane_workbench/seal_blank"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

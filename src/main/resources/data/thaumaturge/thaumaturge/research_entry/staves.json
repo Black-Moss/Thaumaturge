@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.staves.title",
+  "parents": [
+    "thaumaturge:rod_silverwood"
+  ],
+  "column": -5,
+  "row": -5,
+  "icons": [
+    "thaumaturge:staff_rod_greatwood"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.staves.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.staves.stage_0",
+      "recipes": [
+        "thaumaturge:wand/part/staff_rod_greatwood",
+        "thaumaturge:wand/part/staff_rod_obsidian",
+        "thaumaturge:wand/part/staff_rod_ice",
+        "thaumaturge:wand/part/staff_rod_quartz",
+        "thaumaturge:wand/part/staff_rod_reed",
+        "thaumaturge:wand/part/staff_rod_blaze",
+        "thaumaturge:wand/part/staff_rod_bone",
+        "thaumaturge:wand/part/staff_rod_silverwood"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

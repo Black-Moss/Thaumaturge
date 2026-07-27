@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.unlock_artifice.title",
+  "parents": [
+    "thaumaturge:unlock_alchemy",
+    "thaumaturge:metallurgy@2"
+  ],
+  "column": 2,
+  "row": 4,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_artifice.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.unlock_artifice.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/sensus",
+        "thaumaturge:scanned/aspect/thaumaturge/machina"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_artifice.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/goggles_revealing"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

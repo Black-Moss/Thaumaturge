@@ -1,0 +1,59 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.oculus.title",
+  "parents": [
+    "thaumaturge:base_eldritch",
+    "~thaumaturge:eldritchmajor"
+  ],
+  "column": -3,
+  "row": 3,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:eldritch_eye"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.oculus.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        }
+      ],
+      "warp": 6
+    },
+    {
+      "text": "research.thaumaturge.oculus.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/eldritch_eye"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 6
+    }
+  ],
+  "complexity": 1
+}

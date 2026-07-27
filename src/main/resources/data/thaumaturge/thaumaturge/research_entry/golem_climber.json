@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.golem_climber.title",
+  "parents": [
+    "thaumaturge:mind_clockwork"
+  ],
+  "column": -4,
+  "row": 2,
+  "icons": [
+    "thaumaturge:textures/research/icon_legs_climber.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.golem_climber.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:flint"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:f_spider"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.golem_climber.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:bestia",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

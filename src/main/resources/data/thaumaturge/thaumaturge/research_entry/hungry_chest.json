@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.hungry_chest.title",
+  "parents": [
+    "thaumaturge:base_artifice"
+  ],
+  "column": 3,
+  "row": 1,
+  "icons": [
+    "thaumaturge:hungry_chest"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.hungry_chest.stage_0",
+      "obtain": [
+        {
+          "items": "#c:chests/wooden",
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:hopper"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.hungry_chest.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/hungry_chest"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

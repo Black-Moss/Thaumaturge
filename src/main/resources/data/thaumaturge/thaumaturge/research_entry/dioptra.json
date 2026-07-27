@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.dioptra.title",
+  "parents": [
+    "thaumaturge:base_artifice"
+  ],
+  "column": -2,
+  "row": 3,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:dioptra"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.dioptra.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/sensus",
+        "thaumaturge:scanned/aspect/thaumaturge/auram"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.dioptra.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/dioptra"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

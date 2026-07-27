@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_collect.title",
+  "parents": [
+    "thaumaturge:control_seals"
+  ],
+  "siblings": [
+    "thaumaturge:seal_store"
+  ],
+  "column": -4,
+  "row": 4,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:seal_pickup"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_collect.stage_0",
+      "recipes": [
+        "thaumaturge:crucible/seal_pickup"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.seal_collect.addendum_0",
+      "recipes": [
+        "thaumaturge:crucible/seal_pickup_advanced"
+      ],
+      "required_research": [
+        "thaumaturge:mind_biothaumic"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

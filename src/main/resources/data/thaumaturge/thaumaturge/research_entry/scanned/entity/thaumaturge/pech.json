@@ -1,0 +1,18 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.scanned/entity/thaumaturge/pech.title",
+  "column": -8,
+  "row": 0,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_pech.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.scanned/entity/thaumaturge/pech.stage_0"
+    }
+  ]
+}

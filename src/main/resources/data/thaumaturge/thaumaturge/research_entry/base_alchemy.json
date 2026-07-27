@@ -1,0 +1,44 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.base_alchemy.title",
+  "parents": [
+    "thaumaturge:unlock_alchemy"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_alchemy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.base_alchemy.stage_0",
+      "recipes": [
+        "thaumaturge:crucible/nitor_yellow",
+        "thaumaturge:crucible/nitor_yellow",
+        "thaumaturge:crucible/vis_crystal/aer",
+        "thaumaturge:phial",
+        "thaumaturge:arcane_workbench/filter",
+        "thaumaturge:arcane_workbench/morphic_resonator"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alkimia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

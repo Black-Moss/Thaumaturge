@@ -1,0 +1,61 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.arcane_bore.title",
+  "parents": [
+    "thaumaturge:infusion",
+    "thaumaturge:basic_turret",
+    "thaumaturge:focus_break"
+  ],
+  "column": -3,
+  "row": -6,
+  "icons": [
+    "thaumaturge:turret_bore"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.arcane_bore.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.arcane_bore.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/turret_bore"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

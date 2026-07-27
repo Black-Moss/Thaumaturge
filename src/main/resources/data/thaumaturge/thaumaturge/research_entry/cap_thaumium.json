@@ -1,0 +1,47 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.cap_thaumium.title",
+  "parents": [
+    "thaumaturge:cap_gold",
+    "thaumaturge:metallurgy"
+  ],
+  "column": -2,
+  "row": -4,
+  "icons": [
+    "thaumaturge:wand_cap_thaumium"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.cap_thaumium.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.cap_thaumium.stage_0",
+      "recipes": [
+        "thaumaturge:wand/part/wand_cap_thaumium_inert",
+        "thaumaturge:infusion/wand_cap_thaumium"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

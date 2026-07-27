@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.unlock_infusion.title",
+  "parents": [
+    "thaumaturge:unlock_alchemy"
+  ],
+  "column": 0,
+  "row": 4,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_infusion.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.unlock_infusion.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/auram",
+        "thaumaturge:scanned/aspect/thaumaturge/praecantatio"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_infusion.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/fabric",
+        "thaumaturge:arcane_workbench/cloth_chest",
+        "thaumaturge:arcane_workbench/cloth_legs",
+        "thaumaturge:arcane_workbench/cloth_boots"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vitreus",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

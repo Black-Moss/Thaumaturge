@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_exchange.title",
+  "parents": [
+    "thaumaturge:focus_flux"
+  ],
+  "column": 2,
+  "row": 4,
+  "icons": [
+    "focus:thaumaturge:exchange"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_exchange.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/permutatio"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_exchange.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

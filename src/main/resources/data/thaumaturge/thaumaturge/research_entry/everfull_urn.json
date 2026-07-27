@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.everfull_urn.title",
+  "parents": [
+    "thaumaturge:hedge_alchemy"
+  ],
+  "column": -2,
+  "row": 2,
+  "icons": [
+    "thaumaturge:everfull_urn"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.everfull_urn.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.everfull_urn.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/everfull_urn"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

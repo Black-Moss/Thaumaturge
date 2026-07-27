@@ -1,0 +1,58 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.bath_salts.title",
+  "parents": [
+    "thaumaturge:hedge_alchemy",
+    "thaumaturge:bathsalts"
+  ],
+  "column": -4,
+  "row": -2,
+  "meta": [
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:bath_salts"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.bath_salts.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.bath_salts.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/bath_salts"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

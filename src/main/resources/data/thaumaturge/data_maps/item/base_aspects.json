@@ -1,0 +1,6658 @@
+{
+  "values": {
+    "#c:bones": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "#c:bricks/nether": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 1
+      }
+    ],
+    "#c:buds": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "#c:clusters": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 2
+      }
+    ],
+    "#c:cobblestones": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "#c:concrete_powders": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "#c:concretes": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 1
+      }
+    ],
+    "#c:dusts/glowstone": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 10
+      }
+    ],
+    "#c:dusts/redstone": [
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      }
+    ],
+    "#c:dyes/black": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 2
+      }
+    ],
+    "#c:dyes/blue": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      }
+    ],
+    "#c:dyes/brown": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      }
+    ],
+    "#c:dyes/green": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      }
+    ],
+    "#c:dyes/red": [
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 2
+      }
+    ],
+    "#c:dyes/white": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "#c:dyes/yellow": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      }
+    ],
+    "#c:eggs": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "#c:end_stones": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      }
+    ],
+    "#c:ender_pearls": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 15
+      }
+    ],
+    "#c:feathers": [
+      {
+        "aspect": "thaumaturge:volatus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 5
+      }
+    ],
+    "#c:fence_gates/wooden": [
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "#c:gems/amethyst": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      }
+    ],
+    "#c:gems/diamond": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 15
+      }
+    ],
+    "#c:gems/emerald": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "#c:gems/lapis": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "#c:gems/quartz": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "#c:glass_blocks": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "#c:glass_panes": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "#c:glazed_terracottas": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 1
+      }
+    ],
+    "#c:gravels": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "#c:gunpowders": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "#c:ingots/copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      }
+    ],
+    "#c:ingots/gold": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "#c:ingots/iron": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      }
+    ],
+    "#c:ingots/netherite": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      }
+    ],
+    "#c:leathers": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 5
+      }
+    ],
+    "#c:music_discs": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "#c:nether_stars": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 10
+      }
+    ],
+    "#c:netherracks": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "#c:nuggets/copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 1
+      }
+    ],
+    "#c:nuggets/gold": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      }
+    ],
+    "#c:nuggets/iron": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 2
+      }
+    ],
+    "#c:obsidians/crying": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      }
+    ],
+    "#c:obsidians/normal": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      }
+    ],
+    "#c:ores/coal": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 15
+      }
+    ],
+    "#c:ores/copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      }
+    ],
+    "#c:ores/diamond": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 15
+      }
+    ],
+    "#c:ores/emerald": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 15
+      }
+    ],
+    "#c:ores/gold": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "#c:ores/iron": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      }
+    ],
+    "#c:ores/lapis": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 15
+      }
+    ],
+    "#c:ores/netherite_scrap": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      }
+    ],
+    "#c:ores/quartz": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "#c:ores/redstone": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 15
+      }
+    ],
+    "#c:raw_materials/copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "#c:raw_materials/gold": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "#c:raw_materials/iron": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "#c:rods/blaze": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 5
+      }
+    ],
+    "#c:rods/breeze": [
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 5
+      }
+    ],
+    "#c:rods/wooden": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "#c:sands": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 5
+      }
+    ],
+    "#c:shulker_boxes": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      }
+    ],
+    "#c:slime_balls": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 1
+      }
+    ],
+    "#c:stones": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/diamond": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/emerald": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/gold": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/iron": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/lapis": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:storage_blocks/redstone": [
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "#c:strings": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      }
+    ],
+    "#minecraft:boats": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 15
+      }
+    ],
+    "#minecraft:candles": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "#minecraft:decorated_pot_sherds": [
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      }
+    ],
+    "#minecraft:leaves": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "#minecraft:logs": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 20
+      }
+    ],
+    "#minecraft:planks": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "#minecraft:rails": [
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      }
+    ],
+    "#minecraft:saplings": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "#minecraft:small_flowers": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "#minecraft:terracotta": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      }
+    ],
+    "#minecraft:trapdoors": [
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      }
+    ],
+    "#minecraft:wooden_buttons": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "#minecraft:wooden_doors": [
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "#minecraft:wooden_pressure_plates": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "#minecraft:wool": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 5
+      }
+    ],
+    "minecraft:activator_rail": [
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "minecraft:amethyst_block": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 10
+      }
+    ],
+    "minecraft:amethyst_shard": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 2
+      }
+    ],
+    "minecraft:ancient_debris": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      }
+    ],
+    "minecraft:anvil": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 50
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 15
+      }
+    ],
+    "minecraft:apple": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:armadillo_scute": [
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:arrow": [
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 5
+      }
+    ],
+    "minecraft:axolotl_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:azalea": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      }
+    ],
+    "minecraft:baked_potato": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:bamboo": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:bamboo_mosaic": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      }
+    ],
+    "minecraft:basalt": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 3
+      }
+    ],
+    "minecraft:beacon": [
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 10
+      }
+    ],
+    "minecraft:bedrock": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 25
+      }
+    ],
+    "minecraft:bee_nest": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 3
+      }
+    ],
+    "minecraft:beef": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:beetroot": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 1
+      }
+    ],
+    "minecraft:beetroot_seeds": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:bell": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      }
+    ],
+    "minecraft:big_dripleaf": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:blackstone": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:blast_furnace": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      }
+    ],
+    "minecraft:blaze_powder": [
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      }
+    ],
+    "minecraft:blue_ice": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 10
+      }
+    ],
+    "minecraft:bone_meal": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:book": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 8
+      }
+    ],
+    "minecraft:bookshelf": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 24
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 30
+      }
+    ],
+    "minecraft:bow": [
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:instrumentum",
+        "amount": 5
+      }
+    ],
+    "minecraft:bowl": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:brain_coral": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:brain_coral_block": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:brain_coral_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:brain_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:breeze_rod": [
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:brewing_stand": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 25
+      }
+    ],
+    "minecraft:brick": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      }
+    ],
+    "minecraft:brown_mushroom": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "minecraft:brown_mushroom_block": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "minecraft:bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      }
+    ],
+    "minecraft:budding_amethyst": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:bush": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 4
+      }
+    ],
+    "minecraft:bubble_coral": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:bubble_coral_block": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:bubble_coral_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:bubble_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:cactus": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 1
+      }
+    ],
+    "minecraft:cactus_flower": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:cake": [
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      }
+    ],
+    "minecraft:calcite": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:carrot": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "minecraft:carved_pumpkin": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      }
+    ],
+    "minecraft:cauldron": [
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      }
+    ],
+    "minecraft:chainmail_boots": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 33
+      }
+    ],
+    "minecraft:chainmail_chestplate": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 67
+      }
+    ],
+    "minecraft:chainmail_helmet": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 42
+      }
+    ],
+    "minecraft:chainmail_leggings": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 58
+      }
+    ],
+    "minecraft:charcoal": [
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      }
+    ],
+    "minecraft:chest": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 40
+      }
+    ],
+    "minecraft:chicken": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 5
+      }
+    ],
+    "minecraft:chipped_anvil": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 40
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 10
+      }
+    ],
+    "minecraft:chorus_flower": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:chorus_fruit": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:chorus_plant": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:clay": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 20
+      }
+    ],
+    "minecraft:clay_ball": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:clock": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 10
+      }
+    ],
+    "minecraft:closed_eyeblossom": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 3
+      }
+    ],
+    "minecraft:coal": [
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      }
+    ],
+    "minecraft:coarse_dirt": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:cobweb": [
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 1
+      }
+    ],
+    "minecraft:cocoa_beans": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      }
+    ],
+    "minecraft:cod": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:cod_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:comparator": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "minecraft:compass": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      }
+    ],
+    "minecraft:conduit": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      }
+    ],
+    "minecraft:cooked_beef": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cooked_chicken": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cooked_cod": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cooked_mutton": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cooked_porkchop": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cooked_rabbit": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cooked_salmon": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:cookie": [
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 1
+      }
+    ],
+    "minecraft:copper_bulb": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "minecraft:copper_chest": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:copper_door": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:copper_golem_statue": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:copper_horse_armor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:copper_nautilus_armor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:copper_trapdoor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      }
+    ],
+    "minecraft:crafting_table": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 20
+      }
+    ],
+    "minecraft:creaking_heart": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:creeper_head": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      }
+    ],
+    "minecraft:crimson_fungus": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:crimson_nylium": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:crimson_roots": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      }
+    ],
+    "minecraft:crossbow": [
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "minecraft:damaged_anvil": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 20
+      }
+    ],
+    "minecraft:daylight_detector": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_brain_coral": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_brain_coral_block": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_brain_coral_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_brain_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_bubble_coral": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_bubble_coral_block": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_bubble_coral_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_bubble_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_bush": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_fire_coral": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_fire_coral_block": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_fire_coral_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_fire_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_horn_coral": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_horn_coral_block": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_horn_coral_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_horn_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_tube_coral": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:dead_tube_coral_block": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:dead_tube_coral_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:dead_tube_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:deepslate": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 1
+      }
+    ],
+    "minecraft:detector_rail": [
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 1
+      }
+    ],
+    "minecraft:diamond_horse_armor": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:diamond_nautilus_armor": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:dirt": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:dirt_path": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 2
+      }
+    ],
+    "minecraft:dispenser": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:dragon_breath": [
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 10
+      }
+    ],
+    "minecraft:dragon_egg": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:dragon_head": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 10
+      }
+    ],
+    "minecraft:dried_ghast": [
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:dried_kelp": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      }
+    ],
+    "minecraft:dripstone_block": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      }
+    ],
+    "minecraft:dropper": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:echo_shard": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      }
+    ],
+    "minecraft:elytra": [
+      {
+        "aspect": "thaumaturge:volatus",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 15
+      }
+    ],
+    "minecraft:enchanted_book": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 10
+      }
+    ],
+    "minecraft:enchanted_golden_apple": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 15
+      }
+    ],
+    "minecraft:enchanting_table": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 15
+      }
+    ],
+    "minecraft:end_crystal": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      }
+    ],
+    "minecraft:end_portal_frame": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:end_rod": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "minecraft:ender_chest": [
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 20
+      }
+    ],
+    "minecraft:ender_eye": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:experience_bottle": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 20
+      }
+    ],
+    "minecraft:exposed_copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 27
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 12
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_chest": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_door": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_golem_statue": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_copper_trapdoor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:exposed_lightning_rod": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:farmland": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 2
+      }
+    ],
+    "minecraft:fermented_spider_eye": [
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "minecraft:fern": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      }
+    ],
+    "minecraft:fire_charge": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 5
+      }
+    ],
+    "minecraft:fire_coral": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:fire_coral_block": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:fire_coral_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:fire_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:firefly_bush": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      }
+    ],
+    "minecraft:fishing_rod": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:instrumentum",
+        "amount": 5
+      }
+    ],
+    "minecraft:flint": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:instrumentum",
+        "amount": 5
+      }
+    ],
+    "minecraft:flint_and_steel": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:instrumentum",
+        "amount": 5
+      }
+    ],
+    "minecraft:flow_banner_pattern": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 2
+      }
+    ],
+    "minecraft:flower_pot": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:flowering_azalea": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      }
+    ],
+    "minecraft:frogspawn": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 2
+      }
+    ],
+    "minecraft:furnace": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      }
+    ],
+    "minecraft:ghast_tear": [
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 10
+      }
+    ],
+    "minecraft:gilded_blackstone": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      }
+    ],
+    "minecraft:glass_bottle": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:glistering_melon_slice": [
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "minecraft:globe_banner_pattern": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "minecraft:glow_berries": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 3
+      }
+    ],
+    "minecraft:glow_ink_sac": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      }
+    ],
+    "minecraft:glow_item_frame": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "minecraft:glow_lichen": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      }
+    ],
+    "minecraft:glowstone": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 40
+      }
+    ],
+    "minecraft:goat_horn": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 5
+      }
+    ],
+    "minecraft:golden_apple": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      }
+    ],
+    "minecraft:golden_carrot": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "minecraft:golden_horse_armor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:golden_nautilus_armor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:grass_block": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      }
+    ],
+    "minecraft:guster_banner_pattern": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 2
+      }
+    ],
+    "minecraft:hanging_roots": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "minecraft:heart_of_the_sea": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "minecraft:heavy_core": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:heavy_weighted_pressure_plate": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "minecraft:honey_block": [
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:honey_bottle": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      }
+    ],
+    "minecraft:honeycomb": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      }
+    ],
+    "minecraft:hopper": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:horn_coral": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:horn_coral_block": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:horn_coral_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:horn_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:ice": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 20
+      }
+    ],
+    "minecraft:infested_chiseled_stone_bricks": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_cobblestone": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_cracked_stone_bricks": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_deepslate": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_mossy_stone_bricks": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_stone": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:infested_stone_bricks": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      }
+    ],
+    "minecraft:ink_sac": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      }
+    ],
+    "minecraft:iron_door": [
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "minecraft:iron_horse_armor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:iron_nautilus_armor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      }
+    ],
+    "minecraft:item_frame": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 5
+      }
+    ],
+    "minecraft:jukebox": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 15
+      }
+    ],
+    "minecraft:kelp": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:large_fern": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      }
+    ],
+    "minecraft:lava_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:leaf_litter": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:lever": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "minecraft:light_weighted_pressure_plate": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "minecraft:lightning_rod": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      }
+    ],
+    "minecraft:lilac": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:lily_pad": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      }
+    ],
+    "minecraft:magma_block": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:magma_cream": [
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      }
+    ],
+    "minecraft:mangrove_roots": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 2
+      }
+    ],
+    "minecraft:melon": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 10
+      }
+    ],
+    "minecraft:melon_seeds": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:melon_slice": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "minecraft:milk_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:minecart": [
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 15
+      }
+    ],
+    "minecraft:moss_block": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      }
+    ],
+    "minecraft:moss_carpet": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "minecraft:mud": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      }
+    ],
+    "minecraft:mud_bricks": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      }
+    ],
+    "minecraft:muddy_mangrove_roots": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:mushroom_stem": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      }
+    ],
+    "minecraft:mushroom_stew": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:mutton": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:mycelium": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 1
+      }
+    ],
+    "minecraft:name_tag": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:nautilus_shell": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 5
+      }
+    ],
+    "minecraft:nether_brick": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      }
+    ],
+    "minecraft:nether_sprouts": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      }
+    ],
+    "minecraft:nether_wart": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 3
+      }
+    ],
+    "minecraft:netherite_scrap": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 5
+      }
+    ],
+    "minecraft:netherrack": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:note_block": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 15
+      }
+    ],
+    "minecraft:observer": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      }
+    ],
+    "minecraft:ochre_froglight": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 2
+      }
+    ],
+    "minecraft:ominous_bottle": [
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "minecraft:ominous_trial_key": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 5
+      }
+    ],
+    "minecraft:open_eyeblossom": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 21
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 12
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_chest": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_door": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_golem_statue": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_copper_trapdoor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:oxidized_lightning_rod": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:packed_ice": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "minecraft:packed_mud": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      }
+    ],
+    "minecraft:painting": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 5
+      }
+    ],
+    "minecraft:pale_hanging_moss": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 2
+      }
+    ],
+    "minecraft:pale_moss_block": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 3
+      }
+    ],
+    "minecraft:paper": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 2
+      }
+    ],
+    "minecraft:pearlescent_froglight": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 2
+      }
+    ],
+    "minecraft:peony": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:petrified_oak_slab": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 3
+      }
+    ],
+    "minecraft:phantom_membrane": [
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:volatus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 2
+      }
+    ],
+    "minecraft:piglin_banner_pattern": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 2
+      }
+    ],
+    "minecraft:piglin_head": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 10
+      }
+    ],
+    "minecraft:pink_petals": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      }
+    ],
+    "minecraft:piston": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      }
+    ],
+    "minecraft:pitcher_plant": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 2
+      }
+    ],
+    "minecraft:pitcher_pod": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:player_head": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 10
+      }
+    ],
+    "minecraft:podzol": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "minecraft:pointed_dripstone": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 1
+      }
+    ],
+    "minecraft:poisonous_potato": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      }
+    ],
+    "minecraft:popped_chorus_fruit": [
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 1
+      }
+    ],
+    "minecraft:porkchop": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:potato": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:powder_snow_bucket": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 8
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 2
+      }
+    ],
+    "minecraft:powered_rail": [
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 1
+      }
+    ],
+    "minecraft:prismarine_crystals": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "minecraft:prismarine_shard": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:pufferfish": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      }
+    ],
+    "minecraft:pufferfish_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:pumpkin": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 10
+      }
+    ],
+    "minecraft:pumpkin_pie": [
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      }
+    ],
+    "minecraft:pumpkin_seeds": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:rabbit": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:rabbit_foot": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "minecraft:rabbit_hide": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 2
+      }
+    ],
+    "minecraft:recovery_compass": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 5
+      }
+    ],
+    "minecraft:red_mushroom": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:red_mushroom_block": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 2
+      }
+    ],
+    "minecraft:reinforced_deepslate": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 15
+      }
+    ],
+    "minecraft:repeater": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      }
+    ],
+    "minecraft:resin_clump": [
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      }
+    ],
+    "minecraft:rooted_dirt": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      }
+    ],
+    "minecraft:rose_bush": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:rotten_flesh": [
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 5
+      }
+    ],
+    "minecraft:saddle": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      }
+    ],
+    "minecraft:salmon": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:salmon_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:sculk": [
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:sculk_catalyst": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 3
+      }
+    ],
+    "minecraft:sculk_sensor": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 3
+      }
+    ],
+    "minecraft:sculk_shrieker": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 5
+      }
+    ],
+    "minecraft:sculk_vein": [
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      }
+    ],
+    "minecraft:sea_pickle": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      }
+    ],
+    "minecraft:seagrass": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:shield": [
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 20
+      }
+    ],
+    "minecraft:short_dry_grass": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:short_grass": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      }
+    ],
+    "minecraft:shroomlight": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      }
+    ],
+    "minecraft:shulker_shell": [
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:skeleton_skull": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 10
+      }
+    ],
+    "minecraft:slime_block": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 45
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 9
+      }
+    ],
+    "minecraft:small_dripleaf": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 4
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:smoker": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:sniffer_egg": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:snow": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 1
+      }
+    ],
+    "minecraft:snow_block": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 5
+      }
+    ],
+    "minecraft:snowball": [
+      {
+        "aspect": "thaumaturge:gelum",
+        "amount": 1
+      }
+    ],
+    "minecraft:soul_sand": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 3
+      }
+    ],
+    "minecraft:soul_soil": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 3
+      }
+    ],
+    "minecraft:soul_torch": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 3
+      }
+    ],
+    "minecraft:spawner": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 20
+      }
+    ],
+    "minecraft:spectral_arrow": [
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:spider_eye": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      }
+    ],
+    "minecraft:sponge": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "minecraft:spore_blossom": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      }
+    ],
+    "minecraft:stick": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "minecraft:sticky_piston": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 10
+      }
+    ],
+    "minecraft:stone_button": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      }
+    ],
+    "minecraft:stone_pressure_plate": [
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      }
+    ],
+    "minecraft:string": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 1
+      }
+    ],
+    "minecraft:stripped_bamboo_block": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:sugar": [
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 1
+      }
+    ],
+    "minecraft:sugar_cane": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 2
+      }
+    ],
+    "minecraft:sunflower": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:suspicious_gravel": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:suspicious_sand": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:sweet_berries": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 1
+      }
+    ],
+    "minecraft:tadpole_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 6
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 2
+      }
+    ],
+    "minecraft:tall_dry_grass": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "minecraft:tall_grass": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 1
+      }
+    ],
+    "minecraft:torch": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "minecraft:torchflower": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:torchflower_seeds": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:totem_of_undying": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 25
+      },
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 10
+      }
+    ],
+    "minecraft:trapped_chest": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 40
+      }
+    ],
+    "minecraft:trial_key": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 5
+      }
+    ],
+    "minecraft:trident": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aversio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      }
+    ],
+    "minecraft:tripwire_hook": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:machina",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      }
+    ],
+    "minecraft:tropical_fish": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:tropical_fish_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      }
+    ],
+    "minecraft:tube_coral": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 2
+      }
+    ],
+    "minecraft:tube_coral_block": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 5
+      }
+    ],
+    "minecraft:tube_coral_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:tube_coral_wall_fan": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "minecraft:tuff": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "minecraft:turtle_egg": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:turtle_helmet": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:turtle_scute": [
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:praemunio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 2
+      }
+    ],
+    "minecraft:twisting_vines": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 2
+      }
+    ],
+    "minecraft:verdant_froglight": [
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 2
+      }
+    ],
+    "minecraft:vine": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "minecraft:warped_fungus": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 2
+      }
+    ],
+    "minecraft:warped_nylium": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 2
+      }
+    ],
+    "minecraft:warped_roots": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 1
+      }
+    ],
+    "minecraft:warped_wart_block": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 3
+      }
+    ],
+    "minecraft:water_bucket": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 20
+      }
+    ],
+    "minecraft:weathered_copper": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 24
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 12
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_chest": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_door": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_golem_statue": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:humanus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_copper_trapdoor": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weathered_lightning_rod": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 2
+      }
+    ],
+    "minecraft:weeping_vines": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 2
+      }
+    ],
+    "minecraft:wet_sponge": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      }
+    ],
+    "minecraft:wheat": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "minecraft:wheat_seeds": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 1
+      }
+    ],
+    "minecraft:wildflowers": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 2
+      }
+    ],
+    "minecraft:wind_charge": [
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:motus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 3
+      }
+    ],
+    "minecraft:wither_skeleton_skull": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 10
+      }
+    ],
+    "minecraft:writable_book": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 1
+      }
+    ],
+    "minecraft:written_book": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 10
+      }
+    ],
+    "minecraft:zombie_head": [
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:spiritus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:amber": [
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:arcane_workbench": [
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:bottle_taint": [
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:brain": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:exanimis",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:celestial_notes": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:tenebrae",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:chunk_beef": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:chunk_chicken": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:chunk_fish": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:chunk_mutton": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:chunk_pork": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:chunk_rabbit": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ],
+    "thaumaturge:cinderpearl": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:cluster_cinnabar": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:cluster_copper": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:permutatio",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:cluster_gold": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:cluster_iron": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:cluster_lead": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:cluster_quartz": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:cluster_silver": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:cluster_tin": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crucible": [
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 35
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:fabrico",
+        "amount": 20
+      }
+    ],
+    "thaumaturge:crystal_aer": [
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crystal_aqua": [
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crystal_ignis": [
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crystal_ordo": [
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crystal_perditio": [
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crystal_terra": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:crystal_vitium": [
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:goggles_revealing": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:grass_ambient": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:lux",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:ingot_brass": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:instrumentum",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:leaves_greatwood": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:leaves_silverwood": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:log_greatwood": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:log_silverwood": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 20
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:nugget_quicksilver": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:ore_amber": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitreus",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:ore_cinnabar": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:pedestal_ancient": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 3
+      }
+    ],
+    "thaumaturge:pedestal_arcane": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 3
+      }
+    ],
+    "thaumaturge:pedestal_eldritch": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 3
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 3
+      }
+    ],
+    "thaumaturge:phial": [
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 3
+      }
+    ],
+    "thaumaturge:primordial_pearl": [
+      {
+        "aspect": "thaumaturge:aer",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ignis",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:ordo",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:quicksilver": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alkimia",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:research_table": [
+      {
+        "aspect": "thaumaturge:instrumentum",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:salis_mundus": [
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:sapling_greatwood": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:sapling_silverwood": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 15
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:shimmerleaf": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:potentia",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_ancient": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_ancient_doorway": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vinculum",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_ancient_glyphed": [
+      {
+        "aspect": "thaumaturge:metallum",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_ancient_rock": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_ancient_tile": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_eldritch_tile": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:alienis",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:stone_porous": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vacuos",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:taint_crust": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:taint_feature": [
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:bestia",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:taint_fibre": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:taint_geyser": [
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:aqua",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:taint_log": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:taint_rock": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:taint_soil": [
+      {
+        "aspect": "thaumaturge:terra",
+        "amount": 5
+      },
+      {
+        "aspect": "thaumaturge:vitium",
+        "amount": 5
+      }
+    ],
+    "thaumaturge:thaumometer": [
+      {
+        "aspect": "thaumaturge:sensus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:auram",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:thaumonomicon": [
+      {
+        "aspect": "thaumaturge:cognitio",
+        "amount": 24
+      },
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 30
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:triple_meat_treat": [
+      {
+        "aspect": "thaumaturge:victus",
+        "amount": 10
+      },
+      {
+        "aspect": "thaumaturge:desiderium",
+        "amount": 10
+      }
+    ],
+    "thaumaturge:vishroom": [
+      {
+        "aspect": "thaumaturge:herba",
+        "amount": 2
+      },
+      {
+        "aspect": "thaumaturge:mortuus",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:praecantatio",
+        "amount": 1
+      },
+      {
+        "aspect": "thaumaturge:perditio",
+        "amount": 1
+      }
+    ]
+  }
+}

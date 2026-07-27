@@ -1,0 +1,61 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_guard.title",
+  "parents": [
+    "thaumaturge:control_seals"
+  ],
+  "column": -12,
+  "row": 4,
+  "icons": [
+    "thaumaturge:seal_guard"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_guard.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/mortuus"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_guard.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/seal_guard",
+        "thaumaturge:arcane_workbench/module_aggression"
+      ],
+      "warp": 1
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.seal_guard.addendum_0",
+      "recipes": [
+        "thaumaturge:crucible/seal_guard_advanced"
+      ],
+      "required_research": [
+        "thaumaturge:mind_biothaumic"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aversio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

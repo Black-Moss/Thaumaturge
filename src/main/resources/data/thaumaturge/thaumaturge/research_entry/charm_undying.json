@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.charm_undying.title",
+  "parents": [
+    "thaumaturge:cloud_ring",
+    "thaumaturge:scanned/totemundying"
+  ],
+  "column": 3,
+  "row": -1,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:charm_undying"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.charm_undying.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.charm_undying.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/charm_undying"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:mortuus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:spiritus",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

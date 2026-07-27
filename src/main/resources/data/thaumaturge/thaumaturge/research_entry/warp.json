@@ -1,0 +1,36 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.warp.title",
+  "column": -4,
+  "row": -2,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_warp.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.warp.stage_0",
+      "recipes": [
+        "thaumaturge:arcane_workbench/sanity_checker"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

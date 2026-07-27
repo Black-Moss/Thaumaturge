@@ -1,0 +1,37 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.flux_rift.title",
+  "parents": [
+    "thaumaturge:flux",
+    "thaumaturge:scanned/fluxrift"
+  ],
+  "column": 0,
+  "row": -3,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_fluxrift.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.flux_rift.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vitium",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

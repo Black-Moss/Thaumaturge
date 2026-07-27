@@ -1,0 +1,38 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mat_stud_clay.title",
+  "parents": [
+    "thaumaturge:mat_stud_iron"
+  ],
+  "column": -4,
+  "row": 0,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "minecraft:terracotta"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mat_stud_clay.stage_0",
+      "required_research": [
+        "thaumaturge:f_matclay"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

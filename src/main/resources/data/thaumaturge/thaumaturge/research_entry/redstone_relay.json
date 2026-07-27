@@ -1,0 +1,57 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.redstone_relay.title",
+  "parents": [
+    "thaumaturge:base_artifice"
+  ],
+  "column": 0,
+  "row": -2,
+  "icons": [
+    "thaumaturge:redstone_relay"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.redstone_relay.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:redstone_torch"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/potentia",
+        "thaumaturge:scanned/aspect/thaumaturge/machina"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.redstone_relay.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/redstone_relay"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

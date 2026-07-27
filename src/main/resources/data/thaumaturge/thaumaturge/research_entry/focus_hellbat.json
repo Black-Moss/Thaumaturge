@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_hellbat.title",
+  "parents": [
+    "thaumaturge:focus_spellbat"
+  ],
+  "column": 8,
+  "row": 5,
+  "icons": [
+    "focus:thaumaturge:hellbat"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_hellbat.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/entity/thaumaturge/firebat"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_hellbat.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:bestia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aer",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

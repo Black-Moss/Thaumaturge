@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_bolt.title",
+  "parents": [
+    "thaumaturge:focus_projectile@2"
+  ],
+  "column": 7,
+  "row": 0,
+  "icons": [
+    "focus:thaumaturge:bolt"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_bolt.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/potentia"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_bolt.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:aer",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

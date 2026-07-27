@@ -1,0 +1,42 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.base_infusion.title",
+  "parents": [
+    "thaumaturge:unlock_infusion"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_infusion.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.base_infusion.stage_0",
+      "recipes": [
+        "thaumaturge:arcane/banner_white",
+        "thaumaturge:amulet_mundane",
+        "thaumaturge:ring_mundane",
+        "thaumaturge:girdle_mundane"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vitreus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

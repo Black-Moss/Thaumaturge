@@ -1,0 +1,51 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.fortress_mask.title",
+  "parents": [
+    "thaumaturge:armor_fortress"
+  ],
+  "column": -5,
+  "row": 0,
+  "icons": [
+    "thaumaturge:textures/research/r_mask0.png",
+    "thaumaturge:textures/research/r_mask1.png",
+    "thaumaturge:textures/research/r_mask2.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.fortress_mask.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.fortress_mask.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/fortress_helm_goggles",
+        "thaumaturge:infusion/fortress_helm_mask_0",
+        "thaumaturge:infusion/fortress_helm_mask_1",
+        "thaumaturge:infusion/fortress_helm_mask_2"
+      ],
+      "warp": 2
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:humanus",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

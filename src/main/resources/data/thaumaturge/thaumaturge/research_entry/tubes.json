@@ -1,0 +1,83 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.tubes.title",
+  "parents": [
+    "thaumaturge:warded_jars"
+  ],
+  "column": 6,
+  "row": -2,
+  "icons": [
+    "thaumaturge:tube"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.tubes.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:phial"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:phial"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:phial"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:phial"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.tubes.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/resonator",
+        "thaumaturge:arcane_workbench/tube",
+        "thaumaturge:arcane_workbench/tube_valve",
+        "thaumaturge:arcane_workbench/tube_filter",
+        "thaumaturge:arcane_workbench/tube_restrict",
+        "thaumaturge:arcane_workbench/tube_oneway",
+        "thaumaturge:arcane_workbench/tube_buffer",
+        "thaumaturge:arcane_workbench/alchemical_construct"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

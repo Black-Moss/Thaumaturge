@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:block/leaves",
+    "textures": {
+        "all": "thaumaturge:block/leaves_greatwood"
+    }
+}

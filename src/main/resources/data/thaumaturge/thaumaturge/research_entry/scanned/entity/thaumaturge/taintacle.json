@@ -1,0 +1,18 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.scanned/entity/thaumaturge/taintacle.title",
+  "column": -9,
+  "row": 1,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_taintacle.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.scanned/entity/thaumaturge/taintacle.stage_0"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.bottle_taint.title",
+  "parents": [
+    "thaumaturge:hedge_alchemy",
+    "thaumaturge:f_toomuchflux"
+  ],
+  "column": -6,
+  "row": 0,
+  "icons": [
+    "thaumaturge:bottle_taint"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.bottle_taint.stage_0",
+      "recipes": [
+        "thaumaturge:crucible/bottle_taint"
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ],
+      "warp": 2
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vitium",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 1
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 1
+    }
+  ],
+  "complexity": 2
+}

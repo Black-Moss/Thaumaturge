@@ -1,0 +1,48 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.crimson_rites.title",
+  "parents": [
+    "thaumaturge:scanned/entity/thaumaturge/cultist"
+  ],
+  "column": -6,
+  "row": 4,
+  "meta": [
+    "round",
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:curio_rites"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.crimson_rites.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:curio_rites"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.crimson_rites.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:humanus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

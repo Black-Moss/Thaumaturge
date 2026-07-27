@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_elemental.title",
+  "parents": [
+    "thaumaturge:base_auromancy"
+  ],
+  "column": 0,
+  "row": 2,
+  "icons": [
+    "focus:thaumaturge:air",
+    "focus:thaumaturge:frost",
+    "focus:thaumaturge:earth"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_elemental.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/aer",
+        "thaumaturge:scanned/aspect/thaumaturge/gelum",
+        "thaumaturge:scanned/aspect/thaumaturge/terra"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_elemental.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:gelum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 4
+    }
+  ],
+  "complexity": 2
+}

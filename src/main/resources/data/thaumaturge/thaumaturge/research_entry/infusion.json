@@ -1,0 +1,89 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.infusion.title",
+  "parents": [
+    "thaumaturge:base_infusion"
+  ],
+  "column": 0,
+  "row": 2,
+  "meta": [
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:infusion_matrix"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.infusion.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:stone"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:feather"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:phial"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infusion.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/infusion_matrix"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:infusion_matrix"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infusion.stage_2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/infusion_matrix",
+        "thaumaturge:arcane_workbench/pedestal_arcane",
+        "thaumaturge:dust_trigger/infusion_altar"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 6
+    }
+  ],
+  "complexity": 2
+}

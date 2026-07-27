@@ -1,0 +1,18 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.scanned/entity/thaumaturge/wisp.title",
+  "column": -7,
+  "row": 0,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_wisp.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.scanned/entity/thaumaturge/wisp.stage_0"
+    }
+  ]
+}

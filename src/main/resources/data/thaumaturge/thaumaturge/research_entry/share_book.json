@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.share_book.title",
+  "parents": [
+    "thaumaturge:mirror"
+  ],
+  "column": -8,
+  "row": 0,
+  "icons": [
+    "thaumaturge:thaumonomicon_sharing"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.share_book.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.share_book.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/thaumonomicon_sharing"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:humanus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 10
+    }
+  ],
+  "complexity": 3
+}

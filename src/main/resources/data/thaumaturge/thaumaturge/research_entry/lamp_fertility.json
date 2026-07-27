@@ -1,0 +1,63 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.lamp_fertility.title",
+  "parents": [
+    "thaumaturge:arcane_lamp",
+    "thaumaturge:infusion"
+  ],
+  "column": -4,
+  "row": -1,
+  "icons": [
+    "thaumaturge:lamp_fertility"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.lamp_fertility.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:wheat"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:carrot"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/desiderium"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.lamp_fertility.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/lamp_fertility"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:bestia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:lux",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

@@ -1,0 +1,68 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.infusion_enchantment.title",
+  "parents": [
+    "thaumaturge:elemental_tools"
+  ],
+  "column": -6,
+  "row": 4,
+  "icons": [
+    "thaumaturge:textures/research/r_inf_enchant.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.infusion_enchantment.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:enchanted_book"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infusion_enchantment.stage_1",
+      "recipes": [
+        "thaumaturge:infusion_enchantment/burrowing",
+        "thaumaturge:infusion_enchantment/collector",
+        "thaumaturge:infusion_enchantment/destructive",
+        "thaumaturge:infusion_enchantment/refining",
+        "thaumaturge:infusion_enchantment/sounding",
+        "thaumaturge:infusion_enchantment/arcing",
+        "thaumaturge:infusion_enchantment/essence",
+        "thaumaturge:infusion_enchantment/lamplight"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aversio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

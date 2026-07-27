@@ -1,0 +1,67 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.vis_generator.title",
+  "parents": [
+    "thaumaturge:redstone_relay"
+  ],
+  "column": 2,
+  "row": -3,
+  "icons": [
+    "thaumaturge:vis_generator"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.vis_generator.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:redstone_block"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:piston"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/potentia"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.vis_generator.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/vis_generator"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    }
+  ],
+  "complexity": 2
+}

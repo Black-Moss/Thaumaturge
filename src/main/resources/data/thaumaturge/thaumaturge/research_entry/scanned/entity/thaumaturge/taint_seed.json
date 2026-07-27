@@ -1,0 +1,18 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.scanned/entity/thaumaturge/taint_seed.title",
+  "column": -7,
+  "row": 1,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_taintseed.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.scanned/entity/thaumaturge/taint_seed.stage_0"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_stock.title",
+  "parents": [
+    "thaumaturge:seal_provide"
+  ],
+  "column": -6,
+  "row": 8,
+  "icons": [
+    "thaumaturge:seal_stock"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_stock.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_stock.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/seal_stock"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

@@ -1,0 +1,57 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.rift_closer.title",
+  "parents": [
+    "thaumaturge:flux_rift",
+    "thaumaturge:infusion",
+    "thaumaturge:vis_battery"
+  ],
+  "column": 0,
+  "row": -5,
+  "icons": [
+    "thaumaturge:causality_collapser"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.rift_closer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.rift_closer.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/causality_collapser"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

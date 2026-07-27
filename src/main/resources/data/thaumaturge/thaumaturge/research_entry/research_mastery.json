@@ -1,0 +1,42 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.research_mastery.title",
+  "parents": [
+    "thaumaturge:research_expertise"
+  ],
+  "column": -3,
+  "row": -4,
+  "stages": [
+    {
+      "text": "research.thaumaturge.research_mastery.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ],
+      "warp": 1
+    },
+    {
+      "text": "research.thaumaturge.research_mastery.stage.2"
+    }
+  ],
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_researcher2.png"
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    }
+  ],
+  "complexity": 2
+}

@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.arcane_spa.title",
+  "parents": [
+    "thaumaturge:bath_salts"
+  ],
+  "column": -5,
+  "row": -4,
+  "icons": [
+    "thaumaturge:spa"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.arcane_spa.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.arcane_spa.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/spa"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

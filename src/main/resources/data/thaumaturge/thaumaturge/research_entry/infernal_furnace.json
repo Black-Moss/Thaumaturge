@@ -1,0 +1,82 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.infernal_furnace.title",
+  "parents": [
+    "thaumaturge:base_artifice"
+  ],
+  "column": 3,
+  "row": -1,
+  "icons": [
+    "thaumaturge:infernal_furnace"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.infernal_furnace.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:obsidian"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:nether_brick"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:blaze_rod"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/ignis",
+        "thaumaturge:m_hellandback"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infernal_furnace.stage_1",
+      "recipes": [
+        "thaumaturge:dust_trigger/infernal_furnace",
+        "thaumaturge:triple_meat_treat"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.infernal_furnace.addendum_0",
+      "required_research": [
+        "thaumaturge:bellows"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:ignis",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

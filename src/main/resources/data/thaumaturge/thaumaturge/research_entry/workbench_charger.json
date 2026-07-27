@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.workbench_charger.title",
+  "parents": [
+    "thaumaturge:recharge_pedestal"
+  ],
+  "column": -3,
+  "row": 4,
+  "icons": [
+    "thaumaturge:arcane_workbench_charger"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.workbench_charger.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.workbench_charger.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/arcane_workbench_charger"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

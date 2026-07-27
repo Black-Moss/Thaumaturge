@@ -1,0 +1,105 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.crystal_farmer.title",
+  "parents": [
+    "thaumaturge:ore",
+    "thaumaturge:infusion",
+    "thaumaturge:scanned/orecrystal"
+  ],
+  "column": -5,
+  "row": 1,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:crystal_aer",
+    "thaumaturge:crystal_ignis",
+    "thaumaturge:crystal_aqua",
+    "thaumaturge:crystal_terra",
+    "thaumaturge:crystal_ordo",
+    "thaumaturge:crystal_perditio"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.crystal_farmer.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.crystal_farmer.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/crystal_aer",
+        "thaumaturge:infusion/crystal_ignis",
+        "thaumaturge:infusion/crystal_aqua",
+        "thaumaturge:infusion/crystal_terra",
+        "thaumaturge:infusion/crystal_ordo",
+        "thaumaturge:infusion/crystal_perditio",
+        "thaumaturge:infusion/crystal_vitium"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vitreus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

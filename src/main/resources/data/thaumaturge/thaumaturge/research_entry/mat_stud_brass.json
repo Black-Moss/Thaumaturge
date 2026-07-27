@@ -1,0 +1,41 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mat_stud_brass.title",
+  "parents": [
+    "thaumaturge:mat_stud_iron",
+    "thaumaturge:metallurgy@2"
+  ],
+  "column": -4,
+  "row": -2,
+  "meta": [
+    "reverse",
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:plate_brass"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mat_stud_brass.stage_0",
+      "required_research": [
+        "thaumaturge:f_matbrass"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

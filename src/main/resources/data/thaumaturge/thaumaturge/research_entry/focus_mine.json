@@ -1,0 +1,58 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_mine.title",
+  "parents": [
+    "thaumaturge:focus_projectile"
+  ],
+  "column": 5,
+  "row": 2,
+  "icons": [
+    "focus:thaumaturge:mine"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_mine.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:tripwire_hook"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/vinculum"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_mine.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

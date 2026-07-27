@@ -1,0 +1,62 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.golem_logistics.title",
+  "parents": [
+    "~thaumaturge:seal_provide",
+    "thaumaturge:golem_direct"
+  ],
+  "column": 3,
+  "row": 4,
+  "icons": [
+    "thaumaturge:textures/research/golem_logistics.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.golem_logistics.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:map"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:ender_eye"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.golem_logistics.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

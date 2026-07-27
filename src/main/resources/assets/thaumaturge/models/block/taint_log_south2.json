@@ -1,0 +1,6 @@
+{
+    "parent": "thaumaturge:block/taint_log",
+    "textures": {
+        "south": "thaumaturge:block/taint_log_2"
+    }
+}

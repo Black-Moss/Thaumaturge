@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.infusion_boost.title",
+  "parents": [
+    "thaumaturge:infusion"
+  ],
+  "column": -1,
+  "row": 4,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:matrix_cost",
+    "thaumaturge:matrix_speed"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.infusion_boost.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infusion_boost.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/matrix_speed",
+        "thaumaturge:arcane_workbench/matrix_cost"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

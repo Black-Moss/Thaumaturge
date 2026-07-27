@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.node_transducer.title",
+  "parents": [
+    "thaumaturge:node_stabilizer_advanced"
+  ],
+  "column": -7,
+  "row": 8,
+  "icons": [
+    "thaumaturge:node_transducer"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.node_transducer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.node_transducer.stage_1",
+      "recipes": [
+        "thaumaturge:node_transducer"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

@@ -1,0 +1,263 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.essentia_smelter.title",
+  "parents": [
+    "thaumaturge:alumentum",
+    "thaumaturge:metallurgy@2"
+  ],
+  "siblings": [
+    "thaumaturge:warded_jars"
+  ],
+  "column": 4,
+  "row": 0,
+  "meta": [
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:smelter_basic"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.essentia_smelter.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:aer"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:terra"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:ignis"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:aqua"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:ordo"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:perditio"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.essentia_smelter.stage_1",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:vacuos"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:lux"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:motus"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:gelum"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:vitreus"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:metallum"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:victus"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:mortuus"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:potentia"
+            }
+          }
+        },
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1,
+          "components": {
+            "thaumaturge:crystal_aspect": {
+              "aspect": "thaumaturge:permutatio"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.essentia_smelter.stage_2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/smelter_basic"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:smelter_basic"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.essentia_smelter.stage_3",
+      "recipes": [
+        "thaumaturge:arcane_workbench/smelter_basic",
+        "thaumaturge:arcane_workbench/alembic"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.essentia_smelter.addendum_0",
+      "required_research": [
+        "thaumaturge:bellows"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:ignis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:alkimia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

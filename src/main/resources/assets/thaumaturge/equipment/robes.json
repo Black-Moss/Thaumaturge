@@ -1,0 +1,26 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "thaumaturge:robes",
+        "dyeable": {
+          "color_when_undyed": 6961280
+        }
+      },
+      {
+        "texture": "thaumaturge:robes_overlay"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "thaumaturge:robes",
+        "dyeable": {
+          "color_when_undyed": 6961280
+        }
+      },
+      {
+        "texture": "thaumaturge:robes_overlay"
+      }
+    ]
+  }
+}

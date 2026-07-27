@@ -1,0 +1,20 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.aspects.title",
+  "parents": [
+    "~thaumaturge:gotthaumonomicon"
+  ],
+  "column": 1,
+  "row": -1,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_aspects.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.aspects.stage_0"
+    }
+  ]
+}

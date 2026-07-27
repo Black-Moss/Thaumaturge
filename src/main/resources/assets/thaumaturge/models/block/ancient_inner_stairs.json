@@ -1,0 +1,8 @@
+{
+    "parent": "block/inner_stairs",
+    "textures": {
+        "bottom": "thaumaturge:block/ancient_tile",
+        "top": "thaumaturge:block/ancient_tile",
+        "side": "thaumaturge:block/ancient_tile"
+    }
+}

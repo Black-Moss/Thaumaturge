@@ -1,0 +1,46 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.link_book.title",
+  "parents": [
+    "thaumaturge:base_eldritch",
+    "thaumaturge:share_book"
+  ],
+  "column": 3,
+  "row": -3,
+  "icons": [
+    "thaumaturge:thaumonomicon_linking"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.link_book.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.link_book.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/thaumonomicon_linking"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 10
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 20
+    }
+  ],
+  "complexity": 3
+}

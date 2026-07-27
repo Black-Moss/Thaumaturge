@@ -1,0 +1,64 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.grapple_gun.title",
+  "parents": [
+    "thaumaturge:base_artifice",
+    "thaumaturge:recharge_pedestal"
+  ],
+  "column": 2,
+  "row": 3,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:grapple_gun"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.grapple_gun.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:rare_earth"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.grapple_gun.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/grapple_gun_tip",
+        "thaumaturge:arcane_workbench/grapple_gun_spool",
+        "thaumaturge:arcane_workbench/grapple_gun"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:vinculum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

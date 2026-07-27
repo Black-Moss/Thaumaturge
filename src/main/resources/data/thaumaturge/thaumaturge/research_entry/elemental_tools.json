@@ -1,0 +1,91 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.elemental_tools.title",
+  "parents": [
+    "thaumaturge:boots_traveller",
+    "thaumaturge:metallurgy@3"
+  ],
+  "column": -4,
+  "row": 3,
+  "icons": [
+    "thaumaturge:elemental_axe",
+    "thaumaturge:elemental_sword",
+    "thaumaturge:elemental_pickaxe",
+    "thaumaturge:elemental_shovel",
+    "thaumaturge:elemental_hoe"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.elemental_tools.stage_0",
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:thaumium_axe"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:thaumium_sword"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:thaumium_pickaxe"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:thaumium_shovel"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:thaumium_hoe"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.elemental_tools.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/elemental_axe",
+        "thaumaturge:infusion/elemental_sword",
+        "thaumaturge:infusion/elemental_pickaxe",
+        "thaumaturge:infusion/elemental_shovel",
+        "thaumaturge:infusion/elemental_hoe"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

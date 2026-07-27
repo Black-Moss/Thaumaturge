@@ -1,0 +1,42 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_primal.title",
+  "parents": [
+    "thaumaturge:focus_greater"
+  ],
+  "column": 0,
+  "row": -6,
+  "icons": [
+    "focus:thaumaturge:primal"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_primal.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_primal.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

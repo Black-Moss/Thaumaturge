@@ -1,0 +1,61 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_break.title",
+  "parents": [
+    "thaumaturge:control_seals",
+    "thaumaturge:infusion",
+    "thaumaturge:golem_breaker"
+  ],
+  "column": -10,
+  "row": 4,
+  "icons": [
+    "thaumaturge:seal_breaker"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_break.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/perditio"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_break.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/seal_breaker"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.seal_break.addendum_0",
+      "recipes": [
+        "thaumaturge:crucible/seal_breaker_advanced"
+      ],
+      "required_research": [
+        "thaumaturge:mind_biothaumic"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

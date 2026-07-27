@@ -1,0 +1,80 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.base_auromancy.title",
+  "parents": [
+    "thaumaturge:unlock_auromancy"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_auromancy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.base_auromancy.stage_0",
+      "recipes": [
+        "thaumaturge:arcane_workbench/vis_resonator",
+        "thaumaturge:wand/assembly/iron_wood",
+        "thaumaturge:crucible/focus_1"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:focus_1"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.base_auromancy.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/vis_resonator",
+        "thaumaturge:wand/assembly/iron_wood",
+        "thaumaturge:crucible/focus_1",
+        "thaumaturge:table_stone",
+        "thaumaturge:arcane_workbench/focal_manipulator"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:focal_manipulator"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:f_onfire"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.base_auromancy.stage_2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/vis_resonator",
+        "thaumaturge:wand/assembly/iron_wood",
+        "thaumaturge:crucible/focus_1",
+        "thaumaturge:table_stone",
+        "thaumaturge:arcane_workbench/focal_manipulator"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

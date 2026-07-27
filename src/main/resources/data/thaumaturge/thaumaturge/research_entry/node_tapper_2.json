@@ -1,0 +1,38 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.node_tapper_2.title",
+  "parents": [
+    "thaumaturge:node_tapper_1"
+  ],
+  "column": -6,
+  "row": 3,
+  "icons": [
+    "thaumaturge:textures/research/r_researcher2.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.node_tapper_2.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.node_tapper_2.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

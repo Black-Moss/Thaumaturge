@@ -1,8 +1,0 @@
-{
-    "parent": "minecraft:item/generated",
-    "render_type": "minecraft:cutout",
-    "textures": {
-        "layer0": "thaumcraft:block/mirrorframe2",
-        "particle": "thaumcraft:block/mirrorframe2"
-    }
-}

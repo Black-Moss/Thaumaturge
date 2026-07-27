@@ -1,0 +1,9 @@
+{
+    "parent": "thaumaturge:block/arcane_workbench",
+    "textures": {
+        "particle": "thaumaturge:block/wand_workbench_side",
+        "top": "thaumaturge:block/wand_workbench_top",
+        "side": "thaumaturge:block/wand_workbench_side",
+        "bottom": "thaumaturge:block/base_stone"
+    }
+}

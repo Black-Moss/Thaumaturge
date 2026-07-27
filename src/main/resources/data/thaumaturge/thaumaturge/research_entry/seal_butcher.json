@@ -1,0 +1,51 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_butcher.title",
+  "parents": [
+    "thaumaturge:seal_guard",
+    "thaumaturge:infusion",
+    "thaumaturge:mind_biothaumic"
+  ],
+  "column": -11,
+  "row": 6,
+  "icons": [
+    "thaumaturge:seal_butcher"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_butcher.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/bestia"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_butcher.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/seal_butcher"
+      ],
+      "warp": 1
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aversio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:bestia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

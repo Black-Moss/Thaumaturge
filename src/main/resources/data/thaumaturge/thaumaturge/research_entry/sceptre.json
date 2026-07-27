@@ -1,0 +1,47 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.sceptre.title",
+  "parents": [
+    "thaumaturge:cap_gold"
+  ],
+  "column": -3,
+  "row": -5,
+  "icons": [
+    "thaumaturge:primal_charm"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.sceptre.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.sceptre.stage_0",
+      "recipes": [
+        "thaumaturge:wand/sceptre/gold_greatwood",
+        "thaumaturge:wand/sceptre/thaumium_silverwood",
+        "thaumaturge:wand/sceptre/iron_wood"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

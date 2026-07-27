@@ -1,0 +1,48 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.metal_purification.title",
+  "parents": [
+    "thaumaturge:metallurgy@3"
+  ],
+  "column": 2,
+  "row": 4,
+  "icons": [
+    "thaumaturge:cluster_iron"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.metal_purification.stage_0",
+      "recipes": [
+        "thaumaturge:crucible/cluster_iron",
+        "thaumaturge:crucible/cluster_gold",
+        "thaumaturge:crucible/cluster_cinnabar",
+        "thaumaturge:crucible/cluster_copper",
+        "thaumaturge:crucible/cluster_tin",
+        "thaumaturge:crucible/cluster_silver",
+        "thaumaturge:crucible/cluster_lead"
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 2
+        }
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:alkimia",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

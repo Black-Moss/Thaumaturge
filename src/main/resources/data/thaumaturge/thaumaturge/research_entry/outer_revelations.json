@@ -1,0 +1,36 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.outer_revelations.title",
+  "parents": [
+    "thaumaturge:enter_outer_lands"
+  ],
+  "column": -6,
+  "row": 2,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_outerrev.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.outer_revelations.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

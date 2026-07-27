@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_use.title",
+  "parents": [
+    "thaumaturge:control_seals",
+    "thaumaturge:infusion",
+    "thaumaturge:mind_biothaumic"
+  ],
+  "column": -3,
+  "row": 6,
+  "icons": [
+    "thaumaturge:seal_use"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_use.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/instrumentum"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_use.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/seal_use"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

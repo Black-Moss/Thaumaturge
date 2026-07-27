@@ -1,0 +1,60 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.paving_stones.title",
+  "parents": [
+    "thaumaturge:base_infusion"
+  ],
+  "column": 0,
+  "row": -2,
+  "icons": [
+    "thaumaturge:paving_stone_barrier",
+    "thaumaturge:paving_stone_travel"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.paving_stones.stage_0",
+      "recipes": [
+        "thaumaturge:stone_arcane"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:stone_arcane"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.paving_stones.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/paving_stone_barrier",
+        "thaumaturge:arcane_workbench/paving_stone_travel",
+        "thaumaturge:stone_arcane",
+        "thaumaturge:stone_arcane_brick"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

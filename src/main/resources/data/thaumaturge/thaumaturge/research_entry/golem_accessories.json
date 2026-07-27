@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.golem_accessories.title",
+  "parents": [
+    "thaumaturge:mind_clockwork"
+  ],
+  "column": 2,
+  "row": 3,
+  "icons": [
+    "thaumaturge:golem_top_hat"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.golem_accessories.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.golem_accessories.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/golem_top_hat",
+        "thaumaturge:arcane_workbench/golem_fez",
+        "thaumaturge:arcane_workbench/golem_glasses",
+        "thaumaturge:arcane_workbench/golem_bowtie",
+        "thaumaturge:arcane_workbench/golem_visor"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

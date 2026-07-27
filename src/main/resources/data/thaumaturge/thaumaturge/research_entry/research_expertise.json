@@ -1,0 +1,41 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.research_expertise.title",
+  "parents": [
+    "thaumaturge:first_steps"
+  ],
+  "column": -2,
+  "row": -3,
+  "stages": [
+    {
+      "text": "research.thaumaturge.research_expertise.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.research_expertise.stage.2"
+    }
+  ],
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_researcher1.png"
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

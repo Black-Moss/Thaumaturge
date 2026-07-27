@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.void_siphon.title",
+  "parents": [
+    "thaumaturge:base_eldritch",
+    "thaumaturge:infusion"
+  ],
+  "column": 3,
+  "row": 0,
+  "icons": [
+    "thaumaturge:void_siphon"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.void_siphon.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ],
+      "warp": 1
+    },
+    {
+      "text": "research.thaumaturge.void_siphon.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/void_siphon"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

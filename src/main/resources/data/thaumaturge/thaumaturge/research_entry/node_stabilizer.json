@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.node_stabilizer.title",
+  "parents": [
+    "thaumaturge:node_preserve"
+  ],
+  "column": -6,
+  "row": 5,
+  "icons": [
+    "thaumaturge:node_stabilizer"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.node_stabilizer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.node_stabilizer.stage_0",
+      "recipes": [
+        "thaumaturge:node_stabilizer"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

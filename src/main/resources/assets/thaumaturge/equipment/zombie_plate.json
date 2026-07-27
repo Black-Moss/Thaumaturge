@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "thaumaturge:zombie_plate"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "thaumaturge:zombie_plate"
+      }
+    ]
+  }
+}

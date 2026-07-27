@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.cap_copper.title",
+  "parents": [
+    "thaumaturge:cap_gold"
+  ],
+  "column": -3,
+  "row": -3,
+  "icons": [
+    "thaumaturge:wand_cap_copper"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.cap_copper.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.cap_copper.stage_0",
+      "recipes": [
+        "thaumaturge:wand/part/wand_cap_copper"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

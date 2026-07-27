@@ -1,0 +1,56 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_spellbat.title",
+  "parents": [
+    "thaumaturge:focus_mine",
+    "thaumaturge:f_bat",
+    "thaumaturge:scanned/entity/thaumaturge/firebat"
+  ],
+  "column": 7,
+  "row": 4,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "focus:thaumaturge:spellbat"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_spellbat.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/bestia"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_spellbat.stage_1",
+      "warp": 2
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:bestia",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:volatus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:spiritus",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

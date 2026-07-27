@@ -1,0 +1,70 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.unlock_alchemy.title",
+  "parents": [
+    "thaumaturge:first_steps"
+  ],
+  "column": 0,
+  "row": 2,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_alchemy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.unlock_alchemy.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_alchemy.stage_1",
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:crucible"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_alchemy.stage_2",
+      "recipes": [
+        "thaumaturge:crucible/nitor_yellow",
+        "thaumaturge:nitors/red"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:nitor_yellow"
+          ],
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alkimia",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

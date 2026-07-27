@@ -1,0 +1,48 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_harvest.title",
+  "parents": [
+    "thaumaturge:seal_use"
+  ],
+  "column": -5,
+  "row": 6,
+  "icons": [
+    "thaumaturge:seal_harvest"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_harvest.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/herba"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_harvest.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/seal_harvest"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

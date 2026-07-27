@@ -1,0 +1,51 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_curse.title",
+  "parents": [
+    "thaumaturge:focus_flux",
+    "thaumaturge:scanned/pechwand"
+  ],
+  "column": -2,
+  "row": 6,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "focus:thaumaturge:curse"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_curse.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/mortuus"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_curse.stage_1",
+      "warp": 2
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aversio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:mortuus",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

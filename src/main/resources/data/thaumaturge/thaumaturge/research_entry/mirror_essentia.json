@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.mirror_essentia.title",
+  "parents": [
+    "thaumaturge:mirror"
+  ],
+  "column": -7,
+  "row": -1,
+  "icons": [
+    "thaumaturge:mirror_essentia"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mirror_essentia.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.mirror_essentia.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/mirror_essentia"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

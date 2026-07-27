@@ -1,8 +1,0 @@
-{
-    "parent": "thaumcraft:block/pedestal_eldritch",
-    "textures": {
-        "side": "thaumcraft:block/pedestal_ancient_side",
-        "top": "thaumcraft:block/ancient_tile",
-        "particle": "thaumcraft:block/pedestal_ancient_side"
-    }
-}

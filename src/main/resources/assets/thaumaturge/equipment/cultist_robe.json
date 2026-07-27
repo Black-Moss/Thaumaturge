@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "thaumaturge:cultist_robe"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "thaumaturge:cultist_robe"
+      }
+    ]
+  }
+}

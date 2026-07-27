@@ -1,0 +1,33 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.primordial_pearl.title",
+  "column": -8,
+  "row": 4,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:primordial_pearl"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.primordial_pearl.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

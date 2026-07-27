@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.levitator.title",
+  "parents": [
+    "thaumaturge:hungry_chest",
+    "thaumaturge:metallurgy@3"
+  ],
+  "column": 5,
+  "row": 3,
+  "icons": [
+    "thaumaturge:levitator"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.levitator.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/volatus"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.levitator.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/levitator"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:volatus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aer",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

@@ -1,0 +1,26 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.research.title",
+  "parents": [
+    "~thaumaturge:gotthaumonomicon"
+  ],
+  "column": 2,
+  "row": 0,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:scribing_tools"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.research.stage_0",
+      "recipes": [
+        "thaumaturge:arcane_workbench/thaumometer",
+        "thaumaturge:scribing_tools",
+        "thaumaturge:scribing_tools_alt",
+        "thaumaturge:table_wood"
+      ]
+    }
+  ]
+}

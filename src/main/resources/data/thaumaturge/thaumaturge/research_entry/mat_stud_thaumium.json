@@ -1,0 +1,40 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mat_stud_thaumium.title",
+  "parents": [
+    "thaumaturge:mat_stud_brass",
+    "thaumaturge:metallurgy@3"
+  ],
+  "column": -5,
+  "row": -1,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:plate_thaumium"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mat_stud_thaumium.stage_0",
+      "required_research": [
+        "thaumaturge:f_matthaumium"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

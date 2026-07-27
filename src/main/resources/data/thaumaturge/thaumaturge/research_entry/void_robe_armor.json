@@ -1,0 +1,54 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.void_robe_armor.title",
+  "parents": [
+    "thaumaturge:base_eldritch",
+    "thaumaturge:armor_fortress"
+  ],
+  "column": 0,
+  "row": 3,
+  "icons": [
+    "thaumaturge:void_robe_helm"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.void_robe_armor.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ],
+      "warp": 1
+    },
+    {
+      "text": "research.thaumaturge.void_robe_armor.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/void_robe_helm",
+        "thaumaturge:infusion/void_robe_chest",
+        "thaumaturge:infusion/void_robe_legs"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

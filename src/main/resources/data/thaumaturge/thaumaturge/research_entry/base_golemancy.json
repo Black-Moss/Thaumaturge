@@ -1,0 +1,36 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.base_golemancy.title",
+  "parents": [
+    "thaumaturge:unlock_golemancy"
+  ],
+  "column": 0,
+  "row": -1,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_golemancy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.base_golemancy.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:spiritus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

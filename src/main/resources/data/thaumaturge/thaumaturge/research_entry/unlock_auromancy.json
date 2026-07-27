@@ -1,0 +1,64 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.unlock_auromancy.title",
+  "parents": [
+    "thaumaturge:unlock_alchemy"
+  ],
+  "column": -2,
+  "row": 4,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_auromancy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.unlock_auromancy.stage_0",
+      "required_research": [
+        "thaumaturge:m_deepdown",
+        "thaumaturge:m_uphigh"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_auromancy.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/vis_resonator",
+        "thaumaturge:wand/assembly/iron_wood"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:vis_resonator"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:wand"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_auromancy.stage_2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/vis_resonator",
+        "thaumaturge:wand/assembly/iron_wood"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

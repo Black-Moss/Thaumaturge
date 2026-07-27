@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_lumber.title",
+  "parents": [
+    "thaumaturge:seal_break",
+    "thaumaturge:mind_biothaumic"
+  ],
+  "column": -9,
+  "row": 6,
+  "icons": [
+    "thaumaturge:seal_lumber"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_lumber.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/herba"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_lumber.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/seal_lumber"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

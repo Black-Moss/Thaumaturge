@@ -1,0 +1,42 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.node_preserve.title",
+  "parents": [
+    "thaumaturge:node_tapper_1"
+  ],
+  "column": -4,
+  "row": 3,
+  "icons": [
+    "thaumaturge:textures/aspects/auram.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.node_preserve.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.node_preserve.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

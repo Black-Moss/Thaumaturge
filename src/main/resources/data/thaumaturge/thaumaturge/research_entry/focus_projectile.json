@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_projectile.title",
+  "parents": [
+    "thaumaturge:base_auromancy"
+  ],
+  "column": 3,
+  "row": 0,
+  "icons": [
+    "focus:thaumaturge:projectile"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_projectile.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/motus"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_projectile.stage_1",
+      "required_research": [
+        "thaumaturge:f_arrow",
+        "thaumaturge:f_fireball",
+        "thaumaturge:f_spit"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_projectile.stage_2"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aversio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

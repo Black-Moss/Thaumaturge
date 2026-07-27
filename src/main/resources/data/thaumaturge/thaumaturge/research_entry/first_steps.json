@@ -1,0 +1,77 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.first_steps.title",
+  "parents": [
+    "thaumaturge:gotthaumonomicon"
+  ],
+  "siblings": [
+    "thaumaturge:gotdream"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:thaumonomicon"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.first_steps.stage_0",
+      "recipes": [
+        "thaumaturge:salis_mundus"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:arcane_workbench"
+          ],
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.first_steps.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/thaumometer",
+        "thaumaturge:salis_mundus"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:thaumometer"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.first_steps.stage_2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/thaumometer",
+        "thaumaturge:salis_mundus",
+        "thaumaturge:stone_arcane",
+        "thaumaturge:stone_arcane_brick"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

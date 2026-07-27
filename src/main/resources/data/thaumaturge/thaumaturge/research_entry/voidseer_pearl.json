@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.voidseer_pearl.title",
+  "parents": [
+    "thaumaturge:base_eldritch",
+    "thaumaturge:curiosity_band"
+  ],
+  "column": -3,
+  "row": 0,
+  "icons": [
+    "thaumaturge:voidseer_charm"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.voidseer_pearl.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ],
+      "warp": 3
+    },
+    {
+      "text": "research.thaumaturge.voidseer_pearl.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/voidseer_charm"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

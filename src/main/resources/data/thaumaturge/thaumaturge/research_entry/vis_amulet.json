@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.vis_amulet.title",
+  "parents": [
+    "thaumaturge:recharge_pedestal",
+    "thaumaturge:infusion"
+  ],
+  "column": -5,
+  "row": 4,
+  "icons": [
+    "thaumaturge:amulet_vis_crafted"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.vis_amulet.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.vis_amulet.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/amulet_vis_crafted"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

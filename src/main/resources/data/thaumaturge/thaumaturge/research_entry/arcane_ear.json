@@ -1,0 +1,51 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.arcane_ear.title",
+  "parents": [
+    "thaumaturge:redstone_relay"
+  ],
+  "column": 0,
+  "row": -4,
+  "icons": [
+    "thaumaturge:arcane_ear"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.arcane_ear.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:note_block"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/sensus"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.arcane_ear.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/arcane_ear",
+        "thaumaturge:arcane_ear_toggle",
+        "thaumaturge:arcane_ear_toggle"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aer",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

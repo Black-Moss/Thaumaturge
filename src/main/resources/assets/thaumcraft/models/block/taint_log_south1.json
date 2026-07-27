@@ -1,6 +1,0 @@
-{
-    "parent": "thaumcraft:block/taint_log",
-    "textures": {
-        "south": "thaumcraft:block/taint_log_1"
-    }
-}

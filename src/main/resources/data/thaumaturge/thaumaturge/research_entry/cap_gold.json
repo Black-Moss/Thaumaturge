@@ -1,0 +1,46 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.cap_gold.title",
+  "parents": [
+    "thaumaturge:base_auromancy"
+  ],
+  "column": -2,
+  "row": -2,
+  "icons": [
+    "thaumaturge:wand_cap_gold"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.cap_gold.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.cap_gold.stage_0",
+      "recipes": [
+        "thaumaturge:wand/part/wand_cap_gold",
+        "thaumaturge:wand/assembly/gold_greatwood"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

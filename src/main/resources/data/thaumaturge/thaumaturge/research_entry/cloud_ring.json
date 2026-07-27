@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.cloud_ring.title",
+  "parents": [
+    "thaumaturge:infusion"
+  ],
+  "column": 2,
+  "row": 2,
+  "icons": [
+    "thaumaturge:cloud_ring"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.cloud_ring.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.cloud_ring.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/cloud_ring"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aer",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:volatus",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

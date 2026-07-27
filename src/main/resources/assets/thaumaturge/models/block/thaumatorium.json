@@ -1,0 +1,10 @@
+{
+  "loader": "thaumaturge:mesh",
+  "parent": "block/block",
+  "model": "thaumaturge:models/mesh/thaumatorium.tcmesh",
+  "textures": {
+    "texture": "thaumaturge:block/thaumatorium",
+    "particle": "#texture"
+  },
+  "corner_space": true
+}

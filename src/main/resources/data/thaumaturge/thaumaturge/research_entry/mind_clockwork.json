@@ -1,0 +1,77 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mind_clockwork.title",
+  "parents": [
+    "thaumaturge:base_golemancy",
+    "thaumaturge:essentia_smelter",
+    "thaumaturge:hedge_alchemy"
+  ],
+  "siblings": [
+    "thaumaturge:control_seals",
+    "thaumaturge:mat_stud_wood"
+  ],
+  "column": 0,
+  "row": 3,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:mind_clockwork"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mind_clockwork.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/cognitio",
+        "thaumaturge:scanned/aspect/thaumaturge/victus"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.mind_clockwork.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/mind_clockwork"
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.mind_clockwork.stage_2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/mind_clockwork",
+        "thaumaturge:dust_trigger/golem_press"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

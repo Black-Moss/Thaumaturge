@@ -1,0 +1,6 @@
+{
+  "parent": "thaumaturge:block/smelter_thaumium_off",
+  "textures": {
+    "north": "thaumaturge:block/smelter_thaumium_front_on"
+  }
+}

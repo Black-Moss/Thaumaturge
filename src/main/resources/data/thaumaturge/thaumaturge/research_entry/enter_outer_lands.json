@@ -1,0 +1,36 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.enter_outer_lands.title",
+  "parents": [
+    "~thaumaturge:oculus"
+  ],
+  "column": -5,
+  "row": 4,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_outer.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.enter_outer_lands.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

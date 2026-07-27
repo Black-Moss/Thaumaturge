@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:block/cube_all",
+    "textures": {
+        "all": "thaumaturge:block/ancient_rock_stone_2"
+    }
+}

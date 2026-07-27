@@ -1,0 +1,56 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.golem_breaker.title",
+  "parents": [
+    "thaumaturge:mind_clockwork"
+  ],
+  "column": -8,
+  "row": 2,
+  "icons": [
+    "thaumaturge:textures/research/icon_arms_breakers.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.golem_breaker.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:diamond"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:piston"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.golem_breaker.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

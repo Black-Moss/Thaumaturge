@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.recharge_pedestal.title",
+  "parents": [
+    "thaumaturge:base_auromancy"
+  ],
+  "column": -3,
+  "row": 2,
+  "icons": [
+    "thaumaturge:recharge_pedestal"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.recharge_pedestal.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.recharge_pedestal.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/recharge_pedestal"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

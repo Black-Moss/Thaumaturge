@@ -1,0 +1,57 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.runic_shielding.title",
+  "parents": [
+    "thaumaturge:infusion_enchantment"
+  ],
+  "column": -6,
+  "row": 6,
+  "icons": [
+    "thaumaturge:textures/research/r_runicupg.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.runic_shielding.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:enchanted_book"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:amber"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.runic_shielding.stage_1",
+      "recipes": []
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

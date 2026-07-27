@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.bellows.title",
+  "parents": [
+    "thaumaturge:infernal_furnace"
+  ],
+  "column": 5,
+  "row": -3,
+  "icons": [
+    "thaumaturge:bellows"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.bellows.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:essentia_crystal"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.bellows.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/bellows"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aer",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

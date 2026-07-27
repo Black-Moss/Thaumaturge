@@ -1,0 +1,8 @@
+{
+    "parent": "thaumaturge:block/pedestal_eldritch",
+    "textures": {
+        "side": "thaumaturge:block/pedestal_ancient_side",
+        "top": "thaumaturge:block/ancient_tile",
+        "particle": "thaumaturge:block/pedestal_ancient_side"
+    }
+}

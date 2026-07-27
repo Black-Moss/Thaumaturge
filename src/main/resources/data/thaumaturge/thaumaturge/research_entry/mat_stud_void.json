@@ -1,0 +1,40 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mat_stud_void.title",
+  "parents": [
+    "thaumaturge:mat_stud_thaumium",
+    "thaumaturge:base_eldritch"
+  ],
+  "column": -6,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:plate_void"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mat_stud_void.stage_0",
+      "required_research": [
+        "thaumaturge:f_matvoid"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

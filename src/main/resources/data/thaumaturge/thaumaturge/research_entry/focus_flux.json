@@ -1,0 +1,42 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_flux.title",
+  "parents": [
+    "thaumaturge:focus_elemental"
+  ],
+  "column": 0,
+  "row": 4,
+  "icons": [
+    "focus:thaumaturge:flux"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_flux.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/vitium"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vitium",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

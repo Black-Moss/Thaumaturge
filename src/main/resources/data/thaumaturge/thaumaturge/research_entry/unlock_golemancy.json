@@ -1,0 +1,56 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.unlock_golemancy.title",
+  "parents": [
+    "thaumaturge:unlock_artifice",
+    "thaumaturge:unlock_auromancy",
+    "thaumaturge:unlock_infusion"
+  ],
+  "siblings": [
+    "thaumaturge:base_golemancy"
+  ],
+  "column": 0,
+  "row": 6,
+  "meta": [
+    "round",
+    "spiky",
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_golemancy.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.unlock_golemancy.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:f_golem"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.unlock_golemancy.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:spiritus",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

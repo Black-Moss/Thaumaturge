@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.centrifuge.title",
+  "parents": [
+    "thaumaturge:tubes"
+  ],
+  "column": 7,
+  "row": -4,
+  "icons": [
+    "thaumaturge:centrifuge"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.centrifuge.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.centrifuge.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/centrifuge"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

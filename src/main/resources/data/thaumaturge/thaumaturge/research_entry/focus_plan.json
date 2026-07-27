@@ -1,0 +1,46 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_plan.title",
+  "parents": [
+    "thaumaturge:focus_exchange",
+    "thaumaturge:focus_projectile"
+  ],
+  "column": 3,
+  "row": 2,
+  "icons": [
+    "focus:thaumaturge:plan"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_plan.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/fabrico"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_plan.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

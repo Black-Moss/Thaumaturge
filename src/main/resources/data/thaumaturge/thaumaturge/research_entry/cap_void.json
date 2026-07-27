@@ -1,0 +1,46 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.cap_void.title",
+  "parents": [
+    "thaumaturge:cap_thaumium"
+  ],
+  "column": -2,
+  "row": -6,
+  "icons": [
+    "thaumaturge:wand_cap_void"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.cap_void.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.cap_void.stage_0",
+      "recipes": [
+        "thaumaturge:wand/part/wand_cap_void_inert",
+        "thaumaturge:infusion/wand_cap_void"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:vitium",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

@@ -1,0 +1,9 @@
+{
+  "loader": "thaumaturge:mesh",
+  "parent": "block/block",
+  "model": "thaumaturge:models/mesh/arcane_workbench_charger.tcmesh",
+  "textures": {
+    "texture": "thaumaturge:block/arcane_workbench_charger",
+    "particle": "#texture"
+  }
+}

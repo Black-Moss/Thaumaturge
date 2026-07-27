@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_provide.title",
+  "parents": [
+    "thaumaturge:seal_empty",
+    "thaumaturge:mind_biothaumic"
+  ],
+  "column": -7,
+  "row": 6,
+  "icons": [
+    "thaumaturge:seal_provider"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_provide.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/desiderium"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.seal_provide.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/seal_provider"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

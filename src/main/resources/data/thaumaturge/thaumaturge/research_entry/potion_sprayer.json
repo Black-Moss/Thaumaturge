@@ -1,0 +1,54 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.potion_sprayer.title",
+  "parents": [
+    "thaumaturge:hedge_alchemy",
+    "~thaumaturge:tubes"
+  ],
+  "column": -1,
+  "row": -2,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:potion_sprayer"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.potion_sprayer.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.potion_sprayer.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/potion_sprayer"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alkimia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

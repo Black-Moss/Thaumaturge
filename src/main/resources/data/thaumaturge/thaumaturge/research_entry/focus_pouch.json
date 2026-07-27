@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_pouch.title",
+  "parents": [
+    "thaumaturge:base_auromancy"
+  ],
+  "column": -2,
+  "row": -1,
+  "icons": [
+    "thaumaturge:focus_pouch"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_pouch.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_pouch.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/focus_pouch"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

@@ -1,0 +1,48 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.arcane_pattern_crafter.title",
+  "parents": [
+    "thaumaturge:dioptra"
+  ],
+  "column": -2,
+  "row": 5,
+  "icons": [
+    "thaumaturge:pattern_crafter"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.arcane_pattern_crafter.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/fabrico"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.arcane_pattern_crafter.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/pattern_crafter"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

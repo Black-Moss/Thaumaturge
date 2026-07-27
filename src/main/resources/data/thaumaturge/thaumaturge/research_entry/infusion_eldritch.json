@@ -1,0 +1,60 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.infusion_eldritch.title",
+  "parents": [
+    "thaumaturge:infusion_boost",
+    "thaumaturge:scanned/orblock2"
+  ],
+  "column": -2,
+  "row": 6,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:stone_eldritch_tile"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.infusion_eldritch.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:stone_eldritch_tile"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infusion_eldritch.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/pedestal_eldritch",
+        "thaumaturge:dust_trigger/infusion_altar_eldritch"
+      ],
+      "warp": 2
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

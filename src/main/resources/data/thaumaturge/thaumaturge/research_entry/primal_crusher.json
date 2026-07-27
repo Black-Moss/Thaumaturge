@@ -1,0 +1,52 @@
+{
+  "category": "thaumaturge:eldritch",
+  "name": "research.thaumaturge.primal_crusher.title",
+  "parents": [
+    "thaumaturge:base_eldritch",
+    "thaumaturge:elemental_tools"
+  ],
+  "column": 0,
+  "row": -3,
+  "icons": [
+    "thaumaturge:primal_crusher"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.primal_crusher.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ],
+      "warp": 1
+    },
+    {
+      "text": "research.thaumaturge.primal_crusher.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/primal_crusher"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

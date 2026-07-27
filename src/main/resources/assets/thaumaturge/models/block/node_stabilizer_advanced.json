@@ -1,0 +1,9 @@
+{
+  "loader": "thaumaturge:mesh",
+  "parent": "block/block",
+  "model": "thaumaturge:models/mesh/node_stabilizer.tcmesh",
+  "textures": {
+    "texture": "thaumaturge:block/node_stabilizer_over",
+    "particle": "#texture"
+  }
+}

@@ -1,0 +1,6 @@
+{
+    "parent": "block/cube_all",
+    "textures": {
+        "all": "thaumaturge:block/arcane_brick_stone"
+    }
+}

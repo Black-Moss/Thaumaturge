@@ -1,0 +1,18 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.scanned/entity/thaumaturge/cultist.title",
+  "column": -7,
+  "row": 2,
+  "meta": [
+    "hex",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/r_cultist.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.scanned/entity/thaumaturge/cultist.stage_0"
+    }
+  ]
+}

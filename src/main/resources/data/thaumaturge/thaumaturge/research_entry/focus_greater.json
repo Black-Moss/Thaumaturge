@@ -1,0 +1,60 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_greater.title",
+  "parents": [
+    "thaumaturge:focus_advanced",
+    "thaumaturge:primordial_pearl"
+  ],
+  "column": 0,
+  "row": -4,
+  "icons": [
+    "thaumaturge:focus_3"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_greater.stage_0",
+      "recipes": [
+        "thaumaturge:infusion/focus_3"
+      ],
+      "craft": [
+        {
+          "items": [
+            "thaumaturge:focus_3"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:f_onfire"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_greater.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/focus_3"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 8
+    },
+    {
+      "aspect": "thaumaturge:vitreus",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 5
+    }
+  ],
+  "complexity": 3
+}

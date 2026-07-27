@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.golem_direct.title",
+  "parents": [
+    "thaumaturge:mind_clockwork"
+  ],
+  "column": 1,
+  "row": 4,
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/icon_head_basic.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.golem_direct.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.golem_direct.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 2
+    }
+  ],
+  "complexity": 2
+}

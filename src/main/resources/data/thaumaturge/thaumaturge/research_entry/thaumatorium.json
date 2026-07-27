@@ -1,0 +1,59 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.thaumatorium.title",
+  "parents": [
+    "thaumaturge:centrifuge",
+    "thaumaturge:essentia_smelter_thaumium"
+  ],
+  "column": 10,
+  "row": -2,
+  "meta": [
+    "spiky"
+  ],
+  "icons": [
+    "thaumaturge:thaumatorium"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.thaumatorium.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.thaumatorium.stage_1",
+      "recipes": [
+        "thaumaturge:dust_trigger/thaumatorium",
+        "thaumaturge:arcane_workbench/brain_box"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:permutatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

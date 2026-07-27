@@ -1,0 +1,62 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_break.title",
+  "parents": [
+    "thaumaturge:focus_flux"
+  ],
+  "column": 2,
+  "row": 6,
+  "meta": [
+    "reverse"
+  ],
+  "icons": [
+    "focus:thaumaturge:break"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_break.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:enchanted_book"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "minecraft:enchanted_book"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/perditio"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.focus_break.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

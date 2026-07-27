@@ -1,0 +1,108 @@
+package com.leclowndu93150.thaumaturge.compat.jei;
+
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientType;
+import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumaturge.network.ServerboundRequestSyncAspectPoolPayload;
+import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
+import com.leclowndu93150.thaumaturge.registry.TCItems;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.runtime.IIngredientManager;
+import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.jspecify.annotations.Nullable;
+
+public final class AspectJeiSync {
+    private static @Nullable IJeiRuntime runtime;
+    private static final Set<Identifier> discoveredAspects = new HashSet<>();
+    private static final Map<Identifier, List<ItemStack>> gatedStacks = new HashMap<>();
+
+    private AspectJeiSync() {}
+
+    static void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        runtime = jeiRuntime;
+        discoveredAspects.clear();
+        gatedStacks.clear();
+        IIngredientManager ingredients = jeiRuntime.getIngredientManager();
+        for (ItemStack stack : ingredients.getAllIngredients(VanillaTypes.ITEM_STACK)) {
+            Identifier aspect = gatedAspectOf(stack);
+            if (aspect != null) {
+                gatedStacks.computeIfAbsent(aspect, k -> new ArrayList<>()).add(stack);
+            }
+        }
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
+                if (AspectPools.isDiscovered(player, ref)) {
+                    discoveredAspects.add(AspectPools.idOf(ref));
+                }
+            });
+        }
+        ClientPacketDistributor.sendToServer(ServerboundRequestSyncAspectPoolPayload.INSTANCE);
+    }
+
+    private static @Nullable Identifier gatedAspectOf(ItemStack stack) {
+        if (stack.is(TCItems.ESSENTIA_CRYSTAL.get())) {
+            AspectInstance instance = stack.get(TCDataComponents.CRYSTAL_ASPECT.get());
+            return instance == null ? null : AspectPools.idOf(instance.aspect());
+        }
+        if (stack.is(TCItems.PHIAL.get())) {
+            AspectList aspects = stack.get(TCDataComponents.ASPECTS.get());
+            if (aspects == null || aspects.isEmpty()) {
+                return null;
+            }
+            return AspectPools.idOf(aspects.entries().get(0).aspect());
+        }
+        return null;
+    }
+
+    public static void syncDiscovered() {
+        IJeiRuntime current = runtime;
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (current == null || player == null) {
+            return;
+        }
+        IIngredientManager ingredients = current.getIngredientManager();
+        List<AspectInstance> changedAspects = new ArrayList<>();
+        List<ItemStack> changedStacks = new ArrayList<>();
+        player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
+            Identifier id = ref.key().identifier();
+            boolean discovered = AspectPools.isDiscovered(player, ref);
+            boolean known = discoveredAspects.contains(id);
+            if (discovered == known) {
+                return;
+            }
+            if (discovered) {
+                discoveredAspects.add(id);
+            } else {
+                discoveredAspects.remove(id);
+            }
+            changedAspects.add(new AspectInstance(ref, 1));
+            List<ItemStack> stacks = gatedStacks.get(id);
+            if (stacks != null) {
+                changedStacks.addAll(stacks);
+            }
+        });
+        if (!changedAspects.isEmpty()) {
+            ingredients.removeIngredientsAtRuntime(AspectIngredientType.INSTANCE, changedAspects);
+            ingredients.addIngredientsAtRuntime(AspectIngredientType.INSTANCE, changedAspects);
+        }
+        if (!changedStacks.isEmpty()) {
+            ingredients.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, changedStacks);
+            ingredients.addIngredientsAtRuntime(VanillaTypes.ITEM_STACK, changedStacks);
+        }
+    }
+}

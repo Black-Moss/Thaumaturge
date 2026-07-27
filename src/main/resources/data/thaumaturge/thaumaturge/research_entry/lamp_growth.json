@@ -1,0 +1,57 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.lamp_growth.title",
+  "parents": [
+    "thaumaturge:arcane_lamp",
+    "thaumaturge:infusion"
+  ],
+  "column": -4,
+  "row": 1,
+  "icons": [
+    "thaumaturge:lamp_growth"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.lamp_growth.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:bone_meal"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/herba"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.lamp_growth.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/lamp_growth"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:lux",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 9
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

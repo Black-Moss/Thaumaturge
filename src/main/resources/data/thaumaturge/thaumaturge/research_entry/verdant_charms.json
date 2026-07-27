@@ -1,0 +1,47 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.verdant_charms.title",
+  "parents": [
+    "thaumaturge:cloud_ring"
+  ],
+  "column": 4,
+  "row": 3,
+  "icons": [
+    "thaumaturge:verdant_charm"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.verdant_charms.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.verdant_charms.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/verdant_charm",
+        "thaumaturge:infusion/verdant_charm_life",
+        "thaumaturge:infusion/verdant_charm_sustain"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

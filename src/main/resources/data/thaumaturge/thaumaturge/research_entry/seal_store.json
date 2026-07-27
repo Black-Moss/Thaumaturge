@@ -1,0 +1,46 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.seal_store.title",
+  "parents": [
+    "thaumaturge:seal_collect"
+  ],
+  "column": -6,
+  "row": 4,
+  "icons": [
+    "thaumaturge:seal_fill"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.seal_store.stage_0",
+      "recipes": [
+        "thaumaturge:crucible/seal_fill"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.seal_store.addendum_0",
+      "recipes": [
+        "thaumaturge:crucible/seal_fill_advanced"
+      ],
+      "required_research": [
+        "thaumaturge:mind_biothaumic"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

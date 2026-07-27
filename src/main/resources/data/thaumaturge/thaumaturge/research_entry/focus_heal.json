@@ -1,0 +1,42 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.focus_heal.title",
+  "parents": [
+    "thaumaturge:focus_flux"
+  ],
+  "column": 0,
+  "row": 7,
+  "icons": [
+    "focus:thaumaturge:heal"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.focus_heal.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/victus"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

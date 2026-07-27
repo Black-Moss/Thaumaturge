@@ -1,0 +1,54 @@
+{
+  "category": "thaumaturge:alchemy",
+  "name": "research.thaumaturge.sane_soap.title",
+  "parents": [
+    "thaumaturge:bath_salts"
+  ],
+  "column": -3,
+  "row": -4,
+  "icons": [
+    "thaumaturge:sanity_soap"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.sane_soap.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:alchemy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.sane_soap.stage_1",
+      "recipes": [
+        "thaumaturge:crucible/sanity_soap"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 5
+    }
+  ],
+  "complexity": 1
+}

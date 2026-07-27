@@ -1,0 +1,48 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.arcane_lamp.title",
+  "parents": [
+    "thaumaturge:base_artifice"
+  ],
+  "column": -3,
+  "row": 0,
+  "icons": [
+    "thaumaturge:lamp_arcane"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.arcane_lamp.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/lux"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.arcane_lamp.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/lamp_arcane"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:lux",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

@@ -1,0 +1,57 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.boots_traveller.title",
+  "parents": [
+    "thaumaturge:infusion",
+    "thaumaturge:recharge_pedestal"
+  ],
+  "column": -2,
+  "row": 2,
+  "icons": [
+    "thaumaturge:traveller_boots"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.boots_traveller.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/motus",
+        "thaumaturge:m_walker",
+        "thaumaturge:m_runner",
+        "thaumaturge:m_swimmer",
+        "thaumaturge:m_jumper"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.boots_traveller.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/traveller_boots"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:volatus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:aqua",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

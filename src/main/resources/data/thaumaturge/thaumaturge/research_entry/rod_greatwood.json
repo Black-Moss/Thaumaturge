@@ -1,0 +1,46 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.rod_greatwood.title",
+  "parents": [
+    "thaumaturge:base_auromancy"
+  ],
+  "column": -4,
+  "row": -1,
+  "icons": [
+    "thaumaturge:wand_rod_greatwood"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.rod_greatwood.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.rod_greatwood.stage_0",
+      "recipes": [
+        "thaumaturge:wand/part/wand_rod_greatwood",
+        "thaumaturge:wand/assembly/gold_greatwood"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

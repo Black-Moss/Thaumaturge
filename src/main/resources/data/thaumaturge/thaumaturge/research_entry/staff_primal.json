@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.staff_primal.title",
+  "parents": [
+    "thaumaturge:staves"
+  ],
+  "column": -5,
+  "row": -7,
+  "icons": [
+    "thaumaturge:staff_rod_primal"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.staff_primal.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.staff_primal.stage_0",
+      "recipes": [
+        "thaumaturge:infusion/staff_rod_primal"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

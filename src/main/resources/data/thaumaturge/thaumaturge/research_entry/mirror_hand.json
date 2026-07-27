@@ -1,0 +1,49 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.mirror_hand.title",
+  "parents": [
+    "thaumaturge:mirror"
+  ],
+  "column": -7,
+  "row": 1,
+  "icons": [
+    "thaumaturge:hand_mirror"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mirror_hand.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.mirror_hand.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/hand_mirror"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:instrumentum",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:vitreus",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

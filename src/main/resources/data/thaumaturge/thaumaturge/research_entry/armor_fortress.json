@@ -1,0 +1,51 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.armor_fortress.title",
+  "parents": [
+    "thaumaturge:metallurgy@3",
+    "thaumaturge:boots_traveller"
+  ],
+  "column": -4,
+  "row": 1,
+  "icons": [
+    "thaumaturge:fortress_helm"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.armor_fortress.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:scanned/aspect/thaumaturge/praemunio"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.armor_fortress.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/fortress_helm",
+        "thaumaturge:infusion/fortress_chest",
+        "thaumaturge:infusion/fortress_legs"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 5
+    }
+  ],
+  "complexity": 2
+}

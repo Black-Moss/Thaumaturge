@@ -1,0 +1,64 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.jar_brain.title",
+  "parents": [
+    "thaumaturge:base_golemancy",
+    "thaumaturge:warded_jars",
+    "thaumaturge:infusion"
+  ],
+  "column": 2,
+  "row": 1,
+  "icons": [
+    "thaumaturge:jar_brain"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.jar_brain.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "thaumaturge:brain"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:golemancy",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:f_brain"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.jar_brain.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/jar_brain"
+      ],
+      "warp": 3
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:exanimis",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

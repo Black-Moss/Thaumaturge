@@ -1,0 +1,53 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.unlock_eldritch.title",
+  "parents": [
+    "thaumaturge:crimson_rites",
+    "thaumaturge:unlock_auromancy"
+  ],
+  "column": -4,
+  "row": 6,
+  "meta": [
+    "round",
+    "spiky",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:textures/research/cat_eldritch.png"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.unlock_eldritch.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 1
+        }
+      ],
+      "required_research": [
+        "thaumaturge:f_voidseed"
+      ],
+      "warp": 5
+    },
+    {
+      "text": "research.thaumaturge.unlock_eldritch.stage_1"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 3
+    }
+  ],
+  "complexity": 3
+}

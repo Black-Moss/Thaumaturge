@@ -1,6 +1,0 @@
-{
-  "parent": "thaumcraft:block/smelter_thaumium_off",
-  "textures": {
-    "north": "thaumcraft:block/smelter_thaumium_front_on"
-  }
-}

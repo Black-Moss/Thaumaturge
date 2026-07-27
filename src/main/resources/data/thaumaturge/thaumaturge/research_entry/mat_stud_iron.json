@@ -1,0 +1,39 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mat_stud_iron.title",
+  "parents": [
+    "thaumaturge:mat_stud_wood"
+  ],
+  "column": -3,
+  "row": -1,
+  "meta": [
+    "reverse",
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:plate_iron"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mat_stud_iron.stage_0",
+      "required_research": [
+        "thaumaturge:f_matiron"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:metallum",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:praemunio",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

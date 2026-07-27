@@ -1,0 +1,48 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.deconstructor.title",
+  "parents": [
+    "thaumaturge:research_expertise"
+  ],
+  "column": -1,
+  "row": -4,
+  "stages": [
+    {
+      "text": "research.thaumaturge.deconstructor.stage.1",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.deconstructor.stage.2",
+      "recipes": [
+        "thaumaturge:arcane_workbench/deconstruction_table"
+      ]
+    }
+  ],
+  "meta": [
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:deconstruction_table"
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:perditio",
+      "amount": 3
+    }
+  ],
+  "complexity": 1
+}

@@ -1,0 +1,66 @@
+{
+  "category": "thaumaturge:basics",
+  "name": "research.thaumaturge.plants.title",
+  "column": -3,
+  "row": 0,
+  "meta": [
+    "round",
+    "hidden"
+  ],
+  "icons": [
+    "thaumaturge:sapling_greatwood",
+    "thaumaturge:sapling_silverwood"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.plants.stage_0"
+    }
+  ],
+  "addenda": [
+    {
+      "text": "research.thaumaturge.plants.addendum_0",
+      "required_research": [
+        "thaumaturge:scanned/plantwood"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.plants.addendum_1",
+      "required_research": [
+        "thaumaturge:scanned/plantwood"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.plants.addendum_2",
+      "required_research": [
+        "thaumaturge:scanned/plantcinderpearl"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.plants.addendum_3",
+      "required_research": [
+        "thaumaturge:scanned/plantshimmerleaf"
+      ]
+    },
+    {
+      "text": "research.thaumaturge.plants.addendum_4",
+      "required_research": [
+        "thaumaturge:scanned/plantvishroom"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:victus",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

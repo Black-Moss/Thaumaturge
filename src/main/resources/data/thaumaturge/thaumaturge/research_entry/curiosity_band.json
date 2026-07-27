@@ -1,0 +1,50 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.curiosity_band.title",
+  "parents": [
+    "thaumaturge:cloud_ring"
+  ],
+  "column": 4,
+  "row": 1,
+  "icons": [
+    "thaumaturge:curiosity_band"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.curiosity_band.stage_0",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:basics",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.curiosity_band.stage_1",
+      "recipes": [
+        "thaumaturge:infusion/curiosity_band"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 5
+    },
+    {
+      "aspect": "thaumaturge:desiderium",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:sensus",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}

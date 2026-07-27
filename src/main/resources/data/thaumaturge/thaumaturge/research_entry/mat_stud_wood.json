@@ -1,0 +1,34 @@
+{
+  "category": "thaumaturge:golemancy",
+  "name": "research.thaumaturge.mat_stud_wood.title",
+  "column": -2,
+  "row": 0,
+  "meta": [
+    "hidden",
+    "reverse",
+    "round"
+  ],
+  "icons": [
+    "thaumaturge:log_greatwood"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.mat_stud_wood.stage_0"
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:herba",
+      "amount": 3
+    },
+    {
+      "aspect": "thaumaturge:machina",
+      "amount": 2
+    },
+    {
+      "aspect": "thaumaturge:fabrico",
+      "amount": 2
+    }
+  ],
+  "complexity": 1
+}

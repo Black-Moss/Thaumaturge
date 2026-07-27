@@ -1,0 +1,71 @@
+{
+  "category": "thaumaturge:infusion",
+  "name": "research.thaumaturge.infusion_stable.title",
+  "parents": [
+    "thaumaturge:infusion",
+    "thaumaturge:metallurgy@3",
+    "thaumaturge:instability"
+  ],
+  "column": 1,
+  "row": 4,
+  "meta": [
+    "hidden",
+    "reverse"
+  ],
+  "icons": [
+    "thaumaturge:stabilizer"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.infusion_stable.stage_0",
+      "obtain": [
+        {
+          "items": [
+            "minecraft:redstone"
+          ],
+          "amount": 1
+        },
+        {
+          "items": [
+            "thaumaturge:phial"
+          ],
+          "amount": 1
+        }
+      ],
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.infusion_stable.stage_1",
+      "recipes": [
+        "thaumaturge:arcane_workbench/stabilizer",
+        "thaumaturge:arcane_workbench/inlay"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:ordo",
+      "amount": 4
+    },
+    {
+      "aspect": "thaumaturge:terra",
+      "amount": 3
+    }
+  ],
+  "complexity": 2
+}
