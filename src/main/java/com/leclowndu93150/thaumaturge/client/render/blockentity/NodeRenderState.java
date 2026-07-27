@@ -25,6 +25,7 @@ public final class NodeRenderState extends BlockEntityRenderState {
     public int frameSeed;
     public float size = 1.0F;
     public boolean jarred;
+    public boolean energized;
     public boolean draining;
     public double drainFromX;
     public double drainFromY;

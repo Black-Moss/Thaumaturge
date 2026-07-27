@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.api.taint.TaintApi;
@@ -272,17 +273,29 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return;
         }
         if (energized) {
+            boolean changed = false;
             if (tickLevel.getGameTime() % ENERGIZED_REFILL_INTERVAL == 0) {
-                boolean changed = false;
+                float visPerPoint = ThaumaturgeCommonConfig.ENERGIZED_NODE_VIS_PER_POINT.get().floatValue();
                 for (AspectInstance entry : aspectsBase.entries()) {
-                    if (aspects.amountOf(entry.aspect()) < entry.amount()) {
+                    if (aspects.amountOf(entry.aspect()) >= entry.amount()) {
+                        continue;
+                    }
+                    float drained = AuraHelper.drainVis(serverLevel, pos, visPerPoint, false);
+                    if (drained >= visPerPoint - 0.01F) {
                         aspects = aspects.add(entry.aspect(), 1);
                         changed = true;
+                    } else if (drained > 0.0F) {
+                        AuraHelper.addVis(serverLevel, pos, drained);
                     }
                 }
-                if (changed) {
-                    setChanged();
-                }
+            }
+            if (drainTicks > 0 && --drainTicks == 0) {
+                drainPlayer = null;
+                changed = true;
+            }
+            if (changed) {
+                setChanged();
+                serverLevel.sendBlockUpdated(pos, getBlockState(), getBlockState(), 3);
             }
             return;
         }

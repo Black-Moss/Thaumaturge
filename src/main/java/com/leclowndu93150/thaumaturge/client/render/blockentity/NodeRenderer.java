@@ -82,6 +82,12 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     private static final float WHITE_ALPHA_CLAMP = 1.0F;
     private static final float DRAIN_LINE_SPEED = -0.02F;
     private static final float DRAIN_LINE_WIDTH = 0.15F;
+    private static final float ENERGIZED_SPIN_FACTOR = 2.0F;
+    private static final float ENERGIZED_LAYER_CONTRACTION = 0.6F;
+    private static final float ENERGIZED_CORE_SCALE = 1.35F;
+    private static final float ENERGIZED_PULSE_PERIOD = 4.0F;
+    private static final float ENERGIZED_PULSE_AMPLITUDE = 0.25F;
+    private static final int ENERGIZED_CORE_COLOR = 0x99CCFF;
 
     public NodeRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -109,6 +115,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         double viewDistance = VIEW_DISTANCE;
         state.size = 1.0F;
         state.jarred = node instanceof BlockEntityJarNode;
+        state.energized = node.isEnergized();
         if (state.jarred) {
             state.visible = true;
             state.size = JARRED_SIZE;
@@ -231,6 +238,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         copy.drainTime = state.drainTime;
         copy.drainColor = state.drainColor;
         copy.jarred = state.jarred;
+        copy.energized = state.energized;
         copy.layers.addAll(state.layers);
         return copy;
     }
@@ -250,12 +258,13 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         float layerAlpha = state.alpha / Math.max(1.0F, state.layers.size() / 2.0F);
         RenderType aspectType = state.depthIgnore ? NODE_ADDITIVE_NO_DEPTH : NODE_ADDITIVE;
         RenderType translucentType = state.depthIgnore ? NODE_TRANSLUCENT_NO_DEPTH : NODE_TRANSLUCENT;
-        float clock = state.ticks * TICKS_TO_CLOCK_UNITS;
+        float clock = state.ticks * TICKS_TO_CLOCK_UNITS * (state.energized ? ENERGIZED_SPIN_FACTOR : 1.0F);
+        float layerContraction = state.energized ? ENERGIZED_LAYER_CONTRACTION : 1.0F;
         float angle = 0.0F;
         for (NodeRenderState.AspectLayer layer : state.layers) {
             average += layer.amount;
             float scale = Mth.sin(state.ticks / (14.0F - count)) * BASE_LAYER_SCALE + BASE_LAYER_SCALE * 2.0F;
-            scale = (0.2F + scale * (layer.amount / 50.0F)) * state.size;
+            scale = (0.2F + scale * (layer.amount / 50.0F)) * state.size * layerContraction;
             float period = LAYER_PERIOD_BASE + LAYER_PERIOD_STEP * count;
             angle = (clock % period) / period * Mth.TWO_PI;
             boolean translucent = layer.blend == TRANSLUCENT_BLEND;
@@ -284,6 +293,12 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         boolean translucentCore = state.type == NodeType.DARK || state.type == NodeType.TAINTED;
         RenderType coreType = translucentCore ? translucentType : aspectType;
         sink.layer(count, coreType, coreAngle, coreScale, state.alpha, 0xFFFFFF, strip, frame);
+        if (state.energized) {
+            float pulse = Mth.sin(state.ticks / ENERGIZED_PULSE_PERIOD) * ENERGIZED_PULSE_AMPLITUDE
+                    + ENERGIZED_CORE_SCALE;
+            sink.layer(count + 1, aspectType, -coreAngle, coreScale * pulse,
+                    state.alpha, ENERGIZED_CORE_COLOR, STRIP_UNSTABLE, frame);
+        }
     }
 
     private static void drawLate(NodeRenderState state, PoseStack poseStack, MultiBufferSource buffers) {
