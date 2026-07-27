@@ -278,6 +278,10 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         return result;
     }
 
+    public @Nullable AspectList getAspectsBaseOriginal() {
+        return aspectsBaseOriginal;
+    }
+
     public boolean isJarring() {
         return jarringTicks > 0;
     }

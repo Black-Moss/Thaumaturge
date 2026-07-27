@@ -15,6 +15,8 @@ public final class TCEnglishProvider extends LanguageProvider {
     protected void addTranslations() {
         add("itemGroup.thaumaturge", "Thaumaturge");
 
+        addJade();
+
         aspect("aer", "Aer", "Air", "air");
         aspect("terra", "Terra", "Earth", "earth");
         aspect("ignis", "Ignis", "Fire", "fire");
@@ -1348,5 +1350,35 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void addon(String key, String name, String text) {
         add("golem.addon." + key, name);
         add("golem.addon.text." + key, text);
+    }
+
+    private void addJade() {
+        add("config.jade.plugin_thaumaturge.node", "Aura Node Info");
+        add("config.jade.plugin_thaumaturge.essentia", "Essentia Contents");
+        add("config.jade.plugin_thaumaturge.machine", "Machine Progress");
+        add("config.jade.plugin_thaumaturge.golem", "Golem Info");
+        add("jade.thaumaturge.aspect_amount", "%s x%s");
+        add("jade.thaumaturge.aspect_separator", ", ");
+        add("jade.thaumaturge.node.type.normal", "Aura Node");
+        add("jade.thaumaturge.node.type.unstable", "Unstable Node");
+        add("jade.thaumaturge.node.type.dark", "Sinister Node");
+        add("jade.thaumaturge.node.type.tainted", "Tainted Node");
+        add("jade.thaumaturge.node.type.pure", "Pure Node");
+        add("jade.thaumaturge.node.type.hungry", "Hungry Node");
+        add("jade.thaumaturge.node.modifier.bright", "Bright");
+        add("jade.thaumaturge.node.modifier.pale", "Pale");
+        add("jade.thaumaturge.node.modifier.fading", "Fading");
+        add("jade.thaumaturge.node.modified", "%s %s");
+        add("jade.thaumaturge.node.aspects", "Aspects: %s");
+        add("jade.thaumaturge.node.energized", "Energized");
+        add("jade.thaumaturge.node.feeds_aura", "Condensing raw vis from the local aura");
+        add("jade.thaumaturge.node.feeds_flux", "Devouring flux from the local aura");
+        add("jade.thaumaturge.node.reverts_to", "Reverts to: %s");
+        add("jade.thaumaturge.essentia.empty", "Empty");
+        add("jade.thaumaturge.essentia.fill", "%s: %s / %s");
+        add("jade.thaumaturge.essentia.contents", "Essentia: %s");
+        add("jade.thaumaturge.machine.progress", "Progress: %s%%");
+        add("jade.thaumaturge.machine.heat", "Heat: %s%%");
+        add("jade.thaumaturge.golem.rank", "Rank %s (%s XP)");
     }
 }
