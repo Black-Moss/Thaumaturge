@@ -26,3 +26,4 @@ sources/
 
 # Python files
 *.py
+server-taint-test.log
