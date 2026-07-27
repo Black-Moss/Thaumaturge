@@ -530,7 +530,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     private boolean handleDischarge(ServerLevel serverLevel, BlockPos pos, boolean change) {
-        if (nodeModifier == NodeModifier.FADING || !allowDischarge() || lock > 0) {
+        if (nodeModifier == NodeModifier.FADING || !allowDischarge() || lock == LOCK_BASIC) {
             return change;
         }
         boolean shiny = nodeType == NodeType.HUNGRY || nodeModifier == NodeModifier.BRIGHT;
