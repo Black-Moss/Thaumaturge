@@ -94,6 +94,9 @@ public final class Thaumaturge {
     }
 
     private static void wireGameTests(IEventBus modBus) {
+        if (!Boolean.getBoolean("thaumaturge.gametest")) {
+            return;
+        }
         try {
             Class<?> registration = Class.forName("com.leclowndu93150.thaumaturge.gametest.TCGameTestRegistration");
             Method handler = registration.getMethod("registerTests", RegisterGameTestsEvent.class);

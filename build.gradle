@@ -82,6 +82,7 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'thaumaturge.gametest', 'true'
             gameDirectory = project.file('run-gametest')
         }
 

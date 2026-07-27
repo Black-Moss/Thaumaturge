@@ -7,27 +7,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
-import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
-public enum MachineComponentProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+public enum MachineComponentProvider implements IBlockComponentProvider {
     INSTANCE;
 
     private static final Identifier UID = TCIds.rl("machine");
-    private static final int PERCENT = 100;
 
     @Override
     public Identifier getUid() {
         return UID;
-    }
-
-    @Override
-    public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
-        if (accessor.getBlockEntity() instanceof BlockEntitySmelter smelter) {
-            tag.putInt("SmeltProgress", smelter.getCookProgressScaled(PERCENT));
-            tag.putInt("BurnRemaining", smelter.getBurnTimeRemainingScaled(PERCENT));
-        }
     }
 
     @Override

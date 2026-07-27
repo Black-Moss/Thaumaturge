@@ -11,9 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 public final class TCInlineTest extends GameTestInstance {
-    private static final MapCodec<TCInlineTest> CODEC = MapCodec.unit(() -> {
-        throw new UnsupportedOperationException("TCInlineTest is registered programmatically, not decoded");
-    });
+    private static final MapCodec<TCInlineTest> CODEC = MapCodec.unit((TCInlineTest) null);
 
     private final Consumer<GameTestHelper> body;
 

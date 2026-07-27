@@ -11,7 +11,7 @@ import snownee.jade.api.WailaPlugin;
 public final class ThaumaturgeJadePlugin implements IWailaPlugin {
     @Override
     public void register(IWailaCommonRegistration registration) {
-        registration.registerBlockDataProvider(MachineComponentProvider.INSTANCE, Block.class);
+        registration.registerBlockDataProvider(MachineDataProvider.INSTANCE, Block.class);
     }
 
     @Override

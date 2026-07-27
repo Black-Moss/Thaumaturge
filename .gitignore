@@ -28,3 +28,5 @@ sources/
 # Python files
 *.py
 server-taint-test.log
+
+gametest-run.log
