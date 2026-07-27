@@ -50,6 +50,9 @@ public final class AspectIndexBuilder {
     }
 
     public static AspectIndex build(RecipeManager recipes, HolderLookup.Provider registries) {
+        for (IAspectRecipeContributor contributor : CONTRIBUTORS) {
+            contributor.beginBuild(recipes, registries);
+        }
         RecursiveIndex index = new RecursiveIndex(collectBase(registries), recipes, registries);
         for (Item item : BuiltInRegistries.ITEM) {
             index.resolve(item);

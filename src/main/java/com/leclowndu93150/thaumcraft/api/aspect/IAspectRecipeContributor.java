@@ -25,6 +25,20 @@ import net.minecraft.world.item.crafting.RecipeManager;
  */
 public interface IAspectRecipeContributor {
     /**
+     * Called once before an index build begins, before any {@link #derive} calls of that build.
+     *
+     * <p>Contributors that consult recipes should precompute a result-to-recipe lookup here
+     * rather than scanning the recipe set inside {@link #derive}, which runs once per item and
+     * makes a full scan quadratic over a large modpack. Index builds are single-threaded, so
+     * implementations may keep the prepared state in instance fields until the next call
+     * replaces it.
+     *
+     * @param recipes the active recipe manager
+     * @param registries the holder lookup provider for the current reload
+     */
+    default void beginBuild(RecipeManager recipes, HolderLookup.Provider registries) {}
+
+    /**
      * Attempts to derive aspects for an item from recipes.
      *
      * @param item the item under analysis
