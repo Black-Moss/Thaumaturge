@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.model.mesh;
 
+import com.mojang.math.Transformation;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +14,16 @@ import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelDebugName;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
-import net.minecraft.client.resources.model.geometry.UnbakedGeometry;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.client.resources.model.sprite.TextureSlots;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.context.ContextMap;
+import net.neoforged.neoforge.client.model.ExtendedUnbakedGeometry;
+import net.neoforged.neoforge.client.model.NeoForgeModelProperties;
+import net.neoforged.neoforge.client.model.UnbakedElementsHelper;
 import org.joml.Matrix4f;
 
-public final class TCMeshGeometry implements UnbakedGeometry {
+public final class TCMeshGeometry implements ExtendedUnbakedGeometry {
     private static final float CENTER_OFFSET = 0.5F;
     private static final int NO_TINT = -1;
 
@@ -34,7 +38,12 @@ public final class TCMeshGeometry implements UnbakedGeometry {
     }
 
     @Override
-    public QuadCollection bake(TextureSlots textureSlots, ModelBaker modelBaker, ModelState modelState, ModelDebugName name) {
+    public QuadCollection bake(TextureSlots textureSlots, ModelBaker modelBaker, ModelState modelState,
+                               ModelDebugName name, ContextMap additionalProperties) {
+        Transformation rootTransform = additionalProperties.getOrDefault(NeoForgeModelProperties.TRANSFORM, Transformation.IDENTITY);
+        if (!rootTransform.isIdentity()) {
+            modelState = UnbakedElementsHelper.composeRootTransformIntoModelState(modelState, rootTransform);
+        }
         TCMesh mesh = loadMesh();
         Matrix4f transform = new Matrix4f()
                 .translate(CENTER_OFFSET, CENTER_OFFSET, CENTER_OFFSET)
