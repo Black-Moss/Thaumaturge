@@ -24,6 +24,7 @@ public final class AspectPoolData {
 
     private final LinkedHashMap<Identifier, Integer> pool;
     private int completedNotes;
+    private long lastGrantSoundTime = Long.MIN_VALUE;
 
     public AspectPoolData() {
         this.pool = new LinkedHashMap<>();
@@ -63,6 +64,14 @@ public final class AspectPoolData {
                 pool.put(aspect, Math.max(0, current + amount));
             }
         }
+    }
+
+    public boolean tryClaimGrantSound(long gameTime) {
+        if (lastGrantSoundTime == gameTime) {
+            return false;
+        }
+        lastGrantSoundTime = gameTime;
+        return true;
     }
 
     public boolean isEmpty() {
