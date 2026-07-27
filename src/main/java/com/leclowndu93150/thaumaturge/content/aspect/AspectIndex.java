@@ -87,11 +87,18 @@ public final class AspectIndex implements IAspectIndex {
     }
 
     public static AspectIndex of(Map<Item, AspectList> source) {
-        if (source.isEmpty()) {
+        return of(source, Map.of());
+    }
+
+    public static AspectIndex of(Map<Item, AspectList> source, Map<Item, List<Variant>> variants) {
+        if (source.isEmpty() && variants.isEmpty()) {
             return EMPTY;
         }
         Map<Item, ItemEntry> entries = new HashMap<>(source.size());
         source.forEach((item, aspects) -> entries.put(item, ItemEntry.of(aspects)));
+        variants.forEach((item, list) -> entries.merge(item,
+                new ItemEntry(AspectList.EMPTY, List.copyOf(list)),
+                (existing, added) -> new ItemEntry(existing.base(), added.variants())));
         return new AspectIndex(entries);
     }
 

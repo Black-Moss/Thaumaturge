@@ -35,6 +35,8 @@ import net.neoforged.fml.loading.FMLPaths;
 public final class AspectIndexFile {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
+    private static final int FORMAT_VERSION = 2;
+
     private AspectIndexFile() {}
 
     public static Path path() {
@@ -43,6 +45,7 @@ public final class AspectIndexFile {
 
     public static String fingerprint(MinecraftServer server) {
         List<String> lines = new ArrayList<>();
+        lines.add("format:" + FORMAT_VERSION);
         for (Identifier id : BuiltInRegistries.ITEM.keySet()) {
             lines.add("item:" + id);
         }
