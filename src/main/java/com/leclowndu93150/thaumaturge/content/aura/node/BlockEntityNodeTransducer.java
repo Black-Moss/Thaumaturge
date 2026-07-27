@@ -127,8 +127,13 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
 
     private void checkStatus(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos.below()) instanceof BlockEntityNode node) {
+            boolean wasEnergized = status == STATUS_ENERGIZED;
             status = node.isEnergized() ? STATUS_ENERGIZED : STATUS_NODE;
-            count = node.isEnergized() ? CHARGE_TARGET : Math.max(0, count);
+            if (node.isEnergized() && (!wasEnergized || count == -1)) {
+                count = CHARGE_TARGET;
+            } else {
+                count = Math.max(0, count);
+            }
         } else {
             status = STATUS_IDLE;
             count = 0;

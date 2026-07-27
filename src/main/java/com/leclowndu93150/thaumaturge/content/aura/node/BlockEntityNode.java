@@ -106,11 +106,13 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final Identifier RESEARCH_NODE_TAPPER_1 = TCIds.rl("node_tapper_1");
     private static final Identifier RESEARCH_NODE_TAPPER_2 = TCIds.rl("node_tapper_2");
     private static final Identifier RESEARCH_NODE_PRESERVE = TCIds.rl("node_preserve");
+    private static final int MAX_DECOMPOSE_DEPTH = 8;
 
     private NodeType nodeType = NodeType.NORMAL;
     private @Nullable NodeModifier nodeModifier;
     protected AspectList aspects = AspectList.EMPTY;
     protected AspectList aspectsBase = AspectList.EMPTY;
+    private @Nullable AspectList aspectsBaseOriginal;
     private int count;
     private int regeneration = -1;
     private int wait;
@@ -242,11 +244,38 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     public void setEnergized(boolean energized) {
+        if (energized && !this.energized) {
+            aspectsBaseOriginal = aspectsBase;
+            aspectsBase = decomposeToPrimals(aspectsBase);
+            aspects = decomposeToPrimals(aspects);
+        } else if (!energized && this.energized && aspectsBaseOriginal != null) {
+            aspectsBase = aspectsBaseOriginal;
+            aspectsBaseOriginal = null;
+        }
         this.energized = energized;
         setChanged();
         if (level != null) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    private static AspectList decomposeToPrimals(AspectList list) {
+        AspectList result = AspectList.EMPTY;
+        for (AspectInstance entry : list.entries()) {
+            result = addPrimals(result, entry.aspect(), entry.amount(), 0);
+        }
+        return result;
+    }
+
+    private static AspectList addPrimals(AspectList into, Holder<IAspect> aspect, int amount, int depth) {
+        if (depth >= MAX_DECOMPOSE_DEPTH || aspect.value().isPrimal()) {
+            return into.add(aspect, amount);
+        }
+        AspectList result = into;
+        for (Holder<IAspect> component : aspect.value().components()) {
+            result = addPrimals(result, component, amount, depth + 1);
+        }
+        return result;
     }
 
     public boolean isJarring() {
@@ -276,16 +305,23 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             boolean changed = false;
             if (tickLevel.getGameTime() % ENERGIZED_REFILL_INTERVAL == 0) {
                 float visPerPoint = ThaumaturgeCommonConfig.ENERGIZED_NODE_VIS_PER_POINT.get().floatValue();
+                boolean fluxFed = nodeType == NodeType.TAINTED;
                 for (AspectInstance entry : aspectsBase.entries()) {
                     if (aspects.amountOf(entry.aspect()) >= entry.amount()) {
                         continue;
                     }
-                    float drained = AuraHelper.drainVis(serverLevel, pos, visPerPoint, false);
+                    float drained = fluxFed
+                            ? AuraHelper.drainFlux(serverLevel, pos, visPerPoint, false)
+                            : AuraHelper.drainVis(serverLevel, pos, visPerPoint, false);
                     if (drained >= visPerPoint - 0.01F) {
                         aspects = aspects.add(entry.aspect(), 1);
                         changed = true;
                     } else if (drained > 0.0F) {
-                        AuraHelper.addVis(serverLevel, pos, drained);
+                        if (fluxFed) {
+                            AuraHelper.addFlux(serverLevel, pos, drained);
+                        } else {
+                            AuraHelper.addVis(serverLevel, pos, drained);
+                        }
                     }
                 }
             }
@@ -840,7 +876,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     public void clientTick(Level clientLevel, BlockPos pos) {
-        if (nodeType != NodeType.HUNGRY || !allowTypeBehavior()) {
+        if (energized || nodeType != NodeType.HUNGRY || !allowTypeBehavior()) {
             return;
         }
         RandomSource random = clientLevel.getRandom();
@@ -882,6 +918,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (energized) {
             output.putBoolean("Energized", true);
         }
+        if (aspectsBaseOriginal != null) {
+            output.store("AspectsBaseOriginal", AspectList.CODEC, aspectsBaseOriginal);
+        }
         if (drainPlayer != null) {
             output.store("DrainPlayer", UUIDUtil.CODEC, drainPlayer);
             output.putInt("DrainColor", drainColor);
@@ -899,6 +938,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         nodeModifier = input.read("Modifier", NodeModifier.CODEC).orElse(null);
         aspects = input.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
         aspectsBase = input.read("AspectsBase", AspectList.CODEC).orElse(AspectList.EMPTY);
+        aspectsBaseOriginal = input.read("AspectsBaseOriginal", AspectList.CODEC).orElse(null);
         drainPlayer = input.read("DrainPlayer", UUIDUtil.CODEC).orElse(null);
         drainColor = input.getIntOr("DrainColor", 0xFFFFFF);
         jarringTicks = input.getIntOr("Jarring", 0);
