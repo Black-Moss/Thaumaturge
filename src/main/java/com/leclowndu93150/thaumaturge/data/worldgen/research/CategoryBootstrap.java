@@ -34,7 +34,7 @@ public final class CategoryBootstrap {
                         e(aspects, TCAspects.TERRA, 3),
                         e(aspects, TCAspects.AQUA, 5)
                 )),
-                tex("textures/items/thaumonomicon_cheat.png"),
+                tex("textures/research/thaumonomicon_cheat.png"),
                 tex("textures/gui/gui_research_back_1.png"),
                 0);
 
