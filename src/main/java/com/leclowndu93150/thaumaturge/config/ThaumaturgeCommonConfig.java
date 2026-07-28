@@ -9,6 +9,7 @@ public final class ThaumaturgeCommonConfig {
     public static final ModConfigSpec.DoubleValue TAINT_SPREAD_RATE;
     public static final ModConfigSpec.IntValue TAINT_SPREAD_AREA;
     public static final ModConfigSpec.DoubleValue ENERGIZED_NODE_VIS_PER_POINT;
+    public static final ModConfigSpec.IntValue CRIMSON_PORTAL_RARITY;
     public static final ModConfigSpec.BooleanValue ALLOW_CHAMPION_MOBS;
     public static final ModConfigSpec.BooleanValue NO_SLEEP;
     public static final ModConfigSpec.BooleanValue NO_STRESS;
@@ -29,6 +30,9 @@ public final class ThaumaturgeCommonConfig {
         ENERGIZED_NODE_VIS_PER_POINT = builder
                 .comment("Raw vis an energized node drains from the chunk aura to restore one aspect point. Normal nodes refine at 3.0 per point; higher values make energized nodes more wasteful. 0 makes their refill free.")
                 .defineInRange("energizedNodeVisPerPoint", 6.0, 0.0, 100.0);
+        CRIMSON_PORTAL_RARITY = builder
+                .comment("Average number of chunks per wild lesser crimson portal. Higher is rarer. 0 disables wild portals entirely.")
+                .defineInRange("crimsonPortalRarity", 500, 0, 1000000);
         ALLOW_CHAMPION_MOBS = builder
                 .comment("Setting this to false will disable spawning champion mobs.")
                 .define("allowChampionMobs", true);

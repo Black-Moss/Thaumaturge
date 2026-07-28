@@ -44,6 +44,7 @@ public final class TCConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_WILD = key("nodes_wild");
     public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_EERIE = key("nodes_eerie");
     public static final ResourceKey<ConfiguredFeature<?, ?>> OBSIDIAN_TOTEM = key("obsidian_totem");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> CRIMSON_PORTAL = key("crimson_portal");
     public static final ResourceKey<ConfiguredFeature<?, ?>> HILLTOP_STONES = key("hilltop_stones");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_QUARTZ = key("ore_quartz");
@@ -114,6 +115,8 @@ public final class TCConfiguredFeatures {
                 new NodeFeatureConfig(false, true, false,
                         NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
         context.register(OBSIDIAN_TOTEM, new ConfiguredFeature<>(TCFeatures.OBSIDIAN_TOTEM.get(),
+                NoneFeatureConfiguration.INSTANCE));
+        context.register(CRIMSON_PORTAL, new ConfiguredFeature<>(TCFeatures.CRIMSON_PORTAL.get(),
                 NoneFeatureConfiguration.INSTANCE));
         context.register(HILLTOP_STONES, new ConfiguredFeature<>(TCFeatures.HILLTOP_STONES.get(),
                 NoneFeatureConfiguration.INSTANCE));

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.data.worldgen.feature;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import com.leclowndu93150.thaumaturge.content.world.objects.ConfigRarityFilter;
 import java.util.List;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -38,6 +39,7 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> NODES_EERIE = key("nodes_eerie");
     public static final ResourceKey<PlacedFeature> NODES_NETHER = key("nodes_nether");
     public static final ResourceKey<PlacedFeature> OBSIDIAN_TOTEM = key("obsidian_totem");
+    public static final ResourceKey<PlacedFeature> CRIMSON_PORTAL = key("crimson_portal");
     public static final ResourceKey<PlacedFeature> HILLTOP_STONES = key("hilltop_stones");
     public static final ResourceKey<PlacedFeature> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<PlacedFeature> ORE_QUARTZ = key("ore_quartz");
@@ -147,6 +149,10 @@ public final class TCPlacedFeatures {
         context.register(OBSIDIAN_TOTEM, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.OBSIDIAN_TOTEM),
                 List.of(RarityFilter.onAverageOnceEvery(OBSIDIAN_TOTEM_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
+        context.register(CRIMSON_PORTAL, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.CRIMSON_PORTAL),
+                List.of(ConfigRarityFilter.CRIMSON_PORTAL, InSquarePlacement.spread(),
                         HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
         context.register(HILLTOP_STONES, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.HILLTOP_STONES),

@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.content.aura.node.NodeFeatureConfig;
 import com.leclowndu93150.thaumaturge.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumaturge.content.world.crystal.CrystalClusterFeature;
 import com.leclowndu93150.thaumaturge.content.world.objects.HilltopStonesFeature;
+import com.leclowndu93150.thaumaturge.content.world.objects.CrimsonPortalFeature;
 import com.leclowndu93150.thaumaturge.content.world.objects.ObsidianTotemFeature;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicForestFloraConfig;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicForestFloraFeature;
@@ -46,6 +47,9 @@ public final class TCFeatures {
 
     public static final DeferredHolder<Feature<?>, ObsidianTotemFeature> OBSIDIAN_TOTEM =
             FEATURES.register("obsidian_totem", () -> new ObsidianTotemFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final DeferredHolder<Feature<?>, CrimsonPortalFeature> CRIMSON_PORTAL =
+            FEATURES.register("crimson_portal", () -> new CrimsonPortalFeature(NoneFeatureConfiguration.CODEC));
 
     public static final DeferredHolder<Feature<?>, HilltopStonesFeature> HILLTOP_STONES =
             FEATURES.register("hilltop_stones", () -> new HilltopStonesFeature(NoneFeatureConfiguration.CODEC));
