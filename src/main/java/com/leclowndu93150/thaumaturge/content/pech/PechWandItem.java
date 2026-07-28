@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
+import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
@@ -60,18 +61,12 @@ public final class PechWandItem extends Item {
             if (!KnowledgeAccess.of(serverPlayer).isResearchKnown(FOCUS_PECH)) {
                 ResearchManager.complete(serverPlayer, FOCUS_PECH);
             }
-            List<Holder.Reference<IResearchCategory>> categories = serverPlayer.registryAccess()
-                    .lookupOrThrow(IResearchCategory.REGISTRY_KEY).listElements().toList();
-            if (!categories.isEmpty()) {
-                int oProg = KnowledgeType.OBSERVATION.progression();
-                ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.OBSERVATION,
-                        categories.get(serverPlayer.getRandom().nextInt(categories.size())),
-                        Mth.nextInt(serverPlayer.getRandom(), oProg / 3, oProg / 2));
-                int tProg = KnowledgeType.THEORY.progression();
-                ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.THEORY,
-                        categories.get(serverPlayer.getRandom().nextInt(categories.size())),
-                        Mth.nextInt(serverPlayer.getRandom(), tProg / 5, tProg / 4));
-            }
+            int oProg = KnowledgeType.OBSERVATION.progression();
+            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.OBSERVATION,
+                    Mth.nextInt(serverPlayer.getRandom(), oProg / 3, oProg / 2));
+            int tProg = KnowledgeType.THEORY.progression();
+            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.THEORY,
+                    Mth.nextInt(serverPlayer.getRandom(), tProg / 5, tProg / 4));
         }
         return InteractionResult.SUCCESS;
     }

@@ -24,6 +24,35 @@ public final class ResearchGrants {
 
     private ResearchGrants() {}
 
+    public static void grantConvertedKnowledge(ServerPlayer player, KnowledgeType type, int amount) {
+        for (int i = 0; i < amount; i++) {
+            Holder<IAspect> target = type == KnowledgeType.THEORY
+                    ? randomDiscoveredCompound(player)
+                    : randomPrimal(player);
+            AspectPools.grant(player, target, 1);
+        }
+    }
+
+    private static Holder<IAspect> randomPrimal(ServerPlayer player) {
+        List<Holder.Reference<IAspect>> primals = player.registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements()
+                .filter(aspect -> aspect.value().isPrimal())
+                .toList();
+        return primals.get(player.getRandom().nextInt(primals.size()));
+    }
+
+    private static Holder<IAspect> randomDiscoveredCompound(ServerPlayer player) {
+        List<Holder.Reference<IAspect>> compounds = player.registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements()
+                .filter(aspect -> !aspect.value().isPrimal())
+                .filter(aspect -> AspectPools.isDiscovered(player, aspect))
+                .toList();
+        if (compounds.isEmpty()) {
+            return randomPrimal(player);
+        }
+        return compounds.get(player.getRandom().nextInt(compounds.size()));
+    }
+
     public static int grantAll(ServerPlayer player) {
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         List<Holder.Reference<IResearchEntry>> entries = player.registryAccess()

@@ -32,3 +32,5 @@ server-taint-test.log
 gametest-run.log
 
 nv-gametest.log
+
+*.log

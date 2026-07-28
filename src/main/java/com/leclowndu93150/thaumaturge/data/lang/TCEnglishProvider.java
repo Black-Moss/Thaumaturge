@@ -592,6 +592,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.invtoolarge", "Inventory too large. Only scanning first 100 items.");
         add("tc.celestial.fail.1", "You have already studied that today.");
         add("tc.celestial.fail.2", "You are unable to take notes of your studies.");
+        add("tc.celestial.studied", "You commit your celestial observations to memory.");
+        add("jei.thaumaturge.deconstruction.info", "Place any item that carries aspects on the Deconstruction Table and it will slowly break the item down. Each work cycle has a chance to shake loose a single research point of a random primal aspect; the richer the item's aspects, the better the odds. Click the floating aspect to collect it.");
 
         add("item.thaumaturge.celestial_notes", "Celestial Notes");
         add("item.thaumaturge.celestial_notes.sun.text", "Solar");

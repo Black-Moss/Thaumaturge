@@ -2,14 +2,11 @@ package com.leclowndu93150.thaumaturge.content.equipment.bauble;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
-import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
-import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
+import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.mixin.world.entity.ExperienceOrbAccessor;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
-import java.util.List;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -89,17 +86,9 @@ public final class BaubleEvents {
         ((ExperienceOrbAccessor) event.getOrb()).thaumaturge$setValue(event.getOrb().getValue() - drained);
         float roll = player.getRandom().nextFloat();
         if (roll < THEORY_CHANCE_PER_XP * drained) {
-            ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.THEORY,
-                    randomCategory(serverPlayer), 1);
+            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.THEORY, 1);
         } else if (roll < OBSERVATION_CHANCE_PER_XP * drained) {
-            ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.OBSERVATION,
-                    randomCategory(serverPlayer), 1);
+            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.OBSERVATION, 1);
         }
-    }
-
-    private static Holder<IResearchCategory> randomCategory(ServerPlayer player) {
-        List<Holder.Reference<IResearchCategory>> categories = player.registryAccess()
-                .lookupOrThrow(IResearchCategory.REGISTRY_KEY).listElements().toList();
-        return categories.get(player.getRandom().nextInt(categories.size()));
     }
 }
