@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
+import net.minecraft.resources.Identifier;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -12,6 +13,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockJarVoid extends BlockJar {
+    private static final Identifier SIDE_TEXTURE =
+            Identifier.fromNamespaceAndPath("thaumaturge", "block/jar_side_void");
+    private static final Identifier TOP_TEXTURE =
+            Identifier.fromNamespaceAndPath("thaumaturge", "block/jar_top_void");
+
+    @Override
+    public Identifier jarSideTexture() {
+        return SIDE_TEXTURE;
+    }
+
+    @Override
+    public Identifier jarTopTexture() {
+        return TOP_TEXTURE;
+    }
+
     public static final MapCodec<BlockJarVoid> CODEC = simpleCodec(BlockJarVoid::new);
 
     public BlockJarVoid(BlockBehaviour.Properties properties) {
