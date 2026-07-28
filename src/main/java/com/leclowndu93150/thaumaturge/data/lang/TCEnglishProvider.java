@@ -508,10 +508,6 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langMAuraHud() {
 
         add("item.thaumaturge.goggles_revealing", "Goggles of Revealing");
-        add("hud.thaumaturge.aura.title", "Aura");
-        add("hud.thaumaturge.aura.vis", "Vis: %1$s");
-        add("hud.thaumaturge.aura.flux", "Flux: %1$s");
-        add("hud.thaumaturge.aura.base", "Base: %1$s");
     
     }
 

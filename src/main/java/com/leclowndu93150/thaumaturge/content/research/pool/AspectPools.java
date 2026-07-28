@@ -197,20 +197,6 @@ public final class AspectPools {
                 TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
     }
 
-    public static void discoverWithLearnSound(ServerPlayer player, Holder<IAspect> aspect) {
-        AspectPoolData data = data(player);
-        Identifier id = idOf(aspect);
-        if (!data.isDiscovered(id)) {
-            data.discover(id);
-            sync(player);
-            PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, 0));
-        }
-        if (data.tryClaimGrantSound(player.level().getGameTime())) {
-            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                    TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
-        }
-    }
-
     public static Identifier idOf(Holder<IAspect> aspect) {
         return aspect.getKey().identifier();
     }
