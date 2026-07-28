@@ -5,6 +5,7 @@ import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import com.google.common.collect.ImmutableList;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.content.infusion.InfusionRunicAugmentRecipe;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.item.PhialItem;
@@ -73,6 +74,7 @@ import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import net.minecraft.core.HolderGetter;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -108,6 +110,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildGearRecipes();
         buildInfusionAltarRecipes();
         buildInfusionEnchantmentRecipes();
+        buildRunicAugmentRecipe();
         buildElementalToolRecipes();
         buildTravellerBootsRecipe();
         buildRechargePedestalRecipe();
@@ -789,6 +792,24 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.LUX, 80)
                 .aspect(TCAspects.AER, 20)
                 .save(output);
+    }
+
+    private void buildRunicAugmentRecipe() {
+        HolderGetter<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        HolderGetter<Item> items = registries.lookupOrThrow(Registries.ITEM);
+        AspectList baseAspects = AspectList.of(
+                new AspectInstance(aspects.getOrThrow(TCAspects.PRAEMUNIO), 40),
+                new AspectInstance(aspects.getOrThrow(TCAspects.VITREUS), 20),
+                new AspectInstance(aspects.getOrThrow(TCAspects.POTENTIA), 20));
+        Ingredient amber = Ingredient.of(items.getOrThrow(TCItemTags.GEMS_AMBER));
+        InfusionRunicAugmentRecipe recipe = new InfusionRunicAugmentRecipe(
+                List.of(Ingredient.of(TCItems.SALIS_MUNDUS.get()), amber),
+                amber,
+                baseAspects,
+                Ingredient.of(Items.IRON_CHESTPLATE),
+                Optional.of(gate("runic_shielding")));
+        output.accept(ResourceKey.create(Registries.RECIPE, TCIds.rl("runic_augment/runic_shielding")),
+                recipe, null);
     }
 
     private InfusionEnchantmentRecipeBuilder infusionEnchantment(InfusionEnchantment enchantment,

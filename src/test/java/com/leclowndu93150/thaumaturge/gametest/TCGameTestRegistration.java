@@ -17,6 +17,7 @@ public final class TCGameTestRegistration {
         EssentiaTests.register(r);
         ResearchTests.register(r);
         GolemSealTests.register(r);
+        RunicShieldingTests.register(r);
         WandTests.register(r);
     }
 }

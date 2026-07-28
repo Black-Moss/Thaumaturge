@@ -133,7 +133,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("recipe.type.infusion", "Arcane Infusion");
         add("recipe.type.infusion_enchantment", "Infusion Enchantment");
         add("tooltip.thaumaturge.charge", "Vis: %s / %s");
+        add("tooltip.thaumaturge.runic_charge", "Runic shield +%s");
         add("tooltip.thaumaturge.infusion_stabiliser", "Infusion Stabilizer");
+        add("recipe.type.runic_augment", "Runic Augmentation");
         add("recipe.type.construct", "Mystical Construct");
         add("wandtable.text1", "Vis Cost");
         add("gui.thaumaturge.research_table.title", "Research Table");

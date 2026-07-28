@@ -36,7 +36,9 @@
     },
     {
       "text": "research.thaumaturge.runic_shielding.stage_1",
-      "recipes": []
+      "recipes": [
+        "thaumaturge:runic_augment/runic_shielding"
+      ]
     }
   ],
   "note_aspects": [

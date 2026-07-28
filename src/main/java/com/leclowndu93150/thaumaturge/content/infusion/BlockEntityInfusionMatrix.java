@@ -223,14 +223,28 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         Optional<RecipeHolder<InfusionEnchantmentRecipe>> enchantMatch = level.recipeAccess()
                 .getRecipeFor(TCRecipeTypes.INFUSION_ENCHANTMENT.get(), input, level)
                 .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
-        if (enchantMatch.isEmpty()) {
+        if (enchantMatch.isPresent()) {
+            InfusionEnchantmentRecipe recipe = enchantMatch.get().value();
+            job = new InfusionCraftJob(recipe.matchComponents(components),
+                    scaleByEnvironment(recipe.scaledAspects(catalyst), costMult),
+                    recipe.enchantedResult(catalyst, level.getRandom()),
+                    catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
+            level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+            setChanged();
+            syncToClient();
             return;
         }
-        InfusionEnchantmentRecipe recipe = enchantMatch.get().value();
-        job = new InfusionCraftJob(recipe.matchComponents(components),
+        Optional<RecipeHolder<InfusionRunicAugmentRecipe>> runicMatch = level.recipeAccess()
+                .getRecipeFor(TCRecipeTypes.RUNIC_AUGMENT.get(), input, level)
+                .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
+        if (runicMatch.isEmpty()) {
+            return;
+        }
+        InfusionRunicAugmentRecipe recipe = runicMatch.get().value();
+        job = new InfusionCraftJob(recipe.matchScaled(catalyst, components),
                 scaleByEnvironment(recipe.scaledAspects(catalyst), costMult),
-                recipe.enchantedResult(catalyst, level.getRandom()),
-                catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
+                recipe.augmentedResult(catalyst),
+                catalyst.copyWithCount(1), recipe.scaledInstability(catalyst), Optional.of(player.getUUID()));
         level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
         setChanged();
         syncToClient();

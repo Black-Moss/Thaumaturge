@@ -95,5 +95,9 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
                 TCItems.FOCUS_POUCH.get());
         tag(CuriosTags.CHARM).add(TCItems.CHARM_UNDYING.get(), TCItems.VERDANT_CHARM.get(),
                 TCItems.VOIDSEER_CHARM.get());
+
+        tag(TCItemTags.RUNIC_SHIELDABLE)
+                .addOptionalTags(CuriosTags.HEAD, CuriosTags.NECKLACE, CuriosTags.RING,
+                        CuriosTags.BELT, CuriosTags.CHARM);
     }
 }
