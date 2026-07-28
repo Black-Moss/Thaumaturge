@@ -36,6 +36,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGolemBuilder> {
     private static final Identifier TEXTURE = TCIds.rl("textures/gui/gui_golembuilder.png");
@@ -212,8 +213,8 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             for (GolemTrait tag : tags) {
                 TCHoverButton button = TCHoverButton.centered(leftPos + 72 + col * 16 - xx, topPos + 48 + 16 * row - yy,
                         16, new TCButtonIcon.TextureIcon(tag.icon()),
-                        Component.translatable("golem.trait." + tag.getSerializedName()), () -> {});
-                button.setDescription(Component.translatable("golem.trait.text." + tag.getSerializedName()));
+                        Component.translatable(GolemTrait.nameKey(TCGolemTraits.registry().getKey(tag))), () -> {});
+                button.setDescription(Component.translatable(GolemTrait.descriptionKey(TCGolemTraits.registry().getKey(tag))));
                 addRenderableWidget(button);
                 if (++row > 3) {
                     row = 0;
@@ -222,20 +223,20 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             }
         }
         int health = 10 + props.getMaterial().healthMod();
-        if (props.hasTrait(GolemTrait.FRAGILE)) {
+        if (props.hasTrait(TCGolemTraits.FRAGILE.get())) {
             health = (int) (health * 0.75);
         }
         hearts = health / 2.0F;
         int armorValue = props.getMaterial().armor();
-        if (props.hasTrait(GolemTrait.ARMORED)) {
+        if (props.hasTrait(TCGolemTraits.ARMORED.get())) {
             armorValue = (int) Math.max(armorValue * 1.5, armorValue + 1);
         }
-        if (props.hasTrait(GolemTrait.FRAGILE)) {
+        if (props.hasTrait(TCGolemTraits.FRAGILE.get())) {
             armorValue = (int) (armorValue * 0.75);
         }
         armor = armorValue / 2.0F;
-        double damageValue = props.hasTrait(GolemTrait.FIGHTER) ? props.getMaterial().damage() : 0.0;
-        if (props.hasTrait(GolemTrait.BRUTAL)) {
+        double damageValue = props.hasTrait(TCGolemTraits.FIGHTER.get()) ? props.getMaterial().damage() : 0.0;
+        if (props.hasTrait(TCGolemTraits.BRUTAL.get())) {
             damageValue = Math.max(damageValue * 1.5, damageValue + 1.0);
         }
         damage = (float) (damageValue / 2.0);

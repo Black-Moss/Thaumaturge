@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
+import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
+import net.minecraft.resources.Identifier;
 
 public final class TCEnglishProvider extends LanguageProvider {
     public TCEnglishProvider(PackOutput output) {
@@ -1324,8 +1326,9 @@ public final class TCEnglishProvider extends LanguageProvider {
     }
 
     private void trait(String key, String name, String text) {
-        add("golem.trait." + key, name);
-        add("golem.trait.text." + key, text);
+        Identifier id = TCIds.rl(key);
+        add(GolemTrait.nameKey(id), name);
+        add(GolemTrait.descriptionKey(id), text);
     }
 
     private void material(String key, String name, String text) {

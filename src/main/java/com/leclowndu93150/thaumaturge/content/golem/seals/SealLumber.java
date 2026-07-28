@@ -22,6 +22,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
     private static final int CACHE_CLEAN_INTERVAL = 100;
@@ -115,7 +116,7 @@ public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.BREAKER, GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.BREAKER.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override

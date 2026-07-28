@@ -42,6 +42,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfigToggles {
     private static final int REPLANT_CLEAN_INTERVAL = 100;
@@ -282,7 +283,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.DEFT, GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.DEFT.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealConfigToggles;
 import net.minecraft.resources.Identifier;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealPickupAdvanced extends SealPickup implements ISealConfigToggles {
     @Override
@@ -28,7 +29,7 @@ public class SealPickupAdvanced extends SealPickup implements ISealConfigToggles
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.SMART.get()};
     }
 
     @Override

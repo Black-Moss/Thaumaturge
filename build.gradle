@@ -186,10 +186,22 @@ publishing {
     }
     repositories {
         maven {
+            name = "Iglee"
             url "$maven_url"
             credentials {
                 username = providers.environmentVariable("MAVEN_USERNAME").orNull
                 password = providers.environmentVariable("MAVEN_PASSWORD").orNull
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+        maven {
+            name = "Leclown"
+            url "$leclown_maven_url"
+            credentials {
+                username = providers.environmentVariable("MAVEN_USER").orNull
+                password = providers.environmentVariable("MAVEN_PASS").orNull
             }
             authentication {
                 basic(BasicAuthentication)

@@ -22,6 +22,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public final class SealScreen extends AbstractTCContainerScreen<MenuSealBase> {
     private static final int IMAGE_WIDTH = 176;
@@ -195,8 +196,8 @@ public final class SealScreen extends AbstractTCContainerScreen<MenuSealBase> {
             TCHoverButton button = new TCHoverButton(
                     leftPos + middleX + p * 18 - (tags.length - 1) * 9, topPos + middleY + yOffset, 16, 16,
                     new TCButtonIcon.TextureIcon(tag.icon()),
-                    Component.translatable("golem.trait." + tag.getSerializedName()), () -> {});
-            button.setDescription(Component.translatable("golem.trait.text." + tag.getSerializedName()));
+                    Component.translatable(GolemTrait.nameKey(TCGolemTraits.registry().getKey(tag))), () -> {});
+            button.setDescription(Component.translatable(GolemTrait.descriptionKey(TCGolemTraits.registry().getKey(tag))));
             addRenderableWidget(button);
         }
     }

@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealPickup extends SealFiltered implements ISealConfigArea {
     private static final int SCAN_INTERVAL = 5;
@@ -155,7 +156,7 @@ public class SealPickup extends SealFiltered implements ISealConfigArea {
 
     @Override
     public GolemTrait[] getForbiddenTags() {
-        return new GolemTrait[]{GolemTrait.CLUMSY};
+        return new GolemTrait[]{TCGolemTraits.CLUMSY.get()};
     }
 
     @Override

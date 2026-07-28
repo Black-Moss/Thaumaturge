@@ -20,6 +20,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public final class ItemGolemPlacer extends Item implements ISealDisplayer {
     public ItemGolemPlacer(Properties properties) {
@@ -33,7 +34,7 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
         if (props == null) {
             return;
         }
-        if (props.hasTrait(GolemTrait.SMART)) {
+        if (props.hasTrait(TCGolemTraits.SMART.get())) {
             if (props.getRank() >= EntityThaumaturgeGolem.MAX_RANK) {
                 tooltip.accept(Component.translatable("golem.rank")
                         .append(" " + props.getRank()).withStyle(ChatFormatting.GOLD));
@@ -52,7 +53,7 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
         }
         for (GolemTrait trait : props.getTraits()) {
             tooltip.accept(Component.literal("-")
-                    .append(Component.translatable("golem.trait." + trait.getSerializedName()))
+                    .append(Component.translatable(GolemTrait.nameKey(TCGolemTraits.registry().getKey(trait))))
                     .withStyle(ChatFormatting.BLUE));
         }
     }

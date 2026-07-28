@@ -24,6 +24,7 @@ import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealButcher implements ISeal, ISealGui, ISealConfigArea {
     private static final int SCAN_INTERVAL = 200;
@@ -118,7 +119,7 @@ public class SealButcher implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.FIGHTER, GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.FIGHTER.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override

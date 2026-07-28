@@ -34,3 +34,6 @@ gametest-run.log
 nv-gametest.log
 
 *.log
+
+# Local credentials (never commit)
+.env

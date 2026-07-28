@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
+import net.minecraft.core.Holder;
 
 /**
  * Base description shared by every golem part kind: the research gating it, the icon shown
@@ -16,11 +17,11 @@ public abstract class GolemPart {
     private final List<Identifier> research;
     private final Identifier icon;
     private final List<GolemComponent> components;
-    private final List<GolemTrait> traits;
+    private final List<Holder<GolemTrait>> traits;
     private final GolemPartModel model;
 
     protected GolemPart(List<Identifier> research, Identifier icon, List<GolemComponent> components,
-                        List<GolemTrait> traits, @Nullable GolemPartModel model) {
+                        List<Holder<GolemTrait>> traits, @Nullable GolemPartModel model) {
         this.research = List.copyOf(research);
         this.icon = icon;
         this.components = List.copyOf(components);
@@ -52,7 +53,7 @@ public abstract class GolemPart {
     /**
      * @return traits granted by this part
      */
-    public List<GolemTrait> traits() {
+    public List<Holder<GolemTrait>> traits() {
         return traits;
     }
 

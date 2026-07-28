@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealConfigToggles;
 import net.minecraft.resources.Identifier;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealBreakerAdvanced extends SealBreaker {
     public SealBreakerAdvanced() {
@@ -30,6 +31,6 @@ public class SealBreakerAdvanced extends SealBreaker {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.BREAKER, GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.BREAKER.get(), TCGolemTraits.SMART.get()};
     }
 }

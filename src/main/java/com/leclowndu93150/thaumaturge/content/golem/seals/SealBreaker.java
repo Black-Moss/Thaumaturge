@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealBreaker extends SealFiltered implements ISealConfigArea, ISealConfigToggles {
     private static final int CACHE_CLEAN_INTERVAL = 100;
@@ -148,7 +149,7 @@ public class SealBreaker extends SealFiltered implements ISealConfigArea, ISealC
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.BREAKER};
+        return new GolemTrait[]{TCGolemTraits.BREAKER.get()};
     }
 
     @Override
