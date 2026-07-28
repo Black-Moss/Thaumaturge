@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumaturge.registry;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumaturge.content.research.decon.BlockEntityDeconstructionTable;
 import com.leclowndu93150.thaumaturge.content.device.patterncrafter.BlockEntityPatternCrafter;
 import com.leclowndu93150.thaumaturge.content.device.sprayer.BlockEntityPotionSprayer;
@@ -193,7 +195,10 @@ public final class TCBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJar>> JAR =
             BLOCK_ENTITIES.register(
                     "jar",
-                    () -> new BlockEntityType<>(BlockEntityJar::new, Set.of(TCBlocks.JAR_NORMAL.get()))
+                    () -> new BlockEntityType<>(BlockEntityJar::new,
+                            BuiltInRegistries.BLOCK.stream()
+                                    .filter(BlockJar.class::isInstance)
+                                    .collect(Collectors.toUnmodifiableSet()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarBrain>> JAR_BRAIN =

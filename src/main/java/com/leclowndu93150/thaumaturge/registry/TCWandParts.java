@@ -77,12 +77,14 @@ public final class TCWandParts {
     private TCWandParts() {}
 
     private static WandRod wand(int capacity, int craftCost, String texture, IWandRodOnUpdate onUpdate, boolean glow) {
-        return new WandRod(capacity, craftCost, rodTexture(texture), onUpdate, glow, false, false);
+        Identifier gate = "wood".equals(texture) ? TCIds.rl("unlock_auromancy") : TCIds.rl("rod_" + texture);
+        return new WandRod(capacity, craftCost, rodTexture(texture), onUpdate, glow, false, false, gate);
     }
 
     private static WandRod staff(int capacity, int craftCost, String texture, IWandRodOnUpdate onUpdate,
                                  boolean glow, boolean runes) {
-        return new WandRod(capacity, craftCost, rodTexture(texture), onUpdate, glow, true, runes);
+        Identifier gate = "primal".equals(texture) ? TCIds.rl("staff_primal") : TCIds.rl("staves");
+        return new WandRod(capacity, craftCost, rodTexture(texture), onUpdate, glow, true, runes, gate);
     }
 
     private static Identifier capTexture(String name) {

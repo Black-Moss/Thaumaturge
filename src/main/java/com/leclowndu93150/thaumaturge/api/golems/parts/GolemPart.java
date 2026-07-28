@@ -68,4 +68,26 @@ public abstract class GolemPart {
      * @return the behavior ticked for this part, or null when it has none
      */
     public abstract @Nullable IGolemFunction function();
+
+    /**
+     * The translation key for a part's display name in golem UIs.
+     *
+     * @param kind the part kind, one of {@code head}, {@code arm}, {@code leg}, {@code addon}
+     * @param id   the part id
+     * @return {@code golem.<kind>.<namespace>.<path>}
+     */
+    public static String nameKey(String kind, Identifier id) {
+        return "golem." + kind + "." + id.getNamespace() + "." + id.getPath();
+    }
+
+    /**
+     * The translation key for a part's descriptive text in golem UIs.
+     *
+     * @param kind the part kind, one of {@code head}, {@code arm}, {@code leg}, {@code addon}
+     * @param id   the part id
+     * @return {@code golem.<kind>.text.<namespace>.<path>}
+     */
+    public static String descriptionKey(String kind, Identifier id) {
+        return "golem." + kind + ".text." + id.getNamespace() + "." + id.getPath();
+    }
 }

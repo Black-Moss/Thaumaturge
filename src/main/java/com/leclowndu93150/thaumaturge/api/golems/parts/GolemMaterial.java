@@ -119,4 +119,24 @@ public final class GolemMaterial {
     public List<Holder<GolemTrait>> traits() {
         return traits;
     }
+
+    /**
+     * The translation key for a material's display name in golem UIs.
+     *
+     * @param id the material id
+     * @return {@code golem.material.<namespace>.<path>}
+     */
+    public static String nameKey(Identifier id) {
+        return "golem.material." + id.getNamespace() + "." + id.getPath();
+    }
+
+    /**
+     * The translation key for a material's descriptive text in golem UIs.
+     *
+     * @param id the material id
+     * @return {@code golem.material.text.<namespace>.<path>}
+     */
+    public static String descriptionKey(Identifier id) {
+        return "golem.material.text." + id.getNamespace() + "." + id.getPath();
+    }
 }
