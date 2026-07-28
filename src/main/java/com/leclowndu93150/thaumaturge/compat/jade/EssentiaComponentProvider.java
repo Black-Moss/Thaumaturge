@@ -34,7 +34,7 @@ public enum EssentiaComponentProvider implements IBlockComponentProvider {
             }
             for (AspectInstance entry : contents.entries()) {
                 tooltip.add(Component.translatable("jade.thaumaturge.essentia.fill",
-                        AspectComponents.name(entry.aspect()), entry.amount(), BlockEntityJar.CAPACITY));
+                        AspectComponents.name(entry.aspect()), entry.amount(), jar.capacity()));
             }
             return;
         }

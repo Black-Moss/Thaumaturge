@@ -1,5 +1,11 @@
 package com.leclowndu93150.thaumaturge;
 
+import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
+import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
+import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
+import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumaturge.content.research.pool.AspectPoolBindings;
+import com.leclowndu93150.thaumaturge.api.research.pool.AspectPoolAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.aura.VisRelayHelper;
@@ -92,6 +98,10 @@ public final class Thaumaturge {
         WarpHelper.bind(new WarpManager.Bindings());
         ScanningManager.bind(new ScanBindings());
         GolemHelper.bind(new GolemBindings());
+        AspectPoolAccess.bind(new AspectPoolBindings());
+        ResearchGate.bind(ResearchManager::doesPassGate);
+        RechargeAccess.bind(TCDataComponents.CHARGE);
+        GogglesAccess.bind(() -> TCAttributes.VIS_DISCOUNT);
         FocusEngine.bindRegistry(TCFocusElements.registry());
 
         if (ModList.get().isLoaded(TCIds.CURIOS))

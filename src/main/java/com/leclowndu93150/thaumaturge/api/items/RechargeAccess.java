@@ -1,8 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.items;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,6 +19,29 @@ import net.minecraft.world.level.Level;
  * @since 1.0.0
  */
 public final class RechargeAccess {
+    private static Supplier<DataComponentType<Integer>> chargeBinding;
+
+    /**
+     * Binds the charge component type. Called by Thaumaturge during mod init; addons must not
+     * call this.
+     *
+     * @param impl supplies the {@code thaumaturge:charge} component type
+     * @throws IllegalStateException when already bound
+     */
+    public static void bind(Supplier<DataComponentType<Integer>> impl) {
+        if (chargeBinding != null) {
+            throw new IllegalStateException("RechargeAccess already bound");
+        }
+        chargeBinding = impl;
+    }
+
+    private static DataComponentType<Integer> chargeComponent() {
+        if (chargeBinding == null) {
+            throw new IllegalStateException("RechargeAccess accessed before binding");
+        }
+        return chargeBinding.get();
+    }
+
     private RechargeAccess() {}
 
     /**
@@ -78,7 +102,7 @@ public final class RechargeAccess {
         if (stack.isEmpty() || !(stack.getItem() instanceof IRechargable)) {
             return -1;
         }
-        return stack.getOrDefault(TCDataComponents.CHARGE.get(), 0);
+        return stack.getOrDefault(chargeComponent(), 0);
     }
 
     /**
@@ -110,7 +134,7 @@ public final class RechargeAccess {
         }
         int charge = getCharge(stack);
         if (charge >= amount) {
-            stack.set(TCDataComponents.CHARGE.get(), charge - amount);
+            stack.set(chargeComponent(), charge - amount);
             return true;
         }
         return false;
@@ -121,6 +145,6 @@ public final class RechargeAccess {
             return;
         }
         int total = Math.min(rechargable.getMaxCharge(stack, holder), amount + getCharge(stack));
-        stack.set(TCDataComponents.CHARGE.get(), total);
+        stack.set(chargeComponent(), total);
     }
 }

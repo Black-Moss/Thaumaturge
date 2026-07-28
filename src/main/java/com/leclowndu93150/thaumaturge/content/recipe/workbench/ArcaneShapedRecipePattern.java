@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.recipe.workbench;
 
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
 import com.google.common.annotations.VisibleForTesting;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -166,7 +167,7 @@ public final class ArcaneShapedRecipePattern {
         return index;
     }
 
-    public boolean matches(ArcaneCraftingInput input) {
+    public boolean matches(IArcaneCraftingInput input) {
         if (input.ingredientCount() == this.ingredientCount) {
             if (input.width() == this.width && input.height() == this.height) {
                 if (!this.symmetrical && this.matches(input, true)) {
@@ -180,7 +181,7 @@ public final class ArcaneShapedRecipePattern {
         return false;
     }
 
-    private boolean matches(ArcaneCraftingInput input, boolean xFlip) {
+    private boolean matches(IArcaneCraftingInput input, boolean xFlip) {
         for(int y = 0; y < this.height; ++y) {
             for(int x = 0; x < this.width; ++x) {
                 Optional<Ingredient> expected;

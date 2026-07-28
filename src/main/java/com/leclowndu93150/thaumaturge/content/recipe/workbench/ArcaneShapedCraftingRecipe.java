@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.recipe.workbench;
 
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.google.common.annotations.VisibleForTesting;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
@@ -70,11 +71,11 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe{
         return PlacementInfo.createFromOptionals(this.pattern.ingredients());
     }
 
-    public boolean matches(ArcaneCraftingInput input, Level level) {
+    public boolean matches(IArcaneCraftingInput input, Level level) {
         return super.matches(input, level) && this.pattern.matches(input);
     }
 
-    public ItemStack assemble(ArcaneCraftingInput input) {
+    public ItemStack assemble(IArcaneCraftingInput input) {
         return this.result.create();
     }
 

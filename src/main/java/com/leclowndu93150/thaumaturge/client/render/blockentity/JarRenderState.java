@@ -9,6 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class JarRenderState extends BlockEntityRenderState {
     public int amount;
+    public int capacity;
     public int aspectColor;
     public boolean braced;
     public boolean connectedAbove;

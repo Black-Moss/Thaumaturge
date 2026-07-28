@@ -46,6 +46,7 @@ base {
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
     withSourcesJar()
+    withJavadocJar()
 }
 
 sourceSets {
@@ -56,6 +57,11 @@ sourceSets {
 }
 
 tasks.named('test') { enabled = false }
+
+tasks.withType(Javadoc).configureEach {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    failOnError = false
+}
 
 neoForge {
     version = project.neo_version
@@ -181,6 +187,7 @@ idea {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
+            artifactId = mod_id
             from components.java
         }
     }

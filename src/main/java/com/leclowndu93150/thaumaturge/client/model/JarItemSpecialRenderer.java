@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.model;
 
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.client.render.blockentity.JarRenderer;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
@@ -58,7 +59,7 @@ public class JarItemSpecialRenderer implements SpecialModelRenderer<AspectInstan
     public void submit(@Nullable AspectInstance aspectInstance, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, int i1, boolean b, int i2) {
         if (aspectInstance == null) return;
         // Render the essentia inside the jar using the sprite and aspectInstance
-        JarRenderer.submitFluid(aspectInstance.amount(), aspectInstance.aspect().value().color(), lightCoords,context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE),poseStack,submitNodeCollector);
+        JarRenderer.submitFluid(aspectInstance.amount(), IEssentiaJar.DEFAULT_CAPACITY, aspectInstance.aspect().value().color(), lightCoords,context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE),poseStack,submitNodeCollector);
     }
 
     @Override

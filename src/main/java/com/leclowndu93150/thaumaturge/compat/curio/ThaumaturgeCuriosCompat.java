@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.compat.curio;
 
+import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.api.items.IGoggles;
 import com.leclowndu93150.thaumaturge.api.items.IVisDiscountGear;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
@@ -40,6 +41,17 @@ public final class ThaumaturgeCuriosCompat {
     }
 
     public static void init(IEventBus modBus) {
+        GogglesAccess.bindCurios(new GogglesAccess.Curios() {
+            @Override
+            public boolean wearsGoggles(LivingEntity entity) {
+                return checkForGoggles(entity);
+            }
+
+            @Override
+            public boolean anyCurioMatches(LivingEntity entity, Predicate<ItemStack> predicate) {
+                return ThaumaturgeCuriosCompat.anyCurioMatches(entity, predicate);
+            }
+        });
         modBus.addListener(ThaumaturgeCuriosCompat::registerCurio);
         modBus.addListener(ThaumaturgeCuriosCompat::onClientSetup);
         NeoForge.EVENT_BUS.addListener(ThaumaturgeCuriosCompat::onItemAttributeModifier);
