@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
@@ -48,7 +49,7 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
         }
         Identifier materialKey = TCGolemParts.materials().getKey(props.getMaterial());
         if (materialKey != null) {
-            tooltip.accept(Component.translatable("golem.material." + materialKey.getPath())
+            tooltip.accept(Component.translatable(GolemMaterial.nameKey(materialKey))
                     .withStyle(ChatFormatting.GREEN));
         }
         for (GolemTrait trait : props.getTraits()) {

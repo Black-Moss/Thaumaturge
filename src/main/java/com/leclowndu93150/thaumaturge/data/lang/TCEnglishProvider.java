@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.lang;
 
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import net.minecraft.world.item.DyeColor;
 import org.apache.commons.lang3.StringUtils;
 import com.leclowndu93150.thaumaturge.TCIds;
@@ -1332,28 +1334,31 @@ public final class TCEnglishProvider extends LanguageProvider {
     }
 
     private void material(String key, String name, String text) {
-        add("golem.material." + key, name);
-        add("golem.material.text." + key, text);
+        Identifier id = TCIds.rl(key);
+        add(GolemMaterial.nameKey(id), name);
+        add(GolemMaterial.descriptionKey(id), text);
+    }
+
+    private void partLang(String kind, String key, String name, String text) {
+        Identifier id = TCIds.rl(key);
+        add(GolemPart.nameKey(kind, id), name);
+        add(GolemPart.descriptionKey(kind, id), text);
     }
 
     private void head(String key, String name, String text) {
-        add("golem.head." + key, name);
-        add("golem.head.text." + key, text);
+        partLang("head", key, name, text);
     }
 
     private void arm(String key, String name, String text) {
-        add("golem.arm." + key, name);
-        add("golem.arm.text." + key, text);
+        partLang("arm", key, name, text);
     }
 
     private void leg(String key, String name, String text) {
-        add("golem.leg." + key, name);
-        add("golem.leg.text." + key, text);
+        partLang("leg", key, name, text);
     }
 
     private void addon(String key, String name, String text) {
-        add("golem.addon." + key, name);
-        add("golem.addon.text." + key, text);
+        partLang("addon", key, name, text);
     }
 
     private void addJade() {

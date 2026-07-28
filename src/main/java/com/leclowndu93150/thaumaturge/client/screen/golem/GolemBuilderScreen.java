@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.screen.golem;
 
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
@@ -297,18 +298,18 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
                 }));
     }
 
-    private void addPartButton(int x, int y, Identifier icon, String kind, String path, int color) {
+    private void addPartButton(int x, int y, Identifier icon, String kind, Identifier id, int color) {
         TCHoverButton button = TCHoverButton.centered(leftPos + x, topPos + y, 16,
                 new TCButtonIcon.TextureIcon(icon),
-                Component.translatable("golem." + kind + "." + path), () -> {});
-        button.setDescription(Component.translatable("golem." + kind + ".text." + path));
+                Component.translatable(GolemPart.nameKey(kind, id)), () -> {});
+        button.setDescription(Component.translatable(GolemPart.descriptionKey(kind, id)));
         button.setTintColor(ARGB.opaque(color));
         addRenderableWidget(button);
     }
 
-    private static <T> String keyOf(Registry<T> registry, T value) {
+    private static <T> Identifier keyOf(Registry<T> registry, T value) {
         Identifier key = registry.getKey(value);
-        return key == null ? "unknown" : key.getPath();
+        return key == null ? Identifier.fromNamespaceAndPath("thaumaturge", "unknown") : key;
     }
 
     private void computeOwnership() {

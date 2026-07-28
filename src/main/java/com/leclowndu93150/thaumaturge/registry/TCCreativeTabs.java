@@ -368,9 +368,9 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SEAL_USE.get());
                         output.accept(TCItems.SEAL_PROVIDER.get());
                         output.accept(TCItems.SEAL_STOCK.get());
-                        TCGolemParts.MATERIALS.getEntries().forEach(material -> {
+                        TCGolemParts.materials().forEach(material -> {
                             GolemProperties properties = GolemProperties.createDefault();
-                            properties.setMaterial(material.get());
+                            properties.setMaterial(material);
                             output.accept(golemPlacer(properties));
                         });
                         output.accept(TCItems.TRAVELLER_BOOTS.get());
