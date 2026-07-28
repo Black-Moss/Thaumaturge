@@ -65,6 +65,10 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        return openBuilderGui(level, pos, player);
+    }
+
+    public static InteractionResult openBuilderGui(Level level, BlockPos pos, Player player) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

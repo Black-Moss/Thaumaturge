@@ -33,23 +33,26 @@ public final class ItemSealPlacer extends Item implements ISealDisplayer {
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         Player player = context.getPlayer();
-        if (level.isClientSide() || sealKey == null || player == null || player.isShiftKeyDown()) {
+        if (sealKey == null || player == null || player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
+        Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (!player.mayUseItemAt(pos, context.getClickedFace(), context.getItemInHand())) {
+        if (!player.mayUseItemAt(pos, context.getClickedFace(), stack)) {
             return InteractionResult.FAIL;
         }
         ISeal seal = GolemHelper.createSeal(sealKey);
         if (seal == null || !seal.canPlaceAt(level, pos, context.getClickedFace())) {
             return InteractionResult.FAIL;
         }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
         if (SealHandler.addSealEntity((ServerLevel) level, pos, context.getClickedFace(), seal, player)
                 && !player.hasInfiniteMaterials()) {
-            context.getItemInHand().shrink(1);
+            stack.shrink(1);
         }
         return InteractionResult.SUCCESS_SERVER;
     }

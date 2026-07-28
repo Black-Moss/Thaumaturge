@@ -16,6 +16,7 @@ public final class TCGameTestRegistration {
         TaintTests.register(r);
         EssentiaTests.register(r);
         ResearchTests.register(r);
+        GolemSealTests.register(r);
         WandTests.register(r);
     }
 }
