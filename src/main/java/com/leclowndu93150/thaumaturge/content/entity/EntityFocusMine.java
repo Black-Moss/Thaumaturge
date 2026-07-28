@@ -68,6 +68,11 @@ public final class EntityFocusMine extends ThrowableProjectile implements IEntit
         return this.entityData.get(DATA_ARMED);
     }
 
+    public int renderColor() {
+        List<Identifier> effects = FocusPackages.effects(this.focusPackage);
+        return effects.isEmpty() ? 0xFFFFFF : FocusEngine.color(effects.getFirst());
+    }
+
     public void setArmed(boolean armed) {
         this.entityData.set(DATA_ARMED, armed);
     }
