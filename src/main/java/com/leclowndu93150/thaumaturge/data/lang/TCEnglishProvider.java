@@ -1379,6 +1379,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jade.thaumaturge.essentia.contents", "Essentia: %s");
         add("jade.thaumaturge.machine.progress", "Progress: %s%%");
         add("jade.thaumaturge.machine.heat", "Heat: %s%%");
+        add("jade.thaumaturge.transducer.status.0", "No node below");
+        add("jade.thaumaturge.transducer.status.1", "Transducing");
+        add("jade.thaumaturge.transducer.status.2", "Node energized");
+        add("jade.thaumaturge.transducer.charge", "Charge: %s%%");
         add("jade.thaumaturge.golem.rank", "Rank %s (%s XP)");
     }
 }

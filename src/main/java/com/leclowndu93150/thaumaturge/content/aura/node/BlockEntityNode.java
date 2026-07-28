@@ -197,6 +197,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         int capped = Math.min(amount, Math.max(0, aspectsBase.amountOf(aspect) - aspects.amountOf(aspect)));
         if (capped > 0) {
             aspects = aspects.add(aspect, capped);
+            syncContents();
         }
         return amount - capped;
     }
@@ -207,7 +208,15 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return false;
         }
         aspects = reduce(aspects, aspect, amount);
+        syncContents();
         return true;
+    }
+
+    private void syncContents() {
+        setChanged();
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
     }
 
     @Override

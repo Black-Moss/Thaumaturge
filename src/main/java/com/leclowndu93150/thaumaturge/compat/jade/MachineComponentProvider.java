@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.compat.jade;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeTransducer;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -22,6 +23,14 @@ public enum MachineComponentProvider implements IBlockComponentProvider {
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+        if (accessor.getBlockEntity() instanceof BlockEntityNodeTransducer transducer) {
+            tooltip.add(Component.translatable("jade.thaumaturge.transducer.status." + transducer.getStatus()));
+            if (transducer.getStatus() != 0) {
+                tooltip.add(Component.translatable("jade.thaumaturge.transducer.charge",
+                        transducer.getCount() * 100 / BlockEntityNodeTransducer.CHARGE_TARGET));
+            }
+            return;
+        }
         if (!(accessor.getBlockEntity() instanceof BlockEntitySmelter)) {
             return;
         }
