@@ -128,6 +128,9 @@ public final class WorkbenchPayment {
 
     private static int supplyFromSources(Player player, IArcaneWorkbench inventory,
                                          Holder<IAspect> aspect, int need, boolean simulate) {
+        if (player == null) {
+            return 0;
+        }
         int supplied = 0;
         for (IWorkbenchVisSource source : SOURCES) {
             if (supplied >= need) {
