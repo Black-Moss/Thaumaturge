@@ -25,6 +25,20 @@ public final class NodeTests {
     private NodeTests() {}
 
     public static void register(TCTestRegistrar r) {
+        r.add("node/unbreakable_by_hand", 20, helper -> {
+            BlockEntityNode node = placeVitiumNode(helper);
+            if (node == null) {
+                return;
+            }
+            BlockPos pos = helper.absolutePos(NODE_POS);
+            float speed = helper.getLevel().getBlockState(pos).getDestroySpeed(helper.getLevel(), pos);
+            if (speed >= 0.0F) {
+                helper.fail("Node block is breakable (destroy speed " + speed + "); TC nodes are unbreakable");
+                return;
+            }
+            helper.succeed();
+        });
+
         r.add("node/energize_decomposes_to_primals", 40, helper -> {
             BlockEntityNode node = placeVitiumNode(helper);
             if (node == null) {
