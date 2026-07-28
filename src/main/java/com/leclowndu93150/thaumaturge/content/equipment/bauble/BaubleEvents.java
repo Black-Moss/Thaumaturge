@@ -35,7 +35,7 @@ public final class BaubleEvents {
     private static final double OBSERVATION_CHANCE_PER_XP = 0.2;
 
     private static final long CLOUD_JUMP_GRACE_WINDOW_TICKS = 100L;
-    private static final double CLOUD_JUMP_GRACE_DISTANCE = 4.0;
+    private static final double CLOUD_JUMP_GRACE_DISTANCE = 16.0;
 
     private BaubleEvents() {}
 

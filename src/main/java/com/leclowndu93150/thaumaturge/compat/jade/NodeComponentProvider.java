@@ -37,15 +37,17 @@ public enum NodeComponentProvider implements IBlockComponentProvider {
                 && !(player.getOffhandItem().getItem() instanceof ThaumometerItem)) {
             return;
         }
-        MutableComponent type = Component.translatable(
-                "jade.thaumaturge.node.type." + node.getNodeType().getSerializedName());
-        if (node.getNodeModifier() != null) {
-            type = Component.translatable("jade.thaumaturge.node.modified",
-                    Component.translatable("jade.thaumaturge.node.modifier."
-                            + node.getNodeModifier().getSerializedName()),
-                    type);
+        if (node.getNodeType() != NodeType.NORMAL || node.getNodeModifier() != null) {
+            MutableComponent type = Component.translatable(
+                    "jade.thaumaturge.node.type." + node.getNodeType().getSerializedName());
+            if (node.getNodeModifier() != null) {
+                type = Component.translatable("jade.thaumaturge.node.modified",
+                        Component.translatable("jade.thaumaturge.node.modifier."
+                                + node.getNodeModifier().getSerializedName()),
+                        type);
+            }
+            tooltip.add(type);
         }
-        tooltip.add(type);
         AspectList aspects = node.getAspects();
         if (!aspects.isEmpty()) {
             tooltip.add(JadeComponents.aspectLine("jade.thaumaturge.node.aspects", aspects));

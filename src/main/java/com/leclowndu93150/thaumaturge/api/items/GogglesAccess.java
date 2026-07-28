@@ -46,8 +46,9 @@ public final class GogglesAccess {
     }
 
     /**
-     * Returns whether the entity wears or holds a stack implementing {@link IRevealer} that
-     * reveals aura nodes.
+     * Returns whether the entity wears a stack implementing {@link IRevealer} that reveals
+     * aura nodes. Held revealers do not count; the gear must occupy the head slot or an
+     * equipped curio slot.
      *
      * @param entity the entity to query; null returns {@code false}
      * @return {@code true} when nodes should be revealed for the entity
@@ -58,14 +59,6 @@ public final class GogglesAccess {
         }
         ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
         if (!head.isEmpty() && head.getItem() instanceof IRevealer r && r.showNodes(head, entity)) {
-            return true;
-        }
-        ItemStack main = entity.getMainHandItem();
-        if (!main.isEmpty() && main.getItem() instanceof IRevealer r && r.showNodes(main, entity)) {
-            return true;
-        }
-        ItemStack off = entity.getOffhandItem();
-        if (!off.isEmpty() && off.getItem() instanceof IRevealer r && r.showNodes(off, entity)) {
             return true;
         }
         if (ModList.get().isLoaded(TCIds.CURIOS)) {
