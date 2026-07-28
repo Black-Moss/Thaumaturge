@@ -671,7 +671,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("research.thaumaturge.oculus.stage_0",
                 "The whispers have grown into a chorus and at last I understand what they want of me. The obelisks scattered across the world are not monuments - they are doors, and every door has a key.<BR>The strange altars where I first encountered the crimson cult hold a keystone marked with four empty sockets. Four eyes must be seated there, crafted or bargained for, and the sinister energies above the keystone must remain intact.<BR>Before I attempt something this reckless I should set my theories in order.");
         add("research.thaumaturge.oculus.stage_1",
-                "It was all so simple - I am amazed the Crimson Cultists never discovered this.<BR>Four Eldritch Eyes seated upon the keystone, then a focused discharge of vis channeled through my casting gauntlet into the altar. The local aura pays the price, and the so-called Eye is opened.<BR>Of course I have no idea what that means. No matter - only fools fear the unknown!");
+                "It was all so simple - I am amazed the Crimson Cultists never discovered this.<BR>Four Eldritch Eyes seated upon the keystone, then a focused discharge of vis channeled through my wand into the altar. The local aura pays the price, and the so-called Eye is opened.<BR>Of course I have no idea what that means. No matter - only fools fear the unknown!");
         add("research.thaumaturge.enter_outer_lands.title", "The Outer Lands");
         add("research.thaumaturge.enter_outer_lands.stage_0",
                 "You are not quite sure what you were expecting when you stepped through the Oculus, but this strange structure of crumbling stone and twisted passageways was not it.<BR>Something is not quite right here - this structure was not designed for any practical purpose you can discern... unless that purpose was for it to be a deadly maze.<BR>Strange energies abound and your magic seems to act strangely in this alien environment. Even the other denizens you encounter seem out of place here.");
@@ -812,8 +812,8 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langCasters() {
 
         add("key.category.thaumaturge.main", "Thaumaturge");
-        add("key.thaumaturge.change_focus", "Change Caster Focus");
-        add("key.thaumaturge.misc_toggle", "Misc Caster Toggle");
+        add("key.thaumaturge.change_focus", "Change Wand Focus");
+        add("key.thaumaturge.misc_toggle", "Misc Wand Toggle");
         add("item.thaumaturge.wand", "Wand");
         add("item.thaumaturge.wand.named", "%1$s %2$s Wand");
         add("item.thaumaturge.wand.sceptre", "%1$s %2$s Scepter");
