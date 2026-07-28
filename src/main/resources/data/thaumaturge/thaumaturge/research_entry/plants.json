@@ -46,6 +46,12 @@
       "required_research": [
         "thaumaturge:scanned/plantvishroom"
       ]
+    },
+    {
+      "text": "research.thaumaturge.plants.addendum_5",
+      "required_research": [
+        "thaumaturge:scanned/manapod"
+      ]
     }
   ],
   "note_aspects": [

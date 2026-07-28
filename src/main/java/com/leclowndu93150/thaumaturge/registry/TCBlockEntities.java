@@ -21,6 +21,7 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritch
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchPortal;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.casters.BlockEntityFocalManipulator;
+import com.leclowndu93150.thaumaturge.content.manabean.BlockEntityManaPod;
 import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumaturge.content.essentia.bellows.BlockEntityBellows;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityArcaneEar;
@@ -132,6 +133,12 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "focal_manipulator",
                     () -> new BlockEntityType<>(BlockEntityFocalManipulator::new, Set.of(TCBlocks.FOCAL_MANIPULATOR.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityManaPod>> MANA_POD =
+            BLOCK_ENTITIES.register(
+                    "mana_pod",
+                    () -> new BlockEntityType<>(BlockEntityManaPod::new, Set.of(TCBlocks.MANA_POD.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityResearchTable>> RESEARCH_TABLE =

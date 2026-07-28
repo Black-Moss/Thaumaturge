@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.block.state.properties.StairsShape;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.client.color.CrystalAspectTint;
+import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumaturge.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumaturge.client.color.FocusColorTint;
@@ -387,6 +389,7 @@ public final class TCModelProvider extends ModelProvider {
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
         EssentiaCrystalModelGenerator.register(itemModels);
+        registerManaPod(blockModels, itemModels);
         stoneAndStairModels(blockModels);
         treeModels(blockModels, itemModels);
         plantModels(blockModels, itemModels);
@@ -1338,6 +1341,33 @@ public final class TCModelProvider extends ModelProvider {
                 TextureMapping.layer0(TextureMapping.getBlockTexture(block)),
                 itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(model));
+    }
+
+    private void registerManaPod(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block pod = TCBlocks.MANA_POD.get();
+        MultiVariant[] stems = new MultiVariant[3];
+        for (int i = 0; i < 3; i++) {
+            Identifier model = ModelTemplates.CROSS.createWithSuffix(pod, "_stage" + i,
+                    TextureMapping.cross(TextureMapping.getBlockTexture(pod, "_stem_" + i)),
+                    blockModels.modelOutput);
+            stems[i] = new MultiVariant(WeightedList.of(new Variant(model)));
+        }
+        PropertyDispatch<MultiVariant> ages = PropertyDispatch.initial(BlockManaPod.AGE)
+                .select(0, stems[0])
+                .select(1, stems[1])
+                .select(2, stems[2])
+                .select(3, stems[2])
+                .select(4, stems[2])
+                .select(5, stems[2])
+                .select(6, stems[2])
+                .select(7, stems[2]);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(pod).with(ages));
+
+        Identifier beanModel = ModelLocationUtils.getModelLocation(TCItems.MANA_BEAN.get());
+        ModelTemplates.FLAT_ITEM.create(beanModel,
+                TextureMapping.layer0(new Material(TCIds.rl("item/mana_bean"))), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCItems.MANA_BEAN.get(),
+                ItemModelUtils.tintedModel(beanModel, new CrystalAspectTint(0xFFFFFF)));
     }
 
     private void cross(BlockModelGenerators blockModels, Block block) {

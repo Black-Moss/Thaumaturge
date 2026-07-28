@@ -25,6 +25,7 @@ import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
 
 public final class TCPlacedFeatures {
+    private static final int MANA_POD_ATTEMPTS = 10;
     public static final ResourceKey<PlacedFeature> GREATWOOD_CHECKED = key("greatwood_checked");
     public static final ResourceKey<PlacedFeature> SILVERWOOD_CHECKED = key("silverwood_checked");
     public static final ResourceKey<PlacedFeature> BIG_MAGIC_CHECKED = key("big_magic_checked");
@@ -33,6 +34,7 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> GREATWOOD_NATURAL_RARE = key("greatwood_natural_rare");
     public static final ResourceKey<PlacedFeature> SILVERWOOD_NATURAL = key("silverwood_natural");
     public static final ResourceKey<PlacedFeature> MAGIC_FOREST_FLORA = key("magic_forest_flora");
+    public static final ResourceKey<PlacedFeature> MANA_PODS = key("mana_pods");
     public static final ResourceKey<PlacedFeature> CRYSTALS = key("crystals");
     public static final ResourceKey<PlacedFeature> NODES_WILD = key("nodes_wild");
     public static final ResourceKey<PlacedFeature> NODES_MAGICAL = key("nodes_magical");
@@ -123,6 +125,10 @@ public final class TCPlacedFeatures {
         context.register(MAGIC_FOREST_FLORA, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_FLORA),
                 List.of(BiomeFilter.biome())));
+
+        context.register(MANA_PODS, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.MANA_PODS),
+                List.of(CountPlacement.of(MANA_POD_ATTEMPTS), InSquarePlacement.spread(), BiomeFilter.biome())));
 
         context.register(CRYSTALS, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.CRYSTALS),

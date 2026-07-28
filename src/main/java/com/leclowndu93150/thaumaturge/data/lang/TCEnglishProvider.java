@@ -549,6 +549,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("death.attack.thaumaturge.dissolve", "%1$s dissolved");
 
         add("item.thaumaturge.essentia_crystal", "%s Vis Crystal");
+        add("item.thaumaturge.mana_bean", "Mana Bean");
+        add("block.thaumaturge.mana_pod", "Mana Pod");
         add("item.thaumaturge.essentia_crystal.unknown", "Unknown Vis Crystal");
 
         add("entity.thaumaturge.thaumic_slime", "Thaumic Slime");

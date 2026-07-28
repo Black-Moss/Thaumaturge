@@ -37,6 +37,7 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.decor.BlockEffectShock;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNode;
+import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNodeStabilizer;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNodeTransducer;
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockVisRelay;
@@ -1407,6 +1408,13 @@ public final class TCBlocks {
             "barrier", BlockBarrier::new,
             props -> props.mapColor(MapColor.NONE).strength(-1.0F, 999.0F).noOcclusion().noLootTable()
                     .dynamicShape().isValidSpawn((state, level, pos, type) -> false));
+
+    public static final DeferredBlock<BlockManaPod> MANA_POD = BLOCKS.registerBlock(
+            "mana_pod", BlockManaPod::new,
+            props -> props.mapColor(MapColor.PLANT).strength(0.5F).sound(SoundType.CROP)
+                    .noOcclusion().randomTicks().pushReaction(PushReaction.DESTROY)
+                    .lightLevel(state -> state.getValue(BlockManaPod.AGE))
+                    .isValidSpawn((state, level, pos, type) -> false));
 
     public static final DeferredBlock<BlockNode> NODE = BLOCKS.registerBlock(
             "node", BlockNode::new,

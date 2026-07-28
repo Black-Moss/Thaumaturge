@@ -40,6 +40,7 @@ public final class TCConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> BIG_MAGIC_TREE = key("big_magic_tree");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_TREES = key("magic_forest_trees");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_FLORA = key("magic_forest_flora");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> MANA_PODS = key("mana_pods");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRYSTALS = key("crystals");
     public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_WILD = key("nodes_wild");
     public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_EERIE = key("nodes_eerie");
@@ -107,6 +108,9 @@ public final class TCConfiguredFeatures {
         context.register(MAGIC_FOREST_FLORA, new ConfiguredFeature<>(TCFeatures.MAGIC_FOREST_FLORA.get(),
                 new MagicForestFloraConfig(TCBlocks.GRASS_AMBIENT.get(), TCBlocks.PLANT_VISHROOM.get(),
                         FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS)));
+
+        context.register(MANA_PODS, new ConfiguredFeature<>(TCFeatures.MANA_PODS.get(),
+                NoneFeatureConfiguration.INSTANCE));
 
         context.register(NODES_WILD, new ConfiguredFeature<>(TCFeatures.NODE.get(),
                 new NodeFeatureConfig(false, false, false,

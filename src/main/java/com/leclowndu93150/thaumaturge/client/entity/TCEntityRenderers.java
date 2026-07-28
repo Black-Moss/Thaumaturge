@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumaturge.client.model.entity.MatrixCubeModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.BrainModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.CentrifugeModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.DeconTableModel;
+import com.leclowndu93150.thaumaturge.client.model.entity.ManaPodModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.ResearchTableModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.JarBrineModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.TCBannerModel;
@@ -62,6 +63,7 @@ public final class TCEntityRenderers {
         event.registerLayerDefinition(TCModelLayers.ELDRITCH_GUARDIAN, EldritchGuardianModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.RESEARCH_TABLE, ResearchTableModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.DECONSTRUCTION_TABLE, DeconTableModel::createLayer);
+        event.registerLayerDefinition(TCModelLayers.MANA_POD, ManaPodModel::createLayer);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_HEAD, KnightArmorModel::createHead);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_CHEST, KnightArmorModel::createChest);
         event.registerLayerDefinition(TCModelLayers.KNIGHT_ARMOR_LEGS, KnightArmorModel::createLegs);
