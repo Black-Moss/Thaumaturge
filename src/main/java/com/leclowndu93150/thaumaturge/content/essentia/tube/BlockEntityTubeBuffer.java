@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
+import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
@@ -14,15 +15,19 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -106,6 +111,7 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
             this.facing = Direction.orderedByNearest(placer)[0].getOpposite();
         }
         setChanged();
+        sync();
     }
 
     public boolean handleCasterClick(int subHit, boolean sneaking) {
@@ -311,6 +317,17 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
         List<Boolean> open = List.of(openSides[0], openSides[1], openSides[2], openSides[3], openSides[4], openSides[5]);
         output.store("Open", OPEN_CODEC, open);
         output.putInt("Facing", facing.ordinal());
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag nbt = super.getUpdateTag(registries);
+        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+            TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
+            saveAdditional(output);
+            nbt.merge(output.buildResult());
+        }
+        return nbt;
     }
 
     @Override

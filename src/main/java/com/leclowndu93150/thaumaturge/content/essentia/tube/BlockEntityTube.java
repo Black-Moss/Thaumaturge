@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
+import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
@@ -14,18 +15,22 @@ import java.nio.ByteBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -157,6 +162,7 @@ public class BlockEntityTube extends BlockEntity implements IEssentiaTransport {
             this.facing = Direction.orderedByNearest(placer)[0].getOpposite();
         }
         setChanged();
+        pushUpdate(this);
     }
 
     public boolean[] openSides() {
@@ -170,12 +176,14 @@ public class BlockEntityTube extends BlockEntity implements IEssentiaTransport {
     public void setOpenSide(Direction face, boolean open) {
         openSides[face.ordinal()] = open;
         setChanged();
+        pushUpdate(this);
     }
 
     public boolean toggleSide(Direction face) {
         if (face == null) return false;
         openSides[face.ordinal()] = !openSides[face.ordinal()];
         setChanged();
+        pushUpdate(this);
         return openSides[face.ordinal()];
     }
 
@@ -187,6 +195,7 @@ public class BlockEntityTube extends BlockEntity implements IEssentiaTransport {
             if (isSideOpen(candidate) && hasTransportNeighbour(candidate)) {
                 facing = candidate;
                 setChanged();
+                pushUpdate(this);
                 return true;
             }
         }
@@ -196,6 +205,7 @@ public class BlockEntityTube extends BlockEntity implements IEssentiaTransport {
             if (isSideOpen(candidate)) {
                 facing = candidate;
                 setChanged();
+                pushUpdate(this);
                 return true;
             }
         }
@@ -381,6 +391,17 @@ public class BlockEntityTube extends BlockEntity implements IEssentiaTransport {
             data[a] = (byte) (openSides[a] ? 1 : 0);
         }
         output.store("OpenSides", Codec.BYTE_BUFFER, ByteBuffer.wrap(data));
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag nbt = super.getUpdateTag(registries);
+        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+            TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
+            saveAdditional(output);
+            nbt.merge(output.buildResult());
+        }
+        return nbt;
     }
 
     @Override

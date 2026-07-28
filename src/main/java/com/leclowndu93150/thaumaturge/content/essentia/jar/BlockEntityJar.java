@@ -106,6 +106,8 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     public void setFacing(Direction facing) {
         this.facing = facing;
+        setChanged();
+        syncToClient();
     }
 
     public Direction facing() {

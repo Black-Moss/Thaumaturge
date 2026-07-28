@@ -145,6 +145,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         if (active && isCrafting() && count % countDelay == 0) {
             craftCycle(level, env, countDelay);
             setChanged();
+            syncToClient();
         }
         if (active && isCrafting()) {
             if (count % 5 != 0) {

@@ -90,6 +90,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
         output.putBoolean("SpeedBoost", this.speedBoost);
         output.putInt("CookTime", this.furnaceCookTime);
         output.putInt("SmeltTime",this.smeltTime);
+        output.putInt("CurrentItemBurnTime", this.currentItemBurnTime);
         this.inventory.serialize(output);
     }
 
@@ -102,6 +103,7 @@ public class BlockEntitySmelter extends BlockEntity implements MenuProvider {
         this.speedBoost = input.getBooleanOr("SpeedBoost", false);
         this.furnaceCookTime = input.getIntOr("CookTime", 0);
         this.smeltTime = input.getIntOr("SmeltTime", 0);
+        this.currentItemBurnTime = input.getIntOr("CurrentItemBurnTime", 0);
         inventory.deserialize(input);
     }
 
