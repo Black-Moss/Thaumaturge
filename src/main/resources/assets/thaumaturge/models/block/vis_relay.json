@@ -1,0 +1,46 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "base": "thaumaturge:block/arcane_stone_1",
+    "crystal": "minecraft:block/amethyst_block",
+    "particle": "minecraft:block/amethyst_block"
+  },
+  "elements": [
+    {
+      "from": [5, 0, 5],
+      "to": [11, 3, 11],
+      "faces": {
+        "north": {"texture": "#base"},
+        "south": {"texture": "#base"},
+        "east": {"texture": "#base"},
+        "west": {"texture": "#base"},
+        "up": {"texture": "#base"},
+        "down": {"texture": "#base"}
+      }
+    },
+    {
+      "from": [6.5, 3, 6.5],
+      "to": [9.5, 10, 9.5],
+      "rotation": {"origin": [8, 6, 8], "axis": "y", "angle": 45},
+      "faces": {
+        "north": {"texture": "#crystal"},
+        "south": {"texture": "#crystal"},
+        "east": {"texture": "#crystal"},
+        "west": {"texture": "#crystal"},
+        "up": {"texture": "#crystal"}
+      }
+    },
+    {
+      "from": [7.25, 10, 7.25],
+      "to": [8.75, 11.5, 8.75],
+      "rotation": {"origin": [8, 10, 8], "axis": "y", "angle": 45},
+      "faces": {
+        "north": {"texture": "#crystal"},
+        "south": {"texture": "#crystal"},
+        "east": {"texture": "#crystal"},
+        "west": {"texture": "#crystal"},
+        "up": {"texture": "#crystal"}
+      }
+    }
+  ]
+}

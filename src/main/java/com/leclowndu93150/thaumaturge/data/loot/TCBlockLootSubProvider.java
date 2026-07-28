@@ -109,6 +109,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.NODE_STABILIZER.get());
         dropSelf(TCBlocks.NODE_STABILIZER_ADVANCED.get());
         dropSelf(TCBlocks.NODE_TRANSDUCER.get());
+        dropSelf(TCBlocks.VIS_RELAY.get());
         add(TCBlocks.JAR_NODE.get(), LootTable.lootTable()
                 .withPool(this.applyExplosionCondition(TCBlocks.JAR_NODE.get(), LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))

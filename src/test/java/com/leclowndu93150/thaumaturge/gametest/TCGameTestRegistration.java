@@ -12,6 +12,7 @@ public final class TCGameTestRegistration {
         AuraTests.register(r);
         NodeTests.register(r);
         TransducerTests.register(r);
+        RelayTests.register(r);
         TaintTests.register(r);
         EssentiaTests.register(r);
         ResearchTests.register(r);

@@ -39,6 +39,7 @@ import com.leclowndu93150.thaumaturge.content.aura.node.BlockJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNodeStabilizer;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNodeTransducer;
+import com.leclowndu93150.thaumaturge.content.aura.relay.BlockVisRelay;
 import com.leclowndu93150.thaumaturge.content.decor.BlockBarrier;
 import com.leclowndu93150.thaumaturge.content.decor.BlockPavingStone;
 import com.leclowndu93150.thaumaturge.content.equipment.BlockEffectGlimmer;
@@ -1423,6 +1424,11 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockNodeStabilizer> NODE_STABILIZER_ADVANCED = BLOCKS.registerBlock(
             "node_stabilizer_advanced", props -> new BlockNodeStabilizer(props, true),
             props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).noOcclusion());
+
+    public static final DeferredBlock<BlockVisRelay> VIS_RELAY = BLOCKS.registerBlock(
+            "vis_relay", BlockVisRelay::new,
+            props -> props.mapColor(MapColor.COLOR_PURPLE).strength(1.5F).noOcclusion()
+                    .sound(SoundType.AMETHYST));
 
     public static final DeferredBlock<BlockNodeTransducer> NODE_TRANSDUCER = BLOCKS.registerBlock(
             "node_transducer", BlockNodeTransducer::new,

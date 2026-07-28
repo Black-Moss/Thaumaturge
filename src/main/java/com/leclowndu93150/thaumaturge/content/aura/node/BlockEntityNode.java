@@ -19,12 +19,14 @@ import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumaturge.content.wands.WandChargingEvents;
+import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumaturge.registry.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -309,6 +311,57 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     private static final int ENERGIZED_REFILL_INTERVAL = 20;
+    private static final int ENERGIZED_REFILL_BASE_DIVISOR = 20;
+    private static final int CV_BUFFER_CAP_SECONDS = 10;
+    private static final int TICKS_PER_SECOND = 20;
+
+    private final Map<Identifier, Integer> cvAllowance = new HashMap<>();
+    private final Map<Identifier, Integer> cvCredit = new HashMap<>();
+
+    private void accrueCentivis() {
+        for (AspectInstance entry : aspectsBase.entries()) {
+            Identifier id = entry.aspect().unwrapKey().orElseThrow().identifier();
+            int rate = entry.amount();
+            int cap = rate * TICKS_PER_SECOND * CV_BUFFER_CAP_SECONDS;
+            int allowance = cvAllowance.getOrDefault(id, 0);
+            if (allowance < cap) {
+                cvAllowance.put(id, Math.min(cap, allowance + rate));
+            }
+        }
+    }
+
+    public int centivisRate(Holder<IAspect> aspect) {
+        return energized ? aspectsBase.amountOf(aspect) : 0;
+    }
+
+    public int availableCentivis(Holder<IAspect> aspect) {
+        if (!energized) {
+            return 0;
+        }
+        Identifier id = aspect.unwrapKey().orElseThrow().identifier();
+        int stored = aspects.amountOf(aspect) * WandEconomy.CENTIVIS_PER_VIS
+                + cvCredit.getOrDefault(id, 0);
+        return Math.min(cvAllowance.getOrDefault(id, 0), stored);
+    }
+
+    public int drainCentivis(Holder<IAspect> aspect, int amount) {
+        if (!energized || amount <= 0) {
+            return 0;
+        }
+        Identifier id = aspect.unwrapKey().orElseThrow().identifier();
+        int allowance = Math.min(cvAllowance.getOrDefault(id, 0), amount);
+        if (allowance <= 0) {
+            return 0;
+        }
+        int credit = cvCredit.getOrDefault(id, 0);
+        while (credit < allowance && takeFromContainer(aspect, 1)) {
+            credit += WandEconomy.CENTIVIS_PER_VIS;
+        }
+        int taken = Math.min(allowance, credit);
+        cvCredit.put(id, credit - taken);
+        cvAllowance.put(id, cvAllowance.getOrDefault(id, 0) - taken);
+        return taken;
+    }
 
     public void serverTick(Level tickLevel, BlockPos pos) {
         if (!(tickLevel instanceof ServerLevel serverLevel)) {
@@ -320,24 +373,31 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
                 float visPerPoint = ThaumaturgeCommonConfig.ENERGIZED_NODE_VIS_PER_POINT.get().floatValue();
                 boolean fluxFed = nodeType == NodeType.TAINTED;
                 for (AspectInstance entry : aspectsBase.entries()) {
-                    if (aspects.amountOf(entry.aspect()) >= entry.amount()) {
-                        continue;
-                    }
-                    float drained = fluxFed
-                            ? AuraHelper.drainFlux(serverLevel, pos, visPerPoint, false)
-                            : AuraHelper.drainVis(serverLevel, pos, visPerPoint, false);
-                    if (drained >= visPerPoint - 0.01F) {
-                        aspects = aspects.add(entry.aspect(), 1);
-                        changed = true;
-                    } else if (drained > 0.0F) {
-                        if (fluxFed) {
-                            AuraHelper.addFlux(serverLevel, pos, drained);
+                    int points = Math.max(1, entry.amount() / ENERGIZED_REFILL_BASE_DIVISOR);
+                    for (int i = 0; i < points; i++) {
+                        if (aspects.amountOf(entry.aspect()) >= entry.amount()) {
+                            break;
+                        }
+                        float drained = fluxFed
+                                ? AuraHelper.drainFlux(serverLevel, pos, visPerPoint, false)
+                                : AuraHelper.drainVis(serverLevel, pos, visPerPoint, false);
+                        if (drained >= visPerPoint - 0.01F) {
+                            aspects = aspects.add(entry.aspect(), 1);
+                            changed = true;
                         } else {
-                            AuraHelper.addVis(serverLevel, pos, drained);
+                            if (drained > 0.0F) {
+                                if (fluxFed) {
+                                    AuraHelper.addFlux(serverLevel, pos, drained);
+                                } else {
+                                    AuraHelper.addVis(serverLevel, pos, drained);
+                                }
+                            }
+                            break;
                         }
                     }
                 }
             }
+            accrueCentivis();
             if (drainTicks > 0 && --drainTicks == 0) {
                 drainPlayer = null;
                 changed = true;

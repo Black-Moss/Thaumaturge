@@ -2,10 +2,13 @@ package com.leclowndu93150.thaumaturge;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.aura.VisRelayHelper;
 import com.leclowndu93150.thaumaturge.api.casters.FocusEngine;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexBuilder;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayWorkbenchSource;
 import com.leclowndu93150.thaumaturge.content.golem.GolemBindings;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftCost;
@@ -78,9 +81,11 @@ public final class Thaumaturge {
         WandAccess.bind(TCDataComponents.WAND_VIS);
         ArcaneCraftCost.bind(WorkbenchPayment::cost);
         RegisterWorkbenchVisSourcesEvent visSourcesEvent = new RegisterWorkbenchVisSourcesEvent();
+        visSourcesEvent.register(new VisRelayWorkbenchSource());
         modBus.post(visSourcesEvent);
         WorkbenchPayment.registerSources(visSourcesEvent.sources());
         AuraHelper.bind(new AuraHelperBindings());
+        VisRelayHelper.bind(new VisRelayNetwork());
         TaintApi.bind(new TaintApiBindings());
         WarpHelper.bind(new WarpManager.Bindings());
         ScanningManager.bind(new ScanBindings());

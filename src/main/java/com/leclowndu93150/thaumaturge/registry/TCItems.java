@@ -749,6 +749,7 @@ public final class TCItems {
             ItemPrimalCharm::new,
             props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
 
+    public static final DeferredItem<BlockItem> VIS_RELAY = ITEMS.registerSimpleBlockItem(TCBlocks.VIS_RELAY);
     public static final DeferredItem<BlockItem> NODE_STABILIZER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER);
     public static final DeferredItem<BlockItem> NODE_STABILIZER_ADVANCED = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER_ADVANCED);
     public static final DeferredItem<BlockItem> NODE_TRANSDUCER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_TRANSDUCER);

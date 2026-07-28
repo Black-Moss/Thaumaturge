@@ -2472,6 +2472,18 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(TCItems.NODE_STABILIZER))
                 .save(output, TCIds.MODID + ":node_transducer");
 
+        arcaneShaped(new ItemStackTemplate(TCItems.VIS_RELAY.get()), NODE_STABILIZER_VIS)
+                .pattern(" A ")
+                .pattern("GNG")
+                .pattern(" S ")
+                .define('A', Items.AMETHYST_SHARD)
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('N', TCItemTags.NITORS)
+                .define('S', TCItems.STONE_ARCANE)
+                .gate(gate("vis_relay"))
+                .unlockedBy("has", has(TCItemTags.NITORS))
+                .save(output, TCIds.MODID + ":vis_relay");
+
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC,
                 new ItemStackTemplate(TCItems.NODE_STABILIZER_ADVANCED.get()),
                 Ingredient.of(TCItems.NODE_STABILIZER.get()))

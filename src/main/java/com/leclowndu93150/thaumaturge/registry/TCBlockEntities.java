@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.content.device.sprayer.BlockEntityPotionSp
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeStabilizer;
+import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeTransducer;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.decor.BlockEntityBarrierStone;
@@ -100,6 +101,12 @@ public final class TCBlockEntities {
                     () -> new BlockEntityType<>(BlockEntityNode::new,
                             Set.of(TCBlocks.NODE.get(), TCBlocks.OBSIDIAN_TOTEM_CHARGED.get()))
             );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityVisRelay>> VIS_RELAY =
+            BLOCK_ENTITIES.register(
+                    "vis_relay",
+                    () -> new BlockEntityType<>(BlockEntityVisRelay::new,
+                            Set.of(TCBlocks.VIS_RELAY.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNodeStabilizer>> NODE_STABILIZER =
             BLOCK_ENTITIES.register(

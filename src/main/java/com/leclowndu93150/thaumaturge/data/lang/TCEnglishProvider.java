@@ -204,6 +204,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.thaumonomicon_linking", "Thaumonomicon of Binding");
         add("item.thaumaturge.creative_node_placer", "Creative Node Placer");
         add("block.thaumaturge.node_transducer", "Node Transducer");
+        add("block.thaumaturge.vis_relay", "Vis Relay");
         add("tooltip.thaumaturge.creative_only", "Creative only");
         add("tooltip.thaumaturge.sharing.bound", "Attuned to %s");
         add("tooltip.thaumaturge.sharing.hint", "Use once to attune, then have your research partner use it");
@@ -1383,6 +1384,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jade.thaumaturge.transducer.status.1", "Transducing");
         add("jade.thaumaturge.transducer.status.2", "Node energized");
         add("jade.thaumaturge.transducer.charge", "Charge: %s%%");
+        add("jade.thaumaturge.relay.linked_node", "Linked to energized node");
+        add("jade.thaumaturge.relay.linked_relay", "Linked through %s relays");
+        add("jade.thaumaturge.relay.unlinked", "No energized node in range");
         add("jade.thaumaturge.golem.rank", "Rank %s (%s XP)");
     }
 }
