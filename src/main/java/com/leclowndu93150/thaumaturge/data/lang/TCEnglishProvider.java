@@ -1150,6 +1150,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("button.category.2", "Area");
         add("button.category.3", "Options");
         add("button.category.4", "Requirements");
+        add("button.category.0.desc", "Task priority, golem colour and seal locking");
+        add("button.category.1.desc", "Which items the seal applies to");
+        add("button.category.2.desc", "Size of the area the seal covers");
+        add("button.category.3.desc", "Behaviour options for this seal");
+        add("button.category.4.desc", "Traits a golem must have or must lack");
         add("button.caption.x", "East / West");
         add("button.caption.y", "Up / Down");
         add("button.caption.z", "North / South");

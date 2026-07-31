@@ -222,13 +222,12 @@ public final class SealScreen extends AbstractTCContainerScreen<MenuSealBase> {
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractBackgroundTexture(GuiGraphicsExtractor graphics) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.GUI_BASE,
                 leftPos + middleX - 80, topPos + middleY - 80, CIRCLE_U, CIRCLE_V,
                 CIRCLE_SIZE, CIRCLE_SIZE, ATLAS, ATLAS);
         graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.GUI_BASE,
                 leftPos, topPos + PANEL_Y, 0, PANEL_V, PANEL_WIDTH, PANEL_HEIGHT, ATLAS, ATLAS);
-        super.extractBackground(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -341,6 +340,7 @@ public final class SealScreen extends AbstractTCContainerScreen<MenuSealBase> {
             if (active) {
                 setTintColor(0xFFFFFFFF);
             }
+            setDescription(Component.translatable("button.category." + categoryIcon + ".desc"));
         }
     }
 
