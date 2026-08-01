@@ -33,6 +33,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, GolemRenderState> {
     private static final Identifier BASE_MODEL = TCIds.rl("models/mesh/golem_base.tcmesh");
@@ -125,7 +126,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         GolemProperties props = state.props;
         Identifier matTexture = props.getMaterial().texture();
         boolean holding = state.holdingItem;
-        boolean rolling = props.hasTrait(GolemTrait.WHEELED) || props.hasTrait(GolemTrait.FLYER);
+        boolean rolling = props.hasTrait(TCGolemTraits.WHEELED.get()) || props.hasTrait(TCGolemTraits.FLYER.get());
         float bry = 0.0F;
         float rx = (float) Math.toDegrees(Mth.sin(state.ageInTicks * 0.067F) * 0.03F);
         float rz = (float) Math.toDegrees(Mth.cos(state.ageInTicks * 0.09F) * 0.05F + 0.05F);

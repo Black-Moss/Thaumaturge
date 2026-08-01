@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.golems.parts;
 
+import net.minecraft.core.Holder;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import java.util.List;
 import net.minecraft.core.Registry;
@@ -28,7 +29,7 @@ public final class GolemAddon extends GolemPart {
      * @param traits     traits granted by this addon
      */
     public GolemAddon(List<Identifier> research, Identifier icon, @Nullable GolemPartModel model,
-                      List<GolemComponent> components, @Nullable IAddonFunction function, List<GolemTrait> traits) {
+                      List<GolemComponent> components, @Nullable IAddonFunction function, List<Holder<GolemTrait>> traits) {
         super(research, icon, components, traits, model);
         this.function = function;
     }

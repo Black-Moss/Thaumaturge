@@ -21,9 +21,19 @@ hs_err_pid*
 
 # Common working directory
 run
+run-gametest
 
 sources/
 
 # Python files
 *.py
 server-taint-test.log
+
+gametest-run.log
+
+nv-gametest.log
+
+*.log
+
+# Local credentials (never commit)
+.env

@@ -41,6 +41,11 @@ public final class JarCapabilities {
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
                 TCItems.ESSENTIA_CRYSTAL.get()
         );
+        event.registerItem(
+                EssentiaCapabilities.CONTAINER,
+                (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
+                TCItems.MANA_BEAN.get()
+        );
 
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,

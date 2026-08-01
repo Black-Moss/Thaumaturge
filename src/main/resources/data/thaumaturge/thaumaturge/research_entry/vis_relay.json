@@ -1,0 +1,45 @@
+{
+  "category": "thaumaturge:auromancy",
+  "name": "research.thaumaturge.vis_relay.title",
+  "parents": [
+    "thaumaturge:node_transducer"
+  ],
+  "column": -8,
+  "row": 9,
+  "icons": [
+    "thaumaturge:vis_relay"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.vis_relay.stage_0",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "research.thaumaturge.vis_relay.stage_1",
+      "recipes": [
+        "thaumaturge:vis_relay"
+      ]
+    }
+  ],
+  "note_aspects": [
+    {
+      "aspect": "thaumaturge:auram",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:potentia",
+      "amount": 6
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 4
+    }
+  ],
+  "complexity": 3
+}

@@ -39,7 +39,6 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class ResearchProgressionEvents {
     private static final int MILESTONE_CHECK_INTERVAL = 200;
-    private static final int Y_MILESTONE_CHECK_INTERVAL = 20;
     private static final int WALK_MILESTONE_CM = 160000;
     private static final int SPRINT_MILESTONE_CM = 80000;
     private static final int JUMP_MILESTONE = 500;
@@ -164,7 +163,7 @@ public final class ResearchProgressionEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (player.tickCount == 0 || player.tickCount % Y_MILESTONE_CHECK_INTERVAL != 0) return;
+        if (player.tickCount == 0) return;
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         boolean auromancyInProgress = knowledge.isResearchKnown(UNLOCK_AUROMANCY)
                 && !knowledge.isResearchKnown(UNLOCK_AUROMANCY, 1)

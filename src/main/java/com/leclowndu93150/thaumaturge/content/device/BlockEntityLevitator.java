@@ -119,6 +119,7 @@ public final class BlockEntityLevitator extends BlockEntity {
         drawFX(level, pos, facing, 0.1);
         if (lifted && !level.isClientSide() && counter % 20 == 0) {
             setChanged();
+            syncToClient();
         }
     }
 

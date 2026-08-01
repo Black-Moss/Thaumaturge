@@ -1,11 +1,20 @@
 package com.leclowndu93150.thaumaturge;
 
+import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
+import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
+import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
+import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumaturge.content.research.pool.AspectPoolBindings;
+import com.leclowndu93150.thaumaturge.api.research.pool.AspectPoolAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.aura.VisRelayHelper;
 import com.leclowndu93150.thaumaturge.api.casters.FocusEngine;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexBuilder;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayWorkbenchSource;
 import com.leclowndu93150.thaumaturge.content.golem.GolemBindings;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftCost;
@@ -24,9 +33,11 @@ import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
 import com.leclowndu93150.thaumaturge.registry.*;
+import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
@@ -58,7 +69,9 @@ public final class Thaumaturge {
         TCMobEffects.register(modBus);
         TCAttributes.register(modBus);
         TCChunkGenerators.register(modBus);
+        TCPlacementModifiers.register(modBus);
         TCFocusElements.register(modBus);
+        TCGolemTraits.register(modBus);
         TCGolemParts.register(modBus);
         TCWandParts.register(modBus);
         TCSeals.register(modBus);
@@ -76,16 +89,44 @@ public final class Thaumaturge {
         WandAccess.bind(TCDataComponents.WAND_VIS);
         ArcaneCraftCost.bind(WorkbenchPayment::cost);
         RegisterWorkbenchVisSourcesEvent visSourcesEvent = new RegisterWorkbenchVisSourcesEvent();
+        visSourcesEvent.register(new VisRelayWorkbenchSource());
         modBus.post(visSourcesEvent);
         WorkbenchPayment.registerSources(visSourcesEvent.sources());
         AuraHelper.bind(new AuraHelperBindings());
+        VisRelayHelper.bind(new VisRelayNetwork());
         TaintApi.bind(new TaintApiBindings());
         WarpHelper.bind(new WarpManager.Bindings());
         ScanningManager.bind(new ScanBindings());
         GolemHelper.bind(new GolemBindings());
+        AspectPoolAccess.bind(new AspectPoolBindings());
+        ResearchGate.bind(ResearchManager::doesPassGate);
+        RechargeAccess.bind(TCDataComponents.CHARGE);
+        GogglesAccess.bind(() -> TCAttributes.VIS_DISCOUNT);
         FocusEngine.bindRegistry(TCFocusElements.registry());
 
         if (ModList.get().isLoaded(TCIds.CURIOS))
             ThaumaturgeCuriosCompat.init(modBus);
+
+        wireGameTests(modBus);
+    }
+
+    private static void wireGameTests(IEventBus modBus) {
+        if (!Boolean.getBoolean("thaumaturge.gametest")) {
+            return;
+        }
+        try {
+            Class<?> registration = Class.forName("com.leclowndu93150.thaumaturge.gametest.TCGameTestRegistration");
+            Method handler = registration.getMethod("registerTests", RegisterGameTestsEvent.class);
+            modBus.addListener(RegisterGameTestsEvent.class, event -> {
+                try {
+                    handler.invoke(null, event);
+                } catch (ReflectiveOperationException e) {
+                    LOGGER.error("Failed to invoke TCGameTestRegistration.registerTests", e);
+                }
+            });
+        } catch (ClassNotFoundException expected) {
+        } catch (ReflectiveOperationException e) {
+            LOGGER.error("Failed to wire gametest hooks", e);
+        }
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealUse extends SealFiltered implements ISealConfigToggles {
     private static final int SCAN_INTERVAL = 5;
@@ -125,7 +126,7 @@ public class SealUse extends SealFiltered implements ISealConfigToggles {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.DEFT, GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.DEFT.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override

@@ -18,6 +18,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -188,7 +189,8 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements IEldri
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if (damage > this.getHealth() && !this.isHeadless()) {
+        if (damage > this.getHealth() && !this.isHeadless()
+                && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             this.setHeadless(true);
             this.spawnTimer = SPAWN_INVULN_TICKS;
             double xx = Mth.cos(this.getYRot() % 360.0F / 180.0F * Mth.PI) * 0.75F;

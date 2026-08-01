@@ -18,6 +18,10 @@ public final class ItemWandRod extends Item {
         this.rod = rod;
     }
 
+    public WandRod rod() {
+        return rod.get();
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
             Consumer<Component> builder, TooltipFlag flag) {

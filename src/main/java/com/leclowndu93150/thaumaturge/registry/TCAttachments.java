@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.core.BlockPos;
 import com.leclowndu93150.thaumaturge.content.aura.AuraData;
 import com.leclowndu93150.thaumaturge.content.casters.BlockWorkQueues;
+import com.leclowndu93150.thaumaturge.content.equipment.runic.RunicShieldState;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealWorldIndex;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealsChunkData;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.GolemTasks;
@@ -62,6 +63,12 @@ public final class TCAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CASTER_COOLDOWN =
             register("caster_cooldown", () -> AttachmentType.builder(() -> 0L).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CLOUD_JUMP_TIME =
+            register("cloud_jump_time", () -> AttachmentType.builder(() -> 0L).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<RunicShieldState>> RUNIC_SHIELD =
+            register("runic_shield", () -> AttachmentType.builder(RunicShieldState::new).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<FocusCloudCooldowns>> FOCUS_CLOUD_COOLDOWNS =
             register("focus_cloud_cooldowns", () -> AttachmentType.builder(FocusCloudCooldowns::new).build());

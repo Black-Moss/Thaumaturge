@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.*;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
@@ -34,7 +35,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 
 public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, IAspectSource {
-    public static final int CAPACITY = 250;
+    public static final int CAPACITY = IEssentiaJar.DEFAULT_CAPACITY;
+
+    public int capacity() {
+        return getBlockState().getBlock() instanceof IEssentiaJar jar ? jar.jarCapacity() : CAPACITY;
+    }
     private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = ResourceKey.codec(IAspect.REGISTRY_KEY);
 
     private @Nullable ResourceKey<IAspect> aspect;
@@ -106,6 +111,8 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     public void setFacing(Direction facing) {
         this.facing = facing;
+        setChanged();
+        syncToClient();
     }
 
     public Direction facing() {
@@ -127,7 +134,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     }
 
     protected boolean shouldFillFromAbove() {
-        return amount < CAPACITY;
+        return amount < capacity();
     }
 
     private void fillJar() {
@@ -164,9 +171,9 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     protected int doAddToContainer(ResourceKey<IAspect> incoming, int requested) {
         if (requested == 0) return 0;
         if (aspectFilter != null && !aspectFilter.equals(incoming)) return requested;
-        if (amount < CAPACITY && incoming.equals(aspect) || amount == 0) {
+        if (amount < capacity() && incoming.equals(aspect) || amount == 0) {
             aspect = incoming;
-            int added = Math.min(requested, CAPACITY - amount);
+            int added = Math.min(requested, capacity() - amount);
             amount += added;
             requested -= added;
             setChanged();
@@ -229,7 +236,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     @Override
     public int getSuctionAmount(Direction face) {
-        if (amount >= CAPACITY) return 0;
+        if (amount >= capacity()) return 0;
         return aspectFilter != null ? 64 : 32;
     }
 
@@ -323,7 +330,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
             ResourceKey<IAspect> key = first.aspect().unwrapKey().orElse(null);
             if (key != null) {
                 aspect = key;
-                amount = Math.min(first.amount(), CAPACITY);
+                amount = Math.min(first.amount(), capacity());
             }
         }
         ResourceKey<IAspect> filter = input.get(TCDataComponents.ASPECT_FILTER.get());
@@ -346,7 +353,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         ResourceKey<IAspect> key = first.aspect().unwrapKey().orElse(null);
         if (key != null) {
             aspect = key;
-            amount = Math.min(first.amount(), CAPACITY);
+            amount = Math.min(first.amount(), capacity());
         }
         setChanged();
         syncToClient();
@@ -360,9 +367,9 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     @Override
     public int addToContainer(Holder<IAspect> aspect, int amount) {
         if (amount == 0) return amount;
-        if ((this.amount < CAPACITY && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0){
+        if ((this.amount < capacity() && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0){
             this.aspect = aspect.getKey();
-            int added = Math.min(amount, CAPACITY - this.amount);
+            int added = Math.min(amount, capacity() - this.amount);
             this.amount += added;
             amount -= added;
         }

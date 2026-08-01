@@ -7,6 +7,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Holder;
 
 /**
  * A material a golem can be assembled from. Materials contribute health, armor and melee
@@ -28,7 +29,7 @@ public final class GolemMaterial {
     private final int damage;
     private final Supplier<ItemStack> componentBase;
     private final Supplier<ItemStack> componentMechanism;
-    private final List<GolemTrait> traits;
+    private final List<Holder<GolemTrait>> traits;
 
     /**
      * @param research           research entries gating this material in the golem press;
@@ -44,7 +45,7 @@ public final class GolemMaterial {
      */
     public GolemMaterial(List<Identifier> research, Identifier texture, int itemColor, int healthMod, int armor,
                          int damage, Supplier<ItemStack> componentBase, Supplier<ItemStack> componentMechanism,
-                         List<GolemTrait> traits) {
+                         List<Holder<GolemTrait>> traits) {
         this.research = List.copyOf(research);
         this.texture = texture;
         this.itemColor = itemColor;
@@ -115,7 +116,27 @@ public final class GolemMaterial {
     /**
      * @return traits granted by the material
      */
-    public List<GolemTrait> traits() {
+    public List<Holder<GolemTrait>> traits() {
         return traits;
+    }
+
+    /**
+     * The translation key for a material's display name in golem UIs.
+     *
+     * @param id the material id
+     * @return {@code golem.material.<namespace>.<path>}
+     */
+    public static String nameKey(Identifier id) {
+        return "golem.material." + id.getNamespace() + "." + id.getPath();
+    }
+
+    /**
+     * The translation key for a material's descriptive text in golem UIs.
+     *
+     * @param id the material id
+     * @return {@code golem.material.text.<namespace>.<path>}
+     */
+    public static String descriptionKey(Identifier id) {
+        return "golem.material.text." + id.getNamespace() + "." + id.getPath();
     }
 }

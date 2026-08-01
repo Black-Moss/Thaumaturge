@@ -20,6 +20,7 @@ import com.leclowndu93150.thaumaturge.data.loot.TCGlobalLootModifierProvider;
 import com.leclowndu93150.thaumaturge.data.model.TCModelProvider;
 import com.leclowndu93150.thaumaturge.data.recipe.TCRecipeProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TCBiomeTagsProvider;
+import com.leclowndu93150.thaumaturge.data.tag.TCMobEffectTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TCEntityTypeTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TCBlockTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TCDamageTypeTagsProvider;
@@ -80,6 +81,7 @@ public final class TCDataGenerators {
         event.createBlockAndItemTags(TCBlockTagsProvider::new, TCItemTagsProvider::new);
         event.createProvider(TCDamageTypeTagsProvider::new);
         event.createProvider(TCBiomeTagsProvider::new);
+        event.createProvider(TCMobEffectTagsProvider::new);
         event.createProvider(TCEntityTypeTagsProvider::new);
 
         event.createProvider((output, lookupProvider) -> new LootTableProvider(

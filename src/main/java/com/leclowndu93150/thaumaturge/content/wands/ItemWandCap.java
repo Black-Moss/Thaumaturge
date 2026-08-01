@@ -17,6 +17,10 @@ public final class ItemWandCap extends Item {
         this.cap = cap;
     }
 
+    public WandCap cap() {
+        return cap.get();
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
             Consumer<Component> builder, TooltipFlag flag) {

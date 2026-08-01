@@ -1,11 +1,14 @@
 package com.leclowndu93150.thaumaturge.registry;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumaturge.content.research.decon.BlockEntityDeconstructionTable;
 import com.leclowndu93150.thaumaturge.content.device.patterncrafter.BlockEntityPatternCrafter;
 import com.leclowndu93150.thaumaturge.content.device.sprayer.BlockEntityPotionSprayer;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeStabilizer;
+import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeTransducer;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.decor.BlockEntityBarrierStone;
@@ -20,6 +23,7 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritch
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchPortal;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.casters.BlockEntityFocalManipulator;
+import com.leclowndu93150.thaumaturge.content.manabean.BlockEntityManaPod;
 import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumaturge.content.essentia.bellows.BlockEntityBellows;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityArcaneEar;
@@ -101,6 +105,12 @@ public final class TCBlockEntities {
                             Set.of(TCBlocks.NODE.get(), TCBlocks.OBSIDIAN_TOTEM_CHARGED.get()))
             );
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityVisRelay>> VIS_RELAY =
+            BLOCK_ENTITIES.register(
+                    "vis_relay",
+                    () -> new BlockEntityType<>(BlockEntityVisRelay::new,
+                            Set.of(TCBlocks.VIS_RELAY.get())));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNodeStabilizer>> NODE_STABILIZER =
             BLOCK_ENTITIES.register(
                     "node_stabilizer",
@@ -125,6 +135,12 @@ public final class TCBlockEntities {
             BLOCK_ENTITIES.register(
                     "focal_manipulator",
                     () -> new BlockEntityType<>(BlockEntityFocalManipulator::new, Set.of(TCBlocks.FOCAL_MANIPULATOR.get()))
+            );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityManaPod>> MANA_POD =
+            BLOCK_ENTITIES.register(
+                    "mana_pod",
+                    () -> new BlockEntityType<>(BlockEntityManaPod::new, Set.of(TCBlocks.MANA_POD.get()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityResearchTable>> RESEARCH_TABLE =
@@ -179,7 +195,10 @@ public final class TCBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJar>> JAR =
             BLOCK_ENTITIES.register(
                     "jar",
-                    () -> new BlockEntityType<>(BlockEntityJar::new, Set.of(TCBlocks.JAR_NORMAL.get()))
+                    () -> new BlockEntityType<>(BlockEntityJar::new,
+                            BuiltInRegistries.BLOCK.stream()
+                                    .filter(BlockJar.class::isInstance)
+                                    .collect(Collectors.toUnmodifiableSet()))
             );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityJarBrain>> JAR_BRAIN =

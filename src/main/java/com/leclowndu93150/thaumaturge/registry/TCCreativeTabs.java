@@ -46,6 +46,9 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SALIS_MUNDUS.get());
                         output.accept(TCItems.THAUMOMETER.get());
                         output.accept(TCItems.SCRIBING_TOOLS.get());
+                        output.accept(TCItems.RESEARCH_NOTE.get());
+                        output.accept(TCItems.CELESTIAL_NOTES.get());
+                        output.accept(TCItems.MANA_BEAN.get());
                         output.accept(TCItems.VIS_RESONATOR.get());
                         for (CelestialBody body : CelestialBody.values()) {
                             output.accept(CelestialNotesItem.stackOf(body));
@@ -86,6 +89,7 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.NODE_STABILIZER.get());
                         output.accept(TCItems.NODE_STABILIZER_ADVANCED.get());
                         output.accept(TCItems.NODE_TRANSDUCER.get());
+                        output.accept(TCItems.VIS_RELAY.get());
                         output.accept(TCItems.FOCUS_1.get());
                         output.accept(TCItems.FOCUS_2.get());
                         output.accept(TCItems.FOCUS_3.get());
@@ -365,9 +369,9 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.SEAL_USE.get());
                         output.accept(TCItems.SEAL_PROVIDER.get());
                         output.accept(TCItems.SEAL_STOCK.get());
-                        TCGolemParts.MATERIALS.getEntries().forEach(material -> {
+                        TCGolemParts.materials().forEach(material -> {
                             GolemProperties properties = GolemProperties.createDefault();
-                            properties.setMaterial(material.get());
+                            properties.setMaterial(material);
                             output.accept(golemPlacer(properties));
                         });
                         output.accept(TCItems.TRAVELLER_BOOTS.get());

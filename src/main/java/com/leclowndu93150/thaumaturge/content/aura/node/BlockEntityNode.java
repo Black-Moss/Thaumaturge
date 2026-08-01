@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.api.taint.TaintApi;
@@ -18,12 +19,14 @@ import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumaturge.content.wands.WandChargingEvents;
+import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumaturge.registry.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -105,11 +108,13 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final Identifier RESEARCH_NODE_TAPPER_1 = TCIds.rl("node_tapper_1");
     private static final Identifier RESEARCH_NODE_TAPPER_2 = TCIds.rl("node_tapper_2");
     private static final Identifier RESEARCH_NODE_PRESERVE = TCIds.rl("node_preserve");
+    private static final int MAX_DECOMPOSE_DEPTH = 8;
 
     private NodeType nodeType = NodeType.NORMAL;
     private @Nullable NodeModifier nodeModifier;
     protected AspectList aspects = AspectList.EMPTY;
     protected AspectList aspectsBase = AspectList.EMPTY;
+    private @Nullable AspectList aspectsBaseOriginal;
     private int count;
     private int regeneration = -1;
     private int wait;
@@ -194,6 +199,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         int capped = Math.min(amount, Math.max(0, aspectsBase.amountOf(aspect) - aspects.amountOf(aspect)));
         if (capped > 0) {
             aspects = aspects.add(aspect, capped);
+            syncContents();
         }
         return amount - capped;
     }
@@ -204,7 +210,15 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return false;
         }
         aspects = reduce(aspects, aspect, amount);
+        syncContents();
         return true;
+    }
+
+    private void syncContents() {
+        setChanged();
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
     }
 
     @Override
@@ -241,11 +255,42 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     public void setEnergized(boolean energized) {
+        if (energized && !this.energized) {
+            aspectsBaseOriginal = aspectsBase;
+            aspectsBase = decomposeToPrimals(aspectsBase);
+            aspects = decomposeToPrimals(aspects);
+        } else if (!energized && this.energized && aspectsBaseOriginal != null) {
+            aspectsBase = aspectsBaseOriginal;
+            aspectsBaseOriginal = null;
+        }
         this.energized = energized;
         setChanged();
         if (level != null) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    private static AspectList decomposeToPrimals(AspectList list) {
+        AspectList result = AspectList.EMPTY;
+        for (AspectInstance entry : list.entries()) {
+            result = addPrimals(result, entry.aspect(), entry.amount(), 0);
+        }
+        return result;
+    }
+
+    private static AspectList addPrimals(AspectList into, Holder<IAspect> aspect, int amount, int depth) {
+        if (depth >= MAX_DECOMPOSE_DEPTH || aspect.value().isPrimal()) {
+            return into.add(aspect, amount);
+        }
+        AspectList result = into;
+        for (Holder<IAspect> component : aspect.value().components()) {
+            result = addPrimals(result, component, amount, depth + 1);
+        }
+        return result;
+    }
+
+    public @Nullable AspectList getAspectsBaseOriginal() {
+        return aspectsBaseOriginal;
     }
 
     public boolean isJarring() {
@@ -266,23 +311,100 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     private static final int ENERGIZED_REFILL_INTERVAL = 20;
+    private static final int ENERGIZED_REFILL_BASE_DIVISOR = 20;
+    private static final int CV_BUFFER_CAP_SECONDS = 10;
+    private static final int TICKS_PER_SECOND = 20;
+
+    private final Map<Identifier, Integer> cvAllowance = new HashMap<>();
+    private final Map<Identifier, Integer> cvCredit = new HashMap<>();
+
+    private void accrueCentivis() {
+        for (AspectInstance entry : aspectsBase.entries()) {
+            Identifier id = entry.aspect().unwrapKey().orElseThrow().identifier();
+            int rate = entry.amount();
+            int cap = rate * TICKS_PER_SECOND * CV_BUFFER_CAP_SECONDS;
+            int allowance = cvAllowance.getOrDefault(id, 0);
+            if (allowance < cap) {
+                cvAllowance.put(id, Math.min(cap, allowance + rate));
+            }
+        }
+    }
+
+    public int centivisRate(Holder<IAspect> aspect) {
+        return energized ? aspectsBase.amountOf(aspect) : 0;
+    }
+
+    public int availableCentivis(Holder<IAspect> aspect) {
+        if (!energized) {
+            return 0;
+        }
+        Identifier id = aspect.unwrapKey().orElseThrow().identifier();
+        int stored = aspects.amountOf(aspect) * WandEconomy.CENTIVIS_PER_VIS
+                + cvCredit.getOrDefault(id, 0);
+        return Math.min(cvAllowance.getOrDefault(id, 0), stored);
+    }
+
+    public int drainCentivis(Holder<IAspect> aspect, int amount) {
+        if (!energized || amount <= 0) {
+            return 0;
+        }
+        Identifier id = aspect.unwrapKey().orElseThrow().identifier();
+        int allowance = Math.min(cvAllowance.getOrDefault(id, 0), amount);
+        if (allowance <= 0) {
+            return 0;
+        }
+        int credit = cvCredit.getOrDefault(id, 0);
+        while (credit < allowance && takeFromContainer(aspect, 1)) {
+            credit += WandEconomy.CENTIVIS_PER_VIS;
+        }
+        int taken = Math.min(allowance, credit);
+        cvCredit.put(id, credit - taken);
+        cvAllowance.put(id, cvAllowance.getOrDefault(id, 0) - taken);
+        return taken;
+    }
 
     public void serverTick(Level tickLevel, BlockPos pos) {
         if (!(tickLevel instanceof ServerLevel serverLevel)) {
             return;
         }
         if (energized) {
+            boolean changed = false;
             if (tickLevel.getGameTime() % ENERGIZED_REFILL_INTERVAL == 0) {
-                boolean changed = false;
+                float visPerPoint = ThaumaturgeCommonConfig.ENERGIZED_NODE_VIS_PER_POINT.get().floatValue();
+                boolean fluxFed = nodeType == NodeType.TAINTED;
                 for (AspectInstance entry : aspectsBase.entries()) {
-                    if (aspects.amountOf(entry.aspect()) < entry.amount()) {
-                        aspects = aspects.add(entry.aspect(), 1);
-                        changed = true;
+                    int points = Math.max(1, entry.amount() / ENERGIZED_REFILL_BASE_DIVISOR);
+                    for (int i = 0; i < points; i++) {
+                        if (aspects.amountOf(entry.aspect()) >= entry.amount()) {
+                            break;
+                        }
+                        float drained = fluxFed
+                                ? AuraHelper.drainFlux(serverLevel, pos, visPerPoint, false)
+                                : AuraHelper.drainVis(serverLevel, pos, visPerPoint, false);
+                        if (drained >= visPerPoint - 0.01F) {
+                            aspects = aspects.add(entry.aspect(), 1);
+                            changed = true;
+                        } else {
+                            if (drained > 0.0F) {
+                                if (fluxFed) {
+                                    AuraHelper.addFlux(serverLevel, pos, drained);
+                                } else {
+                                    AuraHelper.addVis(serverLevel, pos, drained);
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
-                if (changed) {
-                    setChanged();
-                }
+            }
+            accrueCentivis();
+            if (drainTicks > 0 && --drainTicks == 0) {
+                drainPlayer = null;
+                changed = true;
+            }
+            if (changed) {
+                setChanged();
+                serverLevel.sendBlockUpdated(pos, getBlockState(), getBlockState(), 3);
             }
             return;
         }
@@ -827,7 +949,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     public void clientTick(Level clientLevel, BlockPos pos) {
-        if (nodeType != NodeType.HUNGRY || !allowTypeBehavior()) {
+        if (energized || nodeType != NodeType.HUNGRY || !allowTypeBehavior()) {
             return;
         }
         RandomSource random = clientLevel.getRandom();
@@ -869,6 +991,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (energized) {
             output.putBoolean("Energized", true);
         }
+        if (aspectsBaseOriginal != null) {
+            output.store("AspectsBaseOriginal", AspectList.CODEC, aspectsBaseOriginal);
+        }
         if (drainPlayer != null) {
             output.store("DrainPlayer", UUIDUtil.CODEC, drainPlayer);
             output.putInt("DrainColor", drainColor);
@@ -886,6 +1011,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         nodeModifier = input.read("Modifier", NodeModifier.CODEC).orElse(null);
         aspects = input.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
         aspectsBase = input.read("AspectsBase", AspectList.CODEC).orElse(AspectList.EMPTY);
+        aspectsBaseOriginal = input.read("AspectsBaseOriginal", AspectList.CODEC).orElse(null);
         drainPlayer = input.read("DrainPlayer", UUIDUtil.CODEC).orElse(null);
         drainColor = input.getIntOr("DrainColor", 0xFFFFFF);
         jarringTicks = input.getIntOr("Jarring", 0);

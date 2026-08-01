@@ -1,10 +1,14 @@
 package com.leclowndu93150.thaumaturge.data.lang;
 
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import net.minecraft.world.item.DyeColor;
 import org.apache.commons.lang3.StringUtils;
 import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
+import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
+import net.minecraft.resources.Identifier;
 
 public final class TCEnglishProvider extends LanguageProvider {
     public TCEnglishProvider(PackOutput output) {
@@ -14,6 +18,8 @@ public final class TCEnglishProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add("itemGroup.thaumaturge", "Thaumaturge");
+
+        addJade();
 
         aspect("aer", "Aer", "Air", "air");
         aspect("terra", "Terra", "Earth", "earth");
@@ -131,7 +137,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("recipe.type.infusion", "Arcane Infusion");
         add("recipe.type.infusion_enchantment", "Infusion Enchantment");
         add("tooltip.thaumaturge.charge", "Vis: %s / %s");
+        add("tooltip.thaumaturge.runic_charge", "Runic shield +%s");
         add("tooltip.thaumaturge.infusion_stabiliser", "Infusion Stabilizer");
+        add("recipe.type.runic_augment", "Runic Augmentation");
         add("recipe.type.construct", "Mystical Construct");
         add("wandtable.text1", "Vis Cost");
         add("gui.thaumaturge.research_table.title", "Research Table");
@@ -202,6 +210,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.thaumonomicon_linking", "Thaumonomicon of Binding");
         add("item.thaumaturge.creative_node_placer", "Creative Node Placer");
         add("block.thaumaturge.node_transducer", "Node Transducer");
+        add("block.thaumaturge.vis_relay", "Vis Relay");
         add("tooltip.thaumaturge.creative_only", "Creative only");
         add("tooltip.thaumaturge.sharing.bound", "Attuned to %s");
         add("tooltip.thaumaturge.sharing.hint", "Use once to attune, then have your research partner use it");
@@ -505,10 +514,6 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langMAuraHud() {
 
         add("item.thaumaturge.goggles_revealing", "Goggles of Revealing");
-        add("hud.thaumaturge.aura.title", "Aura");
-        add("hud.thaumaturge.aura.vis", "Vis: %1$s");
-        add("hud.thaumaturge.aura.flux", "Flux: %1$s");
-        add("hud.thaumaturge.aura.base", "Base: %1$s");
     
     }
 
@@ -546,6 +551,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("death.attack.thaumaturge.dissolve", "%1$s dissolved");
 
         add("item.thaumaturge.essentia_crystal", "%s Vis Crystal");
+        add("item.thaumaturge.mana_bean", "Mana Bean");
+        add("block.thaumaturge.mana_pod", "Mana Pod");
         add("item.thaumaturge.essentia_crystal.unknown", "Unknown Vis Crystal");
 
         add("entity.thaumaturge.thaumic_slime", "Thaumic Slime");
@@ -593,6 +600,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.invtoolarge", "Inventory too large. Only scanning first 100 items.");
         add("tc.celestial.fail.1", "You have already studied that today.");
         add("tc.celestial.fail.2", "You are unable to take notes of your studies.");
+        add("tc.celestial.studied", "You commit your celestial observations to memory.");
+        add("jei.thaumaturge.deconstruction.info", "Place any item that carries aspects on the Deconstruction Table and it will slowly break the item down. Each work cycle has a chance to shake loose a single research point of a random primal aspect; the richer the item's aspects, the better the odds. Click the floating aspect to collect it.");
 
         add("item.thaumaturge.celestial_notes", "Celestial Notes");
         add("item.thaumaturge.celestial_notes.sun.text", "Solar");
@@ -669,7 +678,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("research.thaumaturge.oculus.stage_0",
                 "The whispers have grown into a chorus and at last I understand what they want of me. The obelisks scattered across the world are not monuments - they are doors, and every door has a key.<BR>The strange altars where I first encountered the crimson cult hold a keystone marked with four empty sockets. Four eyes must be seated there, crafted or bargained for, and the sinister energies above the keystone must remain intact.<BR>Before I attempt something this reckless I should set my theories in order.");
         add("research.thaumaturge.oculus.stage_1",
-                "It was all so simple - I am amazed the Crimson Cultists never discovered this.<BR>Four Eldritch Eyes seated upon the keystone, then a focused discharge of vis channeled through my casting gauntlet into the altar. The local aura pays the price, and the so-called Eye is opened.<BR>Of course I have no idea what that means. No matter - only fools fear the unknown!");
+                "It was all so simple - I am amazed the Crimson Cultists never discovered this.<BR>Four Eldritch Eyes seated upon the keystone, then a focused discharge of vis channeled through my wand into the altar. The local aura pays the price, and the so-called Eye is opened.<BR>Of course I have no idea what that means. No matter - only fools fear the unknown!");
         add("research.thaumaturge.enter_outer_lands.title", "The Outer Lands");
         add("research.thaumaturge.enter_outer_lands.stage_0",
                 "You are not quite sure what you were expecting when you stepped through the Oculus, but this strange structure of crumbling stone and twisted passageways was not it.<BR>Something is not quite right here - this structure was not designed for any practical purpose you can discern... unless that purpose was for it to be a deadly maze.<BR>Strange energies abound and your magic seems to act strangely in this alien environment. Even the other denizens you encounter seem out of place here.");
@@ -810,8 +819,8 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langCasters() {
 
         add("key.category.thaumaturge.main", "Thaumaturge");
-        add("key.thaumaturge.change_focus", "Change Caster Focus");
-        add("key.thaumaturge.misc_toggle", "Misc Caster Toggle");
+        add("key.thaumaturge.change_focus", "Change Wand Focus");
+        add("key.thaumaturge.misc_toggle", "Misc Wand Toggle");
         add("item.thaumaturge.wand", "Wand");
         add("item.thaumaturge.wand.named", "%1$s %2$s Wand");
         add("item.thaumaturge.wand.sceptre", "%1$s %2$s Scepter");
@@ -1141,6 +1150,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("button.category.2", "Area");
         add("button.category.3", "Options");
         add("button.category.4", "Requirements");
+        add("button.category.0.desc", "Task priority, golem colour and seal locking");
+        add("button.category.1.desc", "Which items the seal applies to");
+        add("button.category.2.desc", "Size of the area the seal covers");
+        add("button.category.3.desc", "Behaviour options for this seal");
+        add("button.category.4.desc", "Traits a golem must have or must lack");
         add("button.caption.x", "East / West");
         add("button.caption.y", "Up / Down");
         add("button.caption.z", "North / South");
@@ -1321,32 +1335,73 @@ public final class TCEnglishProvider extends LanguageProvider {
     }
 
     private void trait(String key, String name, String text) {
-        add("golem.trait." + key, name);
-        add("golem.trait.text." + key, text);
+        Identifier id = TCIds.rl(key);
+        add(GolemTrait.nameKey(id), name);
+        add(GolemTrait.descriptionKey(id), text);
     }
 
     private void material(String key, String name, String text) {
-        add("golem.material." + key, name);
-        add("golem.material.text." + key, text);
+        Identifier id = TCIds.rl(key);
+        add(GolemMaterial.nameKey(id), name);
+        add(GolemMaterial.descriptionKey(id), text);
+    }
+
+    private void partLang(String kind, String key, String name, String text) {
+        Identifier id = TCIds.rl(key);
+        add(GolemPart.nameKey(kind, id), name);
+        add(GolemPart.descriptionKey(kind, id), text);
     }
 
     private void head(String key, String name, String text) {
-        add("golem.head." + key, name);
-        add("golem.head.text." + key, text);
+        partLang("head", key, name, text);
     }
 
     private void arm(String key, String name, String text) {
-        add("golem.arm." + key, name);
-        add("golem.arm.text." + key, text);
+        partLang("arm", key, name, text);
     }
 
     private void leg(String key, String name, String text) {
-        add("golem.leg." + key, name);
-        add("golem.leg.text." + key, text);
+        partLang("leg", key, name, text);
     }
 
     private void addon(String key, String name, String text) {
-        add("golem.addon." + key, name);
-        add("golem.addon.text." + key, text);
+        partLang("addon", key, name, text);
+    }
+
+    private void addJade() {
+        add("config.jade.plugin_thaumaturge.node", "Aura Node Info");
+        add("config.jade.plugin_thaumaturge.essentia", "Essentia Contents");
+        add("config.jade.plugin_thaumaturge.machine", "Machine Progress");
+        add("config.jade.plugin_thaumaturge.golem", "Golem Info");
+        add("jade.thaumaturge.aspect_amount", "%s x%s");
+        add("jade.thaumaturge.aspect_separator", ", ");
+        add("jade.thaumaturge.node.type.normal", "Aura Node");
+        add("jade.thaumaturge.node.type.unstable", "Unstable Node");
+        add("jade.thaumaturge.node.type.dark", "Sinister Node");
+        add("jade.thaumaturge.node.type.tainted", "Tainted Node");
+        add("jade.thaumaturge.node.type.pure", "Pure Node");
+        add("jade.thaumaturge.node.type.hungry", "Hungry Node");
+        add("jade.thaumaturge.node.modifier.bright", "Bright");
+        add("jade.thaumaturge.node.modifier.pale", "Pale");
+        add("jade.thaumaturge.node.modifier.fading", "Fading");
+        add("jade.thaumaturge.node.modified", "%s %s");
+        add("jade.thaumaturge.node.aspects", "Aspects: %s");
+        add("jade.thaumaturge.node.energized", "Energized");
+        add("jade.thaumaturge.node.feeds_aura", "Condensing raw vis from the local aura");
+        add("jade.thaumaturge.node.feeds_flux", "Devouring flux from the local aura");
+        add("jade.thaumaturge.node.reverts_to", "Reverts to: %s");
+        add("jade.thaumaturge.essentia.empty", "Empty");
+        add("jade.thaumaturge.essentia.fill", "%s: %s / %s");
+        add("jade.thaumaturge.essentia.contents", "Essentia: %s");
+        add("jade.thaumaturge.machine.progress", "Progress: %s%%");
+        add("jade.thaumaturge.machine.heat", "Heat: %s%%");
+        add("jade.thaumaturge.transducer.status.0", "No node below");
+        add("jade.thaumaturge.transducer.status.1", "Transducing");
+        add("jade.thaumaturge.transducer.status.2", "Node energized");
+        add("jade.thaumaturge.transducer.charge", "Charge: %s%%");
+        add("jade.thaumaturge.relay.linked_node", "Linked to energized node");
+        add("jade.thaumaturge.relay.linked_relay", "Linked through %s relays");
+        add("jade.thaumaturge.relay.unlinked", "No energized node in range");
+        add("jade.thaumaturge.golem.rank", "Rank %s (%s XP)");
     }
 }

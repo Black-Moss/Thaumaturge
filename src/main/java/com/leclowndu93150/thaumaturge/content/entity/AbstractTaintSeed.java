@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
 import com.leclowndu93150.thaumaturge.content.taint.spread.TaintSeedRegistry;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
@@ -26,6 +27,9 @@ import net.minecraft.world.level.Level;
 
 public abstract class AbstractTaintSeed extends Monster implements ITaintedMob {
     private static final int SPREAD_INTERVAL = 20;
+    private static final int AMBIENT_FUMES = 3;
+    private static final double AMBIENT_FUME_RISE = 0.015;
+    private static final float AMBIENT_FUME_SCALE = 1.5F;
     private static final float STARVE_DAMAGE = 0.5F;
     private static final float STARVE_POLLUTION = 0.1F;
     private static final float FLUX_TAINT_RADIUS_MULT = 4.0F;
@@ -95,6 +99,15 @@ public abstract class AbstractTaintSeed extends Monster implements ITaintedMob {
         }
         if (this.tickCount % SPREAD_INTERVAL != 0) {
             return;
+        }
+        for (int i = 0; i < AMBIENT_FUMES; i++) {
+            Effects.taint(server, this.position().add(
+                            (this.random.nextDouble() - 0.5) * this.getBbWidth(),
+                            this.random.nextDouble() * this.getBbHeight(),
+                            (this.random.nextDouble() - 0.5) * this.getBbWidth()))
+                    .motion(0.0, AMBIENT_FUME_RISE + this.random.nextDouble() * AMBIENT_FUME_RISE, 0.0)
+                    .scale(AMBIENT_FUME_SCALE)
+                    .send();
         }
         BlockPos pos = this.blockPosition();
         float saturation = AuraHelper.getFluxSaturation(server, pos);

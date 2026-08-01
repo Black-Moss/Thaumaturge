@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.scan;
 
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.research.TCResearchEntries;
 import com.leclowndu93150.thaumaturge.api.research.scan.IScanThing;
@@ -28,6 +29,7 @@ public final class ScanSky implements IScanThing {
     private static final int TICKS_PER_DAY = 24000;
     private static final int YAW_TOLERANCE = 10;
     private static final int PITCH_TOLERANCE = 7;
+    private static final Identifier NODES_RESEARCH = TCIds.rl("nodes");
 
     @Override
     public boolean checkThing(Player player, @Nullable Object target) {
@@ -102,7 +104,7 @@ public final class ScanSky implements IScanThing {
         return !(player.getXRot() > 0.0F)
                 && player.level().canSeeSky(player.blockPosition().above())
                 && player.level().dimension() == Level.OVERWORLD
-                && KnowledgeAccess.of(player).isResearchComplete(TCResearchEntries.CELESTIAL_SCANNING);
+                && KnowledgeAccess.of(player).isResearchComplete(NODES_RESEARCH);
     }
 
     private static boolean isCarrying(Player player, Item item) {

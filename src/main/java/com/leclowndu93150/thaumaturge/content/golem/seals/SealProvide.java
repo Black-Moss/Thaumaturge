@@ -21,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealProvide extends SealFiltered implements ISealConfigToggles {
     private static final int SCAN_INTERVAL = 20;
@@ -276,7 +277,7 @@ public class SealProvide extends SealFiltered implements ISealConfigToggles {
 
     @Override
     public GolemTrait[] getForbiddenTags() {
-        return new GolemTrait[]{GolemTrait.CLUMSY};
+        return new GolemTrait[]{TCGolemTraits.CLUMSY.get()};
     }
 
     @Override

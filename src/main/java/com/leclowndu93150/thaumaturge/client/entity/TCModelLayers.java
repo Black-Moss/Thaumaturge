@@ -32,6 +32,7 @@ public final class TCModelLayers {
     public static final ModelLayerLocation ELDRITCH_GUARDIAN = new ModelLayerLocation(TCIds.rl("eldritch_guardian"), "main");
     public static final ModelLayerLocation RESEARCH_TABLE = new ModelLayerLocation(TCIds.rl("research_table"), "main");
     public static final ModelLayerLocation DECONSTRUCTION_TABLE = new ModelLayerLocation(TCIds.rl("deconstruction_table"), "main");
+    public static final ModelLayerLocation MANA_POD = new ModelLayerLocation(TCIds.rl("mana_pod"), "main");
 
     private TCModelLayers() {}
 }

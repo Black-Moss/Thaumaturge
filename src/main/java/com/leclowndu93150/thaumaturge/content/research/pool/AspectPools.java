@@ -98,9 +98,11 @@ public final class AspectPools {
         data.discover(id);
         sync(player);
         if (granted > 0) {
-            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F,
-                    0.9F + player.getRandom().nextFloat() * 0.2F);
+            if (data.tryClaimGrantSound(player.level().getGameTime())) {
+                player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                        SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F,
+                        0.9F + player.getRandom().nextFloat() * 0.2F);
+            }
             PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, granted));
         }
         return granted;
@@ -191,18 +193,6 @@ public final class AspectPools {
         data.discover(id);
         sync(player);
         PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, amount));
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
-    }
-
-    public static void discoverWithLearnSound(ServerPlayer player, Holder<IAspect> aspect) {
-        AspectPoolData data = data(player);
-        Identifier id = idOf(aspect);
-        if (!data.isDiscovered(id)) {
-            data.discover(id);
-            sync(player);
-            PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, 0));
-        }
         player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                 TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
     }

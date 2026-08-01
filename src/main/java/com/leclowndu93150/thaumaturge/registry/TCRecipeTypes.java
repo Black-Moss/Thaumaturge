@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionEnchantmentRecipe;
+import com.leclowndu93150.thaumaturge.content.infusion.InfusionRunicAugmentRecipe;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingRecipe;
@@ -47,6 +48,14 @@ public final class TCRecipeTypes {
                 @Override
                 public String toString() {
                     return "thaumaturge:infusion_enchantment";
+                }
+            });
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<InfusionRunicAugmentRecipe>> RUNIC_AUGMENT =
+            RECIPE_TYPES.register("runic_augment", () -> new RecipeType<InfusionRunicAugmentRecipe>() {
+                @Override
+                public String toString() {
+                    return "thaumaturge:runic_augment";
                 }
             });
 

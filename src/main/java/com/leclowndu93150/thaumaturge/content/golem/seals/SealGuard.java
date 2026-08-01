@@ -24,6 +24,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealGuard implements ISeal, ISealGui, ISealConfigArea {
     private static final int SCAN_INTERVAL = 20;
@@ -109,7 +110,7 @@ public class SealGuard implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.FIGHTER};
+        return new GolemTrait[]{TCGolemTraits.FIGHTER.get()};
     }
 
     @Override

@@ -187,6 +187,7 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
                 }
             }
         }
+        setChanged();
     }
 
     public ItemStack addItemsToInventory(ItemStack item) {

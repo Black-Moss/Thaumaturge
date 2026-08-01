@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.data.worldgen.feature;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import com.leclowndu93150.thaumaturge.content.world.objects.ConfigRarityFilter;
 import java.util.List;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
 
 public final class TCPlacedFeatures {
+    private static final int MANA_POD_ATTEMPTS = 10;
     public static final ResourceKey<PlacedFeature> GREATWOOD_CHECKED = key("greatwood_checked");
     public static final ResourceKey<PlacedFeature> SILVERWOOD_CHECKED = key("silverwood_checked");
     public static final ResourceKey<PlacedFeature> BIG_MAGIC_CHECKED = key("big_magic_checked");
@@ -32,12 +34,14 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> GREATWOOD_NATURAL_RARE = key("greatwood_natural_rare");
     public static final ResourceKey<PlacedFeature> SILVERWOOD_NATURAL = key("silverwood_natural");
     public static final ResourceKey<PlacedFeature> MAGIC_FOREST_FLORA = key("magic_forest_flora");
+    public static final ResourceKey<PlacedFeature> MANA_PODS = key("mana_pods");
     public static final ResourceKey<PlacedFeature> CRYSTALS = key("crystals");
     public static final ResourceKey<PlacedFeature> NODES_WILD = key("nodes_wild");
     public static final ResourceKey<PlacedFeature> NODES_MAGICAL = key("nodes_magical");
     public static final ResourceKey<PlacedFeature> NODES_EERIE = key("nodes_eerie");
     public static final ResourceKey<PlacedFeature> NODES_NETHER = key("nodes_nether");
     public static final ResourceKey<PlacedFeature> OBSIDIAN_TOTEM = key("obsidian_totem");
+    public static final ResourceKey<PlacedFeature> CRIMSON_PORTAL = key("crimson_portal");
     public static final ResourceKey<PlacedFeature> HILLTOP_STONES = key("hilltop_stones");
     public static final ResourceKey<PlacedFeature> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<PlacedFeature> ORE_QUARTZ = key("ore_quartz");
@@ -122,6 +126,10 @@ public final class TCPlacedFeatures {
                 configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_FLORA),
                 List.of(BiomeFilter.biome())));
 
+        context.register(MANA_PODS, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.MANA_PODS),
+                List.of(CountPlacement.of(MANA_POD_ATTEMPTS), InSquarePlacement.spread(), BiomeFilter.biome())));
+
         context.register(CRYSTALS, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.CRYSTALS),
                 List.of(BiomeFilter.biome())));
@@ -147,6 +155,10 @@ public final class TCPlacedFeatures {
         context.register(OBSIDIAN_TOTEM, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.OBSIDIAN_TOTEM),
                 List.of(RarityFilter.onAverageOnceEvery(OBSIDIAN_TOTEM_RARITY), InSquarePlacement.spread(),
+                        HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
+        context.register(CRIMSON_PORTAL, new PlacedFeature(
+                configured.getOrThrow(TCConfiguredFeatures.CRIMSON_PORTAL),
+                List.of(ConfigRarityFilter.CRIMSON_PORTAL, InSquarePlacement.spread(),
                         HeightmapPlacement.onHeightmap(Heightmap.Types.WORLD_SURFACE_WG), BiomeFilter.biome())));
         context.register(HILLTOP_STONES, new PlacedFeature(
                 configured.getOrThrow(TCConfiguredFeatures.HILLTOP_STONES),

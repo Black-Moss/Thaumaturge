@@ -131,6 +131,8 @@ public final class ScanEntryBootstrap {
                 blocks(blockReg, TCBlocks.PLANT_SHIMMERLEAF.get()), null, null);
         register(ctx, "plantvishroom", "scanned/plantvishroom",
                 blocks(blockReg, TCBlocks.PLANT_VISHROOM.get()), null, null);
+        register(ctx, "manapod", "scanned/manapod",
+                blocks(blockReg, TCBlocks.MANA_POD.get()), items(itemReg, TCItems.MANA_BEAN.get()), null);
         register(ctx, "cultist", "scanned/entity/thaumaturge/cultist", null, null,
                 entities(entityReg, TCEntities.CULTIST_KNIGHT.get(), TCEntities.CULTIST_CLERIC.get()));
         register(ctx, "eldritch_crab", "scanned/entity/thaumaturge/eldritch_crab", null, null,

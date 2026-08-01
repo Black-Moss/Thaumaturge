@@ -23,6 +23,7 @@ public final class TCBlockEntityRenderers {
     @SubscribeEvent
     public static void onRegister(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(TCBlockEntities.INFUSION_MATRIX.get(), InfusionMatrixRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.VIS_RELAY.get(), VisRelayRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.FOCAL_MANIPULATOR.get(), FocalManipulatorRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.PEDESTAL.get(), PedestalRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.RECHARGE_PEDESTAL.get(),
@@ -41,6 +42,7 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_OBELISK.get(), EldritchObeliskRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.RESEARCH_TABLE.get(), ResearchTableRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.DECONSTRUCTION_TABLE.get(), DeconstructionTableRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.MANA_POD.get(), ManaPodRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_CAP.get(),
                 context -> new EldritchCapRenderer<>(context,
                         EldritchCapRenderer.CAP_TEXTURE, EldritchCapRenderer.CAP_TEXTURE_OUTER, cap -> 0));

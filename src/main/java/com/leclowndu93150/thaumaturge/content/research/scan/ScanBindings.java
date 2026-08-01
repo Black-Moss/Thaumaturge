@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
+import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import java.util.Optional;
 import net.minecraft.core.Holder;
@@ -52,10 +53,8 @@ public final class ScanBindings implements ScanningManager.Bindings {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return false;
         }
-        Optional<Holder.Reference<IResearchCategory>> holder =
-                serverPlayer.registryAccess().lookupOrThrow(IResearchCategory.REGISTRY_KEY)
-                        .get(ResourceKey.create(IResearchCategory.REGISTRY_KEY, category));
-        return holder.isPresent() && ResearchManager.gainKnowledge(serverPlayer, type, holder.get(), amount);
+        ResearchGrants.grantConvertedKnowledge(serverPlayer, type, amount);
+        return true;
     }
 
     @Override

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealEmptyAdvanced extends SealEmpty implements ISealConfigToggles {
     @Override
@@ -57,6 +58,6 @@ public class SealEmptyAdvanced extends SealEmpty implements ISealConfigToggles {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{GolemTrait.SMART};
+        return new GolemTrait[]{TCGolemTraits.SMART.get()};
     }
 }

@@ -14,6 +14,7 @@ import com.leclowndu93150.thaumaturge.content.research.note.HexGrid;
 import com.leclowndu93150.thaumaturge.content.research.note.NoteRules;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
+import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
@@ -294,19 +295,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
     }
 
     private @Nullable Holder<IAspect> combinationResult(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second) {
-        for (Holder.Reference<IAspect> candidate
-                : player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()) {
-            List<Holder<IAspect>> components = candidate.value().components();
-            if (components.size() != 2) {
-                continue;
-            }
-            boolean direct = components.get(0).is(first.getKey()) && components.get(1).is(second.getKey());
-            boolean swapped = components.get(0).is(second.getKey()) && components.get(1).is(first.getKey());
-            if (direct || swapped) {
-                return candidate;
-            }
-        }
-        return null;
+        return AspectCombinations.result(player.registryAccess(), first, second);
     }
 
     public void duplicateNote(ServerPlayer player) {

@@ -30,6 +30,13 @@ repositories {
         name = "Illusive Soulworks maven"
         url = "https://maven.theillusivec4.top/"
     }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 base {
@@ -39,6 +46,21 @@ base {
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
     withSourcesJar()
+    withJavadocJar()
+}
+
+sourceSets {
+    test {
+        compileClasspath += main.output + main.compileClasspath
+        runtimeClasspath += main.output + main.runtimeClasspath
+    }
+}
+
+tasks.named('test') { enabled = false }
+
+tasks.withType(Javadoc).configureEach {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    failOnError = false
 }
 
 neoForge {
@@ -66,6 +88,8 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'thaumaturge.gametest', 'true'
+            gameDirectory = project.file('run-gametest')
         }
 
         data {
@@ -83,8 +107,17 @@ neoForge {
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            sourceSet(sourceSets.test)
         }
     }
+}
+
+configurations {
+    runGameTestServerAdditionalRuntimeClasspath.extendsFrom runtimeClasspath
+}
+
+dependencies {
+    runGameTestServerAdditionalRuntimeClasspath files(sourceSets.test.output)
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
@@ -118,6 +151,9 @@ dependencies {
 
     compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}+${minecraft_version}:api"
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}+${minecraft_version}"
+
+    compileOnly "maven.modrinth:jade:${jade_version}"
+    runtimeOnly "maven.modrinth:jade:${jade_version}"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -151,15 +187,28 @@ idea {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
+            artifactId = mod_id
             from components.java
         }
     }
     repositories {
         maven {
+            name = "Iglee"
             url "$maven_url"
             credentials {
                 username = providers.environmentVariable("MAVEN_USERNAME").orNull
                 password = providers.environmentVariable("MAVEN_PASSWORD").orNull
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+        maven {
+            name = "Leclown"
+            url "$leclown_maven_url"
+            credentials {
+                username = providers.environmentVariable("MAVEN_USER").orNull
+                password = providers.environmentVariable("MAVEN_PASS").orNull
             }
             authentication {
                 basic(BasicAuthentication)

@@ -76,6 +76,8 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
 
     public void setFacing(Direction facing) {
         this.facing = facing;
+        setChanged();
+        syncToClient();
     }
 
     public Direction facing() {

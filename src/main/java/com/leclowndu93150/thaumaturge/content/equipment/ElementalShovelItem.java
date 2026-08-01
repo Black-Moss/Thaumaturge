@@ -49,8 +49,12 @@ public final class ElementalShovelItem extends Item implements IArchitect {
         if (player == null || level.getBlockEntity(pos) != null) {
             return InteractionResult.FAIL;
         }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
         BlockState bs = level.getBlockState(pos);
         int orientation = getOrientation(context.getItemInHand());
+        boolean placed = false;
         for (int aa = -1; aa <= 1; aa++) {
             for (int bb = -1; bb <= 1; bb++) {
                 BlockPos p2 = pos.relative(side).offset(offsetFor(orientation, side, player.getYRot(), aa, bb));
@@ -59,16 +63,18 @@ public final class ElementalShovelItem extends Item implements IArchitect {
                 }
                 if (player.hasInfiniteMaterials() || consumeItem(player, new ItemStack(bs.getBlock()))) {
                     placeBlock(level, player, context, p2, bs, side);
+                    placed = true;
                 } else if (bs.is(Blocks.GRASS_BLOCK)
                         && (player.hasInfiniteMaterials() || consumeItem(player, new ItemStack(Blocks.DIRT)))) {
                     placeBlock(level, player, context, p2, Blocks.DIRT.defaultBlockState(), side);
+                    placed = true;
                     if (context.getItemInHand().isEmpty()) {
                         break;
                     }
                 }
             }
         }
-        return InteractionResult.FAIL;
+        return placed ? InteractionResult.SUCCESS : InteractionResult.FAIL;
     }
 
     private static void placeBlock(Level level, Player player, UseOnContext context,

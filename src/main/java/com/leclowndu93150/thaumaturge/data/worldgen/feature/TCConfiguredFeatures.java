@@ -40,10 +40,12 @@ public final class TCConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> BIG_MAGIC_TREE = key("big_magic_tree");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_TREES = key("magic_forest_trees");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_FLORA = key("magic_forest_flora");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> MANA_PODS = key("mana_pods");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRYSTALS = key("crystals");
     public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_WILD = key("nodes_wild");
     public static final ResourceKey<ConfiguredFeature<?, ?>> NODES_EERIE = key("nodes_eerie");
     public static final ResourceKey<ConfiguredFeature<?, ?>> OBSIDIAN_TOTEM = key("obsidian_totem");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> CRIMSON_PORTAL = key("crimson_portal");
     public static final ResourceKey<ConfiguredFeature<?, ?>> HILLTOP_STONES = key("hilltop_stones");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_CINNABAR = key("ore_cinnabar");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ORE_QUARTZ = key("ore_quartz");
@@ -107,6 +109,9 @@ public final class TCConfiguredFeatures {
                 new MagicForestFloraConfig(TCBlocks.GRASS_AMBIENT.get(), TCBlocks.PLANT_VISHROOM.get(),
                         FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS)));
 
+        context.register(MANA_PODS, new ConfiguredFeature<>(TCFeatures.MANA_PODS.get(),
+                NoneFeatureConfiguration.INSTANCE));
+
         context.register(NODES_WILD, new ConfiguredFeature<>(TCFeatures.NODE.get(),
                 new NodeFeatureConfig(false, false, false,
                         NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
@@ -114,6 +119,8 @@ public final class TCConfiguredFeatures {
                 new NodeFeatureConfig(false, true, false,
                         NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
         context.register(OBSIDIAN_TOTEM, new ConfiguredFeature<>(TCFeatures.OBSIDIAN_TOTEM.get(),
+                NoneFeatureConfiguration.INSTANCE));
+        context.register(CRIMSON_PORTAL, new ConfiguredFeature<>(TCFeatures.CRIMSON_PORTAL.get(),
                 NoneFeatureConfiguration.INSTANCE));
         context.register(HILLTOP_STONES, new ConfiguredFeature<>(TCFeatures.HILLTOP_STONES.get(),
                 NoneFeatureConfiguration.INSTANCE));

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionEnchantmentRecipe;
+import com.leclowndu93150.thaumaturge.content.infusion.InfusionRunicAugmentRecipe;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.SalisMundusRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
@@ -34,6 +35,9 @@ public final class TCRecipeSerializers {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<InfusionEnchantmentRecipe>> INFUSION_ENCHANTMENT =
             RECIPE_SERIALIZERS.register("infusion_enchantment", () -> InfusionEnchantmentRecipe.SERIALIZER);
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<InfusionRunicAugmentRecipe>> RUNIC_AUGMENT =
+            RECIPE_SERIALIZERS.register("runic_augment", () -> InfusionRunicAugmentRecipe.SERIALIZER);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CrucibleRecipe>> CRUCIBLE =
             RECIPE_SERIALIZERS.register("crucible", () -> CrucibleRecipe.SERIALIZER);

@@ -8,6 +8,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectIndex;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectRecipeContributor;
 import com.leclowndu93150.thaumaturge.api.aspect.RegisterAspectContributorsEvent;
+import com.leclowndu93150.thaumaturge.content.wands.WandAspectVariants;
+import com.leclowndu93150.thaumaturge.registry.TCItems;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,7 +59,8 @@ public final class AspectIndexBuilder {
         for (Item item : BuiltInRegistries.ITEM) {
             index.resolve(item);
         }
-        return AspectIndex.of(index.resolved());
+        Map<Item, AspectList> resolved = index.resolved();
+        return AspectIndex.of(resolved, Map.of(TCItems.WAND.get(), WandAspectVariants.build(resolved)));
     }
 
     private static Map<Item, AspectList> collectBase(HolderLookup.Provider registries) {
@@ -65,7 +68,7 @@ public final class AspectIndexBuilder {
         for (Item item : BuiltInRegistries.ITEM) {
             AspectList declared = item.builtInRegistryHolder().getData(AspectDataMaps.BASE_ASPECTS);
             if (declared != null && !declared.isEmpty()) {
-                AspectList capped = cap(declared, registries);
+                AspectList capped = cap(declared.merge(EquipmentAspects.bonusFor(item, registries)), registries);
                 if (!capped.isEmpty()) {
                     map.put(item, capped);
                 }
@@ -117,20 +120,25 @@ public final class AspectIndexBuilder {
             }
             visiting.add(item);
             try {
+                AspectList derived = AspectList.EMPTY;
                 for (IAspectRecipeContributor contributor : CONTRIBUTORS) {
                     Optional<AspectList> result = contributor.derive(item, recipes, registries, this);
                     if (result.isPresent() && !result.get().isEmpty()) {
-                        AspectList capped = cap(result.get(), registries);
-                        resolved.put(item, capped);
-                        computed.add(item);
-                        return capped;
+                        derived = result.get();
+                        break;
                     }
                 }
+                AspectList merged = derived.merge(EquipmentAspects.bonusFor(item, registries));
                 computed.add(item);
+                if (merged.isEmpty()) {
+                    return AspectList.EMPTY;
+                }
+                AspectList capped = cap(merged, registries);
+                resolved.put(item, capped);
+                return capped;
             } finally {
                 visiting.remove(item);
             }
-            return AspectList.EMPTY;
         }
 
         @Override

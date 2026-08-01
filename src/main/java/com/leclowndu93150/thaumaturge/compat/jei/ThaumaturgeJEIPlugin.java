@@ -165,6 +165,7 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         categories.add(new CrucibleCategory(helpers.getGuiHelper()));
         categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.RECIPE_TYPE, "recipe.type.infusion"));
         categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.ENCHANTMENT_RECIPE_TYPE, "recipe.type.infusion_enchantment"));
+        categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.RUNIC_RECIPE_TYPE, "recipe.type.runic_augment"));
         categories.add(new DustTriggerCategory(helpers.getGuiHelper()));
         categories.add(new AspectCompositionCategory(helpers.getGuiHelper(), pickIconAspect()));
         categories.add(new AspectFromStacksCategory(helpers.getGuiHelper()));
@@ -179,10 +180,14 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        registration.addIngredientInfo(new ItemStack(TCItems.DECONSTRUCTION_TABLE.get()),
+                VanillaTypes.ITEM_STACK,
+                Component.translatable("jei.thaumaturge.deconstruction.info"));
         addTypedRecipes(registration,ArcaneWorkbenchCategory.RECIPE_TYPE,TCRecipeTypes.ARCANE.get(), null);
         addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get(), null);
         addTypedRecipes(registration,InfusionCategory.RECIPE_TYPE,TCRecipeTypes.INFUSION.get(), null);
         addTypedRecipes(registration,InfusionCategory.ENCHANTMENT_RECIPE_TYPE,TCRecipeTypes.INFUSION_ENCHANTMENT.get(), null);
+        addTypedRecipes(registration,InfusionCategory.RUNIC_RECIPE_TYPE,TCRecipeTypes.RUNIC_AUGMENT.get(), null);
         registerAspectCompositions(registration);
         addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerSimpleRecipe || r.value() instanceof DustTriggerTagRecipe);
         addTypedRecipes(registration,MultiblockCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerMultiblockRecipe);
@@ -220,6 +225,7 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         registration.addCraftingStation(ArcaneWorkbenchCategory.RECIPE_TYPE, TCItems.ARCANE_WORKBENCH.get());
         registration.addCraftingStation(InfusionCategory.RECIPE_TYPE, TCItems.INFUSION_MATRIX.get());
         registration.addCraftingStation(InfusionCategory.ENCHANTMENT_RECIPE_TYPE, TCItems.INFUSION_MATRIX.get());
+        registration.addCraftingStation(InfusionCategory.RUNIC_RECIPE_TYPE, TCItems.INFUSION_MATRIX.get());
         registration.addCraftingStation(DustTriggerCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
         registration.addCraftingStation(MultiblockCategory.RECIPE_TYPE, TCItems.SALIS_MUNDUS.get());
         registration.addCraftingStation(CrucibleCategory.RECIPE_TYPE, TCItems.CRUCIBLE.get());

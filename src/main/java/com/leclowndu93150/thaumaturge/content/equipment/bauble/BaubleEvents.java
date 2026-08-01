@@ -2,14 +2,11 @@ package com.leclowndu93150.thaumaturge.content.equipment.bauble;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
-import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
-import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
+import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.mixin.world.entity.ExperienceOrbAccessor;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
-import java.util.List;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -20,7 +17,9 @@ import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
+import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
@@ -32,7 +31,25 @@ public final class BaubleEvents {
     private static final double THEORY_CHANCE_PER_XP = 0.05;
     private static final double OBSERVATION_CHANCE_PER_XP = 0.2;
 
+    private static final long CLOUD_JUMP_GRACE_WINDOW_TICKS = 100L;
+    private static final double CLOUD_JUMP_GRACE_DISTANCE = 16.0;
+
     private BaubleEvents() {}
+
+    @SubscribeEvent
+    public static void onFall(LivingFallEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)
+                || !ModList.get().isLoaded(TCIds.CURIOS)
+                || !ThaumaturgeCuriosCompat.isCurioEquipped(player, TCItems.CLOUD_RING.get())) {
+            return;
+        }
+        long lastJump = player.getData(TCAttachments.CLOUD_JUMP_TIME);
+        if (lastJump == 0L || player.level().getGameTime() - lastJump > CLOUD_JUMP_GRACE_WINDOW_TICKS) {
+            return;
+        }
+        player.setData(TCAttachments.CLOUD_JUMP_TIME, 0L);
+        event.setDistance(Math.max(0.0, event.getDistance() - CLOUD_JUMP_GRACE_DISTANCE));
+    }
 
     @SubscribeEvent
     public static void onDeath(LivingDeathEvent event) {
@@ -69,17 +86,9 @@ public final class BaubleEvents {
         ((ExperienceOrbAccessor) event.getOrb()).thaumaturge$setValue(event.getOrb().getValue() - drained);
         float roll = player.getRandom().nextFloat();
         if (roll < THEORY_CHANCE_PER_XP * drained) {
-            ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.THEORY,
-                    randomCategory(serverPlayer), 1);
+            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.THEORY, 1);
         } else if (roll < OBSERVATION_CHANCE_PER_XP * drained) {
-            ResearchManager.gainKnowledge(serverPlayer, KnowledgeType.OBSERVATION,
-                    randomCategory(serverPlayer), 1);
+            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.OBSERVATION, 1);
         }
-    }
-
-    private static Holder<IResearchCategory> randomCategory(ServerPlayer player) {
-        List<Holder.Reference<IResearchCategory>> categories = player.registryAccess()
-                .lookupOrThrow(IResearchCategory.REGISTRY_KEY).listElements().toList();
-        return categories.get(player.getRandom().nextInt(categories.size()));
     }
 }

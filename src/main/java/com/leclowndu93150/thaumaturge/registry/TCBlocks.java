@@ -37,8 +37,10 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.decor.BlockEffectShock;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNode;
+import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNodeStabilizer;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockNodeTransducer;
+import com.leclowndu93150.thaumaturge.content.aura.relay.BlockVisRelay;
 import com.leclowndu93150.thaumaturge.content.decor.BlockBarrier;
 import com.leclowndu93150.thaumaturge.content.decor.BlockPavingStone;
 import com.leclowndu93150.thaumaturge.content.equipment.BlockEffectGlimmer;
@@ -1407,9 +1409,16 @@ public final class TCBlocks {
             props -> props.mapColor(MapColor.NONE).strength(-1.0F, 999.0F).noOcclusion().noLootTable()
                     .dynamicShape().isValidSpawn((state, level, pos, type) -> false));
 
+    public static final DeferredBlock<BlockManaPod> MANA_POD = BLOCKS.registerBlock(
+            "mana_pod", BlockManaPod::new,
+            props -> props.mapColor(MapColor.PLANT).strength(0.5F).sound(SoundType.CROP)
+                    .noOcclusion().randomTicks().pushReaction(PushReaction.DESTROY)
+                    .lightLevel(state -> state.getValue(BlockManaPod.AGE))
+                    .isValidSpawn((state, level, pos, type) -> false));
+
     public static final DeferredBlock<BlockNode> NODE = BLOCKS.registerBlock(
             "node", BlockNode::new,
-            props -> props.mapColor(MapColor.NONE).instabreak().noOcclusion().noLootTable()
+            props -> props.mapColor(MapColor.NONE).strength(-1.0F, 3600000.0F).noOcclusion().noLootTable()
                     .isValidSpawn((state, level, pos, type) -> false));
 
     public static final DeferredBlock<BlockJarNode> JAR_NODE = BLOCKS.registerBlock(
@@ -1423,6 +1432,11 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockNodeStabilizer> NODE_STABILIZER_ADVANCED = BLOCKS.registerBlock(
             "node_stabilizer_advanced", props -> new BlockNodeStabilizer(props, true),
             props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).noOcclusion());
+
+    public static final DeferredBlock<BlockVisRelay> VIS_RELAY = BLOCKS.registerBlock(
+            "vis_relay", BlockVisRelay::new,
+            props -> props.mapColor(MapColor.COLOR_PURPLE).strength(1.5F).noOcclusion()
+                    .sound(SoundType.AMETHYST));
 
     public static final DeferredBlock<BlockNodeTransducer> NODE_TRANSDUCER = BLOCKS.registerBlock(
             "node_transducer", BlockNodeTransducer::new,

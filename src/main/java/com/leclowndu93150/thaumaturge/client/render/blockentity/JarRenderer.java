@@ -69,6 +69,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     ) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
         state.amount = blockEntity.amount();
+        state.capacity = blockEntity.capacity();
         state.braced = blockEntity.isBlocked();
         state.hasFilter = blockEntity.aspectFilterKey() != null;
         state.facing = blockEntity.facing();
@@ -101,7 +102,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     @Override
     public void submit(JarRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
         if (state.amount > 0 && state.aspectColor != -1) {
-            submitFluid(state.amount, state.aspectColor, state.lightCoords,Minecraft.getInstance().getAtlasManager().get(ANIMATED_GLOW_SPRITE), poseStack, submitNodeCollector);
+            submitFluid(state.amount, state.capacity, state.aspectColor, state.lightCoords,Minecraft.getInstance().getAtlasManager().get(ANIMATED_GLOW_SPRITE), poseStack, submitNodeCollector);
         }
         if (state.hasFilter && state.filterTexture != null) {
             submitFilterLabel(state, poseStack, submitNodeCollector);
@@ -114,8 +115,8 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
         }
     }
 
-    public static void submitFluid(float amount, int aspectColor, int lightCoords, TextureAtlasSprite sprite, PoseStack poseStack, SubmitNodeCollector collector) {
-        float ratio = Math.min(1.0F, amount / (float) BlockEntityJar.CAPACITY);
+    public static void submitFluid(float amount, int capacity, int aspectColor, int lightCoords, TextureAtlasSprite sprite, PoseStack poseStack, SubmitNodeCollector collector) {
+        float ratio = Math.min(1.0F, amount / (float) capacity);
         float height = FLUID_BASE_Y + ratio * FLUID_MAX_HEIGHT;
         RenderType type = Sheets.translucentBlockItemSheet();
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {

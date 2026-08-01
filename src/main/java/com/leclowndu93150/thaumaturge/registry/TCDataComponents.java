@@ -104,6 +104,11 @@ public final class TCDataComponents {
                     .persistent(ExtraCodecs.NON_NEGATIVE_INT)
                     .networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> RUNIC_CHARGE =
+            DATA_COMPONENTS.registerComponentType("runic_charge", builder -> builder
+                    .persistent(ExtraCodecs.POSITIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> TOOL_ORIENTATION =
             DATA_COMPONENTS.registerComponentType("tool_orientation", builder -> builder
                     .persistent(ExtraCodecs.NON_NEGATIVE_INT)

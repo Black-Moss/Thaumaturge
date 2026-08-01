@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.block.state.properties.StairsShape;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.client.color.CrystalAspectTint;
+import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumaturge.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumaturge.client.color.FocusColorTint;
@@ -131,6 +133,8 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCItems.LOOT_CRATE_RARE.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.LOOT_CRATE_RARE.get())));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.ARCANE_WORKBENCH_CHARGER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.VIS_RELAY.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.VIS_RELAY.get()))));
+        itemModels.itemModelOutput.accept(TCItems.VIS_RELAY.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TCBlocks.VIS_RELAY.get())));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_TRANSDUCER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_TRANSDUCER.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.NODE_STABILIZER_ADVANCED.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.NODE_STABILIZER_ADVANCED.get()))));
@@ -385,6 +389,7 @@ public final class TCModelProvider extends ModelProvider {
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
         EssentiaCrystalModelGenerator.register(itemModels);
+        registerManaPod(blockModels, itemModels);
         stoneAndStairModels(blockModels);
         treeModels(blockModels, itemModels);
         plantModels(blockModels, itemModels);
@@ -1338,6 +1343,33 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(model));
     }
 
+    private void registerManaPod(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block pod = TCBlocks.MANA_POD.get();
+        MultiVariant[] stems = new MultiVariant[3];
+        for (int i = 0; i < 3; i++) {
+            Identifier model = ModelTemplates.CROSS.createWithSuffix(pod, "_stage" + i,
+                    TextureMapping.cross(TextureMapping.getBlockTexture(pod, "_stem_" + i)),
+                    blockModels.modelOutput);
+            stems[i] = new MultiVariant(WeightedList.of(new Variant(model)));
+        }
+        PropertyDispatch<MultiVariant> ages = PropertyDispatch.initial(BlockManaPod.AGE)
+                .select(0, stems[0])
+                .select(1, stems[1])
+                .select(2, stems[2])
+                .select(3, stems[2])
+                .select(4, stems[2])
+                .select(5, stems[2])
+                .select(6, stems[2])
+                .select(7, stems[2]);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(pod).with(ages));
+
+        Identifier beanModel = ModelLocationUtils.getModelLocation(TCItems.MANA_BEAN.get());
+        ModelTemplates.FLAT_ITEM.create(beanModel,
+                TextureMapping.layer0(new Material(TCIds.rl("item/mana_bean"))), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCItems.MANA_BEAN.get(),
+                ItemModelUtils.tintedModel(beanModel, new CrystalAspectTint(0xFFFFFF)));
+    }
+
     private void cross(BlockModelGenerators blockModels, Block block) {
         Identifier model = ModelTemplates.CROSS.create(block, TextureMapping.cross(block), blockModels.modelOutput);
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
@@ -1591,7 +1623,7 @@ public final class TCModelProvider extends ModelProvider {
         eldritchLock(blockModels);
         crabSpawner(blockModels);
         column(blockModels, TCBlocks.ELDRITCH_PEDESTAL.get(), "eldritch_pedestal_side", "eldritch_stone");
-        invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar");
+        invisibleWithMeshItem(blockModels, TCBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar", "eldritch_altar_item");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_OBELISK.get(), "eldritch_deco");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_PILLAR.get(), "eldritch_deco");
         invisibleWithCubeItem(blockModels, TCBlocks.ELDRITCH_CAPSTONE.get(), "eldritch_deco");
@@ -1751,6 +1783,14 @@ public final class TCModelProvider extends ModelProvider {
         Identifier itemModel = ModelTemplates.CUBE_ALL.createWithSuffix(block, "_inventory",
                 new TextureMapping().put(TextureSlot.ALL, texture(textureName)), blockModels.modelOutput);
         blockModels.registerSimpleItemModel(block.asItem(), itemModel);
+        Identifier model = ModelTemplates.PARTICLE_ONLY.create(block,
+                TextureMapping.particle(texture(textureName)), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,
+                BlockModelGenerators.plainVariant(model)));
+    }
+
+    private void invisibleWithMeshItem(BlockModelGenerators blockModels, Block block, String textureName, String itemModelName) {
+        blockModels.registerSimpleItemModel(block.asItem(), TCIds.rl("block/" + itemModelName));
         Identifier model = ModelTemplates.PARTICLE_ONLY.create(block,
                 TextureMapping.particle(texture(textureName)), blockModels.modelOutput);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block,

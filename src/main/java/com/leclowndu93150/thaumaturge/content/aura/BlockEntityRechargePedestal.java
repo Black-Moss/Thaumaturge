@@ -1,10 +1,14 @@
 package com.leclowndu93150.thaumaturge.content.aura;
 
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
+import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
@@ -32,6 +36,7 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
     private static final int SPARKLE_SPREAD = 3;
     private static final int NODE_DRAW_INTERVAL_TICKS = 5;
     private static final int NODE_DRAW_RANGE = 8;
+    private static final int RELAY_DRAW_CV = 100;
 
     private int counter;
     private @Nullable BlockPos drainPos;
@@ -69,7 +74,7 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
             return;
         }
         if (getItem().getItem() instanceof ItemWand) {
-            if (counter % NODE_DRAW_INTERVAL_TICKS == 0 && drawFromNodes(level)) {
+            if (counter % NODE_DRAW_INTERVAL_TICKS == 0 && (drawFromNodes(level) || drawFromRelay(level))) {
                 setChanged();
                 syncToClient();
                 sendSparkle(level);
@@ -84,6 +89,38 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
             syncToClient();
             sendSparkle(level);
         }
+    }
+
+    private boolean drawFromRelay(ServerLevel level) {
+        ItemStack wand = getItem();
+        BlockEntityVisRelay relay = VisRelayNetwork.findRelayNear(level, worldPosition);
+        if (relay == null) {
+            return false;
+        }
+        BlockEntityNode source = relay.resolveSource(level);
+        if (source == null) {
+            return false;
+        }
+        for (ResourceKey<IAspect> key : TCAspects.PRIMALS) {
+            int needCv = WandVisHelper.getMaxVis(wand) - WandVisHelper.getVis(wand, key);
+            if (needCv <= 0) {
+                continue;
+            }
+            Holder<IAspect> aspect = Aspects.resolve(level.registryAccess(), key);
+            if (aspect == null) {
+                continue;
+            }
+            int drained = source.drainCentivis(aspect, Math.min(RELAY_DRAW_CV, needCv));
+            if (drained <= 0) {
+                continue;
+            }
+            WandVisHelper.addRealVis(wand, key, drained, true);
+            drainPos = source.getBlockPos();
+            drainColor = aspect.value().color();
+            drainTicks = DRAIN_LINGER_TICKS;
+            return true;
+        }
+        return false;
     }
 
     private boolean drawFromNodes(ServerLevel level) {

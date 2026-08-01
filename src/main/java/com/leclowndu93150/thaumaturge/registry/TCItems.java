@@ -90,6 +90,7 @@ import com.leclowndu93150.thaumaturge.content.equipment.ElementalShovelItem;
 import com.leclowndu93150.thaumaturge.content.equipment.ElementalSwordItem;
 import com.leclowndu93150.thaumaturge.content.equipment.PrimalCrusherItem;
 import com.leclowndu93150.thaumaturge.content.equipment.RobeArmorItem;
+import com.leclowndu93150.thaumaturge.content.manabean.ItemManaBean;
 import com.leclowndu93150.thaumaturge.content.equipment.TCMaterials;
 import com.leclowndu93150.thaumaturge.content.equipment.TravellerBootsItem;
 import com.leclowndu93150.thaumaturge.content.equipment.VoidGearItem;
@@ -366,6 +367,13 @@ public final class TCItems {
             props -> new RobeArmorItem(3, props), props -> props.humanoidArmor(TCMaterials.ARMOR_ROBES, ArmorType.LEGGINGS));
     public static final DeferredItem<RobeArmorItem> CLOTH_BOOTS = ITEMS.registerItem("cloth_boots",
             props -> new RobeArmorItem(2, props), props -> props.humanoidArmor(TCMaterials.ARMOR_ROBES, ArmorType.BOOTS));
+
+    public static final DeferredItem<ItemManaBean> MANA_BEAN = ITEMS.registerItem(
+            "mana_bean",
+            ItemManaBean::new,
+            props -> props.food(
+                    new FoodProperties(1, 0.5F, true),
+                    Consumables.defaultFood().consumeSeconds(0.5F).build()));
 
     public static final DeferredItem<Item> BRAIN = ITEMS.registerItem(
             "brain",
@@ -749,6 +757,7 @@ public final class TCItems {
             ItemPrimalCharm::new,
             props -> props.stacksTo(1).rarity(Rarity.UNCOMMON));
 
+    public static final DeferredItem<BlockItem> VIS_RELAY = ITEMS.registerSimpleBlockItem(TCBlocks.VIS_RELAY);
     public static final DeferredItem<BlockItem> NODE_STABILIZER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER);
     public static final DeferredItem<BlockItem> NODE_STABILIZER_ADVANCED = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_STABILIZER_ADVANCED);
     public static final DeferredItem<BlockItem> NODE_TRANSDUCER = ITEMS.registerSimpleBlockItem(TCBlocks.NODE_TRANSDUCER);

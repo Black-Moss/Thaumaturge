@@ -34,12 +34,12 @@ public final class SparkParticle extends TCParticle {
 
     @Override
     protected float getU0() {
-        return this.mirrored ? this.sprite.getU1() : this.sprite.getU0();
+        return this.mirrored ? super.getU1() : super.getU0();
     }
 
     @Override
     protected float getU1() {
-        return this.mirrored ? this.sprite.getU0() : this.sprite.getU1();
+        return this.mirrored ? super.getU0() : super.getU1();
     }
 
     public static final class Provider implements ParticleProvider<SparkParticleOptions> {

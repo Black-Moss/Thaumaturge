@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Block;
 
 public final class TCItemTags {
     public static final TagKey<Item> WANDS = key("wands");
+    public static final TagKey<Item> RUNIC_SHIELDABLE = key("runic_shieldable");
     public static final TagKey<Item> SCAN_IRON = key("scan/f_matiron");
     public static final TagKey<Item> NITORS = key("nitors");
     public static final TagKey<Item> MEAT_CHUNKS = key("meat_chunks");
