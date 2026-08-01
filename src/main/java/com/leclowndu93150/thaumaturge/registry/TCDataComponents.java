@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeData;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.link.LinkBinding;
@@ -51,7 +52,7 @@ public final class TCDataComponents {
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceKey<IAspect>>> ASPECT_FILTER =
             DATA_COMPONENTS.registerComponentType("aspect_filter", builder -> builder
-                    .persistent(ResourceKey.codec(IAspect.REGISTRY_KEY))
+                    .persistent(LegacyIds.ASPECT_KEY_CODEC)
                     .networkSynchronized(ResourceKey.streamCodec(IAspect.REGISTRY_KEY)));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CelestialBody>> CELESTIAL_BODY =
@@ -196,7 +197,7 @@ public final class TCDataComponents {
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<WandVis>> WAND_VIS =
             DATA_COMPONENTS.registerComponentType("wand_vis", builder -> builder
-                    .persistent(WandVis.CODEC)
+                    .persistent(LegacyIds.WAND_VIS_CODEC)
                     .networkSynchronized(WandVis.STREAM_CODEC));
 
 

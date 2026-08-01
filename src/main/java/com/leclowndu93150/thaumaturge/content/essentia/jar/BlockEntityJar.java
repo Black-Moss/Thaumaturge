@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.*;
@@ -40,7 +41,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     public int capacity() {
         return getBlockState().getBlock() instanceof IEssentiaJar jar ? jar.jarCapacity() : CAPACITY;
     }
-    private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = ResourceKey.codec(IAspect.REGISTRY_KEY);
+    private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = LegacyIds.ASPECT_KEY_CODEC;
 
     private @Nullable ResourceKey<IAspect> aspect;
     private @Nullable ResourceKey<IAspect> aspectFilter;

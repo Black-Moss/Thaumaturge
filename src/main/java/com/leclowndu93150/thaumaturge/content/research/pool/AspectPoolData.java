@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.research.pool;
 
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -12,7 +13,7 @@ import net.minecraft.resources.Identifier;
 
 public final class AspectPoolData {
     public static final MapCodec<AspectPoolData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.unboundedMap(Identifier.CODEC, Codec.INT).fieldOf("pool").forGetter(d -> d.pool),
+            Codec.unboundedMap(LegacyIds.IDENTIFIER_CODEC, Codec.INT).fieldOf("pool").forGetter(d -> d.pool),
             Codec.INT.optionalFieldOf("completed_notes", 0).forGetter(AspectPoolData::completedNotes)
     ).apply(instance, AspectPoolData::of));
 

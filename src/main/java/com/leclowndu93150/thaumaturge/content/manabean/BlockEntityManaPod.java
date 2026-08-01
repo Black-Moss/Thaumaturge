@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
@@ -142,14 +143,14 @@ public final class BlockEntityManaPod extends BlockEntity {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         if (aspect != null) {
-            output.store("Aspect", ResourceKey.codec(IAspect.REGISTRY_KEY), aspect);
+            output.store("Aspect", LegacyIds.ASPECT_KEY_CODEC, aspect);
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        aspect = input.read("Aspect", ResourceKey.codec(IAspect.REGISTRY_KEY)).orElse(null);
+        aspect = input.read("Aspect", LegacyIds.ASPECT_KEY_CODEC).orElse(null);
     }
 
     @Override

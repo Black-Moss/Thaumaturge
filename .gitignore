@@ -27,6 +27,8 @@ sources/
 
 # Python files
 *.py
+
+**/__pycache__/
 server-taint-test.log
 
 gametest-run.log

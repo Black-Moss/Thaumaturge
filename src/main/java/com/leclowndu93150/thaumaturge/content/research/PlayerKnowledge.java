@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.api.capability.ResearchStatus;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.ResearchEntryMeta;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -264,7 +265,7 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
 
     private record ResearchRecord(Identifier key, Optional<Integer> stage, List<ResearchFlag> flags, boolean complete) {
         static final Codec<ResearchRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Identifier.CODEC.fieldOf("id").forGetter(ResearchRecord::key),
+                LegacyIds.IDENTIFIER_CODEC.fieldOf("id").forGetter(ResearchRecord::key),
                 Codec.INT.optionalFieldOf("stage").forGetter(ResearchRecord::stage),
                 ResearchFlag.CODEC.listOf().optionalFieldOf("flags", List.of()).forGetter(ResearchRecord::flags),
                 Codec.BOOL.optionalFieldOf("complete", false).forGetter(ResearchRecord::complete)
@@ -274,7 +275,7 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     private record KnowledgeRecord(KnowledgeType type, Optional<ResourceKey<IResearchCategory>> category, int amount) {
         static final Codec<KnowledgeRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 KnowledgeType.CODEC.fieldOf("type").forGetter(KnowledgeRecord::type),
-                ResourceKey.codec(IResearchCategory.REGISTRY_KEY).optionalFieldOf("category").forGetter(KnowledgeRecord::category),
+                LegacyIds.resourceKeyCodec(IResearchCategory.REGISTRY_KEY).optionalFieldOf("category").forGetter(KnowledgeRecord::category),
                 Codec.INT.fieldOf("amount").forGetter(KnowledgeRecord::amount)
         ).apply(instance, KnowledgeRecord::new));
     }

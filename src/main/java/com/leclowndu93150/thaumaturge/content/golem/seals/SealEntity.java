@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealType;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.network.ClientboundSealPayload;
 import com.leclowndu93150.thaumaturge.registry.TCSeals;
 import com.mojang.serialization.Codec;
@@ -26,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 public final class SealEntity implements ISealEntity {
     public static final Codec<SealEntity> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             SealPos.CODEC.fieldOf("pos").forGetter(SealEntity::sealPos),
-            Identifier.CODEC.fieldOf("type").forGetter(seal -> seal.typeId),
+            LegacyIds.IDENTIFIER_CODEC.fieldOf("type").forGetter(seal -> seal.typeId),
             Codec.BYTE.optionalFieldOf("priority", (byte) 0).forGetter(SealEntity::getPriority),
             Codec.BYTE.optionalFieldOf("color", (byte) 0).forGetter(SealEntity::getColor),
             Codec.BOOL.optionalFieldOf("locked", false).forGetter(SealEntity::isLocked),

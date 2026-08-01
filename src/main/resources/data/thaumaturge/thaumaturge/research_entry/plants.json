@@ -52,6 +52,12 @@
       "required_research": [
         "thaumaturge:scanned/manapod"
       ]
+    },
+    {
+      "text": "research.thaumaturge.plants.addendum_6",
+      "required_research": [
+        "thaumaturge:scanned/manapod"
+      ]
     }
   ],
   "note_aspects": [

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.*;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
@@ -37,7 +38,7 @@ import java.util.Objects;
 
 public class BlockEntityAlembic extends BlockEntity implements IEssentiaTransport, IAspectContainer {
     public static final int CAPACITY = 128;
-    private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = ResourceKey.codec(IAspect.REGISTRY_KEY);
+    private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = LegacyIds.ASPECT_KEY_CODEC;
 
     private @Nullable ResourceKey<IAspect> aspect;
     private @Nullable ResourceKey<IAspect> aspectFilter;

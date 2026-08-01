@@ -16,6 +16,7 @@ import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayWorkbenchSource;
 import com.leclowndu93150.thaumaturge.content.golem.GolemBindings;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyRegistryAliases;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftCost;
 import com.leclowndu93150.thaumaturge.api.recipe.RegisterWorkbenchVisSourcesEvent;
@@ -76,6 +77,8 @@ public final class Thaumaturge {
         TCWandParts.register(modBus);
         TCSeals.register(modBus);
         TCEntityDataSerializers.register(modBus);
+
+        LegacyRegistryAliases.register(modBus);
 
         NeoForge.EVENT_BUS.addListener(TCRecipeTypes::registerSynchronizedRecipes);
 

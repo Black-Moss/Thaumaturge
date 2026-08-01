@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInput;
@@ -359,7 +360,7 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
         essentia = input.read("Essentia", AspectList.CODEC).orElse(AspectList.EMPTY);
         maxRecipes = input.getIntOr("MaxRecipes", BASE_RECIPES);
         queue.clear();
-        input.read("Queue", Identifier.CODEC.listOf()).ifPresent(queue::addAll);
+        input.read("Queue", LegacyIds.IDENTIFIER_CODEC.listOf()).ifPresent(queue::addAll);
         input.child("Catalyst").ifPresent(catalyst::deserialize);
     }
 

@@ -31,7 +31,7 @@ public final class ManaPodFeature extends Feature<NoneFeatureConfiguration> {
         int y = Math.max(START_Y, level.getMinY() + 1);
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, y, z);
         while (cursor.getY() < Math.min(level.getMaxY(),
-                level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, cursor.getX(), cursor.getZ()))) {
+                level.getHeight(Heightmap.Types.MOTION_BLOCKING, cursor.getX(), cursor.getZ()))) {
             if (level.isEmptyBlock(cursor) && level.isEmptyBlock(cursor.below())) {
                 if (BlockManaPod.canGrowAt(level, cursor)) {
                     int age = MIN_START_AGE + random.nextInt(START_AGE_SPREAD);

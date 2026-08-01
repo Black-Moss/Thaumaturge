@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import java.util.List;
@@ -157,7 +158,7 @@ public final class BlockEntityDeconstructionTable extends BlockEntity implements
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         inventory.deserialize(input);
-        resultAspect = input.read("result_aspect", Identifier.CODEC).orElse(null);
+        resultAspect = input.read("result_aspect", LegacyIds.IDENTIFIER_CODEC).orElse(null);
         breakTime = input.getIntOr("break_time", BREAK_TIME_TICKS);
     }
 

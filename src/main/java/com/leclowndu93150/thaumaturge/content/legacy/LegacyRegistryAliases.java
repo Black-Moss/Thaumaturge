@@ -1,0 +1,40 @@
+package com.leclowndu93150.thaumaturge.content.legacy;
+
+import com.leclowndu93150.thaumaturge.TCIds;
+import java.util.List;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
+
+public final class LegacyRegistryAliases {
+    private LegacyRegistryAliases() {}
+
+    public static void register(IEventBus modBus) {
+        modBus.addListener(RegisterEvent.class, LegacyRegistryAliases::onRegister);
+        NeoForge.EVENT_BUS.addListener(ServerAboutToStartEvent.class, LegacyRegistryAliases::onServerAboutToStart);
+    }
+
+    private static void onRegister(RegisterEvent event) {
+        alias(event.getRegistry());
+    }
+
+    private static void onServerAboutToStart(ServerAboutToStartEvent event) {
+        event.getServer().registryAccess().registries().forEach(entry -> alias(entry.value()));
+    }
+
+    private static void alias(Registry<?> registry) {
+        for (Identifier id : List.copyOf(registry.keySet())) {
+            if (!TCIds.MODID.equals(id.getNamespace())) {
+                continue;
+            }
+            Identifier legacy = Identifier.fromNamespaceAndPath(LegacyIds.LEGACY_NAMESPACE, id.getPath());
+            if (registry.containsKey(legacy) || !registry.resolve(legacy).equals(legacy)) {
+                continue;
+            }
+            registry.addAlias(legacy, id);
+        }
+    }
+}

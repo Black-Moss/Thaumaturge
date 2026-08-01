@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.note;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public record ResearchNoteData(
     }
 
     public static final Codec<ResearchNoteData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Identifier.CODEC.fieldOf("entry").forGetter(ResearchNoteData::entry),
+            LegacyIds.IDENTIFIER_CODEC.fieldOf("entry").forGetter(ResearchNoteData::entry),
             Codec.INT.fieldOf("index").forGetter(ResearchNoteData::index),
             Codec.INT.fieldOf("color").forGetter(ResearchNoteData::color),
             Codec.BOOL.optionalFieldOf("complete", false).forGetter(ResearchNoteData::complete),

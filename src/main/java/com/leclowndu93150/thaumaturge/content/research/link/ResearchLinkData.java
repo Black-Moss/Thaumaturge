@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.link;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public final class ResearchLinkData extends SavedData {
         static final Codec<Link> CODEC = RecordCodecBuilder.create(builder -> builder.group(
                 UUIDUtil.CODEC.fieldOf("first").forGetter(link -> link.first),
                 UUIDUtil.CODEC.fieldOf("second").forGetter(link -> link.second),
-                Identifier.CODEC.listOf().fieldOf("union")
+                LegacyIds.IDENTIFIER_CODEC.listOf().fieldOf("union")
                         .xmap(list -> (Set<Identifier>) new LinkedHashSet<>(list), List::copyOf)
                         .forGetter(link -> link.union)
         ).apply(builder, Link::new));

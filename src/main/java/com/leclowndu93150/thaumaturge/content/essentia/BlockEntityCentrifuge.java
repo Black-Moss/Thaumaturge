@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia;
 
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
@@ -29,7 +30,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public final class BlockEntityCentrifuge extends BlockEntity implements IEssentiaTransport {
-    private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = ResourceKey.codec(IAspect.REGISTRY_KEY);
+    private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = LegacyIds.ASPECT_KEY_CODEC;
     private static final int PROCESS_TICKS = 39;
     private static final int DRAW_INTERVAL = 5;
     private static final int SUCTION_EMPTY = 128;
