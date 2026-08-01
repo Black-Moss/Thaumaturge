@@ -63,7 +63,7 @@ public final class ScanRaycastHelper {
 
     private static EntityHitResult clipEntity(Level level, Vec3 start, Vec3 direction, double entityReach, Entity entity) {
         AABB box = entity.getBoundingBox().expandTowards(direction.scale(entityReach)).inflate(1.0F, 1.0F, 1.0F);
-        return ProjectileUtil.getEntityHitResult(entity, start, start.add(direction.scale(entityReach)), box, (e) -> !e.isSpectator() && e.isPickable(), entityReach * entityReach);
+        return ProjectileUtil.getEntityHitResult(entity, start, start.add(direction.scale(entityReach)), box, (e) -> !e.isSpectator(), entityReach * entityReach);
     }
 
     public static record ScanRaycastContext(Level level, Vec3 start, Vec3 direction, double blockReach, double entityReach, ClipContext.Fluid fluidFilter, Entity entity) {
