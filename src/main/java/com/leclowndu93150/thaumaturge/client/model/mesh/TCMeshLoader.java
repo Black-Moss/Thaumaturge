@@ -10,6 +10,7 @@ import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
+import org.joml.Vector3f;
 
 public final class TCMeshLoader {
     private static final String FORMAT_NAME = "thaumaturge_mesh";
@@ -18,6 +19,7 @@ public final class TCMeshLoader {
     private static final int POSITION_SIZE = 3;
     private static final int UV_SIZE = 2;
     private static final int NORMAL_SIZE = 3;
+    private static final float DEGENERATE_QUAD_EPS = 1.0E-6F;
 
     private TCMeshLoader() {}
 
@@ -112,6 +114,38 @@ public final class TCMeshLoader {
                 }
             }
         }
-        return new TCMeshPart(name, slot, quadCount, positions, uvs, normals);
+        return new TCMeshPart(name, slot, quadCount, positions, uvs,
+                normals != null ? normals : deriveFaceNormals(positions, quadCount));
+    }
+
+    private static float[] deriveFaceNormals(float[] positions, int quadCount) {
+        float[] normals = new float[quadCount * CORNERS_PER_QUAD * NORMAL_SIZE];
+        Vector3f edge1 = new Vector3f();
+        Vector3f edge2 = new Vector3f();
+        Vector3f normal = new Vector3f();
+        for (int q = 0; q < quadCount; q++) {
+            int first = q * CORNERS_PER_QUAD * POSITION_SIZE;
+            int second = first + POSITION_SIZE;
+            int third = second + POSITION_SIZE;
+            edge1.set(positions[second] - positions[first],
+                    positions[second + 1] - positions[first + 1],
+                    positions[second + 2] - positions[first + 2]);
+            edge2.set(positions[third] - positions[first],
+                    positions[third + 1] - positions[first + 1],
+                    positions[third + 2] - positions[first + 2]);
+            edge1.cross(edge2, normal);
+            if (normal.lengthSquared() < DEGENERATE_QUAD_EPS) {
+                normal.set(0.0F, 1.0F, 0.0F);
+            } else {
+                normal.normalize();
+            }
+            for (int corner = 0; corner < CORNERS_PER_QUAD; corner++) {
+                int vertex = (q * CORNERS_PER_QUAD + corner) * NORMAL_SIZE;
+                normals[vertex] = normal.x;
+                normals[vertex + 1] = normal.y;
+                normals[vertex + 2] = normal.z;
+            }
+        }
+        return normals;
     }
 }

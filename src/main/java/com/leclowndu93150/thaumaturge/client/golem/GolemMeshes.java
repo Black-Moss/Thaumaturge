@@ -15,7 +15,6 @@ import net.minecraft.resources.Identifier;
 
 public final class GolemMeshes {
     private static final Map<Identifier, TCMesh> CACHE = new ConcurrentHashMap<>();
-    private static final float DEFAULT_NORMAL_Y = 1.0F;
 
     private GolemMeshes() {}
 
@@ -43,14 +42,9 @@ public final class GolemMeshes {
                 u = uvs[vertex * 2];
                 v = 1.0F - uvs[vertex * 2 + 1];
             }
-            float nx = 0.0F;
-            float ny = DEFAULT_NORMAL_Y;
-            float nz = 0.0F;
-            if (normals != null) {
-                nx = normals[vertex * 3];
-                ny = normals[vertex * 3 + 1];
-                nz = normals[vertex * 3 + 2];
-            }
+            float nx = normals[vertex * 3];
+            float ny = normals[vertex * 3 + 1];
+            float nz = normals[vertex * 3 + 2];
             buffer.addVertex(pose, positions[vertex * 3], positions[vertex * 3 + 1], positions[vertex * 3 + 2])
                     .setColor(color)
                     .setUv(u, v)
