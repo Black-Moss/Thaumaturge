@@ -6,9 +6,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Marker for items that store an {@link AspectList} as their essentia payload.
  *
- * <p>In modern Minecraft the payload travels through a {@link
- * net.minecraft.core.component.DataComponentType DataComponentType}, not item NBT; implementations
- * forward to the registered component.
+ * <p>The payload travels through a {@link net.minecraft.core.component.DataComponentType
+ * DataComponentType}, not item NBT; implementations forward to the registered component.
  *
  * <p>Items exposing this interface should be registered against {@link EssentiaCapabilities#CONTAINER}.
  *

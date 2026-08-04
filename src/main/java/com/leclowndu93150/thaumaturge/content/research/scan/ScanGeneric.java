@@ -34,7 +34,7 @@ public final class ScanGeneric implements IScanThing {
             }
             for (Holder<IAspect> component : instance.aspect().value().components()) {
                 if (!AspectPools.isDiscovered(player, component)) {
-                    return Component.translatable("tc.discoveryerror", AspectComponents.help(component));
+                    return AspectPools.missingComponentMessage(player, component);
                 }
             }
         }

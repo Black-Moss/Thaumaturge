@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import java.util.List;
 
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
@@ -49,9 +50,10 @@ public final class AspectContainerTooltipHandler {
                 .withStyle(style -> style.withColor(TextColor.fromRgb(0xB59ED9))));
         for (AspectInstance entry : aspects.sortedByAmount().reversed()) {
             Holder<IAspect> aspect = entry.aspect();
-            MutableComponent line = Component.literal("  ")
-                    .append(AspectComponents.name(aspect))
-                    .append(Component.literal(" x" + entry.amount()));
+            MutableComponent line = Component.literal("  ").append(AspectComponents.name(aspect));
+            if (AspectKnowledgeAccess.isKnown(aspect)) {
+                line.append(Component.literal(" x" + entry.amount()));
+            }
             line.setStyle(Style.EMPTY.withColor(TextColor.fromRgb(aspect.value().color())));
             tooltip.add(2,line);
         }

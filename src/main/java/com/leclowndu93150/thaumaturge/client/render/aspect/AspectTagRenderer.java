@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.client.render.aspect;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledge;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -20,7 +21,8 @@ public final class AspectTagRenderer {
     public static final int TEXTURE_SIZE = 32;
 
     private static final Identifier UNKNOWN_TEXTURE = TCIds.rl("textures/aspects/_unknown.png");
-    private static final float UNKNOWN_ALPHA = 0.75F;
+    private static final float UNKNOWN_ALPHA = 0.45F;
+    private static final float DEDUCIBLE_ALPHA = 1.0F;
 
     public enum BlendMode {
         ALPHA,
@@ -48,8 +50,19 @@ public final class AspectTagRenderer {
         render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, 0.0F, 0, 0.0, BlendMode.ALPHA, 1.0F, true);
     }
 
+    public static void renderMaskedChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect,
+                                        AspectKnowledge knowledge) {
+        renderMaskedChip(graphics, x, y, aspect,
+                knowledge == AspectKnowledge.DEDUCIBLE ? DEDUCIBLE_ALPHA : UNKNOWN_ALPHA);
+    }
+
     public static void renderUnknownChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect) {
-        int tint = ARGB.colorFromFloat(UNKNOWN_ALPHA, 1.0F, 1.0F, 1.0F);
+        renderMaskedChip(graphics, x, y, aspect, UNKNOWN_ALPHA);
+    }
+
+    private static void renderMaskedChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect,
+                                         float alpha) {
+        int tint = ARGB.colorFromFloat(alpha, 1.0F, 1.0F, 1.0F);
         int color = aspect != null && aspect.value() != null
                 ? (tint & 0xFF000000) | (aspect.value().color() & 0x00FFFFFF)
                 : tint;

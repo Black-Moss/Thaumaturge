@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlemb
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
-import com.leclowndu93150.thaumaturge.content.research.pool.AspectDiscoveryView;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
@@ -49,9 +48,6 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
             return Component.translatable(this.getDescriptionId() + ".empty");
         }
         Holder<IAspect> first = aspects.entries().getFirst().aspect();
-        if (!AspectDiscoveryView.isDiscovered(first)) {
-            return Component.translatable(this.getDescriptionId() + ".unknown");
-        }
         MutableComponent aspectName = AspectComponents.name(first);
         return Component.translatable(this.getDescriptionId() + ".filled", aspectName);
     }

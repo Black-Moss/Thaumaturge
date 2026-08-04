@@ -11,7 +11,6 @@ import net.minecraft.world.level.Level;
  * Implemented by blocks, block entities, or items that react when right-clicked with an
  * {@link ICaster} item, before normal caster behavior runs.
  *
- *
  * @since 1.0.0
  */
 public interface IInteractWithCaster {

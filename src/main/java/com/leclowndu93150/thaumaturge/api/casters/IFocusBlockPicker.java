@@ -6,7 +6,6 @@ package com.leclowndu93150.thaumaturge.api.casters;
  * that block's state on the caster, retrievable through
  * {@link ICaster#getPickedBlock(net.minecraft.world.item.ItemStack)}.
  *
- *
  * @since 1.0.0
  */
 public interface IFocusBlockPicker {

@@ -11,7 +11,6 @@ import net.minecraft.world.level.Level;
  * {@link CasterTriggerRegistry}. One manager can serve several block states by
  * distinguishing them through the {@code event} number supplied at registration.
  *
- *
  * @since 1.0.0
  */
 public interface ICasterTriggerManager {

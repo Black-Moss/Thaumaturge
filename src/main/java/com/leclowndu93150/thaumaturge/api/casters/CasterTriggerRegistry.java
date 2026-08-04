@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.BlockState;
  * such as crafting-structure formation triggers. Triggers are grouped by the registering
  * mod id and looked up by exact block state.
  *
- *
  * @apiNote Registration is write-at-init: mods register their triggers during mod
  *          construction or common setup and never mutate the registry afterwards. Lookups
  *          happen from gameplay threads and rely on that discipline; there is no internal

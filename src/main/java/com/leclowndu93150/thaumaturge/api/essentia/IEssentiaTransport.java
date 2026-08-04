@@ -8,8 +8,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Sided essentia transport contract for blocks that can move essentia between neighbors.
  *
- * <p>Sides are given as {@link Direction} and aspects as {@code Holder<IAspect>} so that
- * implementations remain valid across datapack reloads.
+ * <p>The {@code Direction} parameter models the side queried, and aspects are represented as {@code
+ * Holder<IAspect>} rather than a raw aspect value so that implementations remain valid across
+ * datapack reloads.
  *
  * <p>Implementations expose the capability through {@link EssentiaCapabilities#TRANSPORT}.
  *

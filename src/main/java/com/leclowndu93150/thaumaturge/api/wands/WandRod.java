@@ -10,7 +10,6 @@ import org.jspecify.annotations.Nullable;
  * optionally self-charge through an {@link IWandRodOnUpdate} callback. Staff cores are rods
  * flagged as staves: they hold more vis and cast, but cannot be used for arcane crafting.
  *
- *
  * @since 1.0.0
  */
 public final class WandRod {

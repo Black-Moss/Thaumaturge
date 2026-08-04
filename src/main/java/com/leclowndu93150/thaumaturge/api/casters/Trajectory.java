@@ -9,7 +9,6 @@ import net.minecraft.world.phys.Vec3;
 /**
  * A ray along which a spell travels: an origin point and a normalized direction.
  *
- *
  * @param source    the world-space origin of the ray
  * @param direction the direction of travel; suppliers normalize it
  * @since 1.0.0

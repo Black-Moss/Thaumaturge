@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.taint.item;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
-import com.leclowndu93150.thaumaturge.content.research.pool.AspectDiscoveryView;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import java.util.function.Consumer;
 
@@ -23,11 +23,10 @@ public final class ItemEssentiaCrystal extends Item implements IEssentiaContaine
     @Override
     public Component getName(ItemStack stack) {
         Holder<IAspect> aspect = aspectOf(stack);
-        if (aspect == null || !AspectDiscoveryView.isDiscovered(aspect)) {
+        if (aspect == null) {
             return Component.translatable("item.thaumaturge.essentia_crystal.unknown");
         }
-        Component aspectName = Component.translatable("aspect.thaumaturge." + aspect.value().tag());
-        return Component.translatable("item.thaumaturge.essentia_crystal", aspectName);
+        return Component.translatable("item.thaumaturge.essentia_crystal", AspectComponents.name(aspect));
     }
 
 /*    @Override

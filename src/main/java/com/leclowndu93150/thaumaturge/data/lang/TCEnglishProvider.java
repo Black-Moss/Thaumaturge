@@ -290,6 +290,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.knowledge.name", "Knowledge Totals");
         add("tc.aspect.primal", "Primal Aspect");
         add("tc.aspect.unknown", "Unknown Aspect");
+        add("tc.aspect.unknown.short", "???");
+        add("tc.aspect.unknown.desc", "Its nature is not yet understood.");
+        add("tc.aspect.composition", "%1$s + %2$s");
+        add("tc.aspect.progress", "Aspects known %1$s/%2$s");
+        add("tc.discoveryerror.derive", "To understand this you must first derive an aspect of %1$s.");
         add("tc.addendumtext", "§oAddendum %1$s§r");
 
         add("jei.thaumaturge.category.arcane_workbench", "Arcane Workbench");

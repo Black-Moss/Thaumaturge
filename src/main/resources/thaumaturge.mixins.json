@@ -16,6 +16,8 @@
     "world.level.block.entity.AbstractFurnaceBlockEntityAccessor"
   ],
   "client": [
+    "jei.gui.ingredients.IngredientFilterAccessor",
+    "jei.gui.ingredients.IngredientFilterApiAccessor",
     "client.gui.GuiGraphicsExtractorAccessor",
     "client.renderer.GameRendererInvoker",
     "client.renderer.entity.LivingEntityRendererMixin",

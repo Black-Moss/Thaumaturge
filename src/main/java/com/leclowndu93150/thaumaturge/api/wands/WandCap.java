@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceKey;
  * cost of any drain is multiplied by the cap's cost modifier, so values below 1 are discounts.
  * A cap may declare special aspects that use a different modifier than the base one.
  *
- *
  * @since 1.0.0
  */
 public final class WandCap {

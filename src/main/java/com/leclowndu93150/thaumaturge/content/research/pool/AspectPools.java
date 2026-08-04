@@ -14,6 +14,7 @@ import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -82,7 +83,7 @@ public final class AspectPools {
         if (discovery) {
             granted += DISCOVERY_BONUS;
             player.sendSystemMessage(Component.translatable("tc.addaspectdiscovery",
-                    AspectComponents.name(aspect)).withStyle(ChatFormatting.DARK_PURPLE));
+                    AspectComponents.trueName(aspect)).withStyle(ChatFormatting.DARK_PURPLE));
         }
         int current = data.amount(id);
         if (current >= SOFT_CAP) {
@@ -121,11 +122,18 @@ public final class AspectPools {
     public static void notifyMissingComponent(ServerPlayer player, Holder<IAspect> aspect) {
         for (Holder<IAspect> component : aspect.value().components()) {
             if (!isDiscovered(player, component)) {
-                player.sendSystemMessage(Component.translatable("tc.discoveryerror",
-                        AspectComponents.help(component)).withStyle(ChatFormatting.DARK_PURPLE));
+                player.sendSystemMessage(missingComponentMessage(player, component)
+                        .withStyle(ChatFormatting.DARK_PURPLE));
                 return;
             }
         }
+    }
+
+    public static MutableComponent missingComponentMessage(Player player, Holder<IAspect> component) {
+        if (!component.value().isPrimal() && hasDiscoveredComponents(player, component)) {
+            return Component.translatable("tc.discoveryerror.derive", AspectComponents.composition(component));
+        }
+        return Component.translatable("tc.discoveryerror", AspectComponents.help(component));
     }
 
     public static boolean spend(ServerPlayer player, Holder<IAspect> aspect, int amount) {

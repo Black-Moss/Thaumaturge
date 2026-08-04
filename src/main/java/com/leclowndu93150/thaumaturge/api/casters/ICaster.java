@@ -9,7 +9,6 @@ import org.jspecify.annotations.Nullable;
  * An item capable of storing vis, holding a focus, and casting it. Implemented by the
  * caster's gauntlet.
  *
- *
  * @since 1.0.0
  */
 public interface ICaster {

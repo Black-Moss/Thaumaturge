@@ -7,9 +7,10 @@ import net.minecraft.world.item.ItemStack;
  * Contract for the arcane workbench inventory, exposing the crystal payment currently loaded in
  * its crystal slots.
  *
- * <p>It now carries the one piece of state the workbench container can honestly answer: the aspects
- * available as loaded essentia crystals. Vis and discount are functions of the player and the block
- * entity rather than the container, so they live on {@link ArcaneCraftCost} instead.
+ * <p>Vis and discount are functions of the player and the block entity rather than the container,
+ * so they live on {@link ArcaneCraftCost} instead. the aspects available as loaded essentia
+ * crystals. Vis and discount are functions of the player and the block entity rather than the
+ * container, so they live on {@link ArcaneCraftCost} instead.
  *
  * @since 1.0.0
  */

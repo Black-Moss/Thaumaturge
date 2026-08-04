@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.network.ServerboundObtainNotePayload;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
@@ -186,6 +187,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private static final int ASPECTS_INSERT_OFFSET_X = 60;
     private static final int ASPECTS_INSERT_OFFSET_Y = 24;
     private static final int ASPECT_PAGE_ROWS = 5;
+    private static final int ASPECT_PROGRESS_X = 84;
+    private static final int ASPECT_PROGRESS_Y = 152;
     private static final float ASPECT_COMBINE_YIELD = 1.0F;
     private static final Identifier UNKNOWN_ASPECT_TEXTURE = TCIds.rl("textures/aspects/_unknown.png");
     private static final int UNKNOWN_ASPECT_TINT = 0x80808080;
@@ -1160,7 +1163,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private void drawAspectPage(GuiGraphicsExtractor graphics, int x, int y, int mouseX, int mouseY) {
-        AspectList known = knownAspects();
+        AspectList known = listedAspects();
         if (known.isEmpty()) return;
         int count = -1;
         int start = aspectsPage * ASPECT_PAGE_ROWS;
@@ -1192,7 +1195,11 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + ASPECT_TAG_OFFSET_X, rowY + ASPECT_TAG_OFFSET_Y);
             graphics.pose().scale(ASPECT_TAG_SCALE, ASPECT_TAG_SCALE);
-            drawAspectTag(graphics, 0, 0, entry.aspect());
+            if (AspectKnowledgeAccess.isKnown(entry.aspect())) {
+                drawAspectTag(graphics, 0, 0, entry.aspect());
+            } else {
+                drawMaskedAspect(graphics, unknownTile, entry.aspect());
+            }
             graphics.pose().popMatrix();
             graphics.pose().pushMatrix();
             graphics.pose().translate(x + ASPECT_NAME_OFFSET_X, rowY + ASPECT_NAME_OFFSET_Y);
@@ -1253,6 +1260,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                         ASPECT_PRIMAL_COLOR, false);
             }
         }
+        Component progress = aspectProgress();
+        graphics.text(font, progress,
+                x + ASPECT_PROGRESS_X - font.width(progress) / 2, y + ASPECT_PROGRESS_Y,
+                ASPECT_PRIMAL_COLOR, false);
         int totalKnown = known.size();
         int maxPages = totalKnown == 0 ? 0 : Mth.ceil(totalKnown / (float) ASPECT_PAGE_ROWS);
         float bob = bob();
@@ -1278,6 +1289,16 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 color);
     }
 
+    private void drawMaskedAspect(GuiGraphicsExtractor graphics, Identifier unknownTile, Holder<IAspect> aspect) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, unknownTile,
+                0, 0,
+                0.0F, 0.0F,
+                16, 16,
+                32, 32,
+                32, 32,
+                0xFF000000 | (aspect.value().color() & 0x00FFFFFF));
+    }
+
     private void drawUnknownAspect(GuiGraphicsExtractor graphics, Identifier unknownTile) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, unknownTile,
                 0, 0,
@@ -1293,7 +1314,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         return AspectPools.isDiscovered(minecraft.player, aspect);
     }
 
-    private AspectList knownAspects() {
+    private AspectList listedAspects() {
         if (minecraft == null || minecraft.player == null) return AspectList.EMPTY;
         HolderLookup.Provider registries = minecraft.player.registryAccess();
         Optional<? extends HolderLookup.RegistryLookup<IAspect>> lookupOpt = registries.lookup(IAspect.REGISTRY_KEY);
@@ -1301,11 +1322,26 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         HolderLookup.RegistryLookup<IAspect> lookup = lookupOpt.get();
         AspectList list = AspectList.EMPTY;
         for (Holder.Reference<IAspect> ref : lookup.listElements().toList()) {
-            if (AspectPools.isDiscovered(minecraft.player, ref)) {
+            if (AspectKnowledgeAccess.of(ref).isCompositionRevealed()) {
                 list = list.add(ref, 1);
             }
         }
         return list;
+    }
+
+    private Component aspectProgress() {
+        if (minecraft == null || minecraft.player == null) return Component.empty();
+        HolderLookup.Provider registries = minecraft.player.registryAccess();
+        Optional<? extends HolderLookup.RegistryLookup<IAspect>> lookupOpt = registries.lookup(IAspect.REGISTRY_KEY);
+        if (lookupOpt.isEmpty()) return Component.empty();
+        List<Holder.Reference<IAspect>> all = lookupOpt.get().listElements().toList();
+        int discovered = 0;
+        for (Holder.Reference<IAspect> ref : all) {
+            if (AspectKnowledgeAccess.isKnown(ref)) {
+                discovered++;
+            }
+        }
+        return Component.translatable("tc.aspect.progress", discovered, all.size());
     }
 
     private void renderKnowledgeInsert(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -1714,7 +1750,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private int maxAspectPages() {
-        int n = knownAspects().size();
+        int n = listedAspects().size();
         return n == 0 ? 0 : Mth.ceil(n / (float) ASPECT_PAGE_ROWS);
     }
 

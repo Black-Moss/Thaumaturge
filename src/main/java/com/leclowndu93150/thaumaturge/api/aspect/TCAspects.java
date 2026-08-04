@@ -59,9 +59,8 @@ public final class TCAspects {
     public static final ResourceKey<IAspect> HUMANUS = key("humanus");
 
     /**
-     * The six primal aspects in canonical display order: aer, ignis, aqua, terra, ordo,
-     * perditio. Matches the legacy Thaumaturge registration order used by wand vis pools and
-     * the arcane workbench crystal slots.
+     * The six primal aspects in canonical display order: aer, ignis, aqua, terra, ordo, perditio.
+     * This order is used by wand vis pools and the arcane workbench crystal slots.
      */
     public static final List<ResourceKey<IAspect>> PRIMALS = List.of(AER, IGNIS, AQUA, TERRA, ORDO, PERDITIO);
 

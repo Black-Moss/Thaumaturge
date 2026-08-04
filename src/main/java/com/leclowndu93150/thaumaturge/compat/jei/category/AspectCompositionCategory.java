@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientType;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,20 +100,21 @@ public final class AspectCompositionCategory implements IRecipeCategory<AspectCo
 
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(0.5F);
-        Component left = AspectComponents.name(recipe.left());
+        Component left = AspectComponents.shortName(recipe.left());
         int leftWidth = font.width(left) / 2;
         guiGraphics.text(font,left,(LEFT_X + 8 - (leftWidth / 2)) * 2,45, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
 
-        Component right = AspectComponents.name(recipe.right());
+        Component right = AspectComponents.shortName(recipe.right());
         int rightWidth = font.width(right) / 2;
         guiGraphics.text(font,right,(RIGHT_X  + 8  - (rightWidth / 2)) * 2,45, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
 
-        Component result = AspectComponents.name(recipe.result());
+        Component result = AspectComponents.shortName(recipe.result());
         int resultWidth = font.width(result) / 2;
         guiGraphics.text(font,result,(RESULT_X  + 8  - (resultWidth / 2)) * 2,45, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
 
         guiGraphics.pose().popMatrix();
     }
+
 
 
     public static List<Composition> collect(Iterable<Holder.Reference<IAspect>> all) {
@@ -132,8 +134,5 @@ public final class AspectCompositionCategory implements IRecipeCategory<AspectCo
     }
 
     public record Composition(Holder<IAspect> left, Holder<IAspect> right, Holder<IAspect> result) {
-        public String displayName() {
-            return AspectComponents.name(result).getString();
-        }
     }
 }

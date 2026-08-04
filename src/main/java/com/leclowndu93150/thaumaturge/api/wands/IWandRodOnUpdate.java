@@ -7,7 +7,6 @@ import net.minecraft.world.item.ItemStack;
  * Callback attached to a {@link WandRod} that runs while a wand built from that rod sits in a
  * player's inventory. Used by elemental rods to slowly regenerate their associated primal vis.
  *
- *
  * @since 1.0.0
  */
 public interface IWandRodOnUpdate {

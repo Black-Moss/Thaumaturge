@@ -4,7 +4,6 @@ import net.minecraft.core.Holder;
 
 /**
  *
- *
  * @since 1.0.0
  */
 public interface IAspectSource extends IAspectContainer{

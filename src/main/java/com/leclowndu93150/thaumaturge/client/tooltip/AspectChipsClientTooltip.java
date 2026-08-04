@@ -4,12 +4,11 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectChipsTooltip;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
-import net.minecraft.client.Minecraft;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledge;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.world.entity.player.Player;
 
 public final class AspectChipsClientTooltip implements ClientTooltipComponent {
     private static final int CHIP_STRIDE = 18;
@@ -36,13 +35,13 @@ public final class AspectChipsClientTooltip implements ClientTooltipComponent {
 
     @Override
     public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
-        Player player = Minecraft.getInstance().player;
         int chipX = x;
         for (AspectInstance entry : aspects.sortedByAmount()) {
-            if (player != null && AspectPools.isDiscovered(player, entry.aspect())) {
+            AspectKnowledge knowledge = AspectKnowledgeAccess.of(entry.aspect());
+            if (knowledge.isKnown()) {
                 AspectTagRenderer.render(graphics, font, chipX, y, entry.aspect(), entry.amount());
             } else {
-                AspectTagRenderer.renderUnknownChip(graphics, chipX, y, entry.aspect());
+                AspectTagRenderer.renderMaskedChip(graphics, chipX, y, entry.aspect(), knowledge);
             }
             chipX += CHIP_STRIDE;
         }

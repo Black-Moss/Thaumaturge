@@ -8,7 +8,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 
 /**
- *
+ * An arcane workbench recipe, carrying its vis and crystal essentia cost alongside the standard crafting shape.
  *
  * @since 1.0.0
  */

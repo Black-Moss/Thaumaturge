@@ -22,8 +22,9 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Inventory access and filter matching used by golem seals and provisioning, built on the NeoForge
- * resource transfer API.
+ * Inventory access and filter matching used by golem seals and provisioning. Replaces the Inventory
+ * access and filter matching used by golem seals and provisioning, built on the NeoForge resource
+ * transfer API.
  *
  * @since 1.0.0
  */

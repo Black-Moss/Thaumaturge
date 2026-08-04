@@ -9,7 +9,6 @@ import net.minecraft.util.StringRepresentable;
 /**
  * The behavioral archetype of an aura node.
  *
- *
  * @since 1.0.0
  */
 public enum NodeType implements StringRepresentable {
