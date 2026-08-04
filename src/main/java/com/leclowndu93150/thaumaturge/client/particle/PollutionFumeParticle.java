@@ -14,7 +14,11 @@ public final class PollutionFumeParticle extends TCParticle {
     private static final double WIND_SCALE = 0.001;
 
     private PollutionFumeParticle(ClientLevel level, double x, double y, double z, ParticleSheet sheet) {
-        super(level, x, y, z,
+        super(
+                level,
+                x,
+                y,
+                z,
                 (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SIDE_JITTER,
                 RISE_SPEED,
                 (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SIDE_JITTER,
@@ -42,8 +46,16 @@ public final class PollutionFumeParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("pollution_fume");
 
         @Override
-        public Particle createParticle(SimpleParticleType options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                SimpleParticleType options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new PollutionFumeParticle(level, x, y, z, SHEET);
         }
     }

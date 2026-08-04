@@ -1,11 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.*;
+
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
-import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import com.mojang.serialization.MapCodec;
@@ -32,13 +32,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
-
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.*;
 
 public class BlockAlembic extends BaseEntityBlock implements ILabelable {
 
@@ -51,7 +48,8 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
 
     public BlockAlembic(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any()
+        registerDefaultState(stateDefinition
+                .any()
                 .setValue(NORTH, false)
                 .setValue(EAST, false)
                 .setValue(SOUTH, false)
@@ -63,7 +61,6 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
         return CODEC;
     }
 
-
     @Override
     protected BlockState updateShape(
             BlockState state,
@@ -73,8 +70,7 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
             Direction directionToNeighbour,
             BlockPos neighbourPos,
             BlockState neighbourState,
-            RandomSource random
-    ) {
+            RandomSource random) {
         if (level instanceof Level lvl) {
             if (directionToNeighbour.getStepY() != 0) return state;
             boolean connect = canConnectTo(lvl, neighbourPos, directionToNeighbour.getOpposite());
@@ -108,8 +104,13 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
         if (face.getStepY() != 0) return false;
         if (alembic.aspectFilterKey() != null) return false;
         ResourceKey<IAspect> labelAspect = null;
-        if (!((IEssentiaContainerItem)stack.getItem()).getAspects(stack).isEmpty())
-            labelAspect = ((IEssentiaContainerItem)stack.getItem()).getAspects(stack).entries().getFirst().aspect().getKey();
+        if (!((IEssentiaContainerItem) stack.getItem()).getAspects(stack).isEmpty())
+            labelAspect = ((IEssentiaContainerItem) stack.getItem())
+                    .getAspects(stack)
+                    .entries()
+                    .getFirst()
+                    .aspect()
+                    .getKey();
 
         if (alembic.amount() == 0 && labelAspect == null) return false;
 
@@ -125,27 +126,62 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
         alembic.setFacing(face);
         alembic.setChanged();
         alembic.syncToClient();
-        player.level().playSound(null, pos.getX() + 0.5, pos.getY() +0.5 ,pos.getZ() + 0.5, TCSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        player.level()
+                .playSound(
+                        null,
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5,
+                        pos.getZ() + 0.5,
+                        TCSounds.PAGE.get(),
+                        SoundSource.BLOCKS,
+                        1.0F,
+                        1.0F);
         return true;
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) return InteractionResult.PASS;
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!player.isCrouching()) return InteractionResult.PASS;
 
-        if (alembic.aspectFilterKey() != null && hitResult.getDirection() == alembic.facing()){
+        if (alembic.aspectFilterKey() != null && hitResult.getDirection() == alembic.facing()) {
             alembic.setAspectFilter(null);
             alembic.setChanged();
             alembic.syncToClient();
-            level.playSound(null, pos.getX() + 0.5, pos.getY() +0.5 ,pos.getZ() + 0.5, TCSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            BlockAlembic.popResourceFromFace(level,pos,hitResult.getDirection(),new ItemStack(TCItems.LABEL.get()));
+            level.playSound(
+                    null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    TCSounds.PAGE.get(),
+                    SoundSource.BLOCKS,
+                    1.0F,
+                    1.0F);
+            BlockAlembic.popResourceFromFace(level, pos, hitResult.getDirection(), new ItemStack(TCItems.LABEL.get()));
         } else {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() +0.5 ,pos.getZ() + 0.5, TCSounds.JAR.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
-            float pitch = 1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.3F;
-            level.playSound(null, pos.getX() + 0.5, pos.getY() +0.5 ,pos.getZ() + 0.5, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.5F, pitch);
-            AuraHelper.polluteAura(level,pos,alembic.amount(),true);
+            level.playSound(
+                    null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    TCSounds.JAR.get(),
+                    SoundSource.BLOCKS,
+                    0.4F,
+                    1.0F);
+            float pitch =
+                    1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.3F;
+            level.playSound(
+                    null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    SoundEvents.BOTTLE_FILL,
+                    SoundSource.BLOCKS,
+                    0.5F,
+                    pitch);
+            AuraHelper.polluteAura(level, pos, alembic.amount(), true);
             alembic.clearAspect();
         }
         return InteractionResult.SUCCESS;
@@ -153,7 +189,7 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.box(0.125,0,0.125,0.875,1,0.875);
+        return Shapes.box(0.125, 0, 0.125, 0.875, 1, 0.875);
     }
 
     @Override
@@ -165,13 +201,14 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) return 0;
         float r = (float) alembic.amount() / BlockEntityAlembic.CAPACITY;
-        return Mth.floor(r*14) + (alembic.amount() > 0 ? 1 : 0);
+        return Mth.floor(r * 14) + (alembic.amount() > 0 ? 1 : 0);
     }
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (level.isClientSide()) return super.playerWillDestroy(level, pos, state, player);
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) return super.playerWillDestroy(level, pos, state, player);
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic))
+            return super.playerWillDestroy(level, pos, state, player);
         if (alembic.aspectFilterKey() != null) {
             popResource(level, pos, new ItemStack(TCItems.LABEL.get()));
         }

@@ -34,8 +34,8 @@ final class PotionAspects {
     private PotionAspects() {}
 
     static AspectList of(ServerLevel level, ItemStack stack) {
-        Optional<Holder<Potion>> potion = stack
-                .getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).potion();
+        Optional<Holder<Potion>> potion = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY)
+                .potion();
         AspectList result = AspectList.EMPTY;
         boolean anyReagent = false;
         if (potion.isPresent() && !potion.get().is(Potions.WATER)) {
@@ -75,8 +75,8 @@ final class PotionAspects {
         return reagents;
     }
 
-    private static void collectReagents(List<?> mixes, Holder<Potion> target, List<ItemStack> reagents,
-                                        Set<Identifier> visited, int depth) {
+    private static void collectReagents(
+            List<?> mixes, Holder<Potion> target, List<ItemStack> reagents, Set<Identifier> visited, int depth) {
         if (depth > MAX_REAGENT_DEPTH) return;
         Identifier targetId = target.unwrapKey().map(k -> k.identifier()).orElse(null);
         if (targetId == null || !visited.add(targetId)) return;

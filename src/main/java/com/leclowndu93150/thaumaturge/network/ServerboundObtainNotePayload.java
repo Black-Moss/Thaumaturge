@@ -16,8 +16,10 @@ public record ServerboundObtainNotePayload(Identifier entry, int ordinal) implem
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundObtainNotePayload> STREAM_CODEC =
             StreamCodec.composite(
-                    Identifier.STREAM_CODEC, ServerboundObtainNotePayload::entry,
-                    ByteBufCodecs.VAR_INT, ServerboundObtainNotePayload::ordinal,
+                    Identifier.STREAM_CODEC,
+                    ServerboundObtainNotePayload::entry,
+                    ByteBufCodecs.VAR_INT,
+                    ServerboundObtainNotePayload::ordinal,
                     ServerboundObtainNotePayload::new);
 
     public static void handle(ServerboundObtainNotePayload payload, IPayloadContext context) {

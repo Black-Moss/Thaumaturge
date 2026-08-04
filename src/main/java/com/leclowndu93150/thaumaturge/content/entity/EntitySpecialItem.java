@@ -21,7 +21,15 @@ public class EntitySpecialItem extends ItemEntity {
         this.lifespan = itemStack.getItem() == null ? 6000 : itemStack.getEntityLifespan(level);
     }
 
-    public EntitySpecialItem(Level level, double x, double y, double z, ItemStack itemStack, double deltaX, double deltaY, double deltaZ) {
+    public EntitySpecialItem(
+            Level level,
+            double x,
+            double y,
+            double z,
+            ItemStack itemStack,
+            double deltaX,
+            double deltaY,
+            double deltaZ) {
         this(TCEntities.SPECIAL_ITEM.get(), level);
         this.setPos(x, y, z);
         this.setItem(itemStack);
@@ -31,11 +39,11 @@ public class EntitySpecialItem extends ItemEntity {
 
     @Override
     public void tick() {
-        if (tickCount > 1){
+        if (tickCount > 1) {
             if (this.getDeltaMovement().y > 0.0)
-                setDeltaMovement(getDeltaMovement().multiply(1,0.9,1));
+                setDeltaMovement(getDeltaMovement().multiply(1, 0.9, 1));
 
-            setDeltaMovement(getDeltaMovement().add(0,0.04,0));
+            setDeltaMovement(getDeltaMovement().add(0, 0.04, 0));
             super.tick();
         }
     }

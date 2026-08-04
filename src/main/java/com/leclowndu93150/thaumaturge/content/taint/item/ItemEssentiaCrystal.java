@@ -6,14 +6,10 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
-import java.util.function.Consumer;
-
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 
 public final class ItemEssentiaCrystal extends Item implements IEssentiaContainerItem {
     public ItemEssentiaCrystal(Properties properties) {
@@ -29,7 +25,7 @@ public final class ItemEssentiaCrystal extends Item implements IEssentiaContaine
         return Component.translatable("item.thaumaturge.essentia_crystal", AspectComponents.name(aspect));
     }
 
-/*    @Override
+    /*    @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         Holder<IAspect> aspect = aspectOf(stack);
@@ -63,8 +59,11 @@ public final class ItemEssentiaCrystal extends Item implements IEssentiaContaine
             stack.remove(TCDataComponents.CRYSTAL_ASPECT.get());
             return;
         }
-        stack.set(TCDataComponents.CRYSTAL_ASPECT.get(), aspects.entries().getFirst().withAmount(1));
+        stack.set(
+                TCDataComponents.CRYSTAL_ASPECT.get(),
+                aspects.entries().getFirst().withAmount(1));
     }
+
     @Override
     public boolean ignoreContainedAspects() {
         return false;

@@ -13,8 +13,10 @@ public record ClientboundAspectGainPayload(Identifier aspect, int amount) implem
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundAspectGainPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    Identifier.STREAM_CODEC, ClientboundAspectGainPayload::aspect,
-                    ByteBufCodecs.VAR_INT, ClientboundAspectGainPayload::amount,
+                    Identifier.STREAM_CODEC,
+                    ClientboundAspectGainPayload::aspect,
+                    ByteBufCodecs.VAR_INT,
+                    ClientboundAspectGainPayload::amount,
                     ClientboundAspectGainPayload::new);
 
     @Override

@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.compat.jade;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
@@ -33,8 +33,11 @@ public enum EssentiaComponentProvider implements IBlockComponentProvider {
                 return;
             }
             for (AspectInstance entry : contents.entries()) {
-                tooltip.add(Component.translatable("jade.thaumaturge.essentia.fill",
-                        AspectComponents.name(entry.aspect()), entry.amount(), jar.capacity()));
+                tooltip.add(Component.translatable(
+                        "jade.thaumaturge.essentia.fill",
+                        AspectComponents.name(entry.aspect()),
+                        entry.amount(),
+                        jar.capacity()));
             }
             return;
         }

@@ -33,7 +33,12 @@ public final class CrystalBakedModel implements DynamicBlockStateModel {
     }
 
     @Override
-    public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, List<BlockStateModelPart> parts) {
+    public void collectParts(
+            BlockAndTintGetter level,
+            BlockPos pos,
+            BlockState state,
+            RandomSource random,
+            List<BlockStateModelPart> parts) {
         int growth = state.hasProperty(BlockCrystal.SIZE) ? state.getValue(BlockCrystal.SIZE) : 0;
         int partsPerFace = growth + 1;
         long seed = random.nextLong();
@@ -59,7 +64,7 @@ public final class CrystalBakedModel implements DynamicBlockStateModel {
             }
         }
         if (!any) {
-            int unsupportedSeed = (int)(seed & 0x7);
+            int unsupportedSeed = (int) (seed & 0x7);
             Matrix4f transform = CrystalFaceTransforms.forFace(Direction.DOWN);
             TCMeshPart part = mesh.parts().get(unsupportedSeed % 8);
             List<BakedQuad> quads = new ArrayList<>();
@@ -80,5 +85,4 @@ public final class CrystalBakedModel implements DynamicBlockStateModel {
     public int materialFlags() {
         return 0;
     }
-
 }

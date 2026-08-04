@@ -44,9 +44,14 @@ public final class BlockTaintGeyser extends AbstractTaintBlock {
         double z = pos.getZ() + 0.5;
         if (random.nextFloat() < SWARM_SPAWN_CHANCE
                 && level.hasNearbyAlivePlayer(x, y, z, SWARM_PLAYER_RANGE)
-                && level.getEntitiesOfClass(EntityTaintSwarm.class,
-                        AABB.ofSize(pos.getCenter(), SWARM_EXCLUSION_RANGE * 2,
-                                SWARM_EXCLUSION_RANGE * 2, SWARM_EXCLUSION_RANGE * 2)).isEmpty()) {
+                && level.getEntitiesOfClass(
+                                EntityTaintSwarm.class,
+                                AABB.ofSize(
+                                        pos.getCenter(),
+                                        SWARM_EXCLUSION_RANGE * 2,
+                                        SWARM_EXCLUSION_RANGE * 2,
+                                        SWARM_EXCLUSION_RANGE * 2))
+                        .isEmpty()) {
             EntityTaintSwarm swarm = TCEntities.TAINT_SWARM.get().create(level, EntitySpawnReason.NATURAL);
             if (swarm != null) {
                 swarm.snapTo(x, pos.getY() + 1.25, z, random.nextInt(360), 0.0F);

@@ -24,8 +24,11 @@ public final class ScanEnchantment implements IScanThing {
         if (stack.isEmpty()) {
             return false;
         }
-        for (Holder<Enchantment> holder : EnchantmentHelper.getEnchantmentsForCrafting(stack).keySet()) {
-            if (holder.unwrapKey().map(key -> key.identifier().equals(enchantment)).orElse(false)) {
+        for (Holder<Enchantment> holder :
+                EnchantmentHelper.getEnchantmentsForCrafting(stack).keySet()) {
+            if (holder.unwrapKey()
+                    .map(key -> key.identifier().equals(enchantment))
+                    .orElse(false)) {
                 return true;
             }
         }

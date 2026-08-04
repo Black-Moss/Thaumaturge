@@ -15,5 +15,4 @@ public interface AbstractFurnaceBlockEntityAccessor {
 
     @Accessor("cookingTotalTime")
     int thaumaturge$getCookTimeTotal();
-
 }

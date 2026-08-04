@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.screen.pip;
 
+import java.util.Map;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
 import net.minecraft.core.BlockPos;
@@ -7,10 +8,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix3x2f;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-
 public record BlockPreviewRenderState(
-        Map<BlockPos,BlockState> blocks,
+        Map<BlockPos, BlockState> blocks,
         float rotX,
         float rotY,
         float zoom,
@@ -21,8 +20,8 @@ public record BlockPreviewRenderState(
         int y0,
         int x1,
         int y1,
-        @Nullable ScreenRectangle scissorArea
-) implements PictureInPictureRenderState {
+        @Nullable ScreenRectangle scissorArea)
+        implements PictureInPictureRenderState {
 
     @Override
     public float scale() {

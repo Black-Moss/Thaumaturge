@@ -3,9 +3,9 @@ package com.leclowndu93150.thaumaturge.data.worldgen.dimension;
 import com.leclowndu93150.thaumaturge.content.eldritch.ChunkGeneratorOuter;
 import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
-import net.minecraft.core.registries.Registries;
 import java.util.Optional;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.ConstantInt;
@@ -37,30 +37,32 @@ public final class OuterLandsBootstrap {
                 .set(EnvironmentAttributes.RESPAWN_ANCHOR_WORKS, false)
                 .set(EnvironmentAttributes.CAN_START_RAID, false)
                 .build();
-        context.register(OuterLands.DIMENSION_TYPE, new DimensionType(
-                true,
-                false,
-                false,
-                false,
-                1.0,
-                0,
-                HEIGHT,
-                HEIGHT,
-                BlockTags.INFINIBURN_OVERWORLD,
-                AMBIENT_LIGHT,
-                new DimensionType.MonsterSettings(ConstantInt.of(7), 15),
-                DimensionType.Skybox.NONE,
-                CardinalLighting.Type.DEFAULT,
-                attributes,
-                HolderSet.direct(),
-                Optional.empty()
-        ));
+        context.register(
+                OuterLands.DIMENSION_TYPE,
+                new DimensionType(
+                        true,
+                        false,
+                        false,
+                        false,
+                        1.0,
+                        0,
+                        HEIGHT,
+                        HEIGHT,
+                        BlockTags.INFINIBURN_OVERWORLD,
+                        AMBIENT_LIGHT,
+                        new DimensionType.MonsterSettings(ConstantInt.of(7), 15),
+                        DimensionType.Skybox.NONE,
+                        CardinalLighting.Type.DEFAULT,
+                        attributes,
+                        HolderSet.direct(),
+                        Optional.empty()));
     }
 
     public static void bootstrapStems(BootstrapContext<LevelStem> context) {
-        context.register(OuterLands.STEM, new LevelStem(
-                context.lookup(Registries.DIMENSION_TYPE).getOrThrow(OuterLands.DIMENSION_TYPE),
-                new ChunkGeneratorOuter(context.lookup(Registries.BIOME).getOrThrow(TCBiomes.ELDRITCH))
-        ));
+        context.register(
+                OuterLands.STEM,
+                new LevelStem(
+                        context.lookup(Registries.DIMENSION_TYPE).getOrThrow(OuterLands.DIMENSION_TYPE),
+                        new ChunkGeneratorOuter(context.lookup(Registries.BIOME).getOrThrow(TCBiomes.ELDRITCH))));
     }
 }

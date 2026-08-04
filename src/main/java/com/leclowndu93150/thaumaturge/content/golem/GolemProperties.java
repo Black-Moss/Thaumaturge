@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
-import net.minecraft.core.Holder;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemProperties;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemAddon;
@@ -19,6 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,21 +27,27 @@ import net.minecraft.world.item.ItemStack;
 
 public final class GolemProperties implements IGolemProperties {
     public static final Codec<GolemProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TCGolemParts.materials().byNameCodec().fieldOf("material").forGetter(GolemProperties::getMaterial),
-            TCGolemParts.heads().byNameCodec().fieldOf("head").forGetter(GolemProperties::getHead),
-            TCGolemParts.arms().byNameCodec().fieldOf("arms").forGetter(GolemProperties::getArms),
-            TCGolemParts.legs().byNameCodec().fieldOf("legs").forGetter(GolemProperties::getLegs),
-            TCGolemParts.addons().byNameCodec().fieldOf("addon").forGetter(GolemProperties::getAddon),
-            Codec.intRange(0, 10).optionalFieldOf("rank", 0).forGetter(GolemProperties::getRank)
-    ).apply(instance, GolemProperties::new));
+                    TCGolemParts.materials().byNameCodec().fieldOf("material").forGetter(GolemProperties::getMaterial),
+                    TCGolemParts.heads().byNameCodec().fieldOf("head").forGetter(GolemProperties::getHead),
+                    TCGolemParts.arms().byNameCodec().fieldOf("arms").forGetter(GolemProperties::getArms),
+                    TCGolemParts.legs().byNameCodec().fieldOf("legs").forGetter(GolemProperties::getLegs),
+                    TCGolemParts.addons().byNameCodec().fieldOf("addon").forGetter(GolemProperties::getAddon),
+                    Codec.intRange(0, 10).optionalFieldOf("rank", 0).forGetter(GolemProperties::getRank))
+            .apply(instance, GolemProperties::new));
 
     public static final StreamCodec<ByteBuf, GolemProperties> STREAM_CODEC = StreamCodec.composite(
-            registryStream(TCGolemParts::materials), GolemProperties::getMaterial,
-            registryStream(TCGolemParts::heads), GolemProperties::getHead,
-            registryStream(TCGolemParts::arms), GolemProperties::getArms,
-            registryStream(TCGolemParts::legs), GolemProperties::getLegs,
-            registryStream(TCGolemParts::addons), GolemProperties::getAddon,
-            ByteBufCodecs.VAR_INT, GolemProperties::getRank,
+            registryStream(TCGolemParts::materials),
+            GolemProperties::getMaterial,
+            registryStream(TCGolemParts::heads),
+            GolemProperties::getHead,
+            registryStream(TCGolemParts::arms),
+            GolemProperties::getArms,
+            registryStream(TCGolemParts::legs),
+            GolemProperties::getLegs,
+            registryStream(TCGolemParts::addons),
+            GolemProperties::getAddon,
+            ByteBufCodecs.VAR_INT,
+            GolemProperties::getRank,
             GolemProperties::new);
 
     private GolemMaterial material;
@@ -52,8 +58,8 @@ public final class GolemProperties implements IGolemProperties {
     private int rank;
     private Set<GolemTrait> traitCache;
 
-    public GolemProperties(GolemMaterial material, GolemHead head, GolemArm arms, GolemLeg legs,
-                           GolemAddon addon, int rank) {
+    public GolemProperties(
+            GolemMaterial material, GolemHead head, GolemArm arms, GolemLeg legs, GolemAddon addon, int rank) {
         this.material = material;
         this.head = head;
         this.arms = arms;
@@ -78,8 +84,7 @@ public final class GolemProperties implements IGolemProperties {
 
     private static <T> StreamCodec<ByteBuf, T> registryStream(Supplier<Registry<T>> registry) {
         return Identifier.STREAM_CODEC.map(
-                id -> registry.get().getValue(id),
-                value -> registry.get().getKey(value));
+                id -> registry.get().getValue(id), value -> registry.get().getKey(value));
     }
 
     @Override
@@ -97,9 +102,8 @@ public final class GolemProperties implements IGolemProperties {
 
     private void addTraitSmart(Holder<GolemTrait> trait) {
         GolemTrait value = trait.value();
-        GolemTrait opposite = value.opposite() == null
-                ? null
-                : TCGolemTraits.registry().getValue(value.opposite());
+        GolemTrait opposite =
+                value.opposite() == null ? null : TCGolemTraits.registry().getValue(value.opposite());
         if (opposite != null && traitCache.contains(opposite)) {
             traitCache.remove(opposite);
         } else {

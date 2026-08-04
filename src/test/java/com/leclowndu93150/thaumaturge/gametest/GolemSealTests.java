@@ -4,9 +4,9 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
+import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumaturge.content.golem.ItemSealPlacer;
-import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.gametest.base.TCTestRegistrar;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -32,8 +32,7 @@ public final class GolemSealTests {
     private GolemSealTests() {}
 
     private static ServerPlayer testPlayer(GameTestHelper helper, String name) {
-        return FakePlayerFactory.get(helper.getLevel(),
-                new GameProfile(UUID.nameUUIDFromBytes(name.getBytes()), name));
+        return FakePlayerFactory.get(helper.getLevel(), new GameProfile(UUID.nameUUIDFromBytes(name.getBytes()), name));
     }
 
     private static void requireAspect(GameTestHelper helper, Item item, ResourceKey<IAspect> key, int expected) {
@@ -68,8 +67,8 @@ public final class GolemSealTests {
             ItemStack stack = new ItemStack(TCItems.SEAL_STOCK.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             BlockPos absolute = helper.absolutePos(chestPos);
-            BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute).add(0.0, 0.5, 0.0),
-                    Direction.UP, absolute, false);
+            BlockHitResult hit =
+                    new BlockHitResult(Vec3.atCenterOf(absolute).add(0.0, 0.5, 0.0), Direction.UP, absolute, false);
             UseOnContext context = new UseOnContext(player, InteractionHand.MAIN_HAND, hit);
             ItemSealPlacer placer = (ItemSealPlacer) stack.getItem();
             var result = placer.onItemUseFirst(stack, context);
@@ -90,8 +89,7 @@ public final class GolemSealTests {
             ItemStack stack = new ItemStack(TCItems.SEAL_BREAKER.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             BlockPos absolute = helper.absolutePos(airPos);
-            BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute),
-                    Direction.UP, absolute, false);
+            BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absolute), Direction.UP, absolute, false);
             UseOnContext context = new UseOnContext(player, InteractionHand.MAIN_HAND, hit);
             ItemSealPlacer placer = (ItemSealPlacer) stack.getItem();
             var result = placer.onItemUseFirst(stack, context);

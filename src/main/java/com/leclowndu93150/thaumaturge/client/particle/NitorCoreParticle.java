@@ -1,18 +1,12 @@
 package com.leclowndu93150.thaumaturge.client.particle;
 
 import com.leclowndu93150.thaumaturge.content.particle.NitorCoreParticleOptions;
-import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
-import net.minecraft.client.renderer.state.level.QuadParticleRenderState;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
 
 public final class NitorCoreParticle extends SingleQuadParticle {
     private final ParticleSheet sheet;
@@ -20,7 +14,8 @@ public final class NitorCoreParticle extends SingleQuadParticle {
     private static final float QUAD_RADIUS = 0.1F;
     private final float midBoost;
 
-    private NitorCoreParticle(ClientLevel level, double x, double y, double z, NitorCoreParticleOptions data, ParticleSheet sheet) {
+    private NitorCoreParticle(
+            ClientLevel level, double x, double y, double z, NitorCoreParticleOptions data, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, (net.minecraft.client.renderer.texture.TextureAtlasSprite) null);
         this.sheet = sheet;
         this.xd = 0.0;
@@ -34,7 +29,7 @@ public final class NitorCoreParticle extends SingleQuadParticle {
         this.bCol = data.b();
         this.alpha = 1.0F;
         this.lifetime = LIFETIME;
-        this.midBoost = 1.0F + (float)level.getRandom().nextGaussian() * 0.1F;
+        this.midBoost = 1.0F + (float) level.getRandom().nextGaussian() * 0.1F;
         this.quadSize = 1.0F;
         this.hasPhysics = false;
         this.gravity = 0.0F;
@@ -56,7 +51,7 @@ public final class NitorCoreParticle extends SingleQuadParticle {
         this.xd *= 0.98;
         this.yd *= 0.98;
         this.zd *= 0.98;
-        float frac = (float)this.age / this.lifetime;
+        float frac = (float) this.age / this.lifetime;
         if (frac < 0.5F) {
             this.quadSize = Mth.lerp(frac * 2.0F, 1.0F, this.midBoost);
         } else {
@@ -98,7 +93,16 @@ public final class NitorCoreParticle extends SingleQuadParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("nitor_core");
 
         @Override
-        public Particle createParticle(NitorCoreParticleOptions options, ClientLevel level, double x, double y, double z, double xAux, double yAux, double zAux, RandomSource random) {
+        public Particle createParticle(
+                NitorCoreParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double xAux,
+                double yAux,
+                double zAux,
+                RandomSource random) {
             return new NitorCoreParticle(level, x, y, z, options, SHEET);
         }
     }

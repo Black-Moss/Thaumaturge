@@ -24,8 +24,8 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemTrait {
     /** The registry key for golem traits. */
-    public static final ResourceKey<Registry<GolemTrait>> REGISTRY_KEY = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath("thaumaturge", "golem_trait"));
+    public static final ResourceKey<Registry<GolemTrait>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_trait"));
 
     private final Identifier icon;
     private final @Nullable ResourceKey<GolemTrait> opposite;
@@ -58,8 +58,7 @@ public final class GolemTrait {
      * @return {@code <namespace>:textures/misc/golem/tag_<path>.png}
      */
     public static Identifier defaultIcon(Identifier id) {
-        return Identifier.fromNamespaceAndPath(id.getNamespace(),
-                "textures/misc/golem/tag_" + id.getPath() + ".png");
+        return Identifier.fromNamespaceAndPath(id.getNamespace(), "textures/misc/golem/tag_" + id.getPath() + ".png");
     }
 
     /**

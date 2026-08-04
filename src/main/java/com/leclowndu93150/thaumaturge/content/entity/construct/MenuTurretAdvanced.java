@@ -16,20 +16,28 @@ public final class MenuTurretAdvanced extends MenuTurretBasic {
     public static final int BUTTON_FRIENDLY = 4;
 
     public MenuTurretAdvanced(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(TCMenus.TURRET_ADVANCED.get(), containerId, playerInventory,
-                playerInventory.player.level().getEntity(buf.readVarInt()) instanceof EntityTurretCrossbowAdvanced t ? t : null,
-                AMMO_X, AMMO_Y);
+        super(
+                TCMenus.TURRET_ADVANCED.get(),
+                containerId,
+                playerInventory,
+                playerInventory.player.level().getEntity(buf.readVarInt()) instanceof EntityTurretCrossbowAdvanced t
+                        ? t
+                        : null,
+                AMMO_X,
+                AMMO_Y);
     }
 
-    private MenuTurretAdvanced(int containerId, Inventory playerInventory, @Nullable EntityTurretCrossbowAdvanced turret) {
+    private MenuTurretAdvanced(
+            int containerId, Inventory playerInventory, @Nullable EntityTurretCrossbowAdvanced turret) {
         super(TCMenus.TURRET_ADVANCED.get(), containerId, playerInventory, turret, AMMO_X, AMMO_Y);
     }
 
     public static void open(Player player, EntityTurretCrossbowAdvanced turret) {
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new SimpleMenuProvider(
-                    (id, inv, p) -> new MenuTurretAdvanced(id, inv, turret),
-                    turret.getDisplayName()), buf -> buf.writeVarInt(turret.getId()));
+            serverPlayer.openMenu(
+                    new SimpleMenuProvider(
+                            (id, inv, p) -> new MenuTurretAdvanced(id, inv, turret), turret.getDisplayName()),
+                    buf -> buf.writeVarInt(turret.getId()));
         }
     }
 

@@ -46,13 +46,25 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
             boolean powered = level.hasNeighborSignal(pos);
             if (wasPoweredLastTick && !powered && !allowFlow) {
                 allowFlow = true;
-                level.playSound(null, pos, TCSounds.SQUEEK.get(), SoundSource.BLOCKS, 0.7F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+                level.playSound(
+                        null,
+                        pos,
+                        TCSounds.SQUEEK.get(),
+                        SoundSource.BLOCKS,
+                        0.7F,
+                        0.9F + level.getRandom().nextFloat() * 0.2F);
                 setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
             }
             if (!wasPoweredLastTick && powered && allowFlow) {
                 allowFlow = false;
-                level.playSound(null, pos, TCSounds.SQUEEK.get(), SoundSource.BLOCKS, 0.7F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+                level.playSound(
+                        null,
+                        pos,
+                        TCSounds.SQUEEK.get(),
+                        SoundSource.BLOCKS,
+                        0.7F,
+                        0.9F + level.getRandom().nextFloat() * 0.2F);
                 setChanged();
                 level.sendBlockUpdated(pos, state, state, 3);
             }

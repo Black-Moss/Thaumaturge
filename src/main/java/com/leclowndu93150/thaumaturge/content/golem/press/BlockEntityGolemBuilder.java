@@ -7,9 +7,9 @@ import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
-import com.leclowndu93150.thaumaturge.content.particle.VentParticleOptions;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
 import com.leclowndu93150.thaumaturge.content.golem.ItemGolemPlacer;
+import com.leclowndu93150.thaumaturge.content.particle.VentParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -132,9 +132,15 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
         if (builder.press < PRESS_MAX && builder.cost > 0 && builder.pendingGolem != null) {
             builder.press += PRESS_STEP;
             if (builder.press >= PRESS_SLAM) {
-                level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                        SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.66F,
-                        1.0F + level.getRandom().nextFloat() * 0.1F, false);
+                level.playLocalSound(
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5,
+                        pos.getZ() + 0.5,
+                        SoundEvents.LAVA_EXTINGUISH,
+                        SoundSource.BLOCKS,
+                        0.66F,
+                        1.0F + level.getRandom().nextFloat() * 0.1F,
+                        false);
                 for (int i = 0; i < 16; i++) {
                     builder.spawnVent(level, pos);
                 }
@@ -142,9 +148,15 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
         }
         if (builder.press >= PRESS_MAX && level.getRandom().nextInt(8) == 0) {
             builder.spawnVent(level, pos);
-            level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                    SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.1F,
-                    1.0F + level.getRandom().nextFloat() * 0.1F, false);
+            level.playLocalSound(
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    SoundEvents.LAVA_EXTINGUISH,
+                    SoundSource.BLOCKS,
+                    0.1F,
+                    1.0F + level.getRandom().nextFloat() * 0.1F,
+                    false);
         }
         if (builder.press > 0 && (builder.cost <= 0 || builder.pendingGolem == null)) {
             if (builder.press >= PRESS_MAX) {
@@ -157,9 +169,20 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
     }
 
     private void spawnVent(Level level, BlockPos pos) {
-        level.addParticle(new VentParticleOptions(level.getRandom().nextGaussian() * 0.1, 0.0,
-                        level.getRandom().nextGaussian() * 0.1, VENT_COLOR, 1.0F, false),
-                pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, 0.0, 0.0, 0.0);
+        level.addParticle(
+                new VentParticleOptions(
+                        level.getRandom().nextGaussian() * 0.1,
+                        0.0,
+                        level.getRandom().nextGaussian() * 0.1,
+                        VENT_COLOR,
+                        1.0F,
+                        false),
+                pos.getX() + 0.5,
+                pos.getY() + 1,
+                pos.getZ() + 0.5,
+                0.0,
+                0.0,
+                0.0);
     }
 
     private boolean drawEssentia(Level level, BlockPos pos) {
@@ -171,8 +194,8 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
             if (!isConnectable(face)) {
                 continue;
             }
-            IEssentiaTransport transport = level.getCapability(EssentiaCapabilities.TRANSPORT,
-                    pos.relative(face), face.getOpposite());
+            IEssentiaTransport transport =
+                    level.getCapability(EssentiaCapabilities.TRANSPORT, pos.relative(face), face.getOpposite());
             if (transport == null || !transport.isConnectable(face.getOpposite())) {
                 continue;
             }
@@ -201,7 +224,8 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
         placer.set(TCDataComponents.GOLEM_PROPERTIES.get(), props.copy());
         ItemStack current = output.getResource(SLOT_OUTPUT).toStack(output.getAmountAsInt(SLOT_OUTPUT));
         boolean slotFree = current.isEmpty()
-                || current.getCount() < current.getMaxStackSize() && ItemStack.isSameItemSameComponents(current, placer);
+                || current.getCount() < current.getMaxStackSize()
+                        && ItemStack.isSameItemSameComponents(current, placer);
         if (!slotFree) {
             reset();
             return false;
@@ -232,8 +256,13 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
     }
 
     public AABB getRenderBoundingBox() {
-        return new AABB(worldPosition.getX() - 1, worldPosition.getY(), worldPosition.getZ() - 1,
-                worldPosition.getX() + 2, worldPosition.getY() + 2, worldPosition.getZ() + 2);
+        return new AABB(
+                worldPosition.getX() - 1,
+                worldPosition.getY(),
+                worldPosition.getZ() - 1,
+                worldPosition.getX() + 2,
+                worldPosition.getY() + 2,
+                worldPosition.getZ() + 2);
     }
 
     @Override
@@ -276,7 +305,8 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput out = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(out);
             nbt.merge(out.buildResult());
@@ -305,8 +335,7 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
     }
 
     @Override
-    public void setSuction(Holder<IAspect> aspect, int amount) {
-    }
+    public void setSuction(Holder<IAspect> aspect, int amount) {}
 
     @Override
     public int getMinimumSuction() {

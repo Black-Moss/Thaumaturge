@@ -10,7 +10,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 public final class MultiblockMatcher {
-    private static final Direction[] HORIZONTALS = new Direction[]{Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
+    private static final Direction[] HORIZONTALS =
+            new Direction[] {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
 
     private MultiblockMatcher() {}
 
@@ -26,7 +27,6 @@ public final class MultiblockMatcher {
                     if (facing != null) {
                         return new DustTriggerPlacement(xx, yy, zz, facing);
                     }
-
                 }
             }
         }

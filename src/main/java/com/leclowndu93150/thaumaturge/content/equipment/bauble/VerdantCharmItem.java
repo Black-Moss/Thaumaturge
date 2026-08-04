@@ -45,13 +45,11 @@ public final class VerdantCharmItem extends Item implements IRechargable {
                 || !(wearer instanceof Player player)) {
             return;
         }
-        if (player.getEffect(MobEffects.WITHER) != null
-                && RechargeAccess.consumeCharge(stack, player, WITHER_COST)) {
+        if (player.getEffect(MobEffects.WITHER) != null && RechargeAccess.consumeCharge(stack, player, WITHER_COST)) {
             player.removeEffect(MobEffects.WITHER);
             return;
         }
-        if (player.getEffect(MobEffects.POISON) != null
-                && RechargeAccess.consumeCharge(stack, player, POISON_COST)) {
+        if (player.getEffect(MobEffects.POISON) != null && RechargeAccess.consumeCharge(stack, player, POISON_COST)) {
             player.removeEffect(MobEffects.POISON);
             return;
         }
@@ -68,8 +66,7 @@ public final class VerdantCharmItem extends Item implements IRechargable {
             return;
         }
         if (type == TYPE_SUSTAIN) {
-            if (player.getAirSupply() < LOW_AIR
-                    && RechargeAccess.consumeCharge(stack, player, SUSTAIN_COST)) {
+            if (player.getAirSupply() < LOW_AIR && RechargeAccess.consumeCharge(stack, player, SUSTAIN_COST)) {
                 player.setAirSupply(RESTORED_AIR);
                 return;
             }
@@ -90,8 +87,12 @@ public final class VerdantCharmItem extends Item implements IRechargable {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         int type = type(stack);
         if (type == TYPE_LIFE) {
             tooltip.accept(Component.translatable("item.thaumaturge.verdant_charm.life.text")

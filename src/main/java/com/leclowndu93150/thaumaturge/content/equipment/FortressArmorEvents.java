@@ -3,13 +3,13 @@ package com.leclowndu93150.thaumaturge.content.equipment;
 import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.ArmorType;
@@ -22,8 +22,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 public final class FortressArmorEvents {
     private static final Identifier SET_ARMOR_ID = TCIds.rl("fortress_set_armor");
     private static final Identifier SET_TOUGHNESS_ID = TCIds.rl("fortress_set_toughness");
-    private static final EquipmentSlot[] SET_SLOTS =
-            {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS};
+    private static final EquipmentSlot[] SET_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS};
     private static final float MAGIC_ABSORB_DIVISOR = 35.0F;
     private static final float FIRE_ABSORB_DIVISOR = 20.0F;
     private static final int MASK_ANGRY_GHOST = 1;
@@ -50,10 +49,8 @@ public final class FortressArmorEvents {
                 }
             }
         }
-        applyBonus(player, player.getAttribute(Attributes.ARMOR), SET_ARMOR_ID,
-                (pieces > 0 ? 1 : 0) + maskedPieces);
-        applyBonus(player, player.getAttribute(Attributes.ARMOR_TOUGHNESS), SET_TOUGHNESS_ID,
-                pieces > 0 ? 1 : 0);
+        applyBonus(player, player.getAttribute(Attributes.ARMOR), SET_ARMOR_ID, (pieces > 0 ? 1 : 0) + maskedPieces);
+        applyBonus(player, player.getAttribute(Attributes.ARMOR_TOUGHNESS), SET_TOUGHNESS_ID, pieces > 0 ? 1 : 0);
     }
 
     private static void applyBonus(Player player, AttributeInstance attribute, Identifier id, int amount) {
@@ -62,8 +59,7 @@ public final class FortressArmorEvents {
         }
         attribute.removeModifier(id);
         if (amount > 0) {
-            attribute.addTransientModifier(new AttributeModifier(id, amount,
-                    AttributeModifier.Operation.ADD_VALUE));
+            attribute.addTransientModifier(new AttributeModifier(id, amount, AttributeModifier.Operation.ADD_VALUE));
         }
     }
 

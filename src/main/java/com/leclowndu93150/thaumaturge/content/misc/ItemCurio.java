@@ -69,8 +69,12 @@ public final class ItemCurio extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
         tooltip.accept(Component.translatable("item.curio.text"));
     }
@@ -78,11 +82,18 @@ public final class ItemCurio extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (player instanceof ServerPlayer serverPlayer) {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(), TCSounds.LEARN.get(),
-                    SoundSource.NEUTRAL, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
+            level.playSound(
+                    null,
+                    player.getX(),
+                    player.getY(),
+                    player.getZ(),
+                    TCSounds.LEARN.get(),
+                    SoundSource.NEUTRAL,
+                    0.5F,
+                    0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
             if (variant.rites && WarpHelper.getActualWarp(player) <= RITES_WARP_THRESHOLD) {
-                player.sendSystemMessage(Component.translatable("fail.crimsonrites")
-                        .withStyle(ChatFormatting.DARK_PURPLE));
+                player.sendSystemMessage(
+                        Component.translatable("fail.crimsonrites").withStyle(ChatFormatting.DARK_PURPLE));
                 return InteractionResult.SUCCESS;
             }
             if (variant.rites && !KnowledgeAccess.of(player).isResearchKnown(CRIMSON_RITES_RESEARCH)) {
@@ -97,17 +108,23 @@ public final class ItemCurio extends Item {
                 }
             }
             RandomSource random = serverPlayer.getRandom();
-            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.OBSERVATION,
-                    Mth.randomBetweenInclusive(random, KnowledgeType.OBSERVATION.progression() / 2,
+            ResearchGrants.grantConvertedKnowledge(
+                    serverPlayer,
+                    KnowledgeType.OBSERVATION,
+                    Mth.randomBetweenInclusive(
+                            random,
+                            KnowledgeType.OBSERVATION.progression() / 2,
                             KnowledgeType.OBSERVATION.progression()));
-            ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.THEORY,
-                    Mth.randomBetweenInclusive(random, KnowledgeType.THEORY.progression() / 3,
-                            KnowledgeType.THEORY.progression() / 2));
+            ResearchGrants.grantConvertedKnowledge(
+                    serverPlayer,
+                    KnowledgeType.THEORY,
+                    Mth.randomBetweenInclusive(
+                            random, KnowledgeType.THEORY.progression() / 3, KnowledgeType.THEORY.progression() / 2));
             if (!player.getAbilities().instabuild) {
                 player.getItemInHand(hand).shrink(1);
             }
-            player.sendSystemMessage(Component.translatable("tc.knowledge.gained")
-                    .withStyle(ChatFormatting.DARK_PURPLE));
+            player.sendSystemMessage(
+                    Component.translatable("tc.knowledge.gained").withStyle(ChatFormatting.DARK_PURPLE));
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return InteractionResult.SUCCESS;
@@ -117,19 +134,23 @@ public final class ItemCurio extends Item {
         RandomSource random = player.getRandom();
         int observation = KnowledgeType.OBSERVATION.progression();
         int theory = KnowledgeType.THEORY.progression();
-        ResearchGrants.grantConvertedKnowledge(player, KnowledgeType.OBSERVATION,
-                Mth.randomBetweenInclusive(random, observation / 2, observation));
-        ResearchGrants.grantConvertedKnowledge(player, KnowledgeType.THEORY,
-                Mth.randomBetweenInclusive(random, theory / 3, theory / 2));
+        ResearchGrants.grantConvertedKnowledge(
+                player, KnowledgeType.OBSERVATION, Mth.randomBetweenInclusive(random, observation / 2, observation));
+        ResearchGrants.grantConvertedKnowledge(
+                player, KnowledgeType.THEORY, Mth.randomBetweenInclusive(random, theory / 3, theory / 2));
     }
 
     private static Holder<IResearchCategory> categoryHolder(ServerPlayer player, ResourceKey<IResearchCategory> key) {
-        return player.registryAccess().lookupOrThrow(IResearchCategory.REGISTRY_KEY).getOrThrow(key);
+        return player.registryAccess()
+                .lookupOrThrow(IResearchCategory.REGISTRY_KEY)
+                .getOrThrow(key);
     }
 
     private static Holder<IResearchCategory> randomCategory(ServerPlayer player) {
         List<Holder.Reference<IResearchCategory>> categories = player.registryAccess()
-                .lookupOrThrow(IResearchCategory.REGISTRY_KEY).listElements().toList();
+                .lookupOrThrow(IResearchCategory.REGISTRY_KEY)
+                .listElements()
+                .toList();
         return categories.get(player.getRandom().nextInt(categories.size()));
     }
 }

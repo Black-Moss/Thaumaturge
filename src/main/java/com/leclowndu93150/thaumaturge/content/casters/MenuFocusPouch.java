@@ -37,21 +37,25 @@ public final class MenuFocusPouch extends AbstractContainerMenu {
         super(TCMenus.FOCUS_POUCH.get(), containerId);
         this.hand = hand;
         this.player = inventory.player;
-        this.blockedHotbarSlot = hand == InteractionHand.MAIN_HAND
-                ? inventory.getSelectedSlot() : -1;
+        this.blockedHotbarSlot = hand == InteractionHand.MAIN_HAND ? inventory.getSelectedSlot() : -1;
         NonNullList<ItemStack> stored = FocusPouchItem.getInventory(pouch());
         for (int slot = 0; slot < stored.size(); slot++) {
             pouchInventory.setItem(slot, stored.get(slot));
         }
         for (int slot = 0; slot < FocusPouchItem.SIZE; slot++) {
-            addSlot(new FocusSlot(pouchInventory, slot,
+            addSlot(new FocusSlot(
+                    pouchInventory,
+                    slot,
                     POUCH_SLOT_X + slot % POUCH_COLUMNS * (SLOT_SIZE + SLOT_X_SPACING),
                     POUCH_SLOT_Y + slot / POUCH_COLUMNS * (SLOT_SIZE + SLOT_Y_SPACING)));
         }
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(inventory, column + row * 9 + 9,
-                        PLAYER_INV_X + column * SLOT_SIZE, PLAYER_INV_Y + row * SLOT_SIZE));
+                addSlot(new Slot(
+                        inventory,
+                        column + row * 9 + 9,
+                        PLAYER_INV_X + column * SLOT_SIZE,
+                        PLAYER_INV_Y + row * SLOT_SIZE));
             }
         }
         for (int column = 0; column < 9; column++) {
@@ -77,7 +81,8 @@ public final class MenuFocusPouch extends AbstractContainerMenu {
     @Override
     public void clicked(int slotId, int button, ContainerInput containerInput, Player clickPlayer) {
         if (blockedHotbarSlot >= 0) {
-            if (slotId >= 0 && slotId < slots.size()
+            if (slotId >= 0
+                    && slotId < slots.size()
                     && slots.get(slotId).container == clickPlayer.getInventory()
                     && slots.get(slotId).getContainerSlot() == blockedHotbarSlot) {
                 return;
@@ -108,8 +113,7 @@ public final class MenuFocusPouch extends AbstractContainerMenu {
             if (!moveItemStackTo(moved, FocusPouchItem.SIZE, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!(moved.getItem() instanceof ItemFocus)
-                || !moveItemStackTo(moved, 0, FocusPouchItem.SIZE, false)) {
+        } else if (!(moved.getItem() instanceof ItemFocus) || !moveItemStackTo(moved, 0, FocusPouchItem.SIZE, false)) {
             return ItemStack.EMPTY;
         }
         if (moved.isEmpty()) {

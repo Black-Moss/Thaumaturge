@@ -22,8 +22,16 @@ public final class CurlyWispParticle extends TCParticle {
     private final float endSize;
     private final FacingCameraMode facing;
 
-    private CurlyWispParticle(ClientLevel level, double x, double y, double z,
-                              double vx, double vy, double vz, CurlyWispParticleOptions options, ParticleSheet sheet) {
+    private CurlyWispParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            CurlyWispParticleOptions options,
+            ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         this.startR = ARGB.red(options.color()) / 255.0F;
         this.startG = ARGB.green(options.color()) / 255.0F;
@@ -63,8 +71,16 @@ public final class CurlyWispParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("curly_wisp");
 
         @Override
-        public Particle createParticle(CurlyWispParticleOptions options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                CurlyWispParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new CurlyWispParticle(level, x, y, z, vx, vy, vz, options, SHEET);
         }
     }

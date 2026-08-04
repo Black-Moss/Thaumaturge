@@ -19,30 +19,46 @@ public record ArcaneCraftingRecipeDisplay(
         SlotDisplay result,
         SlotDisplay craftingStation,
         int visCost,
-        List<SlotDisplay> crystals
-) implements RecipeDisplay {
+        List<SlotDisplay> crystals)
+        implements RecipeDisplay {
     public static final MapCodec<ArcaneCraftingRecipeDisplay> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-            Codec.INT.fieldOf("width").forGetter(ArcaneCraftingRecipeDisplay::width),
-            Codec.INT.fieldOf("height").forGetter(ArcaneCraftingRecipeDisplay::height),
-            Codec.BOOL.optionalFieldOf("shapeless", false).forGetter(ArcaneCraftingRecipeDisplay::shapeless),
-            SlotDisplay.CODEC.listOf().fieldOf("ingredients").forGetter(ArcaneCraftingRecipeDisplay::ingredients),
-            SlotDisplay.CODEC.fieldOf("result").forGetter(ArcaneCraftingRecipeDisplay::result),
-            SlotDisplay.CODEC.fieldOf("crafting_station").forGetter(ArcaneCraftingRecipeDisplay::craftingStation),
-            Codec.INT.fieldOf("vis_cost").forGetter(ArcaneCraftingRecipeDisplay::visCost),
-            SlotDisplay.CODEC.listOf().optionalFieldOf("crystals", List.of()).forGetter(ArcaneCraftingRecipeDisplay::crystals)
-    ).apply(i, ArcaneCraftingRecipeDisplay::new));
+                    Codec.INT.fieldOf("width").forGetter(ArcaneCraftingRecipeDisplay::width),
+                    Codec.INT.fieldOf("height").forGetter(ArcaneCraftingRecipeDisplay::height),
+                    Codec.BOOL.optionalFieldOf("shapeless", false).forGetter(ArcaneCraftingRecipeDisplay::shapeless),
+                    SlotDisplay.CODEC
+                            .listOf()
+                            .fieldOf("ingredients")
+                            .forGetter(ArcaneCraftingRecipeDisplay::ingredients),
+                    SlotDisplay.CODEC.fieldOf("result").forGetter(ArcaneCraftingRecipeDisplay::result),
+                    SlotDisplay.CODEC
+                            .fieldOf("crafting_station")
+                            .forGetter(ArcaneCraftingRecipeDisplay::craftingStation),
+                    Codec.INT.fieldOf("vis_cost").forGetter(ArcaneCraftingRecipeDisplay::visCost),
+                    SlotDisplay.CODEC
+                            .listOf()
+                            .optionalFieldOf("crystals", List.of())
+                            .forGetter(ArcaneCraftingRecipeDisplay::crystals))
+            .apply(i, ArcaneCraftingRecipeDisplay::new));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ArcaneCraftingRecipeDisplay> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, ArcaneCraftingRecipeDisplay::width,
-            ByteBufCodecs.VAR_INT, ArcaneCraftingRecipeDisplay::height,
-            ByteBufCodecs.BOOL, ArcaneCraftingRecipeDisplay::shapeless,
-            SlotDisplay.STREAM_CODEC.apply(ByteBufCodecs.list()), ArcaneCraftingRecipeDisplay::ingredients,
-            SlotDisplay.STREAM_CODEC, ArcaneCraftingRecipeDisplay::result,
-            SlotDisplay.STREAM_CODEC, ArcaneCraftingRecipeDisplay::craftingStation,
-            ByteBufCodecs.VAR_INT, ArcaneCraftingRecipeDisplay::visCost,
-            SlotDisplay.STREAM_CODEC.apply(ByteBufCodecs.list()), ArcaneCraftingRecipeDisplay::crystals,
-            ArcaneCraftingRecipeDisplay::new
-    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, ArcaneCraftingRecipeDisplay> STREAM_CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.VAR_INT,
+                    ArcaneCraftingRecipeDisplay::width,
+                    ByteBufCodecs.VAR_INT,
+                    ArcaneCraftingRecipeDisplay::height,
+                    ByteBufCodecs.BOOL,
+                    ArcaneCraftingRecipeDisplay::shapeless,
+                    SlotDisplay.STREAM_CODEC.apply(ByteBufCodecs.list()),
+                    ArcaneCraftingRecipeDisplay::ingredients,
+                    SlotDisplay.STREAM_CODEC,
+                    ArcaneCraftingRecipeDisplay::result,
+                    SlotDisplay.STREAM_CODEC,
+                    ArcaneCraftingRecipeDisplay::craftingStation,
+                    ByteBufCodecs.VAR_INT,
+                    ArcaneCraftingRecipeDisplay::visCost,
+                    SlotDisplay.STREAM_CODEC.apply(ByteBufCodecs.list()),
+                    ArcaneCraftingRecipeDisplay::crystals,
+                    ArcaneCraftingRecipeDisplay::new);
 
     @Override
     public Type<ArcaneCraftingRecipeDisplay> type() {

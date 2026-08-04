@@ -11,7 +11,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -122,8 +121,10 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
                             freshLeaves.add(pos);
                         } else if (state.is(BlockTags.LEAVES)) {
                             if (!state.is(config.leaves())) {
-                                level.setBlock(pos,
-                                        TreeLeafUpdater.carryDistance(config.leaves().defaultBlockState(), state),
+                                level.setBlock(
+                                        pos,
+                                        TreeLeafUpdater.carryDistance(
+                                                config.leaves().defaultBlockState(), state),
                                         PLACE_FLAGS);
                             }
                             placedLeaves.add(pos);
@@ -249,10 +250,7 @@ public final class BigMagicTreeFeature extends Feature<BigMagicTreeConfig> {
 
         private boolean isReplaceable(BlockPos pos) {
             BlockState state = level.getBlockState(pos);
-            return state.isAir()
-                    || state.is(BlockTags.LEAVES)
-                    || state.is(BlockTags.LOGS)
-                    || state.canBeReplaced();
+            return state.isAir() || state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) || state.canBeReplaced();
         }
 
         private boolean validTreeLocation() {

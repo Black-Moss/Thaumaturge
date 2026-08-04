@@ -96,8 +96,8 @@ public final class GogglesWorldOverlay {
         lastTarget = null;
     }
 
-    private static void drawTags(PoseStack poseStack, Minecraft mc,
-                                 double x, double y, double z, AspectList aspects, Direction dir) {
+    private static void drawTags(
+            PoseStack poseStack, Minecraft mc, double x, double y, double z, AspectList aspects, Direction dir) {
         AspectTagWorldRenderer.renderTagCloud(poseStack, mc, x, y, z, aspects, dir, tagScale, TAG_ALPHA);
     }
 }

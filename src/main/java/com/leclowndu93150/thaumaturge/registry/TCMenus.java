@@ -1,33 +1,32 @@
 package com.leclowndu93150.thaumaturge.registry;
 
-import com.leclowndu93150.thaumaturge.content.research.decon.MenuDeconstructionTable;
-import com.leclowndu93150.thaumaturge.content.device.sprayer.MenuPotionSprayer;
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.content.essentia.smeltery.MenuSmelter;
-import com.leclowndu93150.thaumaturge.content.golem.press.MenuGolemBuilder;
-import com.leclowndu93150.thaumaturge.content.golem.seals.MenuSealBase;
+import com.leclowndu93150.thaumaturge.content.casters.MenuFocalManipulator;
+import com.leclowndu93150.thaumaturge.content.casters.MenuFocusPouch;
+import com.leclowndu93150.thaumaturge.content.device.MenuVoidSiphon;
+import com.leclowndu93150.thaumaturge.content.device.mirror.MenuHandMirror;
+import com.leclowndu93150.thaumaturge.content.device.sprayer.MenuPotionSprayer;
 import com.leclowndu93150.thaumaturge.content.entity.construct.MenuArcaneBore;
 import com.leclowndu93150.thaumaturge.content.entity.construct.MenuTurretAdvanced;
 import com.leclowndu93150.thaumaturge.content.entity.construct.MenuTurretBasic;
+import com.leclowndu93150.thaumaturge.content.essentia.smeltery.MenuSmelter;
+import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.MenuThaumatorium;
+import com.leclowndu93150.thaumaturge.content.golem.press.MenuGolemBuilder;
+import com.leclowndu93150.thaumaturge.content.golem.seals.MenuSealBase;
 import com.leclowndu93150.thaumaturge.content.pech.MenuPech;
-import com.leclowndu93150.thaumaturge.content.spa.MenuSpa;
+import com.leclowndu93150.thaumaturge.content.research.decon.MenuDeconstructionTable;
 import com.leclowndu93150.thaumaturge.content.research.table.MenuResearchTable;
+import com.leclowndu93150.thaumaturge.content.spa.MenuSpa;
 import com.leclowndu93150.thaumaturge.content.workbench.MenuArcaneWorkbench;
 import net.minecraft.core.registries.Registries;
-import com.leclowndu93150.thaumaturge.content.casters.MenuFocalManipulator;
-import com.leclowndu93150.thaumaturge.content.casters.MenuFocusPouch;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
-import com.leclowndu93150.thaumaturge.content.device.MenuVoidSiphon;
-import com.leclowndu93150.thaumaturge.content.device.mirror.MenuHandMirror;
-import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.MenuThaumatorium;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class TCMenus {
-    public static final DeferredRegister<MenuType<?>> MENUS =
-            DeferredRegister.create(Registries.MENU, TCIds.MODID);
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, TCIds.MODID);
 
     public static final DeferredHolder<MenuType<?>, MenuType<MenuFocalManipulator>> FOCAL_MANIPULATOR =
             MENUS.register("focal_manipulator", () -> IMenuTypeExtension.create(MenuFocalManipulator::new));

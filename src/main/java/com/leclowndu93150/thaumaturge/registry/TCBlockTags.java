@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public final class TCBlockTags {

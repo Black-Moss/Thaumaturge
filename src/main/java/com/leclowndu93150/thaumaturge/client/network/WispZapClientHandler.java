@@ -40,7 +40,12 @@ public final class WispZapClientHandler {
             }
             mc.level.addParticle(
                     new BoltParticleOptions(target.getX(), target.getY(), target.getZ(), r, g, b, BOLT_WIDTH),
-                    source.getX(), source.getY(), source.getZ(), 0.0, 0.0, 0.0);
+                    source.getX(),
+                    source.getY(),
+                    source.getZ(),
+                    0.0,
+                    0.0,
+                    0.0);
         });
     }
 }

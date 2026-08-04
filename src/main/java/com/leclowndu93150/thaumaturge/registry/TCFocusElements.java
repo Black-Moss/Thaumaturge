@@ -35,8 +35,7 @@ public final class TCFocusElements {
     public static final DeferredRegister<FocusElementType> ELEMENTS =
             DeferredRegister.create(FocusElementType.REGISTRY_KEY, TCIds.MODID);
 
-    private static final Registry<FocusElementType> REGISTRY =
-            ELEMENTS.makeRegistry(builder -> builder.sync(false));
+    private static final Registry<FocusElementType> REGISTRY = ELEMENTS.makeRegistry(builder -> builder.sync(false));
 
     public static final DeferredHolder<FocusElementType, FocusElementType> ROOT =
             element("root", new FocusMediumRoot(), 10066329);
@@ -92,10 +91,10 @@ public final class TCFocusElements {
 
     private TCFocusElements() {}
 
-    private static DeferredHolder<FocusElementType, FocusElementType> element(String path,
-            FocusElement element, int color) {
-        return ELEMENTS.register(path, () -> new FocusElementType(element,
-                TCIds.rl("textures/foci/" + path + ".png"), color));
+    private static DeferredHolder<FocusElementType, FocusElementType> element(
+            String path, FocusElement element, int color) {
+        return ELEMENTS.register(
+                path, () -> new FocusElementType(element, TCIds.rl("textures/foci/" + path + ".png"), color));
     }
 
     public static Registry<FocusElementType> registry() {

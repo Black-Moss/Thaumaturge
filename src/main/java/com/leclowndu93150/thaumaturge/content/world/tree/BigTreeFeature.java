@@ -159,9 +159,8 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
                         int[] nodeTop = {nodeX, layerY + LEAF_DISTANCE_LIMIT, nodeZ};
                         if (checkBlockLine(nodeBase, nodeTop) == -1) {
                             int[] branchBase = {basePos[0], basePos[1], basePos[2]};
-                            double dist = Math.sqrt(
-                                    Math.pow(Math.abs(basePos[0] - nodeBase[0]), 2.0)
-                                            + Math.pow(Math.abs(basePos[2] - nodeBase[2]), 2.0));
+                            double dist = Math.sqrt(Math.pow(Math.abs(basePos[0] - nodeBase[0]), 2.0)
+                                    + Math.pow(Math.abs(basePos[2] - nodeBase[2]), 2.0));
                             double drop = dist * config.branchSlope();
                             if (nodeBase[1] - drop > branchTop) {
                                 branchBase[1] = branchTop;
@@ -287,11 +286,12 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
         private BlockState logState(Block block, byte axisMeta) {
             BlockState state = block.defaultBlockState();
             if (state.hasProperty(RotatedPillarBlock.AXIS)) {
-                Direction.Axis axis = switch (axisMeta) {
-                    case 0 -> Direction.Axis.X;
-                    case 2 -> Direction.Axis.Z;
-                    default -> Direction.Axis.Y;
-                };
+                Direction.Axis axis =
+                        switch (axisMeta) {
+                            case 0 -> Direction.Axis.X;
+                            case 2 -> Direction.Axis.Z;
+                            default -> Direction.Axis.Y;
+                        };
                 state = state.setValue(RotatedPillarBlock.AXIS, axis);
             }
             return state;
@@ -299,10 +299,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
 
         private boolean isReplaceable(BlockPos pos) {
             BlockState state = level.getBlockState(pos);
-            return state.isAir()
-                    || state.is(BlockTags.LEAVES)
-                    || state.is(BlockTags.LOGS)
-                    || state.canBeReplaced();
+            return state.isAir() || state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) || state.canBeReplaced();
         }
 
         private void generateLeaves() {

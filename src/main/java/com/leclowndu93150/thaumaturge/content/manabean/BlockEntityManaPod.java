@@ -4,9 +4,9 @@ import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import java.util.ArrayList;
@@ -130,7 +130,8 @@ public final class BlockEntityManaPod extends BlockEntity {
             aspect = TCAspects.HERBA;
         } else {
             List<ResourceKey<IAspect>> primals = registries
-                    .lookupOrThrow(IAspect.REGISTRY_KEY).listElements()
+                    .lookupOrThrow(IAspect.REGISTRY_KEY)
+                    .listElements()
                     .filter(entry -> entry.value().isPrimal())
                     .map(Holder.Reference::key)
                     .toList();
@@ -179,7 +180,8 @@ public final class BlockEntityManaPod extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector collector =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

@@ -11,10 +11,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
 
 public record ClientboundKnowledgeGainPayload(
-        KnowledgeType knowledgeType,
-        Optional<ResourceKey<IResearchCategory>> category,
-        int count
-) implements CustomPacketPayload {
+        KnowledgeType knowledgeType, Optional<ResourceKey<IResearchCategory>> category, int count)
+        implements CustomPacketPayload {
     public static final Type<ClientboundKnowledgeGainPayload> TYPE = new Type<>(TCIds.rl("knowledge_gain"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundKnowledgeGainPayload> STREAM_CODEC =

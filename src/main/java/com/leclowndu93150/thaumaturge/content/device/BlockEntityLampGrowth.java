@@ -7,6 +7,9 @@ import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -33,10 +36,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public final class BlockEntityLampGrowth extends BlockEntity implements IEssentiaTransport {
     private static final int MAX_CHARGES = 20;
@@ -92,9 +91,16 @@ public final class BlockEntityLampGrowth extends BlockEntity implements IEssenti
         }
         BlockState current = server.getBlockState(lastTarget);
         if (lastTargetState != null && current != lastTargetState) {
-            server.sendParticles(ParticleTypes.HAPPY_VILLAGER,
-                    lastTarget.getX() + 0.5, lastTarget.getY() + 0.5, lastTarget.getZ() + 0.5,
-                    6, 0.3, 0.3, 0.3, 0.0);
+            server.sendParticles(
+                    ParticleTypes.HAPPY_VILLAGER,
+                    lastTarget.getX() + 0.5,
+                    lastTarget.getY() + 0.5,
+                    lastTarget.getZ() + 0.5,
+                    6,
+                    0.3,
+                    0.3,
+                    0.3,
+                    0.0);
             lastTargetState = current;
         }
         if (checklist.isEmpty()) {
@@ -111,7 +117,10 @@ public final class BlockEntityLampGrowth extends BlockEntity implements IEssenti
             BlockState state = server.getBlockState(cursor);
             if (!state.isAir()
                     && isPlant(state)
-                    && cursor.distToCenterSqr(getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5)
+                    && cursor.distToCenterSqr(
+                                    getBlockPos().getX() + 0.5,
+                                    getBlockPos().getY() + 0.5,
+                                    getBlockPos().getZ() + 0.5)
                             < SCAN_DISTANCE * SCAN_DISTANCE
                     && !isGrownCrop(server, cursor, state)
                     && !state.is(TCBlockTags.LAMP_GROWTH_BLACKLIST)) {
@@ -134,8 +143,10 @@ public final class BlockEntityLampGrowth extends BlockEntity implements IEssenti
         if (block instanceof GrassBlock) {
             return false;
         }
-        return block instanceof BonemealableBlock || block instanceof CactusBlock
-                || block instanceof SugarCaneBlock || block instanceof NetherWartBlock;
+        return block instanceof BonemealableBlock
+                || block instanceof CactusBlock
+                || block instanceof SugarCaneBlock
+                || block instanceof NetherWartBlock;
     }
 
     private static boolean isGrownCrop(ServerLevel level, BlockPos pos, BlockState state) {
@@ -160,7 +171,8 @@ public final class BlockEntityLampGrowth extends BlockEntity implements IEssenti
             return false;
         }
         Direction facing = getBlockState().getValue(BlockStateProperties.FACING);
-        IEssentiaTransport ic = EssentiaFlowHandler.transport(level, getBlockPos().relative(facing), facing.getOpposite());
+        IEssentiaTransport ic =
+                EssentiaFlowHandler.transport(level, getBlockPos().relative(facing), facing.getOpposite());
         if (ic == null || !ic.canOutputTo(facing.getOpposite())) {
             return false;
         }
@@ -247,7 +259,8 @@ public final class BlockEntityLampGrowth extends BlockEntity implements IEssenti
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

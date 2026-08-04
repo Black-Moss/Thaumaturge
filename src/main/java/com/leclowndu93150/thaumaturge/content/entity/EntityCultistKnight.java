@@ -35,8 +35,7 @@ public class EntityCultistKnight extends EntityCultist {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createCultistAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0);
+        return createCultistAttributes().add(Attributes.MAX_HEALTH, 30.0);
     }
 
     @Override
@@ -59,8 +58,8 @@ public class EntityCultistKnight extends EntityCultist {
         this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(TCItems.CRIMSON_PLATE_CHEST.get()));
         this.setItemSlot(EquipmentSlot.LEGS, new ItemStack(TCItems.CRIMSON_PLATE_LEGS.get()));
         this.setItemSlot(EquipmentSlot.FEET, new ItemStack(TCItems.CRIMSON_BOOTS.get()));
-        float specialChance = this.level().getDifficulty() == Difficulty.HARD
-                ? SPECIAL_WEAPON_CHANCE_HARD : SPECIAL_WEAPON_CHANCE;
+        float specialChance =
+                this.level().getDifficulty() == Difficulty.HARD ? SPECIAL_WEAPON_CHANCE_HARD : SPECIAL_WEAPON_CHANCE;
         if (this.random.nextFloat() < specialChance) {
             if (this.random.nextInt(5) == 0) {
                 this.setItemInHand(this.getUsedItemHand(), new ItemStack(TCItems.VOID_SWORD.get()));
@@ -77,13 +76,17 @@ public class EntityCultistKnight extends EntityCultist {
     }
 
     @Override
-    protected void populateDefaultEquipmentEnchantments(ServerLevelAccessor level, RandomSource random,
-                                                        DifficultyInstance difficulty) {
+    protected void populateDefaultEquipmentEnchantments(
+            ServerLevelAccessor level, RandomSource random, DifficultyInstance difficulty) {
         float f = difficulty.getSpecialMultiplier();
         ItemStack weapon = this.getMainHandItem();
         if (!weapon.isEmpty() && random.nextFloat() < ENCHANT_CHANCE * f) {
-            EnchantmentHelper.enchantItemFromProvider(weapon, level.registryAccess(),
-                    VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT, difficulty, random);
+            EnchantmentHelper.enchantItemFromProvider(
+                    weapon,
+                    level.registryAccess(),
+                    VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT,
+                    difficulty,
+                    random);
         }
     }
 }

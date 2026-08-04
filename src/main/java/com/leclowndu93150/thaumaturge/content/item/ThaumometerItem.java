@@ -88,7 +88,8 @@ public final class ThaumometerItem extends Item {
 
     public static @Nullable Object resolveTarget(Level level, Player player) {
         HitResult hitResult = ScanRaycastHelper.performRaycast(player, ClipContext.Fluid.SOURCE_ONLY);
-        return hitResult.getType() == HitResult.Type.BLOCK ? ((BlockHitResult) hitResult).getBlockPos()
+        return hitResult.getType() == HitResult.Type.BLOCK
+                ? ((BlockHitResult) hitResult).getBlockPos()
                 : hitResult instanceof EntityHitResult result ? result.getEntity() : null;
     }
 
@@ -107,8 +108,8 @@ public final class ThaumometerItem extends Item {
                 || flux > AuraHelper.getAuraBase(level, pos) / (float) FLUX_WARN_BASE_DIVISOR;
         if (dangerous && !KnowledgeAccess.of(player).isResearchKnown(TCResearchEntries.FLUX)) {
             ResearchManager.complete(player, TCResearchEntries.FLUX);
-            player.sendOverlayMessage(Component.translatable("research.thaumaturge.flux.warn")
-                    .withStyle(ChatFormatting.DARK_PURPLE));
+            player.sendOverlayMessage(
+                    Component.translatable("research.thaumaturge.flux.warn").withStyle(ChatFormatting.DARK_PURPLE));
         }
     }
 }

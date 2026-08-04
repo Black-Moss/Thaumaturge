@@ -14,7 +14,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -97,7 +96,8 @@ public final class EntityTaintCrawler extends Monster implements ITaintedMob {
         boolean attacked = super.doHurtTarget(level, target);
         if (attacked && target instanceof LivingEntity living) {
             if (level.getRandom().nextFloat() < 0.3F) {
-                living.addEffect(new MobEffectInstance(TCMobEffects.FLUX_TAINT, FLUX_TAINT_BASE_TICKS, 0, true, false, false));
+                living.addEffect(
+                        new MobEffectInstance(TCMobEffects.FLUX_TAINT, FLUX_TAINT_BASE_TICKS, 0, true, false, false));
             }
         }
         return attacked;

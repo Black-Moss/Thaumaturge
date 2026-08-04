@@ -17,8 +17,8 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,8 +56,12 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     }
 
     @Override
-    public void extractRenderState(BlockEntityBanner banner, BannerRenderState state, float partialTicks,
-                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityBanner banner,
+            BannerRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(banner, state, partialTicks, cameraPosition, breakProgress);
         BlockState blockState = banner.getBlockState();
         state.onWall = blockState.getBlock() instanceof BannerWallBlock;
@@ -77,7 +81,9 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
         state.aspectTexture = null;
         ResourceKey<IAspect> aspect = banner.aspect();
         if (aspect != null && banner.getLevel() != null) {
-            state.aspectTexture = banner.getLevel().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY)
+            state.aspectTexture = banner.getLevel()
+                    .registryAccess()
+                    .lookupOrThrow(IAspect.REGISTRY_KEY)
                     .get(aspect)
                     .map(Holder::value)
                     .map(IAspect::texture)
@@ -91,7 +97,8 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     }
 
     @Override
-    public void submit(BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         Identifier texture = state.color == -1 ? TEX_CULTIST : TEX_BLANK;
         int tint = state.color == -1 ? -1 : state.color;
         poseStack.pushPose();
@@ -114,10 +121,22 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
         poseStack.popPose();
     }
 
-    private void submitPart(SubmitNodeCollector collector, PoseStack poseStack, ModelPart part,
-                            Identifier texture, int color, BannerRenderState state) {
-        collector.submitModelPart(part, poseStack, RenderTypes.entityCutout(texture),
-                state.lightCoords, OverlayTexture.NO_OVERLAY, null, color, null);
+    private void submitPart(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            ModelPart part,
+            Identifier texture,
+            int color,
+            BannerRenderState state) {
+        collector.submitModelPart(
+                part,
+                poseStack,
+                RenderTypes.entityCutout(texture),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                null,
+                color,
+                null);
     }
 
     private void submitAspect(SubmitNodeCollector collector, PoseStack poseStack, BannerRenderState state) {
@@ -125,18 +144,20 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
         poseStack.translate(0.0F, -5.0F / 16.0F, 0.0F);
         poseStack.mulPose(Axis.XP.rotation(state.sway));
         int light = state.lightCoords;
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(state.aspectTexture), (pose, buffer) -> {
-            Matrix4fc mat = pose.pose();
-            int color = ARGB.colorFromFloat(0.75F, 1.0F, 1.0F, 1.0F);
-            addVertex(buffer, mat, -ASPECT_HALF_WIDTH, ASPECT_TOP, 0.0F, 1.0F, color, light);
-            addVertex(buffer, mat, ASPECT_HALF_WIDTH, ASPECT_TOP, 1.0F, 1.0F, color, light);
-            addVertex(buffer, mat, ASPECT_HALF_WIDTH, ASPECT_BOTTOM, 1.0F, 0.0F, color, light);
-            addVertex(buffer, mat, -ASPECT_HALF_WIDTH, ASPECT_BOTTOM, 0.0F, 0.0F, color, light);
-        });
+        collector.submitCustomGeometry(
+                poseStack, RenderTypes.entityTranslucent(state.aspectTexture), (pose, buffer) -> {
+                    Matrix4fc mat = pose.pose();
+                    int color = ARGB.colorFromFloat(0.75F, 1.0F, 1.0F, 1.0F);
+                    addVertex(buffer, mat, -ASPECT_HALF_WIDTH, ASPECT_TOP, 0.0F, 1.0F, color, light);
+                    addVertex(buffer, mat, ASPECT_HALF_WIDTH, ASPECT_TOP, 1.0F, 1.0F, color, light);
+                    addVertex(buffer, mat, ASPECT_HALF_WIDTH, ASPECT_BOTTOM, 1.0F, 0.0F, color, light);
+                    addVertex(buffer, mat, -ASPECT_HALF_WIDTH, ASPECT_BOTTOM, 0.0F, 0.0F, color, light);
+                });
         poseStack.popPose();
     }
 
-    private static void addVertex(VertexConsumer buffer, Matrix4fc mat, float x, float y, float u, float v, int color, int light) {
+    private static void addVertex(
+            VertexConsumer buffer, Matrix4fc mat, float x, float y, float u, float v, int color, int light) {
         buffer.addVertex(mat, x, y, ASPECT_Z)
                 .setUv(u, v)
                 .setColor(color)

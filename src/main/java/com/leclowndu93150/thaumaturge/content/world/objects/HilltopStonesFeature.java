@@ -56,8 +56,7 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int x = i - RING_RADIUS; x <= i + RING_RADIUS; x++) {
             for (int z = k - RING_RADIUS; z <= k + RING_RADIUS; z++) {
-                if ((x == i - RING_RADIUS || x == i + RING_RADIUS)
-                        && (z == k - RING_RADIUS || z == k + RING_RADIUS)) {
+                if ((x == i - RING_RADIUS || x == i + RING_RADIUS) && (z == k - RING_RADIUS || z == k + RING_RADIUS)) {
                     continue;
                 }
                 level.setBlock(cursor.set(x, j, z), floorState(random), PLACE_FLAGS);
@@ -65,7 +64,9 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
                 for (int y = 1; y <= FILL_DEPTH; y++) {
                     if (j - y >= level.getMinY()) {
                         BlockState below = level.getBlockState(cursor.set(x, j - y, z));
-                        if (below.isAir() || below.is(Blocks.SNOW) || below.is(Blocks.SHORT_GRASS)
+                        if (below.isAir()
+                                || below.is(Blocks.SNOW)
+                                || below.is(Blocks.SHORT_GRASS)
                                 || below.is(BlockTags.SMALL_FLOWERS)) {
                             level.setBlock(cursor, fill, PLACE_FLAGS);
                         }
@@ -74,8 +75,10 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
                         placeCenter(level, random, i, j, k);
                     }
                     if (!stop && isPillarColumn(x, z, i, k)) {
-                        level.setBlock(cursor.set(x, j + y, z),
-                                TCBlocks.OBSIDIAN_TOTEM.get().defaultBlockState(), PLACE_FLAGS);
+                        level.setBlock(
+                                cursor.set(x, j + y, z),
+                                TCBlocks.OBSIDIAN_TOTEM.get().defaultBlockState(),
+                                PLACE_FLAGS);
                         if (y >= PILLAR_STOP_MIN_HEIGHT && random.nextBoolean()) {
                             stop = true;
                             if (vines) {
@@ -89,8 +92,15 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
                 }
             }
         }
-        NodeGenerator.createRandomNodeAt(level, new BlockPos(i, j + NODE_HEIGHT, k), random,
-                false, true, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+        NodeGenerator.createRandomNodeAt(
+                level,
+                new BlockPos(i, j + NODE_HEIGHT, k),
+                random,
+                false,
+                true,
+                false,
+                NodeGenerator.DEFAULT_SPECIAL_RARITY,
+                NodeGenerator.DEFAULT_BASE_AURA);
         return true;
     }
 
@@ -146,7 +156,8 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
         }
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, y, z);
         int distanceToAir = 0;
-        while (distanceToAir <= MAX_AIR_GAP && !level.getBlockState(cursor.setY(y + distanceToAir)).isAir()) {
+        while (distanceToAir <= MAX_AIR_GAP
+                && !level.getBlockState(cursor.setY(y + distanceToAir)).isAir()) {
             distanceToAir++;
         }
         if (distanceToAir > MAX_AIR_GAP) {

@@ -11,16 +11,18 @@ import net.minecraft.resources.Identifier;
 
 public record ServerboundGolemPressPayload(BlockPos pos, GolemProperties props, boolean craft)
         implements CustomPacketPayload {
-    public static final Type<ServerboundGolemPressPayload> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_press"));
+    public static final Type<ServerboundGolemPressPayload> TYPE =
+            new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_press"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundGolemPressPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    BlockPos.STREAM_CODEC, ServerboundGolemPressPayload::pos,
-                    GolemProperties.STREAM_CODEC, ServerboundGolemPressPayload::props,
-                    ByteBufCodecs.BOOL, ServerboundGolemPressPayload::craft,
-                    ServerboundGolemPressPayload::new
-            );
+                    BlockPos.STREAM_CODEC,
+                    ServerboundGolemPressPayload::pos,
+                    GolemProperties.STREAM_CODEC,
+                    ServerboundGolemPressPayload::props,
+                    ByteBufCodecs.BOOL,
+                    ServerboundGolemPressPayload::craft,
+                    ServerboundGolemPressPayload::new);
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

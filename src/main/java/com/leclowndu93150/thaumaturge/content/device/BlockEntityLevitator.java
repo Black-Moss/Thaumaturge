@@ -2,8 +2,8 @@ package com.leclowndu93150.thaumaturge.content.device;
 
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.registry.TCParticles;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
+import com.leclowndu93150.thaumaturge.registry.TCParticles;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,8 +13,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.Mth;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
@@ -128,11 +128,15 @@ public final class BlockEntityLevitator extends BlockEntity {
             return;
         }
         RandomSource rand = level.getRandom();
-        spawnParticle(level, rand,
+        spawnParticle(
+                level,
+                rand,
                 pos.getX() + 0.25F + rand.nextFloat() * 0.5F,
                 pos.getY() + 0.25F + rand.nextFloat() * 0.5F,
                 pos.getZ() + 0.25F + rand.nextFloat() * 0.5F,
-                facing.getStepX() / 50.0, facing.getStepY() / 50.0, facing.getStepZ() / 50.0);
+                facing.getStepX() / 50.0,
+                facing.getStepY() / 50.0,
+                facing.getStepZ() / 50.0);
     }
 
     private static void drawFXAt(Level level, Entity entity) {
@@ -140,7 +144,9 @@ public final class BlockEntityLevitator extends BlockEntity {
             return;
         }
         RandomSource rand = level.getRandom();
-        spawnParticle(level, rand,
+        spawnParticle(
+                level,
+                rand,
                 entity.getX() + (rand.nextFloat() - rand.nextFloat()) * entity.getBbWidth(),
                 entity.getY() + rand.nextFloat() * entity.getBbHeight(),
                 entity.getZ() + (rand.nextFloat() - rand.nextFloat()) * entity.getBbWidth(),
@@ -149,8 +155,8 @@ public final class BlockEntityLevitator extends BlockEntity {
                 (rand.nextFloat() - rand.nextFloat()) * 0.01);
     }
 
-    private static void spawnParticle(Level level, RandomSource rand, double x, double y, double z,
-                                      double vx, double vy, double vz) {
+    private static void spawnParticle(
+            Level level, RandomSource rand, double x, double y, double z, double vx, double vy, double vz) {
         level.addParticle(TCParticles.LEVITATOR_MIST.get(), x, y, z, vx, vy, vz);
     }
 
@@ -196,7 +202,8 @@ public final class BlockEntityLevitator extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

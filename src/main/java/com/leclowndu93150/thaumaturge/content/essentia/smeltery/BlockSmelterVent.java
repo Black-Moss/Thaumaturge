@@ -31,7 +31,7 @@ public class BlockSmelterVent extends Block {
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(FACING,rotation.rotate(state.getValue(FACING)));
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
@@ -51,11 +51,21 @@ public class BlockSmelterVent extends Block {
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return level.getBlockState(pos.relative(state.getValue(FACING))).getBlock() instanceof BlockSmelter && level.getBlockState(pos.relative(state.getValue(FACING))).getValue(FACING) != state.getValue(FACING).getOpposite();
+        return level.getBlockState(pos.relative(state.getValue(FACING))).getBlock() instanceof BlockSmelter
+                && level.getBlockState(pos.relative(state.getValue(FACING))).getValue(FACING)
+                        != state.getValue(FACING).getOpposite();
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+    protected BlockState updateShape(
+            BlockState state,
+            LevelReader level,
+            ScheduledTickAccess ticks,
+            BlockPos pos,
+            Direction directionToNeighbour,
+            BlockPos neighbourPos,
+            BlockState neighbourState,
+            RandomSource random) {
         if (!canSurvive(state, level, pos)) {
             return Blocks.AIR.defaultBlockState();
         }

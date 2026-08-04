@@ -27,8 +27,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class TCSeals {
-    public static final DeferredRegister<SealType> SEALS =
-            DeferredRegister.create(SealType.REGISTRY_KEY, TCIds.MODID);
+    public static final DeferredRegister<SealType> SEALS = DeferredRegister.create(SealType.REGISTRY_KEY, TCIds.MODID);
 
     private static final Registry<SealType> REGISTRY = SEALS.makeRegistry(builder -> builder.sync(false));
 
@@ -36,8 +35,7 @@ public final class TCSeals {
             seal("pickup", SealPickup::new, () -> TCItems.SEAL_PICKUP);
     public static final DeferredHolder<SealType, SealType> PICKUP_ADVANCED =
             seal("pickup_advanced", SealPickupAdvanced::new, () -> TCItems.SEAL_PICKUP_ADVANCED);
-    public static final DeferredHolder<SealType, SealType> FILL =
-            seal("fill", SealFill::new, () -> TCItems.SEAL_FILL);
+    public static final DeferredHolder<SealType, SealType> FILL = seal("fill", SealFill::new, () -> TCItems.SEAL_FILL);
     public static final DeferredHolder<SealType, SealType> FILL_ADVANCED =
             seal("fill_advanced", SealFillAdvanced::new, () -> TCItems.SEAL_FILL_ADVANCED);
     public static final DeferredHolder<SealType, SealType> EMPTY =
@@ -56,8 +54,7 @@ public final class TCSeals {
             seal("lumber", SealLumber::new, () -> TCItems.SEAL_LUMBER);
     public static final DeferredHolder<SealType, SealType> BREAKER =
             seal("breaker", SealBreaker::new, () -> TCItems.SEAL_BREAKER);
-    public static final DeferredHolder<SealType, SealType> USE =
-            seal("use", SealUse::new, () -> TCItems.SEAL_USE);
+    public static final DeferredHolder<SealType, SealType> USE = seal("use", SealUse::new, () -> TCItems.SEAL_USE);
     public static final DeferredHolder<SealType, SealType> PROVIDER =
             seal("provider", SealProvide::new, () -> TCItems.SEAL_PROVIDER);
     public static final DeferredHolder<SealType, SealType> STOCK =
@@ -67,8 +64,8 @@ public final class TCSeals {
 
     private TCSeals() {}
 
-    private static DeferredHolder<SealType, SealType> seal(String path, Supplier<? extends ISeal> factory,
-            Supplier<Supplier<? extends ItemLike>> item) {
+    private static DeferredHolder<SealType, SealType> seal(
+            String path, Supplier<? extends ISeal> factory, Supplier<Supplier<? extends ItemLike>> item) {
         return SEALS.register(path, () -> new SealType(factory, () -> item.get().get()));
     }
 

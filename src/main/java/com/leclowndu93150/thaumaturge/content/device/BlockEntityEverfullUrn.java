@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumaturge.content.device;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,9 +31,6 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class BlockEntityEverfullUrn extends BlockEntity {
     public static final int CAPACITY = 1000;
@@ -164,8 +163,16 @@ public final class BlockEntityEverfullUrn extends BlockEntity {
     }
 
     private void splashAt(ServerLevel server, BlockPos target) {
-        server.sendParticles(ParticleTypes.SPLASH,
-                target.getX() + 0.5, target.getY() + 1.0, target.getZ() + 0.5, 4, 0.2, 0.1, 0.2, 0.0);
+        server.sendParticles(
+                ParticleTypes.SPLASH,
+                target.getX() + 0.5,
+                target.getY() + 1.0,
+                target.getZ() + 0.5,
+                4,
+                0.2,
+                0.1,
+                0.2,
+                0.0);
     }
 
     @Override
@@ -193,7 +200,8 @@ public final class BlockEntityEverfullUrn extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

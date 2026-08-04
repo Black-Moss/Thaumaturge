@@ -5,13 +5,15 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
-import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInput;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -40,9 +42,6 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class BlockEntityThaumatorium extends BlockEntity implements IEssentiaTransport {
     private static final int CHECK_INTERVAL = 40;
@@ -95,7 +94,8 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
     private Direction facing() {
         BlockState state = getBlockState();
         return state.hasProperty(HorizontalDirectionalBlock.FACING)
-                ? state.getValue(HorizontalDirectionalBlock.FACING) : Direction.NORTH;
+                ? state.getValue(HorizontalDirectionalBlock.FACING)
+                : Direction.NORTH;
     }
 
     public void toggleRecipe(ServerLevel server, Player player, Identifier recipeId) {
@@ -158,7 +158,10 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
             machine.updateUpgrades(server);
         }
         machine.counter++;
-        if (!machine.heated || machine.gettingPower(server) || machine.counter % WORK_INTERVAL != 0 || machine.queue.isEmpty()) {
+        if (!machine.heated
+                || machine.gettingPower(server)
+                || machine.counter % WORK_INTERVAL != 0
+                || machine.queue.isEmpty()) {
             return;
         }
         ItemStack stack = machine.catalystStack();
@@ -166,13 +169,17 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
             machine.currentSuction = null;
             return;
         }
-        if (machine.currentCraft < 0 || machine.currentCraft >= machine.queue.size()
-                || machine.currentRecipe == null || !machine.currentRecipe.catalyst().test(stack)) {
+        if (machine.currentCraft < 0
+                || machine.currentCraft >= machine.queue.size()
+                || machine.currentRecipe == null
+                || !machine.currentRecipe.catalyst().test(stack)) {
             machine.currentCraft = -1;
             machine.currentRecipe = null;
             for (int a = 0; a < machine.queue.size(); a++) {
                 RecipeHolder<?> holder = machine.findRecipe(server, machine.queue.get(a));
-                if (holder != null && holder.value() instanceof CrucibleRecipe recipe && recipe.catalyst().test(stack)) {
+                if (holder != null
+                        && holder.value() instanceof CrucibleRecipe recipe
+                        && recipe.catalyst().test(stack)) {
                     machine.currentCraft = a;
                     machine.currentRecipe = recipe;
                     break;
@@ -214,8 +221,7 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
                 }
                 BlockPos bp = getBlockPos().above(yy).relative(dir);
                 BlockState bs = server.getBlockState(bp);
-                if (bs.is(TCBlocks.BRAIN_BOX.get())
-                        && bs.getValue(BlockStateProperties.FACING) == dir.getOpposite()) {
+                if (bs.is(TCBlocks.BRAIN_BOX.get()) && bs.getValue(BlockStateProperties.FACING) == dir.getOpposite()) {
                     max += BRAIN_BOX_BONUS;
                 }
             }
@@ -244,8 +250,13 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
         ItemStack result = currentRecipe.assemble(new CrucibleRecipeInput(stack, essentia));
         essentia = AspectList.EMPTY;
         InvHelper.ejectStackAt(server, getBlockPos(), facing(), result);
-        server.playSound(null, getBlockPos(), SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS,
-                0.25F, 2.6F + (server.getRandom().nextFloat() - server.getRandom().nextFloat()) * 0.8F);
+        server.playSound(
+                null,
+                getBlockPos(),
+                SoundEvents.LAVA_EXTINGUISH,
+                SoundSource.BLOCKS,
+                0.25F,
+                2.6F + (server.getRandom().nextFloat() - server.getRandom().nextFloat()) * 0.8F);
         currentCraft = -1;
         currentRecipe = null;
         setChanged();
@@ -378,7 +389,8 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput out = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(out);
             nbt.merge(out.buildResult());

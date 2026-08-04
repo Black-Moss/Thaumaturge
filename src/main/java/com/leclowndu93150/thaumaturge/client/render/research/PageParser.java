@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.render.research;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
@@ -23,7 +23,8 @@ public final class PageParser {
     private static final float BONUS_BREAK_FRACTION = 0.66F;
     private static final int IMAGE_GAP = 2;
 
-    private static final Identifier KNOWLEDGETYPES_ID = Identifier.fromNamespaceAndPath("thaumaturge", "knowledge_types");
+    private static final Identifier KNOWLEDGETYPES_ID =
+            Identifier.fromNamespaceAndPath("thaumaturge", "knowledge_types");
     private static final String ADDENDUM_TEXT_KEY = "tc.addendumtext";
 
     private PageParser() {}
@@ -73,19 +74,22 @@ public final class PageParser {
     }
 
     private static final String[][] MARKUP_SENTINELS = {
-            {"<BR>", "~B\n\n"}, {"<BR/>", "~B\n\n"},
-            {"<LINE>", "~L"}, {"<LINE/>", "~L"},
-            {"<DIV>", "~D"}, {"<DIV/>", "~D"},
-            {"<PAGE>", "~P"}, {"<PAGE/>", "~P"},
+        {"<BR>", "~B\n\n"}, {"<BR/>", "~B\n\n"},
+        {"<LINE>", "~L"}, {"<LINE/>", "~L"},
+        {"<DIV>", "~D"}, {"<DIV/>", "~D"},
+        {"<PAGE>", "~P"}, {"<PAGE/>", "~P"},
     };
     private static final String MARKER_PRECEDENCE = "PDLI";
     private static final String IMAGE_OPEN = "<IMG>";
     private static final String IMAGE_CLOSE = "</IMG>";
 
-    private static List<Page> paginate(Font font, String stageTextKey, List<String> addendaTextKeys, int initialBudget) {
-        StringBuilder assembled = new StringBuilder(Component.translatable(stageTextKey).getString());
+    private static List<Page> paginate(
+            Font font, String stageTextKey, List<String> addendaTextKeys, int initialBudget) {
+        StringBuilder assembled =
+                new StringBuilder(Component.translatable(stageTextKey).getString());
         for (int i = 0; i < addendaTextKeys.size(); i++) {
-            assembled.append("<PAGE>")
+            assembled
+                    .append("<PAGE>")
                     .append(Component.translatable(ADDENDUM_TEXT_KEY, i + 1).getString())
                     .append("<BR>")
                     .append(Component.translatable(addendaTextKeys.get(i)).getString());
@@ -114,8 +118,10 @@ public final class PageParser {
             }
             int close = text.indexOf(IMAGE_CLOSE, open + IMAGE_OPEN.length());
             if (close < 0) {
-                return out.append(text, cursor, text.length()).toString()
-                        .replace(IMAGE_OPEN, "").replace(IMAGE_CLOSE, "");
+                return out.append(text, cursor, text.length())
+                        .toString()
+                        .replace(IMAGE_OPEN, "")
+                        .replace(IMAGE_CLOSE, "");
             }
             out.append(text, cursor, open);
             PageImage image = PageImage.parse(text.substring(open + IMAGE_OPEN.length(), close));
@@ -289,6 +295,7 @@ public final class PageParser {
 
     public sealed interface PageElement permits PageElement.Text, PageElement.Image {
         record Text(String content, Style style, boolean paragraphBreak) implements PageElement {}
+
         record Image(PageImage image) implements PageElement {}
     }
 
@@ -301,10 +308,18 @@ public final class PageParser {
     public static final class PageImage {
         public static final PageImage LINE_DIVIDER = new PageImage(
                 Identifier.fromNamespaceAndPath("thaumaturge", "textures/gui/gui_researchbook.png"),
-                24, 184, 95, 6, 1.0F);
+                24,
+                184,
+                95,
+                6,
+                1.0F);
         public static final PageImage SECTION_DIVIDER = new PageImage(
                 Identifier.fromNamespaceAndPath("thaumaturge", "textures/gui/gui_researchbook.png"),
-                28, 192, 140, 6, 1.0F);
+                28,
+                192,
+                140,
+                6,
+                1.0F);
 
         public final Identifier texture;
         public final int u;

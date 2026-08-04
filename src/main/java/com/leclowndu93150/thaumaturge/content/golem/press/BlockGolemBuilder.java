@@ -1,17 +1,17 @@
 package com.leclowndu93150.thaumaturge.content.golem.press;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.resources.Identifier;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -57,14 +57,16 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide()
                 ? createTickerHelper(type, TCBlockEntities.GOLEM_BUILDER.get(), BlockEntityGolemBuilder::clientTick)
                 : createTickerHelper(type, TCBlockEntities.GOLEM_BUILDER.get(), BlockEntityGolemBuilder::serverTick);
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         return openBuilderGui(level, pos, player);
     }
 
@@ -74,8 +76,8 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
         }
         if (player instanceof ServerPlayer serverPlayer
                 && !KnowledgeAccess.of(serverPlayer).isResearchComplete(MIND_CLOCKWORK_RESEARCH)) {
-            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                    Component.translatable("tc.device.unknown")
+            serverPlayer.connection.send(
+                    new ClientboundSetActionBarTextPacket(Component.translatable("tc.device.unknown")
                             .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
             return InteractionResult.SUCCESS_SERVER;
         }
@@ -116,8 +118,7 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
             }
         }
         if (!pos.equals(startPos)) {
-            level.setBlock(pos, Blocks.PISTON.defaultBlockState()
-                    .setValue(PistonBaseBlock.FACING, Direction.UP), 3);
+            level.setBlock(pos, Blocks.PISTON.defaultBlockState().setValue(PistonBaseBlock.FACING, Direction.UP), 3);
         }
     }
 }

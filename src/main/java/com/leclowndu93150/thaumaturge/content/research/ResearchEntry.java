@@ -31,24 +31,53 @@ public record ResearchEntry(
         List<ResearchIcon> icons,
         List<ResearchAddendum> addenda,
         AspectList noteAspects,
-        int complexity
-) implements IResearchEntry {
-    public static final Codec<ResearchEntry> DIRECT_CODEC = RecordCodecBuilder.<ResearchEntry>create(instance -> instance.group(
-            RegistryFixedCodec.create(IResearchCategory.REGISTRY_KEY).fieldOf("category").forGetter(ResearchEntry::category),
-            Codec.STRING.fieldOf("name").forGetter(ResearchEntry::nameKey),
-            ResearchParent.CODEC.listOf().optionalFieldOf("parents", List.of()).forGetter(e -> List.copyOf(e.parents())),
-            Identifier.CODEC.listOf().optionalFieldOf("siblings", List.of()).forGetter(e -> List.copyOf(e.siblings())),
-            Codec.INT.fieldOf("column").forGetter(ResearchEntry::column),
-            Codec.INT.fieldOf("row").forGetter(ResearchEntry::row),
-            ResearchStage.CODEC.listOf().fieldOf("stages").forGetter(e -> e.stages().stream().map(s -> (ResearchStage) s).toList()),
-            ResearchEntryMeta.CODEC.listOf().optionalFieldOf("meta", List.of()).forGetter(e -> List.copyOf(e.meta())),
-            ResearchIcon.CODEC.listOf().optionalFieldOf("icons", List.of()).forGetter(ResearchEntry::icons),
-            ResearchAddendum.CODEC.listOf().optionalFieldOf("addenda", List.of()).forGetter(ResearchEntry::addenda),
-            AspectList.CODEC.optionalFieldOf("note_aspects", AspectList.EMPTY).forGetter(ResearchEntry::noteAspects),
-            Codec.intRange(1, 3).optionalFieldOf("complexity", 1).forGetter(ResearchEntry::complexity)
-    ).apply(instance, ResearchEntry::create)).validate(ResearchEntry::validate);
+        int complexity)
+        implements IResearchEntry {
+    public static final Codec<ResearchEntry> DIRECT_CODEC = RecordCodecBuilder.<ResearchEntry>create(instance ->
+                    instance.group(
+                                    RegistryFixedCodec.create(IResearchCategory.REGISTRY_KEY)
+                                            .fieldOf("category")
+                                            .forGetter(ResearchEntry::category),
+                                    Codec.STRING.fieldOf("name").forGetter(ResearchEntry::nameKey),
+                                    ResearchParent.CODEC
+                                            .listOf()
+                                            .optionalFieldOf("parents", List.of())
+                                            .forGetter(e -> List.copyOf(e.parents())),
+                                    Identifier.CODEC
+                                            .listOf()
+                                            .optionalFieldOf("siblings", List.of())
+                                            .forGetter(e -> List.copyOf(e.siblings())),
+                                    Codec.INT.fieldOf("column").forGetter(ResearchEntry::column),
+                                    Codec.INT.fieldOf("row").forGetter(ResearchEntry::row),
+                                    ResearchStage.CODEC
+                                            .listOf()
+                                            .fieldOf("stages")
+                                            .forGetter(e -> e.stages().stream()
+                                                    .map(s -> (ResearchStage) s)
+                                                    .toList()),
+                                    ResearchEntryMeta.CODEC
+                                            .listOf()
+                                            .optionalFieldOf("meta", List.of())
+                                            .forGetter(e -> List.copyOf(e.meta())),
+                                    ResearchIcon.CODEC
+                                            .listOf()
+                                            .optionalFieldOf("icons", List.of())
+                                            .forGetter(ResearchEntry::icons),
+                                    ResearchAddendum.CODEC
+                                            .listOf()
+                                            .optionalFieldOf("addenda", List.of())
+                                            .forGetter(ResearchEntry::addenda),
+                                    AspectList.CODEC
+                                            .optionalFieldOf("note_aspects", AspectList.EMPTY)
+                                            .forGetter(ResearchEntry::noteAspects),
+                                    Codec.intRange(1, 3)
+                                            .optionalFieldOf("complexity", 1)
+                                            .forGetter(ResearchEntry::complexity))
+                            .apply(instance, ResearchEntry::create))
+            .validate(ResearchEntry::validate);
 
-    public static final Codec<IResearchEntry> CODEC = DIRECT_CODEC.xmap(e -> (IResearchEntry) e, ResearchEntry::ofInterface);
+    public static final Codec<IResearchEntry> CODEC =
+            DIRECT_CODEC.xmap(e -> (IResearchEntry) e, ResearchEntry::ofInterface);
 
     private static ResearchEntry create(
             Holder<IResearchCategory> category,
@@ -62,8 +91,7 @@ public record ResearchEntry(
             List<ResearchIcon> icons,
             List<ResearchAddendum> addenda,
             AspectList noteAspects,
-            int complexity
-    ) {
+            int complexity) {
         return new ResearchEntry(
                 category,
                 nameKey,
@@ -76,8 +104,7 @@ public record ResearchEntry(
                 List.copyOf(icons),
                 List.copyOf(addenda),
                 noteAspects,
-                complexity
-        );
+                complexity);
     }
 
     private static DataResult<ResearchEntry> validate(ResearchEntry entry) {
@@ -103,7 +130,6 @@ public record ResearchEntry(
                 entry.icons(),
                 entry.addenda(),
                 entry.noteAspects(),
-                entry.complexity()
-        );
+                entry.complexity());
     }
 }

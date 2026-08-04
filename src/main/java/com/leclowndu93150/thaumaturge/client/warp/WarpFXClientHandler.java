@@ -15,7 +15,8 @@ public final class WarpFXClientHandler {
             switch (payload.kind()) {
                 case ClientboundWarpFXPayload.KIND_HEARTBEAT -> {
                     if (!ThaumaturgeCommonConfig.NO_STRESS.get()) {
-                        Minecraft.getInstance().getSoundManager()
+                        Minecraft.getInstance()
+                                .getSoundManager()
                                 .play(SimpleSoundInstance.forUI(TCSounds.HEARTBEAT.get(), 1.0F, 1.0F));
                     }
                 }

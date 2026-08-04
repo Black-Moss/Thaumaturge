@@ -10,8 +10,7 @@ public final class TCActionBar {
     private TCActionBar() {}
 
     public static void sendPurple(Player player, String key, Object... args) {
-        send(player, Component.translatable(key, args)
-                .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+        send(player, Component.translatable(key, args).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
     }
 
     public static void send(Player player, Component message) {

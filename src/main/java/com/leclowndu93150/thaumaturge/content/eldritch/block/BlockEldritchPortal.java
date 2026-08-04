@@ -38,7 +38,8 @@ public final class BlockEldritchPortal extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -48,8 +49,13 @@ public final class BlockEldritchPortal extends BaseEntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
-                                   @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Block neighborBlock,
+            @Nullable Orientation orientation,
+            boolean movedByPiston) {
         if (!level.getBlockState(pos.above()).is(TCBlockTags.ELDRITCH_OBELISK_PARTS)
                 || !level.getBlockState(pos.below()).is(TCBlockTags.ELDRITCH_OBELISK_PARTS)) {
             level.removeBlock(pos, false);
@@ -62,9 +68,11 @@ public final class BlockEldritchPortal extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                            BlockEntityType<T> type) {
-        return createTickerHelper(type, TCBlockEntities.ELDRITCH_PORTAL.get(),
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
+        return createTickerHelper(
+                type,
+                TCBlockEntities.ELDRITCH_PORTAL.get(),
                 (tickLevel, pos, tickState, portal) -> portal.tick(tickLevel, pos));
     }
 }

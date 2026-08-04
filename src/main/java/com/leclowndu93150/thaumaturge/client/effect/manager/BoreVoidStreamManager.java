@@ -25,8 +25,13 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
 
     private BoreVoidStreamManager() {}
 
-    public static void addBore(BoreStreamInstance instance) { BORES.add(instance); }
-    public static void addVoid(VoidStreamInstance instance) { VOIDS.add(instance); }
+    public static void addBore(BoreStreamInstance instance) {
+        BORES.add(instance);
+    }
+
+    public static void addVoid(VoidStreamInstance instance) {
+        VOIDS.add(instance);
+    }
 
     @Override
     protected Collection<IFXInstance> activeInstances() {
@@ -63,17 +68,27 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
                 if (snap == null) continue;
                 poseStack.pushPose();
                 poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-                PolyCone.render(poseStack, consumer, snap.points(), snap.colours(), snap.radii(), 0, snap.texSlice(), snap.start());
+                PolyCone.render(
+                        poseStack,
+                        consumer,
+                        snap.points(),
+                        snap.colours(),
+                        snap.radii(),
+                        0,
+                        snap.texSlice(),
+                        snap.start());
                 poseStack.popPose();
             }
             buf.endBatch(EssentiaStreamRenderType.RENDER_TYPE);
         }
 
         if (!VOIDS.isEmpty()) {
-            float yawRad = (float)Math.toRadians(camera.yRot());
-            float pitchRad = (float)Math.toRadians(camera.xRot());
-            float yawNorm = ((yawRad % (float)(2.0 * Math.PI)) + (float)(2.0 * Math.PI)) % (float)(2.0 * Math.PI) / (float)(2.0 * Math.PI);
-            float pitchNorm = (pitchRad + (float)(Math.PI * 0.5)) / (float)Math.PI;
+            float yawRad = (float) Math.toRadians(camera.yRot());
+            float pitchRad = (float) Math.toRadians(camera.xRot());
+            float yawNorm = ((yawRad % (float) (2.0 * Math.PI)) + (float) (2.0 * Math.PI))
+                    % (float) (2.0 * Math.PI)
+                    / (float) (2.0 * Math.PI);
+            float pitchNorm = (pitchRad + (float) (Math.PI * 0.5)) / (float) Math.PI;
 
             MultiBufferSource.BufferSource bufA = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
             VertexConsumer addConsumer = bufA.getBuffer(VoidStreamRenderType.ADDITIVE);
@@ -83,7 +98,15 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
                 packYawPitch(snap.colours(), yawNorm, pitchNorm);
                 poseStack.pushPose();
                 poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-                PolyCone.render(poseStack, addConsumer, snap.points(), snap.colours(), snap.radii(), 0, snap.texSlice(), snap.start());
+                PolyCone.render(
+                        poseStack,
+                        addConsumer,
+                        snap.points(),
+                        snap.colours(),
+                        snap.radii(),
+                        0,
+                        snap.texSlice(),
+                        snap.start());
                 poseStack.popPose();
             }
             bufA.endBatch(VoidStreamRenderType.ADDITIVE);
@@ -96,7 +119,15 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
                 packYawPitch(snap.colours(), yawNorm, pitchNorm);
                 poseStack.pushPose();
                 poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-                PolyCone.render(poseStack, trConsumer, snap.points(), snap.colours(), snap.radii(), 0, snap.texSlice(), snap.start());
+                PolyCone.render(
+                        poseStack,
+                        trConsumer,
+                        snap.points(),
+                        snap.colours(),
+                        snap.radii(),
+                        0,
+                        snap.texSlice(),
+                        snap.start());
                 poseStack.popPose();
             }
             bufT.endBatch(VoidStreamRenderType.TRANSLUCENT);

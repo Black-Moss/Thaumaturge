@@ -50,8 +50,8 @@ public final class VoidseerCharmItem extends Item implements IVisDiscountGear, I
         }
         attribute.removeModifier(DISCOUNT_MODIFIER_ID);
         if (contribution != 0.0) {
-            attribute.addTransientModifier(new AttributeModifier(DISCOUNT_MODIFIER_ID,
-                    contribution, AttributeModifier.Operation.ADD_VALUE));
+            attribute.addTransientModifier(
+                    new AttributeModifier(DISCOUNT_MODIFIER_ID, contribution, AttributeModifier.Operation.ADD_VALUE));
         }
     }
 
@@ -73,8 +73,12 @@ public final class VoidseerCharmItem extends Item implements IVisDiscountGear, I
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         tooltip.accept(Component.translatable("item.thaumaturge.voidseer_charm.text")
                 .withStyle(ChatFormatting.DARK_BLUE, ChatFormatting.ITALIC));
         super.appendHoverText(stack, context, display, tooltip, flag);

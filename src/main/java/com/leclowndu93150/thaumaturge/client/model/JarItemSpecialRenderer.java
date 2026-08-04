@@ -1,57 +1,25 @@
 package com.leclowndu93150.thaumaturge.client.model;
 
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.client.render.blockentity.JarRenderer;
-import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quadrant;
-import com.mojang.math.Transformation;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-
-import net.minecraft.client.color.item.Constant;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.dispatch.BlockModelRotation;
-import net.minecraft.client.renderer.block.dispatch.ModelState;
 import net.minecraft.client.renderer.blockentity.AbstractEndPortalRenderer;
 import net.minecraft.client.renderer.item.*;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.special.NoDataSpecialModelRenderer;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.ModelBaker;
-import net.minecraft.client.resources.model.ModelDebugName;
 import net.minecraft.client.resources.model.cuboid.*;
-import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.client.resources.model.sprite.MaterialBaker;
-import net.minecraft.client.resources.model.sprite.TextureSlots;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.ItemOwner;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.NeoForgeRenderTypes;
-import org.joml.Matrix4fc;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
-
 public class JarItemSpecialRenderer implements SpecialModelRenderer<JarItemSpecialRenderer.JarFill> {
 
-    public record JarFill(AspectInstance contents, int capacity) {
-    }
+    public record JarFill(AspectInstance contents, int capacity) {}
 
     private final BakingContext context;
 
@@ -60,10 +28,24 @@ public class JarItemSpecialRenderer implements SpecialModelRenderer<JarItemSpeci
     }
 
     @Override
-    public void submit(@Nullable JarFill fill, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, int i1, boolean b, int i2) {
+    public void submit(
+            @Nullable JarFill fill,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            int lightCoords,
+            int i1,
+            boolean b,
+            int i2) {
         if (fill == null) return;
         AspectInstance contents = fill.contents();
-        JarRenderer.submitFluid(contents.amount(), fill.capacity(), contents.aspect().value().color(), lightCoords,context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE),poseStack,submitNodeCollector);
+        JarRenderer.submitFluid(
+                contents.amount(),
+                fill.capacity(),
+                contents.aspect().value().color(),
+                lightCoords,
+                context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE),
+                poseStack,
+                submitNodeCollector);
     }
 
     @Override
@@ -75,10 +57,10 @@ public class JarItemSpecialRenderer implements SpecialModelRenderer<JarItemSpeci
     public @Nullable JarFill extractArgument(ItemStack itemStack) {
         var essentiaList = itemStack.get(TCDataComponents.ESSENTIA_CONTENTS.get());
         if (essentiaList == null || essentiaList.isEmpty()) return null;
-        int capacity = itemStack.getItem() instanceof BlockItem blockItem
-                && blockItem.getBlock() instanceof IEssentiaJar jar
-                ? jar.jarCapacity()
-                : IEssentiaJar.DEFAULT_CAPACITY;
+        int capacity =
+                itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof IEssentiaJar jar
+                        ? jar.jarCapacity()
+                        : IEssentiaJar.DEFAULT_CAPACITY;
         return new JarFill(essentiaList.contents().entries().getFirst(), capacity);
     }
 

@@ -28,8 +28,11 @@ public final class VoidSiphonScreen extends AbstractTCContainerScreen<MenuVoidSi
         float ratio = Math.min(1.0F, menu.progress() / (float) BlockEntityVoidSiphon.PROGRESS_REQUIRED);
         int barHeight = (int) (PORTAL_SIZE * ratio);
         if (barHeight > 0) {
-            graphics.fill(leftPos + PORTAL_X, topPos + PORTAL_Y + PORTAL_SIZE - barHeight,
-                    leftPos + PORTAL_X + PORTAL_SIZE, topPos + PORTAL_Y + PORTAL_SIZE,
+            graphics.fill(
+                    leftPos + PORTAL_X,
+                    topPos + PORTAL_Y + PORTAL_SIZE - barHeight,
+                    leftPos + PORTAL_X + PORTAL_SIZE,
+                    topPos + PORTAL_Y + PORTAL_SIZE,
                     PROGRESS_COLOR);
         }
     }

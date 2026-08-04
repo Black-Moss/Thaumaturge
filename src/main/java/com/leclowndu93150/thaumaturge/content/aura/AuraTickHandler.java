@@ -22,8 +22,9 @@ import org.jspecify.annotations.Nullable;
 public final class AuraTickHandler {
     private static final int TICK_INTERVAL = 20;
 
-    private static final float[] PHASE_VIS_TABLE = new float[]{0.25F, 0.15F, 0.1F, 0.05F, 0.0F, 0.05F, 0.1F, 0.15F};
-    private static final float[] PHASE_MAX_TABLE = new float[]{0.15F, 0.05F, 0.0F, -0.05F, -0.15F, -0.05F, 0.0F, 0.05F};
+    private static final float[] PHASE_VIS_TABLE = new float[] {0.25F, 0.15F, 0.1F, 0.05F, 0.0F, 0.05F, 0.1F, 0.15F};
+    private static final float[] PHASE_MAX_TABLE =
+            new float[] {0.15F, 0.05F, 0.0F, -0.05F, -0.15F, -0.05F, 0.0F, 0.05F};
     private static final float BASE_FLUX_RATE = 0.25F;
 
     private static final float TRANSFER_CAP = 1.0F;
@@ -49,13 +50,15 @@ public final class AuraTickHandler {
 
     private record Sink(AuraData data, LevelChunk chunk) {}
 
-    private record Neighbours(@Nullable Sink visSink, @Nullable Sink fluxSink) {}
+    private record Neighbours(
+            @Nullable Sink visSink, @Nullable Sink fluxSink) {}
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         MinecraftServer server = event.getServer();
         for (ServerLevel level : server.getAllLevels()) {
-            if (level.getGameTime() % TICK_INTERVAL == 0 && level.tickRateManager().runsNormally()) {
+            if (level.getGameTime() % TICK_INTERVAL == 0
+                    && level.tickRateManager().runsNormally()) {
                 tickLevel(level);
             }
         }
@@ -79,8 +82,8 @@ public final class AuraTickHandler {
         }
     }
 
-    private static void processAuraChunk(ServerLevel level, LevelChunk chunk, AuraData aura, MoonFactors factors,
-            RandomSource rand) {
+    private static void processAuraChunk(
+            ServerLevel level, LevelChunk chunk, AuraData aura, MoonFactors factors, RandomSource rand) {
         Neighbours neighbours = scanNeighbours(level, aura, factors, rand);
         float base = aura.getBase() * factors.max();
         float vis = aura.getVis();
@@ -137,7 +140,7 @@ public final class AuraTickHandler {
     }
 
     private static Neighbours scanNeighbours(ServerLevel level, AuraData aura, MoonFactors factors, RandomSource rand) {
-        Direction[] directions = new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+        Direction[] directions = new Direction[] {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
         for (int i = directions.length - 1; i > 0; i--) {
             int j = rand.nextInt(i + 1);
             Direction tmp = directions[i];

@@ -13,13 +13,10 @@ public class TCHoverButton extends TCButton {
         this.iconSize = Math.min(width, height);
     }
 
-    public static TCHoverButton centered(int centerX, int centerY, int size, TCButtonIcon icon, Component message, Runnable onPress) {
+    public static TCHoverButton centered(
+            int centerX, int centerY, int size, TCButtonIcon icon, Component message, Runnable onPress) {
         return new TCHoverButton(
-                centerToTopLeftX(centerX, size),
-                centerToTopLeftY(centerY, size),
-                size, size,
-                icon, message, onPress
-        );
+                centerToTopLeftX(centerX, size), centerToTopLeftY(centerY, size), size, size, icon, message, onPress);
     }
 
     @Override

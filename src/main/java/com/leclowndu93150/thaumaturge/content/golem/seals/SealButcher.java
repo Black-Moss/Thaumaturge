@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealGui;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
-import java.util.List;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +24,6 @@ import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealButcher implements ISeal, ISealGui, ISealConfigArea {
     private static final int SCAN_INTERVAL = 200;
@@ -81,7 +80,8 @@ public class SealButcher implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public void onTaskStarted(Level level, IGolemAPI golem, Task task) {
-        if (task.getEntity() instanceof LivingEntity target && isValidTarget(target)
+        if (task.getEntity() instanceof LivingEntity target
+                && isValidTarget(target)
                 && golem.getGolemEntity() instanceof Mob mob) {
             mob.setTarget(target);
             golem.addRankXp(1);
@@ -114,12 +114,12 @@ public class SealButcher implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_AREA, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_AREA, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{TCGolemTraits.FIGHTER.get(), TCGolemTraits.SMART.get()};
+        return new GolemTrait[] {TCGolemTraits.FIGHTER.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override
@@ -133,12 +133,10 @@ public class SealButcher implements ISeal, ISealGui, ISealConfigArea {
     }
 
     @Override
-    public void readCustomNBT(CompoundTag nbt) {
-    }
+    public void readCustomNBT(CompoundTag nbt) {}
 
     @Override
-    public void writeCustomNBT(CompoundTag nbt) {
-    }
+    public void writeCustomNBT(CompoundTag nbt) {}
 
     @Override
     public void onRemoval(Level level, BlockPos pos, Direction side) {

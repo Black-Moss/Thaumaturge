@@ -48,9 +48,13 @@ public final class WatchTargetGoal extends Goal {
 
     @Override
     public void tick() {
-        watcher.getLookControl().setLookAt(closestEntity.getX(),
-                closestEntity.getY() + closestEntity.getEyeHeight(), closestEntity.getZ(),
-                10.0F, watcher.getMaxHeadXRot());
+        watcher.getLookControl()
+                .setLookAt(
+                        closestEntity.getX(),
+                        closestEntity.getY() + closestEntity.getEyeHeight(),
+                        closestEntity.getZ(),
+                        10.0F,
+                        watcher.getMaxHeadXRot());
         lookTime--;
     }
 }

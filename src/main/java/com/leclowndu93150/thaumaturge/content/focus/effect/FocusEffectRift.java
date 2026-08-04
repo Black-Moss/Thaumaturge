@@ -57,13 +57,14 @@ public final class FocusEffectRift implements FocusEffect {
 
     @Override
     public int complexity(FocusSettings settings) {
-        return BASE_COMPLEXITY + settings.value("duration") / DURATION_COMPLEXITY_DIVISOR
+        return BASE_COMPLEXITY
+                + settings.value("duration") / DURATION_COMPLEXITY_DIVISOR
                 + settings.value("depth") / DEPTH_COMPLEXITY_DIVISOR;
     }
 
     @Override
-    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target,
-            @Nullable Trajectory trajectory, int index) {
+    public boolean apply(
+            CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
         if (!(target instanceof BlockHitResult blockHit)) {
             return false;
         }
@@ -108,8 +109,8 @@ public final class FocusEffectRift implements FocusEffect {
 
     @Override
     public List<SettingDefinition> settings() {
-        int[] depth = new int[]{8, 16, 24, 32};
-        String[] depthDesc = new String[]{"8", "16", "24", "32"};
+        int[] depth = new int[] {8, 16, 24, 32};
+        String[] depthDesc = new String[] {"8", "16", "24", "32"};
         return List.of(
                 new SettingDefinition("depth", "focus.rift.depth", new SettingDefinition.IntList(depth, depthDesc)),
                 new SettingDefinition("duration", "focus.common.duration", new SettingDefinition.IntRange(2, 10)));
@@ -117,14 +118,20 @@ public final class FocusEffectRift implements FocusEffect {
 
     @Override
     public void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
-        RiftShardParticleOptions data = new RiftShardParticleOptions(
-                (float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
+        RiftShardParticleOptions data =
+                new RiftShardParticleOptions((float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
         level.addParticle(data, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0);
     }
 
     @Override
     public void onCast(LivingEntity caster) {
-        caster.level().playSound(null, caster.blockPosition().above(), SoundEvents.ENCHANTMENT_TABLE_USE,
-                SoundSource.PLAYERS, 0.2F, 0.7F);
+        caster.level()
+                .playSound(
+                        null,
+                        caster.blockPosition().above(),
+                        SoundEvents.ENCHANTMENT_TABLE_USE,
+                        SoundSource.PLAYERS,
+                        0.2F,
+                        0.7F);
     }
 }

@@ -47,17 +47,19 @@ public final class ResearchLinkData extends SavedData {
         }
 
         static final Codec<Link> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-                UUIDUtil.CODEC.fieldOf("first").forGetter(link -> link.first),
-                UUIDUtil.CODEC.fieldOf("second").forGetter(link -> link.second),
-                LegacyIds.IDENTIFIER_CODEC.listOf().fieldOf("union")
-                        .xmap(list -> (Set<Identifier>) new LinkedHashSet<>(list), List::copyOf)
-                        .forGetter(link -> link.union)
-        ).apply(builder, Link::new));
+                        UUIDUtil.CODEC.fieldOf("first").forGetter(link -> link.first),
+                        UUIDUtil.CODEC.fieldOf("second").forGetter(link -> link.second),
+                        LegacyIds.IDENTIFIER_CODEC
+                                .listOf()
+                                .fieldOf("union")
+                                .xmap(list -> (Set<Identifier>) new LinkedHashSet<>(list), List::copyOf)
+                                .forGetter(link -> link.union))
+                .apply(builder, Link::new));
     }
 
-    public static final Codec<ResearchLinkData> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-            Link.CODEC.listOf().fieldOf("links").forGetter(data -> data.links)
-    ).apply(builder, ResearchLinkData::new));
+    public static final Codec<ResearchLinkData> CODEC = RecordCodecBuilder.create(
+            builder -> builder.group(Link.CODEC.listOf().fieldOf("links").forGetter(data -> data.links))
+                    .apply(builder, ResearchLinkData::new));
 
     public static final SavedDataType<ResearchLinkData> TYPE = new SavedDataType<>(
             Identifier.fromNamespaceAndPath(TCIds.MODID, "research_share"),

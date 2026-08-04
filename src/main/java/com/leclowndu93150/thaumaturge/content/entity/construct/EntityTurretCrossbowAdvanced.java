@@ -3,10 +3,10 @@ package com.leclowndu93150.thaumaturge.content.entity.construct;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -57,8 +57,10 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
         goalSelector.addGoal(1, new RangedAttackGoal(this, 0.0, 20, 40, 24.0F));
         goalSelector.addGoal(2, new WatchTargetGoal(this));
         targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 5, true, false,
-                (entity, level) -> isValidTarget(entity)));
+        targetSelector.addGoal(
+                2,
+                new NearestAttackableTargetGoal<>(
+                        this, LivingEntity.class, 5, true, false, (entity, level) -> isValidTarget(entity)));
         setTargetMob(true);
     }
 
@@ -146,8 +148,11 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
     }
 
     private boolean sameOwner(OwnableEntity ownable) {
-        return getOwnerReference() != null && ownable.getOwnerReference() != null
-                && getOwnerReference().getUUID().equals(ownable.getOwnerReference().getUUID());
+        return getOwnerReference() != null
+                && ownable.getOwnerReference() != null
+                && getOwnerReference()
+                        .getUUID()
+                        .equals(ownable.getOwnerReference().getUUID());
     }
 
     public boolean getTargetFriendly() {
@@ -161,8 +166,10 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
     @Override
     public void tick() {
         super.tick();
-        if (level() instanceof ServerLevel serverLevel && !serverLevel.isPvpAllowed()
-                && getTarget() instanceof Player && getTarget() != getOwner()) {
+        if (level() instanceof ServerLevel serverLevel
+                && !serverLevel.isPvpAllowed()
+                && getTarget() instanceof Player
+                && getTarget() != getOwner()) {
             setTarget(null);
         }
     }

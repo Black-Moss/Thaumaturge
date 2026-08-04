@@ -16,7 +16,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class AuraManager {
@@ -99,8 +98,7 @@ public final class AuraManager {
     public static void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect) {
         addFlux(level, pos, amount);
         if (!level.isClientSide() && showEffect && amount > 0F) {
-            Effects.pollution((ServerLevel) level, pos)
-                    .send();
+            Effects.pollution((ServerLevel) level, pos).send();
         }
     }
 
@@ -124,7 +122,8 @@ public final class AuraManager {
         return ok ? take : 0.0F;
     }
 
-    public static boolean modifyVisInChunk(Level level, BlockPos pos, @Nullable AuraData ac, float amount, boolean doit) {
+    public static boolean modifyVisInChunk(
+            Level level, BlockPos pos, @Nullable AuraData ac, float amount, boolean doit) {
         if (ac == null) {
             return false;
         }
@@ -135,7 +134,8 @@ public final class AuraManager {
         return true;
     }
 
-    public static boolean modifyFluxInChunk(Level level, BlockPos pos, @Nullable AuraData ac, float amount, boolean doit) {
+    public static boolean modifyFluxInChunk(
+            Level level, BlockPos pos, @Nullable AuraData ac, float amount, boolean doit) {
         if (ac == null) {
             return false;
         }
@@ -164,7 +164,9 @@ public final class AuraManager {
     }
 
     public static void onChunkLoaded(ServerLevel level, ChunkPos pos) {
-        LOADED_CHUNKS.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(pos);
+        LOADED_CHUNKS
+                .computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet())
+                .add(pos);
     }
 
     public static void onChunkUnloaded(ServerLevel level, ChunkPos pos) {

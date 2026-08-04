@@ -29,12 +29,13 @@ public final class TravellerBootsItem extends Item implements IRechargable {
     private static final float STEP_HEIGHT_BONUS = 0.4F;
     private static final AttributeModifier STEP_MODIFIER = new AttributeModifier(
             Identifier.fromNamespaceAndPath(TCIds.MODID, "traveller_step"),
-            STEP_HEIGHT_BONUS, AttributeModifier.Operation.ADD_VALUE);
+            STEP_HEIGHT_BONUS,
+            AttributeModifier.Operation.ADD_VALUE);
 
     private static final AttributeModifier JUMP_MODIFIER = new AttributeModifier(
             Identifier.fromNamespaceAndPath(TCIds.MODID, "traveller_jump"),
-            JUMP_BOOST, AttributeModifier.Operation.ADD_VALUE);
-
+            JUMP_BOOST,
+            AttributeModifier.Operation.ADD_VALUE);
 
     public TravellerBootsItem(Properties properties) {
         super(properties);
@@ -57,7 +58,10 @@ public final class TravellerBootsItem extends Item implements IRechargable {
         }
         boolean active = RechargeAccess.getCharge(stack) > 0
                 && !player.getAbilities().flying
-                && (player.getLastClientInput().forward() || player.getLastClientInput().backward() || player.getLastClientInput().left() || player.getLastClientInput().right())
+                && (player.getLastClientInput().forward()
+                        || player.getLastClientInput().backward()
+                        || player.getLastClientInput().left()
+                        || player.getLastClientInput().right())
                 && !player.isShiftKeyDown();
         AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
         AttributeInstance jumpHeight = player.getAttribute(Attributes.JUMP_STRENGTH);

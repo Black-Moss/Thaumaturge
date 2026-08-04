@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.hud;
 
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.client.aura.ClientAuraCache;
+import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumaturge.network.ServerboundRequestAuraChunkPayload;
 import java.text.DecimalFormat;
@@ -112,12 +112,34 @@ public final class AuraHudOverlay implements LeftHudStack.Gauge {
             float start = BAR_TOP + (1.0F - vis) * BAR_RANGE;
             int fillHeight = Math.round(vis * BAR_RANGE);
             int y = Math.round(BAR_TOP + BAR_RANGE) - fillHeight;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
-                    HUD_X + BAR_X, y, FILL_U, FILL_V,
-                    FILL_W, fillHeight, FILL_W, FILL_H, TEX_SIZE, TEX_SIZE, VIS_FILL_TINT);
-            graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, HUD,
-                    HUD_X + BAR_X, y, VIS_RIPPLE_U, RIPPLE_V_BASE + count % BAR_RANGE,
-                    FILL_W, fillHeight, FILL_W, fillHeight, TEX_SIZE, TEX_SIZE, VIS_RIPPLE_TINT);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    HUD,
+                    HUD_X + BAR_X,
+                    y,
+                    FILL_U,
+                    FILL_V,
+                    FILL_W,
+                    fillHeight,
+                    FILL_W,
+                    FILL_H,
+                    TEX_SIZE,
+                    TEX_SIZE,
+                    VIS_FILL_TINT);
+            graphics.blit(
+                    TCRenderPipelines.GUI_TEXTURED_ADDITIVE,
+                    HUD,
+                    HUD_X + BAR_X,
+                    y,
+                    VIS_RIPPLE_U,
+                    RIPPLE_V_BASE + count % BAR_RANGE,
+                    FILL_W,
+                    fillHeight,
+                    FILL_W,
+                    fillHeight,
+                    TEX_SIZE,
+                    TEX_SIZE,
+                    VIS_RIPPLE_TINT);
             if (player.isShiftKeyDown()) {
                 drawAmount(graphics, AMOUNT_FORMAT.format(snap.vis()), start, VIS_TEXT_COLOR);
             }
@@ -127,25 +149,67 @@ public final class AuraHudOverlay implements LeftHudStack.Gauge {
             float start = BAR_TOP + (1.0F - flux - vis) * BAR_RANGE;
             int fillHeight = Math.round(flux * BAR_RANGE);
             int y = Math.round(start);
-            graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
-                    HUD_X + BAR_X, y, FILL_U, FILL_V,
-                    FILL_W, fillHeight, FILL_W, FILL_H, TEX_SIZE, TEX_SIZE, FLUX_FILL_TINT);
-            graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, HUD,
-                    HUD_X + BAR_X, y, FLUX_RIPPLE_U, FLUX_RIPPLE_V_BASE - count2 % BAR_RANGE,
-                    FILL_W, fillHeight, FILL_W, fillHeight, TEX_SIZE, TEX_SIZE, FLUX_RIPPLE_TINT);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    HUD,
+                    HUD_X + BAR_X,
+                    y,
+                    FILL_U,
+                    FILL_V,
+                    FILL_W,
+                    fillHeight,
+                    FILL_W,
+                    FILL_H,
+                    TEX_SIZE,
+                    TEX_SIZE,
+                    FLUX_FILL_TINT);
+            graphics.blit(
+                    TCRenderPipelines.GUI_TEXTURED_ADDITIVE,
+                    HUD,
+                    HUD_X + BAR_X,
+                    y,
+                    FLUX_RIPPLE_U,
+                    FLUX_RIPPLE_V_BASE - count2 % BAR_RANGE,
+                    FILL_W,
+                    fillHeight,
+                    FILL_W,
+                    fillHeight,
+                    TEX_SIZE,
+                    TEX_SIZE,
+                    FLUX_RIPPLE_TINT);
             if (player.isShiftKeyDown()) {
                 drawAmount(graphics, AMOUNT_FORMAT.format(snap.flux()), start - 4.0F, FLUX_TEXT_COLOR);
             }
         }
 
-        graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
-                HUD_X + FRAME_X, FRAME_Y, FRAME_U, FRAME_V,
-                FRAME_W, FRAME_H, FRAME_W, FRAME_H, TEX_SIZE, TEX_SIZE);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                HUD,
+                HUD_X + FRAME_X,
+                FRAME_Y,
+                FRAME_U,
+                FRAME_V,
+                FRAME_W,
+                FRAME_H,
+                FRAME_W,
+                FRAME_H,
+                TEX_SIZE,
+                TEX_SIZE);
 
         float needleStart = NEEDLE_TOP + (1.0F - base) * BAR_RANGE;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, HUD,
-                HUD_X + NEEDLE_X, Math.round(needleStart), NEEDLE_U, NEEDLE_V,
-                NEEDLE_W, NEEDLE_H, NEEDLE_W, NEEDLE_H, TEX_SIZE, TEX_SIZE);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                HUD,
+                HUD_X + NEEDLE_X,
+                Math.round(needleStart),
+                NEEDLE_U,
+                NEEDLE_V,
+                NEEDLE_W,
+                NEEDLE_H,
+                NEEDLE_W,
+                NEEDLE_H,
+                TEX_SIZE,
+                TEX_SIZE);
     }
 
     private static void drawAmount(GuiGraphicsExtractor graphics, String text, float y, int color) {

@@ -44,7 +44,7 @@ public final class FocusMediumProjectile implements FocusMedium {
         switch (settings.value("option")) {
             case EntityFocusProjectile.SPECIAL_BOUNCY -> complexity += BOUNCY_COMPLEXITY;
             case EntityFocusProjectile.SPECIAL_SEEK_ENEMY, EntityFocusProjectile.SPECIAL_SEEK_FRIENDLY ->
-                    complexity += SEEKING_COMPLEXITY;
+                complexity += SEEKING_COMPLEXITY;
         }
         return complexity;
     }
@@ -63,8 +63,7 @@ public final class FocusMediumProjectile implements FocusMedium {
             float speed = settings.value("speed") / SPEED_DIVISOR;
             int option = settings.value("option");
             for (Trajectory trajectory : supplied) {
-                caster.level().addFreshEntity(
-                        new EntityFocusProjectile(remaining, caster, speed, trajectory, option));
+                caster.level().addFreshEntity(new EntityFocusProjectile(remaining, caster, speed, trajectory, option));
             }
         }
         return null;
@@ -72,17 +71,21 @@ public final class FocusMediumProjectile implements FocusMedium {
 
     @Override
     public List<SettingDefinition> settings() {
-        int[] option = new int[]{
-                EntityFocusProjectile.SPECIAL_NONE,
-                EntityFocusProjectile.SPECIAL_BOUNCY,
-                EntityFocusProjectile.SPECIAL_SEEK_ENEMY,
-                EntityFocusProjectile.SPECIAL_SEEK_FRIENDLY
+        int[] option = new int[] {
+            EntityFocusProjectile.SPECIAL_NONE,
+            EntityFocusProjectile.SPECIAL_BOUNCY,
+            EntityFocusProjectile.SPECIAL_SEEK_ENEMY,
+            EntityFocusProjectile.SPECIAL_SEEK_FRIENDLY
         };
-        String[] optionDesc = new String[]{
-                "focus.common.none", "focus.projectile.bouncy", "focus.projectile.seeking.hostile", "focus.projectile.seeking.friendly"
+        String[] optionDesc = new String[] {
+            "focus.common.none",
+            "focus.projectile.bouncy",
+            "focus.projectile.seeking.hostile",
+            "focus.projectile.seeking.friendly"
         };
         return List.of(
-                new SettingDefinition("option", "focus.common.options", new SettingDefinition.IntList(option, optionDesc)),
+                new SettingDefinition(
+                        "option", "focus.common.options", new SettingDefinition.IntList(option, optionDesc)),
                 new SettingDefinition("speed", "focus.projectile.speed", new SettingDefinition.IntRange(1, 5)));
     }
 

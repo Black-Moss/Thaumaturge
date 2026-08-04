@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.taint.flux;
 
 import com.leclowndu93150.thaumaturge.content.particle.BubbleParticleOptions;
-import net.minecraft.util.ARGB;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +18,8 @@ import net.minecraft.world.level.material.FluidState;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockFluxGoo extends LiquidBlock {
-    public static final MapCodec<LiquidBlock> CODEC = simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
+    public static final MapCodec<LiquidBlock> CODEC =
+            simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
 
     private static final int REPLACEABLE_AMOUNT_THRESHOLD = 5;
     private static final int AMBIENT_FUME_DENOMINATOR = 44;

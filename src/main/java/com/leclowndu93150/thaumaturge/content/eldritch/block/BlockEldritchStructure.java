@@ -48,7 +48,12 @@ public class BlockEldritchStructure extends Block {
                 }
             }
         }
-        serverLevel.explode(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                COLLAPSE_EXPLOSION, Level.ExplosionInteraction.NONE);
+        serverLevel.explode(
+                null,
+                pos.getX() + 0.5,
+                pos.getY() + 0.5,
+                pos.getZ() + 0.5,
+                COLLAPSE_EXPLOSION,
+                Level.ExplosionInteraction.NONE);
     }
 }

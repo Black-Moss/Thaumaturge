@@ -10,5 +10,4 @@ package com.leclowndu93150.thaumaturge.api.entity;
  *
  * @since 1.0.0
  */
-public interface IEldritchMob {
-}
+public interface IEldritchMob {}

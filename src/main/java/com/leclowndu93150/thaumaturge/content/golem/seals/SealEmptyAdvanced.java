@@ -3,11 +3,11 @@ package com.leclowndu93150.thaumaturge.content.golem.seals;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealConfigToggles;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealEmptyAdvanced extends SealEmpty implements ISealConfigToggles {
     @Override
@@ -48,7 +48,7 @@ public class SealEmptyAdvanced extends SealEmpty implements ISealConfigToggles {
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_FILTER, CAT_TOGGLES, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_FILTER, CAT_TOGGLES, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
@@ -58,6 +58,6 @@ public class SealEmptyAdvanced extends SealEmpty implements ISealConfigToggles {
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{TCGolemTraits.SMART.get()};
+        return new GolemTrait[] {TCGolemTraits.SMART.get()};
     }
 }

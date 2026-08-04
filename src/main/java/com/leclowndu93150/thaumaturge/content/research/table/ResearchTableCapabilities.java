@@ -16,7 +16,6 @@ public final class ResearchTableCapabilities {
         event.registerBlockEntity(
                 Capabilities.Item.BLOCK,
                 TCBlockEntities.RESEARCH_TABLE.get(),
-                (blockEntity, side) -> blockEntity.items()
-        );
+                (blockEntity, side) -> blockEntity.items());
     }
 }

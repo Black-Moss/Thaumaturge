@@ -31,7 +31,9 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         player.swing(hand, true);
         if (level.isClientSide()) {
-            player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 0.6F,
+            player.playSound(
+                    SoundEvents.NOTE_BLOCK_BELL.value(),
+                    0.6F,
                     1.0F + level.getRandom().nextFloat() * 0.1F);
             return InteractionResult.SUCCESS;
         }
@@ -59,8 +61,8 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        ISealEntity seal = SealHandler.getSealEntity(level,
-                new SealPos(context.getClickedPos(), context.getClickedFace()));
+        ISealEntity seal =
+                SealHandler.getSealEntity(level, new SealPos(context.getClickedPos(), context.getClickedFace()));
         if (seal != null) {
             if (player.isShiftKeyDown()) {
                 SealHandler.removeSealEntity((ServerLevel) level, seal.getSealPos(), false);
@@ -96,22 +98,22 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
 
     private static @Nullable ISealEntity sealOnEntryFace(Player player, BlockPos cell, BlockPos delta) {
         if (delta.getX() != 0) {
-            ISealEntity seal = SealHandler.getSealEntity(player.level(),
-                    new SealPos(cell, delta.getX() > 0 ? Direction.WEST : Direction.EAST));
+            ISealEntity seal = SealHandler.getSealEntity(
+                    player.level(), new SealPos(cell, delta.getX() > 0 ? Direction.WEST : Direction.EAST));
             if (seal != null) {
                 return seal;
             }
         }
         if (delta.getY() != 0) {
-            ISealEntity seal = SealHandler.getSealEntity(player.level(),
-                    new SealPos(cell, delta.getY() > 0 ? Direction.DOWN : Direction.UP));
+            ISealEntity seal = SealHandler.getSealEntity(
+                    player.level(), new SealPos(cell, delta.getY() > 0 ? Direction.DOWN : Direction.UP));
             if (seal != null) {
                 return seal;
             }
         }
         if (delta.getZ() != 0) {
-            return SealHandler.getSealEntity(player.level(),
-                    new SealPos(cell, delta.getZ() > 0 ? Direction.NORTH : Direction.SOUTH));
+            return SealHandler.getSealEntity(
+                    player.level(), new SealPos(cell, delta.getZ() > 0 ? Direction.NORTH : Direction.SOUTH));
         }
         return null;
     }

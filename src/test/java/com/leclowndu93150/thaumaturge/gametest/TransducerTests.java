@@ -84,13 +84,13 @@ public final class TransducerTests {
         });
     }
 
-    private static void pollRevert(GameTestHelper helper, BlockEntityNode node,
-                                   int preservedVitium, int remainingTicks) {
+    private static void pollRevert(
+            GameTestHelper helper, BlockEntityNode node, int preservedVitium, int remainingTicks) {
         helper.runAfterDelay(REVERT_POLL_TICKS, () -> {
             if (!node.isEnergized()) {
                 if (node.getAspectsBase().amountOf(vitium(helper)) != preservedVitium) {
-                    helper.fail("Reverted node base does not match the preserved snapshot of "
-                            + preservedVitium + ": " + node.getAspectsBase());
+                    helper.fail("Reverted node base does not match the preserved snapshot of " + preservedVitium + ": "
+                            + node.getAspectsBase());
                     return;
                 }
                 helper.succeed();

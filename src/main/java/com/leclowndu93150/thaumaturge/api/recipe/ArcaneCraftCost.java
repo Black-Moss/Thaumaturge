@@ -31,8 +31,7 @@ public record ArcaneCraftCost(
         Map<ResourceKey<IAspect>, Integer> wandCentivis,
         AspectList crystalsNeeded,
         int auraVis,
-        boolean affordable
-) {
+        boolean affordable) {
     private static Factory factory;
 
     public ArcaneCraftCost {

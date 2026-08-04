@@ -18,7 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class PedestalRenderer<T extends BlockEntityPedestal> implements BlockEntityRenderer<T, PedestalRenderState> {
+public final class PedestalRenderer<T extends BlockEntityPedestal>
+        implements BlockEntityRenderer<T, PedestalRenderState> {
     private static final float ITEM_SCALE = 1.25F;
     private static final float ITEM_HEIGHT = 0.75F;
     private static final float SPIN_DEGREES_PER_TICK = 1.0F;
@@ -42,8 +43,12 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
     }
 
     @Override
-    public void extractRenderState(T pedestal, PedestalRenderState state, float partialTicks,
-                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            T pedestal,
+            PedestalRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(pedestal, state, partialTicks, cameraPosition, breakProgress);
         ItemStack stack = pedestal.getItem();
         if (stack.isEmpty()) {
@@ -51,8 +56,13 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
             return;
         }
         ItemStackRenderState itemState = new ItemStackRenderState();
-        itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.GROUND, pedestal.getLevel(),
-                null, HashCommon.long2int(pedestal.getBlockPos().asLong()));
+        itemModelResolver.updateForTopItem(
+                itemState,
+                stack,
+                ItemDisplayContext.GROUND,
+                pedestal.getLevel(),
+                null,
+                HashCommon.long2int(pedestal.getBlockPos().asLong()));
         state.item = itemState;
         state.groundLift = LegacyItemLift.centerLift(itemState) + VOXEL;
         var viewEntity = Minecraft.getInstance().getCameraEntity();
@@ -61,7 +71,8 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
     }
 
     @Override
-    public void submit(PedestalRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            PedestalRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         if (state.item == null) {
             return;
         }

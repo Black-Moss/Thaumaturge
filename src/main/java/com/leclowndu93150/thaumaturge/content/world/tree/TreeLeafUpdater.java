@@ -55,7 +55,8 @@ public final class TreeLeafUpdater {
     }
 
     private static DiscreteVoxelShape computeDistances(WorldGenLevel level, BoundingBox bounds, Set<BlockPos> logs) {
-        DiscreteVoxelShape shape = new BitSetDiscreteVoxelShape(bounds.getXSpan(), bounds.getYSpan(), bounds.getZSpan());
+        DiscreteVoxelShape shape =
+                new BitSetDiscreteVoxelShape(bounds.getXSpan(), bounds.getYSpan(), bounds.getZSpan());
         List<Set<BlockPos>> toCheck = new ArrayList<>(MAX_LEAF_DISTANCE);
         for (int i = 0; i < MAX_LEAF_DISTANCE; i++) {
             toCheck.add(new HashSet<>());

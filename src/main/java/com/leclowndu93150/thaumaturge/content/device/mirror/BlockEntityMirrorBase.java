@@ -125,7 +125,8 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
     }
 
     private boolean linksBackToSelf(BlockEntityMirrorBase target) {
-        return level != null && target.link != null
+        return level != null
+                && target.link != null
                 && target.link.pos().equals(worldPosition)
                 && target.link.dimension() == level.dimension();
     }
@@ -241,7 +242,8 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

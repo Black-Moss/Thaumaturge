@@ -15,8 +15,7 @@ public final class ElementalPickaxeItem extends Item {
 
     @Override
     public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
-        if (player.level() instanceof ServerLevel level
-                && (!(entity instanceof Player) || level.isPvpAllowed())) {
+        if (player.level() instanceof ServerLevel level && (!(entity instanceof Player) || level.isPvpAllowed())) {
             entity.igniteForSeconds(IGNITE_SECONDS);
         }
         return super.onLeftClickEntity(stack, player, entity);

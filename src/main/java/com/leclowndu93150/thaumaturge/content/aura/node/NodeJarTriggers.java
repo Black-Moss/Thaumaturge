@@ -23,13 +23,13 @@ public final class NodeJarTriggers implements ICasterTriggerManager {
 
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
-        CasterTriggerRegistry.registerCasterBlockTagTrigger(new NodeJarTriggers(), EVENT_JAR_NODE,
-                Tags.Blocks.GLASS_BLOCKS);
+        CasterTriggerRegistry.registerCasterBlockTagTrigger(
+                new NodeJarTriggers(), EVENT_JAR_NODE, Tags.Blocks.GLASS_BLOCKS);
     }
 
     @Override
-    public boolean performTrigger(Level level, ItemStack casterStack, Player player, BlockPos pos,
-                                  Direction side, int event) {
+    public boolean performTrigger(
+            Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, int event) {
         BlockPos nodePos = findEnclosedNode(level, pos);
         if (nodePos == null) {
             return false;

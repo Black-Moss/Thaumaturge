@@ -86,12 +86,10 @@ public abstract class AbstractTaintacle extends Monster implements ITaintedMob {
     }
 
     @Override
-    public void push(double x, double y, double z) {
-    }
+    public void push(double x, double y, double z) {}
 
     @Override
-    public void push(Entity entity) {
-    }
+    public void push(Entity entity) {}
 
     @Override
     protected SoundEvent getAmbientSound() {

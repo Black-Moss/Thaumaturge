@@ -21,8 +21,7 @@ public final class GolemArmDart implements GolemArm.IArmFunction {
     private static final float ATTACK_RADIUS = 16.0F;
 
     @Override
-    public void onMeleeAttack(IGolemAPI golem, Entity target) {
-    }
+    public void onMeleeAttack(IGolemAPI golem, Entity target) {}
 
     @Override
     public void onRangedAttack(IGolemAPI golem, LivingEntity target, float power) {
@@ -35,16 +34,18 @@ public final class GolemArmDart implements GolemArm.IArmFunction {
         double dz = target.getZ() - shooter.getZ();
         dart.shoot(dx, dy, dz, DART_VELOCITY, DART_INACCURACY);
         golem.getGolemWorld().addFreshEntity(dart);
-        shooter.playSound(SoundEvents.ARROW_SHOOT, 1.0F,
+        shooter.playSound(
+                SoundEvents.ARROW_SHOOT,
+                1.0F,
                 1.0F / (golem.getGolemWorld().getRandom().nextFloat() * 0.4F + 0.8F));
     }
 
     @Override
     public Goal createRangedAttackGoal(RangedAttackMob mob) {
-        return new GolemArrowAttackGoal(mob, ATTACK_MOVE_SPEED, ATTACK_INTERVAL_MIN, ATTACK_INTERVAL_MAX, ATTACK_RADIUS);
+        return new GolemArrowAttackGoal(
+                mob, ATTACK_MOVE_SPEED, ATTACK_INTERVAL_MIN, ATTACK_INTERVAL_MAX, ATTACK_RADIUS);
     }
 
     @Override
-    public void onUpdateTick(IGolemAPI golem) {
-    }
+    public void onUpdateTick(IGolemAPI golem) {}
 }

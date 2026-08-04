@@ -18,12 +18,10 @@ public final class TCDebugPayloads {
         registrar.playToClient(
                 ClientboundToggleRaycastDebugPayload.TYPE,
                 ClientboundToggleRaycastDebugPayload.STREAM_CODEC,
-                (payload, context) -> ToggleRaycastDebugHandler.handle(payload, context)
-        );
+                (payload, context) -> ToggleRaycastDebugHandler.handle(payload, context));
         registrar.playToClient(
                 ClientboundRaycastDebugPayload.TYPE,
                 ClientboundRaycastDebugPayload.STREAM_CODEC,
-                (payload, context) -> ToggleRaycastDebugHandler.handleServerRaycast(payload, context)
-        );
+                (payload, context) -> ToggleRaycastDebugHandler.handleServerRaycast(payload, context));
     }
 }

@@ -16,9 +16,8 @@ public final class LegacyIds {
 
     public static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = resourceKeyCodec(IAspect.REGISTRY_KEY);
 
-    public static final Codec<WandVis> WAND_VIS_CODEC = Codec
-            .unboundedMap(ASPECT_KEY_CODEC, ExtraCodecs.NON_NEGATIVE_INT)
-            .xmap(WandVis::new, WandVis::centivis);
+    public static final Codec<WandVis> WAND_VIS_CODEC =
+            Codec.unboundedMap(ASPECT_KEY_CODEC, ExtraCodecs.NON_NEGATIVE_INT).xmap(WandVis::new, WandVis::centivis);
 
     private LegacyIds() {}
 

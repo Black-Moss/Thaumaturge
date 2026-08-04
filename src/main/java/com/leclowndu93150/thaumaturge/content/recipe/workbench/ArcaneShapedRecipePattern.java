@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.recipe.workbench;
 
-import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
 import com.google.common.annotations.VisibleForTesting;
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
@@ -19,22 +19,28 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Util;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 
 public final class ArcaneShapedRecipePattern {
     public static final char EMPTY_SLOT = ' ';
     static int maxWidth = 3;
     static int maxHeight = 3;
-    public static final MapCodec<ArcaneShapedRecipePattern> MAP_CODEC = ArcaneShapedRecipePattern.Data.MAP_CODEC
-            .flatXmap(ArcaneShapedRecipePattern::unpack,
-                    (pattern) -> pattern.data.map(DataResult::success)
-                            .orElseGet(() -> DataResult.error(() -> "Cannot encode unpacked recipe")));;
-    public static final StreamCodec<RegistryFriendlyByteBuf, ArcaneShapedRecipePattern> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, (e) -> e.width,
-            ByteBufCodecs.VAR_INT, (e) -> e.height,
-            Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), (e) -> e.ingredients,
-            ArcaneShapedRecipePattern::createFromNetwork);
+    public static final MapCodec<ArcaneShapedRecipePattern> MAP_CODEC =
+            ArcaneShapedRecipePattern.Data.MAP_CODEC.flatXmap(
+                    ArcaneShapedRecipePattern::unpack,
+                    (pattern) -> pattern.data
+                            .map(DataResult::success)
+                            .orElseGet(() -> DataResult.error(() -> "Cannot encode unpacked recipe")));
+    ;
+    public static final StreamCodec<RegistryFriendlyByteBuf, ArcaneShapedRecipePattern> STREAM_CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.VAR_INT,
+                    (e) -> e.width,
+                    ByteBufCodecs.VAR_INT,
+                    (e) -> e.height,
+                    Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()),
+                    (e) -> e.ingredients,
+                    ArcaneShapedRecipePattern::createFromNetwork);
 
     private final int width;
     private final int height;
@@ -59,19 +65,21 @@ public final class ArcaneShapedRecipePattern {
         if (maxHeight < height) {
             maxHeight = height;
         }
-
     }
 
-    public ArcaneShapedRecipePattern(int width, int height, List<Optional<Ingredient>> ingredients, Optional<Data> data) {
+    public ArcaneShapedRecipePattern(
+            int width, int height, List<Optional<Ingredient>> ingredients, Optional<Data> data) {
         this.width = width;
         this.height = height;
         this.ingredients = ingredients;
         this.data = data;
-        this.ingredientCount = (int)ingredients.stream().flatMap(Optional::stream).count();
+        this.ingredientCount =
+                (int) ingredients.stream().flatMap(Optional::stream).count();
         this.symmetrical = Util.isSymmetrical(width, height, ingredients);
     }
 
-    private static ArcaneShapedRecipePattern createFromNetwork(Integer width, Integer height, List<Optional<Ingredient>> ingredients) {
+    private static ArcaneShapedRecipePattern createFromNetwork(
+            Integer width, Integer height, List<Optional<Ingredient>> ingredients) {
         return new ArcaneShapedRecipePattern(width, height, ingredients, Optional.empty());
     }
 
@@ -91,8 +99,8 @@ public final class ArcaneShapedRecipePattern {
         List<Optional<Ingredient>> ingredients = new ArrayList<>(width * height);
         CharSet unusedSymbols = new CharArraySet(data.key.keySet());
 
-        for(String line : shrunkPattern) {
-            for(int x = 0; x < line.length(); ++x) {
+        for (String line : shrunkPattern) {
+            for (int x = 0; x < line.length(); ++x) {
                 char symbol = line.charAt(x);
                 Optional<Ingredient> ingredient;
                 if (symbol == ' ') {
@@ -100,7 +108,8 @@ public final class ArcaneShapedRecipePattern {
                 } else {
                     Ingredient ingredientForSymbol = data.key.get(symbol);
                     if (ingredientForSymbol == null) {
-                        return DataResult.error(() -> "Pattern references symbol '" + symbol + "' but it's not defined in the key");
+                        return DataResult.error(
+                                () -> "Pattern references symbol '" + symbol + "' but it's not defined in the key");
                     }
 
                     ingredient = Optional.of(ingredientForSymbol);
@@ -111,8 +120,9 @@ public final class ArcaneShapedRecipePattern {
             }
         }
 
-        return !unusedSymbols.isEmpty() ? DataResult.error(() -> "Key defines symbols that aren't used in pattern: " + unusedSymbols) :
-                DataResult.success(new ArcaneShapedRecipePattern(width, height, ingredients, Optional.of(data)));
+        return !unusedSymbols.isEmpty()
+                ? DataResult.error(() -> "Key defines symbols that aren't used in pattern: " + unusedSymbols)
+                : DataResult.success(new ArcaneShapedRecipePattern(width, height, ingredients, Optional.of(data)));
     }
 
     @VisibleForTesting
@@ -122,8 +132,8 @@ public final class ArcaneShapedRecipePattern {
         int top = 0;
         int bottom = 0;
 
-        for(int i = 0; i < pattern.size(); ++i) {
-            String line = (String)pattern.get(i);
+        for (int i = 0; i < pattern.size(); ++i) {
+            String line = (String) pattern.get(i);
             left = Math.min(left, firstNonEmpty(line));
             int lastNonSpace = lastNonEmpty(line);
             right = Math.max(right, lastNonSpace);
@@ -143,7 +153,7 @@ public final class ArcaneShapedRecipePattern {
         } else {
             String[] result = new String[pattern.size() - bottom - top];
 
-            for(int line = 0; line < result.length; ++line) {
+            for (int line = 0; line < result.length; ++line) {
                 result[line] = pattern.get(line + top).substring(left, right + 1);
             }
 
@@ -153,16 +163,14 @@ public final class ArcaneShapedRecipePattern {
 
     private static int firstNonEmpty(String line) {
         int index;
-        for(index = 0; index < line.length() && line.charAt(index) == EMPTY_SLOT; ++index) {
-        }
+        for (index = 0; index < line.length() && line.charAt(index) == EMPTY_SLOT; ++index) {}
 
         return index;
     }
 
     private static int lastNonEmpty(String line) {
         int index;
-        for(index = line.length() - 1; index >= 0 && line.charAt(index) == EMPTY_SLOT; --index) {
-        }
+        for (index = line.length() - 1; index >= 0 && line.charAt(index) == EMPTY_SLOT; --index) {}
 
         return index;
     }
@@ -176,14 +184,13 @@ public final class ArcaneShapedRecipePattern {
 
                 return this.matches(input, false);
             }
-
         }
         return false;
     }
 
     private boolean matches(IArcaneCraftingInput input, boolean xFlip) {
-        for(int y = 0; y < this.height; ++y) {
-            for(int x = 0; x < this.width; ++x) {
+        for (int y = 0; y < this.height; ++y) {
+            for (int x = 0; x < this.width; ++x) {
                 Optional<Ingredient> expected;
                 if (xFlip) {
                     expected = this.ingredients.get(this.width - x - 1 + y * this.width);
@@ -214,43 +221,53 @@ public final class ArcaneShapedRecipePattern {
     }
 
     public static record Data(Map<Character, Ingredient> key, List<String> pattern) {
-        private static final Codec<List<String>> PATTERN_CODEC = Codec.STRING.listOf().comapFlatMap((strings) -> {
-            if (strings.size() > ArcaneShapedRecipePattern.maxHeight) {
-                return DataResult.error(() -> "Invalid pattern: too many rows, %s is maximum".formatted(ArcaneShapedRecipePattern.maxHeight));
-            } else if (strings.isEmpty()) {
-                return DataResult.error(() -> "Invalid pattern: empty pattern not allowed");
-            } else {
-                int firstLength = strings.getFirst().length();
+        private static final Codec<List<String>> PATTERN_CODEC = Codec.STRING
+                .listOf()
+                .comapFlatMap(
+                        (strings) -> {
+                            if (strings.size() > ArcaneShapedRecipePattern.maxHeight) {
+                                return DataResult.error(() -> "Invalid pattern: too many rows, %s is maximum"
+                                        .formatted(ArcaneShapedRecipePattern.maxHeight));
+                            } else if (strings.isEmpty()) {
+                                return DataResult.error(() -> "Invalid pattern: empty pattern not allowed");
+                            } else {
+                                int firstLength = strings.getFirst().length();
 
-                for(String line : strings) {
-                    if (line.length() > ArcaneShapedRecipePattern.maxWidth) {
-                        return DataResult.error(() -> "Invalid pattern: too many columns, %s is maximum".formatted(ArcaneShapedRecipePattern.maxWidth));
+                                for (String line : strings) {
+                                    if (line.length() > ArcaneShapedRecipePattern.maxWidth) {
+                                        return DataResult.error(() -> "Invalid pattern: too many columns, %s is maximum"
+                                                .formatted(ArcaneShapedRecipePattern.maxWidth));
+                                    }
+
+                                    if (firstLength != line.length()) {
+                                        return DataResult.error(
+                                                () -> "Invalid pattern: each row must be the same width");
+                                    }
+                                }
+
+                                return DataResult.success(strings);
+                            }
+                        },
+                        Function.identity());
+
+        private static final Codec<Character> SYMBOL_CODEC = Codec.STRING.comapFlatMap(
+                (symbol) -> {
+                    if (symbol.length() != 1) {
+                        return DataResult.error(() ->
+                                "Invalid key entry: '" + symbol + "' is an invalid symbol (must be 1 character only).");
+                    } else {
+                        return " ".equals(symbol)
+                                ? DataResult.error(() -> "Invalid key entry: ' ' is a reserved symbol.")
+                                : DataResult.success(symbol.charAt(0));
                     }
+                },
+                String::valueOf);
 
-                    if (firstLength != line.length()) {
-                        return DataResult.error(() -> "Invalid pattern: each row must be the same width");
-                    }
-                }
-
-                return DataResult.success(strings);
-            }
-        }, Function.identity());
-
-
-        private static final Codec<Character> SYMBOL_CODEC = Codec.STRING.comapFlatMap((symbol) -> {
-            if (symbol.length() != 1) {
-                return DataResult.error(() -> "Invalid key entry: '" + symbol + "' is an invalid symbol (must be 1 character only).");
-            } else {
-                return " ".equals(symbol) ? DataResult.error(() -> "Invalid key entry: ' ' is a reserved symbol.") : DataResult.success(symbol.charAt(0));
-            }
-        }, String::valueOf);
-
-        public static final MapCodec<Data> MAP_CODEC = RecordCodecBuilder.mapCodec((i) ->
-                i.group(
-                        ExtraCodecs.strictUnboundedMap(SYMBOL_CODEC, Ingredient.CODEC).fieldOf("key").forGetter((d) -> d.key),
-                        PATTERN_CODEC.fieldOf("pattern").forGetter((d) -> d.pattern)
-                ).apply(i, Data::new));
-
-
+        public static final MapCodec<Data> MAP_CODEC = RecordCodecBuilder.mapCodec((i) -> i.group(
+                        ExtraCodecs.strictUnboundedMap(SYMBOL_CODEC, Ingredient.CODEC)
+                                .fieldOf("key")
+                                .forGetter((d) -> d.key),
+                        PATTERN_CODEC.fieldOf("pattern").forGetter((d) -> d.pattern))
+                .apply(i, Data::new));
     }
 }

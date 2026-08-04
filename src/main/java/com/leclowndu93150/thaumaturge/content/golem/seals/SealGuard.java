@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealGui;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,16 +25,15 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealGuard implements ISeal, ISealGui, ISealConfigArea {
     private static final int SCAN_INTERVAL = 20;
     private static final short TASK_LIFESPAN = 10;
 
     protected final ISealConfigToggles.SealToggle[] props = {
-            new ISealConfigToggles.SealToggle(true, "pmob", "golem.prop.mob"),
-            new ISealConfigToggles.SealToggle(false, "panimal", "golem.prop.animal"),
-            new ISealConfigToggles.SealToggle(false, "pplayer", "golem.prop.player")
+        new ISealConfigToggles.SealToggle(true, "pmob", "golem.prop.mob"),
+        new ISealConfigToggles.SealToggle(false, "panimal", "golem.prop.animal"),
+        new ISealConfigToggles.SealToggle(false, "pplayer", "golem.prop.player")
     };
 
     private int delay = System.identityHashCode(this) % 22;
@@ -74,7 +74,8 @@ public class SealGuard implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public void onTaskStarted(Level level, IGolemAPI golem, Task task) {
-        if (task.getEntity() instanceof LivingEntity target && isValidTarget(level, target)
+        if (task.getEntity() instanceof LivingEntity target
+                && isValidTarget(level, target)
                 && golem.getGolemEntity() instanceof Mob mob) {
             mob.setTarget(target);
             golem.addRankXp(1);
@@ -105,12 +106,12 @@ public class SealGuard implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_AREA, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_AREA, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{TCGolemTraits.FIGHTER.get()};
+        return new GolemTrait[] {TCGolemTraits.FIGHTER.get()};
     }
 
     @Override
@@ -119,18 +120,14 @@ public class SealGuard implements ISeal, ISealGui, ISealConfigArea {
     }
 
     @Override
-    public void onTaskSuspension(Level level, Task task) {
-    }
+    public void onTaskSuspension(Level level, Task task) {}
 
     @Override
-    public void readCustomNBT(CompoundTag nbt) {
-    }
+    public void readCustomNBT(CompoundTag nbt) {}
 
     @Override
-    public void writeCustomNBT(CompoundTag nbt) {
-    }
+    public void writeCustomNBT(CompoundTag nbt) {}
 
     @Override
-    public void onRemoval(Level level, BlockPos pos, Direction side) {
-    }
+    public void onRemoval(Level level, BlockPos pos, Direction side) {}
 }

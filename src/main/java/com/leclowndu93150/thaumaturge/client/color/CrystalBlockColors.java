@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.color;
 
-import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import java.util.List;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.util.ARGB;

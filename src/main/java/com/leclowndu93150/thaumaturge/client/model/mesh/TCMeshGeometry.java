@@ -38,9 +38,14 @@ public final class TCMeshGeometry implements ExtendedUnbakedGeometry {
     }
 
     @Override
-    public QuadCollection bake(TextureSlots textureSlots, ModelBaker modelBaker, ModelState modelState,
-                               ModelDebugName name, ContextMap additionalProperties) {
-        Transformation rootTransform = additionalProperties.getOrDefault(NeoForgeModelProperties.TRANSFORM, Transformation.IDENTITY);
+    public QuadCollection bake(
+            TextureSlots textureSlots,
+            ModelBaker modelBaker,
+            ModelState modelState,
+            ModelDebugName name,
+            ContextMap additionalProperties) {
+        Transformation rootTransform =
+                additionalProperties.getOrDefault(NeoForgeModelProperties.TRANSFORM, Transformation.IDENTITY);
         if (!rootTransform.isIdentity()) {
             modelState = UnbakedElementsHelper.composeRootTransformIntoModelState(modelState, rootTransform);
         }

@@ -25,7 +25,8 @@ public final class FocusSlider extends AbstractWidget {
     private final Consumer<Float> onChange;
     private float position;
 
-    public FocusSlider(int x, int y, int w, int h, float min, float max, float value, boolean vertical, Consumer<Float> onChange) {
+    public FocusSlider(
+            int x, int y, int w, int h, float min, float max, float value, boolean vertical, Consumer<Float> onChange) {
         super(x, y, w, h, Component.empty());
         this.min = min;
         this.max = max;
@@ -62,8 +63,17 @@ public final class FocusSlider extends AbstractWidget {
         }
         int hx = vertical ? getX() : getX() + (int) (position * (width - HANDLE_SIZE));
         int hy = vertical ? getY() + (int) (position * (height - HANDLE_SIZE)) : getY();
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.GUI_BASE,
-                hx, hy, HANDLE_U, HANDLE_V, HANDLE_SIZE, HANDLE_SIZE, ATLAS, ATLAS);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                TCScreenTextures.GUI_BASE,
+                hx,
+                hy,
+                HANDLE_U,
+                HANDLE_V,
+                HANDLE_SIZE,
+                HANDLE_SIZE,
+                ATLAS,
+                ATLAS);
     }
 
     @Override

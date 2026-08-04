@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class SealsChunkData {
-    public static final MapCodec<SealsChunkData> CODEC = SealEntity.CODEC.listOf()
+    public static final MapCodec<SealsChunkData> CODEC = SealEntity.CODEC
+            .listOf()
             .optionalFieldOf("seals", List.of())
             .xmap(SealsChunkData::new, data -> List.copyOf(data.seals));
 

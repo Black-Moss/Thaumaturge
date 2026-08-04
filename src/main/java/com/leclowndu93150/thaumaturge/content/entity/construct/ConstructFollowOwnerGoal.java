@@ -21,8 +21,8 @@ public final class ConstructFollowOwnerGoal extends Goal {
     private final float stopDistance;
     private float oldWaterCost;
 
-    public ConstructFollowOwnerGoal(EntityOwnedConstruct construct, double followSpeed,
-                                    float startDistance, float stopDistance) {
+    public ConstructFollowOwnerGoal(
+            EntityOwnedConstruct construct, double followSpeed, float startDistance, float stopDistance) {
         this.construct = construct;
         this.followSpeed = followSpeed;
         this.navigation = construct.getNavigation();
@@ -89,8 +89,8 @@ public final class ConstructFollowOwnerGoal extends Goal {
                         && isSolidGround(new BlockPos(baseX + dx, baseY - 1, baseZ + dz))
                         && isPassable(new BlockPos(baseX + dx, baseY, baseZ + dz))
                         && isPassable(new BlockPos(baseX + dx, baseY + 1, baseZ + dz))) {
-                    construct.snapTo(baseX + dx + 0.5, baseY, baseZ + dz + 0.5,
-                            construct.getYRot(), construct.getXRot());
+                    construct.snapTo(
+                            baseX + dx + 0.5, baseY, baseZ + dz + 0.5, construct.getYRot(), construct.getXRot());
                     navigation.stop();
                     return;
                 }

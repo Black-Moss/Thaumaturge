@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.content.particle.CrackShardParticleOptions
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 
 public final class CrackShardParticle extends TCParticle {
@@ -14,8 +13,16 @@ public final class CrackShardParticle extends TCParticle {
 
     private final int frameBase;
 
-    private CrackShardParticle(ClientLevel level, double x, double y, double z,
-                               double vx, double vy, double vz, CrackShardParticleOptions options, ParticleSheet sheet) {
+    private CrackShardParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            CrackShardParticleOptions options,
+            ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         setColor(options.color());
         this.lifetime = Math.max(1, options.age());
@@ -34,8 +41,16 @@ public final class CrackShardParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("crack_shard");
 
         @Override
-        public Particle createParticle(CrackShardParticleOptions options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                CrackShardParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new CrackShardParticle(level, x, y, z, vx, vy, vz, options, SHEET);
         }
     }

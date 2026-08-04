@@ -12,8 +12,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class TCFluids {
-    public static final DeferredRegister<Fluid> FLUIDS =
-            DeferredRegister.create(Registries.FLUID, TCIds.MODID);
+    public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(Registries.FLUID, TCIds.MODID);
 
     public static final DeferredHolder<Fluid, FluxGooFluid.Source> FLUX_GOO_SOURCE =
             FLUIDS.register("flux_goo", () -> new FluxGooFluid.Source(props()));

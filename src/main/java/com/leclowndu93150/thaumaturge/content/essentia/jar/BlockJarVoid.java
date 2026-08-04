@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
-import net.minecraft.resources.Identifier;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -15,8 +15,7 @@ import org.jspecify.annotations.Nullable;
 public final class BlockJarVoid extends BlockJar {
     private static final Identifier SIDE_TEXTURE =
             Identifier.fromNamespaceAndPath("thaumaturge", "block/jar_side_void");
-    private static final Identifier TOP_TEXTURE =
-            Identifier.fromNamespaceAndPath("thaumaturge", "block/jar_top_void");
+    private static final Identifier TOP_TEXTURE = Identifier.fromNamespaceAndPath("thaumaturge", "block/jar_top_void");
 
     @Override
     public Identifier jarSideTexture() {
@@ -45,7 +44,8 @@ public final class BlockJarVoid extends BlockJar {
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> type) {
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+            Level level, BlockState blockState, BlockEntityType<T> type) {
         return createTickerHelper(type, TCBlockEntities.JAR_VOID.get(), BlockEntityJarVoid::serverTick);
     }
 }

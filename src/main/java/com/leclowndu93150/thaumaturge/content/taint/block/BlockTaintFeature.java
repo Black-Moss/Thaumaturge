@@ -6,11 +6,11 @@ import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -92,13 +92,18 @@ public final class BlockTaintFeature extends DirectionalBlock implements ITaintB
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+    protected void affectNeighborsAfterRemoval(
+            BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
         if (level.getRandom().nextFloat() < CRAWLER_ON_BREAK_CHANCE) {
             EntityTaintCrawler crawler = TCEntities.TAINT_CRAWLER.get().create(level, EntitySpawnReason.NATURAL);
             if (crawler != null) {
-                crawler.snapTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                        level.getRandom().nextInt(360), 0.0F);
+                crawler.snapTo(
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5,
+                        pos.getZ() + 0.5,
+                        level.getRandom().nextInt(360),
+                        0.0F);
                 level.addFreshEntity(crawler);
             }
         } else {

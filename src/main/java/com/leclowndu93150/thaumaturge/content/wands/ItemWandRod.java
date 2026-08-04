@@ -23,9 +23,14 @@ public final class ItemWandRod extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-            Consumer<Component> builder, TooltipFlag flag) {
-        builder.accept(Component.translatable("tooltip.thaumaturge.wand.capacity", rod.get().capacity())
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> builder,
+            TooltipFlag flag) {
+        builder.accept(Component.translatable(
+                        "tooltip.thaumaturge.wand.capacity", rod.get().capacity())
                 .withStyle(ChatFormatting.GOLD));
     }
 }

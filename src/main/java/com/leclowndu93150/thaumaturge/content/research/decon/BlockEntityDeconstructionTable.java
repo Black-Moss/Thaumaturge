@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.decon;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
@@ -115,9 +115,16 @@ public final class BlockEntityDeconstructionTable extends BlockEntity implements
             resultAspect = AspectPools.idOf(picked);
         }
         input.shrink(1);
-        inventory.set(SLOT_INPUT, input.isEmpty() ? ItemResource.EMPTY : ItemResource.of(input),
+        inventory.set(
+                SLOT_INPUT,
+                input.isEmpty() ? ItemResource.EMPTY : ItemResource.of(input),
                 input.isEmpty() ? 0 : input.getCount());
-        level.playSound(null, pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 0.3F,
+        level.playSound(
+                null,
+                pos,
+                SoundEvents.WOOD_HIT,
+                SoundSource.BLOCKS,
+                0.3F,
                 0.9F + level.getRandom().nextFloat() * 0.2F);
         setChanged();
         syncToClient();
@@ -175,7 +182,8 @@ public final class BlockEntityDeconstructionTable extends BlockEntity implements
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput out = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(out);
             nbt.merge(out.buildResult());

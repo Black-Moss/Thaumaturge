@@ -15,7 +15,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -26,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
@@ -38,14 +36,14 @@ public final class BlockManaPod extends BaseEntityBlock {
     private static final int GROWTH_CHANCE = 30;
     private static final int MAX_HARDNESS_STEPS = 8;
     private static final VoxelShape[] SHAPES = {
-            box(4.0, 12.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 10.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 8.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 6.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 5.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 4.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 3.0, 4.0, 12.0, 16.0, 12.0),
-            box(4.0, 2.0, 4.0, 12.0, 16.0, 12.0)
+        box(4.0, 12.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 10.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 8.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 6.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 5.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 4.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 3.0, 4.0, 12.0, 16.0, 12.0),
+        box(4.0, 2.0, 4.0, 12.0, 16.0, 12.0)
     };
 
     public BlockManaPod(Properties properties) {
@@ -84,8 +82,15 @@ public final class BlockManaPod extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
-                                     Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+    protected BlockState updateShape(
+            BlockState state,
+            LevelReader level,
+            ScheduledTickAccess ticks,
+            BlockPos pos,
+            Direction direction,
+            BlockPos neighborPos,
+            BlockState neighborState,
+            RandomSource random) {
         if (direction == Direction.UP && !neighborState.is(BlockTags.LOGS)) {
             ticks.scheduleTick(pos, this, 1);
         }
@@ -105,16 +110,14 @@ public final class BlockManaPod extends BaseEntityBlock {
             level.destroyBlock(pos, true);
             return;
         }
-        if (random.nextInt(GROWTH_CHANCE) == 0
-                && level.getBlockEntity(pos) instanceof BlockEntityManaPod pod) {
+        if (random.nextInt(GROWTH_CHANCE) == 0 && level.getBlockEntity(pos) instanceof BlockEntityManaPod pod) {
             pod.checkGrowth();
         }
     }
 
     @Override
     protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
-        return super.getDestroyProgress(state, player, level, pos)
-                * (MAX_HARDNESS_STEPS - state.getValue(AGE));
+        return super.getDestroyProgress(state, player, level, pos) * (MAX_HARDNESS_STEPS - state.getValue(AGE));
     }
 
     @Override

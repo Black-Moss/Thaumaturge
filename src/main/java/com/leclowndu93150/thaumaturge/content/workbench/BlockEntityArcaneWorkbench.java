@@ -2,12 +2,9 @@ package com.leclowndu93150.thaumaturge.content.workbench;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.content.aura.AuraData;
-import com.leclowndu93150.thaumaturge.content.aura.AuraManager;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -43,10 +40,9 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
     @SubscribeEvent
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-            Capabilities.Item.BLOCK,
-            TCBlockEntities.ARCANE_WORKBENCH.get(),
-            (be, side) -> VanillaContainerWrapper.of(be.getInventory())
-        );
+                Capabilities.Item.BLOCK,
+                TCBlockEntities.ARCANE_WORKBENCH.get(),
+                (be, side) -> VanillaContainerWrapper.of(be.getInventory()));
     }
 
     @Override
@@ -69,7 +65,7 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
     public void refreshAura() {
         if (level != null && !level.isClientSide()) {
             auraVis = 0;
-            if (!(level.getBlockState(getBlockPos().above()).getBlock() instanceof BlockArcaneWorkbenchCharger)){
+            if (!(level.getBlockState(getBlockPos().above()).getBlock() instanceof BlockArcaneWorkbenchCharger)) {
                 auraVis = (int) AuraHelper.getVis(level, getBlockPos());
             } else {
                 ChunkPos chunkPos = ChunkPos.containing(getBlockPos());
@@ -77,7 +73,9 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
                 for (int x = -1; x <= 1; x++) {
                     for (int z = -1; z <= 1; z++) {
                         ChunkPos current = new ChunkPos(chunkPos.x() + x, chunkPos.z() + z);
-                        auraVis += (int)  AuraHelper.getVis(level, current.getMiddleBlockPosition(getBlockPos().getY()));
+                        auraVis += (int) AuraHelper.getVis(
+                                level,
+                                current.getMiddleBlockPosition(getBlockPos().getY()));
                     }
                 }
             }
@@ -86,7 +84,7 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
 
     public void spendAura(int vis) {
         if (level != null && !level.isClientSide()) {
-            if (!(level.getBlockState(getBlockPos().above()).getBlock() instanceof BlockArcaneWorkbenchCharger)){
+            if (!(level.getBlockState(getBlockPos().above()).getBlock() instanceof BlockArcaneWorkbenchCharger)) {
                 AuraHelper.drainVis(level, getBlockPos(), vis, false);
             } else {
                 ChunkPos chunkPos = ChunkPos.containing(getBlockPos());
@@ -94,15 +92,20 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
                 int max = Math.max(1, vis / 9);
                 int attempts = 0;
 
-                while ( remaining > 0) {
+                while (remaining > 0) {
                     attempts++;
                     for (int x = -1; x <= 1; x++) {
                         for (int z = -1; z <= 1; z++) {
                             ChunkPos current = new ChunkPos(chunkPos.x() + x, chunkPos.z() + z);
-                            if (max > remaining)
-                                max = remaining;
-                            remaining = (int)(remaining - AuraHelper.drainVis(level, current.getMiddleBlockPosition(getBlockPos().getY()), max,false));
-                            if (remaining <= 0 || attempts > 1000){
+                            if (max > remaining) max = remaining;
+                            remaining = (int) (remaining
+                                    - AuraHelper.drainVis(
+                                            level,
+                                            current.getMiddleBlockPosition(
+                                                    getBlockPos().getY()),
+                                            max,
+                                            false));
+                            if (remaining <= 0 || attempts > 1000) {
                                 return;
                             }
                         }

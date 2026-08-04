@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.aura.node;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -12,12 +13,11 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
-import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityNodeTransducer extends BlockEntity {
@@ -52,14 +52,18 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
             checkStatus(level, pos);
         }
         BlockEntity below = level.getBlockEntity(pos.below());
-        if (status == STATUS_NODE && count >= CHARGE_TARGET
-                && below instanceof BlockEntityNode node && !node.isEnergized()) {
+        if (status == STATUS_NODE
+                && count >= CHARGE_TARGET
+                && below instanceof BlockEntityNode node
+                && !node.isEnergized()) {
             node.setEnergized(true);
             checkStatus(level, pos);
             setChanged();
         }
-        if (status == STATUS_ENERGIZED && count <= REVERT_THRESHOLD
-                && below instanceof BlockEntityNode node && node.isEnergized()) {
+        if (status == STATUS_ENERGIZED
+                && count <= REVERT_THRESHOLD
+                && below instanceof BlockEntityNode node
+                && node.isEnergized()) {
             node.setEnergized(false);
             List<AspectInstance> stored = node.getAspects().entries();
             for (AspectInstance entry : stored) {
@@ -92,22 +96,28 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
         if (level.getGameTime() % SYNC_INTERVAL == 0) {
             level.sendBlockUpdated(pos, getBlockState(), getBlockState(), 3);
         }
-        if (level instanceof ServerLevel serverLevel && count > REVERT_THRESHOLD && count < CHARGE_TARGET
+        if (level instanceof ServerLevel serverLevel
+                && count > REVERT_THRESHOLD
+                && count < CHARGE_TARGET
                 && level.getGameTime() % BOLT_INTERVAL == 0) {
             if (level.getRandom().nextBoolean()) {
-                Effects.arcBolt(serverLevel, new Vec3(
-                                pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5,
-                                pos.getY() + 0.5,
-                                pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
+                Effects.arcBolt(
+                                serverLevel,
+                                new Vec3(
+                                        pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5,
+                                        pos.getY() + 0.5,
+                                        pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
                         .to(Vec3.atCenterOf(pos.below()))
                         .width(BOLT_WIDTH)
                         .send();
             }
             if (level.getRandom().nextBoolean() && hasStabilizer(level, pos)) {
-                Effects.arcBolt(serverLevel, new Vec3(
-                                pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5,
-                                pos.getY() - 1.5,
-                                pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
+                Effects.arcBolt(
+                                serverLevel,
+                                new Vec3(
+                                        pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5,
+                                        pos.getY() - 1.5,
+                                        pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
                         .to(Vec3.atCenterOf(pos.below()))
                         .width(BOLT_WIDTH)
                         .send();

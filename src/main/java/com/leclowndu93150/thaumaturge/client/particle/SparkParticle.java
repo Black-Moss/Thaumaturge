@@ -15,8 +15,8 @@ public final class SparkParticle extends TCParticle {
     private final int rowOffset;
     private final boolean mirrored;
 
-    private SparkParticle(ClientLevel level, double x, double y, double z,
-                          SparkParticleOptions options, ParticleSheet sheet) {
+    private SparkParticle(
+            ClientLevel level, double x, double y, double z, SparkParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         setColor(options.color());
         this.alpha = options.alpha();
@@ -46,8 +46,16 @@ public final class SparkParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("spark");
 
         @Override
-        public Particle createParticle(SparkParticleOptions options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                SparkParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new SparkParticle(level, x, y, z, options, SHEET);
         }
     }

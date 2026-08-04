@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -31,9 +30,15 @@ import net.minecraft.server.level.ServerPlayer;
 
 public final class PlayerKnowledge implements IPlayerKnowledge {
     public static final MapCodec<PlayerKnowledge> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ResearchRecord.CODEC.listOf().optionalFieldOf("research", List.of()).forGetter(PlayerKnowledge::researchEntries),
-            KnowledgeRecord.CODEC.listOf().optionalFieldOf("knowledge", List.of()).forGetter(PlayerKnowledge::knowledgeEntries)
-    ).apply(instance, PlayerKnowledge::fromRecords));
+                    ResearchRecord.CODEC
+                            .listOf()
+                            .optionalFieldOf("research", List.of())
+                            .forGetter(PlayerKnowledge::researchEntries),
+                    KnowledgeRecord.CODEC
+                            .listOf()
+                            .optionalFieldOf("knowledge", List.of())
+                            .forGetter(PlayerKnowledge::knowledgeEntries))
+            .apply(instance, PlayerKnowledge::fromRecords));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayerKnowledge> STREAM_CODEC =
             ByteBufCodecs.fromCodecWithRegistries(CODEC.codec());
@@ -44,10 +49,10 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     private final Map<Identifier, EnumSet<ResearchFlag>> flags = new HashMap<>();
     private final Map<KnowledgeKey, Integer> knowledge = new HashMap<>();
 
-    public PlayerKnowledge() {
-    }
+    public PlayerKnowledge() {}
 
-    private static PlayerKnowledge fromRecords(List<ResearchRecord> researchRecords, List<KnowledgeRecord> knowledgeRecords) {
+    private static PlayerKnowledge fromRecords(
+            List<ResearchRecord> researchRecords, List<KnowledgeRecord> knowledgeRecords) {
         PlayerKnowledge result = new PlayerKnowledge();
         for (ResearchRecord record : researchRecords) {
             result.research.add(record.key());
@@ -62,7 +67,11 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
             }
         }
         for (KnowledgeRecord record : knowledgeRecords) {
-            result.knowledge.put(new KnowledgeKey(record.type(), record.category().map(ResourceKey::identifier).orElse(null)), record.amount());
+            result.knowledge.put(
+                    new KnowledgeKey(
+                            record.type(),
+                            record.category().map(ResourceKey::identifier).orElse(null)),
+                    record.amount());
         }
         return result;
     }
@@ -71,11 +80,7 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
         return research.stream()
                 .sorted()
                 .map(key -> new ResearchRecord(
-                        key,
-                        Optional.ofNullable(stages.get(key)),
-                        flagsAsList(key),
-                        completed.contains(key)
-                ))
+                        key, Optional.ofNullable(stages.get(key)), flagsAsList(key), completed.contains(key)))
                 .toList();
     }
 
@@ -89,9 +94,9 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
                 .filter(e -> e.getValue() > 0)
                 .map(e -> new KnowledgeRecord(
                         e.getKey().type(),
-                        Optional.ofNullable(e.getKey().category()).map(loc -> ResourceKey.create(IResearchCategory.REGISTRY_KEY, loc)),
-                        e.getValue()
-                ))
+                        Optional.ofNullable(e.getKey().category())
+                                .map(loc -> ResourceKey.create(IResearchCategory.REGISTRY_KEY, loc)),
+                        e.getValue()))
                 .sorted((a, b) -> {
                     int byType = a.type().compareTo(b.type());
                     if (byType != 0) return byType;
@@ -188,7 +193,8 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     @Override
     public boolean setResearchFlag(Identifier res, ResearchFlag flag) {
         if (res == null || flag == null) return false;
-        return flags.computeIfAbsent(res, k -> EnumSet.noneOf(ResearchFlag.class)).add(flag);
+        return flags.computeIfAbsent(res, k -> EnumSet.noneOf(ResearchFlag.class))
+                .add(flag);
     }
 
     @Override
@@ -253,8 +259,9 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     public void applyAutoUnlock(HolderLookup.Provider registries) {
-        registries.lookup(IResearchEntry.REGISTRY_KEY).ifPresent(lookup ->
-                lookup.listElements().forEach(holder -> {
+        registries
+                .lookup(IResearchEntry.REGISTRY_KEY)
+                .ifPresent(lookup -> lookup.listElements().forEach(holder -> {
                     if (holder.value().hasMeta(ResearchEntryMeta.AUTOUNLOCK)) {
                         holder.unwrapKey().ifPresent(k -> addResearch(k.identifier()));
                     }
@@ -265,18 +272,23 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
 
     private record ResearchRecord(Identifier key, Optional<Integer> stage, List<ResearchFlag> flags, boolean complete) {
         static final Codec<ResearchRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                LegacyIds.IDENTIFIER_CODEC.fieldOf("id").forGetter(ResearchRecord::key),
-                Codec.INT.optionalFieldOf("stage").forGetter(ResearchRecord::stage),
-                ResearchFlag.CODEC.listOf().optionalFieldOf("flags", List.of()).forGetter(ResearchRecord::flags),
-                Codec.BOOL.optionalFieldOf("complete", false).forGetter(ResearchRecord::complete)
-        ).apply(instance, ResearchRecord::new));
+                        LegacyIds.IDENTIFIER_CODEC.fieldOf("id").forGetter(ResearchRecord::key),
+                        Codec.INT.optionalFieldOf("stage").forGetter(ResearchRecord::stage),
+                        ResearchFlag.CODEC
+                                .listOf()
+                                .optionalFieldOf("flags", List.of())
+                                .forGetter(ResearchRecord::flags),
+                        Codec.BOOL.optionalFieldOf("complete", false).forGetter(ResearchRecord::complete))
+                .apply(instance, ResearchRecord::new));
     }
 
     private record KnowledgeRecord(KnowledgeType type, Optional<ResourceKey<IResearchCategory>> category, int amount) {
         static final Codec<KnowledgeRecord> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                KnowledgeType.CODEC.fieldOf("type").forGetter(KnowledgeRecord::type),
-                LegacyIds.resourceKeyCodec(IResearchCategory.REGISTRY_KEY).optionalFieldOf("category").forGetter(KnowledgeRecord::category),
-                Codec.INT.fieldOf("amount").forGetter(KnowledgeRecord::amount)
-        ).apply(instance, KnowledgeRecord::new));
+                        KnowledgeType.CODEC.fieldOf("type").forGetter(KnowledgeRecord::type),
+                        LegacyIds.resourceKeyCodec(IResearchCategory.REGISTRY_KEY)
+                                .optionalFieldOf("category")
+                                .forGetter(KnowledgeRecord::category),
+                        Codec.INT.fieldOf("amount").forGetter(KnowledgeRecord::amount))
+                .apply(instance, KnowledgeRecord::new));
     }
 }

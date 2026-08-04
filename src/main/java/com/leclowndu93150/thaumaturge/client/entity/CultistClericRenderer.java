@@ -19,7 +19,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public final class CultistClericRenderer
-        extends HumanoidMobRenderer<EntityCultistCleric, CultistClericRenderer.State, HumanoidModel<CultistClericRenderer.State>> {
+        extends HumanoidMobRenderer<
+                EntityCultistCleric, CultistClericRenderer.State, HumanoidModel<CultistClericRenderer.State>> {
     public static final class State extends HumanoidRenderState {
         public boolean ritualist;
         public float bob;
@@ -44,7 +45,8 @@ public final class CultistClericRenderer
 
     public CultistClericRenderer(EntityRendererProvider.Context context) {
         super(context, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER)), SHADOW);
-        this.addLayer(new HumanoidArmorLayer<>(this,
+        this.addLayer(new HumanoidArmorLayer<>(
+                this,
                 ArmorModelSet.bake(ModelLayers.PLAYER_ARMOR, context.getModelSet(), HumanoidModel::new),
                 context.getEquipmentRenderer()));
     }
@@ -85,8 +87,8 @@ public final class CultistClericRenderer
         poseStack.translate(0.0F, state.bob, 0.0F);
         super.submit(state, poseStack, collector, camera);
         poseStack.translate(0.0F, state.lineStartY, 0.0F);
-        FloatyLineRenderer.submit(poseStack, collector, state.lineTo, state.time,
-                LINE_COLOR, LINE_SPEED, state.lineFade, LINE_WIDTH);
+        FloatyLineRenderer.submit(
+                poseStack, collector, state.lineTo, state.time, LINE_COLOR, LINE_SPEED, state.lineFade, LINE_WIDTH);
         poseStack.popPose();
     }
 

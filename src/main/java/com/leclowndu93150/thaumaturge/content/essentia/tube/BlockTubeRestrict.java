@@ -29,9 +29,10 @@ public final class BlockTubeRestrict extends BlockTube {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) return null;
-        return createTickerHelper(type, TCBlockEntities.TUBE_RESTRICT.get(),
-                (lvl, pos, st, tube) -> tube.tickServer(lvl, pos, st));
+        return createTickerHelper(
+                type, TCBlockEntities.TUBE_RESTRICT.get(), (lvl, pos, st, tube) -> tube.tickServer(lvl, pos, st));
     }
 }

@@ -24,8 +24,7 @@ public final class ServerboundGolemPressHandler {
                 for (int i = 0; i < stuff.length; i++) {
                     bytes[i] = (byte) (stuff[i] ? 1 : 0);
                 }
-                PacketDistributor.sendToPlayer(player,
-                        new ClientboundGolemPressStuffPayload(payload.pos(), bytes));
+                PacketDistributor.sendToPlayer(player, new ClientboundGolemPressStuffPayload(payload.pos(), bytes));
             }
         });
     }

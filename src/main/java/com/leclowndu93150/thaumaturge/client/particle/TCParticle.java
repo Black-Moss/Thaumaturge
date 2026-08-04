@@ -21,18 +21,33 @@ public abstract class TCParticle extends SingleQuadParticle {
     private double windX;
     private double windZ;
 
-    protected TCParticle(ClientLevel level, double x, double y, double z,
-                         double vx, double vy, double vz, ParticleSheet sheet) {
+    protected TCParticle(
+            ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ParticleSheet sheet) {
         this(level, x, y, z, vx, vy, vz, sheet, null);
     }
 
-    protected TCParticle(ClientLevel level, double x, double y, double z,
-                         double vx, double vy, double vz, TextureAtlasSprite sprite) {
+    protected TCParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            TextureAtlasSprite sprite) {
         this(level, x, y, z, vx, vy, vz, null, sprite);
     }
 
-    private TCParticle(ClientLevel level, double x, double y, double z,
-                       double vx, double vy, double vz, @Nullable ParticleSheet sheet, @Nullable TextureAtlasSprite sprite) {
+    private TCParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            @Nullable ParticleSheet sheet,
+            @Nullable TextureAtlasSprite sprite) {
         super(level, x, y, z, vx, vy, vz, sprite);
         this.sheet = sheet;
         this.xd = vx;
@@ -88,8 +103,10 @@ public abstract class TCParticle extends SingleQuadParticle {
     }
 
     protected void setMoonWind(double scale) {
-        int phase = this.level.environmentAttributes()
-                .getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(this.x, this.y, this.z)).index();
+        int phase = this.level
+                .environmentAttributes()
+                .getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(this.x, this.y, this.z))
+                .index();
         double angle = phase * (Math.PI / 4.0) + this.random.nextFloat() * WIND_ANGLE_JITTER;
         this.windX = Math.cos(angle) * WIND_STRENGTH * scale;
         this.windZ = Math.sin(angle) * WIND_STRENGTH * scale;

@@ -52,5 +52,4 @@ public final class AspectPoolBindings implements AspectPoolAccess.Bindings {
     public void refund(ServerPlayer player, Holder<IAspect> aspect, int amount) {
         AspectPools.refund(player, aspect, amount);
     }
-
 }

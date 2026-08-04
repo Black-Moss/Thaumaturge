@@ -18,9 +18,7 @@ public class VoidGearItem extends Item implements IWarpingGear {
     }
 
     static void selfRepairTick(ItemStack stack, Entity entity) {
-        if (entity instanceof LivingEntity
-                && stack.isDamaged()
-                && entity.tickCount % REPAIR_INTERVAL_TICKS == 0) {
+        if (entity instanceof LivingEntity && stack.isDamaged() && entity.tickCount % REPAIR_INTERVAL_TICKS == 0) {
             stack.setDamageValue(stack.getDamageValue() - 1);
         }
     }

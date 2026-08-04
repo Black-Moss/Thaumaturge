@@ -26,16 +26,16 @@ public final class ResearchGrants {
 
     public static void grantConvertedKnowledge(ServerPlayer player, KnowledgeType type, int amount) {
         for (int i = 0; i < amount; i++) {
-            Holder<IAspect> target = type == KnowledgeType.THEORY
-                    ? randomDiscoveredCompound(player)
-                    : randomPrimal(player);
+            Holder<IAspect> target =
+                    type == KnowledgeType.THEORY ? randomDiscoveredCompound(player) : randomPrimal(player);
             AspectPools.grant(player, target, 1);
         }
     }
 
     private static Holder<IAspect> randomPrimal(ServerPlayer player) {
         List<Holder.Reference<IAspect>> primals = player.registryAccess()
-                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
                 .filter(aspect -> aspect.value().isPrimal())
                 .toList();
         return primals.get(player.getRandom().nextInt(primals.size()));
@@ -43,7 +43,8 @@ public final class ResearchGrants {
 
     private static Holder<IAspect> randomDiscoveredCompound(ServerPlayer player) {
         List<Holder.Reference<IAspect>> compounds = player.registryAccess()
-                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
                 .filter(aspect -> !aspect.value().isPrimal())
                 .filter(aspect -> AspectPools.isDiscovered(player, aspect))
                 .toList();
@@ -56,7 +57,9 @@ public final class ResearchGrants {
     public static int grantAll(ServerPlayer player) {
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         List<Holder.Reference<IResearchEntry>> entries = player.registryAccess()
-                .lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList();
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+                .listElements()
+                .toList();
 
         Set<Identifier> entryIds = new HashSet<>();
         for (Holder.Reference<IResearchEntry> entry : entries) {
@@ -86,13 +89,16 @@ public final class ResearchGrants {
             if (ResearchManager.complete(player, id)) {
                 ResearchManager.setStage(player, id, entry.value().stages().size());
                 granted++;
-                Optional<ResourceKey<IResearchCategory>> category = entry.value().category().unwrapKey();
-                PacketDistributor.sendToPlayer(player,
-                        new ClientboundKnowledgeGainPayload(KnowledgeType.OBSERVATION, category, 1));
+                Optional<ResourceKey<IResearchCategory>> category =
+                        entry.value().category().unwrapKey();
+                PacketDistributor.sendToPlayer(
+                        player, new ClientboundKnowledgeGainPayload(KnowledgeType.OBSERVATION, category, 1));
             }
         }
-        for (Holder.Reference<IAspect> aspect
-                : player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()) {
+        for (Holder.Reference<IAspect> aspect : player.registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
+                .toList()) {
             ResearchManager.unlock(player, ScanKeys.aspect(aspect.key()));
         }
         AspectPools.grantAllForCommand(player, AspectPools.SOFT_CAP);

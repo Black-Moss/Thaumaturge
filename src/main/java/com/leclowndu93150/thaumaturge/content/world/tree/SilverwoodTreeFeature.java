@@ -86,8 +86,10 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                         if (state.is(config.leaves())) {
                             placedLeaves.add(pos);
                         } else if (state.is(BlockTags.LEAVES)) {
-                            level.setBlock(pos,
-                                    TreeLeafUpdater.carryDistance(config.leaves().defaultBlockState(), state),
+                            level.setBlock(
+                                    pos,
+                                    TreeLeafUpdater.carryDistance(
+                                            config.leaves().defaultBlockState(), state),
                                     PLACE_FLAGS);
                             placedLeaves.add(pos);
                         } else if (state.isAir() || state.canBeReplaced()) {
@@ -101,8 +103,15 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         }
 
         if (config.node()) {
-            NodeGenerator.createRandomNodeAt(level, new BlockPos(x + 1, y + height - 1, z), random,
-                    true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+            NodeGenerator.createRandomNodeAt(
+                    level,
+                    new BlockPos(x + 1, y + height - 1, z),
+                    random,
+                    true,
+                    false,
+                    false,
+                    NodeGenerator.DEFAULT_SPECIAL_RARITY,
+                    NodeGenerator.DEFAULT_BASE_AURA);
         }
 
         int trunkY;
@@ -167,8 +176,14 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         return true;
     }
 
-    private static void placeLog(WorldGenLevel level, int x, int y, int z,
-                                 SilverwoodTreeConfig config, Set<BlockPos> placedLogs, Direction.Axis axis) {
+    private static void placeLog(
+            WorldGenLevel level,
+            int x,
+            int y,
+            int z,
+            SilverwoodTreeConfig config,
+            Set<BlockPos> placedLogs,
+            Direction.Axis axis) {
         BlockPos pos = new BlockPos(x, y, z);
         BlockState existing = level.getBlockState(pos);
         if (existing.isAir() || existing.is(BlockTags.LEAVES) || existing.canBeReplaced()) {
@@ -188,8 +203,7 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                     random.nextInt(FLOWER_Y_SPREAD) - random.nextInt(FLOWER_Y_SPREAD),
                     random.nextInt(FLOWER_XZ_SPREAD) - random.nextInt(FLOWER_XZ_SPREAD));
             BlockState below = level.getBlockState(pos.below());
-            if (level.getBlockState(pos).isAir()
-                    && (below.is(Blocks.GRASS_BLOCK) || below.is(BlockTags.SAND))) {
+            if (level.getBlockState(pos).isAir() && (below.is(Blocks.GRASS_BLOCK) || below.is(BlockTags.SAND))) {
                 level.setBlock(pos, flower.defaultBlockState(), PLACE_FLAGS);
             }
         }

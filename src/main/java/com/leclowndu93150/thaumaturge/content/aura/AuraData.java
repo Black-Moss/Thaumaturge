@@ -11,25 +11,26 @@ import net.minecraft.world.level.ChunkPos;
 
 public final class AuraData implements IAuraChunk {
     public static final MapCodec<AuraData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.SHORT.optionalFieldOf("base", (short) 0).forGetter(AuraData::getBase),
-            Codec.FLOAT.optionalFieldOf("vis", 0.0F).forGetter(AuraData::getVis),
-            Codec.FLOAT.optionalFieldOf("flux", 0.0F).forGetter(AuraData::getFlux)
-    ).apply(instance, AuraData::new));
+                    Codec.SHORT.optionalFieldOf("base", (short) 0).forGetter(AuraData::getBase),
+                    Codec.FLOAT.optionalFieldOf("vis", 0.0F).forGetter(AuraData::getVis),
+                    Codec.FLOAT.optionalFieldOf("flux", 0.0F).forGetter(AuraData::getFlux))
+            .apply(instance, AuraData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AuraData> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.SHORT, AuraData::getBase,
-            ByteBufCodecs.FLOAT, AuraData::getVis,
-            ByteBufCodecs.FLOAT, AuraData::getFlux,
-            AuraData::new
-    );
+            ByteBufCodecs.SHORT,
+            AuraData::getBase,
+            ByteBufCodecs.FLOAT,
+            AuraData::getVis,
+            ByteBufCodecs.FLOAT,
+            AuraData::getFlux,
+            AuraData::new);
 
     private short base;
     private float vis;
     private float flux;
     private ChunkPos pos = new ChunkPos(0, 0);
 
-    public AuraData() {
-    }
+    public AuraData() {}
 
     public AuraData(short base, float vis, float flux) {
         this.base = base;

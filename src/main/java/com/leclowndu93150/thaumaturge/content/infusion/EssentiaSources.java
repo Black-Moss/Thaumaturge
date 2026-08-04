@@ -5,15 +5,14 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectSource;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class EssentiaSources {
     private static final int DEFAULT_RANGE = 12;
@@ -58,7 +57,8 @@ public final class EssentiaSources {
                     && source.takeFromContainer(aspect, 1)) {
                 BlockEntity be = level.getBlockEntity(sourcePos);
                 if (be != null) be.setChanged();
-                EffectDispatch.spawnEssentiaStream(level,
+                EffectDispatch.spawnEssentiaStream(
+                        level,
                         Vec3.atCenterOf(sourcePos),
                         drainEffectTarget != null ? drainEffectTarget : Vec3.atCenterOf(center.below()),
                         aspect.value().color(),
@@ -90,7 +90,8 @@ public final class EssentiaSources {
                     && source.addToContainer(aspect, 1) == 0) {
                 BlockEntity be = level.getBlockEntity(sourcePos);
                 if (be != null) be.setChanged();
-                EffectDispatch.spawnEssentiaStream(level,
+                EffectDispatch.spawnEssentiaStream(
+                        level,
                         Vec3.atCenterOf(center),
                         Vec3.atCenterOf(sourcePos),
                         aspect.value().color(),

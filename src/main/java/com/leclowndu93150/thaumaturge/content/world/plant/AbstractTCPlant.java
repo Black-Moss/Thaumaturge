@@ -2,10 +2,10 @@ package com.leclowndu93150.thaumaturge.content.world.plant;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.core.Direction;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -26,8 +25,7 @@ public abstract class AbstractTCPlant extends VegetationBlock {
             0.30000001192092896D * 16.0D,
             0.699999988079071D * 16.0D,
             0.6000000238418579D * 16.0D,
-            0.699999988079071D * 16.0D
-    );
+            0.699999988079071D * 16.0D);
 
     protected AbstractTCPlant(BlockBehaviour.Properties properties) {
         super(properties.offsetType(BlockBehaviour.OffsetType.XZ));
@@ -45,7 +43,8 @@ public abstract class AbstractTCPlant extends VegetationBlock {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -58,11 +57,11 @@ public abstract class AbstractTCPlant extends VegetationBlock {
             Direction directionToNeighbour,
             BlockPos neighbourPos,
             BlockState neighbourState,
-            RandomSource random
-    ) {
+            RandomSource random) {
         return !state.canSurvive(level, pos)
                 ? Blocks.AIR.defaultBlockState()
-                : super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+                : super.updateShape(
+                        state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
     }
 
     @Override

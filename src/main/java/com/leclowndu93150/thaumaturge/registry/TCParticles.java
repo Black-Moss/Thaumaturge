@@ -13,9 +13,9 @@ import com.leclowndu93150.thaumaturge.content.particle.CurlyWispParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.EarthPebbleParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.EssentiaDropParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.FireMoteParticleOptions;
+import com.leclowndu93150.thaumaturge.content.particle.FlameFanParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.FluxGooDropletParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.FluxSwirlParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.FlameFanParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.FrostFlakeParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.GolemEmoteParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.InfusionCrumbsParticleOptions;
@@ -67,10 +67,12 @@ public final class TCParticles {
             register("taint_fume", TaintFumeParticleOptions.CODEC, TaintFumeParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<LightningFlashParticleOptions>> LIGHTNING_FLASH =
-            register("lightning_flash", LightningFlashParticleOptions.CODEC, LightningFlashParticleOptions.STREAM_CODEC);
+            register(
+                    "lightning_flash", LightningFlashParticleOptions.CODEC, LightningFlashParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<StabilizerRuneParticleOptions>> STABILIZER_RUNE =
-            register("stabilizer_rune", StabilizerRuneParticleOptions.CODEC, StabilizerRuneParticleOptions.STREAM_CODEC);
+            register(
+                    "stabilizer_rune", StabilizerRuneParticleOptions.CODEC, StabilizerRuneParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<BubbleParticleOptions>> BUBBLE =
             register("bubble", BubbleParticleOptions.CODEC, BubbleParticleOptions.STREAM_CODEC);
@@ -129,7 +131,8 @@ public final class TCParticles {
             register("bore_debris", BoreDebrisParticleOptions.CODEC, BoreDebrisParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<InfusionCrumbsParticleOptions>> INFUSION_CRUMBS =
-            register("infusion_crumbs", InfusionCrumbsParticleOptions.CODEC, InfusionCrumbsParticleOptions.STREAM_CODEC);
+            register(
+                    "infusion_crumbs", InfusionCrumbsParticleOptions.CODEC, InfusionCrumbsParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<BoreSparkleParticleOptions>> BORE_SPARKLE =
             register("bore_sparkle", BoreSparkleParticleOptions.CODEC, BoreSparkleParticleOptions.STREAM_CODEC);
@@ -138,8 +141,10 @@ public final class TCParticles {
             register("essentia_drop", EssentiaDropParticleOptions.CODEC, EssentiaDropParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<FluxGooDropletParticleOptions>> FLUX_GOO_DROPLET =
-            register("flux_goo_droplet", FluxGooDropletParticleOptions.CODEC, FluxGooDropletParticleOptions.STREAM_CODEC);
-
+            register(
+                    "flux_goo_droplet",
+                    FluxGooDropletParticleOptions.CODEC,
+                    FluxGooDropletParticleOptions.STREAM_CODEC);
 
     public static final DeferredHolder<ParticleType<?>, ParticleType<ShieldSparkParticleOptions>> SHIELD_SPARK =
             register("shield_spark", ShieldSparkParticleOptions.CODEC, ShieldSparkParticleOptions.STREAM_CODEC);
@@ -193,8 +198,8 @@ public final class TCParticles {
         return ColorParticleOption.create(type.get(), color);
     }
 
-    public static ColorParticleOption colorOf(DeferredHolder<ParticleType<?>, TCColorParticleType> type,
-                                              float r, float g, float b) {
+    public static ColorParticleOption colorOf(
+            DeferredHolder<ParticleType<?>, TCColorParticleType> type, float r, float g, float b) {
         return ColorParticleOption.create(type.get(), r, g, b);
     }
 

@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.compat.jei;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.compat.jei.category.AspectCompositionCategory;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.network.ServerboundRequestSyncAspectPoolPayload;
@@ -34,11 +34,14 @@ public final class AspectJeiSync {
         discoveredAspects.clear();
         Player player = Minecraft.getInstance().player;
         if (player != null) {
-            player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
-                if (AspectPools.isDiscovered(player, ref)) {
-                    discoveredAspects.add(AspectPools.idOf(ref));
-                }
-            });
+            player.registryAccess()
+                    .lookupOrThrow(IAspect.REGISTRY_KEY)
+                    .listElements()
+                    .forEach(ref -> {
+                        if (AspectPools.isDiscovered(player, ref)) {
+                            discoveredAspects.add(AspectPools.idOf(ref));
+                        }
+                    });
             updateCompositionVisibility(jeiRuntime);
         }
         ClientPacketDistributor.sendToServer(ServerboundRequestSyncAspectPoolPayload.INSTANCE);
@@ -100,20 +103,23 @@ public final class AspectJeiSync {
         }
         IIngredientManager ingredients = current.getIngredientManager();
         Set<Identifier> changedIds = new HashSet<>();
-        player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
-            Identifier id = ref.key().identifier();
-            boolean discovered = AspectPools.isDiscovered(player, ref);
-            boolean known = discoveredAspects.contains(id);
-            if (discovered == known) {
-                return;
-            }
-            if (discovered) {
-                discoveredAspects.add(id);
-            } else {
-                discoveredAspects.remove(id);
-            }
-            changedIds.add(id);
-        });
+        player.registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
+                .forEach(ref -> {
+                    Identifier id = ref.key().identifier();
+                    boolean discovered = AspectPools.isDiscovered(player, ref);
+                    boolean known = discoveredAspects.contains(id);
+                    if (discovered == known) {
+                        return;
+                    }
+                    if (discovered) {
+                        discoveredAspects.add(id);
+                    } else {
+                        discoveredAspects.remove(id);
+                    }
+                    changedIds.add(id);
+                });
         if (changedIds.isEmpty()) {
             return;
         }

@@ -12,8 +12,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.world.item.crafting.display.RecipeDisplay;
-import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,6 +25,8 @@ import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 
 public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, IInfusionRecipe {
@@ -35,28 +35,29 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
     private static final int WARP_ROLL_BOUND = 10;
 
     public static final MapCodec<InfusionEnchantmentRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-            InfusionEnchantment.CODEC.fieldOf("enchantment").forGetter(r -> r.enchantment),
-            Ingredient.CODEC.listOf(1, 64).fieldOf("components").forGetter(r -> r.components),
-            AspectList.NON_EMPTY_CODEC.fieldOf("aspects").forGetter(r -> r.aspects),
-            Ingredient.CODEC.fieldOf("display_catalyst").forGetter(r -> r.displayCatalyst),
-            ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research)
-    ).apply(i, InfusionEnchantmentRecipe::new));
+                    InfusionEnchantment.CODEC.fieldOf("enchantment").forGetter(r -> r.enchantment),
+                    Ingredient.CODEC.listOf(1, 64).fieldOf("components").forGetter(r -> r.components),
+                    AspectList.NON_EMPTY_CODEC.fieldOf("aspects").forGetter(r -> r.aspects),
+                    Ingredient.CODEC.fieldOf("display_catalyst").forGetter(r -> r.displayCatalyst),
+                    ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research))
+            .apply(i, InfusionEnchantmentRecipe::new));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, InfusionEnchantmentRecipe> STREAM_CODEC = StreamCodec.composite(
-            InfusionEnchantment.STREAM_CODEC,
-            r -> r.enchantment,
-            Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()),
-            r -> r.components,
-            AspectList.STREAM_CODEC,
-            r -> r.aspects,
-            Ingredient.CONTENTS_STREAM_CODEC,
-            r -> r.displayCatalyst,
-            ByteBufCodecs.optional(ResearchGate.STREAM_CODEC),
-            r -> r.research,
-            InfusionEnchantmentRecipe::new
-    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, InfusionEnchantmentRecipe> STREAM_CODEC =
+            StreamCodec.composite(
+                    InfusionEnchantment.STREAM_CODEC,
+                    r -> r.enchantment,
+                    Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()),
+                    r -> r.components,
+                    AspectList.STREAM_CODEC,
+                    r -> r.aspects,
+                    Ingredient.CONTENTS_STREAM_CODEC,
+                    r -> r.displayCatalyst,
+                    ByteBufCodecs.optional(ResearchGate.STREAM_CODEC),
+                    r -> r.research,
+                    InfusionEnchantmentRecipe::new);
 
-    public static final RecipeSerializer<InfusionEnchantmentRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+    public static final RecipeSerializer<InfusionEnchantmentRecipe> SERIALIZER =
+            new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 
     private final InfusionEnchantment enchantment;
     private final List<Ingredient> components;
@@ -64,8 +65,12 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
     private final Ingredient displayCatalyst;
     private final Optional<ResearchGate> research;
 
-    public InfusionEnchantmentRecipe(InfusionEnchantment enchantment, List<Ingredient> components,
-                                     AspectList aspects, Ingredient displayCatalyst, Optional<ResearchGate> research) {
+    public InfusionEnchantmentRecipe(
+            InfusionEnchantment enchantment,
+            List<Ingredient> components,
+            AspectList aspects,
+            Ingredient displayCatalyst,
+            Optional<ResearchGate> research) {
         this.enchantment = enchantment;
         this.components = List.copyOf(components);
         this.aspects = aspects;
@@ -113,9 +118,9 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
         if (existing >= enchantment.maxLevel()) {
             return out;
         }
-        if (random.nextInt(WARP_ROLL_BOUND) < InfusionEnchantmentHelper.list(catalyst).size()) {
-            out.set(TCDataComponents.STACK_WARP.get(),
-                    out.getOrDefault(TCDataComponents.STACK_WARP.get(), 0) + 1);
+        if (random.nextInt(WARP_ROLL_BOUND)
+                < InfusionEnchantmentHelper.list(catalyst).size()) {
+            out.set(TCDataComponents.STACK_WARP.get(), out.getOrDefault(TCDataComponents.STACK_WARP.get(), 0) + 1);
         }
         InfusionEnchantmentHelper.add(out, enchantment, existing + 1);
         return out;
@@ -143,7 +148,9 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
 
     @Override
     public ItemStack resultItem() {
-        ItemStack base = displayCatalyst.items().findFirst()
+        ItemStack base = displayCatalyst
+                .items()
+                .findFirst()
                 .map(holder -> new ItemStack(holder.value()))
                 .orElse(ItemStack.EMPTY);
         if (!base.isEmpty()) {
@@ -165,7 +172,10 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
                 : new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(out));
         return List.of(new InfusionRecipeDisplay(
                 displayCatalyst.display(),
-                components().stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(),
+                components().stream()
+                        .map(Ingredient::display)
+                        .map(d -> (SlotDisplay) d)
+                        .toList(),
                 aspects(),
                 instability(),
                 resultDisplay));
@@ -174,8 +184,7 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
     @Override
     public ItemStack assemble(InfusionInput input) {
         ItemStack out = input.catalyst().copyWithCount(1);
-        InfusionEnchantmentHelper.add(out, enchantment,
-                InfusionEnchantmentHelper.level(out, enchantment) + 1);
+        InfusionEnchantmentHelper.add(out, enchantment, InfusionEnchantmentHelper.level(out, enchantment) + 1);
         return out;
     }
 

@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.extensions;
 
-import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.effect.ClientEffects;
 import com.leclowndu93150.thaumaturge.content.misc.nitor.BlockNitor;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -27,9 +27,8 @@ public final class NitorClientExtensions implements IClientBlockExtensions {
 
     @SubscribeEvent
     public static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
-        Block[] nitors = TCBlocks.NITORS.values().stream()
-                .map(b -> (Block) b.get())
-                .toArray(Block[]::new);
+        Block[] nitors =
+                TCBlocks.NITORS.values().stream().map(b -> (Block) b.get()).toArray(Block[]::new);
         event.registerBlock(INSTANCE, nitors);
     }
 
@@ -57,7 +56,8 @@ public final class NitorClientExtensions implements IClientBlockExtensions {
         if (!(state.getBlock() instanceof BlockNitor nitor)) return true;
         int rgb = nitor.dyeColor();
         RandomSource rand = level.getRandom();
-        BlockPos pos = target instanceof BlockHitResult bhr ? bhr.getBlockPos() : BlockPos.containing(target.getLocation());
+        BlockPos pos =
+                target instanceof BlockHitResult bhr ? bhr.getBlockPos() : BlockPos.containing(target.getLocation());
         for (int i = 0; i < 3; i++) {
             double cx = pos.getX() + 0.5 + rand.nextGaussian() * 0.05;
             double cy = pos.getY() + 0.5 + rand.nextGaussian() * 0.05;

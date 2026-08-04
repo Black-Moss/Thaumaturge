@@ -7,16 +7,15 @@ import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityT
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.MenuThaumatorium;
 import com.leclowndu93150.thaumaturge.network.ClientboundThaumatoriumRecipesPayload;
 import com.leclowndu93150.thaumaturge.network.ServerboundThaumatoriumTogglePayload;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-
-import java.util.List;
 
 public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThaumatorium> {
     private static final Identifier TEXTURE = TCIds.rl("textures/gui/gui_thaumatorium.png");
@@ -71,10 +70,30 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
         }
         if (recipes.size() > VISIBLE) {
             if (index > 0) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, k + ARROW_X, l + ARROW_UP_Y, 176, 56, ARROW_W, ARROW_H, 256, 256);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        TEXTURE,
+                        k + ARROW_X,
+                        l + ARROW_UP_Y,
+                        176,
+                        56,
+                        ARROW_W,
+                        ARROW_H,
+                        256,
+                        256);
             }
             if (index < recipes.size() / (float) COLS - ROWS) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, k + ARROW_X, l + ARROW_DOWN_Y, 176, 93, ARROW_W, ARROW_H, 256, 256);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        TEXTURE,
+                        k + ARROW_X,
+                        l + ARROW_DOWN_Y,
+                        176,
+                        93,
+                        ARROW_W,
+                        ARROW_H,
+                        256,
+                        256);
             }
         }
         int cell = 0;
@@ -131,11 +150,23 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
             int py = count / ASPECTS_PER_ROW;
             int x = k + BAR_X + BAR_SPACING_X * px;
             int y = l + BAR_Y + BAR_SPACING_Y * py;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_BACK_V, BAR_WIDTH, BAR_HEIGHT, 256, 256);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_BACK_V, BAR_WIDTH, BAR_HEIGHT, 256, 256);
             int fill = (int) (machine.essentia().amountOf(entry.aspect()) / (float) entry.amount() * BAR_WIDTH);
             if (fill > 0) {
                 int color = ARGB.opaque(entry.aspect().value().color());
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_FILL_V, Math.min(fill, BAR_WIDTH), BAR_HEIGHT, 256, 256, color);
+                graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
+                        TEXTURE,
+                        x,
+                        y,
+                        BAR_U,
+                        BAR_FILL_V,
+                        Math.min(fill, BAR_WIDTH),
+                        BAR_HEIGHT,
+                        256,
+                        256,
+                        color);
             }
             count++;
         }
@@ -146,8 +177,13 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
             }
             int px = count % ASPECTS_PER_ROW;
             int py = count / ASPECTS_PER_ROW;
-            AspectTagRenderer.render(graphics, font, k + TAG_X + BAR_SPACING_X * px, l + TAG_Y + BAR_SPACING_Y * py,
-                    entry.aspect(), entry.amount());
+            AspectTagRenderer.render(
+                    graphics,
+                    font,
+                    k + TAG_X + BAR_SPACING_X * px,
+                    l + TAG_Y + BAR_SPACING_Y * py,
+                    entry.aspect(),
+                    entry.amount());
             count++;
         }
     }
@@ -172,14 +208,19 @@ public final class ThaumatoriumScreen extends AbstractTCContainerScreen<MenuThau
             }
         }
         if (recipes.size() > VISIBLE) {
-            if (index > 0 && mx >= leftPos + ARROW_X && my >= topPos + ARROW_UP_Y
-                    && mx < leftPos + ARROW_X + ARROW_W && my < topPos + ARROW_UP_Y + ARROW_H) {
+            if (index > 0
+                    && mx >= leftPos + ARROW_X
+                    && my >= topPos + ARROW_UP_Y
+                    && mx < leftPos + ARROW_X + ARROW_W
+                    && my < topPos + ARROW_UP_Y + ARROW_H) {
                 index--;
                 return true;
             }
             if (index < recipes.size() / (float) COLS - ROWS
-                    && mx >= leftPos + ARROW_X && my >= topPos + ARROW_DOWN_Y
-                    && mx < leftPos + ARROW_X + ARROW_W && my < topPos + ARROW_DOWN_Y + ARROW_H) {
+                    && mx >= leftPos + ARROW_X
+                    && my >= topPos + ARROW_DOWN_Y
+                    && mx < leftPos + ARROW_X + ARROW_W
+                    && my < topPos + ARROW_DOWN_Y + ARROW_H) {
                 index++;
                 return true;
             }

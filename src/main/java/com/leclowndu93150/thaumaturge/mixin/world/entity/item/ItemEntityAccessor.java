@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface ItemEntityAccessor {
 
     @Accessor("thrower")
-    @Nullable EntityReference<Entity> thaumaturge$getThrower();
-
+    @Nullable
+    EntityReference<Entity> thaumaturge$getThrower();
 }

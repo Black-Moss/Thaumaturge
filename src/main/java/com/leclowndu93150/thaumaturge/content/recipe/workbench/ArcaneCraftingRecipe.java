@@ -1,43 +1,48 @@
 package com.leclowndu93150.thaumaturge.content.recipe.workbench;
 
-import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
-import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
-import net.minecraft.world.item.crafting.display.SlotDisplay;
-import java.util.List;
-import java.util.ArrayList;
-import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
+import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-
 public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
 
-    public static Codec<AspectInstance> LIMITED_ASPECTS = AspectInstance.CODEC
-            .validate(instance -> instance.amount() > 64 ? DataResult.error(() -> "The amount for '" + instance.aspect().getKey().identifier() + "' aspect must not exceed 64.") : DataResult.success(instance));
-    public static Codec<AspectList> PRIMAL_ASPECTS_CODEC = LIMITED_ASPECTS.listOf(0, 6).flatXmap(
+    public static Codec<AspectInstance> LIMITED_ASPECTS =
+            AspectInstance.CODEC.validate(instance -> instance.amount() > 64
+                    ? DataResult.error(() -> "The amount for '"
+                            + instance.aspect().getKey().identifier() + "' aspect must not exceed 64.")
+                    : DataResult.success(instance));
+    public static Codec<AspectList> PRIMAL_ASPECTS_CODEC = LIMITED_ASPECTS
+            .listOf(0, 6)
+            .flatXmap(
                     entries -> {
                         AspectList result = AspectList.EMPTY;
                         for (AspectInstance entry : entries) {
                             if (!entry.aspect().value().isPrimal())
-                                return DataResult.error(() -> "'" + entry.aspect().getKey().identifier() + "' is not a primal aspect.",result);
+                                return DataResult.error(
+                                        () -> "'" + entry.aspect().getKey().identifier() + "' is not a primal aspect.",
+                                        result);
                             result = result.add(entry);
                         }
                         return DataResult.success(result);
                     },
-                    list -> DataResult.success(list.entries())
-            );
+                    list -> DataResult.success(list.entries()));
 
     protected final Recipe.CommonInfo commonInfo;
     protected final int vis;
@@ -45,7 +50,8 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
     protected final AspectList aspects;
     private @Nullable PlacementInfo placementInfo;
 
-    protected ArcaneCraftingRecipe(Recipe.CommonInfo commonInfo, int vis, Optional<ResearchGate> gate, AspectList aspects) {
+    protected ArcaneCraftingRecipe(
+            Recipe.CommonInfo commonInfo, int vis, Optional<ResearchGate> gate, AspectList aspects) {
         this.commonInfo = commonInfo;
         this.vis = vis;
         this.gate = gate;

@@ -136,8 +136,7 @@ public final class ScanningManager {
             }
         }
         if (failure != null) {
-            player.sendOverlayMessage(failure.copy()
-                    .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+            player.sendOverlayMessage(failure.copy().withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
         } else if (!suppress) {
             if (found) {
                 player.sendOverlayMessage(Component.translatable("tc.knownobject")
@@ -195,8 +194,11 @@ public final class ScanningManager {
     }
 
     private static Iterable<ScanEntry> scanEntries(Player player) {
-        return player.level().registryAccess().lookup(ScanEntry.REGISTRY_KEY)
-                .<Iterable<ScanEntry>>map(registry -> registry.listElements().map(Holder.Reference::value).toList())
+        return player.level()
+                .registryAccess()
+                .lookup(ScanEntry.REGISTRY_KEY)
+                .<Iterable<ScanEntry>>map(registry ->
+                        registry.listElements().map(Holder.Reference::value).toList())
                 .orElse(List.of());
     }
 

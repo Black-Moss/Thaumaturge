@@ -37,8 +37,8 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
     private static final Codec<List<Boolean>> OPEN_CODEC = Codec.BOOL.listOf();
 
     private AspectList contents = AspectList.EMPTY;
-    private final int[] chokedSides = new int[]{0, 0, 0, 0, 0, 0};
-    private final boolean[] openSides = new boolean[]{true, true, true, true, true, true};
+    private final int[] chokedSides = new int[] {0, 0, 0, 0, 0, 0};
+    private final boolean[] openSides = new boolean[] {true, true, true, true, true, true};
     private Direction facing = Direction.NORTH;
     private int tickCount;
     private int bellows = -1;
@@ -119,13 +119,25 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
         Direction dir = Direction.values()[subHit];
         if (sneaking) {
             cycleChokedSide(dir);
-            level.playSound(null, getBlockPos(), TCSounds.SQUEEK.get(), SoundSource.BLOCKS, 0.6F, 2.0F + level.getRandom().nextFloat() * 0.2F);
+            level.playSound(
+                    null,
+                    getBlockPos(),
+                    TCSounds.SQUEEK.get(),
+                    SoundSource.BLOCKS,
+                    0.6F,
+                    2.0F + level.getRandom().nextFloat() * 0.2F);
             return true;
         }
         toggleOpenSide(dir);
         BlockEssentiaTransport.refreshConnections(level, getBlockPos());
         BlockEssentiaTransport.refreshConnections(level, getBlockPos().relative(dir));
-        level.playSound(null, getBlockPos(), TCSounds.TOOL.get(), SoundSource.BLOCKS, 0.5F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+        level.playSound(
+                null,
+                getBlockPos(),
+                TCSounds.TOOL.get(),
+                SoundSource.BLOCKS,
+                0.5F,
+                0.9F + level.getRandom().nextFloat() * 0.2F);
         return true;
     }
 
@@ -312,9 +324,11 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.store("Contents", AspectList.CODEC, contents);
-        List<Integer> choked = List.of(chokedSides[0], chokedSides[1], chokedSides[2], chokedSides[3], chokedSides[4], chokedSides[5]);
+        List<Integer> choked =
+                List.of(chokedSides[0], chokedSides[1], chokedSides[2], chokedSides[3], chokedSides[4], chokedSides[5]);
         output.store("Choked", CHOKED_CODEC, choked);
-        List<Boolean> open = List.of(openSides[0], openSides[1], openSides[2], openSides[3], openSides[4], openSides[5]);
+        List<Boolean> open =
+                List.of(openSides[0], openSides[1], openSides[2], openSides[3], openSides[4], openSides[5]);
         output.store("Open", OPEN_CODEC, open);
         output.putInt("Facing", facing.ordinal());
     }
@@ -322,7 +336,8 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector collector =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

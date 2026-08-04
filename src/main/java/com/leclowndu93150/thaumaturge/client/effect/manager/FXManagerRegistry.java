@@ -18,8 +18,7 @@ public final class FXManagerRegistry {
             BeamManager.INSTANCE,
             EssentiaStreamManager.INSTANCE,
             BoreVoidStreamManager.INSTANCE,
-            BoreDigEffectManager.INSTANCE
-    );
+            BoreDigEffectManager.INSTANCE);
 
     private FXManagerRegistry() {}
 

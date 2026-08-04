@@ -37,8 +37,7 @@ import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 public final class ThaumaturgeCuriosCompat {
 
-    private ThaumaturgeCuriosCompat() {
-    }
+    private ThaumaturgeCuriosCompat() {}
 
     public static void init(IEventBus modBus) {
         GogglesAccess.bindCurios(new GogglesAccess.Curios() {
@@ -58,7 +57,8 @@ public final class ThaumaturgeCuriosCompat {
     }
 
     private static void registerCurio(RegisterCapabilitiesEvent event) {
-        registerPlain(event,
+        registerPlain(
+                event,
                 TCItems.GOGGLES_REVEALING.get(),
                 TCItems.AMULET_MUNDANE.get(),
                 TCItems.RING_MUNDANE.get(),
@@ -71,20 +71,16 @@ public final class ThaumaturgeCuriosCompat {
                 TCItems.CLOUD_RING.get(),
                 TCItems.CURIOSITY_BAND.get(),
                 TCItems.FOCUS_POUCH.get());
-        event.registerItem(CuriosCapability.ITEM,
-                (stack, ctx) -> tickingCurio(stack), TCItems.AMULET_VIS.get());
-        event.registerItem(CuriosCapability.ITEM,
-                (stack, ctx) -> tickingCurio(stack), TCItems.AMULET_VIS_CRAFTED.get());
-        event.registerItem(CuriosCapability.ITEM,
-                (stack, ctx) -> tickingCurio(stack), TCItems.VERDANT_CHARM.get());
-        event.registerItem(CuriosCapability.ITEM,
-                (stack, ctx) -> tickingCurio(stack), TCItems.VOIDSEER_CHARM.get());
+        event.registerItem(CuriosCapability.ITEM, (stack, ctx) -> tickingCurio(stack), TCItems.AMULET_VIS.get());
+        event.registerItem(
+                CuriosCapability.ITEM, (stack, ctx) -> tickingCurio(stack), TCItems.AMULET_VIS_CRAFTED.get());
+        event.registerItem(CuriosCapability.ITEM, (stack, ctx) -> tickingCurio(stack), TCItems.VERDANT_CHARM.get());
+        event.registerItem(CuriosCapability.ITEM, (stack, ctx) -> tickingCurio(stack), TCItems.VOIDSEER_CHARM.get());
     }
 
     private static void registerPlain(RegisterCapabilitiesEvent event, Item... items) {
         for (Item item : items) {
-            event.registerItem(CuriosCapability.ITEM,
-                    (stack, ctx) -> (ICurio) () -> stack, item);
+            event.registerItem(CuriosCapability.ITEM, (stack, ctx) -> (ICurio) () -> stack, item);
         }
     }
 
@@ -188,8 +184,9 @@ public final class ThaumaturgeCuriosCompat {
         }
         IItemHandlerModifiable equipped = invOpt.get().getEquippedCurios();
         for (int slot = 0; slot < equipped.getSlots(); slot++) {
-            if (RechargeAccess.rechargeItem(player.level(), equipped.getStackInSlot(slot),
-                    player.blockPosition(), player, 1) > 0.0F) {
+            if (RechargeAccess.rechargeItem(
+                            player.level(), equipped.getStackInSlot(slot), player.blockPosition(), player, 1)
+                    > 0.0F) {
                 return true;
             }
         }
@@ -233,11 +230,12 @@ public final class ThaumaturgeCuriosCompat {
         if (stack.getItem() instanceof IVisDiscountGear gear) {
             float contribution = (float) gear.getVisDiscount(stack) / 100;
             if (contribution != 0) {
-                event.addModifier(TCAttributes.VIS_DISCOUNT, new AttributeModifier(
-                        BuiltInRegistries.ITEM.getKey(stack.getItem()),
-                        contribution,
-                        AttributeModifier.Operation.ADD_VALUE
-                ));
+                event.addModifier(
+                        TCAttributes.VIS_DISCOUNT,
+                        new AttributeModifier(
+                                BuiltInRegistries.ITEM.getKey(stack.getItem()),
+                                contribution,
+                                AttributeModifier.Operation.ADD_VALUE));
             }
         }
     }

@@ -33,8 +33,7 @@ public class EntityEldritchOrb extends ThrowableProjectile {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-    }
+    protected void defineSynchedData(SynchedEntityData.Builder entityData) {}
 
     @Override
     protected double getDefaultGravity() {
@@ -56,14 +55,15 @@ public class EntityEldritchOrb extends ThrowableProjectile {
         }
         float damage = (float) owner.getAttributeValue(Attributes.ATTACK_DAMAGE) * DAMAGE_FACTOR;
         DamageSource source = this.damageSources().indirectMagic(this, owner);
-        for (Entity entity : this.level().getEntities(owner, this.getBoundingBox().inflate(BLAST_RANGE))) {
+        for (Entity entity :
+                this.level().getEntities(owner, this.getBoundingBox().inflate(BLAST_RANGE))) {
             if (entity instanceof LivingEntity living && !living.isInvertedHealAndHarm()) {
                 living.hurtServer(server, source, damage);
                 living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, WEAKNESS_TICKS));
             }
         }
-        this.playSound(SoundEvents.LAVA_EXTINGUISH, 0.5F,
-                2.6F + (this.random.nextFloat() - this.random.nextFloat()) * 0.8F);
+        this.playSound(
+                SoundEvents.LAVA_EXTINGUISH, 0.5F, 2.6F + (this.random.nextFloat() - this.random.nextFloat()) * 0.8F);
         this.discard();
     }
 }

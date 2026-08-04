@@ -33,17 +33,23 @@ public final class MenuGolemBuilder extends AbstractContainerMenu {
     private final DataSlot maxCost = DataSlot.standalone();
 
     public MenuGolemBuilder(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new ItemStacksResourceHandler(SLOT_COUNT),
+        this(
+                containerId,
+                playerInventory,
+                new ItemStacksResourceHandler(SLOT_COUNT),
                 ContainerLevelAccess.create(playerInventory.player.level(), buf.readBlockPos()));
     }
 
     public MenuGolemBuilder(int containerId, Inventory playerInventory, BlockEntityGolemBuilder blockEntity) {
-        this(containerId, playerInventory, blockEntity.output(),
+        this(
+                containerId,
+                playerInventory,
+                blockEntity.output(),
                 ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos()));
     }
 
-    private MenuGolemBuilder(int containerId, Inventory playerInventory, ItemStacksResourceHandler items,
-                             ContainerLevelAccess access) {
+    private MenuGolemBuilder(
+            int containerId, Inventory playerInventory, ItemStacksResourceHandler items, ContainerLevelAccess access) {
         super(TCMenus.GOLEM_BUILDER.get(), containerId);
         this.access = access;
 
@@ -56,8 +62,11 @@ public final class MenuGolemBuilder extends AbstractContainerMenu {
 
         for (int row = 0; row < PLAYER_ROWS; row++) {
             for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
-                addSlot(new Slot(playerInventory, col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS,
-                        PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
+                addSlot(new Slot(
+                        playerInventory,
+                        col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS,
+                        PLAYER_GRID_X + col * 18,
+                        PLAYER_GRID_Y + row * 18));
             }
         }
         for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
@@ -88,7 +97,8 @@ public final class MenuGolemBuilder extends AbstractContainerMenu {
 
     public @Nullable BlockEntityGolemBuilder blockEntity() {
         return (BlockEntityGolemBuilder) access.evaluate(Level::getBlockEntity)
-                .filter(be -> be instanceof BlockEntityGolemBuilder).orElse(null);
+                .filter(be -> be instanceof BlockEntityGolemBuilder)
+                .orElse(null);
     }
 
     @Override

@@ -44,7 +44,8 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
                 }
             }
         }
-        float stabilityReplenish = InfusionStabilitySurvey.survey(level, matrixPos).stabilityReplenish();
+        float stabilityReplenish =
+                InfusionStabilitySurvey.survey(level, matrixPos).stabilityReplenish();
         Block corner1 = pillarAt(level, matrixPos, -1, -1);
         Block corner2 = pillarAt(level, matrixPos, 1, -1);
         Block corner3 = pillarAt(level, matrixPos, 1, 1);
@@ -63,7 +64,8 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
         int[] xm = {-1, 1, 1, -1};
         int[] zm = {-1, -1, 1, 1};
         for (int a = 0; a < 4; a++) {
-            Block corner = level.getBlockState(matrixPos.offset(xm[a], -3, zm[a])).getBlock();
+            Block corner =
+                    level.getBlockState(matrixPos.offset(xm[a], -3, zm[a])).getBlock();
             if (corner == TCBlocks.MATRIX_SPEED.get()) {
                 cycleTime -= MATRIX_SPEED_CYCLE_BONUS;
                 costMult += MATRIX_SPEED_COST_PENALTY;

@@ -101,7 +101,8 @@ public class ItemFocus extends Item {
             return 0;
         }
         int complexity = core.complexity();
-        return Math.max(MIN_ACTIVATION_TICKS, complexity / ACTIVATION_COST_DIVISOR * (complexity / ACTIVATION_SCALE_DIVISOR));
+        return Math.max(
+                MIN_ACTIVATION_TICKS, complexity / ACTIVATION_COST_DIVISOR * (complexity / ACTIVATION_SCALE_DIVISOR));
     }
 
     public int getMaxComplexity() {
@@ -117,8 +118,12 @@ public class ItemFocus extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-            Consumer<Component> builder, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> builder,
+            TooltipFlag flag) {
         addFocusInformation(stack, builder);
     }
 
@@ -154,7 +159,9 @@ public class ItemFocus extends Item {
                     int value = settings.value(definition.key());
                     values.append(Component.translatable(definition.nameKey()))
                             .append(" ")
-                            .append(definition.values().labelAt(definition.values().indexOf(value)));
+                            .append(definition
+                                    .values()
+                                    .labelAt(definition.values().indexOf(value)));
                     following = true;
                 }
                 values.append("]");

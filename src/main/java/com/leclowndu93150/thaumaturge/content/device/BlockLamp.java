@@ -23,7 +23,8 @@ public abstract class BlockLamp extends BaseEntityBlock {
 
     protected BlockLamp(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any()
+        registerDefaultState(getStateDefinition()
+                .any()
                 .setValue(BlockStateProperties.FACING, Direction.DOWN)
                 .setValue(BlockStateProperties.ENABLED, false));
     }
@@ -52,9 +53,15 @@ public abstract class BlockLamp extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
-                                     Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState,
-                                     RandomSource random) {
+    protected BlockState updateShape(
+            BlockState state,
+            LevelReader level,
+            ScheduledTickAccess ticks,
+            BlockPos pos,
+            Direction directionToNeighbour,
+            BlockPos neighbourPos,
+            BlockState neighbourState,
+            RandomSource random) {
         if (!canSurvive(state, level, pos)) {
             return Blocks.AIR.defaultBlockState();
         }

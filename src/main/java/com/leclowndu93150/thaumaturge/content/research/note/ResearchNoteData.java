@@ -17,24 +17,19 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryFixedCodec;
 import org.jspecify.annotations.Nullable;
 
-public record ResearchNoteData(
-        Identifier entry,
-        int index,
-        int color,
-        boolean complete,
-        int copies,
-        List<Cell> cells
-) {
+public record ResearchNoteData(Identifier entry, int index, int color, boolean complete, int copies, List<Cell> cells) {
     public static final int TYPE_BLANK = 0;
     public static final int TYPE_ROOT = 1;
     public static final int TYPE_PLACED = 2;
 
     public record Cell(HexGrid.Hex hex, int type, Optional<Holder<IAspect>> aspect) {
         public static final Codec<Cell> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                HexGrid.Hex.CODEC.fieldOf("hex").forGetter(Cell::hex),
-                Codec.INT.fieldOf("type").forGetter(Cell::type),
-                RegistryFixedCodec.create(IAspect.REGISTRY_KEY).optionalFieldOf("aspect").forGetter(Cell::aspect)
-        ).apply(instance, Cell::new));
+                        HexGrid.Hex.CODEC.fieldOf("hex").forGetter(Cell::hex),
+                        Codec.INT.fieldOf("type").forGetter(Cell::type),
+                        RegistryFixedCodec.create(IAspect.REGISTRY_KEY)
+                                .optionalFieldOf("aspect")
+                                .forGetter(Cell::aspect))
+                .apply(instance, Cell::new));
 
         public @Nullable Holder<IAspect> aspectOrNull() {
             return aspect.orElse(null);
@@ -46,13 +41,13 @@ public record ResearchNoteData(
     }
 
     public static final Codec<ResearchNoteData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            LegacyIds.IDENTIFIER_CODEC.fieldOf("entry").forGetter(ResearchNoteData::entry),
-            Codec.INT.fieldOf("index").forGetter(ResearchNoteData::index),
-            Codec.INT.fieldOf("color").forGetter(ResearchNoteData::color),
-            Codec.BOOL.optionalFieldOf("complete", false).forGetter(ResearchNoteData::complete),
-            Codec.INT.optionalFieldOf("copies", 0).forGetter(ResearchNoteData::copies),
-            Cell.CODEC.listOf().fieldOf("cells").forGetter(ResearchNoteData::cells)
-    ).apply(instance, ResearchNoteData::new));
+                    LegacyIds.IDENTIFIER_CODEC.fieldOf("entry").forGetter(ResearchNoteData::entry),
+                    Codec.INT.fieldOf("index").forGetter(ResearchNoteData::index),
+                    Codec.INT.fieldOf("color").forGetter(ResearchNoteData::color),
+                    Codec.BOOL.optionalFieldOf("complete", false).forGetter(ResearchNoteData::complete),
+                    Codec.INT.optionalFieldOf("copies", 0).forGetter(ResearchNoteData::copies),
+                    Cell.CODEC.listOf().fieldOf("cells").forGetter(ResearchNoteData::cells))
+            .apply(instance, ResearchNoteData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ResearchNoteData> STREAM_CODEC =
             ByteBufCodecs.fromCodecWithRegistries(CODEC);

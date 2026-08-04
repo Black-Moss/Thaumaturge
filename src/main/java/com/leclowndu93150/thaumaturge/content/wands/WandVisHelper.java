@@ -55,8 +55,8 @@ public final class WandVisHelper {
         return leftover;
     }
 
-    public static float getConsumptionModifier(ItemStack stack, @Nullable Player player,
-                                               ResourceKey<IAspect> aspect, boolean crafting) {
+    public static float getConsumptionModifier(
+            ItemStack stack, @Nullable Player player, ResourceKey<IAspect> aspect, boolean crafting) {
         WandParts parts = getParts(stack);
         float modifier = parts.cap().costModifier(aspect);
         if (player != null) {
@@ -68,8 +68,8 @@ public final class WandVisHelper {
         return Math.max(modifier, WandEconomy.MIN_CONSUMPTION_MODIFIER);
     }
 
-    public static boolean consumeVis(ItemStack stack, @Nullable Player player, ResourceKey<IAspect> aspect,
-                                     int centivis, boolean crafting) {
+    public static boolean consumeVis(
+            ItemStack stack, @Nullable Player player, ResourceKey<IAspect> aspect, int centivis, boolean crafting) {
         int cost = (int) (centivis * getConsumptionModifier(stack, player, aspect, crafting));
         if (getVis(stack, aspect) < cost) {
             return false;
@@ -78,9 +78,12 @@ public final class WandVisHelper {
         return true;
     }
 
-    public static boolean consumeAllVis(ItemStack stack, @Nullable Player player,
-                                        Map<ResourceKey<IAspect>, Integer> centivisCosts, boolean doit,
-                                        boolean crafting) {
+    public static boolean consumeAllVis(
+            ItemStack stack,
+            @Nullable Player player,
+            Map<ResourceKey<IAspect>, Integer> centivisCosts,
+            boolean doit,
+            boolean crafting) {
         if (centivisCosts.isEmpty()) {
             return false;
         }
@@ -102,8 +105,8 @@ public final class WandVisHelper {
         return true;
     }
 
-    public static boolean consumeAllVisRaw(ItemStack stack, Map<ResourceKey<IAspect>, Integer> centivisCosts,
-                                           boolean simulate) {
+    public static boolean consumeAllVisRaw(
+            ItemStack stack, Map<ResourceKey<IAspect>, Integer> centivisCosts, boolean simulate) {
         if (centivisCosts.isEmpty()) {
             return false;
         }
@@ -135,8 +138,8 @@ public final class WandVisHelper {
         return split;
     }
 
-    public static boolean consumeSpecificFromHotbar(Player player,
-            Map<ResourceKey<IAspect>, Integer> centivisCosts, boolean doit) {
+    public static boolean consumeSpecificFromHotbar(
+            Player player, Map<ResourceKey<IAspect>, Integer> centivisCosts, boolean doit) {
         for (int slot = 0; slot < HOTBAR_SIZE; slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
             if (stack.getItem() instanceof ItemWand && consumeAllVis(stack, player, centivisCosts, doit, true)) {

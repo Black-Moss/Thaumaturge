@@ -1,22 +1,20 @@
 package com.leclowndu93150.thaumaturge.registry;
 
+import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.entity.*;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistLeader;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistPortalGreater;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityEldritchGolem;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityEldritchWarden;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityTaintacleGiant;
-import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.content.entity.*;
-
-import java.util.function.Supplier;
-
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityArcaneBore;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbow;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.leclowndu93150.thaumaturge.content.entity.projectile.EntityGrapple;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
-import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumaturge.content.misc.alumentum.ThrownAlumentum;
+import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
+import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -40,14 +38,15 @@ public final class TCEntities {
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityGiantBrainyZombie>> GIANT_BRAINY_ZOMBIE = register(
-            "giant_brainy_zombie",
-            () -> EntityType.Builder.of(EntityGiantBrainyZombie::new, MobCategory.MONSTER)
-                    .sized(0.6F, 1.95F)
-                    .eyeHeight(1.74F)
-                    .notInPeaceful()
-                    .clientTrackingRange(8)
-                    .updateInterval(3));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityGiantBrainyZombie>> GIANT_BRAINY_ZOMBIE =
+            register(
+                    "giant_brainy_zombie",
+                    () -> EntityType.Builder.of(EntityGiantBrainyZombie::new, MobCategory.MONSTER)
+                            .sized(0.6F, 1.95F)
+                            .eyeHeight(1.74F)
+                            .notInPeaceful()
+                            .clientTrackingRange(8)
+                            .updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityMindSpider>> MIND_SPIDER = register(
             "mind_spider",
@@ -128,12 +127,14 @@ public final class TCEntities {
                     .notInPeaceful()
                     .clientTrackingRange(8));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityCausalityCollapser>> CAUSALITY_COLLAPSER = register(
-            "causality_collapser",
-            () -> EntityType.Builder.<EntityCausalityCollapser>of(EntityCausalityCollapser::new, MobCategory.MISC)
-                    .sized(0.25F, 0.25F)
-                    .clientTrackingRange(4)
-                    .updateInterval(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCausalityCollapser>> CAUSALITY_COLLAPSER =
+            register(
+                    "causality_collapser",
+                    () -> EntityType.Builder.<EntityCausalityCollapser>of(
+                                    EntityCausalityCollapser::new, MobCategory.MISC)
+                            .sized(0.25F, 0.25F)
+                            .clientTrackingRange(4)
+                            .updateInterval(10));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityFluxRift>> FLUX_RIFT = register(
             "flux_rift",
@@ -278,14 +279,15 @@ public final class TCEntities {
                     .clientTrackingRange(10)
                     .updateInterval(3));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalGreater>> CULTIST_PORTAL_GREATER = register(
-            "cultist_portal_greater",
-            () -> EntityType.Builder.of(EntityCultistPortalGreater::new, MobCategory.MONSTER)
-                    .sized(1.5F, 3.0F)
-                    .fireImmune()
-                    .notInPeaceful()
-                    .clientTrackingRange(10)
-                    .updateInterval(3));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalGreater>> CULTIST_PORTAL_GREATER =
+            register(
+                    "cultist_portal_greater",
+                    () -> EntityType.Builder.of(EntityCultistPortalGreater::new, MobCategory.MONSTER)
+                            .sized(1.5F, 3.0F)
+                            .fireImmune()
+                            .notInPeaceful()
+                            .clientTrackingRange(10)
+                            .updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchGolem>> ELDRITCH_GOLEM = register(
             "eldritch_golem",
@@ -314,14 +316,15 @@ public final class TCEntities {
                     .clientTrackingRange(10)
                     .updateInterval(3));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalLesser>> CULTIST_PORTAL_LESSER = register(
-            "cultist_portal_lesser",
-            () -> EntityType.Builder.of(EntityCultistPortalLesser::new, MobCategory.MONSTER)
-                    .sized(1.5F, 3.0F)
-                    .fireImmune()
-                    .notInPeaceful()
-                    .clientTrackingRange(10)
-                    .updateInterval(3));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityCultistPortalLesser>> CULTIST_PORTAL_LESSER =
+            register(
+                    "cultist_portal_lesser",
+                    () -> EntityType.Builder.of(EntityCultistPortalLesser::new, MobCategory.MONSTER)
+                            .sized(1.5F, 3.0F)
+                            .fireImmune()
+                            .notInPeaceful()
+                            .clientTrackingRange(10)
+                            .updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchOrb>> ELDRITCH_ORB = register(
             "eldritch_orb",
@@ -360,13 +363,15 @@ public final class TCEntities {
                     .clientTrackingRange(8)
                     .updateInterval(3));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTurretCrossbowAdvanced>> TURRET_CROSSBOW_ADVANCED = register(
-            "turret_crossbow_advanced",
-            () -> EntityType.Builder.<EntityTurretCrossbowAdvanced>of(EntityTurretCrossbowAdvanced::new, MobCategory.MISC)
-                    .sized(0.95F, 1.5F)
-                    .eyeHeight(1.0F)
-                    .clientTrackingRange(8)
-                    .updateInterval(3));
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTurretCrossbowAdvanced>>
+            TURRET_CROSSBOW_ADVANCED = register(
+                    "turret_crossbow_advanced",
+                    () -> EntityType.Builder.<EntityTurretCrossbowAdvanced>of(
+                                    EntityTurretCrossbowAdvanced::new, MobCategory.MISC)
+                            .sized(0.95F, 1.5F)
+                            .eyeHeight(1.0F)
+                            .clientTrackingRange(8)
+                            .updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityArcaneBore>> ARCANE_BORE = register(
             "arcane_bore",
@@ -387,9 +392,12 @@ public final class TCEntities {
 
     private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register(
             String name, Supplier<EntityType.Builder<T>> builderSupplier) {
-        return ENTITIES.register(name, () -> builderSupplier.get().build(
-                ResourceKey.create(Registries.ENTITY_TYPE,
-                        Identifier.fromNamespaceAndPath(TCIds.MODID, name))));
+        return ENTITIES.register(
+                name,
+                () -> builderSupplier
+                        .get()
+                        .build(ResourceKey.create(
+                                Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(TCIds.MODID, name))));
     }
 
     public static void register(IEventBus modBus) {

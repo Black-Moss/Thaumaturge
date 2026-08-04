@@ -7,5 +7,4 @@ package com.leclowndu93150.thaumaturge.api.items;
  *
  * @since 1.0.0
  */
-public interface IScribeTools {
-}
+public interface IScribeTools {}

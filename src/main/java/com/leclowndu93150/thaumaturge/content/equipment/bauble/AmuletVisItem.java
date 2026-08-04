@@ -9,9 +9,9 @@ import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import java.util.function.Consumer;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,21 +37,23 @@ public final class AmuletVisItem extends Item {
             return;
         }
         for (int slot = 0; slot < Inventory.SELECTION_SIZE; slot++) {
-            if (RechargeAccess.rechargeItem(player.level(), player.getInventory().getItem(slot),
-                    player.blockPosition(), player, 1) > 0.0F) {
+            if (RechargeAccess.rechargeItem(
+                            player.level(), player.getInventory().getItem(slot), player.blockPosition(), player, 1)
+                    > 0.0F) {
                 return;
             }
         }
         if (topUpWand(player)) {
             return;
         }
-        if (ModList.get().isLoaded(TCIds.CURIOS)
-                && ThaumaturgeCuriosCompat.rechargeFirstCurio(player)) {
+        if (ModList.get().isLoaded(TCIds.CURIOS) && ThaumaturgeCuriosCompat.rechargeFirstCurio(player)) {
             return;
         }
         for (EquipmentSlot slot : EquipmentSlot.values()) {
-            if (slot.isArmor() && RechargeAccess.rechargeItem(player.level(),
-                    player.getItemBySlot(slot), player.blockPosition(), player, 1) > 0.0F) {
+            if (slot.isArmor()
+                    && RechargeAccess.rechargeItem(
+                                    player.level(), player.getItemBySlot(slot), player.blockPosition(), player, 1)
+                            > 0.0F) {
                 return;
             }
         }
@@ -85,10 +87,14 @@ public final class AmuletVisItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
-        tooltip.accept(Component.translatable("item.thaumaturge.amulet_vis.text")
-                .withStyle(ChatFormatting.AQUA));
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
+        tooltip.accept(
+                Component.translatable("item.thaumaturge.amulet_vis.text").withStyle(ChatFormatting.AQUA));
         super.appendHoverText(stack, context, display, tooltip, flag);
     }
 }

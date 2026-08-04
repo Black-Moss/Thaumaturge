@@ -28,7 +28,8 @@ public interface IArchitect {
      * @param caster the entity holding the item
      * @return the trace result, or null when the item cannot anchor a preview right now
      */
-    @Nullable HitResult getArchitectMOP(ItemStack stack, Level level, LivingEntity caster);
+    @Nullable
+    HitResult getArchitectMOP(ItemStack stack, Level level, LivingEntity caster);
 
     /**
      * Whether the overlay renderer should replace the vanilla block highlight instead of

@@ -17,12 +17,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
-import net.minecraft.network.chat.Component;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -114,8 +114,7 @@ public final class RadialFocusOverlay implements GuiLayer {
 
             if (time > lastTime) {
                 if (centerHover && !CasterKeyHandler.radialActive && !CasterKeyHandler.radialLock) {
-                    ClientPacketDistributor.sendToServer(
-                            new ServerboundFocusChangePayload(CasterManager.REMOVE_FOCUS));
+                    ClientPacketDistributor.sendToServer(new ServerboundFocusChangePayload(CasterManager.REMOVE_FOCUS));
                     CasterKeyHandler.radialLock = true;
                 }
                 for (String key : fociHover.keySet()) {
@@ -125,12 +124,15 @@ public final class RadialFocusOverlay implements GuiLayer {
                             CasterKeyHandler.radialLock = true;
                         }
                         if (fociScale.get(key) < HOVER_SCALE_MAX) {
-                            fociScale.put(key, Math.min(HOVER_SCALE_MAX,
-                                    fociScale.get(key) + radialChange(time, lastTime, SCALE_UP_MS)));
+                            fociScale.put(
+                                    key,
+                                    Math.min(
+                                            HOVER_SCALE_MAX,
+                                            fociScale.get(key) + radialChange(time, lastTime, SCALE_UP_MS)));
                         }
                     } else if (fociScale.get(key) > 1.0F) {
-                        fociScale.put(key, Math.max(1.0F,
-                                fociScale.get(key) - radialChange(time, lastTime, SCALE_DOWN_MS)));
+                        fociScale.put(
+                                key, Math.max(1.0F, fociScale.get(key) - radialChange(time, lastTime, SCALE_DOWN_MS)));
                     }
                 }
                 if (!CasterKeyHandler.radialActive) {
@@ -301,21 +303,27 @@ public final class RadialFocusOverlay implements GuiLayer {
         }
 
         if (!tooltipStack.isEmpty()) {
-            List<ClientTooltipComponent> lines = tooltipStack.getTooltipLines(
+            List<ClientTooltipComponent> lines = tooltipStack
+                    .getTooltipLines(
                             Item.TooltipContext.of(mc.level),
                             mc.player,
-                            mc.options.advancedItemTooltips ? TooltipFlag.ADVANCED : TooltipFlag.NORMAL).stream()
+                            mc.options.advancedItemTooltips ? TooltipFlag.ADVANCED : TooltipFlag.NORMAL)
+                    .stream()
                     .map(Component::getVisualOrderText)
                     .map(ClientTooltipComponent::create)
                     .toList();
-            graphics.tooltip(mc.font, lines,
-                    cx + TOOLTIP_X_OFFSET, cy + TOOLTIP_Y_OFFSET,
-                    DefaultTooltipPositioner.INSTANCE, null);
+            graphics.tooltip(
+                    mc.font,
+                    lines,
+                    cx + TOOLTIP_X_OFFSET,
+                    cy + TOOLTIP_Y_OFFSET,
+                    DefaultTooltipPositioner.INSTANCE,
+                    null);
         }
     }
 
-    private static void drawRing(GuiGraphicsExtractor graphics, Identifier texture,
-                                 int cx, int cy, float angleDeg, float size) {
+    private static void drawRing(
+            GuiGraphicsExtractor graphics, Identifier texture, int cx, int cy, float angleDeg, float size) {
         if (size <= 0.0F) {
             return;
         }
@@ -324,9 +332,20 @@ public final class RadialFocusOverlay implements GuiLayer {
         graphics.pose().rotate((float) Math.toRadians(angleDeg - 90.0F));
         graphics.pose().translate(-size / 2.0F, -size / 2.0F);
         graphics.pose().scale(size / RADIAL_TEX_SIZE, size / RADIAL_TEX_SIZE);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, texture,
-                0, 0, 0.0F, 0.0F, RADIAL_TEX_SIZE, RADIAL_TEX_SIZE,
-                RADIAL_TEX_SIZE, RADIAL_TEX_SIZE, RADIAL_TEX_SIZE, RADIAL_TEX_SIZE, RING_TINT);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                texture,
+                0,
+                0,
+                0.0F,
+                0.0F,
+                RADIAL_TEX_SIZE,
+                RADIAL_TEX_SIZE,
+                RADIAL_TEX_SIZE,
+                RADIAL_TEX_SIZE,
+                RADIAL_TEX_SIZE,
+                RADIAL_TEX_SIZE,
+                RING_TINT);
         graphics.pose().popMatrix();
     }
 }

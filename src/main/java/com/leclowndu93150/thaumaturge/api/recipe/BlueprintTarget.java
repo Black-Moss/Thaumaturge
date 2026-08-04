@@ -47,7 +47,10 @@ public sealed interface BlueprintTarget {
         final MapCodec<? extends BlueprintTarget> codec;
         final StreamCodec<RegistryFriendlyByteBuf, ? extends BlueprintTarget> streamCodec;
 
-        Kind(String name, MapCodec<? extends BlueprintTarget> codec, StreamCodec<RegistryFriendlyByteBuf, ? extends BlueprintTarget> streamCodec) {
+        Kind(
+                String name,
+                MapCodec<? extends BlueprintTarget> codec,
+                StreamCodec<RegistryFriendlyByteBuf, ? extends BlueprintTarget> streamCodec) {
             this.name = name;
             this.codec = codec;
             this.streamCodec = streamCodec;
@@ -90,10 +93,12 @@ public sealed interface BlueprintTarget {
 
     record BlockTarget(Block block, boolean applyPlayerFacing, boolean opposite) implements BlueprintTarget {
         static final MapCodec<BlockTarget> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
-                BuiltInRegistries.BLOCK.byNameCodec().fieldOf("block").forGetter(BlockTarget::block),
-                Codec.BOOL.optionalFieldOf("apply_player_facing", false).forGetter(BlockTarget::applyPlayerFacing),
-                Codec.BOOL.optionalFieldOf("opposite", false).forGetter(BlockTarget::opposite)
-        ).apply(i, BlockTarget::new));
+                        BuiltInRegistries.BLOCK.byNameCodec().fieldOf("block").forGetter(BlockTarget::block),
+                        Codec.BOOL
+                                .optionalFieldOf("apply_player_facing", false)
+                                .forGetter(BlockTarget::applyPlayerFacing),
+                        Codec.BOOL.optionalFieldOf("opposite", false).forGetter(BlockTarget::opposite))
+                .apply(i, BlockTarget::new));
 
         static final StreamCodec<RegistryFriendlyByteBuf, BlockTarget> STREAM_CODEC_INSTANCE = StreamCodec.composite(
                 ByteBufCodecs.registry(Registries.BLOCK),
@@ -102,8 +107,7 @@ public sealed interface BlueprintTarget {
                 BlockTarget::applyPlayerFacing,
                 ByteBufCodecs.BOOL,
                 BlockTarget::opposite,
-                BlockTarget::new
-        );
+                BlockTarget::new);
 
         @Override
         public Kind kind() {
@@ -112,9 +116,9 @@ public sealed interface BlueprintTarget {
     }
 
     record StateTarget(BlockState state) implements BlueprintTarget {
-        static final MapCodec<StateTarget> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
-                BlockState.CODEC.fieldOf("state").forGetter(StateTarget::state)
-        ).apply(i, StateTarget::new));
+        static final MapCodec<StateTarget> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(
+                i -> i.group(BlockState.CODEC.fieldOf("state").forGetter(StateTarget::state))
+                        .apply(i, StateTarget::new));
 
         static final StreamCodec<RegistryFriendlyByteBuf, StateTarget> STREAM_CODEC_INSTANCE = new StreamCodec<>() {
             @Override
@@ -135,15 +139,12 @@ public sealed interface BlueprintTarget {
     }
 
     record StackTarget(ItemStack stack) implements BlueprintTarget {
-        static final MapCodec<StackTarget> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
-                ItemStack.CODEC.fieldOf("stack").forGetter(StackTarget::stack)
-        ).apply(i, StackTarget::new));
+        static final MapCodec<StackTarget> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(
+                i -> i.group(ItemStack.CODEC.fieldOf("stack").forGetter(StackTarget::stack))
+                        .apply(i, StackTarget::new));
 
-        static final StreamCodec<RegistryFriendlyByteBuf, StackTarget> STREAM_CODEC_INSTANCE = StreamCodec.composite(
-                ItemStack.STREAM_CODEC,
-                StackTarget::stack,
-                StackTarget::new
-        );
+        static final StreamCodec<RegistryFriendlyByteBuf, StackTarget> STREAM_CODEC_INSTANCE =
+                StreamCodec.composite(ItemStack.STREAM_CODEC, StackTarget::stack, StackTarget::new);
 
         @Override
         public Kind kind() {

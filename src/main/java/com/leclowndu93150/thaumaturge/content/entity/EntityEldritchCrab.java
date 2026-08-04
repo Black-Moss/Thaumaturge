@@ -35,7 +35,6 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -106,8 +105,11 @@ public class EntityEldritchCrab extends Monster implements IEldritchMob {
     }
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                                  EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+    public @Nullable SpawnGroupData finalizeSpawn(
+            ServerLevelAccessor level,
+            DifficultyInstance difficulty,
+            EntitySpawnReason reason,
+            @Nullable SpawnGroupData groupData) {
         if (level.getDifficulty() == Difficulty.HARD) {
             this.setHelm(true);
         } else {
@@ -177,8 +179,14 @@ public class EntityEldritchCrab extends Monster implements IEldritchMob {
             this.setHelm(false);
             level.sendParticles(
                     new ItemParticleOption(ParticleTypes.ITEM, TCItems.CRIMSON_PLATE_CHEST.get()),
-                    this.getX(), this.getY() + this.getBbHeight() / 2.0, this.getZ(),
-                    BREAK_PARTICLES, 0.1, 0.1, 0.1, 0.05);
+                    this.getX(),
+                    this.getY() + this.getBbHeight() / 2.0,
+                    this.getZ(),
+                    BREAK_PARTICLES,
+                    0.1,
+                    0.1,
+                    0.1,
+                    0.05);
         }
         return result;
     }

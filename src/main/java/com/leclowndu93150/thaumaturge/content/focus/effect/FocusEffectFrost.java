@@ -72,8 +72,8 @@ public final class FocusEffectFrost implements FocusEffect {
     }
 
     @Override
-    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target,
-            @Nullable Trajectory trajectory, int index) {
+    public boolean apply(
+            CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
         if (!(ctx.level() instanceof ServerLevel level)) {
             return false;
         }
@@ -92,14 +92,19 @@ public final class FocusEffectFrost implements FocusEffect {
             for (BlockPos pos : BlockPos.betweenClosed(
                     blockHit.getBlockPos().offset((int) -f, (int) -f, (int) -f),
                     blockHit.getBlockPos().offset((int) f, (int) f, (int) f))) {
-                if (pos.distToCenterSqr(target.getLocation().x, target.getLocation().y, target.getLocation().z) > f * f) {
+                if (pos.distToCenterSqr(target.getLocation().x, target.getLocation().y, target.getLocation().z)
+                        > f * f) {
                     continue;
                 }
                 BlockState state = level.getBlockState(pos);
-                if (state.is(Blocks.WATER) && state.getFluidState().isSource()
-                        && level.isUnobstructed(Blocks.FROSTED_ICE.defaultBlockState(), pos, CollisionContext.empty())) {
+                if (state.is(Blocks.WATER)
+                        && state.getFluidState().isSource()
+                        && level.isUnobstructed(
+                                Blocks.FROSTED_ICE.defaultBlockState(), pos, CollisionContext.empty())) {
                     level.setBlockAndUpdate(pos, Blocks.FROSTED_ICE.defaultBlockState());
-                    level.scheduleTick(pos.immutable(), Blocks.FROSTED_ICE,
+                    level.scheduleTick(
+                            pos.immutable(),
+                            Blocks.FROSTED_ICE,
                             Mth.nextInt(level.getRandom(), MELT_DELAY_MIN, MELT_DELAY_MAX));
                 }
             }
@@ -116,14 +121,20 @@ public final class FocusEffectFrost implements FocusEffect {
 
     @Override
     public void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
-        FrostFlakeParticleOptions data = new FrostFlakeParticleOptions(
-                (float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
+        FrostFlakeParticleOptions data =
+                new FrostFlakeParticleOptions((float) (0.7F + level.getRandom().nextGaussian() * 0.3F));
         level.addParticle(data, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0);
     }
 
     @Override
     public void onCast(LivingEntity caster) {
-        caster.level().playSound(null, caster.blockPosition().above(), SoundEvents.ZOMBIE_VILLAGER_CURE,
-                SoundSource.PLAYERS, 0.2F, 1.0F + (float) (caster.level().getRandom().nextGaussian() * 0.05F));
+        caster.level()
+                .playSound(
+                        null,
+                        caster.blockPosition().above(),
+                        SoundEvents.ZOMBIE_VILLAGER_CURE,
+                        SoundSource.PLAYERS,
+                        0.2F,
+                        1.0F + (float) (caster.level().getRandom().nextGaussian() * 0.05F));
     }
 }

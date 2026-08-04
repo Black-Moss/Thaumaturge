@@ -27,8 +27,7 @@ public final class BlockEntityEldritchObelisk extends BlockEntity {
         if (counter++ % PULSE_INTERVAL != 0) {
             return;
         }
-        List<LivingEntity> nearby = level.getEntitiesOfClass(LivingEntity.class,
-                new AABB(pos).inflate(BUFF_RANGE));
+        List<LivingEntity> nearby = level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(BUFF_RANGE));
         for (LivingEntity entity : nearby) {
             if (entity instanceof IEldritchMob && !entity.hasEffect(MobEffects.REGENERATION)) {
                 entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, BUFF_DURATION, 0, true, true));

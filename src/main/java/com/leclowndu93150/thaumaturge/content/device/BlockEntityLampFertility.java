@@ -6,6 +6,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -25,9 +27,6 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class BlockEntityLampFertility extends BlockEntity implements IEssentiaTransport {
     private static final int MAX_CHARGES = 10;
@@ -72,7 +71,8 @@ public final class BlockEntityLampFertility extends BlockEntity implements IEsse
             return;
         }
         BlockPos pos = getBlockPos();
-        List<Animal> animals = level.getEntitiesOfClass(Animal.class,
+        List<Animal> animals = level.getEntitiesOfClass(
+                Animal.class,
                 new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1)
                         .inflate(RANGE));
         for (Animal candidate : animals) {
@@ -109,7 +109,8 @@ public final class BlockEntityLampFertility extends BlockEntity implements IEsse
             return false;
         }
         Direction facing = getBlockState().getValue(BlockStateProperties.FACING);
-        IEssentiaTransport ic = EssentiaFlowHandler.transport(level, getBlockPos().relative(facing), facing.getOpposite());
+        IEssentiaTransport ic =
+                EssentiaFlowHandler.transport(level, getBlockPos().relative(facing), facing.getOpposite());
         if (ic == null || !ic.canOutputTo(facing.getOpposite())) {
             return false;
         }
@@ -194,7 +195,8 @@ public final class BlockEntityLampFertility extends BlockEntity implements IEsse
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

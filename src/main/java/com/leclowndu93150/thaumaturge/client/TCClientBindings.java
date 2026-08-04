@@ -22,8 +22,7 @@ public final class TCClientBindings {
             if (player == null || AspectPools.isDiscovered(player, aspect)) {
                 return AspectKnowledge.KNOWN;
             }
-            boolean derivable = !aspect.value().isPrimal()
-                    && AspectPools.hasDiscoveredComponents(player, aspect);
+            boolean derivable = !aspect.value().isPrimal() && AspectPools.hasDiscoveredComponents(player, aspect);
             return derivable ? AspectKnowledge.DEDUCIBLE : AspectKnowledge.UNKNOWN;
         });
     }

@@ -1,34 +1,34 @@
 package com.leclowndu93150.thaumaturge.content.aura;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
+import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
+import com.leclowndu93150.thaumaturge.content.infusion.BlockEntityPedestal;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
-import com.leclowndu93150.thaumaturge.registry.TCWandParts;
-import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
-import com.leclowndu93150.thaumaturge.content.infusion.BlockEntityPedestal;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
+import com.leclowndu93150.thaumaturge.registry.TCWandParts;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import org.jspecify.annotations.Nullable;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
     private static final int RECHARGE_INTERVAL_TICKS = 10;
@@ -178,11 +178,13 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
 
     private void sendSparkle(ServerLevel level) {
         RandomSource rand = level.getRandom();
-        List<Holder.Reference<IAspect>> primals = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY)
+        List<Holder.Reference<IAspect>> primals = level.registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
                 .listElements()
                 .filter(holder -> holder.value().isPrimal())
                 .toList();
-        int color = primals.isEmpty() ? 0xFFFFFF
+        int color = primals.isEmpty()
+                ? 0xFFFFFF
                 : primals.get(rand.nextInt(primals.size())).value().color();
         Vec3 from = new Vec3(
                 worldPosition.getX() + rand.nextInt(SPARKLE_SPREAD) - rand.nextInt(SPARKLE_SPREAD) + rand.nextFloat(),

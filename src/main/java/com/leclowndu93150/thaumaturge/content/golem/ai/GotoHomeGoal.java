@@ -40,8 +40,8 @@ public final class GotoHomeGoal extends Goal {
             return false;
         }
         if (distSqr > FAR_HOME_DIST_SQR) {
-            Vec3 target = DefaultRandomPos.getPosTowards(golem, 16, 7,
-                    Vec3.atLowerCornerOf(golem.getHomePosition()), Math.PI / 2.0);
+            Vec3 target = DefaultRandomPos.getPosTowards(
+                    golem, 16, 7, Vec3.atLowerCornerOf(golem.getHomePosition()), Math.PI / 2.0);
             if (target == null) {
                 return false;
             }

@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.compat.jei.ingredient;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.IIngredientTypeWithSubtypes;
 import net.minecraft.core.Holder;
 
@@ -25,7 +24,7 @@ public final class AspectIngredientType implements IIngredientTypeWithSubtypes<H
 
     @Override
     public AspectInstance getDefaultIngredient(Holder<IAspect> base) {
-        return new AspectInstance(base,1);
+        return new AspectInstance(base, 1);
     }
 
     @Override

@@ -6,10 +6,10 @@ import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumaturge.gametest.base.TCTestRegistrar;
-import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -98,8 +98,7 @@ public final class NodeTests {
             AuraHelper.addVis(helper.getLevel(), helper.absolutePos(NODE_POS), REFILL_VIS);
             helper.runAfterDelay(REFILL_WAIT_TICKS, () -> {
                 if (node.getAspects().totalAmount() <= 0) {
-                    helper.fail("Energized node did not refill from the aura within "
-                            + REFILL_WAIT_TICKS + " ticks");
+                    helper.fail("Energized node did not refill from the aura within " + REFILL_WAIT_TICKS + " ticks");
                     return;
                 }
                 helper.succeed();

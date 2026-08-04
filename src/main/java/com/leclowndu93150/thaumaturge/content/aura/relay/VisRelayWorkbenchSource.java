@@ -10,12 +10,11 @@ import net.minecraft.world.entity.player.Player;
 
 public final class VisRelayWorkbenchSource implements IWorkbenchVisSource {
     @Override
-    public int supply(Player player, IArcaneWorkbench workbench, Holder<IAspect> aspect,
-                      int need, boolean simulate) {
+    public int supply(Player player, IArcaneWorkbench workbench, Holder<IAspect> aspect, int need, boolean simulate) {
         if (!(player.level() instanceof ServerLevel level)) {
             return 0;
         }
-        return VisRelayHelper.drainCentivis(level, player.blockPosition(),
-                aspect.unwrapKey().orElseThrow(), need, simulate);
+        return VisRelayHelper.drainCentivis(
+                level, player.blockPosition(), aspect.unwrapKey().orElseThrow(), need, simulate);
     }
 }

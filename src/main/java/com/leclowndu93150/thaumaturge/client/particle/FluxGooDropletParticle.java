@@ -14,8 +14,18 @@ import org.jspecify.annotations.Nullable;
 public final class FluxGooDropletParticle extends BreakingItemParticle {
     private final float baseAlpha;
 
-    private FluxGooDropletParticle(ClientLevel level, double x, double y, double z, double xa, double ya, double za,
-                                   TextureAtlasSprite sprite, int color, float alpha, int lifetime) {
+    private FluxGooDropletParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double xa,
+            double ya,
+            double za,
+            TextureAtlasSprite sprite,
+            int color,
+            float alpha,
+            int lifetime) {
         super(level, x, y, z, xa, ya, za, sprite);
         this.baseAlpha = alpha;
         this.alpha = alpha;
@@ -39,17 +49,21 @@ public final class FluxGooDropletParticle extends BreakingItemParticle {
             implements ParticleProvider<FluxGooDropletParticleOptions> {
         @Nullable
         @Override
-        public Particle createParticle(FluxGooDropletParticleOptions options, ClientLevel level,
-                                       double x, double y, double z,
-                                       double xa, double ya, double za,
-                                       RandomSource random) {
-            TextureAtlasSprite sprite = this.getSprite(
-                    new ItemStackTemplate(Items.SLIME_BALL), level, random);
-            int lifetime = options.lifetime() > 0
-                    ? options.lifetime()
-                    : (int) (66.0F / (random.nextFloat() * 0.9F + 0.1F));
-            return new FluxGooDropletParticle(level, x, y, z, xa, ya, za,
-                    sprite, options.color(), options.alpha(), lifetime);
+        public Particle createParticle(
+                FluxGooDropletParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double xa,
+                double ya,
+                double za,
+                RandomSource random) {
+            TextureAtlasSprite sprite = this.getSprite(new ItemStackTemplate(Items.SLIME_BALL), level, random);
+            int lifetime =
+                    options.lifetime() > 0 ? options.lifetime() : (int) (66.0F / (random.nextFloat() * 0.9F + 0.1F));
+            return new FluxGooDropletParticle(
+                    level, x, y, z, xa, ya, za, sprite, options.color(), options.alpha(), lifetime);
         }
     }
 }

@@ -168,7 +168,8 @@ public final class AuraModifierProvider extends DataMapProvider {
     }
 
     @SafeVarargs
-    private static void addAspects(Builder<BiomeAspects, Biome> b, ResourceKey<Biome> key, ResourceKey<IAspect>... aspectKeys) {
+    private static void addAspects(
+            Builder<BiomeAspects, Biome> b, ResourceKey<Biome> key, ResourceKey<IAspect>... aspectKeys) {
         b.add(key, new BiomeAspects(List.of(aspectKeys)), false);
     }
 

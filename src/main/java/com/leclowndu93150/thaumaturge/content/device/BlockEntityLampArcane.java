@@ -12,8 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
 public final class BlockEntityLampArcane extends BlockEntity {
     private static final int SPAWN_INTERVAL = 5;
@@ -52,8 +52,10 @@ public final class BlockEntityLampArcane extends BlockEntity {
     private static boolean hasLineOfSight(Level level, BlockPos from, BlockPos to) {
         Vec3 start = Vec3.atCenterOf(from);
         Vec3 end = Vec3.atCenterOf(to);
-        HitResult hit = level.clip(new ClipContext(start, end, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, CollisionContext.empty()));
-        return hit.getType() == HitResult.Type.MISS || BlockPos.containing(hit.getLocation()).equals(to);
+        HitResult hit = level.clip(new ClipContext(
+                start, end, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, CollisionContext.empty()));
+        return hit.getType() == HitResult.Type.MISS
+                || BlockPos.containing(hit.getLocation()).equals(to);
     }
 
     public void removeLights() {

@@ -2,12 +2,11 @@ package com.leclowndu93150.thaumaturge.content.infusion;
 
 import com.leclowndu93150.thaumaturge.api.infusion.IInfusionStabiliser;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
+import java.util.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.*;
 
 public final class InfusionStabilitySurvey {
     private static final int HORIZONTAL_RANGE = 8;
@@ -17,8 +16,7 @@ public final class InfusionStabilitySurvey {
 
     private InfusionStabilitySurvey() {}
 
-    public record Result(float stabilityReplenish, List<BlockPos> problemBlocks) {
-    }
+    public record Result(float stabilityReplenish, List<BlockPos> problemBlocks) {}
 
     public static Result survey(Level level, BlockPos matrix) {
         Set<Long> stabilisers = new LinkedHashSet<>();
@@ -44,10 +42,8 @@ public final class InfusionStabilitySurvey {
             long first = stabilisers.iterator().next();
             stabilisers.remove(first);
             BlockPos pos = BlockPos.of(first);
-            BlockPos mirrored = new BlockPos(
-                    2 * matrix.getX() - pos.getX(),
-                    pos.getY(),
-                    2 * matrix.getZ() - pos.getZ());
+            BlockPos mirrored =
+                    new BlockPos(2 * matrix.getX() - pos.getX(), pos.getY(), 2 * matrix.getZ() - pos.getZ());
             stabilisers.remove(mirrored.asLong());
 
             Block block = level.getBlockState(pos).getBlock();

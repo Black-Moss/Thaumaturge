@@ -1,17 +1,18 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
-import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.*;
-import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.mojang.serialization.Codec;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -33,14 +34,13 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
-
 public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, IAspectSource {
     public static final int CAPACITY = IEssentiaJar.DEFAULT_CAPACITY;
 
     public int capacity() {
         return getBlockState().getBlock() instanceof IEssentiaJar jar ? jar.jarCapacity() : CAPACITY;
     }
+
     private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = LegacyIds.ASPECT_KEY_CODEC;
 
     private @Nullable ResourceKey<IAspect> aspect;
@@ -120,7 +120,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         return facing;
     }
 
-    protected void clearAspect(){
+    protected void clearAspect() {
         this.aspect = null;
         this.amount = 0;
         setChanged();
@@ -278,8 +278,8 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         aspect = input.read("Aspect", ASPECT_KEY_CODEC).orElse(null);
         aspectFilter = input.read("AspectFilter", ASPECT_KEY_CODEC).orElse(null);
         amount = input.getIntOr("Amount", 0);
-        facing = input.read("Facing",Direction.CODEC).orElse(Direction.DOWN);
-        braced = input.getBooleanOr("Braced",false);
+        facing = input.read("Facing", Direction.CODEC).orElse(Direction.DOWN);
+        braced = input.getBooleanOr("Braced", false);
     }
 
     @Override
@@ -288,15 +288,17 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         if (aspect != null) output.store("Aspect", ASPECT_KEY_CODEC, aspect);
         if (aspectFilter != null) output.store("AspectFilter", ASPECT_KEY_CODEC, aspectFilter);
         output.putInt("Amount", amount);
-        output.store("Facing",Direction.CODEC,facing);
+        output.store("Facing", Direction.CODEC, facing);
         output.putBoolean("Braced", braced);
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector problemreporter$scopedcollector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput tagvalueoutput = TagValueOutput.createWithContext(problemreporter$scopedcollector, registries);
+        try (ProblemReporter.ScopedCollector problemreporter$scopedcollector =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+            TagValueOutput tagvalueoutput =
+                    TagValueOutput.createWithContext(problemreporter$scopedcollector, registries);
             saveAdditional(tagvalueoutput);
             nbt.merge(tagvalueoutput.buildResult());
         }
@@ -344,7 +346,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     @Override
     public AspectList getAspects() {
         if (amount() == 0) return AspectList.EMPTY;
-        return AspectList.of(new AspectInstance(EssentiaTransportHelper.resolve(getLevel(),aspectKey()),amount()));
+        return AspectList.of(new AspectInstance(EssentiaTransportHelper.resolve(getLevel(), aspectKey()), amount()));
     }
 
     @Override
@@ -368,7 +370,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     @Override
     public int addToContainer(Holder<IAspect> aspect, int amount) {
         if (amount == 0) return amount;
-        if ((this.amount < capacity() && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0){
+        if ((this.amount < capacity() && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0) {
             this.aspect = aspect.getKey();
             int added = Math.min(amount, capacity() - this.amount);
             this.amount += added;

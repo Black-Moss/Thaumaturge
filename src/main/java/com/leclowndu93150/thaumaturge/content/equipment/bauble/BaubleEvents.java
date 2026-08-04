@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.mixin.world.entity.ExperienceOrbAccessor;
+import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +18,6 @@ import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
-import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
@@ -65,10 +65,9 @@ public final class BaubleEvents {
         CriteriaTriggers.USED_TOTEM.trigger(player, charm);
         player.setHealth(1.0F);
         player.removeAllEffects();
-        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION,
-                UNDYING_REGEN_TICKS, UNDYING_EFFECT_AMPLIFIER));
-        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION,
-                UNDYING_ABSORPTION_TICKS, UNDYING_EFFECT_AMPLIFIER));
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, UNDYING_REGEN_TICKS, UNDYING_EFFECT_AMPLIFIER));
+        player.addEffect(
+                new MobEffectInstance(MobEffects.ABSORPTION, UNDYING_ABSORPTION_TICKS, UNDYING_EFFECT_AMPLIFIER));
         player.level().broadcastEntityEvent(player, TOTEM_EVENT);
         event.setCanceled(true);
     }
@@ -83,7 +82,8 @@ public final class BaubleEvents {
             return;
         }
         int drained = event.getOrb().getValue() / 2;
-        ((ExperienceOrbAccessor) event.getOrb()).thaumaturge$setValue(event.getOrb().getValue() - drained);
+        ((ExperienceOrbAccessor) event.getOrb())
+                .thaumaturge$setValue(event.getOrb().getValue() - drained);
         float roll = player.getRandom().nextFloat();
         if (roll < THEORY_CHANCE_PER_XP * drained) {
             ResearchGrants.grantConvertedKnowledge(serverPlayer, KnowledgeType.THEORY, 1);

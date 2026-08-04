@@ -32,8 +32,8 @@ public final class EnchantMining {
         }
         BlockState state = level.getBlockState(pos);
         if (!skipEvent) {
-            BreakBlockEvent event = CommonHooks.fireBlockBreak(level,
-                    serverPlayer.gameMode.getGameModeForPlayer(), serverPlayer, pos, state);
+            BreakBlockEvent event = CommonHooks.fireBlockBreak(
+                    level, serverPlayer.gameMode.getGameModeForPlayer(), serverPlayer, pos, state);
             if (event.isCanceled()) {
                 return false;
             }
@@ -56,7 +56,9 @@ public final class EnchantMining {
                 for (int yy = -LOG_UPDATE_RADIUS; yy <= LOG_UPDATE_RADIUS; yy++) {
                     for (int zz = -LOG_UPDATE_RADIUS; zz <= LOG_UPDATE_RADIUS; zz++) {
                         BlockPos p = furthest.offset(xx, yy, zz);
-                        level.scheduleTick(p, level.getBlockState(p).getBlock(),
+                        level.scheduleTick(
+                                p,
+                                level.getBlockState(p).getBlock(),
                                 LOG_UPDATE_DELAY_BASE + level.getRandom().nextInt(LOG_UPDATE_DELAY_RANGE));
                     }
                 }

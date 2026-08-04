@@ -34,5 +34,6 @@ public non-sealed interface FocusMedium extends FocusElement {
      * @return the streams for the next node, or null to halt the branch because target
      *         resolution was deferred to an intermediary or the medium could not act
      */
-    @Nullable CastStreams cast(CastContext ctx, FocusSettings settings, CastStreams incoming);
+    @Nullable
+    CastStreams cast(CastContext ctx, FocusSettings settings, CastStreams incoming);
 }

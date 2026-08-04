@@ -37,8 +37,7 @@ public abstract class AbstractTaintBlock extends Block implements ITaintBlock {
         subRandomTick(state, level, pos, random);
     }
 
-    protected void subRandomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-    }
+    protected void subRandomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {}
 
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
@@ -55,8 +54,8 @@ public abstract class AbstractTaintBlock extends Block implements ITaintBlock {
             return;
         }
         if (serverLevel.getRandom().nextInt(WALK_EFFECT_CHANCE) == 0) {
-            living.addEffect(new MobEffectInstance(TCMobEffects.FLUX_TAINT,
-                    WALK_EFFECT_DURATION, 0, true, false, false));
+            living.addEffect(
+                    new MobEffectInstance(TCMobEffects.FLUX_TAINT, WALK_EFFECT_DURATION, 0, true, false, false));
         }
     }
 }

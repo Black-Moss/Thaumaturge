@@ -6,9 +6,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeUnlockAdvancementBuilder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStackTemplate;
-
 import net.minecraft.world.item.crafting.Recipe;
-
 import org.jetbrains.annotations.Nullable;
 
 public abstract class SimpleRecipeBuilder implements RecipeBuilder {
@@ -26,7 +24,7 @@ public abstract class SimpleRecipeBuilder implements RecipeBuilder {
 
     @Override
     public SimpleRecipeBuilder unlockedBy(String name, Criterion<?> criterion) {
-        this.advancementBuilder.unlockedBy(name,criterion);
+        this.advancementBuilder.unlockedBy(name, criterion);
         return this;
     }
 

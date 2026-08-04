@@ -1,16 +1,14 @@
 package com.leclowndu93150.thaumaturge.api.items;
 
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.core.Holder;
-import java.util.function.Supplier;
-import com.leclowndu93150.thaumaturge.TCIds;
-import net.minecraft.world.entity.EquipmentSlot;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.fml.ModList;
 
 /**
  * Static accessor for detecting goggles, revealers, and vis-discount gear worn by an entity.
@@ -109,8 +107,8 @@ public final class GogglesAccess {
             return true;
         }
         if (curios != null) {
-            return curios.anyCurioMatches(entity,
-                    stack -> stack.getItem() instanceof IRevealer r && r.showNodes(stack, entity));
+            return curios.anyCurioMatches(
+                    entity, stack -> stack.getItem() instanceof IRevealer r && r.showNodes(stack, entity));
         }
         return false;
     }

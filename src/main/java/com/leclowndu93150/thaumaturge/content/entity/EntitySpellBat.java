@@ -8,11 +8,11 @@ import com.leclowndu93150.thaumaturge.api.casters.Trajectory;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -91,9 +91,7 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 5.0)
-                .add(Attributes.ATTACK_DAMAGE, 1.0);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 5.0).add(Attributes.ATTACK_DAMAGE, 1.0);
     }
 
     @Override
@@ -193,8 +191,7 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
     }
 
     @Override
-    protected void checkFallDamage(double ya, boolean onGround, BlockState onState, BlockPos pos) {
-    }
+    protected void checkFallDamage(double ya, boolean onGround, BlockState onState, BlockPos pos) {}
 
     @Override
     public boolean isIgnoringBlockTriggers() {
@@ -235,8 +232,10 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
         }
         Identifier effectId = this.effects.get(this.random.nextInt(this.effects.size()));
         if (FocusEngine.element(effectId) instanceof FocusEffect effect) {
-            effect.impactParticles(this.level(),
-                    new Vec3(this.getX() + this.random.nextGaussian() * EFFECT_FX_SPREAD,
+            effect.impactParticles(
+                    this.level(),
+                    new Vec3(
+                            this.getX() + this.random.nextGaussian() * EFFECT_FX_SPREAD,
                             this.getY() + this.getBbHeight() / 2.0F + this.random.nextGaussian() * EFFECT_FX_SPREAD,
                             this.getZ() + this.random.nextGaussian() * EFFECT_FX_SPREAD),
                     Vec3.ZERO);
@@ -295,7 +294,8 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
 
     private void wanderFlight(ServerLevel level) {
         if (this.currentFlightTarget != null
-                && (!level.isEmptyBlock(this.currentFlightTarget) || this.currentFlightTarget.getY() <= level.getMinY())) {
+                && (!level.isEmptyBlock(this.currentFlightTarget)
+                        || this.currentFlightTarget.getY() <= level.getMinY())) {
             this.currentFlightTarget = null;
         }
         if (this.currentFlightTarget == null
@@ -339,16 +339,21 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
         if (!this.level().isClientSide()) {
             LivingEntity currentOwner = this.getOwner();
             if (this.focusPackage != null && currentOwner != null) {
-                EntityHitResult ray = new EntityHitResult(target,
-                        target.position().add(0.0, target.getBbHeight() / 2.0F, 0.0));
-                Trajectory trajectory = new Trajectory(this.position(),
-                        ray.getLocation().subtract(this.position()));
-                FocusEngine.run(this.level(), this.focusPackage, currentOwner, new CastStreams(
-                        new Trajectory[]{trajectory}, new HitResult[]{ray}));
+                EntityHitResult ray =
+                        new EntityHitResult(target, target.position().add(0.0, target.getBbHeight() / 2.0F, 0.0));
+                Trajectory trajectory =
+                        new Trajectory(this.position(), ray.getLocation().subtract(this.position()));
+                FocusEngine.run(
+                        this.level(),
+                        this.focusPackage,
+                        currentOwner,
+                        new CastStreams(new Trajectory[] {trajectory}, new HitResult[] {ray}));
             }
             this.setHealth(this.getHealth() - ATTACK_SELF_DAMAGE);
         }
-        this.playSound(SoundEvents.BAT_HURT, ATTACK_SOUND_VOLUME,
+        this.playSound(
+                SoundEvents.BAT_HURT,
+                ATTACK_SOUND_VOLUME,
                 ATTACK_SOUND_PITCH_BASE + this.random.nextFloat() * ATTACK_SOUND_PITCH_SPREAD);
     }
 
@@ -356,8 +361,8 @@ public final class EntitySpellBat extends Monster implements TraceableEntity, IE
         LivingEntity currentOwner = this.getOwner();
         double best = Double.MAX_VALUE;
         LivingEntity result = null;
-        for (LivingEntity candidate : FocusTargeting.livingInRange(
-                this.level(), this.getX(), this.getY(), this.getZ(), this, TARGET_RANGE)) {
+        for (LivingEntity candidate :
+                FocusTargeting.livingInRange(this.level(), this.getX(), this.getY(), this.getZ(), this, TARGET_RANGE)) {
             if (!candidate.isAlive()) {
                 continue;
             }

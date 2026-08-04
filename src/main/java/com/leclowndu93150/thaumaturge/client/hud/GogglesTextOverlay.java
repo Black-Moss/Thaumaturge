@@ -60,14 +60,19 @@ public final class GogglesTextOverlay {
         for (int i = 0; i < lines.length; i++) {
             float lineShift = (i - lines.length / 2.0F) / LINE_SPACING_DIVISOR;
             double y = pos.getY() + offset.y + (blockForm ? lineShift : -lineShift);
-            drawTextInAir(event.getPoseStack(), mc, buffers,
-                    pos.getX() + offset.x, y, pos.getZ() + offset.z, lines[i]);
+            drawTextInAir(event.getPoseStack(), mc, buffers, pos.getX() + offset.x, y, pos.getZ() + offset.z, lines[i]);
         }
         buffers.endBatch();
     }
 
-    private static void drawTextInAir(PoseStack poseStack, Minecraft mc, MultiBufferSource buffers,
-                                      double x, double y, double z, Component text) {
+    private static void drawTextInAir(
+            PoseStack poseStack,
+            Minecraft mc,
+            MultiBufferSource buffers,
+            double x,
+            double y,
+            double z,
+            Component text) {
         Camera camera = mc.gameRenderer.getMainCamera();
         Vec3 cam = camera.position();
         float yaw = (float) Math.toDegrees(Math.atan2(cam.x - (x + 0.5), cam.z - (z + 0.5)));
@@ -76,8 +81,17 @@ public final class GogglesTextOverlay {
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw + 180.0F));
         poseStack.scale(-TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
         int width = mc.font.width(text);
-        mc.font.drawInBatch(text, 1 - width / 2, 1.0F, TEXT_COLOR, true,
-                poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH, 0, LightCoordsUtil.FULL_BRIGHT);
+        mc.font.drawInBatch(
+                text,
+                1 - width / 2,
+                1.0F,
+                TEXT_COLOR,
+                true,
+                poseStack.last().pose(),
+                buffers,
+                Font.DisplayMode.SEE_THROUGH,
+                0,
+                LightCoordsUtil.FULL_BRIGHT);
         poseStack.popPose();
     }
 }

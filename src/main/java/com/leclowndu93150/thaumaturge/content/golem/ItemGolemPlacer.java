@@ -1,11 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
-import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
+import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.leclowndu93150.thaumaturge.registry.TCGolemParts;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -21,7 +22,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public final class ItemGolemPlacer extends Item implements ISealDisplayer {
     public ItemGolemPlacer(Properties properties) {
@@ -29,8 +29,12 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         GolemProperties props = stack.get(TCDataComponents.GOLEM_PROPERTIES.get());
         if (props == null) {
             return;
@@ -38,23 +42,27 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
         if (props.hasTrait(TCGolemTraits.SMART.get())) {
             if (props.getRank() >= EntityThaumaturgeGolem.MAX_RANK) {
                 tooltip.accept(Component.translatable("golem.rank")
-                        .append(" " + props.getRank()).withStyle(ChatFormatting.GOLD));
+                        .append(" " + props.getRank())
+                        .withStyle(ChatFormatting.GOLD));
             } else {
                 int xp = stack.getOrDefault(TCDataComponents.GOLEM_XP.get(), 0);
                 int needed = (props.getRank() + 1) * (props.getRank() + 1) * EntityThaumaturgeGolem.XP_PER_RANK_UNIT;
                 tooltip.accept(Component.translatable("golem.rank")
-                        .append(" " + props.getRank()).withStyle(ChatFormatting.GOLD)
-                        .append(Component.literal(" (" + xp + "/" + needed + ")").withStyle(ChatFormatting.DARK_GREEN)));
+                        .append(" " + props.getRank())
+                        .withStyle(ChatFormatting.GOLD)
+                        .append(Component.literal(" (" + xp + "/" + needed + ")")
+                                .withStyle(ChatFormatting.DARK_GREEN)));
             }
         }
         Identifier materialKey = TCGolemParts.materials().getKey(props.getMaterial());
         if (materialKey != null) {
-            tooltip.accept(Component.translatable(GolemMaterial.nameKey(materialKey))
-                    .withStyle(ChatFormatting.GREEN));
+            tooltip.accept(
+                    Component.translatable(GolemMaterial.nameKey(materialKey)).withStyle(ChatFormatting.GREEN));
         }
         for (GolemTrait trait : props.getTraits()) {
             tooltip.accept(Component.literal("-")
-                    .append(Component.translatable(GolemTrait.nameKey(TCGolemTraits.registry().getKey(trait))))
+                    .append(Component.translatable(
+                            GolemTrait.nameKey(TCGolemTraits.registry().getKey(trait))))
                     .withStyle(ChatFormatting.BLUE));
         }
     }
@@ -75,7 +83,8 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
             return InteractionResult.FAIL;
         }
         ServerLevel serverLevel = (ServerLevel) level;
-        EntityThaumaturgeGolem golem = TCEntities.THAUMATURGE_GOLEM.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
+        EntityThaumaturgeGolem golem =
+                TCEntities.THAUMATURGE_GOLEM.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
         if (golem == null) {
             return InteractionResult.FAIL;
         }

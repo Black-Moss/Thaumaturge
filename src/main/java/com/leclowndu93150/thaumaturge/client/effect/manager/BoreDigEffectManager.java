@@ -24,6 +24,5 @@ public final class BoreDigEffectManager extends AbstractFXManager<BoreDigEffect>
     }
 
     @Override
-    public void renderAll(PoseStack poseStack, Camera camera, float partialTick) {
-    }
+    public void renderAll(PoseStack poseStack, Camera camera, float partialTick) {}
 }

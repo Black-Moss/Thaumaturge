@@ -14,8 +14,13 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
     private final float baseAlpha;
     private final float baseScale;
 
-    private EssentiaDropParticle(ClientLevel level, double x, double y, double z, EssentiaDropParticleOptions data, ParticleSheet sheet) {
-        super(level, x, y, z,
+    private EssentiaDropParticle(
+            ClientLevel level, double x, double y, double z, EssentiaDropParticleOptions data, ParticleSheet sheet) {
+        super(
+                level,
+                x,
+                y,
+                z,
                 level.getRandom().nextGaussian() * 0.005,
                 level.getRandom().nextGaussian() * 0.005,
                 level.getRandom().nextGaussian() * 0.005,
@@ -49,7 +54,7 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
         this.xd *= this.friction;
         this.yd *= this.friction;
         this.zd *= this.friction;
-        float fade = 1.0F - (float)this.age / this.lifetime;
+        float fade = 1.0F - (float) this.age / this.lifetime;
         this.alpha = this.baseAlpha * fade;
         this.quadSize = this.baseScale * (0.5F + fade * 0.5F);
     }
@@ -83,7 +88,16 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("essentia_drop");
 
         @Override
-        public Particle createParticle(EssentiaDropParticleOptions options, ClientLevel level, double x, double y, double z, double xAux, double yAux, double zAux, RandomSource random) {
+        public Particle createParticle(
+                EssentiaDropParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double xAux,
+                double yAux,
+                double zAux,
+                RandomSource random) {
             return new EssentiaDropParticle(level, x, y, z, options, SHEET);
         }
     }

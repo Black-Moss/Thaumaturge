@@ -27,11 +27,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEntityGolemBuilder, GolemBuilderRenderState> {
+public final class GolemBuilderRenderer
+        implements BlockEntityRenderer<BlockEntityGolemBuilder, GolemBuilderRenderState> {
     public static final Identifier MODEL = TCIds.rl("models/mesh/golembuilder.tcmesh");
     private static final Identifier TEXTURE = TCIds.rl("textures/entity/golembuilder.png");
-    private static final SpriteId LAVA_SPRITE = new SpriteId(TextureAtlas.LOCATION_BLOCKS,
-            Identifier.withDefaultNamespace("block/lava_still"));
+    private static final SpriteId LAVA_SPRITE =
+            new SpriteId(TextureAtlas.LOCATION_BLOCKS, Identifier.withDefaultNamespace("block/lava_still"));
     private static final String PRESS_PART = "press";
     private static final float PRESS_DROP = 0.625F;
     private static final float LAVA_OFFSET_X = -0.3125F;
@@ -48,15 +49,23 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     }
 
     @Override
-    public void extractRenderState(BlockEntityGolemBuilder builder, GolemBuilderRenderState state, float partialTicks,
-                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityGolemBuilder builder,
+            GolemBuilderRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(builder, state, partialTicks, cameraPosition, breakProgress);
         state.facing = builder.getBlockState().getValue(BlockGolemBuilder.FACING);
         state.press = builder.press;
     }
 
     @Override
-    public void submit(GolemBuilderRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            GolemBuilderRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.0F, 0.5F);
         switch (state.facing) {
@@ -75,16 +84,16 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
         RenderType type = RenderTypes.entityCutout(TEXTURE);
         for (TCMeshPart part : mesh.parts()) {
             if (!PRESS_PART.equals(part.name())) {
-                collector.submitCustomGeometry(poseStack, type,
-                        (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
+                collector.submitCustomGeometry(
+                        poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
             }
         }
         poseStack.pushPose();
         poseStack.translate(0.0F, (float) (-Math.sin(Math.toRadians(press)) * PRESS_DROP), 0.0F);
         for (TCMeshPart part : mesh.parts()) {
             if (PRESS_PART.equals(part.name())) {
-                collector.submitCustomGeometry(poseStack, type,
-                        (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
+                collector.submitCustomGeometry(
+                        poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
             }
         }
         poseStack.popPose();

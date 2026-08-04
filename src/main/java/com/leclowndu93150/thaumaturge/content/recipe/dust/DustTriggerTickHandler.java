@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.recipe.dust;
 
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
+import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,6 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
@@ -103,7 +102,8 @@ public final class DustTriggerTickHandler {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             if (resultStack != null && !resultStack.isEmpty()) {
                 ItemStack copy = resultStack.copy();
-                EntitySpecialItem drop = new EntitySpecialItem(level, pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, copy);
+                EntitySpecialItem drop =
+                        new EntitySpecialItem(level, pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, copy);
                 drop.setDeltaMovement(0.0, 0.0, 0.0);
                 drop.setDefaultPickUpDelay();
                 level.addFreshEntity(drop);

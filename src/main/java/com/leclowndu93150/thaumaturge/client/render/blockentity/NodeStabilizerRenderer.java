@@ -38,11 +38,13 @@ public final class NodeStabilizerRenderer
     private static final Identifier TRANSDUCER_TEXTURE = TCIds.rl("textures/block/node_converter.png");
     private static final Identifier TRANSDUCER_OVERLAY_TEXTURE = TCIds.rl("textures/block/node_converter_over.png");
     private static final RenderType TRANSDUCER_BASE = RenderTypes.entityCutout(TRANSDUCER_TEXTURE);
-    private static final RenderType TRANSDUCER_OVERLAY = RenderTypes.entityTranslucentEmissive(TRANSDUCER_OVERLAY_TEXTURE);
+    private static final RenderType TRANSDUCER_OVERLAY =
+            RenderTypes.entityTranslucentEmissive(TRANSDUCER_OVERLAY_TEXTURE);
     private static final float TRANSDUCER_EXTEND = 0.4F;
     private static final float TRANSDUCER_GLOW_GAIN = 2.5F;
     private static final Identifier BUBBLE_TEXTURE = TCIds.rl("textures/misc/node_bubble.png");
-    private static final RenderType BUBBLE = RenderType.create("tc_node_bubble",
+    private static final RenderType BUBBLE = RenderType.create(
+            "tc_node_bubble",
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE)
                     .withTexture("Sampler0", BUBBLE_TEXTURE)
                     .useLightmap()
@@ -75,9 +77,12 @@ public final class NodeStabilizerRenderer
     }
 
     @Override
-    public void extractRenderState(BlockEntityNodeStabilizer stabilizer, NodeStabilizerRenderState state,
-                                   float partialTicks, Vec3 cameraPosition,
-                                   ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityNodeStabilizer stabilizer,
+            NodeStabilizerRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(stabilizer, state, partialTicks, cameraPosition, breakProgress);
         state.count = stabilizer.count;
         state.advanced = stabilizer.isAdvanced();
@@ -87,8 +92,11 @@ public final class NodeStabilizerRenderer
     }
 
     @Override
-    public void submit(NodeStabilizerRenderState state, PoseStack poseStack, SubmitNodeCollector collector,
-                       CameraRenderState camera) {
+    public void submit(
+            NodeStabilizerRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
@@ -109,26 +117,34 @@ public final class NodeStabilizerRenderer
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
         PoseStack.Pose pose = poseStack.last();
         VertexConsumer buffer = buffers.getBuffer(BUBBLE);
-        buffer.addVertex(pose, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(0.0F, 1.0F)
-                .setColor(color).setLight(BUBBLE_LIGHT);
-        buffer.addVertex(pose, BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(1.0F, 1.0F)
-                .setColor(color).setLight(BUBBLE_LIGHT);
-        buffer.addVertex(pose, BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(1.0F, 0.0F)
-                .setColor(color).setLight(BUBBLE_LIGHT);
-        buffer.addVertex(pose, -BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(0.0F, 0.0F)
-                .setColor(color).setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F)
+                .setUv(0.0F, 1.0F)
+                .setColor(color)
+                .setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, BUBBLE_HALF, -BUBBLE_HALF, 0.0F)
+                .setUv(1.0F, 1.0F)
+                .setColor(color)
+                .setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, BUBBLE_HALF, BUBBLE_HALF, 0.0F)
+                .setUv(1.0F, 0.0F)
+                .setColor(color)
+                .setLight(BUBBLE_LIGHT);
+        buffer.addVertex(pose, -BUBBLE_HALF, BUBBLE_HALF, 0.0F)
+                .setUv(0.0F, 0.0F)
+                .setColor(color)
+                .setLight(BUBBLE_LIGHT);
         poseStack.popPose();
     }
 
-    public static void submitParts(int count, boolean advanced, float ticks,
-                                   PoseStack poseStack, SubmitNodeCollector collector, int light) {
+    public static void submitParts(
+            int count, boolean advanced, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
         TCMesh mesh = GolemMeshes.get(MODEL);
         TCMeshPart lock = findPart(mesh, PART_LOCK);
         TCMeshPart piston = findPart(mesh, PART_PISTON);
         if (lock != null) {
             PoseStack.Pose lockPose = poseStack.last().copy();
-            collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) ->
-                    GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
+            collector.submitCustomGeometry(
+                    poseStack, BASE, (pose, buffer) -> GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
         }
         if (piston != null) {
             for (int arm = 0; arm < ARM_COUNT; arm++) {
@@ -137,37 +153,45 @@ public final class NodeStabilizerRenderer
                 poseStack.mulPose(Axis.YP.rotationDegrees(ARM_TWIST));
                 poseStack.translate(0.0F, 0.0F, count / EXTEND_DIVISOR);
                 PoseStack.Pose armPose = poseStack.last().copy();
-                collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) ->
-                        GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
+                collector.submitCustomGeometry(
+                        poseStack,
+                        BASE,
+                        (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
                 float pulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
                 int glow = OVERLAY_LIGHT_BASE
                         + (int) (OVERLAY_LIGHT_RANGE * (count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse));
                 int glowUnit = Mth.clamp(glow / 16, 0, 15);
                 int glowLight = (glowUnit << 4) | (glowUnit << 20);
                 int tint = advanced ? ADVANCED_TINT : WHITE;
-                collector.submitCustomGeometry(poseStack, OVERLAY, (pose, buffer) ->
-                        GolemMeshes.renderPart(piston, armPose, buffer, glowLight, tint));
+                collector.submitCustomGeometry(
+                        poseStack,
+                        OVERLAY,
+                        (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, glowLight, tint));
                 poseStack.popPose();
             }
         }
     }
 
-    public static void submitTransducerParts(float chargeFraction, float ticks,
-                                             PoseStack poseStack, SubmitNodeCollector collector, int light) {
+    public static void submitTransducerParts(
+            float chargeFraction, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
         TCMesh mesh = GolemMeshes.get(MODEL);
         TCMeshPart lock = findPart(mesh, PART_LOCK);
         TCMeshPart piston = findPart(mesh, PART_PISTON);
         if (lock != null) {
             PoseStack.Pose lockPose = poseStack.last().copy();
-            collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) ->
-                    GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
+            collector.submitCustomGeometry(
+                    poseStack,
+                    TRANSDUCER_BASE,
+                    (pose, buffer) -> GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
             float pulse = Mth.sin(ticks / 3.0F) * 0.1F + 0.9F;
             int glow = OVERLAY_LIGHT_BASE
                     + (int) (OVERLAY_LIGHT_RANGE * Math.min(1.0F, chargeFraction * TRANSDUCER_GLOW_GAIN * pulse));
             int glowUnit = Mth.clamp(glow / 16, 0, 15);
             int glowLight = (glowUnit << 4) | (glowUnit << 20);
-            collector.submitCustomGeometry(poseStack, TRANSDUCER_OVERLAY, (pose, buffer) ->
-                    GolemMeshes.renderPart(lock, lockPose, buffer, glowLight, WHITE));
+            collector.submitCustomGeometry(
+                    poseStack,
+                    TRANSDUCER_OVERLAY,
+                    (pose, buffer) -> GolemMeshes.renderPart(lock, lockPose, buffer, glowLight, WHITE));
         }
         if (piston != null) {
             for (int arm = 0; arm < ARM_COUNT; arm++) {
@@ -177,8 +201,10 @@ public final class NodeStabilizerRenderer
                 float armPulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
                 poseStack.translate(0.0F, 0.0F, chargeFraction * armPulse * TRANSDUCER_EXTEND);
                 PoseStack.Pose armPose = poseStack.last().copy();
-                collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) ->
-                        GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
+                collector.submitCustomGeometry(
+                        poseStack,
+                        TRANSDUCER_BASE,
+                        (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
                 poseStack.popPose();
             }
         }

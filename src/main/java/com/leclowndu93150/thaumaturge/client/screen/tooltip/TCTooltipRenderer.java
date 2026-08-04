@@ -27,12 +27,14 @@ public final class TCTooltipRenderer {
                 int wrapWidth = HALF_LINE_MAX_WIDTH;
                 List<FormattedText> wrapped = font.getSplitter().splitLines(stripped, wrapWidth, Style.EMPTY);
                 for (FormattedText part : wrapped) {
-                    built.add(new HalfScaleTooltipLine(Component.literal(part.getString()).getVisualOrderText()));
+                    built.add(new HalfScaleTooltipLine(
+                            Component.literal(part.getString()).getVisualOrderText()));
                 }
             } else {
                 List<FormattedText> wrapped = font.getSplitter().splitLines(line, PLAIN_LINE_MAX_WIDTH, Style.EMPTY);
                 for (FormattedText part : wrapped) {
-                    built.add(new ClientTextTooltip(Component.literal(part.getString()).getVisualOrderText()));
+                    built.add(new ClientTextTooltip(
+                            Component.literal(part.getString()).getVisualOrderText()));
                 }
             }
         }

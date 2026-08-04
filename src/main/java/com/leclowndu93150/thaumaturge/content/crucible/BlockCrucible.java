@@ -41,7 +41,7 @@ public class BlockCrucible extends BaseEntityBlock {
     public static final MapCodec<BlockCrucible> CODEC = simpleCodec(BlockCrucible::new);
 
     public static final VoxelShape SHAPE = Shapes.or(
-            Shapes.box(0,0.1875,0,0.125,1,1),
+            Shapes.box(0, 0.1875, 0, 0.125, 1, 1),
             Shapes.box(0.125, 0.1875, 0.125, 0.875, 0.19, 0.875),
             Shapes.box(0.875, 0.1875, 0, 1, 1, 1),
             Shapes.box(0.125, 0.1875, 0, 0.875, 1, 0.125),
@@ -53,9 +53,7 @@ public class BlockCrucible extends BaseEntityBlock {
             Shapes.box(0, 0, 0.875, 0.1875, 0.1875, 1),
             Shapes.box(0, 0, 0.8125, 0.125, 0.1875, 0.875),
             Shapes.box(0.8125, 0, 0.875, 1, 0.1875, 1),
-            Shapes.box(0.875, 0, 0.8125, 1, 0.1875, 0.875)
-    );
-
+            Shapes.box(0.875, 0, 0.8125, 1, 0.1875, 0.875));
 
     public BlockCrucible(Properties properties) {
         super(properties);
@@ -71,32 +69,41 @@ public class BlockCrucible extends BaseEntityBlock {
         return new BlockEntityCrucible(blockPos, blockState);
     }
 
-
-
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(
+            ItemStack itemStack,
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible)) return InteractionResult.PASS;
         FluidStack fs = FluidUtil.getFirstStackContained(itemStack);
         if (fs.is(Fluids.WATER) && fs.amount() >= BlockEntityCrucible.TANK_CAPACITY) {
-            if (crucible.getTank().getAmountAsInt(0) < BlockEntityCrucible.TANK_CAPACITY){
-                if (FluidUtil.interactWithFluidHandler(player,hand,level,pos,hitResult.getDirection(), null)){
+            if (crucible.getTank().getAmountAsInt(0) < BlockEntityCrucible.TANK_CAPACITY) {
+                if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection(), null)) {
                     return InteractionResult.SUCCESS;
                 }
             }
-        } else if (!player.isCrouching() /*&& (!(player.getItemInHand(hand).getItem() instanceof ICaster))*/ && hitResult.getDirection() == Direction.UP){
+        } else if (!player.isCrouching() /*&& (!(player.getItemInHand(hand).getItem() instanceof ICaster))*/
+                && hitResult.getDirection() == Direction.UP) {
             ItemStack input = itemStack.copyWithCount(1);
-            if (crucible.getHeat() > 150 && crucible.getTank().getAmountAsInt(0) > 0 && crucible.attemptSmelt(input,player) == null){
+            if (crucible.getHeat() > 150
+                    && crucible.getTank().getAmountAsInt(0) > 0
+                    && crucible.attemptSmelt(input, player) == null) {
                 itemStack.shrink(1);
             }
         }
@@ -104,8 +111,9 @@ public class BlockCrucible extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> type) {
-        return createTickerHelper(type, TCBlockEntities.CRUCIBLE.get(),BlockEntityCrucible::staticTick);
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+            Level level, BlockState blockState, BlockEntityType<T> type) {
+        return createTickerHelper(type, TCBlockEntities.CRUCIBLE.get(), BlockEntityCrucible::staticTick);
     }
 
     @Override
@@ -130,7 +138,8 @@ public class BlockCrucible extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible)) return InteractionResult.PASS;
         if (!player.isCrouching()) return InteractionResult.PASS;
@@ -139,22 +148,37 @@ public class BlockCrucible extends BaseEntityBlock {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+    protected void entityInside(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Entity entity,
+            InsideBlockEffectApplier effectApplier,
+            boolean isPrecise) {
         if (level.isClientSide()) return;
         if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible)) return;
         if (crucible.getHeat() <= 150 || crucible.getTank().getAmountAsInt(0) <= 0) return;
-        if (entity instanceof ItemEntity it && !(it instanceof EntitySpecialItem)){
+        if (entity instanceof ItemEntity it && !(it instanceof EntitySpecialItem)) {
             crucible.attemptSmelt(it);
         } else {
             this.delay++;
-            if (this.delay < 10)
-                return;
+            if (this.delay < 10) return;
             delay = 0;
-            if (entity instanceof LivingEntity e && !e.isInvulnerableTo((ServerLevel) level,level.damageSources().lava())){
+            if (entity instanceof LivingEntity e
+                    && !e.isInvulnerableTo(
+                            (ServerLevel) level, level.damageSources().lava())) {
                 entity.lavaHurt();
                 effectApplier.apply(InsideBlockEffectType.EXTINGUISH);
                 effectApplier.apply(InsideBlockEffectType.CLEAR_FREEZE);
-                level.playSound(null,pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS,0.4F,2.0F + level.getRandom().nextFloat() * 0.4F);
+                level.playSound(
+                        null,
+                        pos.getX() + 0.5F,
+                        pos.getY() + 0.5F,
+                        pos.getZ() + 0.5F,
+                        SoundEvents.LAVA_EXTINGUISH,
+                        SoundSource.BLOCKS,
+                        0.4F,
+                        2.0F + level.getRandom().nextFloat() * 0.4F);
             }
         }
 

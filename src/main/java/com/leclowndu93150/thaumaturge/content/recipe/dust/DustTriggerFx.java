@@ -67,8 +67,15 @@ public final class DustTriggerFx {
         }
     }
 
-    public static void emitTriggerSparkles(ServerLevel level, ServerPlayer player, BlockPos triggerPos, DustTrigger trigger, Vec3 hitStart, @Nullable DustTriggerPlacement placement) {
-        List<BlockPos> sparkles = trigger.sparkle(level, player, triggerPos, placement == null ? DustTriggerPlacement.origin() : placement);
+    public static void emitTriggerSparkles(
+            ServerLevel level,
+            ServerPlayer player,
+            BlockPos triggerPos,
+            DustTrigger trigger,
+            Vec3 hitStart,
+            @Nullable DustTriggerPlacement placement) {
+        List<BlockPos> sparkles = trigger.sparkle(
+                level, player, triggerPos, placement == null ? DustTriggerPlacement.origin() : placement);
         if (sparkles == null || sparkles.isEmpty()) {
             return;
         }

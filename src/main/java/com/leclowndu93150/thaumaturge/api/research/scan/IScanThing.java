@@ -37,7 +37,8 @@ public interface IScanThing {
      * @param target the scan target
      * @return the research key, or {@code null} when this subject grants no key
      */
-    @Nullable Identifier getResearchKey(Player player, @Nullable Object target);
+    @Nullable
+    Identifier getResearchKey(Player player, @Nullable Object target);
 
     /**
      * Called after the research key was granted (or immediately when the key is {@code null}).
@@ -46,8 +47,7 @@ public interface IScanThing {
      * @param player the scanning player
      * @param target the scan target
      */
-    default void onSuccess(Player player, @Nullable Object target) {
-    }
+    default void onSuccess(Player player, @Nullable Object target) {}
 
     /**
      * Returns why a matching target cannot be scanned yet, or {@code null} when scanning may

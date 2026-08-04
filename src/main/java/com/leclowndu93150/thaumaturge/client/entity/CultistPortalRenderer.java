@@ -16,7 +16,8 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.joml.Matrix4fc;
 
-public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPortalLesser, CultistPortalRenderer.State> {
+public final class CultistPortalRenderer
+        extends EntityRenderer<EntityCultistPortalLesser, CultistPortalRenderer.State> {
     public static final class State extends EntityRenderState {
         public boolean active;
         public float activeCounter;
@@ -68,8 +69,13 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
         submitPortal(state, poseStack, collector, camera, BASE_SCALE_Y, SCALE_FACTOR);
     }
 
-    static void submitPortal(State state, PoseStack poseStack, SubmitNodeCollector collector,
-                             CameraRenderState camera, float baseScaleY, float scaleFactor) {
+    static void submitPortal(
+            State state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            CameraRenderState camera,
+            float baseScaleY,
+            float scaleFactor) {
         if (!state.active) {
             return;
         }

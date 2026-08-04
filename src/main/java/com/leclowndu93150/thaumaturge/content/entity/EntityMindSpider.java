@@ -38,9 +38,7 @@ public final class EntityMindSpider extends Spider implements IEldritchMob {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Spider.createAttributes()
-                .add(Attributes.MAX_HEALTH, 1.0)
-                .add(Attributes.ATTACK_DAMAGE, 1.0);
+        return Spider.createAttributes().add(Attributes.MAX_HEALTH, 1.0).add(Attributes.ATTACK_DAMAGE, 1.0);
     }
 
     @Override
@@ -70,8 +68,11 @@ public final class EntityMindSpider extends Spider implements IEldritchMob {
     }
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                                  EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+    public @Nullable SpawnGroupData finalizeSpawn(
+            ServerLevelAccessor level,
+            DifficultyInstance difficulty,
+            EntitySpawnReason reason,
+            @Nullable SpawnGroupData groupData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, groupData);
         for (Entity passenger : List.copyOf(this.getPassengers())) {
             passenger.stopRiding();

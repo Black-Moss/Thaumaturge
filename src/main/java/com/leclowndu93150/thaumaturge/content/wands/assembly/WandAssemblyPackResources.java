@@ -12,8 +12,8 @@ import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCWandParts;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -71,22 +71,33 @@ public final class WandAssemblyPackResources implements PackResources {
             WandCap cap = TCWandParts.caps().getValue(capEntry.getKey());
             for (Map.Entry<Identifier, Identifier> rodEntry : rodItems.entrySet()) {
                 WandRod rod = TCWandParts.rods().getValue(rodEntry.getKey());
-                boolean starterCombo = capEntry.getKey().equals(ironCap) && rodEntry.getKey().equals(woodRod);
+                boolean starterCombo =
+                        capEntry.getKey().equals(ironCap) && rodEntry.getKey().equals(woodRod);
                 if (!starterCombo) {
                     int vis = WandEconomy.PRIMAL_COUNT * cap.craftCost() * rod.craftCost();
-                    out.put(recipeFile("assembly", capEntry.getKey(), rodEntry.getKey()),
+                    out.put(
+                            recipeFile("assembly", capEntry.getKey(), rodEntry.getKey()),
                             recipe(capEntry, rodEntry, false, vis, assemblyGate(rod)));
                 }
                 if (!rod.staff()) {
                     int vis = WandEconomy.PRIMAL_COUNT
                             * (int) (cap.craftCost() * rod.craftCost() * WandEconomy.SCEPTRE_CRAFT_COST_FACTOR);
-                    out.put(recipeFile("sceptre", capEntry.getKey(), rodEntry.getKey()),
-                            recipe(capEntry, rodEntry, true, vis, TCIds.rl("sceptre").toString()));
+                    out.put(
+                            recipeFile("sceptre", capEntry.getKey(), rodEntry.getKey()),
+                            recipe(
+                                    capEntry,
+                                    rodEntry,
+                                    true,
+                                    vis,
+                                    TCIds.rl("sceptre").toString()));
                 }
             }
         }
-        Thaumaturge.LOGGER.info("Serving {} wand assembly recipes from {} caps and {} rods",
-                out.size(), capItems.size(), rodItems.size());
+        Thaumaturge.LOGGER.info(
+                "Serving {} wand assembly recipes from {} caps and {} rods",
+                out.size(),
+                capItems.size(),
+                rodItems.size());
         return out;
     }
 
@@ -96,21 +107,28 @@ public final class WandAssemblyPackResources implements PackResources {
     }
 
     private static Identifier recipeFile(String kind, Identifier capId, Identifier rodId) {
-        boolean modPair = capId.getNamespace().equals(TCIds.MODID) && rodId.getNamespace().equals(TCIds.MODID);
+        boolean modPair =
+                capId.getNamespace().equals(TCIds.MODID) && rodId.getNamespace().equals(TCIds.MODID);
         String name = modPair
                 ? capId.getPath() + "_" + rodId.getPath()
                 : capId.getNamespace() + "_" + capId.getPath() + "_" + rodId.getNamespace() + "_" + rodId.getPath();
         return TCIds.rl("recipe/wand/" + kind + "/" + name + ".json");
     }
 
-    private static byte[] recipe(Map.Entry<Identifier, Identifier> cap, Map.Entry<Identifier, Identifier> rod,
-                                 boolean sceptre, int vis, String gate) {
+    private static byte[] recipe(
+            Map.Entry<Identifier, Identifier> cap,
+            Map.Entry<Identifier, Identifier> rod,
+            boolean sceptre,
+            int vis,
+            String gate) {
         JsonObject key = new JsonObject();
         key.addProperty("C", cap.getValue().toString());
         key.addProperty("R", rod.getValue().toString());
         JsonArray pattern = new JsonArray();
         if (sceptre) {
-            key.addProperty("P", BuiltInRegistries.ITEM.getKey(TCItems.PRIMAL_CHARM.get()).toString());
+            key.addProperty(
+                    "P",
+                    BuiltInRegistries.ITEM.getKey(TCItems.PRIMAL_CHARM.get()).toString());
             pattern.add(" CP");
             pattern.add(" RC");
             pattern.add("C  ");
@@ -186,6 +204,5 @@ public final class WandAssemblyPackResources implements PackResources {
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 }

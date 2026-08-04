@@ -92,7 +92,9 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
             if (this.distanceToSqr(target) < reachSq && this.hasLineOfSight(target)) {
                 DamageSource source = this.damageSources().mobAttack(this);
                 if (target.hurtServer(server, source, this.getAttackDamage())) {
-                    this.playSound(SoundEvents.SLIME_ATTACK, 1.0F,
+                    this.playSound(
+                            SoundEvents.SLIME_ATTACK,
+                            1.0F,
                             (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
                     EnchantmentHelper.doPostAttackEffects(server, target, source);
                 }
@@ -113,7 +115,9 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
             if (this.level().isClientSide()) {
                 spawnGooParticles(size, size * 2);
             }
-            this.playSound(getJumpSound(), getSoundVolume(),
+            this.playSound(
+                    getJumpSound(),
+                    getSoundVolume(),
                     ((this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F) * 0.8F);
             this.targetSquish = -0.5F;
         }
@@ -136,8 +140,15 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
             float ox = Mth.sin(angle) * size * 0.5F * radius;
             float oz = Mth.cos(angle) * size * 0.5F * radius;
             int lifetime = (int) (66.0F / (this.random.nextFloat() * 0.9F + 0.1F));
-            this.level().addParticle(new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, lifetime),
-                    this.getX() + ox, midY, this.getZ() + oz, 0.0, 0.0, 0.0);
+            this.level()
+                    .addParticle(
+                            new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, lifetime),
+                            this.getX() + ox,
+                            midY,
+                            this.getZ() + oz,
+                            0.0,
+                            0.0,
+                            0.0);
         }
     }
 
@@ -159,8 +170,12 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
                 ThaumicSlime child = TCEntities.THAUMIC_SLIME.get().create(server, EntitySpawnReason.TRIGGERED);
                 if (child != null) {
                     child.setSize(1, true);
-                    child.snapTo(this.getX() + xd, this.getY() + 0.5, this.getZ() + zd,
-                            this.random.nextFloat() * 360.0F, 0.0F);
+                    child.snapTo(
+                            this.getX() + xd,
+                            this.getY() + 0.5,
+                            this.getZ() + zd,
+                            this.random.nextFloat() * 360.0F,
+                            0.0F);
                     server.addFreshEntity(child);
                 }
             }
@@ -178,17 +193,23 @@ public final class ThaumicSlime extends Slime implements ITaintedMob {
     }
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                                   EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+    public @Nullable SpawnGroupData finalizeSpawn(
+            ServerLevelAccessor level,
+            DifficultyInstance difficulty,
+            EntitySpawnReason reason,
+            @Nullable SpawnGroupData groupData) {
         int sizeBits = 1 + level.getRandom().nextInt(3);
         int size = 1 << sizeBits;
         this.setSize(size, true);
         return groupData;
     }
 
-    public static boolean checkSpawnRules(EntityType<ThaumicSlime> type, LevelAccessor level,
-                                          EntitySpawnReason reason, BlockPos pos,
-                                          RandomSource random) {
+    public static boolean checkSpawnRules(
+            EntityType<ThaumicSlime> type,
+            LevelAccessor level,
+            EntitySpawnReason reason,
+            BlockPos pos,
+            RandomSource random) {
         return false;
     }
 

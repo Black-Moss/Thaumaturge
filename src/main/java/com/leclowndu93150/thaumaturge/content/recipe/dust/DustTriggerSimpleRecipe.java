@@ -30,20 +30,21 @@ public final class DustTriggerSimpleRecipe implements DustTrigger {
     public static final MapCodec<DustTriggerSimpleRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
                     BuiltInRegistries.BLOCK.byNameCodec().fieldOf("target").forGetter(r -> r.target),
                     ItemStackTemplate.CODEC.fieldOf("result").forGetter(r -> r.result),
-                    ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research)
-            ).apply(i, DustTriggerSimpleRecipe::new));
+                    ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research))
+            .apply(i, DustTriggerSimpleRecipe::new));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, DustTriggerSimpleRecipe> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.registry(Registries.BLOCK),
-            r -> r.target,
-            ItemStackTemplate.STREAM_CODEC,
-            r -> r.result,
-            ByteBufCodecs.optional(ResearchGate.STREAM_CODEC),
-            r -> r.research,
-            DustTriggerSimpleRecipe::new
-    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, DustTriggerSimpleRecipe> STREAM_CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.registry(Registries.BLOCK),
+                    r -> r.target,
+                    ItemStackTemplate.STREAM_CODEC,
+                    r -> r.result,
+                    ByteBufCodecs.optional(ResearchGate.STREAM_CODEC),
+                    r -> r.research,
+                    DustTriggerSimpleRecipe::new);
 
-    public static final RecipeSerializer<DustTriggerSimpleRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+    public static final RecipeSerializer<DustTriggerSimpleRecipe> SERIALIZER =
+            new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 
     private final Block target;
     private final ItemStackTemplate result;
@@ -79,7 +80,11 @@ public final class DustTriggerSimpleRecipe implements DustTrigger {
     }
 
     @Override
-    public void execute(DustTriggerInput input, Player player, @org.jspecify.annotations.Nullable DustTriggerPlacement placement, Direction useFace) {
+    public void execute(
+            DustTriggerInput input,
+            Player player,
+            @org.jspecify.annotations.Nullable DustTriggerPlacement placement,
+            Direction useFace) {
         if (!(input.level() instanceof ServerLevel serverLevel)) {
             return;
         }

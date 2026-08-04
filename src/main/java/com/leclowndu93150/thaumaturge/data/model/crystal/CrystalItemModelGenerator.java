@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.model.crystal;
 
-import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.registry.TCItems;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.model.ItemModelUtils;
@@ -13,7 +13,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 public final class CrystalItemModelGenerator {
-    private static final Identifier PLANTER_TEXTURE = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/crystal_planter");
+    private static final Identifier PLANTER_TEXTURE =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "item/crystal_planter");
 
     private CrystalItemModelGenerator() {}
 
@@ -29,7 +30,8 @@ public final class CrystalItemModelGenerator {
 
     private static void emit(ItemModelGenerators itemModels, Item item, int color) {
         Identifier model = ModelLocationUtils.getModelLocation(item);
-        ModelTemplates.FLAT_ITEM.create(model, TextureMapping.layer0(new Material(PLANTER_TEXTURE)), itemModels.modelOutput);
+        ModelTemplates.FLAT_ITEM.create(
+                model, TextureMapping.layer0(new Material(PLANTER_TEXTURE)), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(model, new Dye(color | 0xFF000000)));
     }
 }

@@ -24,8 +24,7 @@ public final class TCEntityTypeTagsProvider extends KeyTagProvider<EntityType<?>
                 .add(key(TCEntities.ELDRITCH_GOLEM.get()))
                 .add(key(TCEntities.ELDRITCH_WARDEN.get()))
                 .add(key(TCEntities.TAINTACLE_GIANT.get()));
-        tag(EntityTypeTags.SENSITIVE_TO_BANE_OF_ARTHROPODS)
-                .add(key(TCEntities.ELDRITCH_CRAB.get()));
+        tag(EntityTypeTags.SENSITIVE_TO_BANE_OF_ARTHROPODS).add(key(TCEntities.ELDRITCH_CRAB.get()));
         tag(EntityTypeTags.UNDEAD)
                 .add(key(TCEntities.ELDRITCH_GUARDIAN.get()))
                 .add(key(TCEntities.INHABITED_ZOMBIE.get()));
@@ -35,8 +34,7 @@ public final class TCEntityTypeTagsProvider extends KeyTagProvider<EntityType<?>
         tag(EntityTypeTags.INVERTED_HEALING_AND_HARM)
                 .add(key(TCEntities.ELDRITCH_GUARDIAN.get()))
                 .add(key(TCEntities.INHABITED_ZOMBIE.get()));
-        tag(EntityTypeTags.WITHER_FRIENDS)
-                .add(key(TCEntities.ELDRITCH_GUARDIAN.get()));
+        tag(EntityTypeTags.WITHER_FRIENDS).add(key(TCEntities.ELDRITCH_GUARDIAN.get()));
     }
 
     private static ResourceKey<EntityType<?>> key(EntityType<?> type) {

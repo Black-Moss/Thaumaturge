@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.screen.pip;
 
-import net.minecraft.core.BlockPos;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.block.Blocks;
@@ -10,19 +12,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-
 import org.jspecify.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class PreviewBlockGetter implements BlockAndTintGetter {
 
-    private final Map<BlockPos,BlockState> filledPositions;
+    private final Map<BlockPos, BlockState> filledPositions;
 
-    public PreviewBlockGetter(Map<BlockPos,BlockState> filledPositions) {
+    public PreviewBlockGetter(Map<BlockPos, BlockState> filledPositions) {
         this.filledPositions = new HashMap<>(filledPositions);
     }
 

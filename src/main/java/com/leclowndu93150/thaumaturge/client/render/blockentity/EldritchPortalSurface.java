@@ -5,9 +5,9 @@ import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import org.joml.Matrix4fc;
 
 public final class EldritchPortalSurface {
@@ -23,11 +23,22 @@ public final class EldritchPortalSurface {
 
     private EldritchPortalSurface() {}
 
-    public static void quad(PoseStack.Pose pose, VertexConsumer buffer, BlockPos worldPos,
-                            float x1, float y1, float z1,
-                            float x2, float y2, float z2,
-                            float x3, float y3, float z3,
-                            float x4, float y4, float z4) {
+    public static void quad(
+            PoseStack.Pose pose,
+            VertexConsumer buffer,
+            BlockPos worldPos,
+            float x1,
+            float y1,
+            float z1,
+            float x2,
+            float y2,
+            float z2,
+            float x3,
+            float y3,
+            float z3,
+            float x4,
+            float y4,
+            float z4) {
         Matrix4fc mat = pose.pose();
         float e1x = x2 - x1;
         float e1y = y2 - y1;
@@ -45,8 +56,8 @@ public final class EldritchPortalSurface {
         addVertex(buffer, mat, worldPos, axis, x4, y4, z4);
     }
 
-    private static void addVertex(VertexConsumer buffer, Matrix4fc mat, BlockPos worldPos, int axis,
-                                  float x, float y, float z) {
+    private static void addVertex(
+            VertexConsumer buffer, Matrix4fc mat, BlockPos worldPos, int axis, float x, float y, float z) {
         float wx = worldPos.getX() + x;
         float wy = worldPos.getY() + y;
         float wz = worldPos.getZ() + z;

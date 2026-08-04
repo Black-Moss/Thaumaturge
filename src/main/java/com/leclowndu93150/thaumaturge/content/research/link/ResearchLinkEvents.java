@@ -79,7 +79,8 @@ public final class ResearchLinkEvents {
                     .orElse(null);
             if (entry != null) {
                 if (ResearchManager.complete(player, research)) {
-                    ResearchManager.setStage(player, research, entry.value().stages().size());
+                    ResearchManager.setStage(
+                            player, research, entry.value().stages().size());
                     changed = true;
                 }
             } else if (ResearchManager.unlock(player, research)) {

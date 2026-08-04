@@ -1,11 +1,10 @@
 package com.leclowndu93150.thaumaturge.compat.curio.data;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import top.theillusivec4.curios.api.CuriosDataProvider;
-
-import java.util.concurrent.CompletableFuture;
 
 public class TCCurioProvider extends CuriosDataProvider {
     public TCCurioProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
@@ -14,8 +13,6 @@ public class TCCurioProvider extends CuriosDataProvider {
 
     @Override
     public void generate(HolderLookup.Provider registries) {
-        createEntities("players")
-                .addPlayer()
-                .addSlots("head", "necklace", "ring", "belt", "charm");
+        createEntities("players").addPlayer().addSlots("head", "necklace", "ring", "belt", "charm");
     }
 }

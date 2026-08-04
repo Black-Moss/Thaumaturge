@@ -68,10 +68,16 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
     public BlockTaintFibre(Properties properties) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(NORTH, false).setValue(EAST, false).setValue(SOUTH, false)
-                .setValue(WEST, false).setValue(UP, false).setValue(DOWN, false)
-                .setValue(GROWTH1, false).setValue(GROWTH2, false)
-                .setValue(GROWTH3, false).setValue(GROWTH4, false));
+                .setValue(NORTH, false)
+                .setValue(EAST, false)
+                .setValue(SOUTH, false)
+                .setValue(WEST, false)
+                .setValue(UP, false)
+                .setValue(DOWN, false)
+                .setValue(GROWTH1, false)
+                .setValue(GROWTH2, false)
+                .setValue(GROWTH3, false)
+                .setValue(GROWTH4, false));
     }
 
     private static Map<Direction, BooleanProperty> createFaceMap() {
@@ -116,7 +122,8 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -126,9 +133,15 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, net.minecraft.world.level.ScheduledTickAccess scheduledAccess,
-                                      BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState,
-                                      RandomSource random) {
+    protected BlockState updateShape(
+            BlockState state,
+            LevelReader level,
+            net.minecraft.world.level.ScheduledTickAccess scheduledAccess,
+            BlockPos pos,
+            Direction direction,
+            BlockPos neighborPos,
+            BlockState neighborState,
+            RandomSource random) {
         return computeState(state, level, pos);
     }
 
@@ -144,10 +157,16 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
         boolean growth2 = down && (q == GROWTH2_THRESHOLD_LO || q == GROWTH2_THRESHOLD_HI);
         boolean growth3 = down && q == GROWTH3_VALUE;
         boolean growth4 = up && q > GROWTH4_THRESHOLD;
-        return state.setValue(NORTH, north).setValue(EAST, east).setValue(SOUTH, south).setValue(WEST, west)
-                .setValue(UP, up).setValue(DOWN, down)
-                .setValue(GROWTH1, growth1).setValue(GROWTH2, growth2)
-                .setValue(GROWTH3, growth3).setValue(GROWTH4, growth4);
+        return state.setValue(NORTH, north)
+                .setValue(EAST, east)
+                .setValue(SOUTH, south)
+                .setValue(WEST, west)
+                .setValue(UP, up)
+                .setValue(DOWN, down)
+                .setValue(GROWTH1, growth1)
+                .setValue(GROWTH2, growth2)
+                .setValue(GROWTH3, growth3)
+                .setValue(GROWTH4, growth4);
     }
 
     private static boolean canAttachTo(LevelReader level, BlockPos pos, Direction facing) {
@@ -172,8 +191,10 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        boolean hasGrowth = state.getValue(GROWTH1) || state.getValue(GROWTH2)
-                || state.getValue(GROWTH3) || state.getValue(GROWTH4);
+        boolean hasGrowth = state.getValue(GROWTH1)
+                || state.getValue(GROWTH2)
+                || state.getValue(GROWTH3)
+                || state.getValue(GROWTH4);
         if (!hasGrowth && isOnlyAdjacentToTaint(level, pos)) {
             die(level, pos, state);
             return;
@@ -205,8 +226,8 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
             return;
         }
         if (serverLevel.getRandom().nextInt(WALK_EFFECT_CHANCE) == 0) {
-            living.addEffect(new MobEffectInstance(TCMobEffects.FLUX_TAINT,
-                    WALK_EFFECT_DURATION, 0, true, false, false));
+            living.addEffect(
+                    new MobEffectInstance(TCMobEffects.FLUX_TAINT, WALK_EFFECT_DURATION, 0, true, false, false));
         }
     }
 
@@ -229,7 +250,8 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
                 c++;
             } else if (neighbor.isAir()) {
                 c--;
-            } else if (!neighbor.liquid() && !neighbor.isFaceSturdy(level, pos.relative(direction), direction.getOpposite())) {
+            } else if (!neighbor.liquid()
+                    && !neighbor.isFaceSturdy(level, pos.relative(direction), direction.getOpposite())) {
                 c--;
             }
         }

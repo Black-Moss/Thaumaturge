@@ -6,5 +6,4 @@ package com.leclowndu93150.thaumaturge.api.golems.seals;
  *
  * @since 1.0.0
  */
-public interface ISealConfigArea {
-}
+public interface ISealConfigArea {}

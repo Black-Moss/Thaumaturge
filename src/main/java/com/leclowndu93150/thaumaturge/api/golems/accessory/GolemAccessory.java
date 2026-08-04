@@ -29,8 +29,7 @@ public record GolemAccessory(
         float speedFactor,
         float regenFactor,
         int armorBonus,
-        boolean killCredit
-) {
+        boolean killCredit) {
     /**
      * Exclusion groups for accessories occupying the same spot on a golem.
      *

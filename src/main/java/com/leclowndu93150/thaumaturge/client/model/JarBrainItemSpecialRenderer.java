@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.client.model.entity.JarBrineModel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.mojang.serialization.MapCodec;
+import java.util.function.Consumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.special.NoDataSpecialModelRenderer;
@@ -16,8 +17,6 @@ import net.minecraft.resources.Identifier;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRenderer {
     private static final Identifier TEX_BRAIN = TCIds.rl("textures/entity/brain2.png");
@@ -34,8 +33,13 @@ public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRend
     }
 
     @Override
-    public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords,
-                       boolean hasFoil, int outlineColor) {
+    public void submit(
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            int lightCoords,
+            int overlayCoords,
+            boolean hasFoil,
+            int outlineColor) {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.01F, 0.5F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
@@ -44,12 +48,26 @@ public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRend
         poseStack.translate(0.0F, BRAIN_LIFT, 0.0F);
         poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
         poseStack.scale(BRAIN_SCALE, BRAIN_SCALE, BRAIN_SCALE);
-        collector.submitModelPart(brain.root, poseStack, RenderTypes.entityCutout(TEX_BRAIN),
-                lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
+        collector.submitModelPart(
+                brain.root,
+                poseStack,
+                RenderTypes.entityCutout(TEX_BRAIN),
+                lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                null,
+                -1,
+                null);
         poseStack.popPose();
 
-        collector.submitModelPart(brine.root, poseStack, RenderTypes.entityTranslucent(TEX_BRINE),
-                lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
+        collector.submitModelPart(
+                brine.root,
+                poseStack,
+                RenderTypes.entityTranslucent(TEX_BRINE),
+                lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                null,
+                -1,
+                null);
         poseStack.popPose();
     }
 

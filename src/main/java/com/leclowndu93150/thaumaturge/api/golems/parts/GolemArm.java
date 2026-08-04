@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.golems.parts;
 
-import net.minecraft.core.Holder;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import java.util.List;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -20,8 +20,8 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemArm extends GolemPart {
     /** The registry key for golem arms. */
-    public static final ResourceKey<Registry<GolemArm>> REGISTRY_KEY = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath("thaumaturge", "golem_arm"));
+    public static final ResourceKey<Registry<GolemArm>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_arm"));
 
     private final IArmFunction function;
 
@@ -33,8 +33,13 @@ public final class GolemArm extends GolemPart {
      * @param function   the behavior attached to these arms, or null when they have none
      * @param traits     traits granted by these arms
      */
-    public GolemArm(List<Identifier> research, Identifier icon, @Nullable GolemPartModel model,
-                    List<GolemComponent> components, @Nullable IArmFunction function, List<Holder<GolemTrait>> traits) {
+    public GolemArm(
+            List<Identifier> research,
+            Identifier icon,
+            @Nullable GolemPartModel model,
+            List<GolemComponent> components,
+            @Nullable IArmFunction function,
+            List<Holder<GolemTrait>> traits) {
         super(research, icon, components, traits, model);
         this.function = function;
     }
@@ -71,6 +76,7 @@ public final class GolemArm extends GolemPart {
          * @param mob the golem, which implements {@link RangedAttackMob}
          * @return the ranged attack goal to install, or null when these arms provide none
          */
-        @Nullable Goal createRangedAttackGoal(RangedAttackMob mob);
+        @Nullable
+        Goal createRangedAttackGoal(RangedAttackMob mob);
     }
 }

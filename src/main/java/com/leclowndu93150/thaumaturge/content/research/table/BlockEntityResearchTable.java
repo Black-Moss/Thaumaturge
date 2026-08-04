@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.research.table;
 
-import com.leclowndu93150.thaumaturge.content.research.note.NoteGenerator;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
@@ -10,17 +9,17 @@ import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.items.IScribeTools;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
+import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
 import com.leclowndu93150.thaumaturge.content.research.note.HexGrid;
+import com.leclowndu93150.thaumaturge.content.research.note.NoteGenerator;
 import com.leclowndu93150.thaumaturge.content.research.note.NoteRules;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
-import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -50,9 +49,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
@@ -119,7 +118,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
             changed |= addBonus(aspects, TCAspects.PERDITIO);
         }
         int height = level.getHeight();
-        for (float factor : new float[]{0.5F, 0.66F, 0.75F}) {
+        for (float factor : new float[] {0.5F, 0.66F, 0.75F}) {
             if (pos.getY() > height * factor && random.nextInt(20) == 0) {
                 changed |= addBonus(aspects, TCAspects.AER);
             }
@@ -183,14 +182,17 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         if (data == null || data.complete() || !data.cells().isEmpty()) {
             return;
         }
-        IResearchEntry entry = level.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+        IResearchEntry entry = level.registryAccess()
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
                 .get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, data.entry()))
-                .map(Holder.Reference::value).orElse(null);
+                .map(Holder.Reference::value)
+                .orElse(null);
         if (entry == null) {
             return;
         }
         AspectList anchors = ResearchNotes.anchors(level.registryAccess(), entry);
-        writeNoteData(NoteGenerator.generate(data.entry(), data.index(), anchors, entry.complexity(), level.getRandom()));
+        writeNoteData(
+                NoteGenerator.generate(data.entry(), data.index(), anchors, entry.complexity(), level.getRandom()));
     }
 
     public @Nullable ResearchNoteData noteData() {
@@ -253,11 +255,15 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
             }
             consumeInk();
             data = data.withCell(hex, ResearchNoteData.TYPE_BLANK, null);
-            level.playSound(null, worldPosition, TCSounds.ERASE.get(), SoundSource.BLOCKS, 0.2F,
+            level.playSound(
+                    null,
+                    worldPosition,
+                    TCSounds.ERASE.get(),
+                    SoundSource.BLOCKS,
+                    0.2F,
                     1.0F + random.nextFloat() * 0.1F);
         }
-        NoteRules.Completion completion = NoteRules.checkCompletion(data,
-                a -> AspectPools.isDiscovered(player, a));
+        NoteRules.Completion completion = NoteRules.checkCompletion(data, a -> AspectPools.isDiscovered(player, a));
         if (completion.complete()) {
             data = data.withCells(completion.prunedCells()).asComplete();
             level.playSound(null, worldPosition, TCSounds.LEARN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -265,8 +271,12 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         writeNoteData(data);
     }
 
-    public void combineAspects(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second,
-                               boolean bonusFirst, boolean bonusSecond) {
+    public void combineAspects(
+            ServerPlayer player,
+            Holder<IAspect> first,
+            Holder<IAspect> second,
+            boolean bonusFirst,
+            boolean bonusSecond) {
         Holder<IAspect> result = combinationResult(player, first, second);
         if (!consumeCombinationInput(player, first, bonusFirst)) {
             return;
@@ -278,8 +288,8 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         syncToClient();
         if (result != null && getLevel() != null) {
             AspectPools.grant(player, result, 1);
-            getLevel().playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP,
-                    SoundSource.BLOCKS, 0.3F, 1.0F);
+            getLevel()
+                    .playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.3F, 1.0F);
         }
     }
 
@@ -294,7 +304,8 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         return AspectPools.spend(player, aspect, 1);
     }
 
-    private @Nullable Holder<IAspect> combinationResult(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second) {
+    private @Nullable Holder<IAspect> combinationResult(
+            ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second) {
         return AspectCombinations.result(player.registryAccess(), first, second);
     }
 
@@ -328,9 +339,11 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
     }
 
     public @Nullable AspectList duplicationCost(Player player, ResearchNoteData data) {
-        IResearchEntry entry = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+        IResearchEntry entry = player.registryAccess()
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
                 .get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, data.entry()))
-                .map(Holder.Reference::value).orElse(null);
+                .map(Holder.Reference::value)
+                .orElse(null);
         if (entry == null) {
             return null;
         }
@@ -361,8 +374,13 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
     }
 
     private void playOrb(Level level, RandomSource random) {
-        level.playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS,
-                0.2F, 0.9F + random.nextFloat() * 0.2F);
+        level.playSound(
+                null,
+                worldPosition,
+                SoundEvents.EXPERIENCE_ORB_PICKUP,
+                SoundSource.BLOCKS,
+                0.2F,
+                0.9F + random.nextFloat() * 0.2F);
     }
 
     public boolean consumeInk() {
@@ -418,7 +436,8 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput out = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(out);
             nbt.merge(out.buildResult());

@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.device.sprayer;
 
-import com.leclowndu93150.thaumaturge.content.research.DeviceGate;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.research.DeviceGate;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -35,9 +35,8 @@ public final class BlockPotionSprayer extends BaseEntityBlock {
 
     public BlockPotionSprayer(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any()
-                .setValue(FACING, Direction.UP)
-                .setValue(BlockStateProperties.ENABLED, true));
+        registerDefaultState(
+                stateDefinition.any().setValue(FACING, Direction.UP).setValue(BlockStateProperties.ENABLED, true));
     }
 
     @Override
@@ -62,8 +61,13 @@ public final class BlockPotionSprayer extends BaseEntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
-                                   @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Block neighborBlock,
+            @Nullable Orientation orientation,
+            boolean movedByPiston) {
         boolean enabled = !level.hasNeighborSignal(pos);
         if (enabled != state.getValue(BlockStateProperties.ENABLED)) {
             level.setBlock(pos, state.setValue(BlockStateProperties.ENABLED, enabled), 3);
@@ -81,15 +85,17 @@ public final class BlockPotionSprayer extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         return type == TCBlockEntities.POTION_SPRAYER.get()
-                ? (tickLevel, pos, tickState, sprayer) -> ((BlockEntityPotionSprayer) sprayer).tick(tickLevel, pos, tickState)
+                ? (tickLevel, pos, tickState, sprayer) ->
+                        ((BlockEntityPotionSprayer) sprayer).tick(tickLevel, pos, tickState)
                 : null;
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                               Player player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide() && !DeviceGate.passes(player, TCIds.rl("potion_sprayer"))) {
             return InteractionResult.SUCCESS_SERVER;
         }
@@ -100,19 +106,21 @@ public final class BlockPotionSprayer extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return Component.translatable("block.thaumaturge.potion_sprayer");
-                }
+            serverPlayer.openMenu(
+                    new MenuProvider() {
+                        @Override
+                        public Component getDisplayName() {
+                            return Component.translatable("block.thaumaturge.potion_sprayer");
+                        }
 
-                @Override
-                public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player menuPlayer) {
-                    return new MenuPotionSprayer(containerId, inventory, sprayer);
-                }
-            }, buf -> buf.writeBlockPos(pos));
+                        @Override
+                        public AbstractContainerMenu createMenu(
+                                int containerId, Inventory inventory, Player menuPlayer) {
+                            return new MenuPotionSprayer(containerId, inventory, sprayer);
+                        }
+                    },
+                    buf -> buf.writeBlockPos(pos));
         }
         return InteractionResult.SUCCESS;
     }
-
 }

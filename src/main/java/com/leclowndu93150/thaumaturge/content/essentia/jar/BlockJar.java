@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStreamPort;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockAlembic;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
@@ -52,7 +52,8 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     }
 
     @Override
-    public StreamPort essentiaStreamPort(BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
+    public StreamPort essentiaStreamPort(
+            BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
         Vec3 base = Vec3.atBottomCenterOf(pos);
         return new StreamPort(base.add(0.0, MOUTH_HEIGHT, 0.0), base.add(0.0, MOUTH_CLEARANCE, 0.0));
     }
@@ -63,7 +64,8 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
@@ -105,8 +107,7 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
             BlockPos pos,
             Player player,
             InteractionHand hand,
-            BlockHitResult hit
-    ) {
+            BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar)) return InteractionResult.PASS;
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
@@ -122,9 +123,9 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
-
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar)) return InteractionResult.PASS;
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!player.isCrouching()) return InteractionResult.PASS;
@@ -133,12 +134,37 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
             jar.setAspectFilter(null);
             jar.setChanged();
             jar.syncToClient();
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TCSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.playSound(
+                    null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    TCSounds.PAGE.get(),
+                    SoundSource.BLOCKS,
+                    1.0F,
+                    1.0F);
             BlockAlembic.popResourceFromFace(level, pos, hitResult.getDirection(), new ItemStack(TCItems.LABEL.get()));
         } else {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TCSounds.JAR.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
-            float pitch = 1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.3F;
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.5F, pitch);
+            level.playSound(
+                    null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    TCSounds.JAR.get(),
+                    SoundSource.BLOCKS,
+                    0.4F,
+                    1.0F);
+            float pitch =
+                    1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.3F;
+            level.playSound(
+                    null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    SoundEvents.BOTTLE_FILL,
+                    SoundSource.BLOCKS,
+                    0.5F,
+                    pitch);
             AuraHelper.polluteAura(level, pos, jar.amount(), true);
             jar.clearAspect();
         }
@@ -146,7 +172,8 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     }
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
+    public void setPlacedBy(
+            Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
         super.setPlacedBy(level, pos, state, by, itemStack);
         if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar)) return;
         if (by == null) return;
@@ -161,7 +188,12 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
         if (jar.aspectFilterKey() != null) return false;
         ResourceKey<IAspect> labelAspect = null;
         if (!((IEssentiaContainerItem) stack.getItem()).getAspects(stack).isEmpty())
-            labelAspect = ((IEssentiaContainerItem) stack.getItem()).getAspects(stack).entries().getFirst().aspect().getKey();
+            labelAspect = ((IEssentiaContainerItem) stack.getItem())
+                    .getAspects(stack)
+                    .entries()
+                    .getFirst()
+                    .aspect()
+                    .getKey();
 
         if (jar.amount() == 0 && labelAspect == null) return false;
 
@@ -177,12 +209,22 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
         jar.setFacing(face);
         jar.setChanged();
         jar.syncToClient();
-        player.level().playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TCSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        player.level()
+                .playSound(
+                        null,
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5,
+                        pos.getZ() + 0.5,
+                        TCSounds.PAGE.get(),
+                        SoundSource.BLOCKS,
+                        1.0F,
+                        1.0F);
         return true;
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> type) {
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+            Level level, BlockState blockState, BlockEntityType<T> type) {
         return createTickerHelper(type, TCBlockEntities.JAR.get(), BlockEntityJar::serverTick);
     }
 }

@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPartModel;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
@@ -9,6 +8,7 @@ import com.leclowndu93150.thaumaturge.client.model.mesh.TCMesh;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TCMeshPart;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import java.util.ArrayList;
@@ -18,13 +18,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemModelResolver;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
@@ -33,7 +33,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, GolemRenderState> {
     private static final Identifier BASE_MODEL = TCIds.rl("models/mesh/golem_base.tcmesh");
@@ -50,11 +49,13 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
     }
 
     private static RenderType xrayType(Identifier texture) {
-        return XRAY_TYPES.computeIfAbsent(texture, tex -> RenderType.create(
-                "tc_golem_xray_" + tex.getPath().hashCode(),
-                RenderSetup.builder(TCRenderPipelines.ENTITY_TRANSLUCENT_NO_DEPTH)
-                        .withTexture("Sampler0", tex)
-                        .createRenderSetup()));
+        return XRAY_TYPES.computeIfAbsent(
+                texture,
+                tex -> RenderType.create(
+                        "tc_golem_xray_" + tex.getPath().hashCode(),
+                        RenderSetup.builder(TCRenderPipelines.ENTITY_TRANSLUCENT_NO_DEPTH)
+                                .withTexture("Sampler0", tex)
+                                .createRenderSetup()));
     }
 
     @Override
@@ -86,9 +87,10 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         LocalPlayer player = Minecraft.getInstance().player;
         state.invisible = entity.isInvisible();
         state.ghost = state.invisible && player != null && !entity.isInvisibleTo(player);
-        state.xray = player != null && player.isShiftKeyDown()
+        state.xray = player != null
+                && player.isShiftKeyDown()
                 && (player.getMainHandItem().getItem() instanceof ISealDisplayer
-                || player.getOffhandItem().getItem() instanceof ISealDisplayer)
+                        || player.getOffhandItem().getItem() instanceof ISealDisplayer)
                 && !player.hasLineOfSight(entity);
         ItemStack held = entity.getMainHandItem();
         state.holdingItem = !held.isEmpty();
@@ -98,12 +100,14 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         ItemStack hauled = carrying.size() > 1 ? carrying.get(1) : ItemStack.EMPTY;
         state.haulingItem = !hauled.isEmpty();
         state.haulerItemIsBlock = hauled.getItem() instanceof BlockItem;
-        itemModelResolver.updateForTopItem(state.haulerItem, hauled, ItemDisplayContext.HEAD, entity.level(), entity, 0);
+        itemModelResolver.updateForTopItem(
+                state.haulerItem, hauled, ItemDisplayContext.HEAD, entity.level(), entity, 0);
         state.accessories = entity.getAccessoryString();
     }
 
     @Override
-    public void submit(GolemRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            GolemRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
         if (state.props == null) {
             return;
@@ -121,8 +125,8 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         poseStack.popPose();
     }
 
-    private void renderParts(GolemRenderState state, PoseStack poseStack, SubmitNodeCollector collector,
-                             boolean xray, int color) {
+    private void renderParts(
+            GolemRenderState state, PoseStack poseStack, SubmitNodeCollector collector, boolean xray, int color) {
         GolemProperties props = state.props;
         Identifier matTexture = props.getMaterial().texture();
         boolean holding = state.holdingItem;
@@ -281,15 +285,22 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         }
     }
 
-    private void renderPartModel(GolemRenderState state, GolemPartModel part, GolemPartModel.LimbSide side,
-                                 PoseStack poseStack, SubmitNodeCollector collector, Identifier matTexture,
-                                 boolean xray, int color) {
+    private void renderPartModel(
+            GolemRenderState state,
+            GolemPartModel part,
+            GolemPartModel.LimbSide side,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            Identifier matTexture,
+            boolean xray,
+            int color) {
         TCMesh mesh = GolemMeshes.get(part.objModel());
         GolemPartRenderHook hook = GolemPartRenderHooks.hookFor(part);
         for (TCMeshPart objectPart : mesh.parts()) {
             poseStack.pushPose();
             Identifier texture = part.useMaterialTextureForObjectPart(objectPart.name()) || part.texture() == null
-                    ? matTexture : part.texture();
+                    ? matTexture
+                    : part.texture();
             hook.preRenderObjectPart(objectPart.name(), state, poseStack, side, 0.0F);
             submitMeshPart(objectPart, poseStack, collector, texture, xray, color, state);
             hook.postRenderObjectPart(objectPart.name(), state, poseStack, collector, side);
@@ -297,8 +308,15 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         }
     }
 
-    private static void submitNamedPart(TCMesh mesh, String name, PoseStack poseStack, SubmitNodeCollector collector,
-                                        Identifier texture, boolean xray, int color, GolemRenderState state) {
+    private static void submitNamedPart(
+            TCMesh mesh,
+            String name,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            Identifier texture,
+            boolean xray,
+            int color,
+            GolemRenderState state) {
         for (TCMeshPart part : mesh.parts()) {
             if (name.equals(part.name())) {
                 submitMeshPart(part, poseStack, collector, texture, xray, color, state);
@@ -306,12 +324,19 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         }
     }
 
-    private static void submitMeshPart(TCMeshPart part, PoseStack poseStack, SubmitNodeCollector collector,
-                                       Identifier texture, boolean xray, int color, GolemRenderState state) {
-        RenderType type = xray ? xrayType(texture)
+    private static void submitMeshPart(
+            TCMeshPart part,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            Identifier texture,
+            boolean xray,
+            int color,
+            GolemRenderState state) {
+        RenderType type = xray
+                ? xrayType(texture)
                 : ARGB.alpha(color) < 255 ? RenderTypes.entityTranslucent(texture) : RenderTypes.entityCutout(texture);
         int light = state.lightCoords;
-        collector.submitCustomGeometry(poseStack, type,
-                (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
+        collector.submitCustomGeometry(
+                poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
     }
 }

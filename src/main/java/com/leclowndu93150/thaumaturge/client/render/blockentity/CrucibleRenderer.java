@@ -17,8 +17,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCrucible, CrucibleRenderState> {
 
-    public CrucibleRenderer(BlockEntityRendererProvider.Context context) {
-    }
+    public CrucibleRenderer(BlockEntityRendererProvider.Context context) {}
 
     @Override
     public CrucibleRenderState createRenderState() {
@@ -31,12 +30,16 @@ public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCr
             CrucibleRenderState state,
             float partialTicks,
             Vec3 cameraPosition,
-            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress
-    ) {
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
-        state.fluid = blockEntity.getTank().getResource(0).toStack(blockEntity.getTank().getAmountAsInt(0));
+        state.fluid = blockEntity
+                .getTank()
+                .getResource(0)
+                .toStack(blockEntity.getTank().getAmountAsInt(0));
         state.fluidHeight = blockEntity.getFluidHeight();
-        var fluidModel = Minecraft.getInstance().getModelManager().getFluidStateModelSet()
+        var fluidModel = Minecraft.getInstance()
+                .getModelManager()
+                .getFluidStateModelSet()
                 .get(state.fluid.getFluid().defaultFluidState());
         state.sprite = fluidModel.stillMaterial().sprite();
         var tintSource = fluidModel.fluidTintSource();
@@ -47,20 +50,24 @@ public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCr
         }
 
         float recolor = (float) blockEntity.getAspects().totalAmount() / BlockEntityCrucible.MAX_ASPECT;
-        if (recolor > 0.0F){
+        if (recolor > 0.0F) {
             recolor = 0.5F + recolor / 2F;
         }
 
         if (recolor > 1F) recolor = 1F;
 
-        float r = Mth.lerp(recolor,ARGB.redFloat(state.color),0.25F);
-        float g = Mth.lerp(recolor,ARGB.greenFloat(state.color),0.0F);
-        float b = Mth.lerp(recolor,ARGB.blueFloat(state.color),0.75F);
-        state.color = ARGB.colorFromFloat(1F,r,g,b);
+        float r = Mth.lerp(recolor, ARGB.redFloat(state.color), 0.25F);
+        float g = Mth.lerp(recolor, ARGB.greenFloat(state.color), 0.0F);
+        float b = Mth.lerp(recolor, ARGB.blueFloat(state.color), 0.75F);
+        state.color = ARGB.colorFromFloat(1F, r, g, b);
     }
 
     @Override
-    public void submit(CrucibleRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+    public void submit(
+            CrucibleRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState camera) {
         if (state.fluid.isEmpty()) return;
         float height = state.fluidHeight;
         float min = 0 / 16F, max = 16 / 16F;
@@ -72,5 +79,4 @@ public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCr
             JarRenderer.addVertex(wrapped, pose, max, height, min, max, min, state.color, state.lightCoords, 0, 1, 0);
         });
     }
-
 }

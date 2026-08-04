@@ -4,7 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -19,10 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public sealed interface BlueprintSource {
     Codec<BlueprintSource> CODEC = Kind.CODEC.dispatch("type", BlueprintSource::kind, k -> k.codec);
@@ -62,7 +60,10 @@ public sealed interface BlueprintSource {
         final MapCodec<? extends BlueprintSource> codec;
         final StreamCodec<RegistryFriendlyByteBuf, ? extends BlueprintSource> streamCodec;
 
-        Kind(String name, MapCodec<? extends BlueprintSource> codec, StreamCodec<RegistryFriendlyByteBuf, ? extends BlueprintSource> streamCodec) {
+        Kind(
+                String name,
+                MapCodec<? extends BlueprintSource> codec,
+                StreamCodec<RegistryFriendlyByteBuf, ? extends BlueprintSource> streamCodec) {
             this.name = name;
             this.codec = codec;
             this.streamCodec = streamCodec;
@@ -81,14 +82,11 @@ public sealed interface BlueprintSource {
 
     record BlockSource(Block block) implements BlueprintSource {
         static final MapCodec<BlockSource> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
-                BuiltInRegistries.BLOCK.byNameCodec().fieldOf("block").forGetter(BlockSource::block)
-        ).apply(i, BlockSource::new));
+                        BuiltInRegistries.BLOCK.byNameCodec().fieldOf("block").forGetter(BlockSource::block))
+                .apply(i, BlockSource::new));
 
-        static final StreamCodec<RegistryFriendlyByteBuf, BlockSource> STREAM_CODEC_INSTANCE = StreamCodec.composite(
-                ByteBufCodecs.registry(Registries.BLOCK),
-                BlockSource::block,
-                BlockSource::new
-        );
+        static final StreamCodec<RegistryFriendlyByteBuf, BlockSource> STREAM_CODEC_INSTANCE =
+                StreamCodec.composite(ByteBufCodecs.registry(Registries.BLOCK), BlockSource::block, BlockSource::new);
 
         @Override
         public Kind kind() {
@@ -107,16 +105,21 @@ public sealed interface BlueprintSource {
 
         @Override
         public List<ItemStack> getRepresentations() {
-            if (!block.defaultBlockState().getFluidState().isEmpty()) return List.of(block.defaultBlockState().getFluidState().getType().getBucket().getDefaultInstance());
+            if (!block.defaultBlockState().getFluidState().isEmpty())
+                return List.of(block.defaultBlockState()
+                        .getFluidState()
+                        .getType()
+                        .getBucket()
+                        .getDefaultInstance());
             if (block.asItem().getDefaultInstance().isEmpty()) return List.of();
             return List.of(block.asItem().getDefaultInstance());
         }
     }
 
     record StateSource(BlockState state) implements BlueprintSource {
-        static final MapCodec<StateSource> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
-                BlockState.CODEC.fieldOf("state").forGetter(StateSource::state)
-        ).apply(i, StateSource::new));
+        static final MapCodec<StateSource> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(
+                i -> i.group(BlockState.CODEC.fieldOf("state").forGetter(StateSource::state))
+                        .apply(i, StateSource::new));
 
         static final StreamCodec<RegistryFriendlyByteBuf, StateSource> STREAM_CODEC_INSTANCE = new StreamCodec<>() {
             @Override
@@ -157,15 +160,14 @@ public sealed interface BlueprintSource {
     }
 
     record TagSource(TagKey<Block> tag) implements BlueprintSource {
-        static final MapCodec<TagSource> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(i -> i.group(
-                TagKey.codec(Registries.BLOCK).fieldOf("tag").forGetter(TagSource::tag)
-        ).apply(i, TagSource::new));
+        static final MapCodec<TagSource> CODEC_INSTANCE = RecordCodecBuilder.mapCodec(
+                i -> i.group(TagKey.codec(Registries.BLOCK).fieldOf("tag").forGetter(TagSource::tag))
+                        .apply(i, TagSource::new));
 
         static final StreamCodec<RegistryFriendlyByteBuf, TagSource> STREAM_CODEC_INSTANCE = StreamCodec.composite(
                 Identifier.STREAM_CODEC.map(rl -> TagKey.create(Registries.BLOCK, rl), TagKey::location),
                 TagSource::tag,
-                TagSource::new
-        );
+                TagSource::new);
 
         @Override
         public Kind kind() {
@@ -201,7 +203,5 @@ public sealed interface BlueprintSource {
             }
             return ImmutableList.copyOf(stacks);
         }
-
-
     }
 }

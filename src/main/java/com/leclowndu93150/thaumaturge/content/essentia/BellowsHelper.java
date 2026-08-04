@@ -7,8 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class BellowsHelper {
-    private BellowsHelper() {
-    }
+    private BellowsHelper() {}
 
     public static int countBellows(Level level, BlockPos pos, Direction[] directions) {
         return countBellows(level, pos, directions, 1);
@@ -30,8 +29,11 @@ public final class BellowsHelper {
         return count;
     }
 
-
-    private static BlockPos.MutableBlockPos setWithOffset(BlockPos.MutableBlockPos bp, Vec3i pos, Direction direction, int offset) {
-        return bp.set(pos.getX() + direction.getStepX() * offset, pos.getY() + direction.getStepY() * offset, pos.getZ() + direction.getStepZ() * offset);
+    private static BlockPos.MutableBlockPos setWithOffset(
+            BlockPos.MutableBlockPos bp, Vec3i pos, Direction direction, int offset) {
+        return bp.set(
+                pos.getX() + direction.getStepX() * offset,
+                pos.getY() + direction.getStepY() * offset,
+                pos.getZ() + direction.getStepZ() * offset);
     }
 }

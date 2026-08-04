@@ -31,8 +31,14 @@ public final class JarNodeItemSpecialRenderer implements SpecialModelRenderer<No
     }
 
     @Override
-    public void submit(@Nullable NodeData data, PoseStack poseStack, SubmitNodeCollector collector,
-                       int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
+    public void submit(
+            @Nullable NodeData data,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            int lightCoords,
+            int overlayCoords,
+            boolean hasFoil,
+            int outlineColor) {
         if (data == null || data.aspects().isEmpty()) {
             return;
         }

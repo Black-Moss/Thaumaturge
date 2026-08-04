@@ -10,8 +10,7 @@ public final class ServerboundThaumatoriumToggleHandler {
 
     public static void handle(ServerboundThaumatoriumTogglePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer player)
-                    || !(player.level() instanceof ServerLevel level)) {
+            if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
                 return;
             }
             if (payload.pos().distToCenterSqr(player.getX(), player.getY(), player.getZ()) > 64.0) {

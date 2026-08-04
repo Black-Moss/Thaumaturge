@@ -18,9 +18,9 @@ import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.data.AtlasIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -43,8 +43,7 @@ public final class SealWorldRenderer {
     private static final float RING_ALPHA = 0.8F;
     private static final float CORNER_ALPHA = 0.7F;
 
-    private static final RenderPipeline PIPELINE =
-            TCFXPipelines.translucentTextured(TCIds.rl("pipeline/seal_overlay"));
+    private static final RenderPipeline PIPELINE = TCFXPipelines.translucentTextured(TCIds.rl("pipeline/seal_overlay"));
     private static final Map<Identifier, RenderType> TYPES = new ConcurrentHashMap<>();
     private static final RenderType ICON_TYPE = RenderType.create(
             "tc_seal_icon",
@@ -53,28 +52,30 @@ public final class SealWorldRenderer {
                     .createRenderSetup());
 
     private static final Direction[][] ROT_FACES = {
-            {Direction.DOWN, Direction.NORTH, Direction.WEST},
-            {Direction.UP, Direction.NORTH, Direction.WEST},
-            {Direction.DOWN, Direction.NORTH, Direction.EAST},
-            {Direction.UP, Direction.NORTH, Direction.EAST},
-            {Direction.DOWN, Direction.SOUTH, Direction.EAST},
-            {Direction.UP, Direction.SOUTH, Direction.EAST},
-            {Direction.DOWN, Direction.SOUTH, Direction.WEST},
-            {Direction.UP, Direction.SOUTH, Direction.WEST}
+        {Direction.DOWN, Direction.NORTH, Direction.WEST},
+        {Direction.UP, Direction.NORTH, Direction.WEST},
+        {Direction.DOWN, Direction.NORTH, Direction.EAST},
+        {Direction.UP, Direction.NORTH, Direction.EAST},
+        {Direction.DOWN, Direction.SOUTH, Direction.EAST},
+        {Direction.UP, Direction.SOUTH, Direction.EAST},
+        {Direction.DOWN, Direction.SOUTH, Direction.WEST},
+        {Direction.UP, Direction.SOUTH, Direction.WEST}
     };
     private static final int[][] ROT_MAT = {
-            {0, 270, 0}, {270, 180, 270}, {90, 0, 90}, {180, 90, 180},
-            {180, 180, 0}, {90, 270, 270}, {270, 90, 90}, {0, 0, 180}
+        {0, 270, 0}, {270, 180, 270}, {90, 0, 90}, {180, 90, 180},
+        {180, 180, 0}, {90, 270, 270}, {270, 90, 90}, {0, 0, 180}
     };
 
     private SealWorldRenderer() {}
 
     private static RenderType typeFor(Identifier texture) {
-        return TYPES.computeIfAbsent(texture, tex -> RenderType.create(
-                "tc_seal_overlay_" + tex.getPath().hashCode(),
-                RenderSetup.builder(PIPELINE)
-                        .withTexture("Sampler0", tex)
-                        .createRenderSetup()));
+        return TYPES.computeIfAbsent(
+                texture,
+                tex -> RenderType.create(
+                        "tc_seal_overlay_" + tex.getPath().hashCode(),
+                        RenderSetup.builder(PIPELINE)
+                                .withTexture("Sampler0", tex)
+                                .createRenderSetup()));
     }
 
     @SubscribeEvent
@@ -113,20 +114,27 @@ public final class SealWorldRenderer {
         buffers.endBatch();
     }
 
-    private static void drawSealIcon(PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam,
-                                     float alpha, boolean inactive) {
+    private static void drawSealIcon(
+            PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam, float alpha, boolean inactive) {
         BlockPos pos = seal.getSealPos().pos();
         Direction face = seal.getSealPos().face();
         poseStack.pushPose();
         poseStack.translate(pos.getX() + 0.5 - cam.x, pos.getY() + 0.5 - cam.y, pos.getZ() + 0.5 - cam.z);
-        poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0),
-                -face.getStepY(), face.getStepX(), -face.getStepZ()));
+        poseStack.mulPose(new Quaternionf()
+                .rotationAxis((float) Math.toRadians(90.0), -face.getStepY(), face.getStepX(), -face.getStepZ()));
         poseStack.translate(0.0, 0.0, face.getStepZ() < 0 ? -0.55 : 0.55);
         float shade = inactive ? 0.5F : 1.0F;
         int color = ARGB.colorFromFloat(alpha, shade, shade, shade);
         TextureAtlasSprite sprite = iconSprite(seal.getSeal().getSealIcon());
-        drawQuad(poseStack, buffers.getBuffer(ICON_TYPE), ICON_SCALE / 2.0F, color,
-                sprite.getU0(), sprite.getV0(), sprite.getU1(), sprite.getV1());
+        drawQuad(
+                poseStack,
+                buffers.getBuffer(ICON_TYPE),
+                ICON_SCALE / 2.0F,
+                color,
+                sprite.getU0(),
+                sprite.getV0(),
+                sprite.getU1(),
+                sprite.getV1());
         poseStack.popPose();
     }
 
@@ -138,12 +146,14 @@ public final class SealWorldRenderer {
         if (path.endsWith(".png")) {
             path = path.substring(0, path.length() - ".png".length());
         }
-        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.ITEMS)
+        return Minecraft.getInstance()
+                .getAtlasManager()
+                .getAtlasOrThrow(AtlasIds.ITEMS)
                 .getSprite(Identifier.fromNamespaceAndPath(icon.getNamespace(), path));
     }
 
-    private static void drawSealRing(PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam,
-                                     float alpha, float time) {
+    private static void drawSealRing(
+            PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam, float alpha, float time) {
         BlockPos pos = seal.getSealPos().pos();
         Direction face = seal.getSealPos().face();
         float r;
@@ -161,17 +171,20 @@ public final class SealWorldRenderer {
         }
         poseStack.pushPose();
         poseStack.translate(pos.getX() + 0.5 - cam.x, pos.getY() + 0.5 - cam.y, pos.getZ() + 0.5 - cam.z);
-        poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0),
-                -face.getStepY(), face.getStepX(), -face.getStepZ()));
+        poseStack.mulPose(new Quaternionf()
+                .rotationAxis((float) Math.toRadians(90.0), -face.getStepY(), face.getStepX(), -face.getStepZ()));
         poseStack.translate(0.0, 0.0, face.getStepZ() < 0 ? -0.51 : 0.51);
         poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(time), 0.0F, 0.0F, 1.0F));
-        drawQuad(poseStack, buffers.getBuffer(typeFor(AREA_RING)), RING_SCALE / 2.0F,
+        drawQuad(
+                poseStack,
+                buffers.getBuffer(typeFor(AREA_RING)),
+                RING_SCALE / 2.0F,
                 ARGB.colorFromFloat(alpha * RING_ALPHA, r, g, b));
         poseStack.popPose();
     }
 
-    private static void drawAreaCorners(PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam,
-                                        float alpha, float time) {
+    private static void drawAreaCorners(
+            PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam, float alpha, float time) {
         BlockPos pos = seal.getSealPos().pos();
         Direction face = seal.getSealPos().face();
         float r = 0.7F + Mth.sin((time + pos.getX()) / 4.0F) * 0.1F;
@@ -188,14 +201,14 @@ public final class SealWorldRenderer {
                         face.getStepY() == 0 ? seal.getArea().getY() - 1 : 0.0,
                         face.getStepZ() == 0 ? seal.getArea().getZ() - 1 : 0.0);
         double[][] corners = {
-                {area.minX, area.minY, area.minZ},
-                {area.minX, area.maxY - 1.0, area.minZ},
-                {area.maxX - 1.0, area.minY, area.minZ},
-                {area.maxX - 1.0, area.maxY - 1.0, area.minZ},
-                {area.maxX - 1.0, area.minY, area.maxZ - 1.0},
-                {area.maxX - 1.0, area.maxY - 1.0, area.maxZ - 1.0},
-                {area.minX, area.minY, area.maxZ - 1.0},
-                {area.minX, area.maxY - 1.0, area.maxZ - 1.0}
+            {area.minX, area.minY, area.minZ},
+            {area.minX, area.maxY - 1.0, area.minZ},
+            {area.maxX - 1.0, area.minY, area.minZ},
+            {area.maxX - 1.0, area.maxY - 1.0, area.minZ},
+            {area.maxX - 1.0, area.minY, area.maxZ - 1.0},
+            {area.maxX - 1.0, area.maxY - 1.0, area.maxZ - 1.0},
+            {area.minX, area.minY, area.maxZ - 1.0},
+            {area.minX, area.maxY - 1.0, area.maxZ - 1.0}
         };
         int color = ARGB.colorFromFloat(alpha * CORNER_ALPHA, r, g, b);
         VertexConsumer buffer = buffers.getBuffer(typeFor(CORNER_FRAME));
@@ -205,11 +218,16 @@ public final class SealWorldRenderer {
             for (int w = 0; w < ROT_FACES[q].length; w++) {
                 Direction cornerFace = ROT_FACES[q][w];
                 poseStack.pushPose();
-                poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0),
-                        -cornerFace.getStepY(), cornerFace.getStepX(), -cornerFace.getStepZ()));
+                poseStack.mulPose(new Quaternionf()
+                        .rotationAxis(
+                                (float) Math.toRadians(90.0),
+                                -cornerFace.getStepY(),
+                                cornerFace.getStepX(),
+                                -cornerFace.getStepZ()));
                 poseStack.translate(0.0, 0.0, cornerFace.getStepZ() < 0 ? -0.49 : 0.49);
                 poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0), 0.0F, 0.0F, -1.0F));
-                poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(ROT_MAT[q][w]), 0.0F, 0.0F, 1.0F));
+                poseStack.mulPose(
+                        new Quaternionf().rotationAxis((float) Math.toRadians(ROT_MAT[q][w]), 0.0F, 0.0F, 1.0F));
                 drawQuad(poseStack, buffer, 0.5F, color);
                 poseStack.popPose();
             }
@@ -221,8 +239,8 @@ public final class SealWorldRenderer {
         drawQuad(poseStack, buffer, half, color, 0.0F, 0.0F, 1.0F, 1.0F);
     }
 
-    private static void drawQuad(PoseStack poseStack, VertexConsumer buffer, float half, int color,
-                                 float u0, float v0, float u1, float v1) {
+    private static void drawQuad(
+            PoseStack poseStack, VertexConsumer buffer, float half, int color, float u0, float v0, float u1, float v1) {
         PoseStack.Pose pose = poseStack.last();
         buffer.addVertex(pose, -half, half, 0.0F).setUv(u1, v1).setColor(color);
         buffer.addVertex(pose, half, half, 0.0F).setUv(u1, v0).setColor(color);

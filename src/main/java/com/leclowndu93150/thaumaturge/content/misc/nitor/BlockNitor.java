@@ -20,10 +20,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockNitor extends BaseEntityBlock {
-    public static final MapCodec<BlockNitor> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
-            DyeColor.CODEC.fieldOf("dye").forGetter(BlockNitor::dye),
-            propertiesCodec()
-    ).apply(inst, BlockNitor::new));
+    public static final MapCodec<BlockNitor> CODEC = RecordCodecBuilder.mapCodec(
+            inst -> inst.group(DyeColor.CODEC.fieldOf("dye").forGetter(BlockNitor::dye), propertiesCodec())
+                    .apply(inst, BlockNitor::new));
 
     private static final VoxelShape SHAPE = box(5.28, 5.28, 5.28, 10.56, 10.56, 10.56);
 
@@ -53,7 +52,8 @@ public final class BlockNitor extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -78,11 +78,11 @@ public final class BlockNitor extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (!level.isClientSide()) {
             return null;
         }
-        return createTickerHelper(type, TCBlockEntities.NITOR.get(),
-                BlockEntityNitor::clientTick);
+        return createTickerHelper(type, TCBlockEntities.NITOR.get(), BlockEntityNitor::clientTick);
     }
 }

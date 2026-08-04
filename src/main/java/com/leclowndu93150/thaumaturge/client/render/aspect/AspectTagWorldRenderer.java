@@ -1,25 +1,24 @@
 package com.leclowndu93150.thaumaturge.client.render.aspect;
 
-import com.leclowndu93150.thaumaturge.client.render.TCFlatRenderTypes;
-import net.minecraft.resources.Identifier;
-import java.util.function.Predicate;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.client.render.TCFlatRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import java.util.List;
+import java.util.function.Predicate;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -38,16 +37,30 @@ public final class AspectTagWorldRenderer {
 
     private AspectTagWorldRenderer() {}
 
-    public static void renderTagCloud(PoseStack poseStack, Minecraft mc,
-                                      double x, double y, double z, AspectList aspects,
-                                      @Nullable Direction dir, float tagScale, float alpha) {
+    public static void renderTagCloud(
+            PoseStack poseStack,
+            Minecraft mc,
+            double x,
+            double y,
+            double z,
+            AspectList aspects,
+            @Nullable Direction dir,
+            float tagScale,
+            float alpha) {
         renderTagCloud(poseStack, mc, x, y, z, aspects, dir, tagScale, alpha, aspect -> true);
     }
 
-    public static void renderTagCloud(PoseStack poseStack, Minecraft mc,
-                                      double x, double y, double z, AspectList aspects,
-                                      @Nullable Direction dir, float tagScale, float alpha,
-                                      Predicate<Holder<IAspect>> discovered) {
+    public static void renderTagCloud(
+            PoseStack poseStack,
+            Minecraft mc,
+            double x,
+            double y,
+            double z,
+            AspectList aspects,
+            @Nullable Direction dir,
+            float tagScale,
+            float alpha,
+            Predicate<Holder<IAspect>> discovered) {
         Camera camera = mc.gameRenderer.getMainCamera();
         Vec3 cam = camera.position();
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
@@ -93,10 +106,14 @@ public final class AspectTagWorldRenderer {
             boolean known = discovered.test(entry.aspect());
             poseStack.pushPose();
             poseStack.scale(tagScale, tagScale, tagScale);
-            renderQuad(poseStack,
+            renderQuad(
+                    poseStack,
                     buffers.getBuffer(TCFlatRenderTypes.entityTranslucentFlat(
                             known ? entry.aspect().value().texture() : UNKNOWN_TEXTURE)),
-                    entry.aspect(), known ? alpha : UNKNOWN_ALPHA, false, LightCoordsUtil.FULL_BRIGHT);
+                    entry.aspect(),
+                    known ? alpha : UNKNOWN_ALPHA,
+                    false,
+                    LightCoordsUtil.FULL_BRIGHT);
             poseStack.popPose();
 
             String amount = Integer.toString(entry.amount());
@@ -104,11 +121,29 @@ public final class AspectTagWorldRenderer {
             poseStack.pushPose();
             poseStack.scale(tagScale * TEXT_SCALE, -tagScale * TEXT_SCALE, tagScale * TEXT_SCALE);
             poseStack.translate(0.0, 6.0, -0.1);
-            font.drawInBatch(amount, 14 - width, 1, TEXT_SHADOW_COLOR, false,
-                    poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, 0, LightCoordsUtil.FULL_BRIGHT);
+            font.drawInBatch(
+                    amount,
+                    14 - width,
+                    1,
+                    TEXT_SHADOW_COLOR,
+                    false,
+                    poseStack.last().pose(),
+                    buffers,
+                    Font.DisplayMode.NORMAL,
+                    0,
+                    LightCoordsUtil.FULL_BRIGHT);
             poseStack.translate(0.0, 0.0, -0.1);
-            font.drawInBatch(amount, 13 - width, 0, TEXT_COLOR, false,
-                    poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, 0, LightCoordsUtil.FULL_BRIGHT);
+            font.drawInBatch(
+                    amount,
+                    13 - width,
+                    0,
+                    TEXT_COLOR,
+                    false,
+                    poseStack.last().pose(),
+                    buffers,
+                    Font.DisplayMode.NORMAL,
+                    0,
+                    LightCoordsUtil.FULL_BRIGHT);
             poseStack.popPose();
 
             poseStack.popPose();
@@ -124,8 +159,7 @@ public final class AspectTagWorldRenderer {
             float scale,
             float alpha,
             boolean bw,
-            int packedLight
-    ) {
+            int packedLight) {
         renderBillboard(poseStack, buffers, aspect, scale, alpha, bw, packedLight, AspectTagRenderer.BlendMode.ALPHA);
     }
 
@@ -136,9 +170,9 @@ public final class AspectTagWorldRenderer {
             float scale,
             float alpha,
             boolean bw,
-            int packedLight
-    ) {
-        renderBillboard(poseStack, buffers, aspect, scale, alpha, bw, packedLight, AspectTagRenderer.BlendMode.ADDITIVE);
+            int packedLight) {
+        renderBillboard(
+                poseStack, buffers, aspect, scale, alpha, bw, packedLight, AspectTagRenderer.BlendMode.ADDITIVE);
     }
 
     public static void renderBillboard(
@@ -149,8 +183,7 @@ public final class AspectTagWorldRenderer {
             float alpha,
             boolean bw,
             int packedLight,
-            AspectTagRenderer.BlendMode blend
-    ) {
+            AspectTagRenderer.BlendMode blend) {
         if (aspect == null || aspect.value() == null) return;
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         IAspect value = aspect.value();
@@ -176,8 +209,7 @@ public final class AspectTagWorldRenderer {
             Holder<IAspect> aspect,
             float alpha,
             boolean bw,
-            int packedLight
-    ) {
+            int packedLight) {
         renderQuad(poseStack.last(), buffer, aspect, alpha, bw, packedLight);
     }
 
@@ -187,8 +219,7 @@ public final class AspectTagWorldRenderer {
             Holder<IAspect> aspect,
             float alpha,
             boolean bw,
-            int packedLight
-    ) {
+            int packedLight) {
         if (aspect == null || aspect.value() == null) return;
         IAspect value = aspect.value();
         int color = AspectTagRenderer.colorOf(value, alpha, bw);
@@ -206,8 +237,7 @@ public final class AspectTagWorldRenderer {
             float u,
             float v,
             int color,
-            int packedLight
-    ) {
+            int packedLight) {
         buffer.addVertex(pose, x, y, 0.0F)
                 .setColor(color)
                 .setUv(u, v)

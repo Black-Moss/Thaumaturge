@@ -1,28 +1,16 @@
 package com.leclowndu93150.thaumaturge.content.misc.alumentum;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.chicken.Chicken;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -48,26 +36,34 @@ public class ThrownAlumentum extends ThrowableItemProjectile {
     @Override
     public void tick() {
         super.tick();
-        if (!level().isClientSide()){
+        if (!level().isClientSide()) {
             for (int i = 0; i < 3; i++) {
                 double coeff = i / 3.0;
-                Effects.alumentum((ServerLevel) level(),new Vec3(
-                        (float)(this.xOld + (this.getX() - this.xOld) * coeff),
-                        (float)(this.yOld + (this.getY() - this.yOld) * coeff) + this.getBbHeight() / 2.0F,
-                        (float)(this.zOld + (this.getZ() - this.zOld) * coeff)
-                )).motion(0.0125F * (this.random.nextFloat() - 0.5F),
-                        0.0125F * (this.random.nextFloat() - 0.5F),
-                        0.0125F * (this.random.nextFloat() - 0.5F)
-                ).color(
-                        this.random.nextFloat() * 0.2F,
-                        this.random.nextFloat() * 0.1F,
-                        this.random.nextFloat() * 0.1F
-                ).alpha(0.5F).scale(4.0F).send();
+                Effects.alumentum(
+                                (ServerLevel) level(),
+                                new Vec3(
+                                        (float) (this.xOld + (this.getX() - this.xOld) * coeff),
+                                        (float) (this.yOld + (this.getY() - this.yOld) * coeff)
+                                                + this.getBbHeight() / 2.0F,
+                                        (float) (this.zOld + (this.getZ() - this.zOld) * coeff)))
+                        .motion(
+                                0.0125F * (this.random.nextFloat() - 0.5F),
+                                0.0125F * (this.random.nextFloat() - 0.5F),
+                                0.0125F * (this.random.nextFloat() - 0.5F))
+                        .color(
+                                this.random.nextFloat() * 0.2F,
+                                this.random.nextFloat() * 0.1F,
+                                this.random.nextFloat() * 0.1F)
+                        .alpha(0.5F)
+                        .scale(4.0F)
+                        .send();
 
-                Effects.spawn((ServerLevel) level(), new ShieldSparkParticleOptions(0xFFFFFF, 0.7F, 0.3F, 8, false),getX() + level().getRandom().nextGaussian() * 0.2F,
+                Effects.spawn(
+                        (ServerLevel) level(),
+                        new ShieldSparkParticleOptions(0xFFFFFF, 0.7F, 0.3F, 8, false),
+                        getX() + level().getRandom().nextGaussian() * 0.2F,
                         getY() + level().getRandom().nextGaussian() * 0.2F,
-                        getZ() + level().getRandom().nextGaussian() * 0.2F
-                );
+                        getZ() + level().getRandom().nextGaussian() * 0.2F);
             }
         }
     }
@@ -78,7 +74,6 @@ public class ThrownAlumentum extends ThrowableItemProjectile {
             this.level().explode(this, this.getX(), this.getY(), this.getZ(), 1.1F, Level.ExplosionInteraction.TNT);
             this.discard();
         }
-
     }
 
     protected Item getDefaultItem() {

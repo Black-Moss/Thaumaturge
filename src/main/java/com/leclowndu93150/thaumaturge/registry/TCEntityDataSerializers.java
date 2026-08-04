@@ -12,9 +12,9 @@ public final class TCEntityDataSerializers {
     public static final DeferredRegister<EntityDataSerializer<?>> SERIALIZERS =
             DeferredRegister.create(NeoForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, TCIds.MODID);
 
-    public static final DeferredHolder<EntityDataSerializer<?>, EntityDataSerializer<GolemProperties>> GOLEM_PROPERTIES =
-            SERIALIZERS.register("golem_properties",
-                    () -> EntityDataSerializer.forValueType(GolemProperties.STREAM_CODEC));
+    public static final DeferredHolder<EntityDataSerializer<?>, EntityDataSerializer<GolemProperties>>
+            GOLEM_PROPERTIES = SERIALIZERS.register(
+                    "golem_properties", () -> EntityDataSerializer.forValueType(GolemProperties.STREAM_CODEC));
 
     private TCEntityDataSerializers() {}
 

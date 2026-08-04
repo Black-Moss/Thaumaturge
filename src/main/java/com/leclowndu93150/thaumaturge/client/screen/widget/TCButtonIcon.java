@@ -19,13 +19,17 @@ public sealed interface TCButtonIcon {
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED,
                     value.texture(),
-                    x, y,
-                    0.0F, 0.0F,
-                    size, size,
-                    size, size,
-                    size, size,
-                    color
-            );
+                    x,
+                    y,
+                    0.0F,
+                    0.0F,
+                    size,
+                    size,
+                    size,
+                    size,
+                    size,
+                    size,
+                    color);
         }
     }
 
@@ -39,13 +43,17 @@ public sealed interface TCButtonIcon {
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED,
                     texture,
-                    x, y,
-                    0.0F, 0.0F,
-                    size, size,
-                    size, size,
-                    textureWidth, textureHeight,
-                    tintColor
-            );
+                    x,
+                    y,
+                    0.0F,
+                    0.0F,
+                    size,
+                    size,
+                    size,
+                    size,
+                    textureWidth,
+                    textureHeight,
+                    tintColor);
         }
     }
 

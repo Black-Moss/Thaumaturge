@@ -27,7 +27,13 @@ public final class TubeEventClientHandler {
                 tube.triggerVent(payload.color());
             }
             RandomSource random = level.getRandom();
-            playSound(level, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 1.0F + random.nextFloat() * 0.1F);
+            playSound(
+                    level,
+                    pos,
+                    SoundEvents.LAVA_EXTINGUISH,
+                    SoundSource.BLOCKS,
+                    0.1F,
+                    1.0F + random.nextFloat() * 0.1F);
         });
     }
 
@@ -35,11 +41,18 @@ public final class TubeEventClientHandler {
         ctx.enqueueWork(() -> {
             ClientLevel level = Minecraft.getInstance().level;
             if (level == null) return;
-            playSound(level, payload.pos(), TCSounds.CREAK.get(), SoundSource.AMBIENT, 1.0F, 1.3F + level.getRandom().nextFloat() * 0.2F);
+            playSound(
+                    level,
+                    payload.pos(),
+                    TCSounds.CREAK.get(),
+                    SoundSource.AMBIENT,
+                    1.0F,
+                    1.3F + level.getRandom().nextFloat() * 0.2F);
         });
     }
 
-    private static void playSound(ClientLevel level, BlockPos pos, SoundEvent event, SoundSource source, float volume, float pitch) {
+    private static void playSound(
+            ClientLevel level, BlockPos pos, SoundEvent event, SoundSource source, float volume, float pitch) {
         level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, event, source, volume, pitch, false);
     }
 }

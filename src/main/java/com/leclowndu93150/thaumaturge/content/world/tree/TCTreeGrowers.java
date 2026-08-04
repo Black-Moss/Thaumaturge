@@ -14,11 +14,9 @@ public final class TCTreeGrowers {
             ResourceKey.create(Registries.CONFIGURED_FEATURE, TCIds.rl("silverwood_tree_grown"));
 
     public static final TreeGrower GREATWOOD = new TreeGrower(
-            "thaumaturge:greatwood", Optional.of(GREATWOOD_TREE_GROWN), Optional.empty(), Optional.empty()
-    );
+            "thaumaturge:greatwood", Optional.of(GREATWOOD_TREE_GROWN), Optional.empty(), Optional.empty());
     public static final TreeGrower SILVERWOOD = new TreeGrower(
-            "thaumaturge:silverwood", Optional.empty(), Optional.of(SILVERWOOD_TREE_GROWN), Optional.empty()
-    );
+            "thaumaturge:silverwood", Optional.empty(), Optional.of(SILVERWOOD_TREE_GROWN), Optional.empty());
 
     private TCTreeGrowers() {}
 

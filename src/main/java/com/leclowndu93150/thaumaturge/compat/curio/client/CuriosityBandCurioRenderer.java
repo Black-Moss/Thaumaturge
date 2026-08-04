@@ -28,30 +28,36 @@ public final class CuriosityBandCurioRenderer implements ICurioRenderer {
 
     @Override
     public <S extends LivingEntityRenderState, M extends EntityModel<? super S>> void render(
-            ItemStack stack, SlotContext slotContext, PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector, int packedLight, S renderState,
-            RenderLayerParent<S, M> renderLayerParent, EntityRendererProvider.Context context,
-            float yRotation, float xRotation) {
+            ItemStack stack,
+            SlotContext slotContext,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            int packedLight,
+            S renderState,
+            RenderLayerParent<S, M> renderLayerParent,
+            EntityRendererProvider.Context context,
+            float yRotation,
+            float xRotation) {
         if (!(renderLayerParent.getModel() instanceof HumanoidModel<?> humanoid)) {
             return;
         }
         LivingEntity wearer = slotContext.entity();
-        boolean helmeted = wearer != null && !wearer.getItemBySlot(EquipmentSlot.HEAD).isEmpty();
+        boolean helmeted =
+                wearer != null && !wearer.getItemBySlot(EquipmentSlot.HEAD).isEmpty();
         poseStack.pushPose();
         humanoid.head.translateAndRotate(poseStack);
         float z = FACE_Z - (helmeted ? HELMET_LIFT : 0.0F);
-        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE),
-                (pose, buffer) -> {
-                    vertex(buffer, pose, -HALF_WIDTH, TOP_Y, z, 0.0F, 0.0F, packedLight);
-                    vertex(buffer, pose, -HALF_WIDTH, TOP_Y + HEIGHT, z, 0.0F, 1.0F, packedLight);
-                    vertex(buffer, pose, HALF_WIDTH, TOP_Y + HEIGHT, z, 1.0F, 1.0F, packedLight);
-                    vertex(buffer, pose, HALF_WIDTH, TOP_Y, z, 1.0F, 0.0F, packedLight);
-                });
+        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> {
+            vertex(buffer, pose, -HALF_WIDTH, TOP_Y, z, 0.0F, 0.0F, packedLight);
+            vertex(buffer, pose, -HALF_WIDTH, TOP_Y + HEIGHT, z, 0.0F, 1.0F, packedLight);
+            vertex(buffer, pose, HALF_WIDTH, TOP_Y + HEIGHT, z, 1.0F, 1.0F, packedLight);
+            vertex(buffer, pose, HALF_WIDTH, TOP_Y, z, 1.0F, 0.0F, packedLight);
+        });
         poseStack.popPose();
     }
 
-    private static void vertex(VertexConsumer buffer, PoseStack.Pose pose,
-                               float x, float y, float z, float u, float v, int light) {
+    private static void vertex(
+            VertexConsumer buffer, PoseStack.Pose pose, float x, float y, float z, float u, float v, int light) {
         buffer.addVertex(pose, x, y, z)
                 .setColor(-1)
                 .setUv(u, v)

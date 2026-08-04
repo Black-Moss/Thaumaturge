@@ -3,15 +3,11 @@ package com.leclowndu93150.thaumaturge.client.tooltip;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
-import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import java.util.List;
-
-import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -46,8 +42,10 @@ public final class AspectContainerTooltipHandler {
             return;
         }
         List<Component> tooltip = event.getToolTip();
-        tooltip.add(1,Component.translatable("tooltip.thaumaturge.aspects.header")
-                .withStyle(style -> style.withColor(TextColor.fromRgb(0xB59ED9))));
+        tooltip.add(
+                1,
+                Component.translatable("tooltip.thaumaturge.aspects.header")
+                        .withStyle(style -> style.withColor(TextColor.fromRgb(0xB59ED9))));
         for (AspectInstance entry : aspects.sortedByAmount().reversed()) {
             Holder<IAspect> aspect = entry.aspect();
             MutableComponent line = Component.literal("  ").append(AspectComponents.name(aspect));
@@ -55,7 +53,7 @@ public final class AspectContainerTooltipHandler {
                 line.append(Component.literal(" x" + entry.amount()));
             }
             line.setStyle(Style.EMPTY.withColor(TextColor.fromRgb(aspect.value().color())));
-            tooltip.add(2,line);
+            tooltip.add(2, line);
         }
     }
 

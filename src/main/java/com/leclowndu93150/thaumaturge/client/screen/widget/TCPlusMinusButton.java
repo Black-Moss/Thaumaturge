@@ -12,13 +12,19 @@ public final class TCPlusMinusButton extends TCImageButton {
 
     private TCPlusMinusButton(int x, int y, boolean minus, Component message, Runnable onPress) {
         super(
-                x, y, SIZE, SIZE,
+                x,
+                y,
+                SIZE,
+                SIZE,
                 TCScreenTextures.GUI_BASE,
-                minus ? U_MINUS : U_PLUS, V,
-                SIZE, SIZE,
-                ATLAS, ATLAS,
-                message, onPress
-        );
+                minus ? U_MINUS : U_PLUS,
+                V,
+                SIZE,
+                SIZE,
+                ATLAS,
+                ATLAS,
+                message,
+                onPress);
     }
 
     public static TCPlusMinusButton minus(int x, int y, Component message, Runnable onPress) {

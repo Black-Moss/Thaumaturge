@@ -55,8 +55,11 @@ public final class ParticleSheet {
     }
 
     private int readFrameCount() {
-        try (InputStream stream = Minecraft.getInstance().getResourceManager().getResourceOrThrow(texture).open();
-             DataInputStream data = new DataInputStream(stream)) {
+        try (InputStream stream = Minecraft.getInstance()
+                        .getResourceManager()
+                        .getResourceOrThrow(texture)
+                        .open();
+                DataInputStream data = new DataInputStream(stream)) {
             data.skipBytes(PNG_DIMENSION_OFFSET);
             int width = data.readInt();
             int height = data.readInt();

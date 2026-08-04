@@ -44,7 +44,8 @@ public final class FocusMediumCloud implements FocusMedium {
 
     @Override
     public int complexity(FocusSettings settings) {
-        return BASE_COMPLEXITY + settings.value("radius") * RADIUS_COMPLEXITY_FACTOR
+        return BASE_COMPLEXITY
+                + settings.value("radius") * RADIUS_COMPLEXITY_FACTOR
                 + settings.value("duration") / DURATION_COMPLEXITY_DIVISOR;
     }
 
@@ -57,8 +58,7 @@ public final class FocusMediumCloud implements FocusMedium {
             int radius = settings.value("radius");
             int duration = settings.value("duration");
             for (Trajectory trajectory : supplied) {
-                caster.level().addFreshEntity(
-                        new EntityFocusCloud(remaining, caster, trajectory, radius, duration));
+                caster.level().addFreshEntity(new EntityFocusCloud(remaining, caster, trajectory, radius, duration));
             }
         }
         return null;

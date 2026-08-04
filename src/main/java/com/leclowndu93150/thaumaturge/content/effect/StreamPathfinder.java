@@ -46,7 +46,11 @@ public final class StreamPathfinder {
         return new Result(waypoints, false, search.expanded);
     }
 
-    private record Node(BlockPos pos, int walked, double score, @Nullable Node parent) {}
+    private record Node(
+            BlockPos pos,
+            int walked,
+            double score,
+            @Nullable Node parent) {}
 
     private static final class Search {
         private final BlockGetter level;
@@ -60,7 +64,8 @@ public final class StreamPathfinder {
             this.goal = goal;
         }
 
-        @Nullable List<BlockPos> run() {
+        @Nullable
+        List<BlockPos> run() {
             PriorityQueue<Node> open = new PriorityQueue<>(Comparator.comparingDouble(Node::score));
             Map<BlockPos, Integer> best = new HashMap<>();
             open.add(new Node(start, 0, heuristic(start, goal), null));
@@ -192,7 +197,8 @@ public final class StreamPathfinder {
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int i = 1; i < steps; i++) {
             double t = (double) i / steps;
-            cursor.set(Mth.floor(Mth.lerp(t, a.x, b.x)),
+            cursor.set(
+                    Mth.floor(Mth.lerp(t, a.x, b.x)),
                     Mth.floor(Mth.lerp(t, a.y, b.y)),
                     Mth.floor(Mth.lerp(t, a.z, b.z)));
             BlockState state = level.getBlockState(cursor);

@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.data.tag;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
@@ -10,8 +11,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.registries.DeferredHolder;
-
-import java.util.concurrent.CompletableFuture;
 
 public final class TCBlockTagsProvider extends BlockTagsProvider {
     public TCBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
@@ -62,17 +61,11 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.SLAB_ANCIENT.get())
                 .add(TCBlocks.SLAB_ELDRITCH.get());
 
-        tag(BlockTags.WOODEN_SLABS)
-                .add(TCBlocks.SLAB_GREATWOOD.get())
-                .add(TCBlocks.SLAB_SILVERWOOD.get());
+        tag(BlockTags.WOODEN_SLABS).add(TCBlocks.SLAB_GREATWOOD.get()).add(TCBlocks.SLAB_SILVERWOOD.get());
 
-        tag(BlockTags.STAIRS)
-                .add(TCBlocks.STAIRS_GREATWOOD.get())
-                .add(TCBlocks.STAIRS_SILVERWOOD.get());
+        tag(BlockTags.STAIRS).add(TCBlocks.STAIRS_GREATWOOD.get()).add(TCBlocks.STAIRS_SILVERWOOD.get());
 
-        tag(BlockTags.WOODEN_STAIRS)
-                .add(TCBlocks.STAIRS_GREATWOOD.get())
-                .add(TCBlocks.STAIRS_SILVERWOOD.get());
+        tag(BlockTags.WOODEN_STAIRS).add(TCBlocks.STAIRS_GREATWOOD.get()).add(TCBlocks.STAIRS_SILVERWOOD.get());
 
         tag(TCBlockTags.ELDRITCH_OBELISK_PARTS)
                 .add(TCBlocks.ELDRITCH_ALTAR.get())
@@ -95,8 +88,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.ELDRITCH_CRAB_SPAWNER.get())
                 .add(TCBlocks.ELDRITCH_TRAP.get());
 
-        tag(BlockTags.RAILS)
-                .add(TCBlocks.ACTIVATOR_RAIL.get());
+        tag(BlockTags.RAILS).add(TCBlocks.ACTIVATOR_RAIL.get());
 
         tag(BlockTags.BEACON_BASE_BLOCKS)
                 .add(TCBlocks.METAL_THAUMIUM_BLOCK.get())
@@ -116,25 +108,15 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.METAL_BRASS_BLOCK.get())
                 .add(TCBlocks.METAL_VOID_BLOCK.get());
 
-        tag(BlockTags.LOGS_THAT_BURN)
-                .addTag(TCBlockTags.GREATWOOD_LOGS)
-                .addTag(TCBlockTags.SILVERWOOD_LOGS);
+        tag(BlockTags.LOGS_THAT_BURN).addTag(TCBlockTags.GREATWOOD_LOGS).addTag(TCBlockTags.SILVERWOOD_LOGS);
 
-        tag(BlockTags.LEAVES)
-                .add(TCBlocks.LEAVES_GREATWOOD.get())
-                .add(TCBlocks.LEAVES_SILVERWOOD.get());
+        tag(BlockTags.LEAVES).add(TCBlocks.LEAVES_GREATWOOD.get()).add(TCBlocks.LEAVES_SILVERWOOD.get());
 
-        tag(BlockTags.SAPLINGS)
-                .add(TCBlocks.SAPLING_GREATWOOD.get())
-                .add(TCBlocks.SAPLING_SILVERWOOD.get());
+        tag(BlockTags.SAPLINGS).add(TCBlocks.SAPLING_GREATWOOD.get()).add(TCBlocks.SAPLING_SILVERWOOD.get());
 
-        tag(BlockTags.PLANKS)
-                .add(TCBlocks.PLANK_GREATWOOD.get())
-                .add(TCBlocks.PLANK_SILVERWOOD.get());
+        tag(BlockTags.PLANKS).add(TCBlocks.PLANK_GREATWOOD.get()).add(TCBlocks.PLANK_SILVERWOOD.get());
 
-        tag(BlockTags.MINEABLE_WITH_HOE)
-                .add(TCBlocks.LEAVES_GREATWOOD.get())
-                .add(TCBlocks.LEAVES_SILVERWOOD.get());
+        tag(BlockTags.MINEABLE_WITH_HOE).add(TCBlocks.LEAVES_GREATWOOD.get()).add(TCBlocks.LEAVES_SILVERWOOD.get());
 
         tag(TCBlockTags.CRUCIBLE_HEAT_SOURCES)
                 .add(Blocks.LAVA)
@@ -145,14 +127,12 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(Blocks.MAGMA_BLOCK)
                 .addAll(TCBlocks.NITORS.values().stream().map(DeferredHolder::get));
 
-        tag(TCBlockTags.SCAN_CLAY)
-                .add(Blocks.CLAY)
-                .addTag(BlockTags.TERRACOTTA);
+        tag(TCBlockTags.SCAN_CLAY).add(Blocks.CLAY).addTag(BlockTags.TERRACOTTA);
 
         tag(TCBlockTags.ORES_AMBER).add(TCBlocks.ORE_AMBER.get());
         tag(TCBlockTags.ORES_CINNABAR).add(TCBlocks.ORE_CINNABAR.get());
         tag(Tags.Blocks.ORES_QUARTZ).add(TCBlocks.ORE_QUARTZ.get());
-        tag(Tags.Blocks.ORES).addTags(TCBlockTags.ORES_AMBER,TCBlockTags.ORES_CINNABAR);
+        tag(Tags.Blocks.ORES).addTags(TCBlockTags.ORES_AMBER, TCBlockTags.ORES_CINNABAR);
 
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(TCBlocks.ORE_AMBER.get())
@@ -168,11 +148,9 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.ALCHEMICAL_CONSTRUCT.get())
                 .add(TCBlocks.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
 
-        tag(BlockTags.NEEDS_STONE_TOOL)
-                .add(TCBlocks.ORE_AMBER.get());
+        tag(BlockTags.NEEDS_STONE_TOOL).add(TCBlocks.ORE_AMBER.get());
 
-        tag(BlockTags.NEEDS_IRON_TOOL)
-                .add(TCBlocks.ORE_CINNABAR.get());
+        tag(BlockTags.NEEDS_IRON_TOOL).add(TCBlocks.ORE_CINNABAR.get());
 
         tag(TCBlockTags.PORTABLE_HOLE_BLACKLIST);
 
@@ -180,16 +158,29 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.STORAGE_BLOCKS_BRASS).add(TCBlocks.METAL_BRASS_BLOCK.get());
         tag(TCBlockTags.STORAGE_BLOCKS_THAUMIUM).add(TCBlocks.METAL_THAUMIUM_BLOCK.get());
         tag(TCBlockTags.STORAGE_BLOCKS_VOID_METAL).add(TCBlocks.METAL_VOID_BLOCK.get());
-        tag(Tags.Blocks.STORAGE_BLOCKS).addTags(TCBlockTags.STORAGE_BLOCKS_AMBER,TCBlockTags.STORAGE_BLOCKS_BRASS,TCBlockTags.STORAGE_BLOCKS_THAUMIUM,TCBlockTags.STORAGE_BLOCKS_VOID_METAL);
+        tag(Tags.Blocks.STORAGE_BLOCKS)
+                .addTags(
+                        TCBlockTags.STORAGE_BLOCKS_AMBER,
+                        TCBlockTags.STORAGE_BLOCKS_BRASS,
+                        TCBlockTags.STORAGE_BLOCKS_THAUMIUM,
+                        TCBlockTags.STORAGE_BLOCKS_VOID_METAL);
 
-        tag(TCBlockTags.GREATWOOD_LOGS).add(TCBlocks.LOG_GREATWOOD.get(),TCBlocks.WOOD_GREATWOOD.get(), TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_GREATWOOD.get());
-        tag(TCBlockTags.SILVERWOOD_LOGS).add(TCBlocks.LOG_SILVERWOOD.get(),TCBlocks.WOOD_SILVERWOOD.get(), TCBlocks.STRIPPED_LOG_SILVERWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get());
+        tag(TCBlockTags.GREATWOOD_LOGS)
+                .add(
+                        TCBlocks.LOG_GREATWOOD.get(),
+                        TCBlocks.WOOD_GREATWOOD.get(),
+                        TCBlocks.STRIPPED_LOG_GREATWOOD.get(),
+                        TCBlocks.STRIPPED_WOOD_GREATWOOD.get());
+        tag(TCBlockTags.SILVERWOOD_LOGS)
+                .add(
+                        TCBlocks.LOG_SILVERWOOD.get(),
+                        TCBlocks.WOOD_SILVERWOOD.get(),
+                        TCBlocks.STRIPPED_LOG_SILVERWOOD.get(),
+                        TCBlocks.STRIPPED_WOOD_SILVERWOOD.get());
         tag(Tags.Blocks.OVERWORLD_NATURAL_LOGS).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
         tag(BlockTags.OVERWORLD_NATURAL_LOGS).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
         tag(BlockTags.SNAPS_GOAT_HORN).add(TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get());
-        tag(Tags.Blocks.NATURAL_WOODS)
-                .add(TCBlocks.WOOD_GREATWOOD.get())
-                .add(TCBlocks.WOOD_SILVERWOOD.get());
+        tag(Tags.Blocks.NATURAL_WOODS).add(TCBlocks.WOOD_GREATWOOD.get()).add(TCBlocks.WOOD_SILVERWOOD.get());
 
         tag(Tags.Blocks.STRIPPED_LOGS)
                 .add(TCBlocks.STRIPPED_LOG_GREATWOOD.get())

@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -93,7 +92,8 @@ public final class BlockCrystal extends Block {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -158,7 +158,8 @@ public final class BlockCrystal extends Block {
                         if (random.nextInt(6) == 0) {
                             childGeneration--;
                         }
-                        level.setBlockAndUpdate(spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
+                        level.setBlockAndUpdate(
+                                spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
                     }
                 }
             }
@@ -184,7 +185,8 @@ public final class BlockCrystal extends Block {
                         if (random.nextInt(6) == 0) {
                             childGeneration--;
                         }
-                        level.setBlockAndUpdate(spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
+                        level.setBlockAndUpdate(
+                                spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
                     }
                 }
             }

@@ -30,9 +30,7 @@ public class CrimsonBladeItem extends Item implements IWarpingGear {
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
         super.inventoryTick(stack, level, entity, slot);
-        if (entity instanceof LivingEntity
-                && stack.isDamaged()
-                && entity.tickCount % REPAIR_INTERVAL_TICKS == 0) {
+        if (entity instanceof LivingEntity && stack.isDamaged() && entity.tickCount % REPAIR_INTERVAL_TICKS == 0) {
             stack.setDamageValue(stack.getDamageValue() - 1);
         }
     }
@@ -48,8 +46,12 @@ public class CrimsonBladeItem extends Item implements IWarpingGear {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         tooltip.accept(Component.translatable("enchantment.special.sapgreat").withStyle(ChatFormatting.GOLD));
         super.appendHoverText(stack, context, display, tooltip, flag);
     }

@@ -1,13 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.research.pool;
 
-import com.leclowndu93150.thaumaturge.network.ClientboundUpdateJEIAspectListPayload;
-import net.neoforged.neoforge.network.PacketDistributor;
-import com.leclowndu93150.thaumaturge.network.ClientboundAspectGainPayload;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
+import com.leclowndu93150.thaumaturge.network.ClientboundAspectGainPayload;
+import com.leclowndu93150.thaumaturge.network.ClientboundUpdateJEIAspectListPayload;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
@@ -21,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class AspectPools {
     public static final int SOFT_CAP = 100;
@@ -30,8 +30,7 @@ public final class AspectPools {
     private static final int PRIMAL_SEED_SPREAD = 5;
 
     private static final List<ResourceKey<IAspect>> PRIMALS = List.of(
-            TCAspects.AER, TCAspects.TERRA, TCAspects.IGNIS,
-            TCAspects.AQUA, TCAspects.ORDO, TCAspects.PERDITIO);
+            TCAspects.AER, TCAspects.TERRA, TCAspects.IGNIS, TCAspects.AQUA, TCAspects.ORDO, TCAspects.PERDITIO);
 
     private AspectPools() {}
 
@@ -82,8 +81,8 @@ public final class AspectPools {
         int granted = amount;
         if (discovery) {
             granted += DISCOVERY_BONUS;
-            player.sendSystemMessage(Component.translatable("tc.addaspectdiscovery",
-                    AspectComponents.trueName(aspect)).withStyle(ChatFormatting.DARK_PURPLE));
+            player.sendSystemMessage(Component.translatable("tc.addaspectdiscovery", AspectComponents.trueName(aspect))
+                    .withStyle(ChatFormatting.DARK_PURPLE));
         }
         int current = data.amount(id);
         if (current >= SOFT_CAP) {
@@ -100,9 +99,16 @@ public final class AspectPools {
         sync(player);
         if (granted > 0) {
             if (data.tryClaimGrantSound(player.level().getGameTime())) {
-                player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                        SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F,
-                        0.9F + player.getRandom().nextFloat() * 0.2F);
+                player.level()
+                        .playSound(
+                                null,
+                                player.getX(),
+                                player.getY(),
+                                player.getZ(),
+                                SoundEvents.EXPERIENCE_ORB_PICKUP,
+                                SoundSource.PLAYERS,
+                                0.2F,
+                                0.9F + player.getRandom().nextFloat() * 0.2F);
             }
             PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, granted));
         }
@@ -122,8 +128,8 @@ public final class AspectPools {
     public static void notifyMissingComponent(ServerPlayer player, Holder<IAspect> aspect) {
         for (Holder<IAspect> component : aspect.value().components()) {
             if (!isDiscovered(player, component)) {
-                player.sendSystemMessage(missingComponentMessage(player, component)
-                        .withStyle(ChatFormatting.DARK_PURPLE));
+                player.sendSystemMessage(
+                        missingComponentMessage(player, component).withStyle(ChatFormatting.DARK_PURPLE));
                 return;
             }
         }
@@ -172,25 +178,43 @@ public final class AspectPools {
     public static void refund(ServerPlayer player, Holder<IAspect> aspect, int amount) {
         data(player).add(idOf(aspect), amount);
         sync(player);
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F,
-                0.9F + player.getRandom().nextFloat() * 0.2F);
+        player.level()
+                .playSound(
+                        null,
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.PLAYERS,
+                        0.2F,
+                        0.9F + player.getRandom().nextFloat() * 0.2F);
     }
 
     public static int grantAllForCommand(ServerPlayer player, int amount) {
         AspectPoolData data = data(player);
         List<Holder.Reference<IAspect>> aspects = player.registryAccess()
-                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList();
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
+                .toList();
         for (Holder.Reference<IAspect> aspect : aspects) {
             Identifier id = aspect.key().identifier();
             data.add(id, amount);
             data.discover(id);
         }
         sync(player);
-        PacketDistributor.sendToPlayer(player,
+        PacketDistributor.sendToPlayer(
+                player,
                 new ClientboundAspectGainPayload(aspects.getFirst().key().identifier(), 0));
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
+        player.level()
+                .playSound(
+                        null,
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        TCSounds.LEARN.get(),
+                        SoundSource.PLAYERS,
+                        0.5F,
+                        1.0F);
         return aspects.size();
     }
 
@@ -201,8 +225,16 @@ public final class AspectPools {
         data.discover(id);
         sync(player);
         PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, amount));
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                TCSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
+        player.level()
+                .playSound(
+                        null,
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        TCSounds.LEARN.get(),
+                        SoundSource.PLAYERS,
+                        0.5F,
+                        1.0F);
     }
 
     public static Identifier idOf(Holder<IAspect> aspect) {

@@ -101,13 +101,16 @@ public final class SalisMundusRecipe extends CustomRecipe {
 
     @Override
     public List<RecipeDisplay> display() {
-        SlotDisplay crystal = new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get().builtInRegistryHolder());
+        SlotDisplay crystal =
+                new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get().builtInRegistryHolder());
         return List.of(new ShapelessCraftingRecipeDisplay(
                 List.of(
                         new SlotDisplay.ItemSlotDisplay(Items.FLINT.builtInRegistryHolder()),
                         new SlotDisplay.ItemSlotDisplay(Items.BOWL.builtInRegistryHolder()),
                         new SlotDisplay.ItemSlotDisplay(Items.REDSTONE.builtInRegistryHolder()),
-                        crystal, crystal, crystal),
+                        crystal,
+                        crystal,
+                        crystal),
                 new SlotDisplay.ItemSlotDisplay(TCItems.SALIS_MUNDUS.get().builtInRegistryHolder()),
                 new SlotDisplay.ItemSlotDisplay(Blocks.CRAFTING_TABLE.asItem().builtInRegistryHolder())));
     }

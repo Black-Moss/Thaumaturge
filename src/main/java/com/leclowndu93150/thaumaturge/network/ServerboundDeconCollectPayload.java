@@ -15,8 +15,7 @@ public record ServerboundDeconCollectPayload(BlockPos pos) implements CustomPack
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundDeconCollectPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    BlockPos.STREAM_CODEC, ServerboundDeconCollectPayload::pos,
-                    ServerboundDeconCollectPayload::new);
+                    BlockPos.STREAM_CODEC, ServerboundDeconCollectPayload::pos, ServerboundDeconCollectPayload::new);
 
     public static void handle(ServerboundDeconCollectPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {

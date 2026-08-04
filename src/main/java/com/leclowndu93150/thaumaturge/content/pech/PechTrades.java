@@ -13,13 +13,16 @@ public final class PechTrades {
     private PechTrades() {}
 
     public static List<Entry> tradesFor(int pechType, HolderLookup.Provider registries) {
-        String table = switch (pechType) {
-            case EntityPech.TYPE_MAGE -> "mage";
-            case EntityPech.TYPE_STALKER -> "stalker";
-            default -> "forager";
-        };
+        String table =
+                switch (pechType) {
+                    case EntityPech.TYPE_MAGE -> "mage";
+                    case EntityPech.TYPE_STALKER -> "stalker";
+                    default -> "forager";
+                };
         ResourceKey<PechTradeTable> key = ResourceKey.create(PechTradeTable.REGISTRY_KEY, TCIds.rl(table));
-        return registries.lookupOrThrow(PechTradeTable.REGISTRY_KEY).get(key)
+        return registries
+                .lookupOrThrow(PechTradeTable.REGISTRY_KEY)
+                .get(key)
                 .map(ref -> ref.value().trades().stream()
                         .map(trade -> new Entry(trade.tier(), trade.result().create()))
                         .toList())

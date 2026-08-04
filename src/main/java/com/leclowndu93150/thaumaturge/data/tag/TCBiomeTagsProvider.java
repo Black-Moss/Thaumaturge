@@ -35,8 +35,7 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
                 .add(Biomes.SUNFLOWER_PLAINS)
                 .add(Biomes.SWAMP)
                 .add(Biomes.MANGROVE_SWAMP);
-        tag(TCBiomeTags.HAS_SILVERWOOD)
-                .add(TCBiomes.MAGICAL_FOREST);
+        tag(TCBiomeTags.HAS_SILVERWOOD).add(TCBiomes.MAGICAL_FOREST);
         tag(TCBiomeTags.HAS_CINDERPEARL)
                 .add(Biomes.DESERT)
                 .add(Biomes.BADLANDS)
@@ -46,14 +45,9 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
                 .add(TCBiomes.MAGICAL_FOREST)
                 .add(TCBiomes.EERIE)
                 .add(TCBiomes.ELDRITCH);
-        tag(BiomeTags.IS_FOREST)
-                .add(TCBiomes.MAGICAL_FOREST);
-        tag(TCBiomeTags.IS_MAGICAL)
-                .add(TCBiomes.MAGICAL_FOREST)
-                .add(TCBiomes.EERIE);
-        tag(TCBiomeTags.IS_SPOOKY)
-                .add(Biomes.DARK_FOREST)
-                .add(TCBiomes.EERIE);
+        tag(BiomeTags.IS_FOREST).add(TCBiomes.MAGICAL_FOREST);
+        tag(TCBiomeTags.IS_MAGICAL).add(TCBiomes.MAGICAL_FOREST).add(TCBiomes.EERIE);
+        tag(TCBiomeTags.IS_SPOOKY).add(Biomes.DARK_FOREST).add(TCBiomes.EERIE);
         tag(TCBiomeTags.HAS_ELDRITCH_OBELISK)
                 .add(Biomes.PLAINS)
                 .add(Biomes.SUNFLOWER_PLAINS)

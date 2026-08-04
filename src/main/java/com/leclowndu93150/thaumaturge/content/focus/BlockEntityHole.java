@@ -2,10 +2,10 @@ package com.leclowndu93150.thaumaturge.content.focus;
 
 import com.leclowndu93150.thaumaturge.content.focus.effect.FocusEffectRift;
 import com.leclowndu93150.thaumaturge.content.particle.SparkleParticleOptions;
-import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -31,7 +31,9 @@ public final class BlockEntityHole extends BlockEntity {
     int countdown = 0;
     int countdownmax = DEFAULT_COUNTDOWN_MAX;
     int count = 0;
-    @Nullable Direction direction = null;
+
+    @Nullable
+    Direction direction = null;
 
     public BlockEntityHole(BlockPos pos, BlockState state) {
         super(TCBlockEntities.HOLE.get(), pos, state);
@@ -50,30 +52,46 @@ public final class BlockEntityHole extends BlockEntity {
                 case Y -> {
                     for (int a = 0; a < RING_CELLS; a++) {
                         if (a / RING_SIZE != 1 || a % RING_SIZE != 1) {
-                            FocusEffectRift.createHole(level, pos.offset(-1 + a / RING_SIZE, 0, -1 + a % RING_SIZE),
-                                    null, 1, hole.countdownmax);
+                            FocusEffectRift.createHole(
+                                    level,
+                                    pos.offset(-1 + a / RING_SIZE, 0, -1 + a % RING_SIZE),
+                                    null,
+                                    1,
+                                    hole.countdownmax);
                         }
                     }
                 }
                 case Z -> {
                     for (int a = 0; a < RING_CELLS; a++) {
                         if (a / RING_SIZE != 1 || a % RING_SIZE != 1) {
-                            FocusEffectRift.createHole(level, pos.offset(-1 + a / RING_SIZE, -1 + a % RING_SIZE, 0),
-                                    null, 1, hole.countdownmax);
+                            FocusEffectRift.createHole(
+                                    level,
+                                    pos.offset(-1 + a / RING_SIZE, -1 + a % RING_SIZE, 0),
+                                    null,
+                                    1,
+                                    hole.countdownmax);
                         }
                     }
                 }
                 case X -> {
                     for (int a = 0; a < RING_CELLS; a++) {
                         if (a / RING_SIZE != 1 || a % RING_SIZE != 1) {
-                            FocusEffectRift.createHole(level, pos.offset(0, -1 + a / RING_SIZE, -1 + a % RING_SIZE),
-                                    null, 1, hole.countdownmax);
+                            FocusEffectRift.createHole(
+                                    level,
+                                    pos.offset(0, -1 + a / RING_SIZE, -1 + a % RING_SIZE),
+                                    null,
+                                    1,
+                                    hole.countdownmax);
                         }
                     }
                 }
             }
-            if (!FocusEffectRift.createHole(level, pos.relative(hole.direction.getOpposite()), hole.direction,
-                    hole.count - 1, hole.countdownmax)) {
+            if (!FocusEffectRift.createHole(
+                    level,
+                    pos.relative(hole.direction.getOpposite()),
+                    hole.direction,
+                    hole.count - 1,
+                    hole.countdownmax)) {
                 hole.count = 0;
             }
         }
@@ -134,7 +152,12 @@ public final class BlockEntityHole extends BlockEntity {
         }
         SparkleParticleOptions data = new SparkleParticleOptions(
                 ARGB.colorFromFloat(1.0F, SPARKLE_RED, SPARKLE_GREEN, SPARKLE_BLUE),
-                0.6F + rand.nextFloat() * 0.2F, 0, 1.0F, 0.0F, 2, false);
+                0.6F + rand.nextFloat() * 0.2F,
+                0,
+                1.0F,
+                0.0F,
+                2,
+                false);
         level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
     }
 

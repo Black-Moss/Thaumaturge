@@ -24,7 +24,7 @@ public enum GolemComponentProvider implements IEntityComponentProvider {
         if (!(accessor.getEntity() instanceof EntityThaumaturgeGolem golem)) {
             return;
         }
-        tooltip.add(Component.translatable("jade.thaumaturge.golem.rank",
-                golem.getProperties().getRank(), golem.getRankXp()));
+        tooltip.add(Component.translatable(
+                "jade.thaumaturge.golem.rank", golem.getProperties().getRank(), golem.getRankXp()));
     }
 }

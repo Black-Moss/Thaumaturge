@@ -30,8 +30,12 @@ public final class LootBagItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
         tooltip.accept(Component.translatable("tc.lootbag"));
     }
@@ -44,8 +48,7 @@ public final class LootBagItem extends Item {
                     .withParameter(LootContextParams.ORIGIN, player.position())
                     .create(LootContextParamSets.CHEST);
             for (ItemStack loot : table.getRandomItems(params)) {
-                server.addFreshEntity(new ItemEntity(server,
-                        player.getX(), player.getY(), player.getZ(), loot.copy()));
+                server.addFreshEntity(new ItemEntity(server, player.getX(), player.getY(), player.getZ(), loot.copy()));
             }
             player.playSound(TCSounds.COINS.get(), OPEN_VOLUME, 1.0F);
         }

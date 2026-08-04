@@ -36,7 +36,8 @@ public final class EntityGrapple extends ThrowableProjectile {
         super(type, level);
     }
 
-    public EntityGrapple(EntityType<? extends EntityGrapple> type, Level level, LivingEntity thrower, InteractionHand hand) {
+    public EntityGrapple(
+            EntityType<? extends EntityGrapple> type, Level level, LivingEntity thrower, InteractionHand hand) {
         super(type, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), level);
         setOwner(thrower);
         entityData.set(MAIN_HAND, hand == InteractionHand.MAIN_HAND);
@@ -80,7 +81,8 @@ public final class EntityGrapple extends ThrowableProjectile {
         if (!level().isClientSide()) {
             if (!added) {
                 int tracked = thrower.getData(TCAttachments.GRAPPLE_ID.get());
-                if (tracked >= 0 && tracked != getId()
+                if (tracked >= 0
+                        && tracked != getId()
                         && level().getEntity(tracked) instanceof EntityGrapple previous) {
                     previous.discard();
                 }
@@ -135,8 +137,7 @@ public final class EntityGrapple extends ThrowableProjectile {
     }
 
     private void releaseTracker(Entity thrower) {
-        if (!level().isClientSide() && thrower != null
-                && thrower.getData(TCAttachments.GRAPPLE_ID.get()) == getId()) {
+        if (!level().isClientSide() && thrower != null && thrower.getData(TCAttachments.GRAPPLE_ID.get()) == getId()) {
             thrower.setData(TCAttachments.GRAPPLE_ID.get(), -1);
         }
     }

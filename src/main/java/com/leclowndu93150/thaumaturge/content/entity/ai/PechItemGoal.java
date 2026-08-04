@@ -32,8 +32,9 @@ public final class PechItemGoal extends Goal {
         }
         double best = Double.MAX_VALUE;
         this.targetItem = null;
-        for (ItemEntity item : this.pech.level().getEntitiesOfClass(ItemEntity.class,
-                this.pech.getBoundingBox().inflate(MAX_TARGET_DISTANCE))) {
+        for (ItemEntity item : this.pech
+                .level()
+                .getEntitiesOfClass(ItemEntity.class, this.pech.getBoundingBox().inflate(MAX_TARGET_DISTANCE))) {
             if (!this.pech.canPickup(item.getItem()) || item.entityTags().contains(PECH_DROP_TAG)) {
                 continue;
             }
@@ -67,8 +68,9 @@ public final class PechItemGoal extends Goal {
 
     private void moveToTarget() {
         if (this.targetItem != null) {
-            this.pech.getNavigation().moveTo(this.targetItem,
-                    this.pech.getAttributeValue(Attributes.MOVEMENT_SPEED) * SPEED_FACTOR);
+            this.pech
+                    .getNavigation()
+                    .moveTo(this.targetItem, this.pech.getAttributeValue(Attributes.MOVEMENT_SPEED) * SPEED_FACTOR);
         }
     }
 
@@ -82,8 +84,8 @@ public final class PechItemGoal extends Goal {
             this.cooldown = 4 + this.pech.getRandom().nextInt(4);
             this.moveToTarget();
         }
-        double distance = this.pech.distanceToSqr(this.targetItem.getX(),
-                this.targetItem.getBoundingBox().minY, this.targetItem.getZ());
+        double distance = this.pech.distanceToSqr(
+                this.targetItem.getX(), this.targetItem.getBoundingBox().minY, this.targetItem.getZ());
         if (distance <= PICKUP_RANGE_SQ) {
             this.cooldown = 0;
             int before = this.targetItem.getItem().getCount();
@@ -94,10 +96,23 @@ public final class PechItemGoal extends Goal {
                 this.targetItem.discard();
             }
             if (remainder.isEmpty() || remainder.getCount() != before) {
-                this.pech.level().playSound(null,
-                        this.targetItem.getX(), this.targetItem.getY(), this.targetItem.getZ(),
-                        SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.2F,
-                        ((this.pech.getRandom().nextFloat() - this.pech.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                this.pech
+                        .level()
+                        .playSound(
+                                null,
+                                this.targetItem.getX(),
+                                this.targetItem.getY(),
+                                this.targetItem.getZ(),
+                                SoundEvents.ITEM_PICKUP,
+                                SoundSource.NEUTRAL,
+                                0.2F,
+                                ((this.pech.getRandom().nextFloat()
+                                                                - this.pech
+                                                                        .getRandom()
+                                                                        .nextFloat())
+                                                        * 0.7F
+                                                + 1.0F)
+                                        * 2.0F);
             }
         }
     }

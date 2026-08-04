@@ -15,8 +15,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntityRenderer.class)
-public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> {
-    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("TAIL"))
+public abstract class LivingEntityRendererMixin<
+        T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> {
+    @Inject(
+            method =
+                    "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
+            at = @At("TAIL"))
     private void thaumaturge$extractChampionType(T entity, S state, float partialTicks, CallbackInfo ci) {
         ((ChampionRenderState) state).thaumaturge$setChampionType(ChampionHelper.championType(entity));
         ((ChampionRenderState) state).thaumaturge$setEntityId(entity.getId());
@@ -25,8 +29,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
     @Inject(method = "getModelTint", at = @At("RETURN"), cancellable = true)
     private void thaumaturge$championTint(S state, CallbackInfoReturnable<Integer> cir) {
         if (((ChampionRenderState) state).thaumaturge$championType() == ChampionModifier.GRIM) {
-            cir.setReturnValue(ARGB.multiply(cir.getReturnValue(),
-                    ARGB.colorFromFloat(1.0F, 0.6F, 0.6F, 0.6F)));
+            cir.setReturnValue(ARGB.multiply(cir.getReturnValue(), ARGB.colorFromFloat(1.0F, 0.6F, 0.6F, 0.6F)));
         }
     }
 }

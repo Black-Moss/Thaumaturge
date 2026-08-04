@@ -1,21 +1,19 @@
 package com.leclowndu93150.thaumaturge.content.workbench;
 
-import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumaturge.content.recipe.ThaumaturgeCraftingManager;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingRecipe;
+import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
+import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public final class SlotArcaneResult extends Slot {
     private final InventoryArcaneWorkbench craftMatrix;
@@ -23,11 +21,11 @@ public final class SlotArcaneResult extends Slot {
     private int amountCrafted;
 
     public SlotArcaneResult(
-        ResultContainer result,
-        InventoryArcaneWorkbench craftMatrix,
-        @Nullable BlockEntityArcaneWorkbench tile,
-        int x, int y
-    ) {
+            ResultContainer result,
+            InventoryArcaneWorkbench craftMatrix,
+            @Nullable BlockEntityArcaneWorkbench tile,
+            int x,
+            int y) {
         super(result, 0, x, y);
         this.craftMatrix = craftMatrix;
         this.tile = tile;
@@ -60,7 +58,6 @@ public final class SlotArcaneResult extends Slot {
         ArcaneCraftingInput input = craftMatrix.asArcaneCraftInput();
 
         ArcaneCraftingRecipe arcane = ThaumaturgeCraftingManager.findMatchingArcaneRecipe(serverLevel, input, player);
-
 
         List<ItemStack> remaining;
         if (arcane != null) {

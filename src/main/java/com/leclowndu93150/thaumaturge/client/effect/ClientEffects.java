@@ -24,14 +24,17 @@ public final class ClientEffects {
     public static void essentiaDrop(Level level, double x, double y, double z, float r, float g, float b, float alpha) {
         RandomSource rand = level.getRandom();
         BubbleParticleOptions options = new BubbleParticleOptions(
-                ARGB.colorFromFloat(1.0F, r, g, b), alpha,
-                0.4F + rand.nextFloat() * 0.2F, 20 + rand.nextInt(10), 0.01F, false);
-        spawn(options, x, y, z,
-                rand.nextGaussian() * 0.005, rand.nextGaussian() * 0.005, rand.nextGaussian() * 0.005);
+                ARGB.colorFromFloat(1.0F, r, g, b),
+                alpha,
+                0.4F + rand.nextFloat() * 0.2F,
+                20 + rand.nextInt(10),
+                0.01F,
+                false);
+        spawn(options, x, y, z, rand.nextGaussian() * 0.005, rand.nextGaussian() * 0.005, rand.nextGaussian() * 0.005);
     }
 
-    public static void smokeSpiral(Level level, double x, double y, double z,
-                                   float radius, int start, int minY, int color) {
+    public static void smokeSpiral(
+            Level level, double x, double y, double z, float radius, int start, int minY, int color) {
         float r = ARGB.red(color) / 255.0F;
         float g = ARGB.green(color) / 255.0F;
         float b = ARGB.blue(color) / 255.0F;
@@ -41,29 +44,41 @@ public final class ClientEffects {
     public static void followingBubble(Level level, double x, double y, double z) {
         RandomSource rand = level.getRandom();
         BubbleParticleOptions options = new BubbleParticleOptions(
-                ARGB.colorFromFloat(1.0F, 0.33F, 0.33F, 1.0F), 1.0F,
-                rand.nextFloat() * 0.3F + 0.3F, 15 + rand.nextInt(10), -0.001F, false);
+                ARGB.colorFromFloat(1.0F, 0.33F, 0.33F, 1.0F),
+                1.0F,
+                rand.nextFloat() * 0.3F + 0.3F,
+                15 + rand.nextInt(10),
+                -0.001F,
+                false);
         spawn(options, x, y, z, 0.0, 0.0, 0.0);
     }
 
-    public static void nitorCore(Level level, double x, double y, double z, double vx, double vy, double vz, int color) {
+    public static void nitorCore(
+            Level level, double x, double y, double z, double vx, double vy, double vz, int color) {
         float r = ARGB.red(color) / 255.0F;
         float g = ARGB.green(color) / 255.0F;
         float b = ARGB.blue(color) / 255.0F;
         spawn(new NitorCoreParticleOptions(r, g, b), x, y, z, vx, vy, vz);
     }
 
-    public static void nitorFlames(Level level, double x, double y, double z, double vx, double vy, double vz, int color, int delay) {
+    public static void nitorFlames(
+            Level level, double x, double y, double z, double vx, double vy, double vz, int color, int delay) {
         RandomSource rand = level.getRandom();
-        WispFlameParticleOptions options = new WispFlameParticleOptions(
-                color, 0.66F, 3.0F + rand.nextFloat(), 0.05F, delay);
+        WispFlameParticleOptions options =
+                new WispFlameParticleOptions(color, 0.66F, 3.0F + rand.nextFloat(), 0.05F, delay);
         spawn(options, x, y, z, vx, vy, vz);
     }
 
-    public static void blockRunes(Level level, double x, double y, double z,
-                                  float r, float g, float b, int duration, float gravity) {
-        spawn(new BlockRunesParticleOptions(r, g, b, duration, gravity, false),
-                x + 0.5, y + 0.5, z + 0.5, 0.0, 0.0, 0.0);
+    public static void blockRunes(
+            Level level, double x, double y, double z, float r, float g, float b, int duration, float gravity) {
+        spawn(
+                new BlockRunesParticleOptions(r, g, b, duration, gravity, false),
+                x + 0.5,
+                y + 0.5,
+                z + 0.5,
+                0.0,
+                0.0,
+                0.0);
     }
 
     public static void scanHighlight(Level level, BlockPos pos) {
@@ -95,16 +110,44 @@ public final class ClientEffects {
                 float r = Mth.nextInt(rand, 16, 32) / 255.0F;
                 float g = Mth.nextInt(rand, 132, 165) / 255.0F;
                 float b = Mth.nextInt(rand, 223, 239) / 255.0F;
-                drawSimpleSparkle(level, rand, ax + x, ay + y, az + z, 0.0, 0.0, 0.0,
-                        0.4F + (float) rand.nextGaussian() * 0.1F, r, g, b,
-                        rand.nextInt(10), 1.0F, 0.0F, 4);
+                drawSimpleSparkle(
+                        level,
+                        rand,
+                        ax + x,
+                        ay + y,
+                        az + z,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.4F + (float) rand.nextGaussian() * 0.1F,
+                        r,
+                        g,
+                        b,
+                        rand.nextInt(10),
+                        1.0F,
+                        0.0F,
+                        4);
             }
         }
     }
 
-    public static void drawSimpleSparkle(Level level, RandomSource rand, double x, double y, double z,
-                                         double vx, double vy, double vz, float scale,
-                                         float r, float g, float b, int delay, float decay, float gravity, int baseAge) {
+    public static void drawSimpleSparkle(
+            Level level,
+            RandomSource rand,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            float scale,
+            float r,
+            float g,
+            float b,
+            int delay,
+            float decay,
+            float gravity,
+            int baseAge) {
         SparkleParticleOptions options = new SparkleParticleOptions(
                 ARGB.colorFromFloat(1.0F, r, g, b), scale, delay, decay, gravity, baseAge, true);
         spawn(options, x, y, z, vx, vy, vz);

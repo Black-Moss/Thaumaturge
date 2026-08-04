@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
+import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import net.minecraft.resources.Identifier;
-import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
-import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

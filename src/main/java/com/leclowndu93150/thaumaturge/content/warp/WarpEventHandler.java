@@ -46,7 +46,8 @@ public final class WarpEventHandler {
         if (!entity.isUsingItem() || !entity.getUseItem().is(Items.MILK_BUCKET)) {
             return;
         }
-        Identifier id = event.getEffect().unwrapKey().map(ResourceKey::identifier).orElse(null);
+        Identifier id =
+                event.getEffect().unwrapKey().map(ResourceKey::identifier).orElse(null);
         if (id != null && MILK_PROOF_EFFECTS.contains(id)) {
             event.setCanceled(true);
         }
@@ -70,8 +71,7 @@ public final class WarpEventHandler {
 
     @SubscribeEvent
     public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
-        if (ThaumaturgeCommonConfig.WUSS_MODE.get()
-                || !(event.getEntity() instanceof ServerPlayer player)) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
         ItemWarp warp = event.getCrafting().getItem().builtInRegistryHolder().getData(TCDataMaps.ITEM_WARP);

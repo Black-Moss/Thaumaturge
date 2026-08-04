@@ -20,15 +20,12 @@ public final class MazeSavedData extends SavedData {
             Codec.unboundedMap(Codec.STRING.xmap(Long::parseLong, String::valueOf), Codec.SHORT);
 
     public static final Codec<MazeSavedData> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-            CELLS_CODEC.fieldOf("cells").forGetter(data -> data.cells),
-            Codec.INT.fieldOf("boss_count").forGetter(data -> data.bossCount)
-    ).apply(builder, MazeSavedData::new));
+                    CELLS_CODEC.fieldOf("cells").forGetter(data -> data.cells),
+                    Codec.INT.fieldOf("boss_count").forGetter(data -> data.bossCount))
+            .apply(builder, MazeSavedData::new));
 
     public static final SavedDataType<MazeSavedData> TYPE = new SavedDataType<>(
-            Identifier.fromNamespaceAndPath(TCIds.MODID, "labyrinth"),
-            MazeSavedData::new,
-            CODEC,
-            DataFixTypes.LEVEL);
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "labyrinth"), MazeSavedData::new, CODEC, DataFixTypes.LEVEL);
 
     private final Map<Long, Short> cells;
     private int bossCount;

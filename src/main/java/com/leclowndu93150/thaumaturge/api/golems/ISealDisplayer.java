@@ -5,5 +5,4 @@ package com.leclowndu93150.thaumaturge.api.golems;
  *
  * @since 1.0.0
  */
-public interface ISealDisplayer {
-}
+public interface ISealDisplayer {}

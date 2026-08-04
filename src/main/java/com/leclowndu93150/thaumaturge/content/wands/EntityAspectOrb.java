@@ -62,8 +62,8 @@ public class EntityAspectOrb extends Entity {
     }
 
     public ResourceKey<IAspect> getAspect() {
-        return ResourceKey.create(IAspect.REGISTRY_KEY,
-                Identifier.fromNamespaceAndPath("thaumaturge", entityData.get(DATA_ASPECT)));
+        return ResourceKey.create(
+                IAspect.REGISTRY_KEY, Identifier.fromNamespaceAndPath("thaumaturge", entityData.get(DATA_ASPECT)));
     }
 
     public void setAspect(ResourceKey<IAspect> aspect) {
@@ -75,8 +75,10 @@ public class EntityAspectOrb extends Entity {
     }
 
     public int getAspectColor() {
-        Holder<IAspect> holder = level().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY)
-                .get(getAspect()).orElse(null);
+        Holder<IAspect> holder = level().registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .get(getAspect())
+                .orElse(null);
         return holder == null ? 0xFFFFFF : holder.value().color();
     }
 
@@ -101,7 +103,9 @@ public class EntityAspectOrb extends Entity {
         }
         if (level().getFluidState(blockPosition()).is(FluidTags.LAVA)) {
             setDeltaMovement(
-                    (random.nextFloat() - random.nextFloat()) * 0.2F, 0.2, (random.nextFloat() - random.nextFloat()) * 0.2F);
+                    (random.nextFloat() - random.nextFloat()) * 0.2F,
+                    0.2,
+                    (random.nextFloat() - random.nextFloat()) * 0.2F);
             playSound(SoundEvents.GENERIC_EXTINGUISH_FIRE, 0.4F, 2.0F + random.nextFloat() * 0.4F);
         }
         followNearbyPlayer();
@@ -110,7 +114,10 @@ public class EntityAspectOrb extends Entity {
         applyEffectsFromBlocks();
         float friction = FRICTION;
         if (onGround()) {
-            friction = level().getBlockState(getBlockPosBelowThatAffectsMyMovement()).getBlock().getFriction() * FRICTION;
+            friction = level().getBlockState(getBlockPosBelowThatAffectsMyMovement())
+                            .getBlock()
+                            .getFriction()
+                    * FRICTION;
         }
         setDeltaMovement(getDeltaMovement().multiply(friction, FRICTION, friction));
         if (verticalCollisionBelow && fallSpeed < -getGravity()) {
@@ -130,11 +137,13 @@ public class EntityAspectOrb extends Entity {
                 && (followingPlayer == null || followingPlayer.distanceToSqr(this) > FOLLOW_RANGE * FOLLOW_RANGE)) {
             followingPlayer = null;
             double closest = Double.MAX_VALUE;
-            for (Player player : level().getEntitiesOfClass(Player.class,
-                    getBoundingBox().inflate(FOLLOW_RANGE))) {
+            for (Player player :
+                    level().getEntitiesOfClass(Player.class, getBoundingBox().inflate(FOLLOW_RANGE))) {
                 double distance = player.distanceToSqr(this);
-                if (distance < closest && !player.isSpectator()
-                        && !WandVisHelper.findWandInHotbarWithRoom(player, getAspect(), aspectValue).isEmpty()) {
+                if (distance < closest
+                        && !player.isSpectator()
+                        && !WandVisHelper.findWandInHotbarWithRoom(player, getAspect(), aspectValue)
+                                .isEmpty()) {
                     closest = distance;
                     followingPlayer = player;
                 }
@@ -162,7 +171,9 @@ public class EntityAspectOrb extends Entity {
                 WandVisHelper.addVis(wand, getAspect(), aspectValue, true);
                 player.takeXpDelay = 2;
                 player.take(this, 1);
-                playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.1F,
+                playSound(
+                        SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        0.1F,
                         0.5F * ((random.nextFloat() - random.nextFloat()) * 0.7F + 1.8F));
                 discard();
             }
@@ -200,7 +211,9 @@ public class EntityAspectOrb extends Entity {
         health = input.getShortOr("Health", (short) DEFAULT_HEALTH);
         age = input.getShortOr("Age", (short) 0);
         aspectValue = input.getShortOr("Value", (short) 1);
-        entityData.set(DATA_ASPECT, input.getStringOr("Aspect", TCAspects.AER.identifier().getPath()));
+        entityData.set(
+                DATA_ASPECT,
+                input.getStringOr("Aspect", TCAspects.AER.identifier().getPath()));
     }
 
     @Override

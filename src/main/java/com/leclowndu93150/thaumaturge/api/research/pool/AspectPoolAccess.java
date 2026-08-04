@@ -178,6 +178,5 @@ public final class AspectPoolAccess {
         boolean spendAll(ServerPlayer player, AspectList cost);
 
         void refund(ServerPlayer player, Holder<IAspect> aspect, int amount);
-
     }
 }

@@ -107,9 +107,13 @@ public final class TaintApi {
      */
     public interface Bindings {
         void addTaintSeed(ServerLevel level, BlockPos pos);
+
         void removeTaintSeed(ServerLevel level, BlockPos pos);
+
         boolean isNearTaintSeed(Level level, BlockPos pos);
+
         boolean isAtTaintSeedEdge(Level level, BlockPos pos);
+
         void spreadFibres(ServerLevel level, BlockPos pos, boolean force);
     }
 }

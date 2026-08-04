@@ -34,7 +34,10 @@ public final class EssentiaCrystalFactory {
 
     public static List<ItemStack> discoveredCrystals(Player player) {
         List<ItemStack> crystals = new ArrayList<>();
-        player.level().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements()
+        player.level()
+                .registryAccess()
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
                 .filter(aspect -> AspectPools.isDiscovered(player, aspect))
                 .sorted(Comparator.comparing(aspect -> !aspect.value().isPrimal()))
                 .forEach(aspect -> crystals.add(of(aspect)));

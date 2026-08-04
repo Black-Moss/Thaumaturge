@@ -4,9 +4,9 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
-import com.leclowndu93150.thaumaturge.api.items.IScribeTools;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.items.IScribeTools;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.KnowledgeReward;
@@ -104,8 +104,11 @@ public final class ResearchNotes {
 
     public static boolean obtainNote(ServerPlayer player, Identifier entryId, int ordinal) {
         ResourceKey<IResearchEntry> key = ResourceKey.create(IResearchEntry.REGISTRY_KEY, entryId);
-        IResearchEntry entry = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY)
-                .get(key).map(holder -> holder.value()).orElse(null);
+        IResearchEntry entry = player.registryAccess()
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+                .get(key)
+                .map(holder -> holder.value())
+                .orElse(null);
         if (entry == null) {
             return false;
         }
@@ -115,21 +118,21 @@ public final class ResearchNotes {
             return false;
         }
         if ((!consumeInk(player, true) || !hasItem(player, Items.PAPER)) && !player.getAbilities().instabuild) {
-            player.sendSystemMessage(Component.translatable("tc.researchnote.missing")
-                    .withStyle(ChatFormatting.DARK_PURPLE));
+            player.sendSystemMessage(
+                    Component.translatable("tc.researchnote.missing").withStyle(ChatFormatting.DARK_PURPLE));
             return false;
         }
         consumeInk(player, false);
         consumeItem(player, Items.PAPER);
         AspectList anchors = anchors(player.registryAccess(), entry);
-        ResearchNoteData data = NoteGenerator.generate(entryId, ordinal, anchors, entry.complexity(), player.getRandom());
+        ResearchNoteData data =
+                NoteGenerator.generate(entryId, ordinal, anchors, entry.complexity(), player.getRandom());
         ItemStack note = new ItemStack(TCItems.RESEARCH_NOTE.get());
         note.set(TCDataComponents.RESEARCH_NOTE.get(), data);
         if (!player.getInventory().add(note)) {
             player.drop(note, false);
         }
-        player.level().playSound(null, player,
-                TCSounds.WRITE.get(), SoundSource.UI, 0.5F, 1.0F);
+        player.level().playSound(null, player, TCSounds.WRITE.get(), SoundSource.UI, 0.5F, 1.0F);
         return true;
     }
 
@@ -144,7 +147,7 @@ public final class ResearchNotes {
                 return true;
             }
         }
-        if (player.containerMenu instanceof MenuResearchTable table){
+        if (player.containerMenu instanceof MenuResearchTable table) {
             if (table.blockEntity() != null && table.blockEntity().hasInkReady()) {
                 if (!simulate) {
                     return table.blockEntity().consumeInk();
@@ -177,7 +180,8 @@ public final class ResearchNotes {
     }
 
     public static Component entryName(HolderLookup.Provider registries, Identifier entryId) {
-        return registries.lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+        return registries
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
                 .get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, entryId))
                 .map(holder -> (Component) Component.translatable(holder.value().nameKey()))
                 .orElse(Component.literal(entryId.toString()));

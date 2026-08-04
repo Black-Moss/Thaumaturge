@@ -12,9 +12,10 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealGui;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumaturge.content.golem.CropUtils;
-import com.leclowndu93150.thaumaturge.server.TCFakePlayer;
 import com.leclowndu93150.thaumaturge.content.golem.GolemInteractionHelper;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
+import com.leclowndu93150.thaumaturge.server.TCFakePlayer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -26,9 +27,9 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -38,11 +39,9 @@ import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfigToggles {
     private static final int REPLANT_CLEAN_INTERVAL = 100;
@@ -51,8 +50,8 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
     private static final short REPLANT_LIFESPAN = 300;
 
     protected final ISealConfigToggles.SealToggle[] props = {
-            new ISealConfigToggles.SealToggle(true, "prep", "golem.prop.replant"),
-            new ISealConfigToggles.SealToggle(false, "ppro", "golem.prop.provision")
+        new ISealConfigToggles.SealToggle(true, "prep", "golem.prop.replant"),
+        new ISealConfigToggles.SealToggle(false, "ppro", "golem.prop.provision")
     };
 
     private int delay = System.identityHashCode(this) % 33;
@@ -91,7 +90,8 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
             Task task = new Task(seal.getSealPos(), pos);
             task.setPriority(seal.getPriority());
             TaskHandler.addTask(level, task);
-        } else if (props[0].getValue() && replantTasks.containsKey(pos.asLong())
+        } else if (props[0].getValue()
+                && replantTasks.containsKey(pos.asLong())
                 && level.getBlockState(pos).isAir()) {
             ReplantInfo info = replantTasks.get(pos.asLong());
             if (TaskHandler.getTask(level, info.taskId) == null) {
@@ -123,16 +123,18 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
         BlockState state = level.getBlockState(task.getPos());
         if (CropUtils.isClickableCrop(state)) {
             Direction face = Direction.getApproximateNearest(
-                    task.getPos().getX() + 0.5 - golem.getGolemEntity().getX(),
-                    task.getPos().getY() + 0.5 - golem.getGolemEntity().getY(),
-                    task.getPos().getZ() + 0.5 - golem.getGolemEntity().getZ()).getOpposite();
-            state.useWithoutItem(level, player, new BlockHitResult(Vec3.atCenterOf(task.getPos()), face, task.getPos(), false));
+                            task.getPos().getX() + 0.5 - golem.getGolemEntity().getX(),
+                            task.getPos().getY() + 0.5 - golem.getGolemEntity().getY(),
+                            task.getPos().getZ() + 0.5 - golem.getGolemEntity().getZ())
+                    .getOpposite();
+            state.useWithoutItem(
+                    level, player, new BlockHitResult(Vec3.atCenterOf(task.getPos()), face, task.getPos(), false));
             golem.addRankXp(1);
             golem.swingArm();
             return;
         }
-        GolemInteractionHelper.golemClick(level, golem, task.getPos(), task.getSealPos().face(),
-                ItemStack.EMPTY, false, true);
+        GolemInteractionHelper.golemClick(
+                level, golem, task.getPos(), task.getSealPos().face(), ItemStack.EMPTY, false, true);
         if (!CropUtils.isGrownCrop(level, task.getPos())) {
             return;
         }
@@ -156,14 +158,21 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
             replant.setPriority(task.getPriority());
             replant.setLifespan(REPLANT_LIFESPAN);
             TaskHandler.addTask(level, replant);
-            replantTasks.put(replant.getPos().asLong(), new ReplantInfo(replant.getPos(), replantFace,
-                    replant.getId(), seed.copy(), below.getBlock() instanceof FarmlandBlock));
+            replantTasks.put(
+                    replant.getPos().asLong(),
+                    new ReplantInfo(
+                            replant.getPos(),
+                            replantFace,
+                            replant.getId(),
+                            seed.copy(),
+                            below.getBlock() instanceof FarmlandBlock));
         }
     }
 
     private void replantCrop(ServerLevel level, IGolemAPI golem, Task task) {
         ReplantInfo info = replantTasks.get(task.getPos().asLong());
-        if (info == null || info.taskId != task.getId()
+        if (info == null
+                || info.taskId != task.getId()
                 || !level.getBlockState(task.getPos()).isAir()
                 || !golem.isCarrying(info.stack)) {
             return;
@@ -173,20 +182,31 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
         if (info.farmland && below.is(BlockTags.DIRT) && !(below.getBlock() instanceof FarmlandBlock)) {
             ItemStack hoe = new ItemStack(Items.DIAMOND_HOE);
             player.setItemInHand(InteractionHand.MAIN_HAND, hoe);
-            hoe.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                    new BlockHitResult(Vec3.atCenterOf(task.getPos().below()), Direction.UP, task.getPos().below(), false)));
+            hoe.useOn(new UseOnContext(
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    new BlockHitResult(
+                            Vec3.atCenterOf(task.getPos().below()),
+                            Direction.UP,
+                            task.getPos().below(),
+                            false)));
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         }
         ItemStack seed = info.stack.copy();
         seed.setCount(1);
         player.setItemInHand(InteractionHand.MAIN_HAND, seed);
-        InteractionResult result = seed.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-                new BlockHitResult(Vec3.atCenterOf(task.getPos().relative(info.face)), info.face.getOpposite(),
-                        task.getPos().relative(info.face), false)));
+        InteractionResult result = seed.useOn(new UseOnContext(
+                player,
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(
+                        Vec3.atCenterOf(task.getPos().relative(info.face)),
+                        info.face.getOpposite(),
+                        task.getPos().relative(info.face),
+                        false)));
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         if (result instanceof InteractionResult.Success) {
-            level.globalLevelEvent(LEVEL_EVENT_BLOCK_BREAK, task.getPos(),
-                    Block.getId(level.getBlockState(task.getPos())));
+            level.globalLevelEvent(
+                    LEVEL_EVENT_BLOCK_BREAK, task.getPos(), Block.getId(level.getBlockState(task.getPos())));
             golem.dropItem(seed);
             golem.addRankXp(1);
             golem.swingArm();
@@ -210,8 +230,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
     }
 
     @Override
-    public void onTaskSuspension(Level level, Task task) {
-    }
+    public void onTaskSuspension(Level level, Task task) {}
 
     @Override
     public void readCustomNBT(CompoundTag nbt) {
@@ -223,10 +242,14 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
                     byte face = entry.getByteOr("taskface", (byte) 0);
                     boolean farmland = entry.getBooleanOr("farmland", false);
                     Tag seedTag = entry.get("seed");
-                    ItemStack stack = seedTag == null ? ItemStack.EMPTY
-                            : ItemStack.OPTIONAL_CODEC.parse(NbtOps.INSTANCE, seedTag).result()
+                    ItemStack stack = seedTag == null
+                            ? ItemStack.EMPTY
+                            : ItemStack.OPTIONAL_CODEC
+                                    .parse(NbtOps.INSTANCE, seedTag)
+                                    .result()
                                     .orElse(ItemStack.EMPTY);
-                    replantTasks.put(loc, new ReplantInfo(BlockPos.of(loc), Direction.values()[face], 0, stack, farmland));
+                    replantTasks.put(
+                            loc, new ReplantInfo(BlockPos.of(loc), Direction.values()[face], 0, stack, farmland));
                 });
             }
         });
@@ -243,7 +266,10 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
             entry.putLong("taskloc", info.pos.asLong());
             entry.putByte("taskface", (byte) info.face.ordinal());
             entry.putBoolean("farmland", info.farmland);
-            Tag seed = ItemStack.OPTIONAL_CODEC.encodeStart(NbtOps.INSTANCE, info.stack).result().orElse(null);
+            Tag seed = ItemStack.OPTIONAL_CODEC
+                    .encodeStart(NbtOps.INSTANCE, info.stack)
+                    .result()
+                    .orElse(null);
             if (seed != null) {
                 entry.put("seed", seed);
             }
@@ -263,12 +289,11 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
     }
 
     @Override
-    public void onRemoval(Level level, BlockPos pos, Direction side) {
-    }
+    public void onRemoval(Level level, BlockPos pos, Direction side) {}
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_AREA, CAT_TOGGLES, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_AREA, CAT_TOGGLES, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
@@ -283,7 +308,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{TCGolemTraits.DEFT.get(), TCGolemTraits.SMART.get()};
+        return new GolemTrait[] {TCGolemTraits.DEFT.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override
@@ -292,8 +317,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
     }
 
     @Override
-    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {
-    }
+    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {}
 
     private static final class ReplantInfo {
         private final Direction face;

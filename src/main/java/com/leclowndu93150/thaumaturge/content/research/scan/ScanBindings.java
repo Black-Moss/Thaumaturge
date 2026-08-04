@@ -4,15 +4,12 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
-import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
-import java.util.Optional;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,8 +23,11 @@ public final class ScanBindings implements ScanningManager.Bindings {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return false;
         }
-        boolean hasEntry = serverPlayer.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY)
-                .get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research)).isPresent();
+        boolean hasEntry = serverPlayer
+                .registryAccess()
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+                .get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research))
+                .isPresent();
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(serverPlayer);
         if (hasEntry) {
             if (!knowledge.isResearchKnown(research)) {

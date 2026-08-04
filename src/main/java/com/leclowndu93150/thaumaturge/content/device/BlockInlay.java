@@ -8,26 +8,25 @@ import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.world.level.ScheduledTickAccess;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockInlay extends Block implements IInfusionStabiliser {
@@ -44,7 +43,8 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
 
     public BlockInlay(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any()
+        registerDefaultState(stateDefinition
+                .any()
                 .setValue(CHARGE, 0)
                 .setValue(NORTH, false)
                 .setValue(EAST, false)
@@ -68,7 +68,8 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -92,8 +93,7 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     private static BlockState connectionState(BlockState state, LevelReader level, BlockPos pos) {
-        return state
-                .setValue(NORTH, attaches(level, pos, Direction.NORTH))
+        return state.setValue(NORTH, attaches(level, pos, Direction.NORTH))
                 .setValue(EAST, attaches(level, pos, Direction.EAST))
                 .setValue(SOUTH, attaches(level, pos, Direction.SOUTH))
                 .setValue(WEST, attaches(level, pos, Direction.WEST));
@@ -106,8 +106,15 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
-                                     Direction direction, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+    protected BlockState updateShape(
+            BlockState state,
+            LevelReader level,
+            ScheduledTickAccess ticks,
+            BlockPos pos,
+            Direction direction,
+            BlockPos neighbourPos,
+            BlockState neighbourState,
+            RandomSource random) {
         if (direction.getAxis().isHorizontal()) {
             return connectionState(state, level, pos);
         }
@@ -122,7 +129,8 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+    protected void affectNeighborsAfterRemoval(
+            BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos neighbour = pos.relative(direction);
@@ -133,8 +141,13 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
-                                   @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Block neighborBlock,
+            @Nullable Orientation orientation,
+            boolean movedByPiston) {
         if (level.isClientSide()) {
             return;
         }
@@ -158,8 +171,7 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     public static int sourceStrengthAt(Level level, BlockPos pos) {
-        if (isSourceBlock(level, pos)
-                && level.getBlockEntity(pos) instanceof BlockEntityStabilizer stabilizer) {
+        if (isSourceBlock(level, pos) && level.getBlockEntity(pos) instanceof BlockEntityStabilizer stabilizer) {
             return stabilizer.getEnergy();
         }
         return 0;
@@ -212,11 +224,14 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         int charge = state.getValue(CHARGE);
         if (charge > 0 && random.nextInt(20 - charge) == 0) {
-            level.addParticle(DustParticleOptions.REDSTONE,
+            level.addParticle(
+                    DustParticleOptions.REDSTONE,
                     pos.getX() + 0.5 + random.nextGaussian() * 0.08,
                     pos.getY() + 0.05,
                     pos.getZ() + 0.5 + random.nextGaussian() * 0.08,
-                    0.0, 0.0, 0.0);
+                    0.0,
+                    0.0,
+                    0.0);
         }
     }
 

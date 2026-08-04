@@ -84,8 +84,8 @@ public final class TCSounds {
     private TCSounds() {}
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
-        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
-                Identifier.fromNamespaceAndPath(TCIds.MODID, name)));
+        return SOUNDS.register(
+                name, () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(TCIds.MODID, name)));
     }
 
     public static void register(IEventBus modBus) {

@@ -74,8 +74,7 @@ public final class ScanNode implements IScanThing {
     }
 
     private static @Nullable BlockEntityNode nodeAt(Player player, @Nullable Object target) {
-        if (target instanceof BlockPos pos
-                && player.level().getBlockEntity(pos) instanceof BlockEntityNode node) {
+        if (target instanceof BlockPos pos && player.level().getBlockEntity(pos) instanceof BlockEntityNode node) {
             return node;
         }
         return null;
@@ -84,8 +83,7 @@ public final class ScanNode implements IScanThing {
     private static AspectList scanAspects(Player player, BlockEntityNode node) {
         Map<Holder<IAspect>, Integer> points = new LinkedHashMap<>();
         for (AspectInstance entry : node.getAspects().entries()) {
-            points.merge(entry.aspect(),
-                    Math.max(MIN_POINTS, entry.amount() / POINTS_DIVISOR), Math::max);
+            points.merge(entry.aspect(), Math.max(MIN_POINTS, entry.amount() / POINTS_DIVISOR), Math::max);
         }
         switch (node.getNodeType()) {
             case UNSTABLE -> mergeMax(points, player, TCAspects.PERDITIO, TYPE_BONUS);
@@ -108,13 +106,13 @@ public final class ScanNode implements IScanThing {
         return result;
     }
 
-    private static void mergeMax(Map<Holder<IAspect>, Integer> points, Player player,
-            ResourceKey<IAspect> key, int amount) {
+    private static void mergeMax(
+            Map<Holder<IAspect>, Integer> points, Player player, ResourceKey<IAspect> key, int amount) {
         points.merge(holder(player, key), amount, Math::max);
     }
 
-    private static void mergeSum(Map<Holder<IAspect>, Integer> points, Player player,
-            ResourceKey<IAspect> key, int amount) {
+    private static void mergeSum(
+            Map<Holder<IAspect>, Integer> points, Player player, ResourceKey<IAspect> key, int amount) {
         points.merge(holder(player, key), amount, Integer::sum);
     }
 

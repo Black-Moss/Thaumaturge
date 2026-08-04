@@ -29,16 +29,12 @@ public final class AspectIngredientHelper implements IIngredientHelper<AspectIns
 
     @Override
     public Object getUid(AspectInstance ingredient, UidContext context) {
-        return ingredient.aspect().unwrapKey()
-                .map(ResourceKey::identifier)
-                .orElse(UNKNOWN);
+        return ingredient.aspect().unwrapKey().map(ResourceKey::identifier).orElse(UNKNOWN);
     }
 
     @Override
     public Identifier getIdentifier(AspectInstance ingredient) {
-        return ingredient.aspect().unwrapKey()
-                .map(ResourceKey::identifier)
-                .orElse(UNKNOWN);
+        return ingredient.aspect().unwrapKey().map(ResourceKey::identifier).orElse(UNKNOWN);
     }
 
     @Override
@@ -51,7 +47,9 @@ public final class AspectIngredientHelper implements IIngredientHelper<AspectIns
         if (ingredient == null) {
             return "null";
         }
-        return ingredient.aspect().unwrapKey()
+        return ingredient
+                .aspect()
+                .unwrapKey()
                 .map(key -> key.identifier().toString())
                 .orElse("unbound aspect holder");
     }

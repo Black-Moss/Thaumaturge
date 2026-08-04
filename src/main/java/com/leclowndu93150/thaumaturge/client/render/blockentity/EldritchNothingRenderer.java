@@ -16,7 +16,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class EldritchNothingRenderer implements BlockEntityRenderer<BlockEntityEldritchNothing, EldritchNothingRenderState> {
+public final class EldritchNothingRenderer
+        implements BlockEntityRenderer<BlockEntityEldritchNothing, EldritchNothingRenderState> {
     private static final float INSET = 0.01F;
 
     public EldritchNothingRenderer(BlockEntityRendererProvider.Context context) {}
@@ -27,8 +28,12 @@ public final class EldritchNothingRenderer implements BlockEntityRenderer<BlockE
     }
 
     @Override
-    public void extractRenderState(BlockEntityEldritchNothing nothing, EldritchNothingRenderState state, float partialTicks,
-                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityEldritchNothing nothing,
+            EldritchNothingRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(nothing, state, partialTicks, cameraPosition, breakProgress);
         state.anyExposed = false;
         Level level = nothing.getLevel();
@@ -46,7 +51,11 @@ public final class EldritchNothingRenderer implements BlockEntityRenderer<BlockE
     }
 
     @Override
-    public void submit(EldritchNothingRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            EldritchNothingRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            CameraRenderState camera) {
         if (!state.anyExposed) {
             return;
         }
@@ -63,18 +72,24 @@ public final class EldritchNothingRenderer implements BlockEntityRenderer<BlockE
         float near = INSET;
         float far = 1.0F - INSET;
         switch (dir) {
-            case DOWN -> EldritchPortalSurface.quad(pose, buffer, worldPos,
-                    0.0F, near, 0.0F, 1.0F, near, 0.0F, 1.0F, near, 1.0F, 0.0F, near, 1.0F);
-            case UP -> EldritchPortalSurface.quad(pose, buffer, worldPos,
-                    0.0F, far, 0.0F, 1.0F, far, 0.0F, 1.0F, far, 1.0F, 0.0F, far, 1.0F);
-            case NORTH -> EldritchPortalSurface.quad(pose, buffer, worldPos,
-                    0.0F, 0.0F, near, 0.0F, 1.0F, near, 1.0F, 1.0F, near, 1.0F, 0.0F, near);
-            case SOUTH -> EldritchPortalSurface.quad(pose, buffer, worldPos,
-                    0.0F, 0.0F, far, 0.0F, 1.0F, far, 1.0F, 1.0F, far, 1.0F, 0.0F, far);
-            case WEST -> EldritchPortalSurface.quad(pose, buffer, worldPos,
-                    near, 0.0F, 0.0F, near, 1.0F, 0.0F, near, 1.0F, 1.0F, near, 0.0F, 1.0F);
-            case EAST -> EldritchPortalSurface.quad(pose, buffer, worldPos,
-                    far, 0.0F, 0.0F, far, 1.0F, 0.0F, far, 1.0F, 1.0F, far, 0.0F, 1.0F);
+            case DOWN ->
+                EldritchPortalSurface.quad(
+                        pose, buffer, worldPos, 0.0F, near, 0.0F, 1.0F, near, 0.0F, 1.0F, near, 1.0F, 0.0F, near, 1.0F);
+            case UP ->
+                EldritchPortalSurface.quad(
+                        pose, buffer, worldPos, 0.0F, far, 0.0F, 1.0F, far, 0.0F, 1.0F, far, 1.0F, 0.0F, far, 1.0F);
+            case NORTH ->
+                EldritchPortalSurface.quad(
+                        pose, buffer, worldPos, 0.0F, 0.0F, near, 0.0F, 1.0F, near, 1.0F, 1.0F, near, 1.0F, 0.0F, near);
+            case SOUTH ->
+                EldritchPortalSurface.quad(
+                        pose, buffer, worldPos, 0.0F, 0.0F, far, 0.0F, 1.0F, far, 1.0F, 1.0F, far, 1.0F, 0.0F, far);
+            case WEST ->
+                EldritchPortalSurface.quad(
+                        pose, buffer, worldPos, near, 0.0F, 0.0F, near, 1.0F, 0.0F, near, 1.0F, 1.0F, near, 0.0F, 1.0F);
+            case EAST ->
+                EldritchPortalSurface.quad(
+                        pose, buffer, worldPos, far, 0.0F, 0.0F, far, 1.0F, 0.0F, far, 1.0F, 1.0F, far, 0.0F, 1.0F);
         }
     }
 }

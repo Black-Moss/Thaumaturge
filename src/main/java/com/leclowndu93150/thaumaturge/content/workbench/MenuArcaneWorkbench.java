@@ -9,6 +9,8 @@ import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInp
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCMenus;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -27,9 +29,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     private static final int RESULT_SLOT = 0;
@@ -55,8 +54,7 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     private static final int SLOT_SPACING = 18;
 
     public static final List<ResourceKey<IAspect>> PRIMAL_ORDER = List.of(
-        TCAspects.AER, TCAspects.IGNIS, TCAspects.AQUA, TCAspects.TERRA, TCAspects.ORDO, TCAspects.PERDITIO
-    );
+            TCAspects.AER, TCAspects.IGNIS, TCAspects.AQUA, TCAspects.TERRA, TCAspects.ORDO, TCAspects.PERDITIO);
 
     private static final int AURA_DATA_INDEX = 0;
     private static final int AURA_REFRESH_INTERVAL = 10;
@@ -72,20 +70,29 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     private int lastVis = -1;
 
     public MenuArcaneWorkbench(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new InventoryArcaneWorkbench(),
-            ContainerLevelAccess.create(playerInventory.player.level(), buf.readBlockPos()), null);
+        this(
+                containerId,
+                playerInventory,
+                new InventoryArcaneWorkbench(),
+                ContainerLevelAccess.create(playerInventory.player.level(), buf.readBlockPos()),
+                null);
     }
 
     public MenuArcaneWorkbench(int containerId, Inventory playerInventory, BlockEntityArcaneWorkbench tile) {
-        this(containerId, playerInventory, tile.getInventory(),
-            ContainerLevelAccess.create(tile.getLevel(), tile.getBlockPos()), tile);
+        this(
+                containerId,
+                playerInventory,
+                tile.getInventory(),
+                ContainerLevelAccess.create(tile.getLevel(), tile.getBlockPos()),
+                tile);
     }
 
     private MenuArcaneWorkbench(
-        int containerId, Inventory playerInventory,
-        InventoryArcaneWorkbench craftingInventory, ContainerLevelAccess access,
-        @Nullable BlockEntityArcaneWorkbench tile
-    ) {
+            int containerId,
+            Inventory playerInventory,
+            InventoryArcaneWorkbench craftingInventory,
+            ContainerLevelAccess access,
+            @Nullable BlockEntityArcaneWorkbench tile) {
         super(TCMenus.ARCANE_WORKBENCH.get(), containerId);
         this.craftingInventory = craftingInventory;
         this.access = access;
@@ -104,22 +111,27 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                addSlot(new Slot(craftingInventory, col + row * 3,
-                    CRAFT_ORIGIN_X + col * CRAFT_SPACING, CRAFT_ORIGIN_Y + row * CRAFT_SPACING));
+                addSlot(new Slot(
+                        craftingInventory,
+                        col + row * 3,
+                        CRAFT_ORIGIN_X + col * CRAFT_SPACING,
+                        CRAFT_ORIGIN_Y + row * CRAFT_SPACING));
             }
         }
 
         for (int i = 0; i < PRIMAL_ORDER.size(); i++) {
-            addSlot(new SlotCrystalEssentia(craftingInventory, 9 + i,
-                CRYSTAL_X[i], CRYSTAL_Y[i], PRIMAL_ORDER.get(i)));
+            addSlot(new SlotCrystalEssentia(craftingInventory, 9 + i, CRYSTAL_X[i], CRYSTAL_Y[i], PRIMAL_ORDER.get(i)));
         }
 
         addSlot(new SlotWorkbenchWand(craftingInventory, InventoryArcaneWorkbench.WAND_SLOT, WAND_X, WAND_Y));
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9,
-                    PLAYER_INV_X + col * SLOT_SPACING, PLAYER_INV_Y + row * SLOT_SPACING));
+                addSlot(new Slot(
+                        playerInventory,
+                        col + row * 9 + 9,
+                        PLAYER_INV_X + col * SLOT_SPACING,
+                        PLAYER_INV_Y + row * SLOT_SPACING));
             }
         }
 
@@ -166,10 +178,10 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     @SuppressWarnings("unchecked")
     private Optional<RecipeHolder<CraftingRecipe>> findVanillaRecipe(ServerLevel level, CraftingInput input) {
         return level.recipeAccess().getRecipes().stream()
-            .filter(r -> r.value() instanceof CraftingRecipe && !(r.value() instanceof IArcaneRecipe))
-            .map(r -> (RecipeHolder<CraftingRecipe>) r)
-            .filter(r -> r.value().matches(input, level))
-            .findFirst();
+                .filter(r -> r.value() instanceof CraftingRecipe && !(r.value() instanceof IArcaneRecipe))
+                .map(r -> (RecipeHolder<CraftingRecipe>) r)
+                .filter(r -> r.value().matches(input, level))
+                .findFirst();
     }
 
     @Override
@@ -195,9 +207,10 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return access.evaluate((level, pos) ->
-            level.getBlockState(pos).is(TCBlocks.ARCANE_WORKBENCH.get())
-                && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0, true);
+        return access.evaluate(
+                (level, pos) -> level.getBlockState(pos).is(TCBlocks.ARCANE_WORKBENCH.get())
+                        && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0,
+                true);
     }
 
     @Override
@@ -213,8 +226,7 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
     @Override
     public void clicked(int slotId, int button, ContainerInput containerInput, Player player) {
-        if (slotId == WAND_SLOT && getCarried().getItem() instanceof ItemWand wand
-                && wand.isStaff(getCarried())) {
+        if (slotId == WAND_SLOT && getCarried().getItem() instanceof ItemWand wand && wand.isStaff(getCarried())) {
             TCActionBar.sendPurple(player, "tc.workbench.staff");
         }
         super.clicked(slotId, button, containerInput, player);
@@ -234,7 +246,8 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
             }
             slot.onQuickCraft(stack, copy);
         } else if (slotIndex >= PLAYER_INV_START && slotIndex < HOTBAR_END) {
-            if (SlotWorkbenchWand.isUsableWand(stack) && !this.slots.get(WAND_SLOT).hasItem()
+            if (SlotWorkbenchWand.isUsableWand(stack)
+                    && !this.slots.get(WAND_SLOT).hasItem()
                     && !this.moveItemStackTo(stack, WAND_SLOT, WAND_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }

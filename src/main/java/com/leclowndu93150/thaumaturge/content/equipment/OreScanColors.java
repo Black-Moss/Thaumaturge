@@ -35,8 +35,7 @@ public final class OreScanColors {
             new Entry(Tags.Blocks.ORES_QUARTZ, C_QUARTZ),
             new Entry(Tags.Blocks.ORES_COPPER, C_COPPER),
             new Entry(TCBlockTags.ORES_AMBER, C_AMBER),
-            new Entry(TCBlockTags.ORES_CINNABAR, C_CINNABAR)
-    );
+            new Entry(TCBlockTags.ORES_CINNABAR, C_CINNABAR));
 
     private OreScanColors() {}
 

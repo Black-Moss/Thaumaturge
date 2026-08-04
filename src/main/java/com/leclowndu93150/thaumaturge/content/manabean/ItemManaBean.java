@@ -50,17 +50,19 @@ public final class ItemManaBean extends Item implements IEssentiaContainerItem {
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
         if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer player) {
             RandomSource random = serverLevel.getRandom();
-            Optional<Holder<MobEffect>> rolled = serverLevel.registryAccess()
+            Optional<Holder<MobEffect>> rolled = serverLevel
+                    .registryAccess()
                     .lookupOrThrow(TCEffectTags.MANA_BEAN_EFFECTS.registry())
                     .get(TCEffectTags.MANA_BEAN_EFFECTS)
                     .flatMap(set -> set.getRandomElement(random));
             rolled.ifPresent(effect -> {
                 if (effect.value().isInstantenous()) {
-                    effect.value().applyInstantenousEffect(serverLevel, player, player, player,
-                            EFFECT_AMPLIFIER, INSTANT_HEALTH_FACTOR);
+                    effect.value()
+                            .applyInstantenousEffect(
+                                    serverLevel, player, player, player, EFFECT_AMPLIFIER, INSTANT_HEALTH_FACTOR);
                 } else {
-                    player.addEffect(new MobEffectInstance(effect,
-                            EFFECT_BASE_DURATION + random.nextInt(EFFECT_EXTRA_DURATION), 0));
+                    player.addEffect(new MobEffectInstance(
+                            effect, EFFECT_BASE_DURATION + random.nextInt(EFFECT_EXTRA_DURATION), 0));
                 }
             });
             Holder<IAspect> aspect = aspectOf(stack);
@@ -80,7 +82,9 @@ public final class ItemManaBean extends Item implements IEssentiaContainerItem {
 
     private static void assignRandomAspect(ItemStack stack, ServerLevel level) {
         List<Holder.Reference<IAspect>> aspects = level.registryAccess()
-                .lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList();
+                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                .listElements()
+                .toList();
         if (!aspects.isEmpty()) {
             Holder<IAspect> aspect = aspects.get(level.getRandom().nextInt(aspects.size()));
             stack.set(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1));
@@ -129,7 +133,9 @@ public final class ItemManaBean extends Item implements IEssentiaContainerItem {
             stack.remove(TCDataComponents.CRYSTAL_ASPECT.get());
             return;
         }
-        stack.set(TCDataComponents.CRYSTAL_ASPECT.get(), aspects.entries().getFirst().withAmount(1));
+        stack.set(
+                TCDataComponents.CRYSTAL_ASPECT.get(),
+                aspects.entries().getFirst().withAmount(1));
     }
 
     @Override

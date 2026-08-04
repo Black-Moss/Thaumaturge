@@ -16,13 +16,7 @@ public abstract class AbstractTCContainerScreen<T extends AbstractContainerMenu>
     private final int backgroundTextureHeight;
 
     protected AbstractTCContainerScreen(
-            T menu,
-            Inventory inventory,
-            Component title,
-            Identifier background,
-            int imageWidth,
-            int imageHeight
-    ) {
+            T menu, Inventory inventory, Component title, Identifier background, int imageWidth, int imageHeight) {
         this(menu, inventory, title, background, imageWidth, imageHeight, 256, 256);
     }
 
@@ -34,8 +28,7 @@ public abstract class AbstractTCContainerScreen<T extends AbstractContainerMenu>
             int imageWidth,
             int imageHeight,
             int textureWidth,
-            int textureHeight
-    ) {
+            int textureHeight) {
         super(menu, inventory, title, imageWidth, imageHeight);
         this.background = background;
         this.backgroundWidth = imageWidth;
@@ -62,12 +55,10 @@ public abstract class AbstractTCContainerScreen<T extends AbstractContainerMenu>
                 backgroundWidth,
                 backgroundHeight,
                 backgroundTextureWidth,
-                backgroundTextureHeight
-        );
+                backgroundTextureHeight);
     }
 
-    protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-    }
+    protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {}
 
     protected final Identifier background() {
         return background;

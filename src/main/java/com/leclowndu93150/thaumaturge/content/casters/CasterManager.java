@@ -80,8 +80,9 @@ public final class CasterManager {
             for (ThaumaturgeCuriosCompat.CurioPouchRef ref : ThaumaturgeCuriosCompat.equippedPouches(
                     player, stack -> stack.getItem() instanceof FocusPouchItem)) {
                 pouchCount++;
-                pouches.put(pouchCount, new PouchHandle(ref::stack,
-                        () -> ref.handler().setStackInSlot(ref.slot(), ref.stack())));
+                pouches.put(
+                        pouchCount,
+                        new PouchHandle(ref::stack, () -> ref.handler().setStackInSlot(ref.slot(), ref.stack())));
                 indexPouch(foci, ref.stack(), pouchCount);
             }
         }
@@ -96,16 +97,19 @@ public final class CasterManager {
             if (stack.getItem() instanceof FocusPouchItem) {
                 pouchCount++;
                 int pouchSlot = slot;
-                pouches.put(pouchCount, new PouchHandle(
-                        () -> player.getInventory().getItem(pouchSlot),
-                        () -> player.getInventory().setChanged()));
+                pouches.put(
+                        pouchCount,
+                        new PouchHandle(
+                                () -> player.getInventory().getItem(pouchSlot),
+                                () -> player.getInventory().setChanged()));
                 indexPouch(foci, stack, pouchCount);
             }
         }
         if (REMOVE_FOCUS.equals(focusKey) || foci.isEmpty()) {
             ItemStack current = caster.getFocusStack(casterStack);
             if (!current.isEmpty()
-                    && (addFocusToPouch(current.copy(), pouches) || player.getInventory().add(current.copy()))) {
+                    && (addFocusToPouch(current.copy(), pouches)
+                            || player.getInventory().add(current.copy()))) {
                 caster.setFocus(casterStack, ItemStack.EMPTY);
                 player.playSound(TCSounds.TICKS.get(), SWAP_SOUND_VOLUME, REMOVE_SOUND_PITCH);
             }
@@ -139,7 +143,8 @@ public final class CasterManager {
         player.playSound(TCSounds.TICKS.get(), SWAP_SOUND_VOLUME, SWAP_SOUND_PITCH);
         ItemStack current = caster.getFocusStack(casterStack);
         if (!current.isEmpty()
-                && (addFocusToPouch(current.copy(), pouches) || player.getInventory().add(current.copy()))) {
+                && (addFocusToPouch(current.copy(), pouches)
+                        || player.getInventory().add(current.copy()))) {
             caster.setFocus(casterStack, ItemStack.EMPTY);
         }
         if (caster.getFocusStack(casterStack).isEmpty()) {
@@ -305,7 +310,8 @@ public final class CasterManager {
     }
 
     public static float getCooldown(LivingEntity entity) {
-        long remaining = entity.getData(TCAttachments.CASTER_COOLDOWN) - entity.level().getGameTime();
+        long remaining =
+                entity.getData(TCAttachments.CASTER_COOLDOWN) - entity.level().getGameTime();
         return remaining > 0 ? (float) remaining / TICKS_PER_SECOND : 0.0F;
     }
 

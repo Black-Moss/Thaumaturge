@@ -14,15 +14,10 @@ public final class SpaCapabilities {
 
     @SubscribeEvent
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.Fluid.BLOCK,
-                TCBlockEntities.SPA.get(),
-                (be, side) -> be.getTank()
-        );
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, TCBlockEntities.SPA.get(), (be, side) -> be.getTank());
         event.registerBlockEntity(
                 Capabilities.Item.BLOCK,
                 TCBlockEntities.SPA.get(),
-                (be, side) -> side == Direction.UP ? null : be.getItems()
-        );
+                (be, side) -> side == Direction.UP ? null : be.getItems());
     }
 }

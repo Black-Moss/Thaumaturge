@@ -22,7 +22,6 @@ import net.minecraft.server.network.Filterable;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,8 +29,8 @@ import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.level.biome.Biome;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -71,8 +70,11 @@ public final class ResearchProgressionEvents {
 
     public static void recordCrafted(ServerPlayer player, ItemStack crafted) {
         if (crafted.isEmpty()) return;
-        Identifier itemId = crafted.getItem().builtInRegistryHolder().unwrapKey()
-                .map(ResourceKey::identifier).orElse(null);
+        Identifier itemId = crafted.getItem()
+                .builtInRegistryHolder()
+                .unwrapKey()
+                .map(ResourceKey::identifier)
+                .orElse(null);
         if (itemId == null) return;
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         Identifier craftedKey = ResearchManager.craftedKey(itemId);
@@ -84,7 +86,8 @@ public final class ResearchProgressionEvents {
 
     private static boolean isCraftReference(ServerPlayer player, ItemStack crafted) {
         Holder<Item> holder = crafted.getItem().builtInRegistryHolder();
-        return player.registryAccess().lookup(IResearchEntry.REGISTRY_KEY)
+        return player.registryAccess()
+                .lookup(IResearchEntry.REGISTRY_KEY)
                 .map(lookup -> lookup.listElements().anyMatch(entry -> {
                     for (IResearchStage stage : entry.value().stages()) {
                         for (ResearchRequirement req : stage.craft()) {
@@ -131,15 +134,18 @@ public final class ResearchProgressionEvents {
         knowledge.markComplete(GOT_DREAM);
         knowledge.sync(player);
         ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
-        book.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(
-                Filterable.passThrough(Component.translatable("book.thaumaturge.start.title").getString()),
-                player.getName().getString(),
-                WrittenBookContent.MAX_GENERATION,
-                List.of(
-                        Filterable.passThrough(Component.translatable("book.thaumaturge.start.1")),
-                        Filterable.passThrough(Component.translatable("book.thaumaturge.start.2")),
-                        Filterable.passThrough(Component.translatable("book.thaumaturge.start.3"))),
-                false));
+        book.set(
+                DataComponents.WRITTEN_BOOK_CONTENT,
+                new WrittenBookContent(
+                        Filterable.passThrough(Component.translatable("book.thaumaturge.start.title")
+                                .getString()),
+                        player.getName().getString(),
+                        WrittenBookContent.MAX_GENERATION,
+                        List.of(
+                                Filterable.passThrough(Component.translatable("book.thaumaturge.start.1")),
+                                Filterable.passThrough(Component.translatable("book.thaumaturge.start.2")),
+                                Filterable.passThrough(Component.translatable("book.thaumaturge.start.3"))),
+                        false));
         if (!player.getInventory().add(book)) {
             player.drop(book, false);
         }
@@ -169,29 +175,51 @@ public final class ResearchProgressionEvents {
                 && !knowledge.isResearchKnown(UNLOCK_AUROMANCY, 1)
                 && !knowledge.isResearchComplete(UNLOCK_AUROMANCY);
         if (auromancyInProgress) {
-            milestone(player, knowledge, TCIds.rl("m_deepdown"), "got.deepdown",
+            milestone(
+                    player,
+                    knowledge,
+                    TCIds.rl("m_deepdown"),
+                    "got.deepdown",
                     player.getY() < player.level().getMinY() + DEEP_DOWN_DEPTH);
-            milestone(player, knowledge, TCIds.rl("m_uphigh"), "got.uphigh",
+            milestone(
+                    player,
+                    knowledge,
+                    TCIds.rl("m_uphigh"),
+                    "got.uphigh",
                     player.getY() > player.level().getMaxY() * UP_HIGH_FRACTION);
         }
         if (player.tickCount % MILESTONE_CHECK_INTERVAL != 0) return;
         Holder<Biome> biome = player.level().getBiome(player.blockPosition());
-        milestone(player, knowledge, TCIds.rl("m_hellandback"), "got.hellandback",
-                biome.is(BiomeTags.IS_NETHER));
-        milestone(player, knowledge, TCIds.rl("m_endoftheworld"), "got.endoftheworld",
-                biome.is(BiomeTags.IS_END));
-        milestone(player, knowledge, TCIds.rl("m_walker"), null,
+        milestone(player, knowledge, TCIds.rl("m_hellandback"), "got.hellandback", biome.is(BiomeTags.IS_NETHER));
+        milestone(player, knowledge, TCIds.rl("m_endoftheworld"), "got.endoftheworld", biome.is(BiomeTags.IS_END));
+        milestone(
+                player,
+                knowledge,
+                TCIds.rl("m_walker"),
+                null,
                 player.getStats().getValue(Stats.CUSTOM.get(Stats.WALK_ONE_CM)) > WALK_MILESTONE_CM);
-        milestone(player, knowledge, TCIds.rl("m_runner"), null,
+        milestone(
+                player,
+                knowledge,
+                TCIds.rl("m_runner"),
+                null,
                 player.getStats().getValue(Stats.CUSTOM.get(Stats.SPRINT_ONE_CM)) > SPRINT_MILESTONE_CM);
-        milestone(player, knowledge, TCIds.rl("m_jumper"), null,
+        milestone(
+                player,
+                knowledge,
+                TCIds.rl("m_jumper"),
+                null,
                 player.getStats().getValue(Stats.CUSTOM.get(Stats.JUMP)) > JUMP_MILESTONE);
-        milestone(player, knowledge, TCIds.rl("m_swimmer"), null,
+        milestone(
+                player,
+                knowledge,
+                TCIds.rl("m_swimmer"),
+                null,
                 player.getStats().getValue(Stats.CUSTOM.get(Stats.SWIM_ONE_CM)) > SWIM_MILESTONE_CM);
     }
 
-    private static void milestone(ServerPlayer player, PlayerKnowledge knowledge, Identifier id,
-                                  String messageKey, boolean condition) {
+    private static void milestone(
+            ServerPlayer player, PlayerKnowledge knowledge, Identifier id, String messageKey, boolean condition) {
         if (!condition || knowledge.isResearchKnown(id)) return;
         knowledge.addResearch(id);
         knowledge.markComplete(id);

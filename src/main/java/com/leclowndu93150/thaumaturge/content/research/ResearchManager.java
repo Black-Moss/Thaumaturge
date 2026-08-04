@@ -1,17 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
-import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
-import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
-import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
-import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
-import com.leclowndu93150.thaumaturge.api.warp.WarpType;
-import com.leclowndu93150.thaumaturge.network.ClientboundKnowledgeGainPayload;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
@@ -21,6 +14,13 @@ import com.leclowndu93150.thaumaturge.api.research.ResearchAddendum;
 import com.leclowndu93150.thaumaturge.api.research.ResearchEvent;
 import com.leclowndu93150.thaumaturge.api.research.ResearchParent;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
+import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
+import com.leclowndu93150.thaumaturge.api.warp.WarpType;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
+import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
+import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumaturge.network.ClientboundKnowledgeGainPayload;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -45,8 +45,8 @@ public final class ResearchManager {
     private ResearchManager() {}
 
     public static Identifier craftedKey(Identifier item) {
-        return Identifier.fromNamespaceAndPath("thaumaturge",
-                CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
+        return Identifier.fromNamespaceAndPath(
+                "thaumaturge", CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
     }
 
     public static boolean unlock(ServerPlayer player, Identifier research) {
@@ -128,19 +128,21 @@ public final class ResearchManager {
         return changed;
     }
 
-    public static boolean gainKnowledge(ServerPlayer player, KnowledgeType type, Holder<IResearchCategory> category, int amount) {
+    public static boolean gainKnowledge(
+            ServerPlayer player, KnowledgeType type, Holder<IResearchCategory> category, int amount) {
         if (type == null || amount == 0) return false;
         ResearchEvent.KnowledgeGained event = new ResearchEvent.KnowledgeGained(player, type, category, amount);
         if (NeoForge.EVENT_BUS.post(event).isCanceled()) return false;
         PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
-        ResourceKey<IResearchCategory> key = category == null ? null : category.unwrapKey().orElse(null);
+        ResourceKey<IResearchCategory> key =
+                category == null ? null : category.unwrapKey().orElse(null);
         int pointsBefore = knowledge.knowledge(type, key);
         boolean changed = knowledge.addKnowledge(type, key, amount);
         if (changed) knowledge.sync(player);
         int pointsGained = knowledge.knowledge(type, key) - pointsBefore;
         if (pointsGained > 0) {
-            PacketDistributor.sendToPlayer(player,
-                    new ClientboundKnowledgeGainPayload(type, Optional.ofNullable(key), pointsGained));
+            PacketDistributor.sendToPlayer(
+                    player, new ClientboundKnowledgeGainPayload(type, Optional.ofNullable(key), pointsGained));
         }
         return changed;
     }
@@ -171,8 +173,8 @@ public final class ResearchManager {
         return true;
     }
 
-    public static boolean stageRequirementsMet(Player player, IPlayerKnowledge knowledge, IResearchEntry entry,
-                                               Identifier entryId, int stageIndex) {
+    public static boolean stageRequirementsMet(
+            Player player, IPlayerKnowledge knowledge, IResearchEntry entry, Identifier entryId, int stageIndex) {
         IResearchStage stage = entry.stages().get(stageIndex);
         for (Identifier required : stage.requiredResearch()) {
             if (!knowledge.isResearchComplete(required)) return false;
@@ -209,7 +211,8 @@ public final class ResearchManager {
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
             if (stack.isEmpty()) continue;
-            if (req.items().contains(stack.getItem().builtInRegistryHolder()) && testComponents(req.components(), stack)) {
+            if (req.items().contains(stack.getItem().builtInRegistryHolder())
+                    && testComponents(req.components(), stack)) {
                 total += stack.getCount();
             }
         }
@@ -220,21 +223,24 @@ public final class ResearchManager {
         for (var entry : components.entrySet()) {
             var type = entry.getKey();
             var value = entry.getValue();
-            if (value.isEmpty() && getter.has(type) || value.isPresent() && !value.get().equals(getter.get(type))) {
+            if (value.isEmpty() && getter.has(type)
+                    || value.isPresent() && !value.get().equals(getter.get(type))) {
                 return false; // One of the patch entries doesn't match
             }
         }
         return true; // Empty patch always matches or all components match
     }
 
-    private static void consumeStageRequirements(ServerPlayer player, PlayerKnowledge knowledge, IResearchEntry entry, IResearchStage stage) {
+    private static void consumeStageRequirements(
+            ServerPlayer player, PlayerKnowledge knowledge, IResearchEntry entry, IResearchStage stage) {
         for (ResearchRequirement req : stage.obtain()) {
             int remaining = req.amount();
             Inventory inv = player.getInventory();
             for (int i = 0; i < inv.getContainerSize() && remaining > 0; i++) {
                 ItemStack stack = inv.getItem(i);
                 if (stack.isEmpty()) continue;
-                if (req.items().contains(stack.getItem().builtInRegistryHolder()) && testComponents(req.components(), stack)) {
+                if (req.items().contains(stack.getItem().builtInRegistryHolder())
+                        && testComponents(req.components(), stack)) {
                     int take = Math.min(remaining, stack.getCount());
                     stack.shrink(take);
                     remaining -= take;
@@ -279,16 +285,18 @@ public final class ResearchManager {
     }
 
     private static void notifyAddenda(ServerPlayer player, PlayerKnowledge knowledge, Identifier completed) {
-        player.registryAccess().lookup(IResearchEntry.REGISTRY_KEY).ifPresent(lookup ->
-                lookup.listElements().forEach(holder -> {
+        player.registryAccess()
+                .lookup(IResearchEntry.REGISTRY_KEY)
+                .ifPresent(lookup -> lookup.listElements().forEach(holder -> {
                     IResearchEntry other = holder.value();
                     if (other.addenda().isEmpty()) return;
                     Identifier otherId = holder.key().identifier();
                     if (!knowledge.isResearchComplete(otherId)) return;
                     for (ResearchAddendum addendum : other.addenda()) {
                         if (addendum.requiredResearch().contains(completed)) {
-                            player.sendSystemMessage(Component.translatable("tc.addaddendum",
-                                    Component.translatable(other.nameKey())).withStyle(ChatFormatting.DARK_PURPLE));
+                            player.sendSystemMessage(
+                                    Component.translatable("tc.addaddendum", Component.translatable(other.nameKey()))
+                                            .withStyle(ChatFormatting.DARK_PURPLE));
                             knowledge.setResearchFlag(otherId, ResearchFlag.PAGE);
                             break;
                         }

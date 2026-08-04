@@ -72,12 +72,13 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
         state.widths.addAll(entity.pointsWidth);
         state.stability = entity.getRiftStability();
         state.animationTime = entity.tickCount + partialTicks;
-        state.goggles = Minecraft.getInstance().player != null
-                && GogglesAccess.wearsGoggles(Minecraft.getInstance().player);
+        state.goggles =
+                Minecraft.getInstance().player != null && GogglesAccess.wearsGoggles(Minecraft.getInstance().player);
     }
 
     @Override
-    public void submit(FluxRiftRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            FluxRiftRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
         int count = state.points.size();
         if (count <= 2) {
@@ -115,8 +116,13 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
         }
     }
 
-    private static void submitTube(SubmitNodeCollector collector, PoseStack poseStack, RenderType type,
-                                   Vec3[] centers, float[] radii, float radiusScale) {
+    private static void submitTube(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            RenderType type,
+            Vec3[] centers,
+            float[] radii,
+            float radiusScale) {
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {
             Vector3f[] previousRing = null;
             for (int a = 0; a < centers.length; a++) {
@@ -162,9 +168,8 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
             double cos = Math.cos(angle) * radius;
             double sin = Math.sin(angle) * radius;
             ring[side] = new Vector3f(
-                    (float) (center.x + u.x * cos + v.x * sin),
-                    (float) (center.y + u.y * cos + v.y * sin),
-                    (float) (center.z + u.z * cos + v.z * sin));
+                    (float) (center.x + u.x * cos + v.x * sin), (float) (center.y + u.y * cos + v.y * sin), (float)
+                            (center.z + u.z * cos + v.z * sin));
         }
         return ring;
     }

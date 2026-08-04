@@ -16,16 +16,11 @@ import net.minecraft.world.phys.Vec3;
 public record Trajectory(Vec3 source, Vec3 direction) {
     /** Serializes both vectors as double triples. */
     public static final Codec<Trajectory> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Vec3.CODEC.fieldOf("source").forGetter(Trajectory::source),
-            Vec3.CODEC.fieldOf("direction").forGetter(Trajectory::direction)
-    ).apply(i, Trajectory::new));
+                    Vec3.CODEC.fieldOf("source").forGetter(Trajectory::source),
+                    Vec3.CODEC.fieldOf("direction").forGetter(Trajectory::direction))
+            .apply(i, Trajectory::new));
 
     /** Network encoding mirroring {@link #CODEC}. */
     public static final StreamCodec<ByteBuf, Trajectory> STREAM_CODEC = StreamCodec.composite(
-            Vec3.STREAM_CODEC,
-            Trajectory::source,
-            Vec3.STREAM_CODEC,
-            Trajectory::direction,
-            Trajectory::new
-    );
+            Vec3.STREAM_CODEC, Trajectory::source, Vec3.STREAM_CODEC, Trajectory::direction, Trajectory::new);
 }

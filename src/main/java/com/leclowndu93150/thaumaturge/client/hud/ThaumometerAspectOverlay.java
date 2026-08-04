@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.hud;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
@@ -64,16 +64,22 @@ public final class ThaumometerAspectOverlay {
         HitResult result = ScanRaycastHelper.performRaycast(mc.player, ClipContext.Fluid.SOURCE_ONLY);
         if (result instanceof EntityHitResult entityResult) {
             Entity entityTarget = entityResult.getEntity();
-            AspectList aspects = scannedAspects(mc.player, EntityAspects.of(entityTarget),
-                    ScanKeys.entity(entityTarget.getType()));
+            AspectList aspects =
+                    scannedAspects(mc.player, EntityAspects.of(entityTarget), ScanKeys.entity(entityTarget.getType()));
             if (aspects.isEmpty()) {
                 resetAnimation();
                 return;
             }
             advanceAnimation(entityTarget);
             Vec3 pos = entityTarget.position();
-            drawTags(event.getPoseStack(), mc, pos.x - 0.5, pos.y + entityTarget.getBbHeight() + SPACE_ABOVE_LIFT,
-                    pos.z - 0.5, aspects, Direction.UP);
+            drawTags(
+                    event.getPoseStack(),
+                    mc,
+                    pos.x - 0.5,
+                    pos.y + entityTarget.getBbHeight() + SPACE_ABOVE_LIFT,
+                    pos.z - 0.5,
+                    aspects,
+                    Direction.UP);
             return;
         }
         if (!(result instanceof BlockHitResult hit) || result.getType() != HitResult.Type.BLOCK) {
@@ -82,15 +88,20 @@ public final class ThaumometerAspectOverlay {
         }
         BlockPos pos = hit.getBlockPos();
         if (mc.level.getBlockEntity(pos) instanceof BlockEntityNode node) {
-            AspectList nodeAspects = scannedAspects(mc.player, node.getAspects(),
-                    ScanNode.researchKey(mc.level, pos));
+            AspectList nodeAspects = scannedAspects(mc.player, node.getAspects(), ScanNode.researchKey(mc.level, pos));
             if (nodeAspects.isEmpty()) {
                 resetAnimation();
                 return;
             }
             advanceAnimation(pos.immutable());
-            drawTags(event.getPoseStack(), mc, pos.getX(), pos.getY() + SPACE_ABOVE_LIFT, pos.getZ(),
-                    nodeAspects, Direction.UP);
+            drawTags(
+                    event.getPoseStack(),
+                    mc,
+                    pos.getX(),
+                    pos.getY() + SPACE_ABOVE_LIFT,
+                    pos.getZ(),
+                    nodeAspects,
+                    Direction.UP);
             return;
         }
         BlockState state = mc.level.getBlockState(pos);
@@ -99,8 +110,8 @@ public final class ThaumometerAspectOverlay {
             resetAnimation();
             return;
         }
-        AspectList aspects = scannedAspects(mc.player, AspectIndexAccess.index().of(pick),
-                ScanKeys.item(pick.getItem()));
+        AspectList aspects =
+                scannedAspects(mc.player, AspectIndexAccess.index().of(pick), ScanKeys.item(pick.getItem()));
         if (aspects.isEmpty()) {
             resetAnimation();
             return;
@@ -109,11 +120,14 @@ public final class ThaumometerAspectOverlay {
         boolean topFree = mc.level.getBlockState(pos.above()).isAir();
         boolean topVisible = mc.player.getEyeY() > pos.getY() + 1.0;
         Direction dir = topFree && topVisible ? Direction.UP : hit.getDirection();
-        drawTags(event.getPoseStack(), mc,
+        drawTags(
+                event.getPoseStack(),
+                mc,
                 pos.getX() + dir.getStepX() / 2.0,
                 pos.getY() + dir.getStepY() / 2.0,
                 pos.getZ() + dir.getStepZ() / 2.0,
-                aspects, dir);
+                aspects,
+                dir);
     }
 
     private static boolean holdsThaumometer(Player player) {
@@ -143,10 +157,19 @@ public final class ThaumometerAspectOverlay {
         lastTarget = null;
     }
 
-    private static void drawTags(PoseStack poseStack, Minecraft mc,
-                                 double x, double y, double z, AspectList aspects, Direction dir) {
+    private static void drawTags(
+            PoseStack poseStack, Minecraft mc, double x, double y, double z, AspectList aspects, Direction dir) {
         Player player = mc.player;
-        AspectTagWorldRenderer.renderTagCloud(poseStack, mc, x, y, z, aspects, dir, tagScale, TAG_ALPHA,
+        AspectTagWorldRenderer.renderTagCloud(
+                poseStack,
+                mc,
+                x,
+                y,
+                z,
+                aspects,
+                dir,
+                tagScale,
+                TAG_ALPHA,
                 aspect -> player != null && AspectPools.isDiscovered(player, aspect));
     }
 }

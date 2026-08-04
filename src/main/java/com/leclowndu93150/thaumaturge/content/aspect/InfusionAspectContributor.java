@@ -43,14 +43,17 @@ public final class InfusionAspectContributor implements IAspectRecipeContributor
     }
 
     @Override
-    public Optional<AspectList> derive(Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
+    public Optional<AspectList> derive(
+            Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
         List<Candidate> list = candidates.get(item);
         if (list == null) {
             return Optional.empty();
         }
         for (Candidate candidate : list) {
-            AspectList out = RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
-            for (AspectInstance entry : RecipeAspectDerivation.drain(candidate.aspects(), candidate.count()).entries()) {
+            AspectList out =
+                    RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
+            for (AspectInstance entry : RecipeAspectDerivation.drain(candidate.aspects(), candidate.count())
+                    .entries()) {
                 out = out.add(entry);
             }
             if (!out.isEmpty()) {

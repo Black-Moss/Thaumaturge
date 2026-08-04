@@ -30,8 +30,8 @@ public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nulla
      */
     public static CastStreams fromCaster(LivingEntity caster) {
         return new CastStreams(
-                new Trajectory[]{new Trajectory(sourceVector(caster), caster.getLookAngle())},
-                new HitResult[]{new EntityHitResult(caster)});
+                new Trajectory[] {new Trajectory(sourceVector(caster), caster.getLookAngle())},
+                new HitResult[] {new EntityHitResult(caster)});
     }
 
     /**
@@ -49,8 +49,9 @@ public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nulla
         double dy = target.getBoundingBox().minY + target.getBbHeight() / 2.0F - source.y;
         double dz = target.getZ() - source.z;
         return new CastStreams(
-                new Trajectory[]{new Trajectory(source, new Vec3(dx, dy + offset, dz).normalize())},
-                new HitResult[]{new EntityHitResult(caster)});
+                new Trajectory[] {new Trajectory(source, new Vec3(dx, dy + offset, dz).normalize())}, new HitResult[] {
+                    new EntityHitResult(caster)
+                });
     }
 
     /**
@@ -63,8 +64,8 @@ public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nulla
     public static CastStreams fromCasterToPoint(LivingEntity caster, Vec3 loc) {
         Vec3 source = sourceVector(caster);
         return new CastStreams(
-                new Trajectory[]{new Trajectory(source, loc.subtract(source).normalize())},
-                new HitResult[]{new EntityHitResult(caster)});
+                new Trajectory[] {new Trajectory(source, loc.subtract(source).normalize())},
+                new HitResult[] {new EntityHitResult(caster)});
     }
 
     private static Vec3 sourceVector(LivingEntity entity) {

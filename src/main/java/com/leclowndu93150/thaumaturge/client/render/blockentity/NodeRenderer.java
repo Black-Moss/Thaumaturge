@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
-import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.client.casters.WandTipTracker;
 import com.leclowndu93150.thaumaturge.client.effect.FloatyLineRenderer;
@@ -17,7 +16,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -29,6 +27,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
 import org.jspecify.annotations.Nullable;
@@ -36,22 +35,26 @@ import org.jspecify.annotations.Nullable;
 public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, NodeRenderState> {
     private static final Identifier NODES_TEXTURE = TCIds.rl("textures/misc/nodes.png");
 
-    private static final RenderType NODE_ADDITIVE = RenderType.create("tc_node_additive",
+    private static final RenderType NODE_ADDITIVE = RenderType.create(
+            "tc_node_additive",
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE)
                     .withTexture("Sampler0", NODES_TEXTURE)
                     .useLightmap()
                     .createRenderSetup());
-    private static final RenderType NODE_ADDITIVE_NO_DEPTH = RenderType.create("tc_node_additive_no_depth",
+    private static final RenderType NODE_ADDITIVE_NO_DEPTH = RenderType.create(
+            "tc_node_additive_no_depth",
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE_NO_DEPTH)
                     .withTexture("Sampler0", NODES_TEXTURE)
                     .useLightmap()
                     .createRenderSetup());
-    private static final RenderType NODE_TRANSLUCENT = RenderType.create("tc_node_translucent",
+    private static final RenderType NODE_TRANSLUCENT = RenderType.create(
+            "tc_node_translucent",
             RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT)
                     .withTexture("Sampler0", NODES_TEXTURE)
                     .useLightmap()
                     .createRenderSetup());
-    private static final RenderType NODE_TRANSLUCENT_NO_DEPTH = RenderType.create("tc_node_translucent_no_depth",
+    private static final RenderType NODE_TRANSLUCENT_NO_DEPTH = RenderType.create(
+            "tc_node_translucent_no_depth",
             RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT_NO_DEPTH)
                     .withTexture("Sampler0", NODES_TEXTURE)
                     .useLightmap()
@@ -97,8 +100,12 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     }
 
     @Override
-    public void extractRenderState(BlockEntityNode node, NodeRenderState state, float partialTicks,
-                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityNode node,
+            NodeRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(node, state, partialTicks, cameraPosition, breakProgress);
         state.layers.clear();
         state.type = node.getNodeType();
@@ -144,8 +151,9 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         state.time = player.level().getGameTime();
         state.frameSeed = node.getBlockPos().getX();
         state.draining = false;
-        if (node.getDrainPlayer() != null && player.level().getPlayerByUUID(node.getDrainPlayer())
-                instanceof Player drainer && drainer.isUsingItem()) {
+        if (node.getDrainPlayer() != null
+                && player.level().getPlayerByUUID(node.getDrainPlayer()) instanceof Player drainer
+                && drainer.isUsingItem()) {
             float useTicks = drainer.getTicksUsingItem() + partialTicks;
             float wave = Mth.sin(useTicks / 10.0F) * 10.0F;
             float pitch = Mth.lerp(partialTicks, drainer.xRotO, drainer.getXRot());
@@ -156,10 +164,12 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
                     .yRot(-wave * 0.01F)
                     .xRot(-wave * 0.015F);
             Vec3 hand = new Vec3(
-                    Mth.lerp(partialTicks, drainer.xo, drainer.getX()),
-                    Mth.lerp(partialTicks, drainer.yo, drainer.getY()) + drainer.getEyeHeight(),
-                    Mth.lerp(partialTicks, drainer.zo, drainer.getZ())).add(offset);
-            if (drainer == player && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+                            Mth.lerp(partialTicks, drainer.xo, drainer.getX()),
+                            Mth.lerp(partialTicks, drainer.yo, drainer.getY()) + drainer.getEyeHeight(),
+                            Mth.lerp(partialTicks, drainer.zo, drainer.getZ()))
+                    .add(offset);
+            if (drainer == player
+                    && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
                 Vec3 tip = WandTipTracker.firstPersonTip();
                 if (tip != null) {
                     hand = tip;
@@ -186,7 +196,8 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     }
 
     @Override
-    public void submit(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         Vec3 origin = Vec3.atCenterOf(state.blockPos);
         NodeRenderState snapshot = snapshot(state);
         if (state.jarred) {
@@ -199,7 +210,8 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         LateWorldRenderQueue.enqueue(origin, (latePose, buffers) -> drawLate(snapshot, latePose, buffers));
     }
 
-    private static void drawJarred(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    private static void drawJarred(
+            NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.translate(0.5F, JARRED_HEIGHT, 0.5F);
         poseStack.mulPose(camera.orientation);
@@ -207,15 +219,20 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         poseStack.popPose();
     }
 
-    public static void submitLayers(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, int orderBase) {
+    public static void submitLayers(
+            NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, int orderBase) {
         forEachLayer(state, (index, type, angle, scale, alpha, color, strip, frame) -> {
             poseStack.pushPose();
             if (angle != 0.0F) {
                 poseStack.mulPose(Axis.ZP.rotation(angle));
             }
             int tint = ARGB.color((int) (Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F), color);
-            collector.order(orderBase + index).submitCustomGeometry(poseStack, type,
-                    (pose, buffer) -> emitQuad(pose.pose(), buffer, scale, tint, strip, frame));
+            collector
+                    .order(orderBase + index)
+                    .submitCustomGeometry(
+                            poseStack,
+                            type,
+                            (pose, buffer) -> emitQuad(pose.pose(), buffer, scale, tint, strip, frame));
             poseStack.popPose();
         });
     }
@@ -268,22 +285,29 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
             float period = LAYER_PERIOD_BASE + LAYER_PERIOD_STEP * count;
             angle = (clock % period) / period * Mth.TWO_PI;
             boolean translucent = layer.blend == TRANSLUCENT_BLEND;
-            sink.layer(count, translucent ? translucentType : aspectType,
-                    angle, scale, layerAlpha * (translucent ? TRANSLUCENT_ALPHA_BOOST : 1.0F),
-                    layer.color, STRIP_ASPECT, frame);
+            sink.layer(
+                    count,
+                    translucent ? translucentType : aspectType,
+                    angle,
+                    scale,
+                    layerAlpha * (translucent ? TRANSLUCENT_ALPHA_BOOST : 1.0F),
+                    layer.color,
+                    STRIP_ASPECT,
+                    frame);
             count++;
         }
         average /= state.layers.size();
         float coreScale = (0.1F + average / 150.0F) * state.size;
         float coreAngle = angle;
-        int strip = switch (state.type) {
-            case NORMAL -> STRIP_NORMAL;
-            case UNSTABLE -> STRIP_UNSTABLE;
-            case DARK -> STRIP_DARK;
-            case TAINTED -> STRIP_TAINTED;
-            case PURE -> STRIP_PURE;
-            case HUNGRY -> STRIP_HUNGRY;
-        };
+        int strip =
+                switch (state.type) {
+                    case NORMAL -> STRIP_NORMAL;
+                    case UNSTABLE -> STRIP_UNSTABLE;
+                    case DARK -> STRIP_DARK;
+                    case TAINTED -> STRIP_TAINTED;
+                    case PURE -> STRIP_PURE;
+                    case HUNGRY -> STRIP_HUNGRY;
+                };
         if (state.type == NodeType.HUNGRY) {
             coreScale *= 0.75F;
         }
@@ -294,10 +318,17 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         RenderType coreType = translucentCore ? translucentType : aspectType;
         sink.layer(count, coreType, coreAngle, coreScale, state.alpha, 0xFFFFFF, strip, frame);
         if (state.energized) {
-            float pulse = Mth.sin(state.ticks / ENERGIZED_PULSE_PERIOD) * ENERGIZED_PULSE_AMPLITUDE
-                    + ENERGIZED_CORE_SCALE;
-            sink.layer(count + 1, aspectType, -coreAngle, coreScale * pulse,
-                    state.alpha, ENERGIZED_CORE_COLOR, STRIP_UNSTABLE, frame);
+            float pulse =
+                    Mth.sin(state.ticks / ENERGIZED_PULSE_PERIOD) * ENERGIZED_PULSE_AMPLITUDE + ENERGIZED_CORE_SCALE;
+            sink.layer(
+                    count + 1,
+                    aspectType,
+                    -coreAngle,
+                    coreScale * pulse,
+                    state.alpha,
+                    ENERGIZED_CORE_COLOR,
+                    STRIP_UNSTABLE,
+                    frame);
         }
     }
 
@@ -307,20 +338,35 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         }
         poseStack.pushPose();
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
-        forEachLayer(state, (index, type, angle, scale, alpha, color, strip, frame) ->
-                drawLayer(poseStack, buffers, type, angle, scale, alpha, color, strip, frame));
+        forEachLayer(
+                state,
+                (index, type, angle, scale, alpha, color, strip, frame) ->
+                        drawLayer(poseStack, buffers, type, angle, scale, alpha, color, strip, frame));
         poseStack.popPose();
     }
 
     private static void drawDrainLine(NodeRenderState state, PoseStack poseStack, MultiBufferSource buffers) {
-        FloatyLineRenderer.draw(poseStack, buffers,
+        FloatyLineRenderer.draw(
+                poseStack,
+                buffers,
                 new Vec3(state.drainFromX, state.drainFromY, state.drainFromZ),
                 FloatyLineRenderer.time(state.time, state.ticks % 1.0F),
-                state.drainColor, DRAIN_LINE_SPEED, state.drainTime, DRAIN_LINE_WIDTH);
+                state.drainColor,
+                DRAIN_LINE_SPEED,
+                state.drainTime,
+                DRAIN_LINE_WIDTH);
     }
 
-    private static void drawLayer(PoseStack poseStack, MultiBufferSource buffers, RenderType renderType,
-                                  float angle, float scale, float alpha, int color, int strip, int frame) {
+    private static void drawLayer(
+            PoseStack poseStack,
+            MultiBufferSource buffers,
+            RenderType renderType,
+            float angle,
+            float scale,
+            float alpha,
+            int color,
+            int strip,
+            int frame) {
         int tint = ARGB.color((int) (Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F), color);
         poseStack.pushPose();
         if (angle != 0.0F) {

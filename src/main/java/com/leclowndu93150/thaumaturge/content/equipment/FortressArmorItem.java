@@ -39,11 +39,15 @@ public final class FortressArmorItem extends Item implements IGoggles, IRevealer
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
+            TooltipFlag flag) {
         if (hasGoggles(stack)) {
-            tooltip.accept(Component.translatable("item.thaumaturge.goggles_revealing")
-                    .withStyle(ChatFormatting.DARK_PURPLE));
+            tooltip.accept(
+                    Component.translatable("item.thaumaturge.goggles_revealing").withStyle(ChatFormatting.DARK_PURPLE));
         }
         int mask = mask(stack);
         if (mask != NO_MASK) {

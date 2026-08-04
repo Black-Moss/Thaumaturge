@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.spa;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCMenus;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -33,17 +32,23 @@ public final class MenuSpa extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
 
     public MenuSpa(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new ItemStacksResourceHandler(SLOT_COUNT),
+        this(
+                containerId,
+                playerInventory,
+                new ItemStacksResourceHandler(SLOT_COUNT),
                 ContainerLevelAccess.create(playerInventory.player.level(), buf.readBlockPos()));
     }
 
     public MenuSpa(int containerId, Inventory playerInventory, BlockEntitySpa blockEntity) {
-        this(containerId, playerInventory, blockEntity.getItems(),
+        this(
+                containerId,
+                playerInventory,
+                blockEntity.getItems(),
                 ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos()));
     }
 
-    private MenuSpa(int containerId, Inventory playerInventory, ItemStacksResourceHandler items,
-                    ContainerLevelAccess access) {
+    private MenuSpa(
+            int containerId, Inventory playerInventory, ItemStacksResourceHandler items, ContainerLevelAccess access) {
         super(TCMenus.SPA.get(), containerId);
         this.items = items;
         this.access = access;
@@ -57,8 +62,11 @@ public final class MenuSpa extends AbstractContainerMenu {
 
         for (int row = 0; row < PLAYER_ROWS; row++) {
             for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
-                addSlot(new Slot(playerInventory, col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS,
-                        PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
+                addSlot(new Slot(
+                        playerInventory,
+                        col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS,
+                        PLAYER_GRID_X + col * 18,
+                        PLAYER_GRID_Y + row * 18));
             }
         }
         for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
@@ -68,7 +76,8 @@ public final class MenuSpa extends AbstractContainerMenu {
 
     public @Nullable BlockEntitySpa blockEntity() {
         return (BlockEntitySpa) access.evaluate(Level::getBlockEntity)
-                .filter(be -> be instanceof BlockEntitySpa).orElse(null);
+                .filter(be -> be instanceof BlockEntitySpa)
+                .orElse(null);
     }
 
     @Override

@@ -23,14 +23,16 @@ public class BlockEntityBellows extends BlockEntity implements IBellowsPower {
         super(TCBlockEntities.BELLOWS.get(), worldPosition, blockState);
     }
 
-    public void setCookTime(AbstractFurnaceBlockEntity ent, int hit) { ((AbstractFurnaceBlockEntityAccessor)ent).thaumaturge$setCookTime(hit);}
+    public void setCookTime(AbstractFurnaceBlockEntity ent, int hit) {
+        ((AbstractFurnaceBlockEntityAccessor) ent).thaumaturge$setCookTime(hit);
+    }
 
     public int getCookTime(AbstractFurnaceBlockEntity ent) {
-        return ((AbstractFurnaceBlockEntityAccessor)ent).thaumaturge$getCookTime();
+        return ((AbstractFurnaceBlockEntityAccessor) ent).thaumaturge$getCookTime();
     }
 
     public int getTotalCookTime(AbstractFurnaceBlockEntity ent) {
-        return ((AbstractFurnaceBlockEntityAccessor)ent).thaumaturge$getCookTimeTotal();
+        return ((AbstractFurnaceBlockEntityAccessor) ent).thaumaturge$getCookTimeTotal();
     }
 
     public static void staticTick(Level world, BlockPos pos, BlockState state, BlockEntityBellows blockEntity) {
@@ -60,26 +62,28 @@ public class BlockEntityBellows extends BlockEntity implements IBellowsPower {
 
                 if (this.inflation >= 1.0F && this.direction) {
                     this.direction = false;
-                    this.level
-                            .playLocalSound(
-                                    getBlockPos().getX(),
-                                    getBlockPos().getY(),
-                                    getBlockPos().getZ(),
-                                    SoundEvents.GHAST_SHOOT,
-                                    SoundSource.BLOCKS,
-                                    0.01F,
-                                    0.5F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F,
-                                    false
-                            );
+                    this.level.playLocalSound(
+                            getBlockPos().getX(),
+                            getBlockPos().getY(),
+                            getBlockPos().getZ(),
+                            SoundEvents.GHAST_SHOOT,
+                            SoundSource.BLOCKS,
+                            0.01F,
+                            0.5F
+                                    + (level.getRandom().nextFloat()
+                                                    - level.getRandom().nextFloat())
+                                            * 0.2F,
+                            false);
                 }
             }
         } else if (getBlockState().getValue(BlockBellows.ENABLED)) {
             this.delay++;
             if (this.delay >= 2) {
                 this.delay = 0;
-                BlockEntity tile = level.getBlockEntity(getBlockPos().relative(getBlockState().getValue(BlockBellows.FACING)));
+                BlockEntity tile = level.getBlockEntity(
+                        getBlockPos().relative(getBlockState().getValue(BlockBellows.FACING)));
                 if (tile != null && tile instanceof AbstractFurnaceBlockEntity) {
-                    AbstractFurnaceBlockEntity tf = (AbstractFurnaceBlockEntity)tile;
+                    AbstractFurnaceBlockEntity tf = (AbstractFurnaceBlockEntity) tile;
                     int ct = this.getCookTime(tf);
                     if (ct > 0 && ct < this.getTotalCookTime(tf) - 5) {
                         this.setCookTime(tf, ct + 1);
@@ -88,7 +92,6 @@ public class BlockEntityBellows extends BlockEntity implements IBellowsPower {
             }
         }
     }
-
 
     @Override
     public Direction bellowsFacing() {

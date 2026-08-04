@@ -12,12 +12,10 @@ import com.leclowndu93150.thaumaturge.api.casters.FocusSplit;
 import com.leclowndu93150.thaumaturge.api.casters.FocusUnit;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
-import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
-import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +35,11 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
@@ -50,7 +50,6 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import org.jspecify.annotations.Nullable;
@@ -120,8 +119,8 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
                     worldPosition.getX() + rand.nextInt(3) - rand.nextInt(3),
                     worldPosition.getY() + rand.nextInt(3),
                     worldPosition.getZ() + rand.nextInt(3) - rand.nextInt(3));
-            EffectDispatch.spawnVisSparkle(level, origin,
-                    new Vec3(worldPosition.getX(), worldPosition.getY() + 1, worldPosition.getZ()));
+            EffectDispatch.spawnVisSparkle(
+                    level, origin, new Vec3(worldPosition.getX(), worldPosition.getY() + 1, worldPosition.getZ()));
             vis -= amount;
             setChanged();
             syncToClient();
@@ -137,13 +136,23 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
         }
         RandomSource rand = level.getRandom();
         ShieldSparkParticleOptions fx = new ShieldSparkParticleOptions(
-                ARGB.colorFromFloat(1.0F, 0.5F + rand.nextFloat() * 0.4F, 1.0F - rand.nextFloat() * 0.4F, 1.0F - rand.nextFloat() * 0.4F),
-                0.8F, 0.3F + rand.nextFloat() * 0.3F, 6 + rand.nextInt(5), true);
-        level.addParticle(fx,
+                ARGB.colorFromFloat(
+                        1.0F,
+                        0.5F + rand.nextFloat() * 0.4F,
+                        1.0F - rand.nextFloat() * 0.4F,
+                        1.0F - rand.nextFloat() * 0.4F),
+                0.8F,
+                0.3F + rand.nextFloat() * 0.3F,
+                6 + rand.nextInt(5),
+                true);
+        level.addParticle(
+                fx,
                 worldPosition.getX() + 0.5 + (rand.nextFloat() - rand.nextFloat()) * 0.3F,
                 worldPosition.getY() + 1.4 + (rand.nextFloat() - rand.nextFloat()) * 0.3F,
                 worldPosition.getZ() + 0.5 + (rand.nextFloat() - rand.nextFloat()) * 0.3F,
-                0.0, 0.0, 0.0);
+                0.0,
+                0.0,
+                0.0);
     }
 
     private float spendAura(ServerLevel level, float amount) {
@@ -183,7 +192,8 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
             int a = compCount.getOrDefault(node.element.toString(), 0);
             node.complexityMultiplier = 0.5F * (++a + 1);
             compCount.put(node.element.toString(), a);
-            totalComplexity = (int) (totalComplexity + element.complexity(node.resolvedSettings()) * node.complexityMultiplier);
+            totalComplexity =
+                    (int) (totalComplexity + element.complexity(node.resolvedSettings()) * node.complexityMultiplier);
             if (element.aspect() != null) {
                 crystals = crystals.add(resolveAspect(element.aspect()), 1);
             }
@@ -285,7 +295,8 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
                 int a = compCount.getOrDefault(node.element.toString(), 0);
                 node.complexityMultiplier = 0.5F * (++a + 1);
                 compCount.put(node.element.toString(), a);
-                totalComplexity = (int) (totalComplexity + element.complexity(node.resolvedSettings()) * node.complexityMultiplier);
+                totalComplexity = (int)
+                        (totalComplexity + element.complexity(node.resolvedSettings()) * node.complexityMultiplier);
             }
         }
         FocusPackage.Builder core = FocusPackage.builder().complexity(totalComplexity);
@@ -365,7 +376,8 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

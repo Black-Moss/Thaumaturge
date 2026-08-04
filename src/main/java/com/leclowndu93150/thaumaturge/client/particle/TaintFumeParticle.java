@@ -16,8 +16,16 @@ public final class TaintFumeParticle extends TCParticle {
     private final float startSize;
     private final float endSize;
 
-    private TaintFumeParticle(ClientLevel level, double x, double y, double z,
-                              double vx, double vy, double vz, TaintFumeParticleOptions options, ParticleSheet sheet) {
+    private TaintFumeParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            TaintFumeParticleOptions options,
+            ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         if (options.color() == TaintFumeParticleOptions.RANDOM_COLOR) {
             this.rCol = 0.4F + this.random.nextFloat() * 0.2F;
@@ -54,8 +62,16 @@ public final class TaintFumeParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("taint_fume");
 
         @Override
-        public Particle createParticle(TaintFumeParticleOptions options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                TaintFumeParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new TaintFumeParticle(level, x, y, z, vx, vy, vz, options, SHEET);
         }
     }

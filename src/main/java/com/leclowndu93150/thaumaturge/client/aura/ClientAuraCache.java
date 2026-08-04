@@ -54,6 +54,5 @@ public final class ClientAuraCache {
         currentTick = 0L;
     }
 
-    public record Snapshot(short base, float vis, float flux, long tick) {
-    }
+    public record Snapshot(short base, float vis, float flux, long tick) {}
 }

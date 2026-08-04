@@ -4,6 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -18,10 +21,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewRenderState> {
 
@@ -42,7 +41,7 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
     @Override
     protected void renderToTexture(BlockPreviewRenderState state, PoseStack poseStack) {
 
-        float scale = 1* state.zoom() * state.previewScale();
+        float scale = 1 * state.zoom() * state.previewScale();
         poseStack.scale(scale, scale, 1);
         poseStack.translate(-state.centerX(), -state.centerY(), 0);
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
@@ -94,8 +93,7 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
             BlockStateModelPart part,
             PreviewBlockGetter blockGetter,
             BlockPos pos,
-            QuadInstance quadInstance
-    ) {
+            QuadInstance quadInstance) {
         for (Direction direction : Direction.values()) {
             BlockPos adjacentPos = pos.relative(direction);
             BlockState adjacentState = blockGetter.getBlockState(adjacentPos);
@@ -107,7 +105,8 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
             for (BakedQuad quad : part.getQuads(direction)) {
                 quadInstance.setColor(-1);
                 quadInstance.setLightCoords(15728880);
-                VertexConsumer buffer = this.bufferSource.getBuffer(getRenderTypeForLayer(quad.materialInfo().layer()));
+                VertexConsumer buffer = this.bufferSource.getBuffer(
+                        getRenderTypeForLayer(quad.materialInfo().layer()));
                 buffer.putBakedQuad(poseStack.last(), quad, quadInstance);
             }
         }
@@ -115,7 +114,8 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
         for (BakedQuad quad : part.getQuads(null)) {
             quadInstance.setColor(-1);
             quadInstance.setLightCoords(15728880);
-            VertexConsumer buffer = this.bufferSource.getBuffer(getRenderTypeForLayer(quad.materialInfo().layer()));
+            VertexConsumer buffer = this.bufferSource.getBuffer(
+                    getRenderTypeForLayer(quad.materialInfo().layer()));
             buffer.putBakedQuad(poseStack.last(), quad, quadInstance);
         }
     }

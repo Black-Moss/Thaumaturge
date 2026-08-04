@@ -22,11 +22,14 @@ public final class PrimordialPearlItem extends Item {
 
     @Override
     public @Nullable ItemStackTemplate getCraftingRemainder(ItemInstance instance) {
-        if (instance.getOrDefault(DataComponents.DAMAGE,0) + 1 >= MAX_DAMAGE) {
+        if (instance.getOrDefault(DataComponents.DAMAGE, 0) + 1 >= MAX_DAMAGE) {
             return null;
         }
-        return new ItemStackTemplate(TCItems.PRIMORDIAL_PEARL, DataComponentPatch.builder()
-                .set(DataComponents.DAMAGE,instance.getOrDefault(DataComponents.DAMAGE,0)+1).build());
+        return new ItemStackTemplate(
+                TCItems.PRIMORDIAL_PEARL,
+                DataComponentPatch.builder()
+                        .set(DataComponents.DAMAGE, instance.getOrDefault(DataComponents.DAMAGE, 0) + 1)
+                        .build());
     }
 
     @Override

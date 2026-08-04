@@ -7,11 +7,13 @@ import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerPlacement;
 import com.leclowndu93150.thaumaturge.content.misc.TCActionBar;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerFx;
-import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerSwapQueue;
+import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -32,9 +34,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
-
-import java.util.List;
-import java.util.Optional;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class SalisMundusItem extends Item {
@@ -72,16 +71,18 @@ public final class SalisMundusItem extends Item {
         ServerLevel serverLevel = (ServerLevel) level;
         BlockState clicked = level.getBlockState(pos);
         DustTriggerInput input = new DustTriggerInput(stack, level, pos, clicked);
-        Optional<RecipeHolder<DustTrigger>> match = serverLevel.recipeAccess()
-                .getRecipeFor(TCRecipeTypes.DUST_TRIGGER.get(), input, level);
+        Optional<RecipeHolder<DustTrigger>> match =
+                serverLevel.recipeAccess().getRecipeFor(TCRecipeTypes.DUST_TRIGGER.get(), input, level);
         if (match.isEmpty()) {
             return InteractionResult.PASS;
         }
         RecipeHolder<DustTrigger> holder = match.get();
         DustTrigger trigger = holder.value();
         if (!trigger.doesPassGate(player)) {
-            Thaumaturge.LOGGER.debug("Salis Mundus trigger {} blocked by research gate {}",
-                    holder.id(), trigger.researchGate().orElse(null));
+            Thaumaturge.LOGGER.debug(
+                    "Salis Mundus trigger {} blocked by research gate {}",
+                    holder.id(),
+                    trigger.researchGate().orElse(null));
             TCActionBar.sendPurple(player, "tc.dust.noresearch");
             return InteractionResult.PASS;
         }
@@ -101,7 +102,8 @@ public final class SalisMundusItem extends Item {
             }
             trigger.execute(input, player, placement, context.getClickedFace());
         } else if (result.getItem() instanceof BlockItem blockItem) {
-            DustTriggerSwapQueue.enqueuePlace(serverLevel, pos, clicked, blockItem.getBlock().defaultBlockState(), SWAP_DELAY_TICKS);
+            DustTriggerSwapQueue.enqueuePlace(
+                    serverLevel, pos, clicked, blockItem.getBlock().defaultBlockState(), SWAP_DELAY_TICKS);
         } else {
             DustTriggerSwapQueue.enqueueDrop(serverLevel, pos, clicked, result, SWAP_DELAY_TICKS);
         }
@@ -113,7 +115,12 @@ public final class SalisMundusItem extends Item {
             ResearchProgressionEvents.recordCrafted(serverPlayer, result);
             CriteriaTriggers.RECIPE_CRAFTED.trigger(serverPlayer, holder.id(), List.of(consumed));
         }
-        level.playSound(null, pos, TCSounds.DUST.get(), SoundSource.PLAYERS, 0.33F,
+        level.playSound(
+                null,
+                pos,
+                TCSounds.DUST.get(),
+                SoundSource.PLAYERS,
+                0.33F,
                 1.0F + (float) level.getRandom().nextGaussian() * 0.05F);
         return InteractionResult.SUCCESS;
     }

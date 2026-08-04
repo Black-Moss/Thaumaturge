@@ -27,9 +27,8 @@ public final class BlockRedstoneRelay extends DiodeBlock implements EntityBlock 
 
     public BlockRedstoneRelay(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any()
-                .setValue(FACING, Direction.NORTH)
-                .setValue(POWERED, false));
+        registerDefaultState(
+                getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
     }
 
     @Override
@@ -59,7 +58,8 @@ public final class BlockRedstoneRelay extends DiodeBlock implements EntityBlock 
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!player.mayBuild()) {
             return InteractionResult.PASS;
         }
@@ -69,12 +69,13 @@ public final class BlockRedstoneRelay extends DiodeBlock implements EntityBlock 
         if (level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay) {
             Vec3 local = hitResult.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ());
             Direction facing = state.getValue(FACING);
-            double along = switch (facing) {
-                case NORTH -> 1.0 - local.z;
-                case SOUTH -> local.z;
-                case WEST -> 1.0 - local.x;
-                default -> local.x;
-            };
+            double along =
+                    switch (facing) {
+                        case NORTH -> 1.0 - local.z;
+                        case SOUTH -> local.z;
+                        case WEST -> 1.0 - local.x;
+                        default -> local.x;
+                    };
             if (along < 0.5) {
                 relay.increaseOut();
             } else {

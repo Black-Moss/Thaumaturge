@@ -2,14 +2,10 @@ package com.leclowndu93150.thaumaturge.content.crucible;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.ICancellableEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 /**
@@ -28,7 +24,7 @@ public abstract class CrucibleEvent extends BlockEvent {
         this.crucible = crucible;
     }
 
-    public Player getPlayer(){
+    public Player getPlayer() {
         return player;
     }
 
@@ -36,12 +32,18 @@ public abstract class CrucibleEvent extends BlockEvent {
         return crucible;
     }
 
-    public static class CrucibleCraftedEvent extends CrucibleEvent{
+    public static class CrucibleCraftedEvent extends CrucibleEvent {
 
         private final ItemStack craftedStack;
         private final AspectList consumedAspects;
 
-        public CrucibleCraftedEvent(Player player, BlockPos pos, BlockState state, BlockEntityCrucible crucible, ItemStack stack, AspectList consumedAspects) {
+        public CrucibleCraftedEvent(
+                Player player,
+                BlockPos pos,
+                BlockState state,
+                BlockEntityCrucible crucible,
+                ItemStack stack,
+                AspectList consumedAspects) {
             super(player, pos, state, crucible);
             this.craftedStack = stack;
             this.consumedAspects = consumedAspects;
@@ -61,7 +63,13 @@ public abstract class CrucibleEvent extends BlockEvent {
         private final ItemStack stack;
         private AspectList aspects;
 
-        public CrucibleDecomposeItemEvent(Player player, BlockPos pos, BlockState state, BlockEntityCrucible crucible, ItemStack stack, AspectList aspects) {
+        public CrucibleDecomposeItemEvent(
+                Player player,
+                BlockPos pos,
+                BlockState state,
+                BlockEntityCrucible crucible,
+                ItemStack stack,
+                AspectList aspects) {
             super(player, pos, state, crucible);
             this.stack = stack;
             this.aspects = aspects;
@@ -84,7 +92,4 @@ public abstract class CrucibleEvent extends BlockEvent {
             ICancellableEvent.super.setCanceled(cancel);
         }
     }
-
-
-
 }

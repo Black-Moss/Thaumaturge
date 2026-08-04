@@ -40,12 +40,14 @@ public final class BlockEldritchTrap extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                            BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) {
             return null;
         }
-        return createTickerHelper(type, TCBlockEntities.ELDRITCH_TRAP.get(),
+        return createTickerHelper(
+                type,
+                TCBlockEntities.ELDRITCH_TRAP.get(),
                 (tickLevel, pos, tickState, trap) -> trap.serverTick(tickLevel, pos));
     }
 
@@ -55,9 +57,20 @@ public final class BlockEldritchTrap extends BaseEntityBlock {
         int y = pos.getY() + random.nextInt(2) - random.nextInt(2);
         int z = pos.getZ() + random.nextInt(2) - random.nextInt(2);
         if (level.isEmptyBlock(new BlockPos(x, y, z))) {
-            level.addParticle(new BlockRunesParticleOptions(0.5F + random.nextFloat() * 0.5F, random.nextFloat() * 0.3F,
-                            0.9F + random.nextFloat() * 0.1F, RUNE_DURATION_BASE + random.nextInt(4), 0.0F, false),
-                    x + 0.5, y + 0.5, z + 0.5, 0.0, 0.0, 0.0);
+            level.addParticle(
+                    new BlockRunesParticleOptions(
+                            0.5F + random.nextFloat() * 0.5F,
+                            random.nextFloat() * 0.3F,
+                            0.9F + random.nextFloat() * 0.1F,
+                            RUNE_DURATION_BASE + random.nextInt(4),
+                            0.0F,
+                            false),
+                    x + 0.5,
+                    y + 0.5,
+                    z + 0.5,
+                    0.0,
+                    0.0,
+                    0.0);
         }
     }
 }

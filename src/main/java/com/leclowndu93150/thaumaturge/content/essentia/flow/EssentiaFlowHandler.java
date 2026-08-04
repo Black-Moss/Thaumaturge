@@ -3,9 +3,9 @@ package com.leclowndu93150.thaumaturge.content.essentia.flow;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEntityTube;
-import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -24,7 +24,13 @@ public final class EssentiaFlowHandler {
         return EssentiaAccess.transport(level, pos, faceFromNeighbour);
     }
 
-    public static void recalculateSuction(Level level, BlockPos pos, BlockEntityTube tube, @Nullable ResourceKey<IAspect> filter, boolean restrict, boolean directional) {
+    public static void recalculateSuction(
+            Level level,
+            BlockPos pos,
+            BlockEntityTube tube,
+            @Nullable ResourceKey<IAspect> filter,
+            boolean restrict,
+            boolean directional) {
         tube.setSuction(null, 0);
         Direction facing = tube.facing();
         Holder<IAspect> filterHolder = filter == null ? null : EssentiaTransportHelper.resolve(level, filter);
@@ -37,9 +43,15 @@ public final class EssentiaFlowHandler {
             Holder<IAspect> tubeEssentia = tube.getEssentiaType(dir);
             int tubeEssentiaAmt = tube.getEssentiaAmount(dir);
             if (filterHolder != null && neighbourSuction != null && !filterHolder.equals(neighbourSuction)) continue;
-            if (filterHolder == null && tubeEssentiaAmt > 0 && neighbourSuction != null
-                    && tubeEssentia != null && !tubeEssentia.equals(neighbourSuction)) continue;
-            if (filterHolder != null && tubeEssentiaAmt > 0 && tubeEssentia != null && neighbourSuction != null
+            if (filterHolder == null
+                    && tubeEssentiaAmt > 0
+                    && neighbourSuction != null
+                    && tubeEssentia != null
+                    && !tubeEssentia.equals(neighbourSuction)) continue;
+            if (filterHolder != null
+                    && tubeEssentiaAmt > 0
+                    && tubeEssentia != null
+                    && neighbourSuction != null
                     && !tubeEssentia.equals(neighbourSuction)) continue;
             int suck = neighbour.getSuctionAmount(dir.getOpposite());
             if (suck > 0 && suck > tube.getSuctionAmount(null) + 1) {
@@ -83,7 +95,8 @@ public final class EssentiaFlowHandler {
         }
     }
 
-    private static void spawnStreamParticle(Level level, BlockPos pos, Direction fromNeighbourDir, Holder<IAspect> aspect) {
+    private static void spawnStreamParticle(
+            Level level, BlockPos pos, Direction fromNeighbourDir, Holder<IAspect> aspect) {
         if (!(level instanceof ServerLevel server)) return;
         if (level.getRandom().nextInt(8) != 0) return;
         int color = aspect.value().color();
@@ -93,6 +106,15 @@ public final class EssentiaFlowHandler {
         double tx = pos.getX() + 0.5;
         double ty = pos.getY() + 0.5;
         double tz = pos.getZ() + 0.5;
-        EffectDispatch.spawnEssentiaStream(server, new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, 0, server.getRandom().nextInt(8), 0.15F, 20, 0.0);
+        EffectDispatch.spawnEssentiaStream(
+                server,
+                new Vec3(sx, sy, sz),
+                new Vec3(tx, ty, tz),
+                color,
+                0,
+                server.getRandom().nextInt(8),
+                0.15F,
+                20,
+                0.0);
     }
 }

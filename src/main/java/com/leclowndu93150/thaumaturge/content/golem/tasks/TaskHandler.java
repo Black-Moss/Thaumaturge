@@ -58,11 +58,13 @@ public final class TaskHandler {
     private static List<Task> getTasksSorted(Level level, @Nullable UUID uuid, Entity golem, byte type) {
         List<Task> out = new ArrayList<>();
         for (Task task : getTasks(level).values()) {
-            if (task.isReserved() || task.getType() != type
+            if (task.isReserved()
+                    || task.getType() != type
                     || (uuid != null && task.getGolemUUID() != null && !uuid.equals(task.getGolemUUID()))) {
                 continue;
             }
-            if (type == Task.TYPE_ENTITY && (task.getEntity() == null || !task.getEntity().isAlive())) {
+            if (type == Task.TYPE_ENTITY
+                    && (task.getEntity() == null || !task.getEntity().isAlive())) {
                 task.setSuspended(true);
                 continue;
             }

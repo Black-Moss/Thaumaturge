@@ -24,8 +24,13 @@ public final class NodeStabilizerItemSpecialRenderer implements NoDataSpecialMod
     }
 
     @Override
-    public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords,
-                       boolean hasFoil, int outlineColor) {
+    public void submit(
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            int lightCoords,
+            int overlayCoords,
+            boolean hasFoil,
+            int outlineColor) {
         poseStack.pushPose();
         if (transducer) {
             poseStack.translate(0.5F, 1.0F, 0.5F);
@@ -47,9 +52,9 @@ public final class NodeStabilizerItemSpecialRenderer implements NoDataSpecialMod
 
     public record Unbaked(boolean advanced, boolean transducer) implements NoDataSpecialModelRenderer.Unbaked {
         public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.BOOL.fieldOf("advanced").forGetter(Unbaked::advanced),
-                Codec.BOOL.optionalFieldOf("transducer", false).forGetter(Unbaked::transducer)
-        ).apply(instance, Unbaked::new));
+                        Codec.BOOL.fieldOf("advanced").forGetter(Unbaked::advanced),
+                        Codec.BOOL.optionalFieldOf("transducer", false).forGetter(Unbaked::transducer))
+                .apply(instance, Unbaked::new));
 
         public Unbaked(boolean advanced) {
             this(advanced, false);

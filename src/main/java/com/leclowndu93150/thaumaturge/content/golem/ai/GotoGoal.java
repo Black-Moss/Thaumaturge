@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.golem.ai;
 
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
-import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
 import java.util.EnumSet;
@@ -54,7 +54,8 @@ public abstract class GotoGoal extends Goal {
         targetBlock = null;
         boolean start = findDestination();
         if (start && golem.getTask() != null && golem.getTask().getSealPos() != null) {
-            ISealEntity seal = GolemHelper.getSealEntity(golem.level(), golem.getTask().getSealPos());
+            ISealEntity seal =
+                    GolemHelper.getSealEntity(golem.level(), golem.getTask().getSealPos());
             if (seal != null) {
                 seal.getSeal().onTaskStarted(golem.level(), golem, golem.getTask());
             }
@@ -95,11 +96,11 @@ public abstract class GotoGoal extends Goal {
             taskCounter++;
             if (taskCounter % RAMBLE_INTERVAL == 0) {
                 if (prevRamble != null && prevRamble.equals(golem.blockPosition())) {
-                    Vec3 ramble = DefaultRandomPos.getPosTowards(golem, 6, 4,
-                            Vec3.atLowerCornerOf(task.getPos()), Math.PI / 2.0);
+                    Vec3 ramble = DefaultRandomPos.getPosTowards(
+                            golem, 6, 4, Vec3.atLowerCornerOf(task.getPos()), Math.PI / 2.0);
                     if (ramble != null) {
-                        golem.getNavigation().moveTo(ramble.x + 0.5, ramble.y + 0.5, ramble.z + 0.5,
-                                golem.getGolemMoveSpeed());
+                        golem.getNavigation()
+                                .moveTo(ramble.x + 0.5, ramble.y + 0.5, ramble.z + 0.5, golem.getGolemMoveSpeed());
                     }
                 } else {
                     moveTo();
@@ -145,8 +146,9 @@ public abstract class GotoGoal extends Goal {
         if (seal == null || seal.getSeal() == null) {
             return true;
         }
-        if (seal.isLocked() && (golem.getOwnerReference() == null
-                || !golem.getOwnerReference().getUUID().equals(seal.getOwner()))) {
+        if (seal.isLocked()
+                && (golem.getOwnerReference() == null
+                        || !golem.getOwnerReference().getUUID().equals(seal.getOwner()))) {
             return false;
         }
         GolemTrait[] required = seal.getSeal().getRequiredTags();

@@ -44,7 +44,8 @@ public final class BlockEntityMirrorEssentia extends BlockEntityMirrorBase imple
             return null;
         }
         if (targetSources == null || !link.pos().equals(targetSourcesCenter)) {
-            targetSources = new EssentiaSources(link.pos(), TARGET_RANGE).drainEffectTarget(Vec3.atCenterOf(link.pos()));
+            targetSources =
+                    new EssentiaSources(link.pos(), TARGET_RANGE).drainEffectTarget(Vec3.atCenterOf(link.pos()));
             targetSourcesCenter = link.pos();
         }
         return targetSources;

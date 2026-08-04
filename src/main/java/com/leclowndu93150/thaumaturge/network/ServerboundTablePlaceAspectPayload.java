@@ -23,10 +23,14 @@ public record ServerboundTablePlaceAspectPayload(BlockPos pos, int q, int r, Opt
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundTablePlaceAspectPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    BlockPos.STREAM_CODEC, ServerboundTablePlaceAspectPayload::pos,
-                    ByteBufCodecs.VAR_INT, ServerboundTablePlaceAspectPayload::q,
-                    ByteBufCodecs.VAR_INT, ServerboundTablePlaceAspectPayload::r,
-                    ByteBufCodecs.optional(Identifier.STREAM_CODEC), ServerboundTablePlaceAspectPayload::aspect,
+                    BlockPos.STREAM_CODEC,
+                    ServerboundTablePlaceAspectPayload::pos,
+                    ByteBufCodecs.VAR_INT,
+                    ServerboundTablePlaceAspectPayload::q,
+                    ByteBufCodecs.VAR_INT,
+                    ServerboundTablePlaceAspectPayload::r,
+                    ByteBufCodecs.optional(Identifier.STREAM_CODEC),
+                    ServerboundTablePlaceAspectPayload::aspect,
                     ServerboundTablePlaceAspectPayload::new);
 
     public static void handle(ServerboundTablePlaceAspectPayload payload, IPayloadContext context) {
@@ -41,7 +45,8 @@ public record ServerboundTablePlaceAspectPayload(BlockPos pos, int q, int r, Opt
                 return;
             }
             Holder<IAspect> holder = payload.aspect()
-                    .flatMap(id -> player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY)
+                    .flatMap(id -> player.registryAccess()
+                            .lookupOrThrow(IAspect.REGISTRY_KEY)
                             .get(ResourceKey.create(IAspect.REGISTRY_KEY, id)))
                     .map(reference -> (Holder<IAspect>) reference)
                     .orElse(null);

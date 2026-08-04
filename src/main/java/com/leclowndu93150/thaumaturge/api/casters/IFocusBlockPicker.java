@@ -8,5 +8,4 @@ package com.leclowndu93150.thaumaturge.api.casters;
  *
  * @since 1.0.0
  */
-public interface IFocusBlockPicker {
-}
+public interface IFocusBlockPicker {}

@@ -77,15 +77,22 @@ public final class ElementalShovelItem extends Item implements IArchitect {
         return placed ? InteractionResult.SUCCESS : InteractionResult.FAIL;
     }
 
-    private static void placeBlock(Level level, Player player, UseOnContext context,
-                                   BlockPos p2, BlockState state, Direction side) {
-        level.playSound(null, p2, state.getSoundType().getBreakSound(), SoundSource.BLOCKS,
-                0.6F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+    private static void placeBlock(
+            Level level, Player player, UseOnContext context, BlockPos p2, BlockState state, Direction side) {
+        level.playSound(
+                null,
+                p2,
+                state.getSoundType().getBreakSound(),
+                SoundSource.BLOCKS,
+                0.6F,
+                0.9F + level.getRandom().nextFloat() * 0.2F);
         level.setBlockAndUpdate(p2, state);
         context.getItemInHand().hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
         if (level instanceof ServerLevel serverLevel) {
             Effects.bamf(serverLevel, p2)
-                    .color(((BAMF_COLOR >> 16) & 0xFF) / 255.0F, ((BAMF_COLOR >> 8) & 0xFF) / 255.0F,
+                    .color(
+                            ((BAMF_COLOR >> 16) & 0xFF) / 255.0F,
+                            ((BAMF_COLOR >> 8) & 0xFF) / 255.0F,
                             (BAMF_COLOR & 0xFF) / 255.0F)
                     .side(side)
                     .send();
@@ -155,7 +162,8 @@ public final class ElementalShovelItem extends Item implements IArchitect {
     }
 
     @Override
-    public List<BlockPos> getArchitectBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+    public List<BlockPos> getArchitectBlocks(
+            ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
         List<BlockPos> blocks = new ArrayList<>();
         if (!player.isShiftKeyDown()) {
             return blocks;

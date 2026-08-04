@@ -25,5 +25,6 @@ public interface IInteractWithCaster {
      * @param hand        the hand holding the caster
      * @return true to consume the interaction and suppress default caster behavior
      */
-    boolean onCasterRightClick(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, InteractionHand hand);
+    boolean onCasterRightClick(
+            Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, InteractionHand hand);
 }

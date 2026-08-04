@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealEmpty extends SealFiltered {
     private static final int SCAN_INTERVAL = 20;
@@ -28,12 +28,12 @@ public class SealEmpty extends SealFiltered {
     private static final short TASK_LIFESPAN = 5;
 
     protected final ISealConfigToggles.SealToggle[] props = {
-            new ISealConfigToggles.SealToggle(true, "pmeta", "golem.prop.meta"),
-            new ISealConfigToggles.SealToggle(true, "pnbt", "golem.prop.nbt"),
-            new ISealConfigToggles.SealToggle(false, "pore", "golem.prop.ore"),
-            new ISealConfigToggles.SealToggle(false, "pmod", "golem.prop.mod"),
-            new ISealConfigToggles.SealToggle(false, "pcycle", "golem.prop.cycle"),
-            new ISealConfigToggles.SealToggle(false, "pleave", "golem.prop.leave")
+        new ISealConfigToggles.SealToggle(true, "pmeta", "golem.prop.meta"),
+        new ISealConfigToggles.SealToggle(true, "pnbt", "golem.prop.nbt"),
+        new ISealConfigToggles.SealToggle(false, "pore", "golem.prop.ore"),
+        new ISealConfigToggles.SealToggle(false, "pmod", "golem.prop.mod"),
+        new ISealConfigToggles.SealToggle(false, "pcycle", "golem.prop.cycle"),
+        new ISealConfigToggles.SealToggle(false, "pleave", "golem.prop.leave")
     };
 
     private int delay = System.identityHashCode(this) % 30;
@@ -58,12 +58,13 @@ public class SealEmpty extends SealFiltered {
         if (delay++ % SCAN_INTERVAL != 0) {
             return;
         }
-        ResourceHandler<ItemResource> handler = InvHelper.getItemHandlerAt(level, seal.getSealPos().pos(), seal.getSealPos().face());
+        ResourceHandler<ItemResource> handler = InvHelper.getItemHandlerAt(
+                level, seal.getSealPos().pos(), seal.getSealPos().face());
         if (handler == null) {
             return;
         }
-        ItemStack stack = InvHelper.findFirstMatchFromFilter(getInv(filterInc), isBlacklist(),
-                handler, filterFlags(props), props[5].getValue());
+        ItemStack stack = InvHelper.findFirstMatchFromFilter(
+                getInv(filterInc), isBlacklist(), handler, filterFlags(props), props[5].getValue());
         if (!stack.isEmpty()) {
             Task task = new Task(seal.getSealPos(), seal.getSealPos().pos());
             task.setPriority(seal.getPriority());
@@ -77,8 +78,8 @@ public class SealEmpty extends SealFiltered {
     public boolean onTaskCompletion(Level level, IGolemAPI golem, Task task) {
         ItemStack stack = cache.get(task.getId());
         if (stack != null && !stack.isEmpty()) {
-            int available = InvHelper.countTotalItemsIn(level, task.getSealPos().pos(),
-                    task.getSealPos().face(), stack, filterFlags(props));
+            int available = InvHelper.countTotalItemsIn(
+                    level, task.getSealPos().pos(), task.getSealPos().face(), stack, filterFlags(props));
             if (props[5].getValue() && available <= stack.getCount()) {
                 stack = stack.copy();
                 stack.setCount(available - 1);
@@ -87,16 +88,31 @@ public class SealEmpty extends SealFiltered {
         if (stack != null && !stack.isEmpty()) {
             int limit = golem.canCarryAmount(stack);
             if (limit > 0) {
-                ItemStack removed = InvHelper.removeStackFrom(level, task.getSealPos().pos(),
-                        task.getSealPos().face(), InvHelper.copyLimitedStack(stack, limit),
-                        filterFlags(props), false);
+                ItemStack removed = InvHelper.removeStackFrom(
+                        level,
+                        task.getSealPos().pos(),
+                        task.getSealPos().face(),
+                        InvHelper.copyLimitedStack(stack, limit),
+                        filterFlags(props),
+                        false);
                 ItemStack remainder = golem.holdItem(removed);
                 if (!remainder.isEmpty()) {
-                    InvHelper.ejectStackAt(level, task.getSealPos().pos().relative(task.getSealPos().face()),
-                            task.getSealPos().face().getOpposite(), remainder);
+                    InvHelper.ejectStackAt(
+                            level,
+                            task.getSealPos().pos().relative(task.getSealPos().face()),
+                            task.getSealPos().face().getOpposite(),
+                            remainder);
                 }
-                golem.getGolemEntity().playSound(SoundEvents.ITEM_PICKUP, 0.125F,
-                        ((level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                golem.getGolemEntity()
+                        .playSound(
+                                SoundEvents.ITEM_PICKUP,
+                                0.125F,
+                                ((level.getRandom().nextFloat()
+                                                                - level.getRandom()
+                                                                        .nextFloat())
+                                                        * 0.7F
+                                                + 1.0F)
+                                        * 2.0F);
                 golem.swingArm();
             }
         }
@@ -128,7 +144,7 @@ public class SealEmpty extends SealFiltered {
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_FILTER, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_FILTER, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
@@ -138,12 +154,11 @@ public class SealEmpty extends SealFiltered {
 
     @Override
     public GolemTrait[] getForbiddenTags() {
-        return new GolemTrait[]{TCGolemTraits.CLUMSY.get()};
+        return new GolemTrait[] {TCGolemTraits.CLUMSY.get()};
     }
 
     @Override
-    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {
-    }
+    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {}
 
     @Override
     public void onTaskSuspension(Level level, Task task) {
@@ -151,6 +166,5 @@ public class SealEmpty extends SealFiltered {
     }
 
     @Override
-    public void onRemoval(Level level, BlockPos pos, Direction side) {
-    }
+    public void onRemoval(Level level, BlockPos pos, Direction side) {}
 }

@@ -72,8 +72,8 @@ public final class ChampionModifier {
         this.name = name;
         this.trigger = trigger;
         this.effect = effect;
-        this.attributeMod = new AttributeModifier(TCIds.rl("champion/" + name),
-                id + MARKER_OFFSET, AttributeModifier.Operation.ADD_VALUE);
+        this.attributeMod = new AttributeModifier(
+                TCIds.rl("champion/" + name), id + MARKER_OFFSET, AttributeModifier.Operation.ADD_VALUE);
     }
 
     public int id() {

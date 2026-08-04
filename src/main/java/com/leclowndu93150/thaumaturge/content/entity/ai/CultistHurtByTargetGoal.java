@@ -18,8 +18,8 @@ public final class CultistHurtByTargetGoal extends HurtByTargetGoal {
     protected void alertOthers() {
         double range = this.getFollowDistance();
         AABB searchBox = AABB.unitCubeFromLowerCorner(this.mob.position()).inflate(range, ALERT_RANGE_Y, range);
-        for (EntityCultist other : this.mob.level().getEntitiesOfClass(EntityCultist.class, searchBox,
-                EntitySelector.NO_SPECTATORS)) {
+        for (EntityCultist other :
+                this.mob.level().getEntitiesOfClass(EntityCultist.class, searchBox, EntitySelector.NO_SPECTATORS)) {
             if (this.mob != other
                     && other.getTarget() == null
                     && this.mob.getLastHurtByMob() != null

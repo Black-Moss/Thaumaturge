@@ -10,8 +10,9 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealGui;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.content.equipment.EnchantMining;
-import com.leclowndu93150.thaumaturge.server.TCFakePlayer;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
+import com.leclowndu93150.thaumaturge.server.TCFakePlayer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,7 +23,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
     private static final int CACHE_CLEAN_INTERVAL = 100;
@@ -57,11 +57,15 @@ public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
 
     @Override
     public boolean onTaskCompletion(Level level, IGolemAPI golem, Task task) {
-        if (cache.containsKey(task.getId()) && level.getBlockState(task.getPos()).is(BlockTags.LOGS)
+        if (cache.containsKey(task.getId())
+                && level.getBlockState(task.getPos()).is(BlockTags.LOGS)
                 && level instanceof ServerLevel serverLevel) {
             golem.swingArm();
-            if (EnchantMining.breakFurthest(serverLevel, task.getPos(),
-                    level.getBlockState(task.getPos()), TCFakePlayer.GOLEM.at(serverLevel, golem.getGolemEntity()))) {
+            if (EnchantMining.breakFurthest(
+                    serverLevel,
+                    task.getPos(),
+                    level.getBlockState(task.getPos()),
+                    TCFakePlayer.GOLEM.at(serverLevel, golem.getGolemEntity()))) {
                 task.setLifespan((short) Math.max(task.getLifespan(), 10L));
                 golem.addRankXp(1);
                 return false;
@@ -88,12 +92,10 @@ public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
     }
 
     @Override
-    public void readCustomNBT(CompoundTag nbt) {
-    }
+    public void readCustomNBT(CompoundTag nbt) {}
 
     @Override
-    public void writeCustomNBT(CompoundTag nbt) {
-    }
+    public void writeCustomNBT(CompoundTag nbt) {}
 
     @Override
     public boolean canPlaceAt(Level level, BlockPos pos, Direction side) {
@@ -106,17 +108,16 @@ public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
     }
 
     @Override
-    public void onRemoval(Level level, BlockPos pos, Direction side) {
-    }
+    public void onRemoval(Level level, BlockPos pos, Direction side) {}
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_AREA, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_AREA, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{TCGolemTraits.BREAKER.get(), TCGolemTraits.SMART.get()};
+        return new GolemTrait[] {TCGolemTraits.BREAKER.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override
@@ -125,6 +126,5 @@ public class SealLumber implements ISeal, ISealGui, ISealConfigArea {
     }
 
     @Override
-    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {
-    }
+    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {}
 }

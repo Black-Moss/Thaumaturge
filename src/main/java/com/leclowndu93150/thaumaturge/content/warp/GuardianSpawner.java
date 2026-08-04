@@ -32,8 +32,7 @@ public final class GuardianSpawner {
             if (!level.getBlockState(pos.below()).isCollisionShapeFullBlock(level, pos.below())) {
                 continue;
             }
-            EntityEldritchGuardian guardian =
-                    TCEntities.ELDRITCH_GUARDIAN.get().create(level, EntitySpawnReason.EVENT);
+            EntityEldritchGuardian guardian = TCEntities.ELDRITCH_GUARDIAN.get().create(level, EntitySpawnReason.EVENT);
             if (guardian == null) {
                 return;
             }
@@ -66,8 +65,8 @@ public final class GuardianSpawner {
                 portal.discard();
                 continue;
             }
-            portal.finalizeSpawn(level, level.getCurrentDifficultyAt(portal.blockPosition()),
-                    EntitySpawnReason.EVENT, null);
+            portal.finalizeSpawn(
+                    level, level.getCurrentDifficultyAt(portal.blockPosition()), EntitySpawnReason.EVENT, null);
             level.addFreshEntity(portal);
             WarpManager.sendActionBar(player, "warp.thaumaturge.text.16");
             return;

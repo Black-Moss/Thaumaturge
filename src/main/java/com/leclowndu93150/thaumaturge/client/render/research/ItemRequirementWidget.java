@@ -84,17 +84,23 @@ public final class ItemRequirementWidget {
                 SECTION_HEADER_TINT);
     }
 
-    public static void renderObtainHeaderTooltip(GuiGraphicsExtractor graphics, Font font, int x, int y, int mouseX, int mouseY) {
+    public static void renderObtainHeaderTooltip(
+            GuiGraphicsExtractor graphics, Font font, int x, int y, int mouseX, int mouseY) {
         renderSectionTooltip(graphics, font, x, y, mouseX, mouseY, "obtain");
     }
 
-    public static void renderCraftHeaderTooltip(GuiGraphicsExtractor graphics, Font font, int x, int y, int mouseX, int mouseY) {
+    public static void renderCraftHeaderTooltip(
+            GuiGraphicsExtractor graphics, Font font, int x, int y, int mouseX, int mouseY) {
         renderSectionTooltip(graphics, font, x, y, mouseX, mouseY, "craft");
     }
 
-    private static void renderSectionTooltip(GuiGraphicsExtractor graphics, Font font, int x, int y, int mouseX, int mouseY, String which) {
+    private static void renderSectionTooltip(
+            GuiGraphicsExtractor graphics, Font font, int x, int y, int mouseX, int mouseY, String which) {
         int popupX = x + SECTION_POPUP_OFFSET_X;
-        if (mouseX >= popupX && mouseY >= y && mouseX < popupX + SECTION_POPUP_WIDTH && mouseY < y + SECTION_POPUP_HEIGHT) {
+        if (mouseX >= popupX
+                && mouseY >= y
+                && mouseX < popupX + SECTION_POPUP_WIDTH
+                && mouseY < y + SECTION_POPUP_HEIGHT) {
             graphics.setTooltipForNextFrame(font, TCTooltips.need(which), mouseX, mouseY);
         }
     }

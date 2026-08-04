@@ -56,7 +56,10 @@ public final class AspectIndexFile {
             }
             List<String> parts = new ArrayList<>(declared.entries().size());
             for (var entry : declared.entries()) {
-                parts.add(entry.aspect().unwrapKey().map(key -> key.identifier().toString()).orElse("?") + "=" + entry.amount());
+                parts.add(entry.aspect()
+                                .unwrapKey()
+                                .map(key -> key.identifier().toString())
+                                .orElse("?") + "=" + entry.amount());
             }
             Collections.sort(parts);
             lines.add("base:" + BuiltInRegistries.ITEM.getKey(item) + ":" + String.join(",", parts));
@@ -94,7 +97,9 @@ public final class AspectIndexFile {
         if (!savedFingerprint.equals(liveFingerprint)) {
             Thaumaturge.LOGGER.info(
                     "Aspect index cache at {} no longer matches the current item, recipe, and base-aspect sets ({} items / {} recipes when written), rebuilding",
-                    file, GsonHelper.getAsInt(root, "item_count", -1), GsonHelper.getAsInt(root, "recipe_count", -1));
+                    file,
+                    GsonHelper.getAsInt(root, "item_count", -1),
+                    GsonHelper.getAsInt(root, "recipe_count", -1));
             return Optional.empty();
         }
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registries);
@@ -108,7 +113,10 @@ public final class AspectIndexFile {
                 skipped++;
                 continue;
             }
-            AspectIndex.ItemEntry parsed = AspectIndex.ItemEntry.CODEC.parse(ops, entry.getValue()).result().orElse(null);
+            AspectIndex.ItemEntry parsed = AspectIndex.ItemEntry.CODEC
+                    .parse(ops, entry.getValue())
+                    .result()
+                    .orElse(null);
             if (parsed == null || parsed.isEmpty()) {
                 skipped++;
                 continue;
@@ -116,17 +124,20 @@ public final class AspectIndexFile {
             map.put(item, parsed);
         }
         if (skipped > 0) {
-            Thaumaturge.LOGGER.warn("Skipped {} unreadable or unresolvable entries in aspect index cache at {}", skipped, file);
+            Thaumaturge.LOGGER.warn(
+                    "Skipped {} unreadable or unresolvable entries in aspect index cache at {}", skipped, file);
         }
         if (map.isEmpty()) {
-            Thaumaturge.LOGGER.warn("Aspect index cache at {} contained no usable entries, rebuilding from recipes", file);
+            Thaumaturge.LOGGER.warn(
+                    "Aspect index cache at {} contained no usable entries, rebuilding from recipes", file);
             return Optional.empty();
         }
         Thaumaturge.LOGGER.info("Loaded aspect index for {} items from {}", map.size(), file);
         return Optional.of(AspectIndex.ofEntries(map));
     }
 
-    public static void write(AspectIndex index, HolderLookup.Provider registries, String fingerprint, int itemCount, int recipeCount) {
+    public static void write(
+            AspectIndex index, HolderLookup.Provider registries, String fingerprint, int itemCount, int recipeCount) {
         Path file = path();
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registries);
         JsonElement aspects = AspectIndex.CODEC.encodeStart(ops, index).result().orElse(null);

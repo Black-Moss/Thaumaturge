@@ -43,7 +43,8 @@ public final class VoidStreamRenderType {
 
     public static final RenderPipeline TRANSLUCENT_PIPELINE = RenderPipeline.builder(BASE)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/void_stream_tr"))
-            .withColorTargetState(new ColorTargetState(new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA)))
+            .withColorTargetState(
+                    new ColorTargetState(new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA)))
             .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
             .withCull(false)
             .build();

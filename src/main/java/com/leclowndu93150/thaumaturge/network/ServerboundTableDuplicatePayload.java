@@ -15,7 +15,8 @@ public record ServerboundTableDuplicatePayload(BlockPos pos) implements CustomPa
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundTableDuplicatePayload> STREAM_CODEC =
             StreamCodec.composite(
-                    BlockPos.STREAM_CODEC, ServerboundTableDuplicatePayload::pos,
+                    BlockPos.STREAM_CODEC,
+                    ServerboundTableDuplicatePayload::pos,
                     ServerboundTableDuplicatePayload::new);
 
     public static void handle(ServerboundTableDuplicatePayload payload, IPayloadContext context) {

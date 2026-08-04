@@ -59,5 +59,6 @@ public interface ICaster {
      * @param stack the caster stack
      * @return the picked block state, or null when nothing is picked
      */
-    @Nullable BlockState getPickedBlock(ItemStack stack);
+    @Nullable
+    BlockState getPickedBlock(ItemStack stack);
 }

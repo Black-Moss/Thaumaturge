@@ -15,8 +15,7 @@ import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStruct
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType;
 
 public final class TCStructureBootstrap {
-    public static final ResourceKey<Structure> MOUND =
-            ResourceKey.create(Registries.STRUCTURE, TCIds.rl("mound"));
+    public static final ResourceKey<Structure> MOUND = ResourceKey.create(Registries.STRUCTURE, TCIds.rl("mound"));
     public static final ResourceKey<StructureSet> MOUND_SET =
             ResourceKey.create(Registries.STRUCTURE_SET, TCIds.rl("mounds"));
     public static final ResourceKey<Structure> ELDRITCH_OBELISK =
@@ -35,19 +34,27 @@ public final class TCStructureBootstrap {
 
     public static void bootstrapStructures(BootstrapContext<Structure> context) {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
-        context.register(MOUND, new MoundStructure(
-                new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_MOUND))));
-        context.register(ELDRITCH_OBELISK, new ObeliskStructure(
-                new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_ELDRITCH_OBELISK))));
+        context.register(
+                MOUND, new MoundStructure(new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_MOUND))));
+        context.register(
+                ELDRITCH_OBELISK,
+                new ObeliskStructure(
+                        new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_ELDRITCH_OBELISK))));
     }
 
     public static void bootstrapSets(BootstrapContext<StructureSet> context) {
         HolderGetter<Structure> structures = context.lookup(Registries.STRUCTURE);
-        context.register(MOUND_SET, new StructureSet(structures.getOrThrow(MOUND),
-                new RandomSpreadStructurePlacement(MOUND_SPACING, MOUND_SEPARATION,
-                        RandomSpreadType.LINEAR, MOUND_SALT)));
-        context.register(ELDRITCH_OBELISK_SET, new StructureSet(structures.getOrThrow(ELDRITCH_OBELISK),
-                new RandomSpreadStructurePlacement(OBELISK_SPACING, OBELISK_SEPARATION,
-                        RandomSpreadType.LINEAR, OBELISK_SALT)));
+        context.register(
+                MOUND_SET,
+                new StructureSet(
+                        structures.getOrThrow(MOUND),
+                        new RandomSpreadStructurePlacement(
+                                MOUND_SPACING, MOUND_SEPARATION, RandomSpreadType.LINEAR, MOUND_SALT)));
+        context.register(
+                ELDRITCH_OBELISK_SET,
+                new StructureSet(
+                        structures.getOrThrow(ELDRITCH_OBELISK),
+                        new RandomSpreadStructurePlacement(
+                                OBELISK_SPACING, OBELISK_SEPARATION, RandomSpreadType.LINEAR, OBELISK_SALT)));
     }
 }

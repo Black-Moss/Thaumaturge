@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
-import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
@@ -9,11 +8,9 @@ import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlemb
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.Sheets;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
@@ -25,22 +22,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic, AlembicRenderState> {
 
-public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic,AlembicRenderState> {
+    private static final Identifier LABEL_TEXTURE =
+            Identifier.fromNamespaceAndPath("thaumaturge", "textures/entity/label.png");
 
-    private static final Identifier LABEL_TEXTURE = Identifier.fromNamespaceAndPath("thaumaturge", "textures/entity/label.png");
-
-
-    public AlembicRenderer(BlockEntityRendererProvider.Context context) {
-    }
-
+    public AlembicRenderer(BlockEntityRendererProvider.Context context) {}
 
     @Override
     public AlembicRenderState createRenderState() {
@@ -48,13 +38,21 @@ public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic,A
     }
 
     @Override
-    public void submit(AlembicRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState) {
-        if (state.hasFilter)
-            submitFilterLabel(state, poseStack, submitNodeCollector);
+    public void submit(
+            AlembicRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraRenderState) {
+        if (state.hasFilter) submitFilterLabel(state, poseStack, submitNodeCollector);
     }
 
     @Override
-    public void extractRenderState(BlockEntityAlembic blockEntity, AlembicRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityAlembic blockEntity,
+            AlembicRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
         state.filterTexture = null;
         state.filterColor = -1;
@@ -74,8 +72,9 @@ public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic,A
         }
         List<Direction> dirs = new ArrayList<>();
         for (Direction dir : Direction.Plane.HORIZONTAL) {
-            IEssentiaTransport connected = level.getCapability(EssentiaCapabilities.TRANSPORT,blockEntity.getBlockPos().relative(dir),dir.getOpposite());
-            if (connected != null && connected.isConnectable(dir.getOpposite())){
+            IEssentiaTransport connected = level.getCapability(
+                    EssentiaCapabilities.TRANSPORT, blockEntity.getBlockPos().relative(dir), dir.getOpposite());
+            if (connected != null && connected.isConnectable(dir.getOpposite())) {
                 dirs.add(dir);
             }
         }
@@ -94,8 +93,7 @@ public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic,A
             int light,
             float nx,
             float ny,
-            float nz
-    ) {
+            float nz) {
         buffer.addVertex(pose, x, y, z)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
@@ -123,7 +121,8 @@ public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic,A
             int filterColor = state.filterColor;
             Identifier aspectTex = state.filterTexture;
             RenderType aspectType = RenderTypes.entityTranslucent(aspectTex);
-            collector.submitCustomGeometry(poseStack, aspectType, (pose, buffer) -> aspectIconQuad(buffer, pose, filterColor, light));
+            collector.submitCustomGeometry(
+                    poseStack, aspectType, (pose, buffer) -> aspectIconQuad(buffer, pose, filterColor, light));
             poseStack.popPose();
         }
         poseStack.popPose();

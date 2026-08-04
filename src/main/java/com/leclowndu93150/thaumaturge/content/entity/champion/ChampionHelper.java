@@ -7,7 +7,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -92,8 +91,8 @@ public final class ChampionHelper {
         applyPermanent(entity, Attributes.MAX_HEALTH, CHAMPION_HEALTH);
         applyPermanent(entity, Attributes.ATTACK_DAMAGE, CHAMPION_DAMAGE);
         entity.heal(ASSIGN_HEAL);
-        entity.setCustomName(Component.translatable("champion.thaumaturge.name",
-                Component.translatable("champion.mod." + mod.name()), entity.getName()));
+        entity.setCustomName(Component.translatable(
+                "champion.thaumaturge.name", Component.translatable("champion.mod." + mod.name()), entity.getName()));
         if (persist) {
             entity.setPersistenceRequired();
         }
@@ -108,8 +107,7 @@ public final class ChampionHelper {
                 }
                 entity.setAbsorptionAmount(entity.getAbsorptionAmount() + ward);
             }
-            default -> {
-            }
+            default -> {}
         }
     }
 
@@ -155,8 +153,8 @@ public final class ChampionHelper {
         accessor.thaumaturge$getGoalSelector().addGoal(8, new LookAtPlayerGoal(critter, Player.class, 8.0F));
         accessor.thaumaturge$getGoalSelector().addGoal(8, new RandomLookAroundGoal(critter));
         accessor.thaumaturge$getTargetSelector().addGoal(1, new HurtByTargetGoal(critter));
-        accessor.thaumaturge$getTargetSelector().addGoal(2,
-                new NearestAttackableTargetGoal<>(critter, Player.class, true));
+        accessor.thaumaturge$getTargetSelector()
+                .addGoal(2, new NearestAttackableTargetGoal<>(critter, Player.class, true));
         marker.removeModifier(TAINTED_AI_MARKER_ID);
         marker.addPermanentModifier(TAINTED_AI_MARKER);
     }
@@ -168,8 +166,7 @@ public final class ChampionHelper {
         }
     }
 
-    private static void applyPermanent(LivingEntity entity, Holder<Attribute> attribute,
-                                       AttributeModifier modifier) {
+    private static void applyPermanent(LivingEntity entity, Holder<Attribute> attribute, AttributeModifier modifier) {
         AttributeInstance instance = entity.getAttribute(attribute);
         if (instance != null) {
             instance.removeModifier(modifier.id());

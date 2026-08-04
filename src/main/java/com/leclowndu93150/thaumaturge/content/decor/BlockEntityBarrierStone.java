@@ -33,9 +33,10 @@ public final class BlockEntityBarrierStone extends BlockEntity {
             count = level.getRandom().nextInt(BARRIER_INTERVAL);
         }
         if (count % PUSH_INTERVAL == 0 && !gettingPower()) {
-            List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class,
-                    new AABB(pos.getX(), pos.getY(), pos.getZ(),
-                            pos.getX() + 1, pos.getY() + 3, pos.getZ() + 1).inflate(0.1));
+            List<LivingEntity> targets = level.getEntitiesOfClass(
+                    LivingEntity.class,
+                    new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 3, pos.getZ() + 1)
+                            .inflate(0.1));
             for (LivingEntity entity : targets) {
                 if (!entity.onGround() && !(entity instanceof Player)) {
                     entity.push(

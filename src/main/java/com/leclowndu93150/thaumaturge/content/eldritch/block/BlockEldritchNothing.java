@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.eldritch.block;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.InsideBlockEffectApplier;
@@ -62,13 +62,19 @@ public final class BlockEldritchNothing extends Block implements EntityBlock {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return COLLISION;
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
-                                   @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Block neighborBlock,
+            @Nullable Orientation orientation,
+            boolean movedByPiston) {
         boolean exposed = isExposed(level, pos);
         if (state.getValue(EXPOSED) != exposed) {
             level.setBlock(pos, state.setValue(EXPOSED, exposed), 3);
@@ -88,8 +94,13 @@ public final class BlockEldritchNothing extends Block implements EntityBlock {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
-            InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+    protected void entityInside(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Entity entity,
+            InsideBlockEffectApplier effectApplier,
+            boolean isPrecise) {
         if (level.isClientSide() || entity.tickCount <= GRACE_TICKS) {
             return;
         }

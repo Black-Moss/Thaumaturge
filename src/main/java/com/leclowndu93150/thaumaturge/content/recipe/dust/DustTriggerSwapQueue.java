@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -22,17 +21,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 public final class DustTriggerSwapQueue {
-    public static final MapCodec<DustTriggerSwapQueue> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-            PendingSwap.CODEC.listOf().optionalFieldOf("pending", List.of()).forGetter(q -> List.copyOf(q.pending))
-    ).apply(i, DustTriggerSwapQueue::fromCodec));
+    public static final MapCodec<DustTriggerSwapQueue> CODEC =
+            RecordCodecBuilder.mapCodec(i -> i.group(PendingSwap.CODEC
+                            .listOf()
+                            .optionalFieldOf("pending", List.of())
+                            .forGetter(q -> List.copyOf(q.pending)))
+                    .apply(i, DustTriggerSwapQueue::fromCodec));
 
     private static final Map<ResourceKey<Level>, Set<ChunkPos>> ACTIVE = new ConcurrentHashMap<>();
     private static final Map<ResourceKey<Level>, Set<Long>> BLOCKED = new ConcurrentHashMap<>();
 
     private final List<PendingSwap> pending = new ArrayList<>();
 
-    public DustTriggerSwapQueue() {
-    }
+    public DustTriggerSwapQueue() {}
 
     private static DustTriggerSwapQueue fromCodec(List<PendingSwap> entries) {
         DustTriggerSwapQueue queue = new DustTriggerSwapQueue();
@@ -56,11 +57,13 @@ public final class DustTriggerSwapQueue {
         return this.pending.iterator();
     }
 
-    public static void enqueueDrop(ServerLevel level, BlockPos pos, BlockState originalState, ItemStack result, int delayTicks) {
+    public static void enqueueDrop(
+            ServerLevel level, BlockPos pos, BlockState originalState, ItemStack result, int delayTicks) {
         enqueueInternal(level, PendingSwap.dropItem(pos, originalState, result, delayTicks));
     }
 
-    public static void enqueuePlace(ServerLevel level, BlockPos pos, BlockState originalState, BlockState placed, int delayTicks) {
+    public static void enqueuePlace(
+            ServerLevel level, BlockPos pos, BlockState originalState, BlockState placed, int delayTicks) {
         enqueueInternal(level, PendingSwap.placeBlock(pos, originalState, placed, delayTicks));
     }
 
@@ -74,7 +77,8 @@ public final class DustTriggerSwapQueue {
         DustTriggerSwapQueue queue = chunk.getData(TCAttachments.DUST_TRIGGER_QUEUE.get());
         queue.add(entry);
         chunk.markUnsaved();
-        ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(cp);
+        ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet())
+                .add(cp);
         markBlocked(level, entry.pos());
     }
 
@@ -87,7 +91,8 @@ public final class DustTriggerSwapQueue {
     }
 
     public static void markChunkActive(ServerLevel level, ChunkPos pos) {
-        ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(pos);
+        ACTIVE.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet())
+                .add(pos);
     }
 
     public static void markChunkClear(ServerLevel level, ChunkPos pos) {
@@ -98,7 +103,8 @@ public final class DustTriggerSwapQueue {
     }
 
     public static void markBlocked(ServerLevel level, BlockPos pos) {
-        BLOCKED.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(pos.asLong());
+        BLOCKED.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet())
+                .add(pos.asLong());
     }
 
     public static void clearBlocked(ServerLevel level, BlockPos pos) {

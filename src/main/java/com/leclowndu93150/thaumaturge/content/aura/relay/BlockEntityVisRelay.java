@@ -107,8 +107,7 @@ public final class BlockEntityVisRelay extends BlockEntity {
                             bestNodeDistance = distance;
                             bestNode = cursor.immutable();
                         }
-                    } else if (be instanceof BlockEntityVisRelay relay
-                            && relay.isLinked() && relay.depth < HOP_CAP) {
+                    } else if (be instanceof BlockEntityVisRelay relay && relay.isLinked() && relay.depth < HOP_CAP) {
                         double distance = cursor.distSqr(worldPosition);
                         if (relay.depth < bestRelayDepth
                                 || (relay.depth == bestRelayDepth && distance < bestRelayDistance)) {
@@ -171,7 +170,8 @@ public final class BlockEntityVisRelay extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector collector =
+                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

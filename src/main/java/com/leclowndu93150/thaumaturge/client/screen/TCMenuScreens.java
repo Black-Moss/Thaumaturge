@@ -1,19 +1,19 @@
 package com.leclowndu93150.thaumaturge.client.screen;
 
-import com.leclowndu93150.thaumaturge.client.screen.research.DeconstructionTableScreen;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.screen.casters.FocalManipulatorScreen;
+import com.leclowndu93150.thaumaturge.client.screen.casters.FocusPouchScreen;
 import com.leclowndu93150.thaumaturge.client.screen.construct.ArcaneBoreScreen;
-import com.leclowndu93150.thaumaturge.content.entity.construct.MenuTurretBasic;
 import com.leclowndu93150.thaumaturge.client.screen.construct.TurretAdvancedScreen;
 import com.leclowndu93150.thaumaturge.client.screen.construct.TurretBasicScreen;
-import com.leclowndu93150.thaumaturge.client.screen.casters.FocusPouchScreen;
 import com.leclowndu93150.thaumaturge.client.screen.golem.GolemBuilderScreen;
 import com.leclowndu93150.thaumaturge.client.screen.golem.SealScreen;
 import com.leclowndu93150.thaumaturge.client.screen.pip.BlockPreviewRenderState;
 import com.leclowndu93150.thaumaturge.client.screen.pip.BlockPreviewRenderer;
+import com.leclowndu93150.thaumaturge.client.screen.research.DeconstructionTableScreen;
 import com.leclowndu93150.thaumaturge.client.screen.research.ResearchTableScreen;
 import com.leclowndu93150.thaumaturge.client.screen.workbench.ArcaneWorkbenchScreen;
+import com.leclowndu93150.thaumaturge.content.entity.construct.MenuTurretBasic;
 import com.leclowndu93150.thaumaturge.registry.TCMenus;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -47,7 +47,7 @@ public final class TCMenuScreens {
     }
 
     @SubscribeEvent
-    public static void registerPIP(RegisterPictureInPictureRenderersEvent event){
+    public static void registerPIP(RegisterPictureInPictureRenderersEvent event) {
         event.register(BlockPreviewRenderState.class, BlockPreviewRenderer::new);
     }
 }

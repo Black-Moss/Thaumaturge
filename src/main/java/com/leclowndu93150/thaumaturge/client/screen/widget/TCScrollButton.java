@@ -14,18 +14,14 @@ public final class TCScrollButton extends TCImageButton {
     private static final int ATLAS = 256;
 
     public enum Direction {
-        LEFT, RIGHT, UP, DOWN
+        LEFT,
+        RIGHT,
+        UP,
+        DOWN
     }
 
     private TCScrollButton(int x, int y, int u, int v, Component message, Runnable onPress) {
-        super(
-                x, y, SIZE, SIZE,
-                TCScreenTextures.GUI_BASE,
-                u, v,
-                SIZE, SIZE,
-                ATLAS, ATLAS,
-                message, onPress
-        );
+        super(x, y, SIZE, SIZE, TCScreenTextures.GUI_BASE, u, v, SIZE, SIZE, ATLAS, ATLAS, message, onPress);
     }
 
     public static TCScrollButton of(int x, int y, Direction direction, Component message, Runnable onPress) {

@@ -41,14 +41,16 @@ public final class BlockTubeFilter extends BlockTube {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) return null;
-        return createTickerHelper(type, TCBlockEntities.TUBE_FILTER.get(),
-                (lvl, pos, st, tube) -> tube.tickServer(lvl, pos, st));
+        return createTickerHelper(
+                type, TCBlockEntities.TUBE_FILTER.get(), (lvl, pos, st, tube) -> tube.tickServer(lvl, pos, st));
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityTubeFilter filter)) return InteractionResult.PASS;
         if (player.isSecondaryUseActive() && filter.aspectFilter() != null) {
             if (!level.isClientSide()) {
@@ -61,7 +63,14 @@ public final class BlockTubeFilter extends BlockTube {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useItemOn(
+            ItemStack stack,
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hit) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityTubeFilter filter)) return InteractionResult.PASS;
         if (filter.aspectFilter() != null) return InteractionResult.PASS;
         IEssentiaContainerItem container = stack.getCapability(EssentiaCapabilities.CONTAINER);

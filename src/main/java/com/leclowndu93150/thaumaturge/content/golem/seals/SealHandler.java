@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.golem.seals;
 
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISeal;
-import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
@@ -59,7 +58,10 @@ public final class SealHandler {
     public static List<SealEntity> getSealsInChunk(ServerLevel level, ChunkPos chunk) {
         List<SealEntity> out = new ArrayList<>();
         for (SealEntity seal : index(level).seals().values()) {
-            if (new ChunkPos(seal.getSealPos().pos().getX() >> 4, seal.getSealPos().pos().getZ() >> 4).equals(chunk)) {
+            if (new ChunkPos(
+                            seal.getSealPos().pos().getX() >> 4,
+                            seal.getSealPos().pos().getZ() >> 4)
+                    .equals(chunk)) {
                 out.add(seal);
             }
         }
@@ -104,11 +106,13 @@ public final class SealHandler {
             chunk.markUnsaved();
         }
         if (!quiet) {
-            ItemStack drop = TCSeals.registry().getOptional(seal.getTypeId())
+            ItemStack drop = TCSeals.registry()
+                    .getOptional(seal.getTypeId())
                     .map(type -> new ItemStack(type.placerItem().get()))
                     .orElse(ItemStack.EMPTY);
             if (!drop.isEmpty()) {
-                level.addFreshEntity(new ItemEntity(level,
+                level.addFreshEntity(new ItemEntity(
+                        level,
                         pos.pos().getX() + 0.5 + pos.face().getStepX() / DROP_OFFSET,
                         pos.pos().getY() + 0.5 + pos.face().getStepY() / DROP_OFFSET,
                         pos.pos().getZ() + 0.5 + pos.face().getStepZ() / DROP_OFFSET,
@@ -132,7 +136,13 @@ public final class SealHandler {
 
     public static void unloadChunkSeals(ServerLevel level, LevelChunk chunk) {
         ChunkPos chunkPos = chunk.getPos();
-        index(level).seals().values().removeIf(seal -> new ChunkPos(seal.getSealPos().pos().getX() >> 4, seal.getSealPos().pos().getZ() >> 4).equals(chunkPos));
+        index(level)
+                .seals()
+                .values()
+                .removeIf(seal -> new ChunkPos(
+                                seal.getSealPos().pos().getX() >> 4,
+                                seal.getSealPos().pos().getZ() >> 4)
+                        .equals(chunkPos));
     }
 
     public static void tickSealEntities(ServerLevel level) {
@@ -142,13 +152,21 @@ public final class SealHandler {
                 continue;
             }
             try {
-                if (validate && !seal.getSeal().canPlaceAt(level, seal.getSealPos().pos(), seal.getSealPos().face())) {
+                if (validate
+                        && !seal.getSeal()
+                                .canPlaceAt(
+                                        level,
+                                        seal.getSealPos().pos(),
+                                        seal.getSealPos().face())) {
                     removeSealEntity(level, seal.getSealPos(), false);
                     continue;
                 }
                 seal.tickSealEntity(level);
             } catch (Exception e) {
-                Thaumaturge.LOGGER.error("Removing seal at {} after tick failure", seal.getSealPos().pos(), e);
+                Thaumaturge.LOGGER.error(
+                        "Removing seal at {} after tick failure",
+                        seal.getSealPos().pos(),
+                        e);
                 removeSealEntity(level, seal.getSealPos(), false);
             }
         }

@@ -24,8 +24,8 @@ public final class BlockObsidianTotemCharged extends BlockObsidianTotem implemen
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                            BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (type != TCBlockEntities.NODE.get()) {
             return null;
         }
@@ -37,8 +37,7 @@ public final class BlockObsidianTotemCharged extends BlockObsidianTotem implemen
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (level instanceof ServerLevel serverLevel
-                && level.getBlockEntity(pos) instanceof BlockEntityNode node) {
+        if (level instanceof ServerLevel serverLevel && level.getBlockEntity(pos) instanceof BlockEntityNode node) {
             node.burstIntoOrbs(serverLevel, pos);
         }
         return super.playerWillDestroy(level, pos, state, player);

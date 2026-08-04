@@ -14,9 +14,6 @@ public final class PotionSprayerCapabilities {
     @SubscribeEvent
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                EssentiaCapabilities.TRANSPORT,
-                TCBlockEntities.POTION_SPRAYER.get(),
-                (be, side) -> be
-        );
+                EssentiaCapabilities.TRANSPORT, TCBlockEntities.POTION_SPRAYER.get(), (be, side) -> be);
     }
 }

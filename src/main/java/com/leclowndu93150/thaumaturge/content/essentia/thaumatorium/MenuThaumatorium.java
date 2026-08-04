@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumaturge.content.essentia.thaumatorium;
 
 import com.leclowndu93150.thaumaturge.network.ClientboundThaumatoriumRecipesPayload;
 import com.leclowndu93150.thaumaturge.registry.TCMenus;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -15,9 +17,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class MenuThaumatorium extends AbstractContainerMenu {
     public static final int CATALYST_X = 56;
@@ -37,23 +36,30 @@ public final class MenuThaumatorium extends AbstractContainerMenu {
         this(containerId, playerInventory, clientBlockEntity(playerInventory, buf));
     }
 
-    private static @Nullable BlockEntityThaumatorium clientBlockEntity(Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+    private static @Nullable BlockEntityThaumatorium clientBlockEntity(
+            Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         return playerInventory.player.level().getBlockEntity(buf.readBlockPos())
-                instanceof BlockEntityThaumatorium machine ? machine : null;
+                        instanceof BlockEntityThaumatorium machine
+                ? machine
+                : null;
     }
 
     public MenuThaumatorium(int containerId, Inventory playerInventory, @Nullable BlockEntityThaumatorium blockEntity) {
         super(TCMenus.THAUMATORIUM.get(), containerId);
         this.blockEntity = blockEntity;
         this.player = playerInventory.player;
-        ItemStacksResourceHandler items = blockEntity != null ? blockEntity.catalyst() : new ItemStacksResourceHandler(1);
+        ItemStacksResourceHandler items =
+                blockEntity != null ? blockEntity.catalyst() : new ItemStacksResourceHandler(1);
 
         addSlot(new ResourceHandlerSlot(items, items::set, 0, CATALYST_X, CATALYST_Y));
 
         for (int row = 0; row < PLAYER_ROWS; row++) {
             for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
-                addSlot(new Slot(playerInventory, col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS,
-                        8 + col * 18, PLAYER_GRID_Y + row * 18));
+                addSlot(new Slot(
+                        playerInventory,
+                        col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS,
+                        8 + col * 18,
+                        PLAYER_GRID_Y + row * 18));
             }
         }
         for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
@@ -64,7 +70,8 @@ public final class MenuThaumatorium extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (blockEntity == null || !(player instanceof ServerPlayer serverPlayer)
+        if (blockEntity == null
+                || !(player instanceof ServerPlayer serverPlayer)
                 || !(serverPlayer.level() instanceof ServerLevel server)) {
             return;
         }
@@ -84,8 +91,7 @@ public final class MenuThaumatorium extends AbstractContainerMenu {
                     blockEntity.queue().contains(ids.get(i)),
                     recipes.get(i).aspects()));
         }
-        PacketDistributor.sendToPlayer(serverPlayer,
-                new ClientboundThaumatoriumRecipesPayload(containerId, entries));
+        PacketDistributor.sendToPlayer(serverPlayer, new ClientboundThaumatoriumRecipesPayload(containerId, entries));
     }
 
     @Override

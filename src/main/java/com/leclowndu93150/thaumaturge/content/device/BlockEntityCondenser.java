@@ -7,6 +7,10 @@ import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -19,11 +23,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public final class BlockEntityCondenser extends BlockEntity implements IEssentiaTransport {
     private static final int MAX_BUFFER = 100;
@@ -49,6 +48,7 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     public int cost() {
         return cost;
     }
+
     private final List<BlockPos> unclogged = new ArrayList<>();
     private int latticeBlocks;
 
@@ -61,7 +61,8 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         if (condenser.latticeCount < 0.0F || condenser.count % RECHECK_INTERVAL == 0) {
             condenser.triggerCheck();
         }
-        if (!state.getValue(BlockStateProperties.ENABLED) || condenser.latticeCount <= 0.0F
+        if (!state.getValue(BlockStateProperties.ENABLED)
+                || condenser.latticeCount <= 0.0F
                 || !(level instanceof ServerLevel server)) {
             return;
         }
@@ -100,7 +101,8 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
 
     private void fill(ServerLevel server) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            IEssentiaTransport ic = EssentiaFlowHandler.transport(server, getBlockPos().relative(face), face.getOpposite());
+            IEssentiaTransport ic =
+                    EssentiaFlowHandler.transport(server, getBlockPos().relative(face), face.getOpposite());
             if (ic == null) {
                 continue;
             }
@@ -177,7 +179,9 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
                 latticeCount = -99.0F;
                 return;
             }
-            if (getBlockPos().getY() < p2.getY() && getBlockPos().distSqr(p2) <= MAX_DIST_SQ && (lattice || latticeDirty)) {
+            if (getBlockPos().getY() < p2.getY()
+                    && getBlockPos().distSqr(p2) <= MAX_DIST_SQ
+                    && (lattice || latticeDirty)) {
                 latticeBlocks++;
                 if (lattice) {
                     unclogged.add(p2.immutable());

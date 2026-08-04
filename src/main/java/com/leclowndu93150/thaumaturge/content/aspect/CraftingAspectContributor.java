@@ -59,13 +59,15 @@ public final class CraftingAspectContributor implements IAspectRecipeContributor
             }
         }
         if (skipped > 0) {
-            Thaumaturge.LOGGER.warn("Skipped {} crafting recipes with broken placement info while indexing aspects", skipped);
+            Thaumaturge.LOGGER.warn(
+                    "Skipped {} crafting recipes with broken placement info while indexing aspects", skipped);
         }
         candidates = map;
     }
 
     @Override
-    public Optional<AspectList> derive(Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
+    public Optional<AspectList> derive(
+            Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
         List<Candidate> list = candidates.get(item);
         if (list == null) {
             return Optional.empty();
@@ -73,7 +75,8 @@ public final class CraftingAspectContributor implements IAspectRecipeContributor
         AspectList best = null;
         int bestSize = Integer.MAX_VALUE;
         for (Candidate candidate : list) {
-            AspectList out = RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
+            AspectList out =
+                    RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
             if (candidate.vis() > 0) {
                 int bonus = (int) (Math.sqrt(1 + candidate.vis() / 2) / candidate.count());
                 if (bonus > 0) {

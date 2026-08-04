@@ -44,11 +44,12 @@ public final class FireBatAttackGoal extends Goal {
         if (attackCooldown > 0) {
             attackCooldown--;
         }
-        bat.getMoveControl().setWantedPosition(
-                target.getX(),
-                target.getY() + target.getEyeHeight() * TARGET_HEIGHT_FACTOR,
-                target.getZ(),
-                1.0);
+        bat.getMoveControl()
+                .setWantedPosition(
+                        target.getX(),
+                        target.getY() + target.getEyeHeight() * TARGET_HEIGHT_FACTOR,
+                        target.getZ(),
+                        1.0);
         if (!bat.hasLineOfSight(target)) {
             return;
         }
@@ -65,8 +66,14 @@ public final class FireBatAttackGoal extends Goal {
         if (bat.level() instanceof ServerLevel server) {
             if (bat.getRandom().nextInt((int) EXPLODE_ONE_IN) == 0) {
                 target.invulnerableTime = 0;
-                server.explode(bat, bat.getX(), bat.getY(), bat.getZ(), EXPLOSION_POWER,
-                        false, Level.ExplosionInteraction.NONE);
+                server.explode(
+                        bat,
+                        bat.getX(),
+                        bat.getY(),
+                        bat.getZ(),
+                        EXPLOSION_POWER,
+                        false,
+                        Level.ExplosionInteraction.NONE);
                 bat.discard();
                 return;
             }

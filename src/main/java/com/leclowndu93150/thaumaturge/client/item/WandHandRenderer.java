@@ -76,9 +76,7 @@ public final class WandHandRenderer {
     }
 
     private static void applyCarryPose(PoseStack poseStack, float mirror, float equip, float swing) {
-        poseStack.translate(mirror * 0.7F * BASE_SCALE,
-                -0.65F * BASE_SCALE - equip * 0.6F,
-                -0.9F * BASE_SCALE);
+        poseStack.translate(mirror * 0.7F * BASE_SCALE, -0.65F * BASE_SCALE - equip * 0.6F, -0.9F * BASE_SCALE);
         poseStack.mulPose(Axis.YP.rotationDegrees(mirror * 45.0F));
         float snap = Mth.sin(swing * swing * Mth.PI);
         float arc = Mth.sin(Mth.sqrt(swing) * Mth.PI);

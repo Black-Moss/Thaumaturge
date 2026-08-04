@@ -1,11 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.infernalfurnace;
 
+import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.recipe.Blueprint;
 import com.leclowndu93150.thaumaturge.api.recipe.BlueprintPart;
 import com.leclowndu93150.thaumaturge.api.recipe.BlueprintTarget;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.BlueprintMatrix;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.MultiblockMatcher;
-import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -99,11 +99,13 @@ public final class ItemInfernalFurnace extends BlockItem {
     }
 
     private static @Nullable Blueprint lookupBlueprint(Level level) {
-        Registry<Blueprint> registry = level.registryAccess().lookup(Blueprint.REGISTRY_KEY).orElse(null);
+        Registry<Blueprint> registry =
+                level.registryAccess().lookup(Blueprint.REGISTRY_KEY).orElse(null);
         if (registry == null) {
             return null;
         }
         return registry.get(ResourceKey.create(Blueprint.REGISTRY_KEY, TCIds.rl("infernal_furnace")))
-                .map(Holder::value).orElse(null);
+                .map(Holder::value)
+                .orElse(null);
     }
 }

@@ -1,12 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.decor;
 
 import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
-import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -50,7 +50,8 @@ public final class BlockEffectShock extends Block {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
 
@@ -60,8 +61,13 @@ public final class BlockEffectShock extends Block {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity,
-            InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+    protected void entityInside(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Entity entity,
+            InsideBlockEffectApplier effectApplier,
+            boolean isPrecise) {
         if (level.isClientSide()) {
             return;
         }
@@ -82,7 +88,8 @@ public final class BlockEffectShock extends Block {
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         float h = random.nextFloat() * 0.33F;
-        spawnSpark(level,
+        spawnSpark(
+                level,
                 pos.getX() + random.nextFloat(),
                 pos.getY() + SPARK_HEIGHT + h / 2.0F,
                 pos.getZ() + random.nextFloat(),
@@ -92,15 +99,22 @@ public final class BlockEffectShock extends Block {
                 1.0F,
                 0.8F);
         if (random.nextInt(SOUND_ONE_IN) == 0) {
-            level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), TCSounds.JACOBS.get(), SoundSource.AMBIENT,
-                    SOUND_VOLUME, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.2F, false);
+            level.playLocalSound(
+                    pos.getX(),
+                    pos.getY(),
+                    pos.getZ(),
+                    TCSounds.JACOBS.get(),
+                    SoundSource.AMBIENT,
+                    SOUND_VOLUME,
+                    1.0F + (random.nextFloat() - random.nextFloat()) * 0.2F,
+                    false);
         }
     }
 
-    private static void spawnSpark(Level level, double x, double y, double z, float size,
-            float r, float g, float b, float alpha) {
+    private static void spawnSpark(
+            Level level, double x, double y, double z, float size, float r, float g, float b, float alpha) {
         RandomSource rand = level.getRandom();
-        level.addParticle(new SparkParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, size),
-                x, y, z, 0.0, 0.0, 0.0);
+        level.addParticle(
+                new SparkParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, size), x, y, z, 0.0, 0.0, 0.0);
     }
 }

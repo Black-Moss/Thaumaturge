@@ -55,20 +55,18 @@ public final class AspectBootstrap {
     }
 
     private static void primal(
-            BootstrapContext<IAspect> ctx,
-            ResourceKey<IAspect> key,
-            int color,
-            String chatColor,
-            int blend
-    ) {
-        ctx.register(key, new Aspect(
-                key.identifier().getPath(),
-                color,
-                List.of(),
-                Optional.of(chatColor),
-                Identifier.fromNamespaceAndPath(key.identifier().getNamespace(), "textures/aspects/" + key.identifier().getPath() + ".png"),
-                blend
-        ));
+            BootstrapContext<IAspect> ctx, ResourceKey<IAspect> key, int color, String chatColor, int blend) {
+        ctx.register(
+                key,
+                new Aspect(
+                        key.identifier().getPath(),
+                        color,
+                        List.of(),
+                        Optional.of(chatColor),
+                        Identifier.fromNamespaceAndPath(
+                                key.identifier().getNamespace(),
+                                "textures/aspects/" + key.identifier().getPath() + ".png"),
+                        blend));
     }
 
     private static void compound(
@@ -77,17 +75,19 @@ public final class AspectBootstrap {
             int color,
             int blend,
             ResourceKey<IAspect> componentA,
-            ResourceKey<IAspect> componentB
-    ) {
+            ResourceKey<IAspect> componentB) {
         Holder<IAspect> a = ctx.lookup(IAspect.REGISTRY_KEY).getOrThrow(componentA);
         Holder<IAspect> b = ctx.lookup(IAspect.REGISTRY_KEY).getOrThrow(componentB);
-        ctx.register(key, new Aspect(
-                key.identifier().getPath(),
-                color,
-                List.of(a, b),
-                Optional.empty(),
-                Identifier.fromNamespaceAndPath(key.identifier().getNamespace(), "textures/aspects/" + key.identifier().getPath() + ".png"),
-                blend
-        ));
+        ctx.register(
+                key,
+                new Aspect(
+                        key.identifier().getPath(),
+                        color,
+                        List.of(a, b),
+                        Optional.empty(),
+                        Identifier.fromNamespaceAndPath(
+                                key.identifier().getNamespace(),
+                                "textures/aspects/" + key.identifier().getPath() + ".png"),
+                        blend));
     }
 }

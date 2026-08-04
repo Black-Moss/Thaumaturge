@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.device.patterncrafter;
 
+import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
@@ -29,7 +30,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
@@ -41,16 +41,16 @@ public final class BlockEntityPatternCrafter extends BlockEntity {
     private static final int SPIN_TICKS = 10;
     private static final int[] PATTERN_INPUT_COUNTS = {9, 1, 2, 2, 4, 3, 3, 6, 6, 8};
     private static final int[][] PATTERN_SLOTS = {
-            {0, 1, 2, 3, 4, 5, 6, 7, 8},
-            {0},
-            {0, 1},
-            {0, 3},
-            {0, 1, 3, 4},
-            {0, 1, 2},
-            {0, 3, 6},
-            {0, 1, 2, 3, 4, 5},
-            {0, 1, 3, 4, 6, 7},
-            {0, 1, 2, 3, 5, 6, 7, 8}
+        {0, 1, 2, 3, 4, 5, 6, 7, 8},
+        {0},
+        {0, 1},
+        {0, 3},
+        {0, 1, 3, 4},
+        {0, 1, 2},
+        {0, 3, 6},
+        {0, 1, 2, 3, 4, 5},
+        {0, 1, 3, 4, 6, 7},
+        {0, 1, 2, 3, 5, 6, 7, 8}
     };
 
     private byte patternType;
@@ -83,8 +83,15 @@ public final class BlockEntityPatternCrafter extends BlockEntity {
             if (rotTicks > 0) {
                 rotTicks--;
                 if (rotTicks % Math.floor(Math.max(1.0F, rotSpeed)) == 0.0) {
-                    level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                            TCSounds.CLACK.get(), SoundSource.BLOCKS, 0.2F, 1.7F, false);
+                    level.playLocalSound(
+                            pos.getX() + 0.5,
+                            pos.getY() + 0.5,
+                            pos.getZ() + 0.5,
+                            TCSounds.CLACK.get(),
+                            SoundSource.BLOCKS,
+                            0.2F,
+                            1.7F,
+                            false);
                 }
                 rotSpeed++;
             } else {
@@ -110,8 +117,8 @@ public final class BlockEntityPatternCrafter extends BlockEntity {
             ItemResource resource = above.getResource(slot);
             if (resource.isEmpty()) continue;
             ItemStack testStack = resource.toStack(inputCount);
-            ItemStack removed = InvHelper.removeStackFrom(server, pos.above(), Direction.DOWN,
-                    testStack.copy(), InvHelper.InvFilter.STRICT, true);
+            ItemStack removed = InvHelper.removeStackFrom(
+                    server, pos.above(), Direction.DOWN, testStack.copy(), InvHelper.InvFilter.STRICT, true);
             if (removed.getCount() != inputCount) continue;
             CraftResult result = craft(server, testStack);
             if (result == null || power < 1.0F) continue;
@@ -128,8 +135,8 @@ public final class BlockEntityPatternCrafter extends BlockEntity {
             for (ItemStack remainder : result.remainders) {
                 InvHelper.insertStack(below, remainder.copy(), false);
             }
-            InvHelper.removeStackFrom(server, pos.above(), Direction.DOWN,
-                    testStack, InvHelper.InvFilter.STRICT, false);
+            InvHelper.removeStackFrom(
+                    server, pos.above(), Direction.DOWN, testStack, InvHelper.InvFilter.STRICT, false);
             server.blockEvent(pos, state.getBlock(), SPIN_EVENT, 0);
             power--;
             setChanged();
@@ -146,8 +153,8 @@ public final class BlockEntityPatternCrafter extends BlockEntity {
             grid.set(slot, input.copyWithCount(1));
         }
         CraftingInput craftingInput = CraftingInput.of(3, 3, grid);
-        Optional<RecipeHolder<CraftingRecipe>> match = server.recipeAccess()
-                .getRecipeFor(RecipeType.CRAFTING, craftingInput, server);
+        Optional<RecipeHolder<CraftingRecipe>> match =
+                server.recipeAccess().getRecipeFor(RecipeType.CRAFTING, craftingInput, server);
         if (match.isEmpty()) {
             return null;
         }
@@ -200,7 +207,8 @@ public final class BlockEntityPatternCrafter extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

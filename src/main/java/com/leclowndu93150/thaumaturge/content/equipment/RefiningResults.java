@@ -17,8 +17,7 @@ public final class RefiningResults {
             new Entry(Tags.Blocks.ORES_GOLD, TCItems.CLUSTER_GOLD.get()),
             new Entry(Tags.Blocks.ORES_COPPER, TCItems.CLUSTER_COPPER.get()),
             new Entry(Tags.Blocks.ORES_QUARTZ, TCItems.CLUSTER_QUARTZ.get()),
-            new Entry(TCBlockTags.ORES_CINNABAR, TCItems.CLUSTER_CINNABAR.get())
-    );
+            new Entry(TCBlockTags.ORES_CINNABAR, TCItems.CLUSTER_CINNABAR.get()));
 
     private RefiningResults() {}
 

@@ -1,19 +1,20 @@
 package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.items.InfusionEnchantment;
-import com.leclowndu93150.thaumaturge.content.equipment.InfusionEnchantmentHelper;
 import com.leclowndu93150.thaumaturge.api.wands.WandCap;
 import com.leclowndu93150.thaumaturge.api.wands.WandRod;
+import com.leclowndu93150.thaumaturge.content.equipment.InfusionEnchantmentHelper;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
-import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
-import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
-import net.minecraft.world.item.ItemStack;
-import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.item.CelestialBody;
 import com.leclowndu93150.thaumaturge.content.item.CelestialNotesItem;
 import com.leclowndu93150.thaumaturge.content.item.PhialItem;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
+import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
+import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
+import java.util.Comparator;
+import java.util.Optional;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -21,12 +22,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import java.util.Comparator;
-import java.util.Optional;
 
 public final class TCCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
@@ -56,8 +55,10 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.GOGGLES_REVEALING.get());
                         output.accept(chargedWand(TCWandParts.CAP_IRON.get(), TCWandParts.ROD_WOOD.get(), false));
                         output.accept(chargedWand(TCWandParts.CAP_GOLD.get(), TCWandParts.ROD_GREATWOOD.get(), false));
-                        output.accept(chargedWand(TCWandParts.CAP_THAUMIUM.get(), TCWandParts.ROD_SILVERWOOD.get(), false));
-                        output.accept(chargedWand(TCWandParts.CAP_THAUMIUM.get(), TCWandParts.ROD_SILVERWOOD.get(), true));
+                        output.accept(
+                                chargedWand(TCWandParts.CAP_THAUMIUM.get(), TCWandParts.ROD_SILVERWOOD.get(), false));
+                        output.accept(
+                                chargedWand(TCWandParts.CAP_THAUMIUM.get(), TCWandParts.ROD_SILVERWOOD.get(), true));
                         output.accept(chargedWand(TCWandParts.CAP_VOID.get(), TCWandParts.STAFF_PRIMAL.get(), false));
                         output.accept(TCItems.WAND_CAP_IRON.get());
                         output.accept(TCItems.WAND_CAP_COPPER.get());
@@ -126,7 +127,6 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.TUBE_BUFFER.get());
                         output.accept(TCItems.BRAIN_BOX.get());
 
-
                         output.accept(TCItems.CRYSTAL_AER.get());
                         output.accept(TCItems.CRYSTAL_IGNIS.get());
                         output.accept(TCItems.CRYSTAL_AQUA.get());
@@ -163,9 +163,9 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.CLUSTER_IRON.get());
                         output.accept(TCItems.CLUSTER_GOLD.get());
                         output.accept(TCItems.CLUSTER_COPPER.get());
-                        addIfTag(parameters,output,TCItemTags.INGOTS_TIN,TCItems.CLUSTER_TIN.get());
-                        addIfTag(parameters,output,TCItemTags.INGOTS_SILVER,TCItems.CLUSTER_SILVER.get());
-                        addIfTag(parameters,output,TCItemTags.INGOTS_LEAD,TCItems.CLUSTER_LEAD.get());
+                        addIfTag(parameters, output, TCItemTags.INGOTS_TIN, TCItems.CLUSTER_TIN.get());
+                        addIfTag(parameters, output, TCItemTags.INGOTS_SILVER, TCItems.CLUSTER_SILVER.get());
+                        addIfTag(parameters, output, TCItemTags.INGOTS_LEAD, TCItems.CLUSTER_LEAD.get());
                         output.accept(TCItems.CLUSTER_CINNABAR.get());
                         output.accept(TCItems.CLUSTER_QUARTZ.get());
 
@@ -245,12 +245,19 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.PLANT_CINDERPEARL.get());
                         output.accept(TCItems.PLANT_VISHROOM.get());
                         output.accept(TCItems.GRASS_AMBIENT.get());
-                        HolderLookup.RegistryLookup<IAspect> aspectRegistry = parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY);
-                        for (Holder<IAspect> aspect : aspectRegistry.listElements().sorted(Comparator.comparing(h->!h.value().isPrimal())).toList()){
+                        HolderLookup.RegistryLookup<IAspect> aspectRegistry =
+                                parameters.holders().lookupOrThrow(IAspect.REGISTRY_KEY);
+                        for (Holder<IAspect> aspect : aspectRegistry
+                                .listElements()
+                                .sorted(Comparator.comparing(h -> !h.value().isPrimal()))
+                                .toList()) {
                             output.accept(EssentiaCrystalFactory.of(aspect));
                         }
                         output.accept(TCItems.PHIAL.get());
-                        for (Holder<IAspect> aspect : aspectRegistry.listElements().sorted(Comparator.comparing(h->!h.value().isPrimal())).toList()){
+                        for (Holder<IAspect> aspect : aspectRegistry
+                                .listElements()
+                                .sorted(Comparator.comparing(h -> !h.value().isPrimal()))
+                                .toList()) {
                             output.accept(PhialItem.makeFilled(aspect));
                         }
                         output.accept(TCItems.THAUMIUM_SWORD.get());
@@ -464,16 +471,18 @@ public final class TCCreativeTabs {
                         output.accept(TCItems.ELDRITCH_GOLEM_SPAWN_EGG.get());
                         output.accept(TCItems.TAINTACLE_GIANT_SPAWN_EGG.get());
                     })
-                    .build()
-    );
+                    .build());
 
-            private static void addIfTag(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output, TagKey<Item> tag, Item item) {
-                Optional<HolderSet.Named<Item>> tagOpt = parameters.holders().get(tag);
-                if (tagOpt.isPresent()){
-                    if (tagOpt.get().stream().findAny().isPresent())
-                        output.accept(item);
-                }
-            }
+    private static void addIfTag(
+            CreativeModeTab.ItemDisplayParameters parameters,
+            CreativeModeTab.Output output,
+            TagKey<Item> tag,
+            Item item) {
+        Optional<HolderSet.Named<Item>> tagOpt = parameters.holders().get(tag);
+        if (tagOpt.isPresent()) {
+            if (tagOpt.get().stream().findAny().isPresent()) output.accept(item);
+        }
+    }
 
     private static ItemStack golemPlacer(GolemProperties props) {
         ItemStack stack = new ItemStack(TCItems.GOLEM_PLACER.get());

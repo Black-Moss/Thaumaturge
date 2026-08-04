@@ -42,16 +42,21 @@ public record FocusPackage(float power, int complexity, Optional<UUID> casterId,
      */
     public static final Codec<FocusPackage> CODEC = Codec.recursive("FocusPackage", self -> {
         Codec<FocusUnit> unitCodec = RecordCodecBuilder.<FocusUnit>create(i -> i.group(
-                Identifier.CODEC.fieldOf("key").forGetter(FocusUnit::element),
-                Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf("settings", Map.of()).forGetter(FocusUnit::settings),
-                self.listOf().optionalFieldOf("packages", List.of()).forGetter(FocusUnit::branches)
-        ).apply(i, FocusUnit::new)).validate(FocusPackage::validateUnit);
+                                Identifier.CODEC.fieldOf("key").forGetter(FocusUnit::element),
+                                Codec.unboundedMap(Codec.STRING, Codec.INT)
+                                        .optionalFieldOf("settings", Map.of())
+                                        .forGetter(FocusUnit::settings),
+                                self.listOf()
+                                        .optionalFieldOf("packages", List.of())
+                                        .forGetter(FocusUnit::branches))
+                        .apply(i, FocusUnit::new))
+                .validate(FocusPackage::validateUnit);
         return RecordCodecBuilder.create(i -> i.group(
-                Codec.FLOAT.optionalFieldOf("power", DEFAULT_POWER).forGetter(FocusPackage::power),
-                Codec.INT.optionalFieldOf("complexity", 0).forGetter(FocusPackage::complexity),
-                UUIDUtil.CODEC.optionalFieldOf("caster").forGetter(FocusPackage::casterId),
-                unitCodec.listOf().fieldOf("nodes").forGetter(FocusPackage::units)
-        ).apply(i, FocusPackage::new));
+                        Codec.FLOAT.optionalFieldOf("power", DEFAULT_POWER).forGetter(FocusPackage::power),
+                        Codec.INT.optionalFieldOf("complexity", 0).forGetter(FocusPackage::complexity),
+                        UUIDUtil.CODEC.optionalFieldOf("caster").forGetter(FocusPackage::casterId),
+                        unitCodec.listOf().fieldOf("nodes").forGetter(FocusPackage::units))
+                .apply(i, FocusPackage::new));
     });
 
     /** Network encoding mirroring {@link #CODEC}. */
@@ -115,8 +120,7 @@ public record FocusPackage(float power, int complexity, Optional<UUID> casterId,
         private int complexity;
         private @Nullable UUID casterId;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Sets the base power.

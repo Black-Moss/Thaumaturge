@@ -1,13 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.item;
 
 import com.leclowndu93150.thaumaturge.api.aspect.*;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
-import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
-import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
+import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
+import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -89,7 +88,14 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
         return InteractionResult.PASS;
     }
 
-    private InteractionResult interactWith(ItemStack stack, Player player, InteractionHand hand, Level level, BlockPos pos, IEssentiaTransport container, boolean canDeposit){
+    private InteractionResult interactWith(
+            ItemStack stack,
+            Player player,
+            InteractionHand hand,
+            Level level,
+            BlockPos pos,
+            IEssentiaTransport container,
+            boolean canDeposit) {
         AspectList aspects = getAspects(stack);
         // We use Direction.UP to allow insertion/extraction from all faces with fials
         if (aspects.isEmpty()) {
@@ -109,7 +115,7 @@ public final class PhialItem extends Item implements IEssentiaContainerItem {
                     return InteractionResult.SUCCESS;
                 }
             }
-        } else if (canDeposit){
+        } else if (canDeposit) {
             AspectInstance first = aspects.entries().getFirst();
             if (container.getEssentiaAmount(Direction.UP) + first.amount() <= BlockEntityJar.CAPACITY) {
                 if (level.isClientSide()) {

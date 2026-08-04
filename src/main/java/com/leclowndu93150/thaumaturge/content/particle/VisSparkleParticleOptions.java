@@ -16,14 +16,15 @@ public record VisSparkleParticleOptions(double tx, double ty, double tz, int col
         this(tx, ty, tz, DEFAULT_COLOR);
     }
 
-    public static final MapCodec<VisSparkleParticleOptions> CODEC = RecordCodecBuilder.mapCodec(
-            instance -> instance.group(
-                    Codec.DOUBLE.fieldOf("tx").forGetter(VisSparkleParticleOptions::tx),
-                    Codec.DOUBLE.fieldOf("ty").forGetter(VisSparkleParticleOptions::ty),
-                    Codec.DOUBLE.fieldOf("tz").forGetter(VisSparkleParticleOptions::tz),
-                    Codec.INT.optionalFieldOf("color", DEFAULT_COLOR).forGetter(VisSparkleParticleOptions::color)
-            ).apply(instance, VisSparkleParticleOptions::new)
-    );
+    public static final MapCodec<VisSparkleParticleOptions> CODEC =
+            RecordCodecBuilder.mapCodec(instance -> instance.group(
+                            Codec.DOUBLE.fieldOf("tx").forGetter(VisSparkleParticleOptions::tx),
+                            Codec.DOUBLE.fieldOf("ty").forGetter(VisSparkleParticleOptions::ty),
+                            Codec.DOUBLE.fieldOf("tz").forGetter(VisSparkleParticleOptions::tz),
+                            Codec.INT
+                                    .optionalFieldOf("color", DEFAULT_COLOR)
+                                    .forGetter(VisSparkleParticleOptions::color))
+                    .apply(instance, VisSparkleParticleOptions::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, VisSparkleParticleOptions> STREAM_CODEC = StreamCodec.of(
             (buf, data) -> {
@@ -32,8 +33,7 @@ public record VisSparkleParticleOptions(double tx, double ty, double tz, int col
                 buf.writeDouble(data.tz);
                 buf.writeInt(data.color);
             },
-            buf -> new VisSparkleParticleOptions(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt())
-    );
+            buf -> new VisSparkleParticleOptions(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readInt()));
 
     @Override
     public ParticleType<?> getType() {

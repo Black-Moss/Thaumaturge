@@ -14,10 +14,7 @@ public final class PechTradeGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (!this.pech.isAlive()
-                || this.pech.isInWater()
-                || !this.pech.isTamed()
-                || !this.pech.onGround()) {
+        if (!this.pech.isAlive() || this.pech.isInWater() || !this.pech.isTamed() || !this.pech.onGround()) {
             return false;
         }
         return this.pech.trading;

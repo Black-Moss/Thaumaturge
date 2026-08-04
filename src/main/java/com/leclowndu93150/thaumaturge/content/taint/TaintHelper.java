@@ -109,10 +109,7 @@ public final class TaintHelper {
         if (!isNearTaintSeed(level, pos)) {
             return;
         }
-        BlockPos target = pos.offset(
-                random.nextInt(3) - 1,
-                random.nextInt(3) - 1,
-                random.nextInt(3) - 1);
+        BlockPos target = pos.offset(random.nextInt(3) - 1, random.nextInt(3) - 1, random.nextInt(3) - 1);
         if (target.equals(pos)) {
             return;
         }
@@ -126,8 +123,7 @@ public final class TaintHelper {
         boolean isReplaceable = targetState.isAir() || targetState.canBeReplaced();
 
         if (!isLeaves && !targetState.liquid() && isReplaceable) {
-            if (isAdjacentToSolidBlock(level, target)
-                    && !BlockTaintFibre.isOnlyAdjacentToTaint(level, target)) {
+            if (isAdjacentToSolidBlock(level, target) && !BlockTaintFibre.isOnlyAdjacentToTaint(level, target)) {
                 level.setBlock(target, TCBlocks.TAINT_FIBRE.get().defaultBlockState(), Block.UPDATE_ALL);
                 AuraHelper.drainFlux(level, target, FLUX_PER_CONVERSION, false);
             }
@@ -135,12 +131,14 @@ public final class TaintHelper {
         }
 
         if (isLeaves) {
-            Direction logFace = random.nextFloat() < FEATURE_ON_LEAVES_CHANCE
-                    ? findAdjacentTaintLog(level, target)
-                    : null;
+            Direction logFace =
+                    random.nextFloat() < FEATURE_ON_LEAVES_CHANCE ? findAdjacentTaintLog(level, target) : null;
             if (logFace != null) {
-                level.setBlock(target,
-                        TCBlocks.TAINT_FEATURE.get().defaultBlockState()
+                level.setBlock(
+                        target,
+                        TCBlocks.TAINT_FEATURE
+                                .get()
+                                .defaultBlockState()
                                 .setValue(DirectionalBlock.FACING, logFace.getOpposite()),
                         Block.UPDATE_ALL);
             } else {
@@ -156,7 +154,8 @@ public final class TaintHelper {
                 if (targetState.hasProperty(RotatedPillarBlock.AXIS)) {
                     axis = targetState.getValue(RotatedPillarBlock.AXIS);
                 }
-                level.setBlock(target,
+                level.setBlock(
+                        target,
                         TCBlocks.TAINT_LOG.get().defaultBlockState().setValue(RotatedPillarBlock.AXIS, axis),
                         Block.UPDATE_ALL);
                 return;
@@ -181,8 +180,8 @@ public final class TaintHelper {
         trySpawnTaintSeed(level, target, targetState, random, rate);
     }
 
-    private static void trySpawnTaintSeed(ServerLevel level, BlockPos target, BlockState targetState,
-                                          RandomSource random, double rate) {
+    private static void trySpawnTaintSeed(
+            ServerLevel level, BlockPos target, BlockState targetState, RandomSource random, double rate) {
         if (!targetState.is(TCBlocks.TAINT_SOIL.get()) && !targetState.is(TCBlocks.TAINT_ROCK.get())) {
             return;
         }
@@ -202,8 +201,7 @@ public final class TaintHelper {
         if (seed == null) {
             return;
         }
-        seed.snapTo(target.getX() + 0.5, target.getY() + 1, target.getZ() + 0.5,
-                random.nextInt(360), 0.0F);
+        seed.snapTo(target.getX() + 0.5, target.getY() + 1, target.getZ() + 0.5, random.nextInt(360), 0.0F);
         if (!canSeedSpawnAt(level, seed)) {
             seed.discard();
             return;
@@ -221,16 +219,20 @@ public final class TaintHelper {
         }
         double fringe = spreadArea() * 0.8;
         AABB box = seed.getBoundingBox().inflate(fringe);
-        return level.getEntitiesOfClass(AbstractTaintSeed.class, box, other -> other != seed).isEmpty();
+        return level.getEntitiesOfClass(AbstractTaintSeed.class, box, other -> other != seed)
+                .isEmpty();
     }
 
     private static boolean isCrustConvertible(BlockState state) {
-        if (state.is(Blocks.RED_MUSHROOM_BLOCK) || state.is(Blocks.BROWN_MUSHROOM_BLOCK)
+        if (state.is(Blocks.RED_MUSHROOM_BLOCK)
+                || state.is(Blocks.BROWN_MUSHROOM_BLOCK)
                 || state.is(Blocks.MUSHROOM_STEM)) {
             return true;
         }
-        if (state.is(Blocks.PUMPKIN) || state.is(Blocks.CARVED_PUMPKIN)
-                || state.is(Blocks.JACK_O_LANTERN) || state.is(Blocks.MELON)) {
+        if (state.is(Blocks.PUMPKIN)
+                || state.is(Blocks.CARVED_PUMPKIN)
+                || state.is(Blocks.JACK_O_LANTERN)
+                || state.is(Blocks.MELON)) {
             return true;
         }
         if (state.is(Blocks.CACTUS) || state.is(Blocks.SPONGE) || state.is(Blocks.WET_SPONGE)) {

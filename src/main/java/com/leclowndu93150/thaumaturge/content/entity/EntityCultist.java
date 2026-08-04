@@ -42,17 +42,18 @@ public abstract class EntityCultist extends Monster {
         return false;
     }
 
-    protected void setLoot(DifficultyInstance difficulty) {
-    }
+    protected void setLoot(DifficultyInstance difficulty) {}
 
     @Override
-    protected void populateDefaultEquipmentEnchantments(ServerLevelAccessor level, RandomSource random,
-                                                        DifficultyInstance difficulty) {
-    }
+    protected void populateDefaultEquipmentEnchantments(
+            ServerLevelAccessor level, RandomSource random, DifficultyInstance difficulty) {}
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
-                                                  EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+    public @Nullable SpawnGroupData finalizeSpawn(
+            ServerLevelAccessor level,
+            DifficultyInstance difficulty,
+            EntitySpawnReason reason,
+            @Nullable SpawnGroupData groupData) {
         this.setLoot(difficulty);
         return super.finalizeSpawn(level, difficulty, reason, groupData);
     }
@@ -80,11 +81,21 @@ public abstract class EntityCultist extends Monster {
                 double vx = this.random.nextGaussian() * 0.05;
                 double vy = this.random.nextGaussian() * 0.05;
                 double vz = this.random.nextGaussian() * 0.05;
-                this.level().addParticle(ParticleTypes.POOF,
-                        this.getX() + this.random.nextFloat() * this.getBbWidth() * 2.0F - this.getBbWidth() + vx * 2.0,
-                        this.getY() + this.random.nextFloat() * this.getBbHeight() + vy * 2.0,
-                        this.getZ() + this.random.nextFloat() * this.getBbWidth() * 2.0F - this.getBbWidth() + vz * 2.0,
-                        vx, vy, vz);
+                this.level()
+                        .addParticle(
+                                ParticleTypes.POOF,
+                                this.getX()
+                                        + this.random.nextFloat() * this.getBbWidth() * 2.0F
+                                        - this.getBbWidth()
+                                        + vx * 2.0,
+                                this.getY() + this.random.nextFloat() * this.getBbHeight() + vy * 2.0,
+                                this.getZ()
+                                        + this.random.nextFloat() * this.getBbWidth() * 2.0F
+                                        - this.getBbWidth()
+                                        + vz * 2.0,
+                                vx,
+                                vy,
+                                vz);
             }
         } else {
             super.handleEntityEvent(event);

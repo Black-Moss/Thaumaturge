@@ -12,8 +12,8 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import org.jspecify.annotations.Nullable;
@@ -39,10 +39,24 @@ public final class MindSpiderRenderer extends MobRenderer<EntityMindSpider, Mind
         }
 
         @Override
-        public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords,
-                           MindSpiderRenderState state, float yRot, float xRot) {
-            collector.order(1).submitModel(this.getParentModel(), state, poseStack, SPIDER_EYES,
-                    lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor, null);
+        public void submit(
+                PoseStack poseStack,
+                SubmitNodeCollector collector,
+                int lightCoords,
+                MindSpiderRenderState state,
+                float yRot,
+                float xRot) {
+            collector
+                    .order(1)
+                    .submitModel(
+                            this.getParentModel(),
+                            state,
+                            poseStack,
+                            SPIDER_EYES,
+                            lightCoords,
+                            OverlayTexture.NO_OVERLAY,
+                            state.outlineColor,
+                            null);
         }
     }
 
@@ -62,7 +76,8 @@ public final class MindSpiderRenderer extends MobRenderer<EntityMindSpider, Mind
     }
 
     @Override
-    public void submit(MindSpiderRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            MindSpiderRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         if (state.hiddenFromViewer) {
             return;
         }
@@ -75,8 +90,8 @@ public final class MindSpiderRenderer extends MobRenderer<EntityMindSpider, Mind
     }
 
     @Override
-    protected @Nullable RenderType getRenderType(MindSpiderRenderState state, boolean isBodyVisible,
-                                                 boolean forceTransparent, boolean appearGlowing) {
+    protected @Nullable RenderType getRenderType(
+            MindSpiderRenderState state, boolean isBodyVisible, boolean forceTransparent, boolean appearGlowing) {
         return super.getRenderType(state, isBodyVisible, true, appearGlowing);
     }
 

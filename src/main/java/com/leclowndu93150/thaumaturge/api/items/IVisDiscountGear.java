@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.api.items;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlotGroup;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -31,8 +30,9 @@ public interface IVisDiscountGear {
      * @return the equipment slot group in which the attribute modifier should apply
      */
     default EquipmentSlotGroup getAppliedSlot(ItemStack stack) {
-        if (stack.has(DataComponents.EQUIPPABLE)){
-            return EquipmentSlotGroup.bySlot(stack.get(DataComponents.EQUIPPABLE).slot());
+        if (stack.has(DataComponents.EQUIPPABLE)) {
+            return EquipmentSlotGroup.bySlot(
+                    stack.get(DataComponents.EQUIPPABLE).slot());
         }
         return EquipmentSlotGroup.ANY;
     }

@@ -8,13 +8,11 @@ import com.leclowndu93150.thaumaturge.compat.jei.utils.ResearchUtils;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerMultiblockRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerSimpleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerTagRecipe;
-import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
+import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
@@ -42,7 +40,8 @@ import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<DustTrigger>> {
-    public static final IRecipeHolderType<DustTrigger> RECIPE_TYPE = IRecipeHolderType.create(TCRecipeTypes.DUST_TRIGGER.get());
+    public static final IRecipeHolderType<DustTrigger> RECIPE_TYPE =
+            IRecipeHolderType.create(TCRecipeTypes.DUST_TRIGGER.get());
 
     private static final int WIDTH = 144;
     private static final int HEIGHT = 54;
@@ -56,7 +55,8 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
 
     private final IDrawable icon;
 
-    private final IDrawable resultIcon = new AlphaDrawable(Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"),41,7,30,30);
+    private final IDrawable resultIcon = new AlphaDrawable(
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"), 41, 7, 30, 30);
 
     public DustTriggerCategory(IGuiHelper guiHelper) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(TCItems.SALIS_MUNDUS.get()));
@@ -100,8 +100,8 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
                 .addRichTooltipCallback((view, tooltip) -> tooltip.add(usage));
 
         DustTrigger recipe = holder.value();
-        IRecipeSlotBuilder targetSlot = builder.addSlot(RecipeIngredientRole.CRAFTING_STATION,
-                TARGET_SLOT_X + 1, TARGET_SLOT_Y + 1);
+        IRecipeSlotBuilder targetSlot =
+                builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, TARGET_SLOT_X + 1, TARGET_SLOT_Y + 1);
         if (recipe instanceof DustTriggerSimpleRecipe simple) {
             targetSlot.add(new ItemStack(simple.target()));
         } else if (recipe instanceof DustTriggerTagRecipe tagRecipe) {
@@ -111,8 +111,7 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
                 targetSlot.addItemStacks(stacks);
             }
             Component tagLabel = Component.translatable(
-                    "jei.thaumaturge.dust_trigger.target.tag",
-                    Component.literal("#" + tag.location()));
+                    "jei.thaumaturge.dust_trigger.target.tag", Component.literal("#" + tag.location()));
             targetSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(tagLabel));
         }
 
@@ -135,26 +134,52 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
     }
 
     @Override
-    public void draw(RecipeHolder<DustTrigger> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
-        resultIcon.draw(guiGraphics,RESULT_SLOT_X - 6, RESULT_SLOT_Y - 6);
+    public void draw(
+            RecipeHolder<DustTrigger> recipe,
+            IRecipeSlotsView recipeSlotsView,
+            GuiGraphicsExtractor guiGraphics,
+            double mouseX,
+            double mouseY) {
+        resultIcon.draw(guiGraphics, RESULT_SLOT_X - 6, RESULT_SLOT_Y - 6);
 
         Font font = Minecraft.getInstance().font;
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().scale(2);
-        guiGraphics.text(font,"+",(((DUST_SLOT_X + 16) + TARGET_SLOT_X) / 2 - 5) / 2,20/2, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
-        guiGraphics.text(font,"=",(((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 5) / 2,20/2, 0xFF000000 | ChatFormatting.DARK_GRAY.getColor(), false);
+        guiGraphics.text(
+                font,
+                "+",
+                (((DUST_SLOT_X + 16) + TARGET_SLOT_X) / 2 - 5) / 2,
+                20 / 2,
+                0xFF000000 | ChatFormatting.DARK_GRAY.getColor(),
+                false);
+        guiGraphics.text(
+                font,
+                "=",
+                (((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 5) / 2,
+                20 / 2,
+                0xFF000000 | ChatFormatting.DARK_GRAY.getColor(),
+                false);
         guiGraphics.pose().popMatrix();
 
         boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
-        if (!doesPassGate) guiGraphics.item(Items.BARRIER.getDefaultInstance(),((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 8,20);
-
+        if (!doesPassGate)
+            guiGraphics.item(Items.BARRIER.getDefaultInstance(), ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 8, 20);
     }
 
     @Override
-    public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<DustTrigger> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public void getTooltip(
+            ITooltipBuilder tooltip,
+            RecipeHolder<DustTrigger> recipe,
+            IRecipeSlotsView recipeSlotsView,
+            double mouseX,
+            double mouseY) {
         Optional<ResearchGate> gate = recipe.value().researchGate();
         boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
-        if (!doesPassGate && mouseX > (double) ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 8 && mouseX < (double) ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 +10 && mouseY > 20 && mouseY < 36){
+        if (!doesPassGate
+                && mouseX > (double) ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 - 8
+                && mouseX < (double) ((TARGET_SLOT_X + 16) + RESULT_SLOT_X) / 2 + 10
+                && mouseY > 20
+                && mouseY < 36) {
             tooltip.addAll(ResearchUtils.generateMissingResearchList(gate.get()));
         }
     }

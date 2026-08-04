@@ -11,8 +11,10 @@ public record ClientboundWispZapPayload(int sourceId, int targetId) implements C
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundWispZapPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    ByteBufCodecs.VAR_INT, ClientboundWispZapPayload::sourceId,
-                    ByteBufCodecs.VAR_INT, ClientboundWispZapPayload::targetId,
+                    ByteBufCodecs.VAR_INT,
+                    ClientboundWispZapPayload::sourceId,
+                    ByteBufCodecs.VAR_INT,
+                    ClientboundWispZapPayload::targetId,
                     ClientboundWispZapPayload::new);
 
     @Override

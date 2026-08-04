@@ -16,12 +16,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -79,9 +76,7 @@ public final class ChampionEvents {
             roll -= 2;
         }
         Holder<Biome> biome = level.getBiome(mob.blockPosition());
-        if (biome.is(TCBiomeTags.IS_SPOOKY)
-                || level.dimension() == Level.NETHER
-                || level.dimension() == Level.END) {
+        if (biome.is(TCBiomeTags.IS_SPOOKY) || level.dimension() == Level.NETHER || level.dimension() == Level.END) {
             roll -= allowed ? 2 : 1;
         }
         int whitelistBonus = 0;
@@ -94,8 +89,7 @@ public final class ChampionEvents {
             }
         }
         roll -= whitelistBonus;
-        if (whitelisted && roll <= 0
-                && mob.getAttributeBaseValue(Attributes.MAX_HEALTH) >= MIN_CHAMPION_HEALTH) {
+        if (whitelisted && roll <= 0 && mob.getAttributeBaseValue(Attributes.MAX_HEALTH) >= MIN_CHAMPION_HEALTH) {
             ChampionHelper.makeChampion(mob, false);
         } else {
             ChampionHelper.markNotChampion(mob);
@@ -110,7 +104,8 @@ public final class ChampionEvents {
             return;
         }
         int type = ChampionHelper.championType(mob);
-        if (type >= 0 && type < ChampionModifier.MODS.size()
+        if (type >= 0
+                && type < ChampionModifier.MODS.size()
                 && ChampionModifier.MODS.get(type).trigger() == ChampionModifier.Trigger.TICK) {
             ChampionModifier.MODS.get(type).effect().perform(mob, null, null, 0.0F);
         }
@@ -133,19 +128,26 @@ public final class ChampionEvents {
             return;
         }
         int victimType = ChampionHelper.championType(victim);
-        if (victim instanceof Monster
-                && (victimType >= 0 || victim instanceof IEldritchMob)) {
-            if ((victimType == ChampionModifier.WARDED
-                    || victim instanceof IEldritchMob)
+        if (victim instanceof Monster && (victimType >= 0 || victim instanceof IEldritchMob)) {
+            if ((victimType == ChampionModifier.WARDED || victim instanceof IEldritchMob)
                     && victim.getAbsorptionAmount() > 0.0F) {
-                victim.level().playSound(null, victim.getX(), victim.getY(), victim.getZ(),
-                        TCSounds.RUNICSHIELDCHARGE.get(), SoundSource.HOSTILE,
-                        0.66F, 1.1F + victim.getRandom().nextFloat() * 0.1F);
+                victim.level()
+                        .playSound(
+                                null,
+                                victim.getX(),
+                                victim.getY(),
+                                victim.getZ(),
+                                TCSounds.RUNICSHIELDCHARGE.get(),
+                                SoundSource.HOSTILE,
+                                0.66F,
+                                1.1F + victim.getRandom().nextFloat() * 0.1F);
             }
             if (victimType >= 0
                     && ChampionModifier.MODS.get(victimType).trigger() == ChampionModifier.Trigger.WHEN_HURT
                     && event.getSource().getEntity() instanceof LivingEntity attacker) {
-                event.setAmount(ChampionModifier.MODS.get(victimType).effect()
+                event.setAmount(ChampionModifier.MODS
+                        .get(victimType)
+                        .effect()
                         .perform(victim, attacker, event.getSource(), event.getAmount()));
             }
         }
@@ -154,7 +156,9 @@ public final class ChampionEvents {
                 && ChampionHelper.isChampion(attacker)) {
             int attackerType = ChampionHelper.championType(attacker);
             if (ChampionModifier.MODS.get(attackerType).trigger() == ChampionModifier.Trigger.ON_ATTACK) {
-                event.setAmount(ChampionModifier.MODS.get(attackerType).effect()
+                event.setAmount(ChampionModifier.MODS
+                        .get(attackerType)
+                        .effect()
                         .perform(attacker, victim, event.getSource(), event.getAmount()));
             }
         }
@@ -177,23 +181,25 @@ public final class ChampionEvents {
         int xp = XP_BASE + entity.getRandom().nextInt(XP_SPREAD);
         ExperienceOrb.award(server, entity.position(), xp);
         int looting = lootingLevel(server, killer);
-        int tier = Math.min(MAX_BAG_TIER,
+        int tier = Math.min(
+                MAX_BAG_TIER,
                 Mth.floor((entity.getRandom().nextInt(BAG_ROLL_BOUND) + looting) / (float) BAG_TIER_DIVISOR));
-        ItemStack bag = new ItemStack(switch (tier) {
-            case 1 -> TCItems.LOOT_BAG_UNCOMMON.get();
-            case 2 -> TCItems.LOOT_BAG_RARE.get();
-            default -> TCItems.LOOT_BAG_COMMON.get();
-        });
-        event.getDrops().add(new ItemEntity(server,
-                entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), bag));
+        ItemStack bag = new ItemStack(
+                switch (tier) {
+                    case 1 -> TCItems.LOOT_BAG_UNCOMMON.get();
+                    case 2 -> TCItems.LOOT_BAG_RARE.get();
+                    default -> TCItems.LOOT_BAG_COMMON.get();
+                });
+        event.getDrops()
+                .add(new ItemEntity(server, entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), bag));
     }
 
     private static int lootingLevel(ServerLevel level, Entity killer) {
         if (!(killer instanceof LivingEntity living)) {
             return 0;
         }
-        Holder<Enchantment> looting = level.registryAccess()
-                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING);
+        Holder<Enchantment> looting =
+                level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING);
         return EnchantmentHelper.getItemEnchantmentLevel(looting, living.getMainHandItem());
     }
 }

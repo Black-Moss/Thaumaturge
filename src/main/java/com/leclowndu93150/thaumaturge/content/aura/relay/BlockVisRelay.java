@@ -35,8 +35,7 @@ public final class BlockVisRelay extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level,
-                                  BlockPos pos, CollisionContext context) {
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
@@ -46,12 +45,11 @@ public final class BlockVisRelay extends BaseEntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                            BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) {
             return null;
         }
-        return createTickerHelper(type, TCBlockEntities.VIS_RELAY.get(),
-                BlockEntityVisRelay::serverTick);
+        return createTickerHelper(type, TCBlockEntities.VIS_RELAY.get(), BlockEntityVisRelay::serverTick);
     }
 }

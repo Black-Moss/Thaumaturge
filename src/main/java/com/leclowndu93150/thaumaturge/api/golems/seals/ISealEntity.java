@@ -61,7 +61,8 @@ public interface ISealEntity {
     /**
      * @return the placing player's id, or null when unknown
      */
-    @Nullable UUID getOwner();
+    @Nullable
+    UUID getOwner();
 
     void setOwner(@Nullable UUID owner);
 

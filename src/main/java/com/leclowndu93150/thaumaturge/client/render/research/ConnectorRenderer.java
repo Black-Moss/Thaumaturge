@@ -60,8 +60,7 @@ public final class ConnectorRenderer {
             int colorArgb,
             float zMod,
             boolean arrow,
-            boolean flipped
-    ) {
+            boolean flipped) {
         int xd;
         int yd;
         int xm;
@@ -114,24 +113,63 @@ public final class ConnectorRenderer {
         int v = 1;
         int h = 0;
         for (; v < yd - (bigCorner ? 1 : 0); v++) {
-            queue(xx + xm * CELL_SIZE * h, yy + ym * CELL_SIZE * v,
-                    V_VERTICAL_U, CONNECTOR_V, SEGMENT_SIZE, SEGMENT_SIZE, colorArgb, zMod);
+            queue(
+                    xx + xm * CELL_SIZE * h,
+                    yy + ym * CELL_SIZE * v,
+                    V_VERTICAL_U,
+                    CONNECTOR_V,
+                    SEGMENT_SIZE,
+                    SEGMENT_SIZE,
+                    colorArgb,
+                    zMod);
         }
 
         if (bigCorner) {
             int cornerX = xx + xm * CELL_SIZE * h;
             int cornerY = yy + ym * CELL_SIZE * v;
             if (xm < 0 && ym > 0) {
-                queue(cornerX - CELL_SIZE, cornerY, LARGE_CORNER_BL_U, LARGE_CORNER_V, LARGE_CORNER_SIZE, LARGE_CORNER_SIZE, colorArgb, zMod);
+                queue(
+                        cornerX - CELL_SIZE,
+                        cornerY,
+                        LARGE_CORNER_BL_U,
+                        LARGE_CORNER_V,
+                        LARGE_CORNER_SIZE,
+                        LARGE_CORNER_SIZE,
+                        colorArgb,
+                        zMod);
             }
             if (xm > 0 && ym > 0) {
-                queue(cornerX, cornerY, LARGE_CORNER_BR_U, LARGE_CORNER_V, LARGE_CORNER_SIZE, LARGE_CORNER_SIZE, colorArgb, zMod);
+                queue(
+                        cornerX,
+                        cornerY,
+                        LARGE_CORNER_BR_U,
+                        LARGE_CORNER_V,
+                        LARGE_CORNER_SIZE,
+                        LARGE_CORNER_SIZE,
+                        colorArgb,
+                        zMod);
             }
             if (xm < 0 && ym < 0) {
-                queue(cornerX - CELL_SIZE, cornerY - CELL_SIZE, LARGE_CORNER_TL_U, LARGE_CORNER_V, LARGE_CORNER_SIZE, LARGE_CORNER_SIZE, colorArgb, zMod);
+                queue(
+                        cornerX - CELL_SIZE,
+                        cornerY - CELL_SIZE,
+                        LARGE_CORNER_TL_U,
+                        LARGE_CORNER_V,
+                        LARGE_CORNER_SIZE,
+                        LARGE_CORNER_SIZE,
+                        colorArgb,
+                        zMod);
             }
             if (xm > 0 && ym < 0) {
-                queue(cornerX, cornerY - CELL_SIZE, LARGE_CORNER_TR_U, LARGE_CORNER_V, LARGE_CORNER_SIZE, LARGE_CORNER_SIZE, colorArgb, zMod);
+                queue(
+                        cornerX,
+                        cornerY - CELL_SIZE,
+                        LARGE_CORNER_TR_U,
+                        LARGE_CORNER_V,
+                        LARGE_CORNER_SIZE,
+                        LARGE_CORNER_SIZE,
+                        colorArgb,
+                        zMod);
             }
         } else if (xd > 0 && yd > 0) {
             int cornerX = xx + xm * CELL_SIZE * h;
@@ -152,8 +190,15 @@ public final class ConnectorRenderer {
 
         v += bigCorner ? 1 : 0;
         for (int hi = h + (bigCorner ? 2 : 1); hi < xd; hi++) {
-            queue(xx + xm * CELL_SIZE * hi, yy + ym * CELL_SIZE * v,
-                    V_HORIZONTAL_U, CONNECTOR_V, SEGMENT_SIZE, SEGMENT_SIZE, colorArgb, zMod);
+            queue(
+                    xx + xm * CELL_SIZE * hi,
+                    yy + ym * CELL_SIZE * v,
+                    V_HORIZONTAL_U,
+                    CONNECTOR_V,
+                    SEGMENT_SIZE,
+                    SEGMENT_SIZE,
+                    colorArgb,
+                    zMod);
         }
     }
 
@@ -165,13 +210,17 @@ public final class ConnectorRenderer {
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED,
                     TCScreenTextures.RESEARCH_BROWSER,
-                    b.x, b.y,
-                    (float) b.u, (float) b.v,
-                    b.w, b.h,
-                    b.w, b.h,
-                    TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE,
-                    b.color
-            );
+                    b.x,
+                    b.y,
+                    (float) b.u,
+                    (float) b.v,
+                    b.w,
+                    b.h,
+                    b.w,
+                    b.h,
+                    TCScreenTextures.TEX_SIZE,
+                    TCScreenTextures.TEX_SIZE,
+                    b.color);
         }
         queue.clear();
     }

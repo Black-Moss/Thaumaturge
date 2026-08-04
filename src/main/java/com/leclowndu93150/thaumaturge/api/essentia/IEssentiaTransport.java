@@ -56,7 +56,8 @@ public interface IEssentiaTransport {
      * @param face the side queried, never {@code null}
      * @return the aspect holder, or {@code null} when undirected
      */
-    @Nullable Holder<IAspect> getSuctionType(Direction face);
+    @Nullable
+    Holder<IAspect> getSuctionType(Direction face);
 
     /**
      * The suction strength on the given side.
@@ -92,7 +93,8 @@ public interface IEssentiaTransport {
      * @param face the side queried, never {@code null}
      * @return the aspect holder, or {@code null} when empty
      */
-    @Nullable Holder<IAspect> getEssentiaType(Direction face);
+    @Nullable
+    Holder<IAspect> getEssentiaType(Direction face);
 
     /**
      * The amount of essentia currently stored or available on the given side.

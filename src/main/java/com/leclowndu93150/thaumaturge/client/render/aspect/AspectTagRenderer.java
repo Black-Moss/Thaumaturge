@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.render.aspect;
 
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledge;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import java.text.DecimalFormat;
@@ -43,25 +43,47 @@ public final class AspectTagRenderer {
     private AspectTagRenderer() {}
 
     public static void render(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect) {
-        render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, 0.0F, 0, 0.0, BlendMode.ALPHA, 1.0F, false);
+        render(
+                graphics,
+                Minecraft.getInstance().font,
+                (double) x,
+                (double) y,
+                aspect,
+                0.0F,
+                0,
+                0.0,
+                BlendMode.ALPHA,
+                1.0F,
+                false);
     }
 
     public static void renderUnknown(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect) {
-        render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, 0.0F, 0, 0.0, BlendMode.ALPHA, 1.0F, true);
+        render(
+                graphics,
+                Minecraft.getInstance().font,
+                (double) x,
+                (double) y,
+                aspect,
+                0.0F,
+                0,
+                0.0,
+                BlendMode.ALPHA,
+                1.0F,
+                true);
     }
 
-    public static void renderMaskedChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect,
-                                        AspectKnowledge knowledge) {
-        renderMaskedChip(graphics, x, y, aspect,
-                knowledge == AspectKnowledge.DEDUCIBLE ? DEDUCIBLE_ALPHA : UNKNOWN_ALPHA);
+    public static void renderMaskedChip(
+            GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect, AspectKnowledge knowledge) {
+        renderMaskedChip(
+                graphics, x, y, aspect, knowledge == AspectKnowledge.DEDUCIBLE ? DEDUCIBLE_ALPHA : UNKNOWN_ALPHA);
     }
 
     public static void renderUnknownChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect) {
         renderMaskedChip(graphics, x, y, aspect, UNKNOWN_ALPHA);
     }
 
-    private static void renderMaskedChip(GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect,
-                                         float alpha) {
+    private static void renderMaskedChip(
+            GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect, float alpha) {
         int tint = ARGB.colorFromFloat(alpha, 1.0F, 1.0F, 1.0F);
         int color = aspect != null && aspect.value() != null
                 ? (tint & 0xFF000000) | (aspect.value().color() & 0x00FFFFFF)
@@ -69,16 +91,21 @@ public final class AspectTagRenderer {
         graphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 UNKNOWN_TEXTURE,
-                x, y,
-                0.0F, 0.0F,
-                TAG_SIZE, TAG_SIZE,
-                TEXTURE_SIZE, TEXTURE_SIZE,
-                TEXTURE_SIZE, TEXTURE_SIZE,
-                color
-        );
+                x,
+                y,
+                0.0F,
+                0.0F,
+                TAG_SIZE,
+                TAG_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                color);
     }
 
-    public static void render(GuiGraphicsExtractor graphics, Font font, int x, int y, Holder<IAspect> aspect, float amount) {
+    public static void render(
+            GuiGraphicsExtractor graphics, Font font, int x, int y, Holder<IAspect> aspect, float amount) {
         render(graphics, font, (double) x, (double) y, aspect, amount, 0, 0.0, BlendMode.ALPHA, 1.0F, false);
     }
 
@@ -91,8 +118,7 @@ public final class AspectTagRenderer {
             float amount,
             int bonus,
             float alpha,
-            boolean bw
-    ) {
+            boolean bw) {
         render(graphics, font, (double) x, (double) y, aspect, amount, bonus, 0.0, BlendMode.ALPHA, alpha, bw);
     }
 
@@ -104,21 +130,35 @@ public final class AspectTagRenderer {
             float amount,
             int bonus,
             float alpha,
-            boolean bw
-    ) {
-        render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, amount, bonus, 0.0, BlendMode.ALPHA, alpha, bw);
+            boolean bw) {
+        render(
+                graphics,
+                Minecraft.getInstance().font,
+                (double) x,
+                (double) y,
+                aspect,
+                amount,
+                bonus,
+                0.0,
+                BlendMode.ALPHA,
+                alpha,
+                bw);
     }
 
     public static void render(
-            GuiGraphicsExtractor graphics,
-            int x,
-            int y,
-            Holder<IAspect> aspect,
-            float amount,
-            int bonus,
-            double z
-    ) {
-        render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, amount, bonus, z, BlendMode.ALPHA, 1.0F, false);
+            GuiGraphicsExtractor graphics, int x, int y, Holder<IAspect> aspect, float amount, int bonus, double z) {
+        render(
+                graphics,
+                Minecraft.getInstance().font,
+                (double) x,
+                (double) y,
+                aspect,
+                amount,
+                bonus,
+                z,
+                BlendMode.ALPHA,
+                1.0F,
+                false);
     }
 
     public static void render(
@@ -130,9 +170,19 @@ public final class AspectTagRenderer {
             int bonus,
             double z,
             BlendMode blend,
-            float alpha
-    ) {
-        render(graphics, Minecraft.getInstance().font, (double) x, (double) y, aspect, amount, bonus, z, blend, alpha, false);
+            float alpha) {
+        render(
+                graphics,
+                Minecraft.getInstance().font,
+                (double) x,
+                (double) y,
+                aspect,
+                amount,
+                bonus,
+                z,
+                blend,
+                alpha,
+                false);
     }
 
     public static void render(
@@ -146,8 +196,7 @@ public final class AspectTagRenderer {
             double z,
             BlendMode blend,
             float alpha,
-            boolean bw
-    ) {
+            boolean bw) {
         if (aspect == null || aspect.value() == null) return;
         drawIcon(graphics, x, y, z, aspect, blend, alpha, bw);
         if (amount > 0.0F) {
@@ -166,25 +215,27 @@ public final class AspectTagRenderer {
             Holder<IAspect> aspect,
             BlendMode blend,
             float alpha,
-            boolean bw
-    ) {
+            boolean bw) {
         IAspect value = aspect.value();
         int color = colorOf(value, alpha, bw);
-        RenderPipeline pipeline = blend == BlendMode.ADDITIVE
-                ? TCRenderPipelines.GUI_TEXTURED_ADDITIVE
-                : RenderPipelines.GUI_TEXTURED;
+        RenderPipeline pipeline =
+                blend == BlendMode.ADDITIVE ? TCRenderPipelines.GUI_TEXTURED_ADDITIVE : RenderPipelines.GUI_TEXTURED;
         graphics.pose().pushMatrix();
         graphics.pose().translate((float) x, (float) y);
         graphics.blit(
                 pipeline,
                 value.texture(),
-                0, 0,
-                0.0F, 0.0F,
-                TAG_SIZE, TAG_SIZE,
-                TEXTURE_SIZE, TEXTURE_SIZE,
-                TEXTURE_SIZE, TEXTURE_SIZE,
-                color
-        );
+                0,
+                0,
+                0.0F,
+                0.0F,
+                TAG_SIZE,
+                TAG_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                color);
         graphics.pose().popMatrix();
     }
 
@@ -215,13 +266,17 @@ public final class AspectTagRenderer {
         graphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 ParticleTextures.PARTICLES,
-                (int) x + BONUS_OFFSET, (int) y + BONUS_OFFSET,
-                (float) u, (float) BONUS_BADGE_V,
-                BONUS_BADGE_SIZE, BONUS_BADGE_SIZE,
-                BONUS_BADGE_SIZE, BONUS_BADGE_SIZE,
-                BONUS_BADGE_TEXTURE_SIZE, BONUS_BADGE_TEXTURE_SIZE,
-                0xFFFFFFFF
-        );
+                (int) x + BONUS_OFFSET,
+                (int) y + BONUS_OFFSET,
+                (float) u,
+                (float) BONUS_BADGE_V,
+                BONUS_BADGE_SIZE,
+                BONUS_BADGE_SIZE,
+                BONUS_BADGE_SIZE,
+                BONUS_BADGE_SIZE,
+                BONUS_BADGE_TEXTURE_SIZE,
+                BONUS_BADGE_TEXTURE_SIZE,
+                0xFFFFFFFF);
         if (bonus > 1) {
             String text = Integer.toString(bonus);
             int half = font.width(text) / 2;

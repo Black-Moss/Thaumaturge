@@ -1,9 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
+import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
+import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -23,15 +24,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Arrays;
 
 public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     private static final int FLUX_VENT_COUNT = 5;
@@ -46,24 +45,25 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
 
     private static final double CORE_MIN = 5.0 / 16.0;
     private static final double CORE_MAX = 11.0 / 16.0;
-    private static final VoxelShape CORE = Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0,
-            CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
-    private static final VoxelShape STUB_DOWN = Block.box(CORE_MIN * 16.0, 0.0, CORE_MIN * 16.0,
-            CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
-    private static final VoxelShape STUB_UP = Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0,
-            CORE_MAX * 16.0, 16.0, CORE_MAX * 16.0);
-    private static final VoxelShape STUB_NORTH = Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, 0.0,
-            CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
-    private static final VoxelShape STUB_SOUTH = Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0,
-            CORE_MAX * 16.0, CORE_MAX * 16.0, 16.0);
-    private static final VoxelShape STUB_WEST = Block.box(0.0, CORE_MIN * 16.0, CORE_MIN * 16.0,
-            CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
-    private static final VoxelShape STUB_EAST = Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0,
-            16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
+    private static final VoxelShape CORE = Block.box(
+            CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
+    private static final VoxelShape STUB_DOWN =
+            Block.box(CORE_MIN * 16.0, 0.0, CORE_MIN * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
+    private static final VoxelShape STUB_UP =
+            Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MAX * 16.0, 16.0, CORE_MAX * 16.0);
+    private static final VoxelShape STUB_NORTH =
+            Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, 0.0, CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
+    private static final VoxelShape STUB_SOUTH =
+            Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0, 16.0);
+    private static final VoxelShape STUB_WEST =
+            Block.box(0.0, CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
+    private static final VoxelShape STUB_EAST =
+            Block.box(CORE_MIN * 16.0, CORE_MIN * 16.0, CORE_MIN * 16.0, 16.0, CORE_MAX * 16.0, CORE_MAX * 16.0);
 
     protected BlockEssentiaTransport(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any()
+        registerDefaultState(stateDefinition
+                .any()
                 .setValue(NORTH, false)
                 .setValue(EAST, false)
                 .setValue(SOUTH, false)
@@ -85,7 +85,8 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getCollisionShape(
+            BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return getShape(state, level, pos, context);
     }
 
@@ -105,14 +106,15 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
         };
     }
 
-    public static BlockState recomputeConnections(BlockState state, LevelReader level, BlockPos pos, Direction... ignored) {
+    public static BlockState recomputeConnections(
+            BlockState state, LevelReader level, BlockPos pos, Direction... ignored) {
         BlockState next = state;
         if (!(level instanceof Level lvl)) {
             return next;
         }
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (Direction direction : Direction.values()) {
-            if (Arrays.stream(ignored).anyMatch(d->d == direction)) continue;
+            if (Arrays.stream(ignored).anyMatch(d -> d == direction)) continue;
             cursor.setWithOffset(pos, direction);
             boolean connect = canConnectTo(lvl, cursor.immutable(), direction.getOpposite());
             next = next.setValue(propertyFor(direction), connect);
@@ -121,7 +123,8 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     }
 
     public static boolean canConnectTo(Level level, BlockPos neighbourPos, Direction faceFromNeighbour) {
-        IEssentiaTransport remote = level.getCapability(EssentiaCapabilities.TRANSPORT, neighbourPos, faceFromNeighbour);
+        IEssentiaTransport remote =
+                level.getCapability(EssentiaCapabilities.TRANSPORT, neighbourPos, faceFromNeighbour);
         return remote != null && remote.isConnectable(faceFromNeighbour);
     }
 
@@ -134,8 +137,7 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
             Direction directionToNeighbour,
             BlockPos neighbourPos,
             BlockState neighbourState,
-            RandomSource random
-    ) {
+            RandomSource random) {
         if (level instanceof Level lvl) {
             boolean connect = canConnectTo(lvl, neighbourPos, directionToNeighbour.getOpposite());
             return state.setValue(propertyFor(directionToNeighbour), connect);
@@ -171,7 +173,8 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
         if (!(level instanceof ServerLevel server)) return;
         AuraHelper.addFlux(server, pos, amount);
         RandomSource rand = server.getRandom();
-        server.playSound(null,
+        server.playSound(
+                null,
                 pos.getX() + 0.5,
                 pos.getY() + 0.5,
                 pos.getZ() + 0.5,

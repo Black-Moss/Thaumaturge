@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.client.entity.TCModelLayers;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.entity.TCModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.MatrixCubeModel;
 import com.leclowndu93150.thaumaturge.content.infusion.BlockEntityInfusionMatrix;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
@@ -30,7 +30,8 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
 import org.jspecify.annotations.Nullable;
 
-public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEntityInfusionMatrix, InfusionMatrixRenderState> {
+public final class InfusionMatrixRenderer
+        implements BlockEntityRenderer<BlockEntityInfusionMatrix, InfusionMatrixRenderState> {
     private static final Identifier TEX_NORMAL = TCIds.rl("textures/block/infuser_normal.png");
     private static final Identifier TEX_ANCIENT = TCIds.rl("textures/block/infuser_ancient.png");
     private static final Identifier TEX_ELDRITCH = TCIds.rl("textures/block/infuser_eldritch.png");
@@ -60,7 +61,8 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
     private final RandomSource haloRandom = RandomSource.create();
 
     private static RenderType glowType(String name, Identifier texture) {
-        return RenderType.create(name,
+        return RenderType.create(
+                name,
                 RenderSetup.builder(TCRenderPipelines.ENTITY_ADDITIVE_EMISSIVE)
                         .withTexture("Sampler0", texture)
                         .createRenderSetup());
@@ -76,8 +78,12 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
     }
 
     @Override
-    public void extractRenderState(BlockEntityInfusionMatrix matrix, InfusionMatrixRenderState state, float partialTicks,
-                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(
+            BlockEntityInfusionMatrix matrix,
+            InfusionMatrixRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(matrix, state, partialTicks, cameraPosition, breakProgress);
         var viewEntity = Minecraft.getInstance().getCameraEntity();
         state.animationTime = viewEntity == null ? partialTicks : viewEntity.tickCount + partialTicks;
@@ -107,11 +113,18 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
     }
 
     @Override
-    public void submit(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+    public void submit(
+            InfusionMatrixRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            CameraRenderState camera) {
         RenderType type = RenderTypes.entityCutout(state.texture);
         RenderType glowType = glowTypeFor(state.texture);
-        float instability = Math.min(6.0F,
-                1.0F + (state.stability < 0.0F ? -state.stability * 0.66F : 1.0F) * (Math.min(state.craftTicks, 50) / 50.0F));
+        float instability = Math.min(
+                6.0F,
+                1.0F
+                        + (state.stability < 0.0F ? -state.stability * 0.66F : 1.0F)
+                                * (Math.min(state.craftTicks, 50) / 50.0F));
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.animationTime % 360.0F * state.startUp));
@@ -124,15 +137,25 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
                     float jy = 0.0F;
                     float jz = 0.0F;
                     if (state.active) {
-                        jx = Mth.sin((state.animationTime + a * 10) / 15.0F) * JITTER_SCALE * state.startUp * instability;
-                        jy = Mth.sin((state.animationTime + b * 10) / 14.0F) * JITTER_SCALE * state.startUp * instability;
-                        jz = Mth.sin((state.animationTime + c * 10) / 13.0F) * JITTER_SCALE * state.startUp * instability;
+                        jx = Mth.sin((state.animationTime + a * 10) / 15.0F)
+                                * JITTER_SCALE
+                                * state.startUp
+                                * instability;
+                        jy = Mth.sin((state.animationTime + b * 10) / 14.0F)
+                                * JITTER_SCALE
+                                * state.startUp
+                                * instability;
+                        jz = Mth.sin((state.animationTime + c * 10) / 13.0F)
+                                * JITTER_SCALE
+                                * state.startUp
+                                * instability;
                     }
                     int aa = a == 0 ? -1 : 1;
                     int bb = b == 0 ? -1 : 1;
                     int cc = c == 0 ? -1 : 1;
                     poseStack.pushPose();
-                    poseStack.translate(jx + aa * SUB_CUBE_OFFSET, jy + bb * SUB_CUBE_OFFSET, jz + cc * SUB_CUBE_OFFSET);
+                    poseStack.translate(
+                            jx + aa * SUB_CUBE_OFFSET, jy + bb * SUB_CUBE_OFFSET, jz + cc * SUB_CUBE_OFFSET);
                     if (a > 0) {
                         poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
                     }
@@ -143,14 +166,20 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
                         poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
                     }
                     poseStack.scale(SUB_CUBE_SCALE, SUB_CUBE_SCALE, SUB_CUBE_SCALE);
-                    collector.submitModelPart(model.cube, poseStack, type,
-                            state.lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
+                    collector.submitModelPart(
+                            model.cube, poseStack, type, state.lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
                     if (state.active) {
                         float glowAlpha = (Mth.sin((state.animationTime + a * 2 + b * 3 + c * 4) / 4.0F) * 0.1F + 0.2F)
                                 * state.startUp;
-                        collector.submitModelPart(model.glow, poseStack, glowType,
-                                LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, null,
-                                ARGB.colorFromFloat(glowAlpha, GLOW_RED, GLOW_GREEN, GLOW_BLUE), null);
+                        collector.submitModelPart(
+                                model.glow,
+                                poseStack,
+                                glowType,
+                                LightCoordsUtil.FULL_BRIGHT,
+                                OverlayTexture.NO_OVERLAY,
+                                null,
+                                ARGB.colorFromFloat(glowAlpha, GLOW_RED, GLOW_GREEN, GLOW_BLUE),
+                                null);
                     }
                     poseStack.popPose();
                 }
@@ -208,8 +237,6 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
         }
         poseStack.popPose();
     }
-
-
 
     @Override
     public int getViewDistance() {

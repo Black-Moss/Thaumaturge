@@ -182,8 +182,8 @@ public final class Gen2x2 extends GenCommonPieces {
         generateConnections(ctx, cx, cz, y, cell, 3, true);
     }
 
-    private static void floorAndCeiling(GenContext ctx, MazeCell cell, int x, int z, int y,
-                                        int aMin, int aMax, int bMin, int bMax) {
+    private static void floorAndCeiling(
+            GenContext ctx, MazeCell cell, int x, int z, int y, int aMin, int aMax, int bMin, int bMax) {
         for (int a = aMin; a <= aMax; a++) {
             for (int b = bMin; b <= bMax; b++) {
                 ctx.placeBlock(x + a, y - 1, z + b, GenContext.BEDROCK, cell);

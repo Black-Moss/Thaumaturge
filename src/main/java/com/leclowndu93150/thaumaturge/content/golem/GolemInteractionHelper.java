@@ -20,8 +20,14 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 public final class GolemInteractionHelper {
     private GolemInteractionHelper() {}
 
-    public static void golemClick(Level level, IGolemAPI golem, BlockPos pos, Direction face,
-                                  ItemStack clickStack, boolean sneaking, boolean rightClick) {
+    public static void golemClick(
+            Level level,
+            IGolemAPI golem,
+            BlockPos pos,
+            Direction face,
+            ItemStack clickStack,
+            boolean sneaking,
+            boolean rightClick) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -37,15 +43,16 @@ public final class GolemInteractionHelper {
         } else {
             if (player.getMainHandItem().getItem() instanceof BlockItem
                     && !serverLevel.noCollision(null, new AABB(pos))) {
-                golem.getGolemEntity().setPos(
-                        golem.getGolemEntity().getX() + face.getStepX(),
-                        golem.getGolemEntity().getY() + face.getStepY(),
-                        golem.getGolemEntity().getZ() + face.getStepZ());
+                golem.getGolemEntity()
+                        .setPos(
+                                golem.getGolemEntity().getX() + face.getStepX(),
+                                golem.getGolemEntity().getY() + face.getStepY(),
+                                golem.getGolemEntity().getZ() + face.getStepZ());
             }
             try {
                 BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), face, pos, false);
-                player.gameMode.useItemOn(player, serverLevel, player.getMainHandItem(),
-                        InteractionHand.MAIN_HAND, hit);
+                player.gameMode.useItemOn(
+                        player, serverLevel, player.getMainHandItem(), InteractionHand.MAIN_HAND, hit);
             } catch (Exception e) {
                 Thaumaturge.LOGGER.error("Golem right-click at {} failed", pos, e);
             }

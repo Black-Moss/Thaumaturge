@@ -2,20 +2,18 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumaturge.content.particle.TaintFumeParticleOptions;
-import net.minecraft.util.ARGB;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -28,9 +26,10 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public final class EntityTaintSwarm extends Monster implements ITaintedMob {
     private static final EntityDataAccessor<Boolean> SUMMONED =
@@ -112,8 +111,15 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
                 TaintFumeParticleOptions data = new TaintFumeParticleOptions(
                         ARGB.colorFromFloat(1.0F, SWARM_PARTICLE_R, SWARM_PARTICLE_G, SWARM_PARTICLE_B),
                         SWARM_PARTICLE_SCALE);
-                this.level().addParticle(data, x, y, z,
-                        this.getDeltaMovement().x, this.getDeltaMovement().y, this.getDeltaMovement().z);
+                this.level()
+                        .addParticle(
+                                data,
+                                x,
+                                y,
+                                z,
+                                this.getDeltaMovement().x,
+                                this.getDeltaMovement().y,
+                                this.getDeltaMovement().z);
             }
             return;
         }
@@ -149,8 +155,7 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
     }
 
     @Override
-    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
-    }
+    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {}
 
     @Override
     public void addAdditionalSaveData(ValueOutput output) {

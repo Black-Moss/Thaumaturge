@@ -1,44 +1,34 @@
 package com.leclowndu93150.thaumaturge.compat.jei;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
-import java.util.List;
-import java.util.ArrayList;
-import mezz.jei.api.registration.IExtraIngredientRegistration;
-import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
-import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
-import com.leclowndu93150.thaumaturge.content.research.note.NoteGenerator;
-import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.*;
-import com.leclowndu93150.thaumaturge.api.recipe.DustTrigger;
-import com.leclowndu93150.thaumaturge.api.recipe.ResearchGated;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.client.recipes.TCClientRecipes;
+import com.leclowndu93150.thaumaturge.client.screen.casters.FocalManipulatorScreen;
 import com.leclowndu93150.thaumaturge.compat.jei.category.*;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientHelper;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientType;
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.content.recipe.SalisMundusRecipe;
-import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerMultiblockRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerSimpleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerTagRecipe;
+import com.leclowndu93150.thaumaturge.content.research.note.NoteGenerator;
+import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
+import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
 import com.leclowndu93150.thaumaturge.content.workbench.MenuArcaneWorkbench;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCMenus;
 import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
-import com.mojang.serialization.Codec;
-
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import com.leclowndu93150.thaumaturge.client.screen.casters.FocalManipulatorScreen;
 import mezz.jei.api.IModPlugin;
-import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
@@ -46,22 +36,20 @@ import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.recipe.types.IRecipeHolderType;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.*;
+import mezz.jei.api.registration.IExtraIngredientRegistration;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 @JeiPlugin
@@ -91,7 +79,8 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(TCItems.SALIS_MUNDUS.get(), aspectsInterpreter);
         registration.registerSubtypeInterpreter(TCItems.ESSENTIA_CRYSTAL.get(), crystalAspectInterpreter);
         registration.registerSubtypeInterpreter(TCItems.PHIAL.get(), aspectsInterpreter);
-        registration.registerFromDataComponentTypes(TCItems.CELESTIAL_NOTES.asItem(), TCDataComponents.CELESTIAL_BODY.get());
+        registration.registerFromDataComponentTypes(
+                TCItems.CELESTIAL_NOTES.asItem(), TCDataComponents.CELESTIAL_BODY.get());
         registration.registerFromDataComponentTypes(TCItems.RESEARCH_NOTE.get(), TCDataComponents.RESEARCH_NOTE.get());
     }
 
@@ -102,10 +91,13 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
             return;
         }
         List<ItemStack> notes = new ArrayList<>();
-        for (Holder.Reference<IResearchEntry> holder
-                : registryAccess.lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList()) {
+        for (Holder.Reference<IResearchEntry> holder : registryAccess
+                .lookupOrThrow(IResearchEntry.REGISTRY_KEY)
+                .listElements()
+                .toList()) {
             IResearchEntry entry = holder.value();
-            int theoryRows = ResearchNotes.theoryRowsBefore(entry, entry.stages().size());
+            int theoryRows =
+                    ResearchNotes.theoryRowsBefore(entry, entry.stages().size());
             if (theoryRows == 0) {
                 continue;
             }
@@ -122,7 +114,8 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
 
     private static ItemStack displayNote(Identifier entry, int ordinal, int color, boolean complete) {
         ItemStack stack = new ItemStack(TCItems.RESEARCH_NOTE.get());
-        stack.set(TCDataComponents.RESEARCH_NOTE.get(),
+        stack.set(
+                TCDataComponents.RESEARCH_NOTE.get(),
                 new ResearchNoteData(entry, ordinal, color, complete, 0, List.of()));
         if (complete) {
             stack.set(TCDataComponents.NOTE_COMPLETE.get(), true);
@@ -145,11 +138,16 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         registry.listElements().forEach(all::add);
         registration.register(
                 AspectIngredientType.INSTANCE,
-                all.stream().sorted(Comparator.comparingInt(e->clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getId(e.getKey()))).sorted(Comparator.comparing(h->!h.value().isPrimal())).map(aspect->new AspectInstance(aspect,1)).toList(),
+                all.stream()
+                        .sorted(Comparator.comparingInt(e -> clientRegistryAccess()
+                                .lookupOrThrow(IAspect.REGISTRY_KEY)
+                                .getId(e.getKey())))
+                        .sorted(Comparator.comparing(h -> !h.value().isPrimal()))
+                        .map(aspect -> new AspectInstance(aspect, 1))
+                        .toList(),
                 AspectIngredientHelper.INSTANCE,
                 AspectIngredientRenderer.INSTANCE,
-                AspectInstance.CODEC
-        );
+                AspectInstance.CODEC);
     }
 
     @Override
@@ -163,9 +161,12 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         List<IRecipeCategory<?>> categories = new ArrayList<>(2);
         categories.add(new ArcaneWorkbenchCategory(helpers.getGuiHelper()));
         categories.add(new CrucibleCategory(helpers.getGuiHelper()));
-        categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.RECIPE_TYPE, "recipe.type.infusion"));
-        categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.ENCHANTMENT_RECIPE_TYPE, "recipe.type.infusion_enchantment"));
-        categories.add(new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.RUNIC_RECIPE_TYPE, "recipe.type.runic_augment"));
+        categories.add(
+                new InfusionCategory<>(helpers.getGuiHelper(), InfusionCategory.RECIPE_TYPE, "recipe.type.infusion"));
+        categories.add(new InfusionCategory<>(
+                helpers.getGuiHelper(), InfusionCategory.ENCHANTMENT_RECIPE_TYPE, "recipe.type.infusion_enchantment"));
+        categories.add(new InfusionCategory<>(
+                helpers.getGuiHelper(), InfusionCategory.RUNIC_RECIPE_TYPE, "recipe.type.runic_augment"));
         categories.add(new DustTriggerCategory(helpers.getGuiHelper()));
         categories.add(new AspectCompositionCategory(helpers.getGuiHelper(), pickIconAspect()));
         categories.add(new AspectFromStacksCategory(helpers.getGuiHelper()));
@@ -180,17 +181,27 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        registration.addIngredientInfo(new ItemStack(TCItems.DECONSTRUCTION_TABLE.get()),
+        registration.addIngredientInfo(
+                new ItemStack(TCItems.DECONSTRUCTION_TABLE.get()),
                 VanillaTypes.ITEM_STACK,
                 Component.translatable("jei.thaumaturge.deconstruction.info"));
-        addTypedRecipes(registration,ArcaneWorkbenchCategory.RECIPE_TYPE,TCRecipeTypes.ARCANE.get(), null);
-        addTypedRecipes(registration,CrucibleCategory.RECIPE_TYPE,TCRecipeTypes.CRUCIBLE.get(), null);
-        addTypedRecipes(registration,InfusionCategory.RECIPE_TYPE,TCRecipeTypes.INFUSION.get(), null);
-        addTypedRecipes(registration,InfusionCategory.ENCHANTMENT_RECIPE_TYPE,TCRecipeTypes.INFUSION_ENCHANTMENT.get(), null);
-        addTypedRecipes(registration,InfusionCategory.RUNIC_RECIPE_TYPE,TCRecipeTypes.RUNIC_AUGMENT.get(), null);
+        addTypedRecipes(registration, ArcaneWorkbenchCategory.RECIPE_TYPE, TCRecipeTypes.ARCANE.get(), null);
+        addTypedRecipes(registration, CrucibleCategory.RECIPE_TYPE, TCRecipeTypes.CRUCIBLE.get(), null);
+        addTypedRecipes(registration, InfusionCategory.RECIPE_TYPE, TCRecipeTypes.INFUSION.get(), null);
+        addTypedRecipes(
+                registration, InfusionCategory.ENCHANTMENT_RECIPE_TYPE, TCRecipeTypes.INFUSION_ENCHANTMENT.get(), null);
+        addTypedRecipes(registration, InfusionCategory.RUNIC_RECIPE_TYPE, TCRecipeTypes.RUNIC_AUGMENT.get(), null);
         registerAspectCompositions(registration);
-        addTypedRecipes(registration,DustTriggerCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerSimpleRecipe || r.value() instanceof DustTriggerTagRecipe);
-        addTypedRecipes(registration,MultiblockCategory.RECIPE_TYPE,TCRecipeTypes.DUST_TRIGGER.get(), r->r.value() instanceof DustTriggerMultiblockRecipe);
+        addTypedRecipes(
+                registration,
+                DustTriggerCategory.RECIPE_TYPE,
+                TCRecipeTypes.DUST_TRIGGER.get(),
+                r -> r.value() instanceof DustTriggerSimpleRecipe || r.value() instanceof DustTriggerTagRecipe);
+        addTypedRecipes(
+                registration,
+                MultiblockCategory.RECIPE_TYPE,
+                TCRecipeTypes.DUST_TRIGGER.get(),
+                r -> r.value() instanceof DustTriggerMultiblockRecipe);
         registerAspectInfoPages(registration);
         registerAspectFromStacksPages(registration);
     }
@@ -200,7 +211,7 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         AspectJeiSync.onRuntimeAvailable(jeiRuntime);
     }
 
-  /*  @Override
+    /*  @Override
     public  void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtime = jeiRuntime;
         if (ThaumaturgeClientConfig.hideRecipesIfMissingResearch()) hideUnresearchedRecipes(jeiRuntime);
@@ -235,8 +246,16 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
-        registration.addRecipeTransferHandler(MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), ArcaneWorkbenchCategory.RECIPE_TYPE,1,15,16,36);
-        registration.addRecipeTransferHandler(MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), RecipeTypes.CRAFTING,1,9,16,36);
+        registration.addRecipeTransferHandler(
+                MenuArcaneWorkbench.class,
+                TCMenus.ARCANE_WORKBENCH.get(),
+                ArcaneWorkbenchCategory.RECIPE_TYPE,
+                1,
+                15,
+                16,
+                36);
+        registration.addRecipeTransferHandler(
+                MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), RecipeTypes.CRAFTING, 1, 9, 16, 36);
     }
 
     private static void registerAspectCompositions(IRecipeRegistration registration) {
@@ -266,21 +285,21 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         Registry<IAspect> registry = registryOpt.get();
         registry.listElements().forEach(holder -> {
             Component description = AspectComponents.description(holder);
-            registration.addIngredientInfo(new AspectInstance(holder,1), AspectIngredientType.INSTANCE, description);
+            registration.addIngredientInfo(new AspectInstance(holder, 1), AspectIngredientType.INSTANCE, description);
         });
     }
-
 
     private static void registerAspectFromStacksPages(IRecipeRegistration registration) {
         List<AspectFromStacksCategory.Wrapper> wrappers = new ArrayList<>();
         Map<ItemStack, AspectList> index = new HashMap<>();
         Map<Holder<IAspect>, List<ItemStack>> invertedIndex = new HashMap<>();
 
-        registration.getIngredientManager()
+        registration
+                .getIngredientManager()
                 .getAllIngredients(VanillaTypes.ITEM_STACK)
                 .forEach(stack -> {
                     AspectList aspectList = AspectIndexAccess.index().of(stack);
-                    index.put(stack,aspectList);
+                    index.put(stack, aspectList);
                     aspectList.entries().forEach(instance -> {
                         invertedIndex
                                 .computeIfAbsent(instance.aspect(), k -> new ArrayList<>())
@@ -288,26 +307,34 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
                     });
                 });
 
-        invertedIndex.entrySet().stream().sorted(Comparator.comparingInt(e->clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getId(e.getKey().getKey()))).sorted(Comparator.comparing(e->!clientRegistryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(e.getKey().getKey()).value().isPrimal())).forEach((e)->{
-            Holder<IAspect> aspect = e.getKey();
-            List<ItemStack> stacks = e.getValue().stream()
-                    .map(it-> it.copyWithCount(index.get(it).amountOf(aspect)))
-                    .filter(Objects::nonNull)
-                    .filter(Predicate.not(ItemStack::isEmpty))
-                    .sorted(Comparator.comparing(ItemStack::getCount).reversed())
-                    .toList();
+        invertedIndex.entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> clientRegistryAccess()
+                        .lookupOrThrow(IAspect.REGISTRY_KEY)
+                        .getId(e.getKey().getKey())))
+                .sorted(Comparator.comparing(e -> !clientRegistryAccess()
+                        .lookupOrThrow(IAspect.REGISTRY_KEY)
+                        .getOrThrow(e.getKey().getKey())
+                        .value()
+                        .isPrimal()))
+                .forEach((e) -> {
+                    Holder<IAspect> aspect = e.getKey();
+                    List<ItemStack> stacks = e.getValue().stream()
+                            .map(it -> it.copyWithCount(index.get(it).amountOf(aspect)))
+                            .filter(Objects::nonNull)
+                            .filter(Predicate.not(ItemStack::isEmpty))
+                            .sorted(Comparator.comparing(ItemStack::getCount).reversed())
+                            .toList();
 
-            int start = 0;
-            while (start < stacks.size()){
-                wrappers.add(new AspectFromStacksCategory.Wrapper(aspect,stacks.subList(start,Math.min(start+36,stacks.size()))));
-                start+=36;
-            }
-        });
+                    int start = 0;
+                    while (start < stacks.size()) {
+                        wrappers.add(new AspectFromStacksCategory.Wrapper(
+                                aspect, stacks.subList(start, Math.min(start + 36, stacks.size()))));
+                        start += 36;
+                    }
+                });
 
-        registration.addRecipes(AspectFromStacksCategory.RECIPE_TYPE,wrappers);
-
+        registration.addRecipes(AspectFromStacksCategory.RECIPE_TYPE, wrappers);
     }
-
 
     private static Holder<IAspect> pickIconAspect() {
         RegistryAccess registryAccess = clientRegistryAccess();
@@ -319,7 +346,8 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
                 if (stable.isPresent()) {
                     return stable.get();
                 }
-                Optional<Holder.Reference<IAspect>> first = registry.listElements().findFirst();
+                Optional<Holder.Reference<IAspect>> first =
+                        registry.listElements().findFirst();
                 if (first.isPresent()) {
                     return first.get();
                 }
@@ -328,7 +356,11 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         return null;
     }
 
-    private <I extends RecipeInput, R extends Recipe<I>> void addTypedRecipes(IRecipeRegistration registration, IRecipeType<RecipeHolder<R>> type, RecipeType<R> vanillaType, @Nullable Predicate<RecipeHolder<R>> filter){
+    private <I extends RecipeInput, R extends Recipe<I>> void addTypedRecipes(
+            IRecipeRegistration registration,
+            IRecipeType<RecipeHolder<R>> type,
+            RecipeType<R> vanillaType,
+            @Nullable Predicate<RecipeHolder<R>> filter) {
         RecipeMap recipes = TCClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, vanillaType);
         List<RecipeHolder<R>> holders = List.copyOf(recipes.byType(vanillaType));
         if (filter != null) {

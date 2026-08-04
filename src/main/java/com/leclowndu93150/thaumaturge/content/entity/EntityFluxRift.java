@@ -13,7 +13,6 @@ import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -22,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -34,8 +34,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
@@ -68,10 +68,10 @@ public final class EntityFluxRift extends Entity {
     private static final int EVENT_FLUX_PHAGE = 2;
     private static final int EVENT_COLLAPSE = 4;
     private static final int[][] EVENT_TABLE = {
-            {EVENT_WISP, 50, 5, 1},
-            {EVENT_TAINT_SEED, 10, 0, 0},
-            {EVENT_FLUX_PHAGE, 20, 10, 1},
-            {EVENT_COLLAPSE, 1, 0, 1}
+        {EVENT_WISP, 50, 5, 1},
+        {EVENT_TAINT_SEED, 10, 0, 0},
+        {EVENT_FLUX_PHAGE, 20, 10, 1},
+        {EVENT_COLLAPSE, 1, 0, 1}
     };
 
     private int maxSize;
@@ -172,8 +172,7 @@ public final class EntityFluxRift extends Entity {
     }
 
     @Override
-    public void move(MoverType type, Vec3 movement) {
-    }
+    public void move(MoverType type, Vec3 movement) {}
 
     @Override
     public boolean isPickable() {
@@ -224,11 +223,13 @@ public final class EntityFluxRift extends Entity {
                 AuraHelper.polluteAura(level, blockPosition(), 1.0F, false);
             }
             if (rand.nextInt(10) == 0) {
-                level.explode(this,
+                level.explode(
+                        this,
                         getX() + rand.nextGaussian() * 2.0,
                         getY() + rand.nextGaussian() * 2.0,
                         getZ() + rand.nextGaussian() * 2.0,
-                        rand.nextFloat() / 2.0F, Level.ExplosionInteraction.NONE);
+                        rand.nextFloat() / 2.0F,
+                        Level.ExplosionInteraction.NONE);
             }
             if (getRiftSize() <= 1) {
                 completeCollapse(level);
@@ -250,14 +251,21 @@ public final class EntityFluxRift extends Entity {
             }
         }
         if (!isRemoved() && this.tickCount % AMBIENT_SOUND_INTERVAL == 0) {
-            level.playSound(null, getX(), getY(), getZ(), TCSounds.EVILPORTAL.get(), SoundSource.AMBIENT,
+            level.playSound(
+                    null,
+                    getX(),
+                    getY(),
+                    getZ(),
+                    TCSounds.EVILPORTAL.get(),
+                    SoundSource.AMBIENT,
                     (float) (0.15F + rand.nextGaussian() * 0.066),
                     (float) (0.75 + rand.nextGaussian() * 0.1));
         }
     }
 
     private void eatBlocks(ServerLevel level, Vec3 v1, Vec3 v2) {
-        BlockHitResult hit = level.clip(new ClipContext(v1, v2, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        BlockHitResult hit =
+                level.clip(new ClipContext(v1, v2, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
         if (hit.getType() != HitResult.Type.BLOCK) {
             return;
         }
@@ -302,16 +310,17 @@ public final class EntityFluxRift extends Entity {
         if (!nearTaintAllowed && TaintApi.isNearTaintSeed(level, blockPosition())) {
             return;
         }
-        boolean didit = switch (chosen[0]) {
-            case EVENT_WISP -> spawnWisp(level);
-            case EVENT_TAINT_SEED -> spawnTaintSeed(level);
-            case EVENT_FLUX_PHAGE -> inflictFluxPhage(level);
-            case EVENT_COLLAPSE -> {
-                setCollapse(true);
-                yield false;
-            }
-            default -> false;
-        };
+        boolean didit =
+                switch (chosen[0]) {
+                    case EVENT_WISP -> spawnWisp(level);
+                    case EVENT_TAINT_SEED -> spawnTaintSeed(level);
+                    case EVENT_FLUX_PHAGE -> inflictFluxPhage(level);
+                    case EVENT_COLLAPSE -> {
+                        setCollapse(true);
+                        yield false;
+                    }
+                    default -> false;
+                };
         if (didit) {
             setRiftStability(getRiftStability() + chosen[2]);
         }
@@ -322,9 +331,12 @@ public final class EntityFluxRift extends Entity {
         if (wisp == null) {
             return false;
         }
-        wisp.snapTo(getX() + this.random.nextGaussian() * 5.0,
+        wisp.snapTo(
+                getX() + this.random.nextGaussian() * 5.0,
                 getY() + this.random.nextGaussian() * 5.0,
-                getZ() + this.random.nextGaussian() * 5.0, 0.0F, 0.0F);
+                getZ() + this.random.nextGaussian() * 5.0,
+                0.0F,
+                0.0F);
         if (this.random.nextInt(5) == 0) {
             wisp.setAspect(TCAspects.VITIUM.identifier());
         }
@@ -340,10 +352,12 @@ public final class EntityFluxRift extends Entity {
         if (seed == null) {
             return false;
         }
-        seed.snapTo((int) (getX() + this.random.nextGaussian() * 5.0) + 0.5,
+        seed.snapTo(
+                (int) (getX() + this.random.nextGaussian() * 5.0) + 0.5,
                 (int) (getY() + this.random.nextGaussian() * 5.0),
                 (int) (getZ() + this.random.nextGaussian() * 5.0) + 0.5,
-                this.random.nextInt(360), 0.0F);
+                this.random.nextInt(360),
+                0.0F);
         if (level.noCollision(seed) && level.addFreshEntity(seed)) {
             AuraHelper.polluteAura(level, blockPosition(), getRiftSize() / 2.0F, true);
             discard();
@@ -354,7 +368,8 @@ public final class EntityFluxRift extends Entity {
     }
 
     private boolean inflictFluxPhage(ServerLevel level) {
-        List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(16.0));
+        List<LivingEntity> targets =
+                level.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(16.0));
         boolean didit = false;
         for (LivingEntity target : targets) {
             didit = true;
@@ -377,13 +392,14 @@ public final class EntityFluxRift extends Entity {
             spawnAtLocation(level, new ItemStack(TCItems.VOID_SEED.get()), 0.0F);
         }
         level.explode(this, getX(), getY(), getZ(), 0.0F, Level.ExplosionInteraction.NONE);
-        List<LivingEntity> nearby = level.getEntitiesOfClass(LivingEntity.class,
-                getBoundingBox().inflate(COLLAPSE_EFFECT_RANGE));
+        List<LivingEntity> nearby =
+                level.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(COLLAPSE_EFFECT_RANGE));
         Stability stability = getStability();
         if (stability != Stability.VERY_STABLE) {
             if (stability == Stability.VERY_UNSTABLE) {
                 for (LivingEntity target : nearby) {
-                    int w = (int) ((1.0 - distanceToSqr(target) / (COLLAPSE_EFFECT_RANGE * COLLAPSE_EFFECT_RANGE)) * 120.0);
+                    int w = (int)
+                            ((1.0 - distanceToSqr(target) / (COLLAPSE_EFFECT_RANGE * COLLAPSE_EFFECT_RANGE)) * 120.0);
                     if (w > 0) {
                         target.addEffect(new MobEffectInstance(TCMobEffects.FLUX_TAINT, w * 20, 0));
                     }
@@ -391,7 +407,8 @@ public final class EntityFluxRift extends Entity {
             }
             if (stability == Stability.VERY_UNSTABLE || stability == Stability.UNSTABLE) {
                 for (LivingEntity target : nearby) {
-                    int w = (int) ((1.0 - distanceToSqr(target) / (COLLAPSE_EFFECT_RANGE * COLLAPSE_EFFECT_RANGE)) * 300.0);
+                    int w = (int)
+                            ((1.0 - distanceToSqr(target) / (COLLAPSE_EFFECT_RANGE * COLLAPSE_EFFECT_RANGE)) * 300.0);
                     if (w > 0) {
                         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, w * 20, 0));
                     }
@@ -399,7 +416,8 @@ public final class EntityFluxRift extends Entity {
             }
             for (LivingEntity target : nearby) {
                 if (target instanceof ServerPlayer player) {
-                    int w = (int) ((1.0 - distanceToSqr(target) / (COLLAPSE_EFFECT_RANGE * COLLAPSE_EFFECT_RANGE)) * 25.0);
+                    int w = (int)
+                            ((1.0 - distanceToSqr(target) / (COLLAPSE_EFFECT_RANGE * COLLAPSE_EFFECT_RANGE)) * 25.0);
                     if (w > 0) {
                         WarpHelper.addWarp(player, w, WarpType.NORMAL);
                         WarpHelper.addWarp(player, w, WarpType.TEMPORARY);
@@ -449,8 +467,7 @@ public final class EntityFluxRift extends Entity {
         }
 
         void wander(RandomSource rand) {
-            heading = heading
-                    .xRot((float) (rand.nextGaussian() * WANDER_ANGLE))
+            heading = heading.xRot((float) (rand.nextGaussian() * WANDER_ANGLE))
                     .yRot((float) (rand.nextGaussian() * WANDER_ANGLE));
         }
 

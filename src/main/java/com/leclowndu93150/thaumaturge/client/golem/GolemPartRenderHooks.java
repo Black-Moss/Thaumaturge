@@ -31,8 +31,12 @@ public final class GolemPartRenderHooks {
 
     static final class WheelHook implements GolemPartRenderHook {
         @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack,
-                                        GolemPartModel.LimbSide side, float partialTick) {
+        public void preRenderObjectPart(
+                String partName,
+                GolemRenderState state,
+                PoseStack poseStack,
+                GolemPartModel.LimbSide side,
+                float partialTick) {
             if (partName.equals("wheel")) {
                 poseStack.translate(0.0, -0.375, 0.0);
                 poseStack.mulPose(Axis.XN.rotationDegrees(state.wheelRotation));
@@ -42,8 +46,12 @@ public final class GolemPartRenderHooks {
 
     static final class ClawsHook implements GolemPartRenderHook {
         @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack,
-                                        GolemPartModel.LimbSide side, float partialTick) {
+        public void preRenderObjectPart(
+                String partName,
+                GolemRenderState state,
+                PoseStack poseStack,
+                GolemPartModel.LimbSide side,
+                float partialTick) {
             if (partName.startsWith("claw")) {
                 float open = state.attackTime * 4.1F;
                 open = open * open;
@@ -55,12 +63,16 @@ public final class GolemPartRenderHooks {
 
     static final class BreakersHook implements GolemPartRenderHook {
         @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack,
-                                        GolemPartModel.LimbSide side, float partialTick) {
+        public void preRenderObjectPart(
+                String partName,
+                GolemRenderState state,
+                PoseStack poseStack,
+                GolemPartModel.LimbSide side,
+                float partialTick) {
             if (partName.equals("grinder")) {
                 poseStack.translate(0.0, -0.34, 0.0);
-                float angle = (state.ageInTicks) / 2.0F + state.grinderRot
-                        + (side == GolemPartModel.LimbSide.LEFT ? 22 : 0);
+                float angle =
+                        (state.ageInTicks) / 2.0F + state.grinderRot + (side == GolemPartModel.LimbSide.LEFT ? 22 : 0);
                 poseStack.mulPose((side == GolemPartModel.LimbSide.LEFT ? Axis.XN : Axis.XP).rotationDegrees(angle));
             }
         }
@@ -85,8 +97,12 @@ public final class GolemPartRenderHooks {
 
     static final class HaulerHook implements GolemPartRenderHook {
         @Override
-        public void postRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack,
-                                         SubmitNodeCollector collector, GolemPartModel.LimbSide side) {
+        public void postRenderObjectPart(
+                String partName,
+                GolemRenderState state,
+                PoseStack poseStack,
+                SubmitNodeCollector collector,
+                GolemPartModel.LimbSide side) {
             if (!state.haulingItem) {
                 return;
             }

@@ -16,52 +16,32 @@ public final class JarCapabilities {
 
     @SubscribeEvent
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                EssentiaCapabilities.TRANSPORT,
-                TCBlockEntities.JAR.get(),
-                (be, side) -> be
-        );
-        event.registerBlockEntity(
-                EssentiaCapabilities.TRANSPORT,
-                TCBlockEntities.JAR_VOID.get(),
-                (be, side) -> be
-        );
+        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.JAR.get(), (be, side) -> be);
+        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.JAR_VOID.get(), (be, side) -> be);
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
-                TCItems.LABEL.get()
-        );
+                TCItems.LABEL.get());
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
-                TCItems.PHIAL.get()
-        );
+                TCItems.PHIAL.get());
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
-                TCItems.ESSENTIA_CRYSTAL.get()
-        );
+                TCItems.ESSENTIA_CRYSTAL.get());
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
-                TCItems.MANA_BEAN.get()
-        );
+                TCItems.MANA_BEAN.get());
 
         event.registerItem(
                 EssentiaCapabilities.CONTAINER,
                 (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(),
-                TCItems.JAR_NORMAL.get(), TCItems.JAR_VOID.get()
-        );
+                TCItems.JAR_NORMAL.get(),
+                TCItems.JAR_VOID.get());
 
-        event.registerBlockEntity(
-                AspectCapabilities.CONTAINER,
-                TCBlockEntities.JAR.get(),
-                (be, side) -> be
-        );
-        event.registerBlockEntity(
-                AspectCapabilities.CONTAINER,
-                TCBlockEntities.JAR_VOID.get(),
-                (be, side) -> be
-        );
+        event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.JAR.get(), (be, side) -> be);
+        event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.JAR_VOID.get(), (be, side) -> be);
     }
 }

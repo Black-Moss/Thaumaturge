@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.wands;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.wands.WandCap;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
+import com.leclowndu93150.thaumaturge.api.wands.WandCap;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,11 +17,13 @@ import org.jspecify.annotations.Nullable;
 public final class WandTooltips {
     private WandTooltips() {}
 
-    public static ChatFormatting primalColor(HolderLookup.@Nullable Provider registries,
-            ResourceKey<IAspect> primal) {
+    public static ChatFormatting primalColor(HolderLookup.@Nullable Provider registries, ResourceKey<IAspect> primal) {
         if (registries != null) {
-            ChatFormatting color = registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(primal)
-                    .value().chatColor()
+            ChatFormatting color = registries
+                    .lookupOrThrow(IAspect.REGISTRY_KEY)
+                    .getOrThrow(primal)
+                    .value()
+                    .chatColor()
                     .map(code -> ChatFormatting.getByCode(code.charAt(0)))
                     .orElse(null);
             if (color != null) {
@@ -31,14 +33,14 @@ public final class WandTooltips {
         return ChatFormatting.GRAY;
     }
 
-    public static Component primalName(HolderLookup.@Nullable Provider registries,
-            ResourceKey<IAspect> primal) {
-        return Component.translatable("aspect.thaumaturge." + primal.identifier().getPath())
+    public static Component primalName(HolderLookup.@Nullable Provider registries, ResourceKey<IAspect> primal) {
+        return Component.translatable(
+                        "aspect.thaumaturge." + primal.identifier().getPath())
                 .withStyle(primalColor(registries, primal));
     }
 
-    public static Component costSummary(HolderLookup.@Nullable Provider registries,
-            Map<ResourceKey<IAspect>, Integer> pctByPrimal) {
+    public static Component costSummary(
+            HolderLookup.@Nullable Provider registries, Map<ResourceKey<IAspect>, Integer> pctByPrimal) {
         Map<Integer, List<ResourceKey<IAspect>>> groups = new LinkedHashMap<>();
         for (Map.Entry<ResourceKey<IAspect>, Integer> entry : pctByPrimal.entrySet()) {
             groups.computeIfAbsent(entry.getValue(), pct -> new ArrayList<>()).add(entry.getKey());

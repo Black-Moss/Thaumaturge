@@ -44,7 +44,8 @@ public final class TCRenderPipelines {
             .withCull(false)
             .build();
 
-    public static final RenderPipeline FX_TRANSLUCENT_NO_DEPTH = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
+    public static final RenderPipeline FX_TRANSLUCENT_NO_DEPTH = RenderPipeline.builder(
+                    RenderPipelines.PARTICLE_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_translucent_no_depth"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(ALWAYS_NO_WRITE)
@@ -118,7 +119,8 @@ public final class TCRenderPipelines {
             .withDepthStencilState(DepthStencilState.DEFAULT)
             .build();
 
-    public static final RenderPipeline ENTITY_TRANSLUCENT_FLAT = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+    public static final RenderPipeline ENTITY_TRANSLUCENT_FLAT = RenderPipeline.builder(
+                    RenderPipelines.MATRICES_FOG_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_translucent_flat"))
             .withVertexShader("core/entity")
             .withFragmentShader("core/entity")
@@ -133,7 +135,8 @@ public final class TCRenderPipelines {
             .withDepthStencilState(DepthStencilState.DEFAULT)
             .build();
 
-    public static final RenderPipeline ENTITY_ADDITIVE_EMISSIVE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+    public static final RenderPipeline ENTITY_ADDITIVE_EMISSIVE = RenderPipeline.builder(
+                    RenderPipelines.MATRICES_FOG_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_additive_emissive"))
             .withVertexShader("core/entity")
             .withFragmentShader("core/entity")
@@ -146,7 +149,8 @@ public final class TCRenderPipelines {
             .withDepthStencilState(TEST_NO_WRITE)
             .build();
 
-    public static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+    public static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = RenderPipeline.builder(
+                    RenderPipelines.MATRICES_FOG_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/entity_translucent_no_depth"))
             .withVertexShader("core/entity")
             .withFragmentShader("core/entity")
@@ -170,7 +174,8 @@ public final class TCRenderPipelines {
             .withCull(false)
             .build();
 
-    public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+    public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(
+                    RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE))
             .build();

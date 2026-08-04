@@ -39,8 +39,7 @@ public final class BlockPlantShimmerleaf extends AbstractTCPlant {
                     zr,
                     random.nextGaussian() * 0.01D,
                     random.nextGaussian() * 0.01D,
-                    random.nextGaussian() * 0.01D
-            );
+                    random.nextGaussian() * 0.01D);
         }
     }
 }

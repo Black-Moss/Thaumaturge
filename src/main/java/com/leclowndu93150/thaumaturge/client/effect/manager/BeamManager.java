@@ -34,9 +34,17 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
 
     private BeamManager() {}
 
-    public static void addArc(ArcInstance instance) { ARCS.add(instance); }
-    public static void addBolt(BoltInstance instance) { BOLTS.add(instance); }
-    public static void addBeam(BeamInstance instance) { BEAMS.add(instance); }
+    public static void addArc(ArcInstance instance) {
+        ARCS.add(instance);
+    }
+
+    public static void addBolt(BoltInstance instance) {
+        BOLTS.add(instance);
+    }
+
+    public static void addBeam(BeamInstance instance) {
+        BEAMS.add(instance);
+    }
 
     @Override
     protected Collection<IFXInstance> activeInstances() {
@@ -86,7 +94,8 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         }
     }
 
-    private static void renderBeam(PoseStack poseStack, MultiBufferSource bufSource, BeamInstance beam, Vec3 camPos, float partialTick) {
+    private static void renderBeam(
+            PoseStack poseStack, MultiBufferSource bufSource, BeamInstance beam, Vec3 camPos, float partialTick) {
         VertexConsumer trunk = bufSource.getBuffer(BeamRenderType.trunkForType(beam.beamType()));
         Vec3 source = beam.sourcePos(partialTick);
         Vec3 target = beam.targetPos(partialTick);
@@ -96,22 +105,22 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         float rot = beam.worldRotation(partialTick);
         float yaw = beam.yawAt(partialTick);
         float pitch = beam.pitchAt(partialTick);
-        float length = (float)source.distanceTo(target);
+        float length = (float) source.distanceTo(target);
         int color = ARGB.colorFromFloat(op, beam.colorR(), beam.colorG(), beam.colorB());
 
         poseStack.pushPose();
         poseStack.translate(source.x - camPos.x, source.y - camPos.y, source.z - camPos.z);
-        poseStack.mulPose(new Quaternionf().rotateX((float)Math.toRadians(90.0)));
-        poseStack.mulPose(new Quaternionf().rotateZ((float)Math.toRadians(-(180.0F + yaw))));
-        poseStack.mulPose(new Quaternionf().rotateX((float)Math.toRadians(pitch)));
-        poseStack.mulPose(new Quaternionf().rotateY((float)Math.toRadians(rot)));
+        poseStack.mulPose(new Quaternionf().rotateX((float) Math.toRadians(90.0)));
+        poseStack.mulPose(new Quaternionf().rotateZ((float) Math.toRadians(-(180.0F + yaw))));
+        poseStack.mulPose(new Quaternionf().rotateX((float) Math.toRadians(pitch)));
+        poseStack.mulPose(new Quaternionf().rotateY((float) Math.toRadians(rot)));
         Matrix4f mat = poseStack.last().pose();
 
         double base = 0.15 * size;
         double baseEnd = base * beam.endMod();
 
         for (int t = 0; t < 3; t++) {
-            poseStack.mulPose(new Quaternionf().rotateY((float)Math.toRadians(60.0)));
+            poseStack.mulPose(new Quaternionf().rotateY((float) Math.toRadians(60.0)));
             Matrix4f stripMat = poseStack.last().pose();
             float u0 = 0.0F;
             float u1 = 1.0F;
@@ -151,13 +160,13 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         }
     }
 
-    private static void beamVertex(VertexConsumer consumer, Matrix4f mat, double x, double y, double z, float u, float v, int color) {
-        consumer.addVertex(mat, (float)x, (float)y, (float)z)
-                .setColor(color)
-                .setUv(u, v);
+    private static void beamVertex(
+            VertexConsumer consumer, Matrix4f mat, double x, double y, double z, float u, float v, int color) {
+        consumer.addVertex(mat, (float) x, (float) y, (float) z).setColor(color).setUv(u, v);
     }
 
-    private static void renderArc(PoseStack poseStack, VertexConsumer consumer, ArcInstance arc, Vec3 camPos, float partialTick) {
+    private static void renderArc(
+            PoseStack poseStack, VertexConsumer consumer, ArcInstance arc, Vec3 camPos, float partialTick) {
         poseStack.pushPose();
         poseStack.translate(arc.startX - camPos.x, arc.startY - camPos.y, arc.startZ - camPos.z);
         Matrix4f mat = poseStack.last().pose();
@@ -183,27 +192,29 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         poseStack.popPose();
     }
 
-    private static void emitArcQuadY(VertexConsumer consumer, Matrix4f mat, Vec3 v0, Vec3 v1, float u0, float u1, int color, float size) {
+    private static void emitArcQuadY(
+            VertexConsumer consumer, Matrix4f mat, Vec3 v0, Vec3 v1, float u0, float u1, int color, float size) {
         vertex(consumer, mat, v0.x, v0.y - size, v0.z, u0, 1.0F, color);
         vertex(consumer, mat, v0.x, v0.y + size, v0.z, u0, 0.0F, color);
         vertex(consumer, mat, v1.x, v1.y + size, v1.z, u1, 0.0F, color);
         vertex(consumer, mat, v1.x, v1.y - size, v1.z, u1, 1.0F, color);
     }
 
-    private static void emitArcQuadXZ(VertexConsumer consumer, Matrix4f mat, Vec3 v0, Vec3 v1, float u0, float u1, int color, float size) {
+    private static void emitArcQuadXZ(
+            VertexConsumer consumer, Matrix4f mat, Vec3 v0, Vec3 v1, float u0, float u1, int color, float size) {
         vertex(consumer, mat, v0.x - size, v0.y, v0.z - size, u0, 1.0F, color);
         vertex(consumer, mat, v0.x + size, v0.y, v0.z + size, u0, 0.0F, color);
         vertex(consumer, mat, v1.x + size, v1.y, v1.z + size, u1, 0.0F, color);
         vertex(consumer, mat, v1.x - size, v1.y, v1.z - size, u1, 1.0F, color);
     }
 
-    private static void vertex(VertexConsumer consumer, Matrix4f mat, double x, double y, double z, float u, float v, int color) {
-        consumer.addVertex(mat, (float)x, (float)y, (float)z)
-                .setColor(color)
-                .setUv(u, v);
+    private static void vertex(
+            VertexConsumer consumer, Matrix4f mat, double x, double y, double z, float u, float v, int color) {
+        consumer.addVertex(mat, (float) x, (float) y, (float) z).setColor(color).setUv(u, v);
     }
 
-    private static void renderBolt(PoseStack poseStack, VertexConsumer consumer, BoltInstance bolt, Vec3 camPos, float partialTick) {
+    private static void renderBolt(
+            PoseStack poseStack, VertexConsumer consumer, BoltInstance bolt, Vec3 camPos, float partialTick) {
         List<BoltInstance.PathStep> path = bolt.computePath(partialTick);
         if (path.size() < 3) return;
         poseStack.pushPose();

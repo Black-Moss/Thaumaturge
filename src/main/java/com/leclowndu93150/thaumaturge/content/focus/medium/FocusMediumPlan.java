@@ -68,10 +68,10 @@ public final class FocusMediumPlan implements FocusMedium, IArchitect {
 
     @Override
     public List<SettingDefinition> settings() {
-        int[] method = new int[]{0, 1};
-        String[] methodDesc = new String[]{"focus.plan.full", "focus.plan.surface"};
-        return List.of(new SettingDefinition("method", "focus.plan.method",
-                new SettingDefinition.IntList(method, methodDesc)));
+        int[] method = new int[] {0, 1};
+        String[] methodDesc = new String[] {"focus.plan.full", "focus.plan.surface"};
+        return List.of(new SettingDefinition(
+                "method", "focus.plan.method", new SettingDefinition.IntList(method, methodDesc)));
     }
 
     @Override
@@ -87,8 +87,8 @@ public final class FocusMediumPlan implements FocusMedium, IArchitect {
                 if (target.getType() != HitResult.Type.BLOCK) {
                     continue;
                 }
-                List<BlockPos> found = collectBlocks(casterStack, ctx.level(),
-                        target.getBlockPos(), target.getDirection(), method);
+                List<BlockPos> found =
+                        collectBlocks(casterStack, ctx.level(), target.getBlockPos(), target.getDirection(), method);
                 found.sort(Comparator.comparingDouble(p -> p.distSqr(target.getBlockPos())));
                 for (BlockPos p : found) {
                     targets.add(new BlockHitResult(Vec3.atCenterOf(p), target.getDirection(), p, false));
@@ -134,17 +134,15 @@ public final class FocusMediumPlan implements FocusMedium, IArchitect {
             };
         }
         return switch (side.getAxis()) {
-            case Y -> axis == EnumAxis.X && (dim == 0 || dim == 1)
-                    || axis == EnumAxis.Z && (dim == 0 || dim == 2);
-            case Z -> axis == EnumAxis.Y && (dim == 0 || dim == 1)
-                    || axis == EnumAxis.X && (dim == 0 || dim == 2);
-            case X -> axis == EnumAxis.Y && (dim == 0 || dim == 1)
-                    || axis == EnumAxis.Z && (dim == 0 || dim == 2);
+            case Y -> axis == EnumAxis.X && (dim == 0 || dim == 1) || axis == EnumAxis.Z && (dim == 0 || dim == 2);
+            case Z -> axis == EnumAxis.Y && (dim == 0 || dim == 1) || axis == EnumAxis.X && (dim == 0 || dim == 2);
+            case X -> axis == EnumAxis.Y && (dim == 0 || dim == 1) || axis == EnumAxis.Z && (dim == 0 || dim == 2);
         };
     }
 
     @Override
-    public List<BlockPos> getArchitectBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+    public List<BlockPos> getArchitectBlocks(
+            ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
         return collectBlocks(stack, level, pos, side, methodOf(stack));
     }
 
@@ -152,33 +150,65 @@ public final class FocusMediumPlan implements FocusMedium, IArchitect {
         return CasterManager.socketedPlanMethod(casterStack);
     }
 
-    private static List<BlockPos> collectBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, int method) {
+    private static List<BlockPos> collectBlocks(
+            ItemStack stack, Level level, BlockPos pos, Direction side, int method) {
         List<BlockPos> out = new ArrayList<>();
         if (stack.isEmpty()) {
             return out;
         }
         Set<BlockPos> checked = new HashSet<>();
         if (method == METHOD_FULL) {
-            checkNeighboursFull(level, pos, pos, side,
-                    CasterManager.getAreaX(stack), CasterManager.getAreaY(stack), CasterManager.getAreaZ(stack),
-                    out, checked);
+            checkNeighboursFull(
+                    level,
+                    pos,
+                    pos,
+                    side,
+                    CasterManager.getAreaX(stack),
+                    CasterManager.getAreaY(stack),
+                    CasterManager.getAreaZ(stack),
+                    out,
+                    checked);
         } else {
             BlockState bi = level.getBlockState(pos);
             if (side.getAxis() == Direction.Axis.Z) {
-                checkNeighboursSurface(level, pos, bi, pos, side,
-                        CasterManager.getAreaZ(stack), CasterManager.getAreaY(stack), CasterManager.getAreaX(stack),
-                        out, checked);
+                checkNeighboursSurface(
+                        level,
+                        pos,
+                        bi,
+                        pos,
+                        side,
+                        CasterManager.getAreaZ(stack),
+                        CasterManager.getAreaY(stack),
+                        CasterManager.getAreaX(stack),
+                        out,
+                        checked);
             } else {
-                checkNeighboursSurface(level, pos, bi, pos, side,
-                        CasterManager.getAreaX(stack), CasterManager.getAreaY(stack), CasterManager.getAreaZ(stack),
-                        out, checked);
+                checkNeighboursSurface(
+                        level,
+                        pos,
+                        bi,
+                        pos,
+                        side,
+                        CasterManager.getAreaX(stack),
+                        CasterManager.getAreaY(stack),
+                        CasterManager.getAreaZ(stack),
+                        out,
+                        checked);
             }
         }
         return out;
     }
 
-    private static void checkNeighboursFull(Level level, BlockPos pos1, BlockPos pos2, Direction side,
-            int sizeX, int sizeY, int sizeZ, List<BlockPos> list, Set<BlockPos> checked) {
+    private static void checkNeighboursFull(
+            Level level,
+            BlockPos pos1,
+            BlockPos pos2,
+            Direction side,
+            int sizeX,
+            int sizeY,
+            int sizeZ,
+            List<BlockPos> list,
+            Set<BlockPos> checked) {
         if (!checked.add(pos2)) {
             return;
         }
@@ -193,14 +223,28 @@ public final class FocusMediumPlan implements FocusMedium, IArchitect {
         int ze = sizeZ + pos1.getZ() - sizeZ * side.getStepZ();
         for (Direction dir : Direction.values()) {
             BlockPos q = pos2.relative(dir);
-            if (q.getX() >= xs && q.getX() <= xe && q.getY() >= ys && q.getY() <= ye && q.getZ() >= zs && q.getZ() <= ze) {
+            if (q.getX() >= xs
+                    && q.getX() <= xe
+                    && q.getY() >= ys
+                    && q.getY() <= ye
+                    && q.getZ() >= zs
+                    && q.getZ() <= ze) {
                 checkNeighboursFull(level, pos1, q, side, sizeX, sizeY, sizeZ, list, checked);
             }
         }
     }
 
-    private static void checkNeighboursSurface(Level level, BlockPos pos1, BlockState bi, BlockPos pos2, Direction side,
-            int sizeX, int sizeY, int sizeZ, List<BlockPos> list, Set<BlockPos> checked) {
+    private static void checkNeighboursSurface(
+            Level level,
+            BlockPos pos1,
+            BlockState bi,
+            BlockPos pos2,
+            Direction side,
+            int sizeX,
+            int sizeY,
+            int sizeZ,
+            List<BlockPos> list,
+            Set<BlockPos> checked) {
         if (!checked.add(pos2)) {
             return;
         }
@@ -226,7 +270,8 @@ public final class FocusMediumPlan implements FocusMedium, IArchitect {
             list.add(pos2);
             for (Direction dir : Direction.values()) {
                 if (dir != side && dir.getOpposite() != side) {
-                    checkNeighboursSurface(level, pos1, bi, pos2.relative(dir), side, sizeX, sizeY, sizeZ, list, checked);
+                    checkNeighboursSurface(
+                            level, pos1, bi, pos2.relative(dir), side, sizeX, sizeY, sizeZ, list, checked);
                 }
             }
         }

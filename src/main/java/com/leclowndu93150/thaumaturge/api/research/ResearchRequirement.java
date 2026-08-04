@@ -22,8 +22,12 @@ import net.minecraft.world.item.Item;
 public record ResearchRequirement(HolderSet<Item> items, DataComponentPatch components, int amount) {
     /** Codec for datapack serialization. */
     public static final Codec<ResearchRequirement> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            RegistryCodecs.homogeneousList(Registries.ITEM).fieldOf("items").forGetter(ResearchRequirement::items),
-            DataComponentPatch.CODEC.optionalFieldOf("components",DataComponentPatch.EMPTY).forGetter(ResearchRequirement::components),
-            Codec.INT.fieldOf("amount").forGetter(ResearchRequirement::amount)
-    ).apply(instance, ResearchRequirement::new));
+                    RegistryCodecs.homogeneousList(Registries.ITEM)
+                            .fieldOf("items")
+                            .forGetter(ResearchRequirement::items),
+                    DataComponentPatch.CODEC
+                            .optionalFieldOf("components", DataComponentPatch.EMPTY)
+                            .forGetter(ResearchRequirement::components),
+                    Codec.INT.fieldOf("amount").forGetter(ResearchRequirement::amount))
+            .apply(instance, ResearchRequirement::new));
 }

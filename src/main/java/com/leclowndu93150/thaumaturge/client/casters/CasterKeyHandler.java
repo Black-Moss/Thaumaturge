@@ -57,7 +57,7 @@ public final class CasterKeyHandler {
                 }
                 if (!radialLock
                         && (player.getMainHandItem().getItem() instanceof ICaster
-                        || player.getOffhandItem().getItem() instanceof ICaster)) {
+                                || player.getOffhandItem().getItem() instanceof ICaster)) {
                     if (player.isShiftKeyDown()) {
                         ClientPacketDistributor.sendToServer(
                                 new ServerboundFocusChangePayload(CasterManager.REMOVE_FOCUS));

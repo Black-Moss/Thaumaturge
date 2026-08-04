@@ -64,34 +64,76 @@ public final class WarpEvents {
             upTo(4, (player, roll) -> creeperHiss(player)),
             upTo(8, (player, roll) -> distantExplosion(player, roll.rand())),
             message(12, "warp.thaumaturge.text.11"),
-            upTo(16, (player, roll) -> applyEffect(player, TCMobEffects.VIS_EXHAUST,
-                    5000, ampFor(roll.warp()), "warp.thaumaturge.text.1")),
-            upTo(20, (player, roll) -> applyEffect(player, TCMobEffects.THAUMARHIA,
-                    Math.min(32000, 10 * roll.warp()), 0, "warp.thaumaturge.text.15")),
-            upTo(24, (player, roll) -> applyEffect(player, TCMobEffects.UNNATURAL_HUNGER,
-                    5000, ampFor(roll.warp()), "warp.thaumaturge.text.2")),
+            upTo(
+                    16,
+                    (player, roll) -> applyEffect(
+                            player, TCMobEffects.VIS_EXHAUST, 5000, ampFor(roll.warp()), "warp.thaumaturge.text.1")),
+            upTo(
+                    20,
+                    (player, roll) -> applyEffect(
+                            player,
+                            TCMobEffects.THAUMARHIA,
+                            Math.min(32000, 10 * roll.warp()),
+                            0,
+                            "warp.thaumaturge.text.15")),
+            upTo(
+                    24,
+                    (player, roll) -> applyEffect(
+                            player,
+                            TCMobEffects.UNNATURAL_HUNGER,
+                            5000,
+                            ampFor(roll.warp()),
+                            "warp.thaumaturge.text.2")),
             message(28, "warp.thaumaturge.text.12"),
             upTo(32, (player, roll) -> spawnMist(player, 1)),
-            upTo(36, (player, roll) -> applyEffect(player, TCMobEffects.BLURRED_VISION,
-                    Math.min(32000, 10 * roll.warp()), 0, null)),
-            upTo(40, (player, roll) -> applyEffect(player, TCMobEffects.SUN_SCORNED,
-                    5000, ampFor(roll.warp()), "warp.thaumaturge.text.5")),
-            upTo(44, (player, roll) -> applyEffect(player, MobEffects.MINING_FATIGUE,
-                    1200, ampFor(roll.warp()), "warp.thaumaturge.text.9")),
-            upTo(48, (player, roll) -> applyEffect(player, TCMobEffects.INFECTIOUS_VIS_EXHAUST,
-                    6000, ampFor(roll.warp()), "warp.thaumaturge.text.1")),
-            upTo(52, (player, roll) -> applyEffect(player, MobEffects.NIGHT_VISION,
-                    Math.min(40 * roll.warp(), 6000), 0, "warp.thaumaturge.text.10")),
-            upTo(56, (player, roll) -> applyEffect(player, TCMobEffects.DEATH_GAZE,
-                    6000, ampFor(roll.warp()), "warp.thaumaturge.text.4")),
+            upTo(
+                    36,
+                    (player, roll) -> applyEffect(
+                            player, TCMobEffects.BLURRED_VISION, Math.min(32000, 10 * roll.warp()), 0, null)),
+            upTo(
+                    40,
+                    (player, roll) -> applyEffect(
+                            player, TCMobEffects.SUN_SCORNED, 5000, ampFor(roll.warp()), "warp.thaumaturge.text.5")),
+            upTo(
+                    44,
+                    (player, roll) -> applyEffect(
+                            player, MobEffects.MINING_FATIGUE, 1200, ampFor(roll.warp()), "warp.thaumaturge.text.9")),
+            upTo(
+                    48,
+                    (player, roll) -> applyEffect(
+                            player,
+                            TCMobEffects.INFECTIOUS_VIS_EXHAUST,
+                            6000,
+                            ampFor(roll.warp()),
+                            "warp.thaumaturge.text.1")),
+            upTo(
+                    52,
+                    (player, roll) -> applyEffect(
+                            player,
+                            MobEffects.NIGHT_VISION,
+                            Math.min(40 * roll.warp(), 6000),
+                            0,
+                            "warp.thaumaturge.text.10")),
+            upTo(
+                    56,
+                    (player, roll) -> applyEffect(
+                            player, TCMobEffects.DEATH_GAZE, 6000, ampFor(roll.warp()), "warp.thaumaturge.text.4")),
             upTo(60, (player, roll) -> suddenlySpiders(player, roll.warp(), false)),
             message(64, "warp.thaumaturge.text.13"),
             upTo(68, (player, roll) -> spawnMist(player, roll.warp() / 30)),
-            upTo(72, (player, roll) -> applyEffect(player, MobEffects.BLINDNESS,
-                    Math.min(32000, 5 * roll.warp()), 0, null)),
+            upTo(
+                    72,
+                    (player, roll) ->
+                            applyEffect(player, MobEffects.BLINDNESS, Math.min(32000, 5 * roll.warp()), 0, null)),
             exactly(76, WarpEvents::easeNormalWarp),
-            upTo(80, (player, roll) -> applyEffect(player, TCMobEffects.UNNATURAL_HUNGER,
-                    6000, ampFor(roll.warp()), "warp.thaumaturge.text.2")),
+            upTo(
+                    80,
+                    (player, roll) -> applyEffect(
+                            player,
+                            TCMobEffects.UNNATURAL_HUNGER,
+                            6000,
+                            ampFor(roll.warp()),
+                            "warp.thaumaturge.text.2")),
             upTo(88, (player, roll) -> GuardianSpawner.spawnPortal(player)),
             upTo(92, (player, roll) -> suddenlySpiders(player, roll.warp(), true)),
             new Event(eff -> true, (player, roll) -> spawnMist(player, roll.warp() / 15)));
@@ -118,8 +160,7 @@ public final class WarpEvents {
         wc.setCounter(warpCounter);
         int eff = rand.nextInt(warp) + gearWarp;
         ItemStack helm = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (helm.getItem() instanceof FortressArmorItem
-                && FortressArmorItem.mask(helm) == GRINNING_DEVIL_MASK) {
+        if (helm.getItem() instanceof FortressArmorItem && FortressArmorItem.mask(helm) == GRINNING_DEVIL_MASK) {
             eff -= GRINNING_DEVIL_BASE_REDUCTION + rand.nextInt(GRINNING_DEVIL_RANDOM_REDUCTION);
         }
         PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.heartbeat());
@@ -168,19 +209,31 @@ public final class WarpEvents {
 
     private static void creeperHiss(ServerPlayer player) {
         if (!ThaumaturgeCommonConfig.NO_STRESS.get()) {
-            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.CREEPER_PRIMED, SoundSource.AMBIENT, 1.0F, 0.5F);
+            player.level()
+                    .playSound(
+                            null,
+                            player.getX(),
+                            player.getY(),
+                            player.getZ(),
+                            SoundEvents.CREEPER_PRIMED,
+                            SoundSource.AMBIENT,
+                            1.0F,
+                            0.5F);
         }
     }
 
     private static void distantExplosion(ServerPlayer player, RandomSource rand) {
         if (!ThaumaturgeCommonConfig.NO_STRESS.get()) {
-            player.level().playSound(null,
-                    player.getX() + rand.nextInt(10) - rand.nextInt(10),
-                    player.getY() + rand.nextInt(10) - rand.nextInt(10),
-                    player.getZ() + rand.nextInt(10) - rand.nextInt(10),
-                    SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, 4.0F,
-                    (1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.2F) * 0.7F);
+            player.level()
+                    .playSound(
+                            null,
+                            player.getX() + rand.nextInt(10) - rand.nextInt(10),
+                            player.getY() + rand.nextInt(10) - rand.nextInt(10),
+                            player.getZ() + rand.nextInt(10) - rand.nextInt(10),
+                            SoundEvents.GENERIC_EXPLODE,
+                            SoundSource.AMBIENT,
+                            4.0F,
+                            (1.0F + (rand.nextFloat() - rand.nextFloat()) * 0.2F) * 0.7F);
         }
     }
 
@@ -195,8 +248,8 @@ public final class WarpEvents {
         return Math.min(MAX_EFFECT_AMP, warp / EFFECT_AMP_DIVISOR);
     }
 
-    private static void applyEffect(ServerPlayer player, Holder<MobEffect> effect, int duration, int amplifier,
-                                    @Nullable String messageKey) {
+    private static void applyEffect(
+            ServerPlayer player, Holder<MobEffect> effect, int duration, int amplifier, @Nullable String messageKey) {
         player.addEffect(new MobEffectInstance(effect, duration, amplifier, true, true));
         if (messageKey != null) {
             WarpManager.sendActionBar(player, messageKey);
@@ -250,8 +303,8 @@ public final class WarpEvents {
         }
         ServerLevel level = player.level();
         int range = Math.min(8 + gaze.getAmplifier() * 3, 24);
-        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class,
-                player.getBoundingBox().inflate(range))) {
+        for (LivingEntity entity : level.getEntitiesOfClass(
+                LivingEntity.class, player.getBoundingBox().inflate(range))) {
             if (entity == player || !entity.isAlive() || entity.hasEffect(MobEffects.WITHER)) {
                 continue;
             }

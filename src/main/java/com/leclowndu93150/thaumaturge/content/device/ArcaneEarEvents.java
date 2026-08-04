@@ -2,13 +2,12 @@ package com.leclowndu93150.thaumaturge.content.device;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.NoteBlockEvent;
-
-import java.util.List;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class ArcaneEarEvents {

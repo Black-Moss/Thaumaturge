@@ -13,16 +13,15 @@ import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class BoltRenderType {
-    public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/effect/essentia.png");
+    public static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/effect/essentia.png");
 
-    public static final RenderPipeline PIPELINE = TCFXPipelines.additiveTextured(
-            Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/bolt"));
+    public static final RenderPipeline PIPELINE =
+            TCFXPipelines.additiveTextured(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/bolt"));
 
     public static final RenderType RENDER_TYPE = RenderType.create(
             "thaumaturge_bolt",
-            RenderSetup.builder(PIPELINE)
-                    .withTexture("Sampler0", TEXTURE)
-                    .createRenderSetup());
+            RenderSetup.builder(PIPELINE).withTexture("Sampler0", TEXTURE).createRenderSetup());
 
     @SubscribeEvent
     static void register(RegisterRenderPipelinesEvent event) {

@@ -76,8 +76,7 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
             poseStack.mulPose(Axis.ZP.rotationDegrees(rayRandom.nextFloat() * 360.0F + spin));
             float fa = (rayRandom.nextFloat() * 20.0F + 5.0F) / 30.0F * ramp;
             float f4 = (rayRandom.nextFloat() * 2.0F + 1.0F) / 30.0F * ramp;
-            collector.submitCustomGeometry(poseStack, RAY_TYPE, (pose, buffer) ->
-                    addRay(buffer, pose.pose(), fa, f4));
+            collector.submitCustomGeometry(poseStack, RAY_TYPE, (pose, buffer) -> addRay(buffer, pose.pose(), fa, f4));
         }
         poseStack.popPose();
         poseStack.pushPose();
@@ -91,10 +90,19 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
         int tint = ARGB.colorFromFloat(1.0F, 1.0F, 1.0F, 1.0F);
         collector.submitCustomGeometry(poseStack, BILLBOARD_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();
-            buffer.addVertex(mat, -HALF, -HALF, 0.0F).setUv(u1, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
-            buffer.addVertex(mat, -HALF, HALF, 0.0F).setUv(u1, v0).setColor(tint).setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, -HALF, -HALF, 0.0F)
+                    .setUv(u1, v1)
+                    .setColor(tint)
+                    .setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, -HALF, HALF, 0.0F)
+                    .setUv(u1, v0)
+                    .setColor(tint)
+                    .setLight(EMISSIVE_LIGHT);
             buffer.addVertex(mat, HALF, HALF, 0.0F).setUv(u0, v0).setColor(tint).setLight(EMISSIVE_LIGHT);
-            buffer.addVertex(mat, HALF, -HALF, 0.0F).setUv(u0, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, HALF, -HALF, 0.0F)
+                    .setUv(u0, v1)
+                    .setColor(tint)
+                    .setLight(EMISSIVE_LIGHT);
         });
         poseStack.popPose();
     }

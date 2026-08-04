@@ -11,8 +11,7 @@ public final class GolemPressClientHandler {
     public static void handle(ClientboundGolemPressStuffPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             Minecraft mc = Minecraft.getInstance();
-            if (mc.level != null
-                    && mc.level.getBlockEntity(payload.pos()) instanceof BlockEntityGolemBuilder builder) {
+            if (mc.level != null && mc.level.getBlockEntity(payload.pos()) instanceof BlockEntityGolemBuilder builder) {
                 boolean[] stuff = new boolean[payload.stuff().length];
                 for (int i = 0; i < stuff.length; i++) {
                     stuff[i] = payload.stuff()[i] == 1;

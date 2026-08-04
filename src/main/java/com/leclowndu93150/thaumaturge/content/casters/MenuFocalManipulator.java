@@ -32,23 +32,40 @@ public final class MenuFocalManipulator extends AbstractContainerMenu {
     private final @Nullable BlockEntityFocalManipulator table;
 
     public MenuFocalManipulator(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new ItemStacksResourceHandler(1), ContainerLevelAccess.NULL, buf.readBlockPos(), null);
+        this(
+                containerId,
+                playerInventory,
+                new ItemStacksResourceHandler(1),
+                ContainerLevelAccess.NULL,
+                buf.readBlockPos(),
+                null);
     }
 
     public MenuFocalManipulator(int containerId, Inventory playerInventory, BlockEntityFocalManipulator table) {
-        this(containerId, playerInventory, table.items(),
-                ContainerLevelAccess.create(table.getLevel(), table.getBlockPos()), table.getBlockPos(), table);
+        this(
+                containerId,
+                playerInventory,
+                table.items(),
+                ContainerLevelAccess.create(table.getLevel(), table.getBlockPos()),
+                table.getBlockPos(),
+                table);
     }
 
-    private MenuFocalManipulator(int containerId, Inventory playerInventory, ItemStacksResourceHandler items,
-                                 ContainerLevelAccess access, BlockPos pos, @Nullable BlockEntityFocalManipulator table) {
+    private MenuFocalManipulator(
+            int containerId,
+            Inventory playerInventory,
+            ItemStacksResourceHandler items,
+            ContainerLevelAccess access,
+            BlockPos pos,
+            @Nullable BlockEntityFocalManipulator table) {
         super(TCMenus.FOCAL_MANIPULATOR.get(), containerId);
         this.items = items;
         this.access = access;
         this.pos = pos;
         this.table = table;
 
-        addSlot(new ResourceHandlerSlot(items, items::set, BlockEntityFocalManipulator.SLOT_FOCUS, FOCUS_SLOT_X, FOCUS_SLOT_Y));
+        addSlot(new ResourceHandlerSlot(
+                items, items::set, BlockEntityFocalManipulator.SLOT_FOCUS, FOCUS_SLOT_X, FOCUS_SLOT_Y));
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {

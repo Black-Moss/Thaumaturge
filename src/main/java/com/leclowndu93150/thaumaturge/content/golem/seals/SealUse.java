@@ -10,26 +10,26 @@ import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.golem.GolemInteractionHelper;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandler;
+import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
 
 public class SealUse extends SealFiltered implements ISealConfigToggles {
     private static final int SCAN_INTERVAL = 5;
 
     protected final ISealConfigToggles.SealToggle[] props = {
-            new ISealConfigToggles.SealToggle(true, "pmeta", "golem.prop.meta"),
-            new ISealConfigToggles.SealToggle(true, "pnbt", "golem.prop.nbt"),
-            new ISealConfigToggles.SealToggle(false, "pore", "golem.prop.ore"),
-            new ISealConfigToggles.SealToggle(false, "pmod", "golem.prop.mod"),
-            new ISealConfigToggles.SealToggle(false, "pleft", "golem.prop.left"),
-            new ISealConfigToggles.SealToggle(false, "pempty", "golem.prop.empty"),
-            new ISealConfigToggles.SealToggle(false, "pemptyhand", "golem.prop.emptyhand"),
-            new ISealConfigToggles.SealToggle(false, "psneak", "golem.prop.sneak"),
-            new ISealConfigToggles.SealToggle(false, "ppro", "golem.prop.provision.wl")
+        new ISealConfigToggles.SealToggle(true, "pmeta", "golem.prop.meta"),
+        new ISealConfigToggles.SealToggle(true, "pnbt", "golem.prop.nbt"),
+        new ISealConfigToggles.SealToggle(false, "pore", "golem.prop.ore"),
+        new ISealConfigToggles.SealToggle(false, "pmod", "golem.prop.mod"),
+        new ISealConfigToggles.SealToggle(false, "pleft", "golem.prop.left"),
+        new ISealConfigToggles.SealToggle(false, "pempty", "golem.prop.empty"),
+        new ISealConfigToggles.SealToggle(false, "pemptyhand", "golem.prop.emptyhand"),
+        new ISealConfigToggles.SealToggle(false, "psneak", "golem.prop.sneak"),
+        new ISealConfigToggles.SealToggle(false, "ppro", "golem.prop.provision.wl")
     };
 
     private int delay = System.identityHashCode(this) % 49;
@@ -49,7 +49,8 @@ public class SealUse extends SealFiltered implements ISealConfigToggles {
         if (oldTask != null && !oldTask.isSuspended() && !oldTask.isCompleted()) {
             return;
         }
-        if (getToggles()[5].getValue() != level.getBlockState(seal.getSealPos().pos()).isAir()) {
+        if (getToggles()[5].getValue()
+                != level.getBlockState(seal.getSealPos().pos()).isAir()) {
             return;
         }
         Task task = new Task(seal.getSealPos(), seal.getSealPos().pos());
@@ -59,16 +60,15 @@ public class SealUse extends SealFiltered implements ISealConfigToggles {
     }
 
     @Override
-    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {
-    }
+    public void onTaskStarted(Level level, IGolemAPI golem, Task task) {}
 
     @Override
     public boolean onTaskCompletion(Level level, IGolemAPI golem, Task task) {
         if (getToggles()[5].getValue() == level.getBlockState(task.getPos()).isAir()) {
             ItemStack clickStack = golem.getCarrying().get(0);
             if (!filter.get(0).isEmpty()) {
-                clickStack = InvHelper.findFirstMatchFromFilter(filter, filterSize, blacklist,
-                        golem.getCarrying(), filterFlags(props));
+                clickStack = InvHelper.findFirstMatchFromFilter(
+                        filter, filterSize, blacklist, golem.getCarrying(), filterFlags(props));
             }
             if (!clickStack.isEmpty() || props[6].getValue()) {
                 ItemStack held = ItemStack.EMPTY;
@@ -76,9 +76,14 @@ public class SealUse extends SealFiltered implements ISealConfigToggles {
                     held = clickStack.copy();
                     golem.dropItem(clickStack.copy());
                 }
-                GolemInteractionHelper.golemClick(level, golem, task.getPos(), task.getSealPos().face(),
+                GolemInteractionHelper.golemClick(
+                        level,
+                        golem,
+                        task.getPos(),
+                        task.getSealPos().face(),
                         props[6].getValue() ? ItemStack.EMPTY : held,
-                        props[7].getValue(), !getToggles()[4].getValue());
+                        props[7].getValue(),
+                        !getToggles()[4].getValue());
             }
         }
         task.setSuspended(true);
@@ -90,20 +95,24 @@ public class SealUse extends SealFiltered implements ISealConfigToggles {
         if (props[6].getValue()) {
             return true;
         }
-        boolean found = !InvHelper.findFirstMatchFromFilter(filter, filterSize, blacklist,
-                golem.getCarrying(), filterFlags(props)).isEmpty();
-        if (!found && getToggles()[8].getValue() && !blacklist && !getInv().get(0).isEmpty()) {
+        boolean found = !InvHelper.findFirstMatchFromFilter(
+                        filter, filterSize, blacklist, golem.getCarrying(), filterFlags(props))
+                .isEmpty();
+        if (!found
+                && getToggles()[8].getValue()
+                && !blacklist
+                && !getInv().get(0).isEmpty()) {
             ISealEntity seal = SealHandler.getSealEntity(golem.getGolemWorld(), task.getSealPos());
             if (seal != null) {
-                GolemHelper.requestProvisioning(golem.getGolemWorld(), seal, getInv().get(0).copy());
+                GolemHelper.requestProvisioning(
+                        golem.getGolemWorld(), seal, getInv().get(0).copy());
             }
         }
         return found;
     }
 
     @Override
-    public void onTaskSuspension(Level level, Task task) {
-    }
+    public void onTaskSuspension(Level level, Task task) {}
 
     @Override
     public boolean canPlaceAt(Level level, BlockPos pos, Direction side) {
@@ -116,17 +125,16 @@ public class SealUse extends SealFiltered implements ISealConfigToggles {
     }
 
     @Override
-    public void onRemoval(Level level, BlockPos pos, Direction side) {
-    }
+    public void onRemoval(Level level, BlockPos pos, Direction side) {}
 
     @Override
     public int[] getGuiCategories() {
-        return new int[]{CAT_FILTER, CAT_TOGGLES, CAT_PRIORITY, CAT_TAGS};
+        return new int[] {CAT_FILTER, CAT_TOGGLES, CAT_PRIORITY, CAT_TAGS};
     }
 
     @Override
     public GolemTrait[] getRequiredTags() {
-        return new GolemTrait[]{TCGolemTraits.DEFT.get(), TCGolemTraits.SMART.get()};
+        return new GolemTrait[] {TCGolemTraits.DEFT.get(), TCGolemTraits.SMART.get()};
     }
 
     @Override

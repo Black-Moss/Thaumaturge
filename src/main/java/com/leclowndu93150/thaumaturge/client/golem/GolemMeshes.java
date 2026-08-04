@@ -29,8 +29,7 @@ public final class GolemMeshes {
         });
     }
 
-    public static void renderPart(TCMeshPart part, PoseStack.Pose pose, VertexConsumer buffer,
-                                  int light, int color) {
+    public static void renderPart(TCMeshPart part, PoseStack.Pose pose, VertexConsumer buffer, int light, int color) {
         float[] positions = part.positions();
         float[] uvs = part.uvs();
         float[] normals = part.normals();

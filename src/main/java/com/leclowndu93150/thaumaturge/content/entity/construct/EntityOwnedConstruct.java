@@ -32,8 +32,8 @@ import org.jspecify.annotations.Nullable;
 public abstract class EntityOwnedConstruct extends PathfinderMob implements OwnableEntity {
     private static final EntityDataAccessor<Byte> OWNED_FLAGS =
             SynchedEntityData.defineId(EntityOwnedConstruct.class, EntityDataSerializers.BYTE);
-    private static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> OWNER =
-            SynchedEntityData.defineId(EntityOwnedConstruct.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE);
+    private static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> OWNER = SynchedEntityData.defineId(
+            EntityOwnedConstruct.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE);
     private static final int OWNED_BIT = 4;
 
     private boolean validSpawn;
@@ -193,9 +193,8 @@ public abstract class EntityOwnedConstruct extends PathfinderMob implements Owna
         }
         if (!level().isClientSide() && !isOwner(player)) {
             if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                        Component.translatable("tc.notowned")
-                                .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("tc.notowned")
+                        .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
             }
             return InteractionResult.SUCCESS;
         }

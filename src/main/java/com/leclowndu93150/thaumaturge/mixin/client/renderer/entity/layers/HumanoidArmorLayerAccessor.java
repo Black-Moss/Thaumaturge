@@ -7,12 +7,17 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(HumanoidArmorLayer.class)
 public interface HumanoidArmorLayerAccessor {
 
     @Invoker("renderArmorPiece")
-    <S extends HumanoidRenderState> void invokeRenderArmorPiece(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int lightCoords, S state);
+    <S extends HumanoidRenderState> void invokeRenderArmorPiece(
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            ItemStack itemStack,
+            EquipmentSlot slot,
+            int lightCoords,
+            S state);
 }

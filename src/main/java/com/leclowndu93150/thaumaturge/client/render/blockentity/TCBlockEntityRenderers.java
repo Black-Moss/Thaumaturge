@@ -3,14 +3,12 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchAltar;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.client.event.RegisterBlockModelsEvent;
 import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
 import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 
@@ -26,7 +24,8 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.VIS_RELAY.get(), VisRelayRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.FOCAL_MANIPULATOR.get(), FocalManipulatorRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.PEDESTAL.get(), PedestalRenderer::new);
-        event.registerBlockEntityRenderer(TCBlockEntities.RECHARGE_PEDESTAL.get(),
+        event.registerBlockEntityRenderer(
+                TCBlockEntities.RECHARGE_PEDESTAL.get(),
                 context -> new RechargePedestalRenderer(context, RECHARGE_PEDESTAL_ITEM_SCALE));
         event.registerBlockEntityRenderer(TCBlockEntities.JAR.get(), JarRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.JAR_VOID.get(), JarRenderer::new);
@@ -43,12 +42,16 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.RESEARCH_TABLE.get(), ResearchTableRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.DECONSTRUCTION_TABLE.get(), DeconstructionTableRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.MANA_POD.get(), ManaPodRenderer::new);
-        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_CAP.get(),
-                context -> new EldritchCapRenderer<>(context,
-                        EldritchCapRenderer.CAP_TEXTURE, EldritchCapRenderer.CAP_TEXTURE_OUTER, cap -> 0));
-        event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_ALTAR.get(),
-                context -> new EldritchCapRenderer<>(context,
-                        EldritchCapRenderer.ALTAR_TEXTURE, EldritchCapRenderer.ALTAR_TEXTURE,
+        event.registerBlockEntityRenderer(
+                TCBlockEntities.ELDRITCH_CAP.get(),
+                context -> new EldritchCapRenderer<>(
+                        context, EldritchCapRenderer.CAP_TEXTURE, EldritchCapRenderer.CAP_TEXTURE_OUTER, cap -> 0));
+        event.registerBlockEntityRenderer(
+                TCBlockEntities.ELDRITCH_ALTAR.get(),
+                context -> new EldritchCapRenderer<>(
+                        context,
+                        EldritchCapRenderer.ALTAR_TEXTURE,
+                        EldritchCapRenderer.ALTAR_TEXTURE,
                         BlockEntityEldritchAltar::getEyes));
         event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_PORTAL.get(), EldritchPortalRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ELDRITCH_NOTHING.get(), EldritchNothingRenderer::new);
@@ -63,16 +66,18 @@ public final class TCBlockEntityRenderers {
     }
 
     @SubscribeEvent
-    public static void onRegisterAdditionalModels(ModelEvent.RegisterStandalone event){
+    public static void onRegisterAdditionalModels(ModelEvent.RegisterStandalone event) {
         for (int i = 0; i < BellowsRenderer.parts.length; i++) {
             String part = BellowsRenderer.parts[i];
             Identifier modelId = TCIds.rl("block/bellows/" + part);
             BellowsRenderer.MODEL_KEYS[i] = new StandaloneModelKey<>(modelId::toString);
             event.register(BellowsRenderer.MODEL_KEYS[i], SimpleUnbakedStandaloneModel.blockStateModel(modelId));
         }
-        event.register(MirrorRenderer.FRAME_MODEL,
+        event.register(
+                MirrorRenderer.FRAME_MODEL,
                 SimpleUnbakedStandaloneModel.blockStateModel(MirrorRenderer.FRAME_MODEL_ID));
-        event.register(MirrorRenderer.FRAME_ESSENTIA_MODEL,
+        event.register(
+                MirrorRenderer.FRAME_ESSENTIA_MODEL,
                 SimpleUnbakedStandaloneModel.blockStateModel(MirrorRenderer.FRAME_ESSENTIA_MODEL_ID));
     }
 }

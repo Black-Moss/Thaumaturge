@@ -13,15 +13,18 @@ import net.minecraft.resources.Identifier;
 
 public final class AspectPoolData {
     public static final MapCodec<AspectPoolData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.unboundedMap(LegacyIds.IDENTIFIER_CODEC, Codec.INT).fieldOf("pool").forGetter(d -> d.pool),
-            Codec.INT.optionalFieldOf("completed_notes", 0).forGetter(AspectPoolData::completedNotes)
-    ).apply(instance, AspectPoolData::of));
+                    Codec.unboundedMap(LegacyIds.IDENTIFIER_CODEC, Codec.INT)
+                            .fieldOf("pool")
+                            .forGetter(d -> d.pool),
+                    Codec.INT.optionalFieldOf("completed_notes", 0).forGetter(AspectPoolData::completedNotes))
+            .apply(instance, AspectPoolData::of));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AspectPoolData> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.map(LinkedHashMap::new, Identifier.STREAM_CODEC, ByteBufCodecs.VAR_INT), d -> d.pool,
-            ByteBufCodecs.VAR_INT, AspectPoolData::completedNotes,
-            AspectPoolData::of
-    );
+            ByteBufCodecs.map(LinkedHashMap::new, Identifier.STREAM_CODEC, ByteBufCodecs.VAR_INT),
+            d -> d.pool,
+            ByteBufCodecs.VAR_INT,
+            AspectPoolData::completedNotes,
+            AspectPoolData::of);
 
     private final LinkedHashMap<Identifier, Integer> pool;
     private int completedNotes;
@@ -87,7 +90,7 @@ public final class AspectPoolData {
         completedNotes++;
     }
 
-    public void copyFrom(AspectPoolData other){
+    public void copyFrom(AspectPoolData other) {
         this.pool.clear();
         this.pool.putAll(other.pool);
         this.completedNotes = other.completedNotes;

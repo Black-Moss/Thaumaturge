@@ -245,19 +245,33 @@ public final class AuraHelper {
      */
     public interface Bindings {
         IAuraChunk chunkLookup(ServerLevel level, ChunkPos pos);
+
         IAuraChunk blockLookup(Level level, BlockPos pos);
+
         float getVis(Level level, BlockPos pos);
+
         float getFlux(Level level, BlockPos pos);
+
         int getAuraBase(Level level, BlockPos pos);
+
         float getTotalAura(Level level, BlockPos pos);
+
         float getFluxSaturation(Level level, BlockPos pos);
+
         boolean shouldPreserveAura(Level level, @Nullable Player player, BlockPos pos);
+
         void addVis(Level level, BlockPos pos, float amount);
+
         void addFlux(Level level, BlockPos pos, float amount);
+
         float drainVis(Level level, BlockPos pos, float amount, boolean simulate);
+
         float drainFlux(Level level, BlockPos pos, float amount, boolean simulate);
+
         void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect);
+
         float capacityRemaining(Level level, BlockPos pos);
+
         boolean canAcceptVis(Level level, BlockPos pos, float amount);
     }
 }

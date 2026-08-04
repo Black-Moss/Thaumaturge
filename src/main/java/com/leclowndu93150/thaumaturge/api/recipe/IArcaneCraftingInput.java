@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.api.recipe;
 
-import net.minecraft.world.entity.player.StackedItemContents;
 import java.util.List;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
 import org.jspecify.annotations.Nullable;
@@ -46,7 +46,8 @@ public interface IArcaneCraftingInput extends RecipeInput, IArcaneWorkbench {
      *
      * @return the crafting player, or null when the craft is not player-driven
      */
-    @Nullable Player player();
+    @Nullable
+    Player player();
 
     /**
      * The number of non-empty stacks in the crafting grid.

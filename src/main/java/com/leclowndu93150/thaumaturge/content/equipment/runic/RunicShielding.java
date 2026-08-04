@@ -41,8 +41,7 @@ public final class RunicShielding {
             int max = worn(player);
             applyMaxModifier(player, max);
             if (state.maxCharge > max) {
-                player.setAbsorptionAmount(Math.max(0.0F,
-                        player.getAbsorptionAmount() - (state.maxCharge - max)));
+                player.setAbsorptionAmount(Math.max(0.0F, player.getAbsorptionAmount() - (state.maxCharge - max)));
             }
             state.maxCharge = max;
         }
@@ -56,7 +55,8 @@ public final class RunicShielding {
             state.nextCycle = time + ThaumaturgeCommonConfig.SHIELD_WAIT.get();
             state.lastCharge = 0;
         }
-        if (charge < state.maxCharge && time >= state.nextCycle
+        if (charge < state.maxCharge
+                && time >= state.nextCycle
                 && !AuraHelper.shouldPreserveAura(level, player, player.blockPosition())) {
             BlockPos pos = player.blockPosition();
             double cost = ThaumaturgeCommonConfig.SHIELD_COST.get();

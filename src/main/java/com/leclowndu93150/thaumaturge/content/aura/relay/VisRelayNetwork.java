@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.aura.relay;
 
-import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.VisRelayHelper;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import net.minecraft.core.BlockPos;
@@ -15,8 +15,8 @@ public final class VisRelayNetwork implements VisRelayHelper.Bindings {
     public static final int CONSUMER_RANGE = 8;
 
     @Override
-    public int drainCentivis(ServerLevel level, BlockPos consumerPos, ResourceKey<IAspect> primal,
-                             int amount, boolean simulate) {
+    public int drainCentivis(
+            ServerLevel level, BlockPos consumerPos, ResourceKey<IAspect> primal, int amount, boolean simulate) {
         BlockEntityNode source = findSource(level, consumerPos);
         if (source == null) {
             return 0;

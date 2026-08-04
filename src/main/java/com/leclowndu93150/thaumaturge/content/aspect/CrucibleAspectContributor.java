@@ -40,7 +40,8 @@ public final class CrucibleAspectContributor implements IAspectRecipeContributor
     }
 
     @Override
-    public Optional<AspectList> derive(Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
+    public Optional<AspectList> derive(
+            Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
         List<Candidate> list = candidates.get(item);
         if (list == null) {
             return Optional.empty();
@@ -51,7 +52,8 @@ public final class CrucibleAspectContributor implements IAspectRecipeContributor
                 continue;
             }
             AspectList out = partial.of(catalyst);
-            for (AspectInstance entry : RecipeAspectDerivation.drain(candidate.aspects(), candidate.count()).entries()) {
+            for (AspectInstance entry : RecipeAspectDerivation.drain(candidate.aspects(), candidate.count())
+                    .entries()) {
                 out = out.add(entry);
             }
             if (!out.isEmpty()) {

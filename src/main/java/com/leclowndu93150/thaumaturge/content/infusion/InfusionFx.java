@@ -12,8 +12,13 @@ public final class InfusionFx {
     private InfusionFx() {}
 
     public static void itemStream(ServerLevel level, BlockPos matrixPos, BlockPos pedestalPos) {
-        PacketDistributor.sendToPlayersNear(level, null,
-                matrixPos.getX(), matrixPos.getY(), matrixPos.getZ(), ITEM_STREAM_RANGE,
+        PacketDistributor.sendToPlayersNear(
+                level,
+                null,
+                matrixPos.getX(),
+                matrixPos.getY(),
+                matrixPos.getZ(),
+                ITEM_STREAM_RANGE,
                 new ClientboundInfusionSourcePayload(matrixPos, pedestalPos));
     }
 

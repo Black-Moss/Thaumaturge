@@ -20,57 +20,57 @@ public final class HitResultStreamCodecs {
 
     private static void encode(FriendlyByteBuf buf, HitResult hit) {
 
-            buf.writeEnum(hit.getType());
+        buf.writeEnum(hit.getType());
 
-            switch (hit.getType()) {
-                case MISS -> {
-                    buf.writeVector3f(hit.getLocation().toVector3f());
-                }
-
-                case BLOCK -> {
-                    BlockHitResult block = (BlockHitResult) hit;
-
-                    buf.writeVector3f(block.getLocation().toVector3f());
-                    buf.writeBlockPos(block.getBlockPos());
-                    buf.writeEnum(block.getDirection());
-                    buf.writeBoolean(block.isInside());
-                    buf.writeBoolean(block.isWorldBorderHit());
-                }
-
-                case ENTITY -> {
-                    EntityHitResult entity = (EntityHitResult) hit;
-
-                    buf.writeVector3f(entity.getLocation().toVector3f());
-                    buf.writeVarInt(entity.getEntity().getId());
-                }
+        switch (hit.getType()) {
+            case MISS -> {
+                buf.writeVector3f(hit.getLocation().toVector3f());
             }
+
+            case BLOCK -> {
+                BlockHitResult block = (BlockHitResult) hit;
+
+                buf.writeVector3f(block.getLocation().toVector3f());
+                buf.writeBlockPos(block.getBlockPos());
+                buf.writeEnum(block.getDirection());
+                buf.writeBoolean(block.isInside());
+                buf.writeBoolean(block.isWorldBorderHit());
+            }
+
+            case ENTITY -> {
+                EntityHitResult entity = (EntityHitResult) hit;
+
+                buf.writeVector3f(entity.getLocation().toVector3f());
+                buf.writeVarInt(entity.getEntity().getId());
+            }
+        }
     }
 
     private static HitResult decode(FriendlyByteBuf buf) {
-            HitResult.Type type = buf.readEnum(HitResult.Type.class);
+        HitResult.Type type = buf.readEnum(HitResult.Type.class);
 
-            return switch (type) {
-                case MISS -> BlockHitResult.miss(new Vec3(buf.readVector3f()), Direction.NORTH, BlockPos.ZERO);
+        return switch (type) {
+            case MISS -> BlockHitResult.miss(new Vec3(buf.readVector3f()), Direction.NORTH, BlockPos.ZERO);
 
-                case BLOCK -> {
-                    Vec3 location = new Vec3(buf.readVector3f());
-                    BlockPos pos = buf.readBlockPos();
+            case BLOCK -> {
+                Vec3 location = new Vec3(buf.readVector3f());
+                BlockPos pos = buf.readBlockPos();
 
-                    yield new BlockHitResult(
-                            location,
-                            buf.readEnum(net.minecraft.core.Direction.class),
-                            pos,
-                            buf.readBoolean(),
-                            buf.readBoolean());
-                }
+                yield new BlockHitResult(
+                        location,
+                        buf.readEnum(net.minecraft.core.Direction.class),
+                        pos,
+                        buf.readBoolean(),
+                        buf.readBoolean());
+            }
 
-                case ENTITY -> {
-                    Vec3 location = new Vec3(buf.readVector3f());
-                    int entityId = buf.readVarInt();
+            case ENTITY -> {
+                Vec3 location = new Vec3(buf.readVector3f());
+                int entityId = buf.readVarInt();
 
-                    yield new EntityHitResult(Minecraft.getInstance().level.getEntity(entityId), location);
-                }
-            };
+                yield new EntityHitResult(Minecraft.getInstance().level.getEntity(entityId), location);
+            }
+        };
     }
 
     private HitResultStreamCodecs() {}

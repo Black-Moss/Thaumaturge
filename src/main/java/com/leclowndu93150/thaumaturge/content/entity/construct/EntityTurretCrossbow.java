@@ -70,8 +70,10 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
         goalSelector.addGoal(1, new RangedAttackGoal(this, 0.0, 20, 60, 24.0F));
         goalSelector.addGoal(2, new WatchTargetGoal(this));
         targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 5, true, false,
-                (entity, level) -> entity instanceof Enemy));
+        targetSelector.addGoal(
+                2,
+                new NearestAttackableTargetGoal<>(
+                        this, LivingEntity.class, 5, true, false, (entity, level) -> entity instanceof Enemy));
     }
 
     @Override
@@ -91,7 +93,10 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
             arrow.setPos(arrow.getX() + look.x * 1.75, arrow.getY() + look.y * 1.75, arrow.getZ() + look.z * 1.75);
         }
         double dx = target.getX() - getX();
-        double dy = target.getBoundingBox().minY + target.getEyeHeight() + distanceFactor * distanceFactor * 3.0F - arrow.getY();
+        double dy = target.getBoundingBox().minY
+                + target.getEyeHeight()
+                + distanceFactor * distanceFactor * 3.0F
+                - arrow.getY();
         double dz = target.getZ() - getZ();
         arrow.shoot(dx, dy, dz, ARROW_VELOCITY, ARROW_INACCURACY);
         level().addFreshEntity(arrow);

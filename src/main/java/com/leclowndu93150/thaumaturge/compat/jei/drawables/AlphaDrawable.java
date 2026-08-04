@@ -1,13 +1,9 @@
 package com.leclowndu93150.thaumaturge.compat.jei.drawables;
 
-
 import mezz.jei.api.gui.drawable.IDrawableStatic;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.opengl.GL11;
 
 public class AlphaDrawable implements IDrawableStatic {
     private final Identifier identifier;
@@ -24,7 +20,16 @@ public class AlphaDrawable implements IDrawableStatic {
         this(identifier, u, v, width, height, 0, 0, 0, 0);
     }
 
-    public AlphaDrawable(Identifier identifier, int u, int v, int width, int height, int paddingTop, int paddingBottom, int paddingLeft, int paddingRight) {
+    public AlphaDrawable(
+            Identifier identifier,
+            int u,
+            int v,
+            int width,
+            int height,
+            int paddingTop,
+            int paddingBottom,
+            int paddingLeft,
+            int paddingRight) {
         this.identifier = identifier;
 
         this.u = u;
@@ -48,7 +53,6 @@ public class AlphaDrawable implements IDrawableStatic {
         return height + paddingTop + paddingBottom;
     }
 
-
     @Override
     public void draw(GuiGraphicsExtractor guiGraphics) {
         draw(guiGraphics, 0, 0);
@@ -58,14 +62,22 @@ public class AlphaDrawable implements IDrawableStatic {
     public void draw(GuiGraphicsExtractor guiGraphics, int xOffset, int yOffset) {
         draw(guiGraphics, xOffset, yOffset, 0, 0, 0, 0);
     }
+
     @Override
-    public void draw(GuiGraphicsExtractor guiGraphics, int xOffset, int yOffset, int maskTop, int maskBottom, int maskLeft, int maskRight) {
+    public void draw(
+            GuiGraphicsExtractor guiGraphics,
+            int xOffset,
+            int yOffset,
+            int maskTop,
+            int maskBottom,
+            int maskLeft,
+            int maskRight) {
         int x = xOffset + this.paddingLeft + maskLeft;
         int y = yOffset + this.paddingTop + maskTop;
         int u = this.u + maskLeft;
         int v = this.v + maskTop;
         int width = this.width - maskRight - maskLeft;
         int height = this.height - maskBottom - maskTop;
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, identifier,x,y,u,v,width,height,512,512);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, identifier, x, y, u, v, width, height, 512, 512);
     }
 }

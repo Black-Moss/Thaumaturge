@@ -17,8 +17,7 @@ public final class RiftTriggerHandler {
 
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
-        if (!(event.getLevel() instanceof ServerLevel level)
-                || level.getGameTime() % POLL_INTERVAL_TICKS != 0) {
+        if (!(event.getLevel() instanceof ServerLevel level) || level.getGameTime() % POLL_INTERVAL_TICKS != 0) {
             return;
         }
         BlockPos trigger = AuraManager.pollRiftTrigger(level);

@@ -9,10 +9,10 @@ import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import java.util.List;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.Identifier;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -67,7 +67,8 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         super(type, level);
     }
 
-    public EntityFocusProjectile(FocusPackage pack, LivingEntity caster, float speed, Trajectory trajectory, int special) {
+    public EntityFocusProjectile(
+            FocusPackage pack, LivingEntity caster, float speed, Trajectory trajectory, int special) {
         super(TCEntities.FOCUS_PROJECTILE.get(), caster.level());
         this.focusPackage = pack;
         this.setOwner(caster);
@@ -138,16 +139,22 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         Vec3 motion = this.getDeltaMovement();
         if (this.focusPackage != null) {
             LivingEntity caster = this.getOwner() instanceof LivingEntity living ? living : null;
-            FocusEngine.run(this.level(), this.focusPackage, caster, new CastStreams(
-                    new Trajectory[]{new Trajectory(previous, motion.normalize())},
-                    new HitResult[]{reported}));
+            FocusEngine.run(
+                    this.level(),
+                    this.focusPackage,
+                    caster,
+                    new CastStreams(
+                            new Trajectory[] {new Trajectory(previous, motion.normalize())},
+                            new HitResult[] {reported}));
         }
         this.discard();
     }
 
     private void bounce(BlockHitResult blockHit) {
-        if (this.level().getBlockState(blockHit.getBlockPos())
-                .getCollisionShape(this.level(), blockHit.getBlockPos()).isEmpty()) {
+        if (this.level()
+                .getBlockState(blockHit.getBlockPos())
+                .getCollisionShape(this.level(), blockHit.getBlockPos())
+                .isEmpty()) {
             return;
         }
         Vec3 motion = this.getDeltaMovement();
@@ -224,11 +231,13 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         Vec3 toTarget = new Vec3(dx, dy, dz).normalize();
         Vec3 motion = this.getDeltaMovement();
         double speed = motion.length();
-        Vec3 steered = motion.normalize().add(toTarget.scale(SEEK_STEER)).normalize().scale(speed);
+        Vec3 steered =
+                motion.normalize().add(toTarget.scale(SEEK_STEER)).normalize().scale(speed);
         this.setDeltaMovement(steered);
         if (this.tickCount % SEEK_INTERVAL_TICKS == 0
                 && (!this.target.isAlive()
-                        || !FocusTargeting.isVisibleTo(SEEK_FOV, this, steered.normalize(), this.target, (float) SEEK_RANGE)
+                        || !FocusTargeting.isVisibleTo(
+                                SEEK_FOV, this, steered.normalize(), this.target, (float) SEEK_RANGE)
                         || !FocusTargeting.canEntityBeSeen(this, this.target))) {
             this.target = null;
         }
@@ -257,20 +266,34 @@ public final class EntityFocusProjectile extends ThrowableProjectile implements 
         double x = this.xOld + (this.getX() - this.xOld) * coeff;
         double y = this.yOld + (this.getY() - this.yOld) * coeff + this.getBbHeight() / 2.0F;
         double z = this.zOld + (this.getZ() - this.zOld) * coeff;
-        this.level().addParticle(
-                Effects.fireMoteData(this.random,
-                        FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
-                        FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
-                        FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
-                        r, g, b, FIRE_MOTE_ALPHA, FIRE_MOTE_SCALE),
-                x, y, z, 0.0, 0.0, 0.0);
+        this.level()
+                .addParticle(
+                        Effects.fireMoteData(
+                                this.random,
+                                FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
+                                FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
+                                FIRE_MOTE_JITTER * (this.random.nextFloat() - 0.5F),
+                                r,
+                                g,
+                                b,
+                                FIRE_MOTE_ALPHA,
+                                FIRE_MOTE_SCALE),
+                        x,
+                        y,
+                        z,
+                        0.0,
+                        0.0,
+                        0.0);
         if (this.firstParticle && FocusEngine.element(effectId) instanceof FocusEffect effect) {
             this.firstParticle = false;
-            effect.impactParticles(this.level(),
-                    new Vec3(x + this.random.nextGaussian() * EFFECT_FX_SPREAD,
+            effect.impactParticles(
+                    this.level(),
+                    new Vec3(
+                            x + this.random.nextGaussian() * EFFECT_FX_SPREAD,
                             y + this.random.nextGaussian() * EFFECT_FX_SPREAD,
                             z + this.random.nextGaussian() * EFFECT_FX_SPREAD),
-                    new Vec3(this.random.nextGaussian() * EFFECT_FX_MOTION,
+                    new Vec3(
+                            this.random.nextGaussian() * EFFECT_FX_MOTION,
                             this.random.nextGaussian() * EFFECT_FX_MOTION,
                             this.random.nextGaussian() * EFFECT_FX_MOTION));
         }

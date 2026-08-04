@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
+import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultist;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistCleric;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistKnight;
 import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
-import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -73,8 +73,7 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     }
 
     @Override
-    protected void registerGoals() {
-    }
+    protected void registerGoals() {}
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
@@ -94,8 +93,7 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     }
 
     @Override
-    public void move(MoverType type, Vec3 movement) {
-    }
+    public void move(MoverType type, Vec3 movement) {}
 
     @Override
     public void aiStep() {
@@ -135,8 +133,10 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
                 this.level().broadcastEntityEvent(this, PULSE_EVENT);
                 this.placeBanners(server);
             }
-            if (this.stageCounter > CRATE_WINDOW_MIN && this.stageCounter < CRATE_WINDOW_MAX
-                    && this.stage == 0 && this.stageCounter % CRATE_INTERVAL == 0) {
+            if (this.stageCounter > CRATE_WINDOW_MIN
+                    && this.stageCounter < CRATE_WINDOW_MAX
+                    && this.stage == 0
+                    && this.stageCounter % CRATE_INTERVAL == 0) {
                 this.placeCrate(server);
             }
         }
@@ -147,19 +147,26 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
 
     private void placeBanners(ServerLevel server) {
         for (Direction dir : Direction.Plane.HORIZONTAL) {
-            BlockPos pos = new BlockPos((int) this.getX() - dir.getStepX() * BANNER_DISTANCE,
-                    (int) this.getY(), (int) this.getZ() + dir.getStepZ() * BANNER_DISTANCE);
-            int rotation = switch (dir) {
-                case NORTH -> 8;
-                case WEST -> 12;
-                case EAST -> 4;
-                default -> 0;
-            };
-            BlockState banner = TCBlocks.BANNER_CRIMSON_CULT.get().defaultBlockState()
+            BlockPos pos = new BlockPos(
+                    (int) this.getX() - dir.getStepX() * BANNER_DISTANCE,
+                    (int) this.getY(),
+                    (int) this.getZ() + dir.getStepZ() * BANNER_DISTANCE);
+            int rotation =
+                    switch (dir) {
+                        case NORTH -> 8;
+                        case WEST -> 12;
+                        case EAST -> 4;
+                        default -> 0;
+                    };
+            BlockState banner = TCBlocks.BANNER_CRIMSON_CULT
+                    .get()
+                    .defaultBlockState()
                     .setValue(BlockStateProperties.ROTATION_16, rotation);
             server.setBlock(pos, banner, Block.UPDATE_ALL);
             Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
-                    .to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
+                    .to(Vec3.atCenterOf(pos))
+                    .color(ARC_COLOR)
+                    .send();
             this.playSound(TCSounds.WANDFAIL.get(), 1.0F, 1.0F);
         }
     }
@@ -181,13 +188,18 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
         }
         server.setBlock(pos, crate.defaultBlockState(), Block.UPDATE_ALL);
         Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0))
-                .to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
+                .to(Vec3.atCenterOf(pos))
+                .color(ARC_COLOR)
+                .send();
         this.playSound(TCSounds.WANDFAIL.get(), 1.0F, 1.0F);
     }
 
     private int getTiming() {
-        return this.level().getEntitiesOfClass(EntityCultist.class,
-                this.getBoundingBox().inflate(MINION_SCAN_RANGE)).size() * MINION_TIMING_PER_CULTIST;
+        return this.level()
+                        .getEntitiesOfClass(
+                                EntityCultist.class, this.getBoundingBox().inflate(MINION_SCAN_RANGE))
+                        .size()
+                * MINION_TIMING_PER_CULTIST;
     }
 
     private void spawnMinions(ServerLevel server) {
@@ -196,22 +208,23 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
                 : new EntityCultistCleric(TCEntities.CULTIST_CLERIC.get(), server);
         this.spawnCultist(server, cultist);
         if (this.stage > BOSS_STAGE) {
-            this.hurtServer(server, this.damageSources().fellOutOfWorld(),
-                    OVERSPAWN_DAMAGE_BASE + this.random.nextInt(5));
+            this.hurtServer(
+                    server, this.damageSources().fellOutOfWorld(), OVERSPAWN_DAMAGE_BASE + this.random.nextInt(5));
         }
     }
 
     private void spawnBoss(ServerLevel server) {
-        EntityCultistLeader leader = new EntityCultistLeader(
-                TCEntities.CULTIST_LEADER.get(), server);
+        EntityCultistLeader leader = new EntityCultistLeader(TCEntities.CULTIST_LEADER.get(), server);
         this.spawnCultist(server, leader);
     }
 
     private void spawnCultist(ServerLevel server, Mob cultist) {
-        cultist.setPos(this.getX() + this.random.nextFloat() - this.random.nextFloat(),
-                this.getY() + 0.25, this.getZ() + this.random.nextFloat() - this.random.nextFloat());
-        cultist.finalizeSpawn(server, server.getCurrentDifficultyAt(cultist.blockPosition()),
-                EntitySpawnReason.MOB_SUMMONED, null);
+        cultist.setPos(
+                this.getX() + this.random.nextFloat() - this.random.nextFloat(),
+                this.getY() + 0.25,
+                this.getZ() + this.random.nextFloat() - this.random.nextFloat());
+        cultist.finalizeSpawn(
+                server, server.getCurrentDifficultyAt(cultist.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
         cultist.setHomeTo(this.blockPosition(), 32);
         server.addFreshEntity(cultist);
         if (cultist instanceof EntityCultist minion) {
@@ -225,10 +238,9 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
         if (this.level().isClientSide() || this.distanceToSqr(player) >= TOUCH_RANGE_SQ) {
             return;
         }
-        if (player.hurtServer((ServerLevel) this.level(),
-                this.damageSources().indirectMagic(this, this), TOUCH_DAMAGE)) {
-            this.playSound(TCSounds.ZAP.get(), 1.0F,
-                    (this.random.nextFloat() - this.random.nextFloat()) * 0.1F + 1.0F);
+        if (player.hurtServer(
+                (ServerLevel) this.level(), this.damageSources().indirectMagic(this, this), TOUCH_DAMAGE)) {
+            this.playSound(TCSounds.ZAP.get(), 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.1F + 1.0F);
         }
     }
 
@@ -259,8 +271,11 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        level.addFreshEntity(new EntitySpecialItem(level,
-                this.getX(), this.getY() + this.getBbHeight() / 2.0F, this.getZ(),
+        level.addFreshEntity(new EntitySpecialItem(
+                level,
+                this.getX(),
+                this.getY() + this.getBbHeight() / 2.0F,
+                this.getZ(),
                 new ItemStack(TCItems.PRIMORDIAL_PEARL.get())));
     }
 
@@ -281,8 +296,15 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     @Override
     public void die(DamageSource source) {
         if (!this.level().isClientSide()) {
-            this.level().explode(this, this.getX(), this.getY(), this.getZ(),
-                    DEATH_EXPLOSION_POWER, false, Level.ExplosionInteraction.NONE);
+            this.level()
+                    .explode(
+                            this,
+                            this.getX(),
+                            this.getY(),
+                            this.getZ(),
+                            DEATH_EXPLOSION_POWER,
+                            false,
+                            Level.ExplosionInteraction.NONE);
         }
         super.die(source);
     }

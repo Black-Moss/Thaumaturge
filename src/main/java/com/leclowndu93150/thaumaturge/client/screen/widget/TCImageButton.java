@@ -27,8 +27,7 @@ public class TCImageButton extends TCButton {
             int textureWidth,
             int textureHeight,
             Component message,
-            Runnable onPress
-    ) {
+            Runnable onPress) {
         super(x, y, width, height, message, onPress);
         this.texture = texture;
         this.u = u;
@@ -52,15 +51,21 @@ public class TCImageButton extends TCButton {
             int textureWidth,
             int textureHeight,
             Component message,
-            Runnable onPress
-    ) {
+            Runnable onPress) {
         return new TCImageButton(
                 centerToTopLeftX(centerX, width),
                 centerToTopLeftY(centerY, height),
-                width, height,
-                texture, u, v, spriteWidth, spriteHeight, textureWidth, textureHeight,
-                message, onPress
-        );
+                width,
+                height,
+                texture,
+                u,
+                v,
+                spriteWidth,
+                spriteHeight,
+                textureWidth,
+                textureHeight,
+                message,
+                onPress);
     }
 
     @Override
@@ -81,7 +86,6 @@ public class TCImageButton extends TCButton {
                 spriteHeight,
                 textureWidth,
                 textureHeight,
-                color
-        );
+                color);
     }
 }

@@ -25,10 +25,12 @@ public final class GolemLegWheels implements GolemLeg.ILegFunction {
         if (!entity.onGround() || entity.isInWater() || dist <= MIN_TRAVEL_FOR_DUST) {
             return;
         }
-        BlockPos below = new BlockPos(Mth.floor(entity.getX()), Mth.floor(entity.getY() - 0.2F), Mth.floor(entity.getZ()));
+        BlockPos below =
+                new BlockPos(Mth.floor(entity.getX()), Mth.floor(entity.getY() - 0.2F), Mth.floor(entity.getZ()));
         BlockState state = level.getBlockState(below);
         if (state.getRenderShape() != RenderShape.INVISIBLE) {
-            level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state),
+            level.addParticle(
+                    new BlockParticleOption(ParticleTypes.BLOCK, state),
                     entity.getX() + (level.getRandom().nextFloat() - 0.5) * entity.getBbWidth(),
                     entity.getBoundingBox().minY + 0.1,
                     entity.getZ() + (level.getRandom().nextFloat() - 0.5) * entity.getBbWidth(),

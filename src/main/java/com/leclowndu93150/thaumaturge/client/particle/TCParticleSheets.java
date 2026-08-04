@@ -19,8 +19,10 @@ public final class TCParticleSheets {
     private TCParticleSheets() {}
 
     public static ParticleSheet sheet(String name) {
-        return SHEETS.computeIfAbsent(name, key -> new ParticleSheet(key,
-                Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/particle/" + key + ".png")));
+        return SHEETS.computeIfAbsent(
+                name,
+                key -> new ParticleSheet(
+                        key, Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/particle/" + key + ".png")));
     }
 
     @SubscribeEvent
@@ -28,7 +30,9 @@ public final class TCParticleSheets {
         event.addListener(TCIds.rl("particle_sheets"), (ResourceManagerReloadListener) manager -> {
             SHEETS.values().forEach(ParticleSheet::invalidate);
             TextureManager textures = Minecraft.getInstance().getTextureManager();
-            for (Identifier id : manager.listResources("textures/particle", path -> path.getPath().endsWith(".png")).keySet()) {
+            for (Identifier id : manager.listResources(
+                            "textures/particle", path -> path.getPath().endsWith(".png"))
+                    .keySet()) {
                 textures.getTexture(id);
             }
         });

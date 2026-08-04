@@ -3,9 +3,9 @@ package com.leclowndu93150.thaumaturge.content.entity;
 import com.leclowndu93150.thaumaturge.content.entity.ai.AltarFocusGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
-import net.minecraft.core.BlockPos;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -27,10 +27,10 @@ import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.monster.illager.AbstractIllager;
 import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
+import net.minecraft.world.entity.monster.illager.AbstractIllager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
@@ -61,8 +61,7 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createCultistAttributes()
-                .add(Attributes.MAX_HEALTH, 24.0);
+        return createCultistAttributes().add(Attributes.MAX_HEALTH, 24.0);
     }
 
     @Override
@@ -117,7 +116,8 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
     @Override
     public void performRangedAttack(LivingEntity target, float velocity) {
         double dx = target.getX() - this.getX();
-        double dy = target.getBoundingBox().minY + target.getBbHeight() / 2.0F - (this.getY() + this.getBbHeight() / 2.0F);
+        double dy =
+                target.getBoundingBox().minY + target.getBbHeight() / 2.0F - (this.getY() + this.getBbHeight() / 2.0F);
         double dz = target.getZ() - this.getZ();
         this.swing(this.getUsedItemHand());
         if (this.random.nextFloat() > 1.0F - ORB_CHANCE) {
@@ -134,8 +134,8 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
             float spread = Mth.sqrt(velocity) * 0.5F;
             this.level().levelEvent(null, FIREBALL_LEVEL_EVENT, this.blockPosition(), 0);
             for (int i = 0; i < FIREBALL_COUNT; i++) {
-                Vec3 shot = new Vec3(dx + this.random.nextGaussian() * spread, dy,
-                        dz + this.random.nextGaussian() * spread);
+                Vec3 shot = new Vec3(
+                        dx + this.random.nextGaussian() * spread, dy, dz + this.random.nextGaussian() * spread);
                 SmallFireball fireball = new SmallFireball(this.level(), this, shot.normalize());
                 fireball.setPos(fireball.getX(), this.getY() + this.getBbHeight() / 2.0F + 0.5, fireball.getZ());
                 this.level().addFreshEntity(fireball);

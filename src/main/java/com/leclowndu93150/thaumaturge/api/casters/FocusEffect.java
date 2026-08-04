@@ -35,7 +35,8 @@ public non-sealed interface FocusEffect extends FocusElement {
      * @param index      the index of this target within the supplied batch
      * @return true when the effect did something
      */
-    boolean apply(CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index);
+    boolean apply(
+            CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index);
 
     /**
      * The damage figure shown for this effect in the focal manipulator.
@@ -54,8 +55,7 @@ public non-sealed interface FocusEffect extends FocusElement {
      *
      * @param caster the casting entity
      */
-    default void onCast(LivingEntity caster) {
-    }
+    default void onCast(LivingEntity caster) {}
 
     /**
      * Spawns this effect's travel or impact particles without carrier drift. Called on the
@@ -81,6 +81,5 @@ public non-sealed interface FocusEffect extends FocusElement {
      * @param motion the particle motion
      * @param drift  the per-tick carrier drift
      */
-    default void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
-    }
+    default void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {}
 }

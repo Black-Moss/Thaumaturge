@@ -1,11 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.item;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -15,8 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 
 public final class LabelItem extends Item implements IEssentiaContainerItem {
     public LabelItem(Item.Properties properties) {
@@ -57,8 +54,7 @@ public final class LabelItem extends Item implements IEssentiaContainerItem {
     }
 
     @Override
-    public void setAspects(ItemStack stack, AspectList aspects) {
-    }
+    public void setAspects(ItemStack stack, AspectList aspects) {}
 
     @Override
     public boolean ignoreContainedAspects() {

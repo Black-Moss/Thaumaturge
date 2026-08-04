@@ -13,8 +13,10 @@ public record ServerboundThaumatoriumTogglePayload(BlockPos pos, Identifier reci
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundThaumatoriumTogglePayload> STREAM_CODEC =
             StreamCodec.composite(
-                    BlockPos.STREAM_CODEC, ServerboundThaumatoriumTogglePayload::pos,
-                    Identifier.STREAM_CODEC, ServerboundThaumatoriumTogglePayload::recipeId,
+                    BlockPos.STREAM_CODEC,
+                    ServerboundThaumatoriumTogglePayload::pos,
+                    Identifier.STREAM_CODEC,
+                    ServerboundThaumatoriumTogglePayload::recipeId,
                     ServerboundThaumatoriumTogglePayload::new);
 
     @Override

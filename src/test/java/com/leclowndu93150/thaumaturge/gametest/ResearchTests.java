@@ -20,8 +20,7 @@ public final class ResearchTests {
     private ResearchTests() {}
 
     private static ServerPlayer testPlayer(GameTestHelper helper, String name) {
-        return FakePlayerFactory.get(helper.getLevel(),
-                new GameProfile(UUID.nameUUIDFromBytes(name.getBytes()), name));
+        return FakePlayerFactory.get(helper.getLevel(), new GameProfile(UUID.nameUUIDFromBytes(name.getBytes()), name));
     }
 
     public static void register(TCTestRegistrar r) {
@@ -77,8 +76,7 @@ public final class ResearchTests {
         });
     }
 
-    private static Holder<IAspect> resolve(GameTestHelper helper,
-                                           net.minecraft.resources.ResourceKey<IAspect> key) {
+    private static Holder<IAspect> resolve(GameTestHelper helper, net.minecraft.resources.ResourceKey<IAspect> key) {
         Holder<IAspect> holder = Aspects.resolve(helper.getLevel().registryAccess(), key);
         if (holder == null) {
             throw new IllegalStateException("Aspect " + key + " missing from the registry");

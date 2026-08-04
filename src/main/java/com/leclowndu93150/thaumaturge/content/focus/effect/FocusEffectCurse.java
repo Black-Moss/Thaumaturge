@@ -70,13 +70,14 @@ public final class FocusEffectCurse implements FocusEffect {
     }
 
     @Override
-    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target,
-            @Nullable Trajectory trajectory, int index) {
+    public boolean apply(
+            CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
         if (!(ctx.level() instanceof ServerLevel level)) {
             return false;
         }
         Effects.bamf(level, target.getLocation())
-                .color(((BAMF_COLOR >> 16) & 0xFF) / COLOR_DIVISOR,
+                .color(
+                        ((BAMF_COLOR >> 16) & 0xFF) / COLOR_DIVISOR,
                         ((BAMF_COLOR >> 8) & 0xFF) / COLOR_DIVISOR,
                         (BAMF_COLOR & 0xFF) / COLOR_DIVISOR)
                 .withSound()
@@ -122,7 +123,8 @@ public final class FocusEffectCurse implements FocusEffect {
                 if (pos.distToCenterSqr(target.getLocation().x, target.getLocation().y, target.getLocation().z) <= f * f
                         && level.getBlockState(pos.above()).isAir()
                         && level.getBlockState(pos).isCollisionShapeFullBlock(level, pos)) {
-                    level.setBlockAndUpdate(pos.above(), TCBlocks.EFFECT_SAP.get().defaultBlockState());
+                    level.setBlockAndUpdate(
+                            pos.above(), TCBlocks.EFFECT_SAP.get().defaultBlockState());
                 }
             }
         }
@@ -143,7 +145,13 @@ public final class FocusEffectCurse implements FocusEffect {
 
     @Override
     public void onCast(LivingEntity caster) {
-        caster.level().playSound(null, caster.blockPosition().above(), SoundEvents.ELDER_GUARDIAN_CURSE,
-                SoundSource.PLAYERS, 0.15F, 1.0F + caster.level().getRandom().nextFloat() / 2.0F);
+        caster.level()
+                .playSound(
+                        null,
+                        caster.blockPosition().above(),
+                        SoundEvents.ELDER_GUARDIAN_CURSE,
+                        SoundSource.PLAYERS,
+                        0.15F,
+                        1.0F + caster.level().getRandom().nextFloat() / 2.0F);
     }
 }

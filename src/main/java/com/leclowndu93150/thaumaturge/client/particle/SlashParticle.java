@@ -13,8 +13,16 @@ public final class SlashParticle extends TCParticle {
 
     private final FacingCameraMode facing;
 
-    private SlashParticle(ClientLevel level, double x, double y, double z,
-                          double vx, double vy, double vz, SlashParticleOptions options, ParticleSheet sheet) {
+    private SlashParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            double vx,
+            double vy,
+            double vz,
+            SlashParticleOptions options,
+            ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         this.lifetime = Math.max(1, options.duration());
         this.quadSize = START_SIZE;
@@ -43,8 +51,16 @@ public final class SlashParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("slash");
 
         @Override
-        public Particle createParticle(SlashParticleOptions options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                SlashParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new SlashParticle(level, x, y, z, vx, vy, vz, options, SHEET);
         }
     }

@@ -59,8 +59,8 @@ public final class FlyingWanderGoal extends Goal {
                     mob.getY() + random.nextInt(VERTICAL_SPREAD) - VERTICAL_BIAS,
                     mob.getZ() + random.nextInt(HORIZONTAL_SPREAD) - random.nextInt(HORIZONTAL_SPREAD));
             if (isValidWaypoint(candidate)) {
-                mob.getMoveControl().setWantedPosition(
-                        candidate.getX() + 0.5, candidate.getY() + 0.1, candidate.getZ() + 0.5, 1.0);
+                mob.getMoveControl()
+                        .setWantedPosition(candidate.getX() + 0.5, candidate.getY() + 0.1, candidate.getZ() + 0.5, 1.0);
                 return;
             }
         }

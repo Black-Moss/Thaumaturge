@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.model.crystal;
 
-import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.client.render.crystal.CrystalUnbakedModel;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.client.data.models.BlockModelGenerators;

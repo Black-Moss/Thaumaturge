@@ -14,8 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.Equippable;
 import org.jspecify.annotations.Nullable;
 
-public final class VoidRobeArmorItem extends Item
-        implements IVisDiscountGear, IWarpingGear, IGoggles, IRevealer {
+public final class VoidRobeArmorItem extends Item implements IVisDiscountGear, IWarpingGear, IGoggles, IRevealer {
     private static final int VIS_DISCOUNT = 5;
     private static final int WARP = 3;
 

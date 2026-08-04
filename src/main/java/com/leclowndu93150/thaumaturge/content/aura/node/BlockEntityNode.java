@@ -8,15 +8,13 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.api.taint.TaintApi;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
-import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
-import com.leclowndu93150.thaumaturge.content.entity.EntityBrainyZombie;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
-import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
+import com.leclowndu93150.thaumaturge.content.entity.EntityBrainyZombie;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumaturge.content.wands.WandChargingEvents;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
@@ -24,31 +22,28 @@ import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumaturge.registry.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.Holder;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.commands.FillBiomeCommand;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
@@ -56,6 +51,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -339,8 +335,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return 0;
         }
         Identifier id = aspect.unwrapKey().orElseThrow().identifier();
-        int stored = aspects.amountOf(aspect) * WandEconomy.CENTIVIS_PER_VIS
-                + cvCredit.getOrDefault(id, 0);
+        int stored = aspects.amountOf(aspect) * WandEconomy.CENTIVIS_PER_VIS + cvCredit.getOrDefault(id, 0);
         return Math.min(cvAllowance.getOrDefault(id, 0), stored);
     }
 
@@ -370,7 +365,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (energized) {
             boolean changed = false;
             if (tickLevel.getGameTime() % ENERGIZED_REFILL_INTERVAL == 0) {
-                float visPerPoint = ThaumaturgeCommonConfig.ENERGIZED_NODE_VIS_PER_POINT.get().floatValue();
+                float visPerPoint = ThaumaturgeCommonConfig.ENERGIZED_NODE_VIS_PER_POINT
+                        .get()
+                        .floatValue();
                 boolean fluxFed = nodeType == NodeType.TAINTED;
                 for (AspectInstance entry : aspectsBase.entries()) {
                     int points = Math.max(1, entry.amount() / ENERGIZED_REFILL_BASE_DIVISOR);
@@ -510,8 +507,10 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return;
         }
         float flux = AuraHelper.getFlux(serverLevel, pos);
-        if (nodeType != NodeType.TAINTED && nodeType != NodeType.PURE
-                && flux > base * FLUX_TAINT_THRESHOLD && random.nextInt(FLUX_TAINT_CHANCE) == 0) {
+        if (nodeType != NodeType.TAINTED
+                && nodeType != NodeType.PURE
+                && flux > base * FLUX_TAINT_THRESHOLD
+                && random.nextInt(FLUX_TAINT_CHANCE) == 0) {
             nodeType = NodeType.TAINTED;
             nodeChange();
             return;
@@ -623,7 +622,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         }
         BlockPos otherPos = pos.offset(x, y, z);
         if (!(serverLevel.getBlockEntity(otherPos) instanceof BlockEntityNode other)
-                || !other.allowDischarge() || other.lock > 0) {
+                || !other.allowDischarge()
+                || other.lock > 0) {
             return change;
         }
         int otherAvg = (other.aspects.totalAmount() + other.aspectsBase.totalAmount()) / 2;
@@ -632,7 +632,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return change;
         }
         List<AspectInstance> otherEntries = other.aspects.entries();
-        Holder<IAspect> stolen = otherEntries.get(random.nextInt(otherEntries.size())).aspect();
+        Holder<IAspect> stolen =
+                otherEntries.get(random.nextInt(otherEntries.size())).aspect();
         boolean moved = false;
         if (aspects.amountOf(stolen) < aspectsBase.amountOf(stolen) && other.takeFromContainer(stolen, 1)) {
             addToContainer(stolen, 1);
@@ -673,8 +674,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
                 Holder<IAspect> primal = randomStoredPrimal(random);
                 if (primal != null && takeFromContainer(primal, 1)) {
                     ResourceKey<IAspect> key = primal.unwrapKey().orElseThrow();
-                    serverLevel.addFreshEntity(new EntityAspectOrb(serverLevel,
-                            pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, key, 1));
+                    serverLevel.addFreshEntity(new EntityAspectOrb(
+                            serverLevel, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, key, 1));
                     return true;
                 }
             } else if (random.nextInt(UNSTABLE_CURE_ROLL / lock) == UNSTABLE_CURE_MAGIC) {
@@ -683,7 +684,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
                 return true;
             }
         }
-        if (nodeModifier == NodeModifier.FADING && lock > 0
+        if (nodeModifier == NodeModifier.FADING
+                && lock > 0
                 && random.nextInt(FADING_CURE_ROLL / lock) == FADING_CURE_MAGIC) {
             nodeModifier = NodeModifier.PALE;
             nodeChange();
@@ -703,8 +705,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     private void handleBiomeSpread(ServerLevel serverLevel, BlockPos pos) {
-        if (count % BIOME_SPREAD_INTERVAL != 0 || !allowTypeBehavior()
-                || serverLevel.dimension() != Level.OVERWORLD) {
+        if (count % BIOME_SPREAD_INTERVAL != 0 || !allowTypeBehavior() || serverLevel.dimension() != Level.OVERWORLD) {
             return;
         }
         if (nodeType == NodeType.DARK) {
@@ -729,8 +730,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         return false;
     }
 
-    private static void spreadBiomeColumn(ServerLevel serverLevel, BlockPos origin, int range,
-            ResourceKey<Biome> biomeKey) {
+    private static void spreadBiomeColumn(
+            ServerLevel serverLevel, BlockPos origin, int range, ResourceKey<Biome> biomeKey) {
         RandomSource random = serverLevel.getRandom();
         int x = origin.getX() + random.nextInt(range) - random.nextInt(range);
         int z = origin.getZ() + random.nextInt(range) - random.nextInt(range);
@@ -738,9 +739,10 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (!serverLevel.hasChunkAt(sample) || serverLevel.getBiome(sample).is(biomeKey)) {
             return;
         }
-        Holder<Biome> biome = serverLevel.registryAccess()
-                .lookupOrThrow(Registries.BIOME).getOrThrow(biomeKey);
-        FillBiomeCommand.fill(serverLevel,
+        Holder<Biome> biome =
+                serverLevel.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(biomeKey);
+        FillBiomeCommand.fill(
+                serverLevel,
                 new BlockPos(x, serverLevel.getMinY(), z),
                 new BlockPos(x, serverLevel.getMaxY(), z),
                 biome);
@@ -753,8 +755,10 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         RandomSource random = serverLevel.getRandom();
         switch (nodeType) {
             case TAINTED -> {
-                BlockPos target = pos.offset(random.nextInt(5) - random.nextInt(5),
-                        random.nextInt(5) - random.nextInt(5), random.nextInt(5) - random.nextInt(5));
+                BlockPos target = pos.offset(
+                        random.nextInt(5) - random.nextInt(5),
+                        random.nextInt(5) - random.nextInt(5),
+                        random.nextInt(5) - random.nextInt(5));
                 if (random.nextBoolean()) {
                     TaintApi.spreadFibres(serverLevel, target, false);
                 }
@@ -762,8 +766,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             case PURE -> AuraHelper.drainFlux(serverLevel, pos, PURE_FLUX_CLEANSE, false);
             case DARK -> spawnDarkGuard(serverLevel, pos, random);
             case HUNGRY -> eatBlock(serverLevel, pos, random);
-            default -> {
-            }
+            default -> {}
         }
         return change;
     }
@@ -772,8 +775,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (!random.nextBoolean()) {
             return;
         }
-        Player player = serverLevel.getNearestPlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                DARK_SPAWN_PLAYER_RANGE, false);
+        Player player = serverLevel.getNearestPlayer(
+                pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, DARK_SPAWN_PLAYER_RANGE, false);
         if (player == null) {
             return;
         }
@@ -802,8 +805,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return change;
         }
         Vec3 center = Vec3.atCenterOf(pos);
-        List<Entity> targets = serverLevel.getEntitiesOfClass(Entity.class,
-                new AABB(pos).inflate(HUNGRY_PULL_RANGE));
+        List<Entity> targets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(HUNGRY_PULL_RANGE));
         for (Entity target : targets) {
             if (target instanceof Player player && (player.isCreative() || player.isSpectator())) {
                 continue;
@@ -844,7 +846,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         RandomSource random = serverLevel.getRandom();
         List<ResourceKey<IAspect>> keys = new ArrayList<>(primals.keySet());
         ResourceKey<IAspect> chosen = keys.get(random.nextInt(keys.size()));
-        Holder<IAspect> holder = serverLevel.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(chosen);
+        Holder<IAspect> holder =
+                serverLevel.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(chosen);
         if (aspects.amountOf(holder) < aspectsBase.amountOf(holder)) {
             addToContainer(holder, 1);
         } else if (random.nextInt(1 + aspectsBase.amountOf(holder) * 2) < primals.get(chosen)) {
@@ -859,8 +862,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         int tz = pos.getZ() + random.nextInt(HUNGRY_REACH) - random.nextInt(HUNGRY_REACH);
         Vec3 from = Vec3.atCenterOf(pos);
         Vec3 to = new Vec3(tx + 0.5, ty + 0.5, tz + 0.5);
-        BlockHitResult hit = serverLevel.clip(new ClipContext(from, to,
-                ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
+        BlockHitResult hit = serverLevel.clip(
+                new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
         if (hit.getType() != HitResult.Type.BLOCK) {
             return;
         }
@@ -883,8 +886,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             while (remaining > 0) {
                 int value = Math.min(remaining, 1 + random.nextInt(ORB_BURST_MAX_PER_ASPECT));
                 remaining -= value;
-                serverLevel.addFreshEntity(new EntityAspectOrb(serverLevel,
-                        pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, entry.getKey(), value));
+                serverLevel.addFreshEntity(new EntityAspectOrb(
+                        serverLevel, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, entry.getKey(), value));
             }
         }
         aspects = AspectList.EMPTY;
@@ -905,9 +908,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             tap++;
         }
         WandParts parts = WandVisHelper.getParts(wandStack);
-        boolean starterWand = parts.rod() == TCWandParts.ROD_WOOD.get()
-                && parts.cap() == TCWandParts.CAP_IRON.get();
-        boolean preserve = !player.isShiftKeyDown() && !starterWand
+        boolean starterWand = parts.rod() == TCWandParts.ROD_WOOD.get() && parts.cap() == TCWandParts.CAP_IRON.get();
+        boolean preserve = !player.isShiftKeyDown()
+                && !starterWand
                 && KnowledgeAccess.of(player).isResearchKnown(RESEARCH_NODE_PRESERVE);
         RandomSource random = serverLevel.getRandom();
         List<Holder<IAspect>> candidates = new ArrayList<>();
@@ -958,8 +961,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         int tz = pos.getZ() + random.nextInt(HUNGRY_REACH) - random.nextInt(HUNGRY_REACH);
         Vec3 from = Vec3.atCenterOf(pos);
         Vec3 to = new Vec3(tx + 0.5, ty + 0.5, tz + 0.5);
-        BlockHitResult hit = clientLevel.clip(new ClipContext(from, to,
-                ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
+        BlockHitResult hit = clientLevel.clip(
+                new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
         if (hit.getType() != HitResult.Type.BLOCK) {
             return;
         }
@@ -973,9 +976,14 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         }
         Vec3 pull = from.subtract(Vec3.atCenterOf(target)).normalize().scale(0.3);
         for (int i = 0; i < 3; i++) {
-            clientLevel.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state),
-                    target.getX() + random.nextFloat(), target.getY() + random.nextFloat(),
-                    target.getZ() + random.nextFloat(), pull.x, pull.y + 0.05, pull.z);
+            clientLevel.addParticle(
+                    new BlockParticleOption(ParticleTypes.BLOCK, state),
+                    target.getX() + random.nextFloat(),
+                    target.getY() + random.nextFloat(),
+                    target.getZ() + random.nextFloat(),
+                    pull.x,
+                    pull.y + 0.05,
+                    pull.z);
         }
     }
 
@@ -1011,7 +1019,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         nodeModifier = input.read("Modifier", NodeModifier.CODEC).orElse(null);
         aspects = input.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
         aspectsBase = input.read("AspectsBase", AspectList.CODEC).orElse(AspectList.EMPTY);
-        aspectsBaseOriginal = input.read("AspectsBaseOriginal", AspectList.CODEC).orElse(null);
+        aspectsBaseOriginal =
+                input.read("AspectsBaseOriginal", AspectList.CODEC).orElse(null);
         drainPlayer = input.read("DrainPlayer", UUIDUtil.CODEC).orElse(null);
         drainColor = input.getIntOr("DrainColor", 0xFFFFFF);
         jarringTicks = input.getIntOr("Jarring", 0);
@@ -1021,7 +1030,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(problemPath(), Thaumaturge.LOGGER)) {
+        try (ProblemReporter.ScopedCollector reporter =
+                new ProblemReporter.ScopedCollector(problemPath(), Thaumaturge.LOGGER)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             saveAdditional(output);
             nbt.merge(output.buildResult());

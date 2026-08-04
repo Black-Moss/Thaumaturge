@@ -76,8 +76,7 @@ public final class EssentiaTests {
         });
     }
 
-    private static Holder<IAspect> resolve(GameTestHelper helper,
-                                           net.minecraft.resources.ResourceKey<IAspect> key) {
+    private static Holder<IAspect> resolve(GameTestHelper helper, net.minecraft.resources.ResourceKey<IAspect> key) {
         Holder<IAspect> holder = Aspects.resolve(helper.getLevel().registryAccess(), key);
         if (holder == null) {
             throw new IllegalStateException("Aspect " + key + " missing from the registry");

@@ -24,7 +24,8 @@ public final class WispParticle extends SingleQuadParticle {
     private final int targetEntityId;
     private Entity target;
 
-    private WispParticle(ClientLevel level, double x, double y, double z, WispParticleOptions data, ParticleSheet sheet) {
+    private WispParticle(
+            ClientLevel level, double x, double y, double z, WispParticleOptions data, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, (net.minecraft.client.renderer.texture.TextureAtlasSprite) null);
         this.sheet = sheet;
         this.targetEntityId = data.entityId();
@@ -32,7 +33,7 @@ public final class WispParticle extends SingleQuadParticle {
         this.yd = -0.05;
         this.zd = level.getRandom().nextGaussian() * 0.03;
         this.quadSize *= SCALE_MULTIPLIER;
-        this.lifetime = (int)(40.0 / (level.getRandom().nextDouble() * 0.3 + 0.7));
+        this.lifetime = (int) (40.0 / (level.getRandom().nextDouble() * 0.3 + 0.7));
         this.gravity = 0.0F;
         this.hasPhysics = false;
         this.setSize(0.01F, 0.01F);
@@ -61,13 +62,13 @@ public final class WispParticle extends SingleQuadParticle {
 
     @Override
     public void extract(QuadParticleRenderState particleTypeRenderState, Camera camera, float partialTickTime) {
-        float ageScale = 1.0F - (float)this.age / this.lifetime;
+        float ageScale = 1.0F - (float) this.age / this.lifetime;
         Vec3 camPos = camera.position();
         double dx = camPos.x() - this.x;
         double dy = camPos.y() - this.y;
         double dz = camPos.z() - this.z;
         double distSq = dx * dx + dy * dy + dz * dz;
-        float base = (float)(1.0 - Math.min((double)MAX_DIST_SQ, distSq) / MAX_DIST_SQ);
+        float base = (float) (1.0 - Math.min((double) MAX_DIST_SQ, distSq) / MAX_DIST_SQ);
         float prev = this.alpha;
         this.alpha = Mth.clamp(BASE_ALPHA * ageScale * base, 0.0F, 1.0F);
         super.extract(particleTypeRenderState, camera, partialTickTime);
@@ -103,7 +104,16 @@ public final class WispParticle extends SingleQuadParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("wisp");
 
         @Override
-        public Particle createParticle(WispParticleOptions options, ClientLevel level, double x, double y, double z, double xAux, double yAux, double zAux, RandomSource random) {
+        public Particle createParticle(
+                WispParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double xAux,
+                double yAux,
+                double zAux,
+                RandomSource random) {
             return new WispParticle(level, x, y, z, options, SHEET);
         }
     }

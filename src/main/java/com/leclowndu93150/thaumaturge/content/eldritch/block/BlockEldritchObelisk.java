@@ -30,13 +30,14 @@ public final class BlockEldritchObelisk extends BlockEldritchStructure implement
     }
 
     @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
-                                                                            BlockEntityType<T> type) {
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) {
             return null;
         }
         return type == TCBlockEntities.ELDRITCH_OBELISK.get()
-                ? (tickLevel, pos, tickState, obelisk) -> ((BlockEntityEldritchObelisk) obelisk).serverTick(tickLevel, pos)
+                ? (tickLevel, pos, tickState, obelisk) ->
+                        ((BlockEntityEldritchObelisk) obelisk).serverTick(tickLevel, pos)
                 : null;
     }
 }

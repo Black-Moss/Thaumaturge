@@ -87,8 +87,7 @@ public final class TCTooltips {
             int totalStages,
             List<Component> missingParents,
             boolean hasNewResearch,
-            boolean hasNewPage
-    ) {
+            boolean hasNewPage) {
         List<Component> lines = new ArrayList<>();
         lines.add(entryNameGold(name));
         switch (status) {

@@ -12,8 +12,13 @@ public final class LightningFlashParticle extends TCParticle {
 
     private final float startAlpha;
 
-    private LightningFlashParticle(ClientLevel level, double x, double y, double z,
-                                   LightningFlashParticleOptions options, ParticleSheet sheet) {
+    private LightningFlashParticle(
+            ClientLevel level,
+            double x,
+            double y,
+            double z,
+            LightningFlashParticleOptions options,
+            ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         setColor(options.color());
         this.startAlpha = options.alpha();
@@ -33,8 +38,16 @@ public final class LightningFlashParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("lightning_flash");
 
         @Override
-        public Particle createParticle(LightningFlashParticleOptions options, ClientLevel level, double x, double y, double z,
-                                       double vx, double vy, double vz, RandomSource random) {
+        public Particle createParticle(
+                LightningFlashParticleOptions options,
+                ClientLevel level,
+                double x,
+                double y,
+                double z,
+                double vx,
+                double vy,
+                double vz,
+                RandomSource random) {
             return new LightningFlashParticle(level, x, y, z, options, SHEET);
         }
     }
