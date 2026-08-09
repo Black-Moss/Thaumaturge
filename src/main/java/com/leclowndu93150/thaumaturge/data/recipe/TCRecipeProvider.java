@@ -151,7 +151,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .save(output, TCIds.MODID + ":label_clear");
 
         SpecialRecipeBuilder.special(LabelFilterRecipe::new)
-                        .save(output, TCIds.rl("label_filter").toString());
+                .save(output, TCIds.rl("label_filter").toString());
 
         shaped(RecipeCategory.MISC, TCItems.JAR_BRACE, 2)
                 .pattern("SBS")

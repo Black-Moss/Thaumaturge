@@ -1,9 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.item;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.api.items.ILabel;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -28,11 +26,11 @@ public final class LabelItem extends Item implements ILabel {
         super(properties);
     }
 
-    public static ItemStack withAspect(Holder<IAspect> aspect){
+    public static ItemStack withAspect(Holder<IAspect> aspect) {
         return withAspect(aspect.unwrapKey().orElseThrow());
     }
 
-    public static ItemStack withAspect(ResourceKey<IAspect> aspect){
+    public static ItemStack withAspect(ResourceKey<IAspect> aspect) {
         ItemStack stack = new ItemStack(TCItems.LABEL.get());
         stack.set(TCDataComponents.ASPECT_FILTER, aspect);
         return stack;

@@ -24,6 +24,9 @@ import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.mojang.math.Axis;
 import com.mojang.math.Transformation;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.color.item.GrassColorSource;
@@ -55,10 +58,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.state.properties.*;
 import org.joml.Matrix4f;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public final class TCModelProvider extends ModelProvider {
     private static final int ROBES_UNDYED_ARGB = 0xFF6A3880;
@@ -362,9 +361,9 @@ public final class TCModelProvider extends ModelProvider {
                             case NORTH_SOUTH -> powered ? flatOn : flat;
                             case EAST_WEST -> (powered ? flatOn : flat).with(BlockModelGenerators.Y_ROT_90);
                             case ASCENDING_EAST ->
-                                    (powered ? risingNEOn : risingNE).with(BlockModelGenerators.Y_ROT_90);
+                                (powered ? risingNEOn : risingNE).with(BlockModelGenerators.Y_ROT_90);
                             case ASCENDING_WEST ->
-                                    (powered ? risingSWOn : risingSW).with(BlockModelGenerators.Y_ROT_90);
+                                (powered ? risingSWOn : risingSW).with(BlockModelGenerators.Y_ROT_90);
                             case ASCENDING_NORTH -> powered ? risingNEOn : risingNE;
                             case ASCENDING_SOUTH -> powered ? risingSWOn : risingSW;
                             default -> throw new UnsupportedOperationException();
@@ -683,18 +682,18 @@ public final class TCModelProvider extends ModelProvider {
                 ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "item/thaumometer")));
         itemModels.generateFlatItem(TCItems.JAR_BRACE.get(), ModelTemplates.FLAT_ITEM);
         Identifier labelModelId = itemModels.createFlatItemModel(TCItems.LABEL.get(), ModelTemplates.FLAT_ITEM);
-        Identifier labelOverlayModelId = itemModels.createFlatItemModel(TCItems.LABEL.get(), "_overlay", ModelTemplates.FLAT_ITEM);
-        itemModels.itemModelOutput.accept(TCItems.LABEL.get(),
+        Identifier labelOverlayModelId =
+                itemModels.createFlatItemModel(TCItems.LABEL.get(), "_overlay", ModelTemplates.FLAT_ITEM);
+        itemModels.itemModelOutput.accept(
+                TCItems.LABEL.get(),
                 new CompositeModel.Unbaked(
-                        List.of(ItemModelUtils.plainModel(labelModelId),
+                        List.of(
+                                ItemModelUtils.plainModel(labelModelId),
                                 ItemModelUtils.conditional(
                                         ItemModelUtils.hasComponent(TCDataComponents.ASPECT_FILTER.get()),
                                         ItemModelUtils.tintedModel(labelOverlayModelId, new AspectFilterTint(0xffffff)),
-                                        ItemModelUtils.plainModel(labelModelId)
-                                )
-                        ),
-                        Optional.empty()
-                ));
+                                        ItemModelUtils.plainModel(labelModelId))),
+                        Optional.empty()));
         itemModels.generateFlatItem(TCItems.BOTTLE_TAINT.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.VIS_RESONATOR.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.THAUMIC_SLIME_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);
@@ -1308,8 +1307,7 @@ public final class TCModelProvider extends ModelProvider {
         Identifier core = Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + coreModel);
         MultiPartGenerator generator =
                 MultiPartGenerator.multiPart(block).with(new MultiVariant(WeightedList.of(new Variant(core))));
-        record LatticeFace(BooleanProperty property, VariantMutator mutator) {
-        }
+        record LatticeFace(BooleanProperty property, VariantMutator mutator) {}
         List<LatticeFace> faces = List.of(
                 new LatticeFace(BlockStateProperties.DOWN, BlockModelGenerators.NOP),
                 new LatticeFace(BlockStateProperties.UP, BlockModelGenerators.X_ROT_180),
@@ -1749,14 +1747,14 @@ public final class TCModelProvider extends ModelProvider {
 
     private void taintModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
-                TCBlocks.TAINT_ROCK.get(), rotatedWeighted(new String[]{"taint_rock"}, new int[]{1})));
+                TCBlocks.TAINT_ROCK.get(), rotatedWeighted(new String[] {"taint_rock"}, new int[] {1})));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
                 TCBlocks.TAINT_SOIL.get(),
-                rotatedWeighted(new String[]{"taint_soil_0", "taint_soil_1", "taint_soil_2"}, new int[]{16, 1, 1})));
+                rotatedWeighted(new String[] {"taint_soil_0", "taint_soil_1", "taint_soil_2"}, new int[] {16, 1, 1})));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
                 TCBlocks.TAINT_CRUST.get(),
                 rotatedWeighted(
-                        new String[]{"taint_crust_0", "taint_crust_1", "taint_crust_2"}, new int[]{8, 1, 1})));
+                        new String[] {"taint_crust_0", "taint_crust_1", "taint_crust_2"}, new int[] {8, 1, 1})));
 
         registerFluxGoo(blockModels);
         registerTaintGeyser(blockModels);
@@ -1786,7 +1784,7 @@ public final class TCModelProvider extends ModelProvider {
     private void registerTaintLog(BlockModelGenerators blockModels) {
         WeightedList.Builder<Variant> entries = WeightedList.builder();
         for (int tex = 1; tex <= 2; tex++) {
-            for (String face : new String[]{"north", "south", "east", "west"}) {
+            for (String face : new String[] {"north", "south", "east", "west"}) {
                 entries.add(
                         new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/taint_log_" + face + tex)), 1);
             }
