@@ -165,12 +165,10 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
                         TCItems.VOID_PICKAXE.get(),
                         TCItems.ELEMENTAL_PICKAXE.get(),
                         TCItems.PRIMAL_CRUSHER.get());
-        tag(ItemTags.AXES)
-                .add(TCItems.THAUMIUM_AXE.get(), TCItems.VOID_AXE.get(), TCItems.ELEMENTAL_AXE.get());
+        tag(ItemTags.AXES).add(TCItems.THAUMIUM_AXE.get(), TCItems.VOID_AXE.get(), TCItems.ELEMENTAL_AXE.get());
         tag(ItemTags.SHOVELS)
                 .add(TCItems.THAUMIUM_SHOVEL.get(), TCItems.VOID_SHOVEL.get(), TCItems.ELEMENTAL_SHOVEL.get());
-        tag(ItemTags.HOES)
-                .add(TCItems.THAUMIUM_HOE.get(), TCItems.VOID_HOE.get(), TCItems.ELEMENTAL_HOE.get());
+        tag(ItemTags.HOES).add(TCItems.THAUMIUM_HOE.get(), TCItems.VOID_HOE.get(), TCItems.ELEMENTAL_HOE.get());
 
         tag(ItemTags.HEAD_ARMOR)
                 .add(

@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.essentia.jar;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStreamPort;
 import com.leclowndu93150.thaumaturge.api.items.ILabel;
@@ -35,8 +34,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
 
 public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaStreamPort, IEssentiaJar {
     public static final MapCodec<BlockJar> CODEC = simpleCodec(BlockJar::new);

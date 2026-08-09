@@ -5,9 +5,7 @@ import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentia
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.api.items.ILabel;
-import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import com.mojang.serialization.MapCodec;

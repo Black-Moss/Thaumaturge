@@ -20,5 +20,6 @@ public interface ILabel {
      * @param stack the {@link ItemStack} to retrieve the aspect filter from
      * @return the filtered aspect's {@link ResourceKey}, or {@code null} if none is set
      */
-    @Nullable ResourceKey<IAspect> getFilteredAspect(ItemStack stack);
+    @Nullable
+    ResourceKey<IAspect> getFilteredAspect(ItemStack stack);
 }
