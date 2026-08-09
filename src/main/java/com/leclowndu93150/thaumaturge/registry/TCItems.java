@@ -848,6 +848,8 @@ public final class TCItems {
 
     public static final int GOGGLES_DURABILITY = 350;
 
+    public static final int GOGGLES_ENCHANTMENT_VALUE = 25;
+
     public static final ResourceKey<EquipmentAsset> GOGGLES_REVEALING_ASSET =
             ResourceKey.create(EquipmentAssets.ROOT_ID, TCIds.rl("goggles_revealing"));
 
@@ -856,6 +858,7 @@ public final class TCItems {
             GogglesItem::new,
             props -> props.stacksTo(1)
                     .durability(GOGGLES_DURABILITY)
+                    .enchantable(GOGGLES_ENCHANTMENT_VALUE)
                     .rarity(Rarity.RARE)
                     .component(
                             DataComponents.EQUIPPABLE,
