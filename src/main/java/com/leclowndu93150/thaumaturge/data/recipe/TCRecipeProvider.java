@@ -1480,10 +1480,10 @@ public final class TCRecipeProvider extends RecipeProvider {
                         aspects,
                         RecipeCategory.MISC,
                         new ItemStackTemplate(TCItems.INGOT_BRASS.get()),
-                        Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON)))
+                        Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_COPPER)))
                 .aspect(TCAspects.INSTRUMENTUM, 5)
                 .gate(gate("metallurgy", 0))
-                .unlockedBy("has", has(Tags.Items.INGOTS_IRON))
+                .unlockedBy("has", has(Tags.Items.INGOTS_COPPER))
                 .save(output);
 
         new CrucibleRecipeBuilder(
