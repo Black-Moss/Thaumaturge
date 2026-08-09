@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStreamPort;
+import com.leclowndu93150.thaumaturge.api.items.ILabel;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockAlembic;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -34,6 +35,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
 
 public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaStreamPort, IEssentiaJar {
     public static final MapCodec<BlockJar> CODEC = simpleCodec(BlockJar::new);
@@ -184,17 +187,11 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     @Override
     public boolean applyLabel(Player player, BlockPos pos, Direction face, ItemStack stack) {
         if (!(player.level().getBlockEntity(pos) instanceof BlockEntityJar jar)) return false;
+        if (!(stack.getItem() instanceof ILabel label)) return false;
         if (face.getStepY() != 0) return false;
         if (jar.aspectFilterKey() != null) return false;
-        ResourceKey<IAspect> labelAspect = null;
-        if (!((IEssentiaContainerItem) stack.getItem()).getAspects(stack).isEmpty())
-            labelAspect = ((IEssentiaContainerItem) stack.getItem())
-                    .getAspects(stack)
-                    .entries()
-                    .getFirst()
-                    .aspect()
-                    .getKey();
 
+        ResourceKey<IAspect> labelAspect = label.getFilteredAspect(stack);
         if (jar.amount() == 0 && labelAspect == null) return false;
 
         ResourceKey<IAspect> aspect = null;
@@ -202,6 +199,7 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
         if (jar.amount() > 0) aspect = jar.aspectKey();
 
         if (aspect == null) return false;
+        if (labelAspect != null && !labelAspect.equals(aspect)) return false;
 
         BlockState state = player.level().getBlockState(pos);
         setPlacedBy(player.level(), pos, state, player, stack);
