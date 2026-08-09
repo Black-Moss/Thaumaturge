@@ -830,10 +830,12 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("warp.thaumaturge.lose.temporary", "You have lost temporary Warp!");
         add("warp.thaumaturge.text.1", "You feel oddly drained.");
         add("warp.thaumaturge.text.2", "A sudden and unnatural hunger consumes you.");
+        add("warp.thaumaturge.text.3", "Strange whispers reveal secrets to you.");
         add("warp.thaumaturge.text.4", "Your vision becomes strange and grim.");
         add("warp.thaumaturge.text.5", "The light suddenly becomes overwhelmingly bright and burns your skin.");
         add("warp.thaumaturge.text.6", "A thick fog appears from nowhere. Something stirs in its depths.");
         add("warp.thaumaturge.text.7", "They're everywhere! Run!");
+        add("warp.thaumaturge.text.8", "Surely there must be a way to stop these headaches?");
         add("warp.thaumaturge.text.9", "You suddenly feel reluctant to break things.");
         add("warp.thaumaturge.text.10", "Your perception suddenly expands.");
         add("warp.thaumaturge.text.11", "What was that noise? Something is behind you.");
