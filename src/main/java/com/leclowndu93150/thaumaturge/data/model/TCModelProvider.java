@@ -21,7 +21,6 @@ import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalItemModelGenerat
 import com.leclowndu93150.thaumaturge.data.model.crystal.EssentiaCrystalModelGenerator;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
-import com.leclowndu93150.thaumaturge.registry.TCFluids;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.mojang.math.Axis;
 import com.mojang.math.Transformation;
@@ -58,7 +57,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.state.properties.*;
-import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
 import org.joml.Matrix4f;
 
 public final class TCModelProvider extends ModelProvider {
@@ -180,18 +178,7 @@ public final class TCModelProvider extends ModelProvider {
                 TCBlocks.PURIFYING_FLUID.get(),
                 new MultiVariant(WeightedList.of(
                         new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/purifying_fluid"))))));
-        itemModels.itemModelOutput.accept(
-                TCItems.BUCKET_LIQUID_DEATH.get(),
-                new DynamicFluidContainerModel.Unbaked(
-                        new DynamicFluidContainerModel.Textures(
-                                Optional.empty(),
-                                Optional.of(new Material(Identifier.withDefaultNamespace("item/bucket"))),
-                                Optional.of(new Material(TCIds.rl("item/bucket_fluid"))),
-                                Optional.empty()),
-                        TCFluids.LIQUID_DEATH_SOURCE.get(),
-                        false,
-                        true,
-                        true));
+        itemModels.generateFlatItem(TCItems.BUCKET_LIQUID_DEATH.get(), ModelTemplates.FLAT_ITEM);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(
                 TCBlocks.LIQUID_DEATH.get(),
                 new MultiVariant(WeightedList.of(

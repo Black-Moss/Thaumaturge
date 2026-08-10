@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.alchemy;
 
-import com.leclowndu93150.thaumaturge.content.particle.BubbleParticleOptions;
+import com.leclowndu93150.thaumaturge.content.particle.SlimyBubbleParticleOptions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -18,7 +18,7 @@ public class BlockLiquidDeath extends LiquidBlock {
     private static final float SURFACE_PER_LEVEL = 0.225F;
     private static final int LEVELS_PER_TC_LEVEL = 2;
     private static final float BUBBLE_ALPHA = 0.8F;
-    private static final float BUBBLE_SCALE_BASE = 0.75F;
+    private static final float BUBBLE_SCALE_BASE = 0.075F;
     private static final int BUBBLE_AGE_BASE = 15;
     private static final int BUBBLE_AGE_SPREAD = 5;
     private static final float RED_BASE = 0.3F;
@@ -39,13 +39,11 @@ public class BlockLiquidDeath extends LiquidBlock {
                     RED_BASE - random.nextFloat() * RED_SPREAD,
                     0.0F,
                     BLUE_BASE + random.nextFloat() * BLUE_SPREAD);
-            BubbleParticleOptions bubble = new BubbleParticleOptions(
+            SlimyBubbleParticleOptions bubble = new SlimyBubbleParticleOptions(
                     color,
                     BUBBLE_ALPHA,
                     BUBBLE_SCALE_BASE + random.nextFloat() * BUBBLE_SCALE_BASE,
-                    BUBBLE_AGE_BASE + random.nextInt(BUBBLE_AGE_SPREAD),
-                    0.0F,
-                    false);
+                    BUBBLE_AGE_BASE + random.nextInt(BUBBLE_AGE_SPREAD));
             level.addParticle(
                     bubble,
                     pos.getX() + random.nextFloat(),
