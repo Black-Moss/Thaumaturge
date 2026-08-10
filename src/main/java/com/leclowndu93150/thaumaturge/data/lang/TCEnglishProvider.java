@@ -276,6 +276,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.spa", "Arcane Spa");
         add("block.thaumaturge.purifying_fluid", "Purifying Fluid");
         add("fluid_type.thaumaturge.purifying", "Purifying Fluid");
+        add("block.thaumaturge.liquid_death", "Liquid Death");
+        add("fluid_type.thaumaturge.liquid_death", "Liquid Death");
+        add("item.thaumaturge.liquid_death_bucket", "Liquid Death Bucket");
         add("gui.thaumaturge.spa.mix.true", "Mix with ingredient");
         add("gui.thaumaturge.spa.mix.false", "Use just the fluid");
         add("item.thaumaturge.chunk_beef", "Beef Nugget");
