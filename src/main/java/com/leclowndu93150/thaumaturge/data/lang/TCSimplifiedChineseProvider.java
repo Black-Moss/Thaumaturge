@@ -53,7 +53,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         aspect("sensus", "感官", "感官", "感知");
         aspect("aversio", "冲突", "憎恶，冲突", "冲突");
         aspect("praemunio", "守护", "强化，保护，守护", "守护之物");
-        aspect("desiderium", "愿望", "愿望，意愿，渴望，需求", "贵重之物");
+        aspect("desiderium", "贪婪", "愿望，意愿，渴望，需求", "贵重之物");
         aspect("exanimis", "亡灵", "不死，亡灵", "不死的天性");
         aspect("bestia", "野兽", "野兽", "野兽");
         aspect("humanus", "人类", "人类", "人类");
@@ -284,10 +284,10 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("tc.aspect.primal", "元始要素");
         add("tc.aspect.unknown", "未知要素");
         add("tc.aspect.unknown.short", "???");
-        add("tc.aspect.unknown.desc", "Its nature is not yet understood.");
+        add("tc.aspect.unknown.desc", "其性质尚不清楚");
         add("tc.aspect.composition", "%1$s + %2$s");
-        add("tc.aspect.progress", "Aspects known %1$s/%2$s");
-        add("tc.discoveryerror.derive", "To understand this you must first derive an aspect of %1$s.");
+        add("tc.aspect.progress", "要素已知 %1$s/%2$s");
+        add("tc.discoveryerror.derive", "要窥破其中真谛你需要研究 %1$s.");
         add("tc.addendumtext", "§o附录 %1$s§r");
 
         add("jei.thaumaturge.category.arcane_workbench", "奥术工作台");
@@ -389,7 +389,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("block.thaumaturge.crystal_terra", "地之结晶");
         add("block.thaumaturge.crystal_ordo", "秩序结晶");
         add("block.thaumaturge.crystal_perditio", "混沌结晶");
-        add("block.thaumaturge.crystal_vitium", "咒波结晶");
+        add("block.thaumaturge.crystal_vitium", "腐化结晶");
     }
 
     private void langBaubles() {
@@ -452,7 +452,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("tc.resonator2", "§5吸力%1$s%2$s§0");
         add("tc.resonator3", "未绑定类型");
         add("tc.condenser1", "§d消耗：%1$s 要素§0");
-        add("tc.condenser2", "§d时间：%1$s ticks（%2$s 秒）§0");
+        add("tc.condenser2", "§d时间：%1$s 刻（%2$s 秒）§0");
     }
 
     private void langCStone() {
