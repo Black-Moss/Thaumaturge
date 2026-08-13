@@ -6,9 +6,7 @@ import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.DyeColor;
 import net.neoforged.neoforge.common.data.LanguageProvider;
-import org.apache.commons.lang3.StringUtils;
 
 public final class TCEnglishProvider extends LanguageProvider {
     public TCEnglishProvider(PackOutput output) {
@@ -906,11 +904,54 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.cloth_legs", "Apprentice's Leggings");
         add("item.thaumaturge.cloth_boots", "Apprentice's Boots");
 
-        for (DyeColor dye : DyeColor.values()) {
-            add("block.thaumaturge.candle_" + dye.getName(), dyeName(dye) + " Tallow Candle");
-            add("block.thaumaturge.banner_" + dye.getName(), dyeName(dye) + " Banner");
-            add("block.thaumaturge.wall_banner_" + dye.getName(), dyeName(dye) + " Banner");
-        }
+        add("block.thaumaturge.candle_white", "White Tallow Candle");
+        add("block.thaumaturge.banner_white", "White Banner");
+        add("block.thaumaturge.wall_banner_white", "White Banner");
+        add("block.thaumaturge.candle_orange", "Orange Tallow Candle");
+        add("block.thaumaturge.banner_orange", "Orange Banner");
+        add("block.thaumaturge.wall_banner_orange", "Orange Banner");
+        add("block.thaumaturge.candle_magenta", "Magenta Tallow Candle");
+        add("block.thaumaturge.banner_magenta", "Magenta Banner");
+        add("block.thaumaturge.wall_banner_magenta", "Magenta Banner");
+        add("block.thaumaturge.candle_light_blue", "Light Blue Tallow Candle");
+        add("block.thaumaturge.banner_light_blue", "Light Blue Banner");
+        add("block.thaumaturge.wall_banner_light_blue", "Light Blue Banner");
+        add("block.thaumaturge.candle_yellow", "Yellow Tallow Candle");
+        add("block.thaumaturge.banner_yellow", "Yellow Banner");
+        add("block.thaumaturge.wall_banner_yellow", "Yellow Banner");
+        add("block.thaumaturge.candle_lime", "Lime Tallow Candle");
+        add("block.thaumaturge.banner_lime", "Lime Banner");
+        add("block.thaumaturge.wall_banner_lime", "Lime Banner");
+        add("block.thaumaturge.candle_pink", "Pink Tallow Candle");
+        add("block.thaumaturge.banner_pink", "Pink Banner");
+        add("block.thaumaturge.wall_banner_pink", "Pink Banner");
+        add("block.thaumaturge.candle_gray", "Gray Tallow Candle");
+        add("block.thaumaturge.banner_gray", "Gray Banner");
+        add("block.thaumaturge.wall_banner_gray", "Gray Banner");
+        add("block.thaumaturge.candle_light_gray", "Light Gray Tallow Candle");
+        add("block.thaumaturge.banner_light_gray", "Light Gray Banner");
+        add("block.thaumaturge.wall_banner_light_gray", "Light Gray Banner");
+        add("block.thaumaturge.candle_cyan", "Cyan Tallow Candle");
+        add("block.thaumaturge.banner_cyan", "Cyan Banner");
+        add("block.thaumaturge.wall_banner_cyan", "Cyan Banner");
+        add("block.thaumaturge.candle_purple", "Purple Tallow Candle");
+        add("block.thaumaturge.banner_purple", "Purple Banner");
+        add("block.thaumaturge.wall_banner_purple", "Purple Banner");
+        add("block.thaumaturge.candle_blue", "Blue Tallow Candle");
+        add("block.thaumaturge.banner_blue", "Blue Banner");
+        add("block.thaumaturge.wall_banner_blue", "Blue Banner");
+        add("block.thaumaturge.candle_brown", "Brown Tallow Candle");
+        add("block.thaumaturge.banner_brown", "Brown Banner");
+        add("block.thaumaturge.wall_banner_brown", "Brown Banner");
+        add("block.thaumaturge.candle_green", "Green Tallow Candle");
+        add("block.thaumaturge.banner_green", "Green Banner");
+        add("block.thaumaturge.wall_banner_green", "Green Banner");
+        add("block.thaumaturge.candle_red", "Red Tallow Candle");
+        add("block.thaumaturge.banner_red", "Red Banner");
+        add("block.thaumaturge.wall_banner_red", "Red Banner");
+        add("block.thaumaturge.candle_black", "Black Tallow Candle");
+        add("block.thaumaturge.banner_black", "Black Banner");
+        add("block.thaumaturge.wall_banner_black", "Black Banner");
         add("block.thaumaturge.banner_crimson_cult", "Crimson Cult Banner");
         add("block.thaumaturge.wall_banner_crimson_cult", "Crimson Cult Banner");
     }
@@ -1508,18 +1549,6 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.loot_urn_common", "Common Urn");
         add("block.thaumaturge.loot_urn_uncommon", "Uncommon Urn");
         add("block.thaumaturge.loot_urn_rare", "Rare Urn");
-    }
-
-    private String dyeName(DyeColor dye) {
-        String[] parts = dye.getName().split("_");
-        StringBuilder name = new StringBuilder();
-        for (String part : parts) {
-            if (!name.isEmpty()) {
-                name.append(' ');
-            }
-            name.append(StringUtils.capitalize(part));
-        }
-        return name.toString();
     }
 
     private void trait(String key, String name, String text) {
