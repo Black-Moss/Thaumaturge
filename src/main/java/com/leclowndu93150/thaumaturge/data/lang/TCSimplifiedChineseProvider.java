@@ -1037,7 +1037,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
 
         add("enchantment.thaumaturge.collector", "收集");
         add("enchantment.thaumaturge.destructive", "破坏");
-        add("enchantment.thaumaturge.burrowing", "连锁采集");
+        add("enchantment.thaumaturge.burrowing", "奔流");
         add("enchantment.thaumaturge.sounding", "勘探");
         add("enchantment.thaumaturge.refining", "炽心");
         add("enchantment.thaumaturge.arcing", "弧光");
