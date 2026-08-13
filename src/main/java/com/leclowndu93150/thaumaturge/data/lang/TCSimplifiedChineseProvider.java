@@ -659,7 +659,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("research.thaumaturge.flux.warn", "灵气场中充满了一种力量，一种不太好的力量。");
         add("research.thaumaturge.warp.warn", "我所掌握的知识似乎让我有些神志不清");
         add("research.thaumaturge.oculus.title", "眼");
-        add("research.thaumaturge.oculus.stage_0", "低语已汇聚成合唱，我终于明白它们想让我做什么。散布于世界各处的方尖碑并非纪念碑——它们是门，而每扇门都有钥匙。<BR>我最初遭遇血腥邪徒的那些怪异祭坛上，有一块标有四个空凹槽的拱顶石。四只眼睛必须安放其中——或制作，或交易得来——拱顶石上方的阴森能量则必须保持完好。<BR>在尝试如此鲁莽之事前，我应当先理清自己的理论。");
+        add("research.thaumaturge.oculus.stage_0", "低语已汇聚成合唱，我终于明白它们想让我做什么。散布于世界各处的方尖碑并非纪念碑——它们是门，而每扇门都有钥匙。<BR>我最初遭遇血腥邪徒的那些怪异祭坛上，有一块标有四个空凹槽的拱顶石。四只眼睛必须安放其中——或制作，或交易得来——拱顶石上方的凶险能量则必须保持完好。<BR>在尝试如此鲁莽之事前，我应当先理清自己的理论。");
         add("research.thaumaturge.oculus.stage_1", "一切都那么简单——我惊讶于血腥邪徒竟然从未发现这一点。<BR>把四只邪术之眼安放在拱顶石上，再以法杖将一股聚焦的魔力注入祭坛。当地灵气付出代价，所谓的\"眼\"便就此睁开。<BR>当然，我完全不知道那意味着什么。无妨——只有傻瓜才会畏惧未知！");
         add("research.thaumaturge.enter_outer_lands.title", "外域");
         add("research.thaumaturge.enter_outer_lands.stage_0", "通过开眼仪式时你并不十分确定你究竟在期待什么,但肯定不是眼前这些碎裂石块建成的诡异建筑和这些七拐八弯的扭曲通道.<BR>这里有些不对劲 - 这些建筑物看上去除了构成巨大的致命迷宫外别无设计目的.<BR>四周涌动着诡异的能量波动,你的魔力在这异域的环境中似乎表现得有些异常.即使你遇到的其他生物看上去也给你一种格格不入的诡异感觉.");
@@ -869,7 +869,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("tc.node.jar.aspect", "%1$s %2$s");
         add("tc.node.typemod", "%1$s，%2$s");
         add("nodetype.thaumaturge.normal", "标准");
-        add("nodetype.thaumaturge.unstable", "不稳定");
+        add("nodetype.thaumaturge.unstable", "震荡");
         add("nodetype.thaumaturge.dark", "凶险");
         add("nodetype.thaumaturge.tainted", "污染");
         add("nodetype.thaumaturge.hungry", "饕餮");
@@ -1381,11 +1381,11 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("jade.thaumaturge.aspect_amount", "%s x%s");
         add("jade.thaumaturge.aspect_separator", "，");
         add("jade.thaumaturge.node.type.normal", "灵气节点");
-        add("jade.thaumaturge.node.type.unstable", "不稳定节点");
-        add("jade.thaumaturge.node.type.dark", "阴森节点");
+        add("jade.thaumaturge.node.type.unstable", "震荡节点");
+        add("jade.thaumaturge.node.type.dark", "凶险节点");
         add("jade.thaumaturge.node.type.tainted", "腐化节点");
         add("jade.thaumaturge.node.type.pure", "纯净节点");
-        add("jade.thaumaturge.node.type.hungry", "饥饿节点");
+        add("jade.thaumaturge.node.type.hungry", "饕餮节点");
         add("jade.thaumaturge.node.modifier.bright", "明亮");
         add("jade.thaumaturge.node.modifier.pale", "苍白");
         add("jade.thaumaturge.node.modifier.fading", "凋零");
