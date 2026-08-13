@@ -15,7 +15,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        add("itemGroup.thaumaturge", "神秘时代");
+        add("itemGroup.thaumaturge", "Thaumaturge");
 
         addJade();
 
@@ -840,7 +840,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
 
     private void langCasters() {
 
-        add("key.category.thaumaturge.main", "神秘时代");
+        add("key.category.thaumaturge.main", "Thaumaturge");
         add("key.thaumaturge.change_focus", "切换法杖核心");
         add("key.thaumaturge.misc_toggle", "法杖杂项切换");
         add("item.thaumaturge.wand", "法杖");
@@ -1085,7 +1085,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("block.thaumaturge.placeholder_cauldron", "炼药锅");
         add("block.thaumaturge.placeholder_anvil", "铁砧");
         add("block.thaumaturge.placeholder_table", "石桌");
-        add("entity.thaumaturge.golem", "神秘时代傀儡");
+        add("entity.thaumaturge.golem", "Thaumaturge 傀儡");
         add("entity.thaumaturge.golem_dart", "傀儡飞镖");
         add("golem.follow", "吾主，我将追随您");
         add("golem.stay", "我将在此待命，吾主");
