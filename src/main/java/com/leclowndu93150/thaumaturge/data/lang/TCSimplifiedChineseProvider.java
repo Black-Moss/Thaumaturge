@@ -477,7 +477,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("block.thaumaturge.sapling_silverwood", "银树树苗");
         add("block.thaumaturge.log_greatwood", "宏伟之木原木");
         add("block.thaumaturge.log_silverwood", "银树原木");
-        add("block.thaumaturge.greatwood", "宏伟之木傀儡");
+        add("block.thaumaturge.greatwood", "宏伟之木");
         add("block.thaumaturge.silverwood", "银树");
         add("block.thaumaturge.stripped_log_greatwood", "去皮宏伟之木原木");
         add("block.thaumaturge.stripped_log_silverwood", "去皮银树原木");
@@ -496,8 +496,8 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("block.thaumaturge.vishroom", "纤毛菇");
         add("block.thaumaturge.grass_ambient", "蕴魔草方块");
         add("biome.thaumaturge.magical_forest", "魔法森林");
-        add("biome.thaumaturge.eerie", "诡异之地");
-        add("biome.thaumaturge.eldritch", "邪术学");
+        add("biome.thaumaturge.eerie", "凶险之地");
+        add("biome.thaumaturge.eldritch", "外域");
     }
 
     private void langMAuraHud() {
@@ -540,7 +540,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.essentia_crystal", "%s 魔力水晶碎片");
         add("item.thaumaturge.mana_bean", "魔豆");
         add("block.thaumaturge.mana_pod", "魔力荚");
-        add("item.thaumaturge.essentia_crystal.unknown", "未知魔力水晶");
+        add("item.thaumaturge.essentia_crystal.unknown", "未知魔力水晶碎片");
 
         add("entity.thaumaturge.thaumic_slime", "神秘史莱姆");
         add("entity.thaumaturge.taint_seed", "腐化孢子");
