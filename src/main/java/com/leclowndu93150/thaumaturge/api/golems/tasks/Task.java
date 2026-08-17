@@ -11,8 +11,9 @@ import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A unit of golem work issued by a seal or the provisioning system. Tasks target either a block position or an entity,
- * live in the per-level task list and expire when their lifespan runs out. Lifespan ticks down once per second.
+ * A unit of golem work issued by a seal or the provisioning system. Tasks target either a
+ * block position or an entity, live in the per-level task list and expire when their
+ * lifespan runs out. Lifespan ticks down once per second.
  *
  * @since 1.0.0
  */
@@ -43,7 +44,7 @@ public final class Task {
      * Creates a block-targeting task.
      *
      * @param sealPos the issuing seal's placement, or null for seal-less tasks
-     * @param pos the target block
+     * @param pos     the target block
      */
     public Task(@Nullable SealPos sealPos, BlockPos pos) {
         this.sealPos = sealPos;
@@ -57,7 +58,7 @@ public final class Task {
      * Creates an entity-targeting task.
      *
      * @param sealPos the issuing seal's placement, or null for seal-less tasks
-     * @param entity the target entity
+     * @param entity  the target entity
      */
     public Task(@Nullable SealPos sealPos, Entity entity) {
         this.sealPos = sealPos;
@@ -196,7 +197,8 @@ public final class Task {
     }
 
     /**
-     * Links or clears the provision request this task fulfills. Linking extends the request's timeout.
+     * Links or clears the provision request this task fulfills. Linking extends the
+     * request's timeout.
      *
      * @param linkedProvision the request, or null to clear
      */

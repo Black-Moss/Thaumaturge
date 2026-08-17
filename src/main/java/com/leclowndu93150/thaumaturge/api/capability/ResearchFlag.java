@@ -9,9 +9,8 @@ import net.minecraft.util.StringRepresentable;
 /**
  * Per-entry user-interface flag set on a player's research record.
  *
- * <p>
- * Flags are independent of completion: a research entry can be complete and still carry {@link #POPUP} until the
- * Thaumonomicon clears it.
+ * <p>Flags are independent of completion: a research entry can be complete and still carry
+ * {@link #POPUP} until the Thaumonomicon clears it.
  *
  * @since 1.0.0
  */

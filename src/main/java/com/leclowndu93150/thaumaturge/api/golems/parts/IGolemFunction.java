@@ -3,8 +3,8 @@ package com.leclowndu93150.thaumaturge.api.golems.parts;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 
 /**
- * Behavior attached to a golem part. Called every entity tick on both sides for each part of the golem that declares a
- * function.
+ * Behavior attached to a golem part. Called every entity tick on both sides for each
+ * part of the golem that declares a function.
  *
  * @since 1.0.0
  */

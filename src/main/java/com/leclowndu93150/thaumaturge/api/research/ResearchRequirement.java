@@ -11,10 +11,9 @@ import net.minecraft.world.item.Item;
 /**
  * A single obtain or craft requirement on a {@link IResearchStage}.
  *
- * <p>
- * The requirement matches any item from {@code items}, accepting either a tag reference or one or more direct item
- * references. The player must obtain or craft at least {@code amount} matching items, counted in aggregate across the
- * matched set.
+ * <p>The requirement matches any item from {@code items}, accepting either a tag reference or
+ * one or more direct item references. The player must obtain or craft at least {@code amount}
+ * matching items, counted in aggregate across the matched set.
  *
  * @param items items that satisfy this requirement
  * @param amount the minimum aggregate count, must be positive

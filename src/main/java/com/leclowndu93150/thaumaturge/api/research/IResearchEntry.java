@@ -9,11 +9,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
- * A research entry. Entries are the nodes shown in a Thaumonomicon category; each entry contains one or more
- * {@link IResearchStage stages} that the player completes in order.
+ * A research entry. Entries are the nodes shown in a Thaumonomicon category; each entry contains
+ * one or more {@link IResearchStage stages} that the player completes in order.
  *
- * <p>
- * Entries are loaded from the {@link #REGISTRY_KEY} datapack registry under
+ * <p>Entries are loaded from the {@link #REGISTRY_KEY} datapack registry under
  * {@code data/<namespace>/thaumaturge/research_entry/}.
  *
  * @since 1.0.0
@@ -37,16 +36,16 @@ public interface IResearchEntry {
     String nameKey();
 
     /**
-     * Parent references that must be satisfied before this entry becomes available. A parent may be referenced from another
-     * category and may require only a partial stage of its progress.
+     * Parent references that must be satisfied before this entry becomes available. A parent may
+     * be referenced from another category and may require only a partial stage of its progress.
      *
      * @return the parent references, never null; may be empty
      */
     Set<ResearchParent> parents();
 
     /**
-     * Sibling entries displayed in the Thaumonomicon as decorative connectors next to this entry, with no progression
-     * effect.
+     * Sibling entries displayed in the Thaumonomicon as decorative connectors next to this entry,
+     * with no progression effect.
      *
      * @return the sibling identifiers, never null
      */
@@ -91,8 +90,9 @@ public interface IResearchEntry {
     }
 
     /**
-     * Icons displayed on this entry's node in the Thaumonomicon. The browser cycles through the list over time; when empty,
-     * the node falls back to an icon derived from the first stage's item requirements.
+     * Icons displayed on this entry's node in the Thaumonomicon. The browser cycles through the
+     * list over time; when empty, the node falls back to an icon derived from the first stage's
+     * item requirements.
      *
      * @return the icons, never null, possibly empty
      */
@@ -101,7 +101,8 @@ public interface IResearchEntry {
     }
 
     /**
-     * Extra pages shown once this entry is complete and each page's own research requirements are met.
+     * Extra pages shown once this entry is complete and each page's own research requirements are
+     * met.
      *
      * @return the addenda, never null, possibly empty
      */
@@ -110,9 +111,9 @@ public interface IResearchEntry {
     }
 
     /**
-     * Returns the hand-authored aspect cost of this entry. The distinct aspects seed the anchor ring of research-note
-     * puzzles generated for theory gates; the amounts are the point price paid from the player's aspect pool for
-     * observation gates.
+     * Returns the hand-authored aspect cost of this entry. The distinct aspects seed the anchor
+     * ring of research-note puzzles generated for theory gates; the amounts are the point price
+     * paid from the player's aspect pool for observation gates.
      *
      * @return the aspect cost, or the empty list when the entry has no knowledge gates
      * @since 1.0.0
@@ -122,8 +123,8 @@ public interface IResearchEntry {
     }
 
     /**
-     * Returns the research-note puzzle complexity of this entry, clamped to {@code [1, 3]}. Drives the hex grid radius and
-     * the number of holes punched into the sheet.
+     * Returns the research-note puzzle complexity of this entry, clamped to {@code [1, 3]}.
+     * Drives the hex grid radius and the number of holes punched into the sheet.
      *
      * @return the puzzle complexity
      * @since 1.0.0

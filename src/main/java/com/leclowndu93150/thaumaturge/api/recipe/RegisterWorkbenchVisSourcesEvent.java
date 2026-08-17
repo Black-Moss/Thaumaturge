@@ -6,8 +6,8 @@ import net.neoforged.bus.api.Event;
 import net.neoforged.fml.event.IModBusEvent;
 
 /**
- * Fired on the mod event bus so addons can register {@link IWorkbenchVisSource}s that help pay for arcane crafts.
- * Sources are consulted in registration order.
+ * Fired on the mod event bus so addons can register {@link IWorkbenchVisSource}s that help pay for
+ * arcane crafts. Sources are consulted in registration order.
  *
  * @since 1.0.0
  */
@@ -24,8 +24,8 @@ public final class RegisterWorkbenchVisSourcesEvent extends Event implements IMo
     }
 
     /**
-     * Returns the registered sources in registration order. Intended for the implementation that fires the event; addons
-     * register through {@link #register}.
+     * Returns the registered sources in registration order. Intended for the implementation that
+     * fires the event; addons register through {@link #register}.
      *
      * @return an unmodifiable view of the registered sources
      */

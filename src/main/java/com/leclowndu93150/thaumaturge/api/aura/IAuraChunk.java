@@ -5,9 +5,9 @@ import net.minecraft.world.level.ChunkPos;
 /**
  * Read-only view of a single chunk's aura record (base / vis / flux).
  *
- * <p>
- * The record is per-chunk and lives on the server. Clients receive a copy through the underlying attachment sync.
- * Mutating the record is internal; addons read through {@link AuraHelper}.
+ * <p>The record is per-chunk and lives on the server. Clients receive a copy through the
+ * underlying attachment sync. Mutating the record is internal; addons read through
+ * {@link AuraHelper}.
  *
  * @since 1.0.0
  */

@@ -21,7 +21,8 @@ public record ResearchGate(Identifier entry, Optional<Integer> stage, boolean ne
     private static BiPredicate<Player, ResearchGate> binding;
 
     /**
-     * Binds the gate check implementation. Called by Thaumaturge during mod init; addons must not call this.
+     * Binds the gate check implementation. Called by Thaumaturge during mod init; addons must
+     * not call this.
      *
      * @param impl the implementation, receiving a null gate for "ungated"
      * @throws IllegalStateException when already bound
@@ -37,7 +38,7 @@ public record ResearchGate(Identifier entry, Optional<Integer> stage, boolean ne
      * Tests whether the player satisfies the given gate.
      *
      * @param player the player to test
-     * @param gate the gate, or null when ungated
+     * @param gate   the gate, or null when ungated
      * @return {@code true} when the player passes, always {@code true} for a null gate
      * @throws IllegalStateException when accessed before the implementation has bound
      */

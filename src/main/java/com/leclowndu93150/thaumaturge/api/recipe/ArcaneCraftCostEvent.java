@@ -4,14 +4,15 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.Event;
 
 /**
- * Fired on the NeoForge game event bus after the workbench planner computes an {@link ArcaneCraftCost} and before
- * payment is taken. Listeners may replace the cost with {@link #setCost(ArcaneCraftCost)} to make a craft cheaper,
- * free, or more expensive, or to change where it is paid from.
+ * Fired on the NeoForge game event bus after the workbench planner computes an
+ * {@link ArcaneCraftCost} and before payment is taken. Listeners may replace the cost with
+ * {@link #setCost(ArcaneCraftCost)} to make a craft cheaper, free, or more expensive, or to change
+ * where it is paid from.
  *
- * <p>
- * The event fires with the same context used to plan and to pay, so a replaced cost is honored by the subsequent
- * payment. Listeners that redirect payment to an external store are responsible for draining that store themselves; for
- * coordinated, simulate-aware payment prefer registering an {@link IWorkbenchVisSource} instead.
+ * <p>The event fires with the same context used to plan and to pay, so a replaced cost is honored
+ * by the subsequent payment. Listeners that redirect payment to an external store are responsible
+ * for draining that store themselves; for coordinated, simulate-aware payment prefer registering an
+ * {@link IWorkbenchVisSource} instead.
  *
  * @since 1.0.0
  */
@@ -24,10 +25,10 @@ public final class ArcaneCraftCostEvent extends Event {
     /**
      * Constructs the event. Fired by the implementation; addons receive it, they do not build it.
      *
-     * @param recipe the recipe being crafted
+     * @param recipe    the recipe being crafted
      * @param workbench the workbench inventory
-     * @param player the crafting player
-     * @param cost the planner's computed cost
+     * @param player    the crafting player
+     * @param cost      the planner's computed cost
      */
     public ArcaneCraftCostEvent(IArcaneRecipe recipe, IArcaneWorkbench workbench, Player player, ArcaneCraftCost cost) {
         this.recipe = recipe;

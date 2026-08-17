@@ -8,11 +8,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The data flowing between spell nodes during execution: rays still in flight and resolved hits. Either array may be
- * null, meaning nothing of that kind is currently supplied.
+ * The data flowing between spell nodes during execution: rays still in flight and resolved
+ * hits. Either array may be null, meaning nothing of that kind is currently supplied.
  *
  * @param trajectories the rays handed to the next node, or null
- * @param targets the hits handed to the next node, or null
+ * @param targets      the hits handed to the next node, or null
  * @since 1.0.0
  */
 public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nullable [] targets) {
@@ -22,8 +22,8 @@ public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nulla
     private static final float SOURCE_EYE_OFFSET = 0.1F;
 
     /**
-     * The standard cast origin: one trajectory from just below the caster's eyes along the look vector, and the caster
-     * itself as the initial target.
+     * The standard cast origin: one trajectory from just below the caster's eyes along the
+     * look vector, and the caster itself as the initial target.
      *
      * @param caster the casting entity
      * @return the origin streams
@@ -33,7 +33,8 @@ public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nulla
     }
 
     /**
-     * A cast origin aimed at the vertical center of a target entity, adjusted by a vertical offset.
+     * A cast origin aimed at the vertical center of a target entity, adjusted by a vertical
+     * offset.
      *
      * @param caster the casting entity
      * @param target the entity to aim at
@@ -52,7 +53,7 @@ public record CastStreams(Trajectory @Nullable [] trajectories, HitResult @Nulla
      * A cast origin aimed at a world position.
      *
      * @param caster the casting entity
-     * @param loc the position to aim at
+     * @param loc    the position to aim at
      * @return the origin streams
      */
     public static CastStreams fromCasterToPoint(LivingEntity caster, Vec3 loc) {

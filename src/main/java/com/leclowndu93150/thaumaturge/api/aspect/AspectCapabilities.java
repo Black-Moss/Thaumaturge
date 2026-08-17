@@ -7,8 +7,8 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 /**
  * Registry-style holder for the aspect capability types.
  *
- * <p>
- * {@link #CONTAINER} is the block capability for {@link IAspectContainer}; it requires side context.
+ * <p>{@link #CONTAINER} is the block capability for {@link IAspectContainer}; it requires
+ * side context.
  *
  * @since 1.0.0
  */

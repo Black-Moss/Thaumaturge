@@ -10,10 +10,10 @@ import net.minecraft.util.StringRepresentable;
 /**
  * An enchantment applied through infusion crafting rather than the vanilla enchanting table.
  *
- * <p>
- * Each value declares the tool classes it may be applied to and the maximum level it may reach. Levels are stored per
- * stack in the {@code thaumaturge:infusion_enchantments} data component. Applicability is tested against an item's tool
- * classes, weapon status, armor slot, or {@link IRechargable} nature.
+ * <p>Each value declares the tool classes it may be applied to and the maximum level it may
+ * reach. Levels are stored per stack in the {@code thaumaturge:infusion_enchantments} data
+ * component. Applicability is tested against an item's tool classes, weapon status, armor slot,
+ * or {@link IRechargable} nature.
  *
  * @since 1.0.0
  */

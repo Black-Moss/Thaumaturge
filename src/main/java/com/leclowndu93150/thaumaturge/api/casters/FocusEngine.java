@@ -14,13 +14,14 @@ import org.jspecify.annotations.Nullable;
 /**
  * Static facade for resolving focus elements and executing spells.
  *
- * <p>
- * A spell is a {@link FocusPackage}: immutable data referencing registered {@link FocusElement} behaviors.
- * {@link #cast(LivingEntity, FocusPackage)} starts a spell from its caster;
- * {@link #run(Level, FocusPackage, CastStreams)} resumes one from an intermediary such as a projectile, cloud, or mine.
+ * <p>A spell is a {@link FocusPackage}: immutable data referencing registered
+ * {@link FocusElement} behaviors. {@link #cast(LivingEntity, FocusPackage)} starts a spell
+ * from its caster; {@link #run(Level, FocusPackage, CastStreams)} resumes one from an
+ * intermediary such as a projectile, cloud, or mine.
  *
- * @apiNote {@link #bindRegistry(Registry)} is called exactly once by the mod during init. Addons never call it; they
- *          register {@link FocusElementType} values into the registry instead.
+ * @apiNote {@link #bindRegistry(Registry)} is called exactly once by the mod during init.
+ *          Addons never call it; they register {@link FocusElementType} values into the
+ *          registry instead.
  * @since 1.0.0
  */
 public final class FocusEngine {
@@ -73,7 +74,8 @@ public final class FocusEngine {
      * The icon tint registered for a focus element.
      *
      * @param key the element id
-     * @return the packed {@code 0xRRGGBB} color, or white when no element is registered under {@code key}
+     * @return the packed {@code 0xRRGGBB} color, or white when no element is registered
+     *         under {@code key}
      */
     public static int color(Identifier key) {
         FocusElementType type = registry().getValue(key);
@@ -84,18 +86,18 @@ public final class FocusEngine {
      * Casts a spell from its caster's eyes along the look vector.
      *
      * @param caster the casting entity
-     * @param pack the spell to cast
+     * @param pack   the spell to cast
      */
     public static void cast(LivingEntity caster, FocusPackage pack) {
         cast(caster, pack, CastStreams.fromCaster(caster));
     }
 
     /**
-     * Casts a spell with an explicit origin: fires {@link FocusEffect#onCast(LivingEntity)} on every effect, then executes
-     * the spell against the origin streams.
+     * Casts a spell with an explicit origin: fires {@link FocusEffect#onCast(LivingEntity)}
+     * on every effect, then executes the spell against the origin streams.
      *
      * @param caster the casting entity
-     * @param pack the spell to cast
+     * @param pack   the spell to cast
      * @param origin the initial streams
      */
     public static void cast(LivingEntity caster, FocusPackage pack, CastStreams origin) {
@@ -108,10 +110,11 @@ public final class FocusEngine {
     }
 
     /**
-     * Resumes a spell from an intermediary. The caster resolves lazily from the package's caster id.
+     * Resumes a spell from an intermediary. The caster resolves lazily from the package's
+     * caster id.
      *
-     * @param level the level the spell executes in
-     * @param pack the spell remainder to execute
+     * @param level   the level the spell executes in
+     * @param pack    the spell remainder to execute
      * @param streams the streams supplied to the first node
      */
     public static void run(Level level, FocusPackage pack, CastStreams streams) {
@@ -121,9 +124,9 @@ public final class FocusEngine {
     /**
      * Resumes a spell from an intermediary with an already-resolved caster.
      *
-     * @param level the level the spell executes in
-     * @param pack the spell remainder to execute
-     * @param caster the casting entity, or null to resolve from the package's caster id
+     * @param level   the level the spell executes in
+     * @param pack    the spell remainder to execute
+     * @param caster  the casting entity, or null to resolve from the package's caster id
      * @param streams the streams supplied to the first node
      */
     public static void run(Level level, FocusPackage pack, @Nullable LivingEntity caster, CastStreams streams) {
@@ -133,10 +136,10 @@ public final class FocusEngine {
     /**
      * Resumes a spell from raw trajectory and target arrays.
      *
-     * @param level the level the spell executes in
-     * @param pack the spell remainder to execute
+     * @param level        the level the spell executes in
+     * @param pack         the spell remainder to execute
      * @param trajectories the trajectories supplied to the first node, or null
-     * @param targets the targets supplied to the first node, or null
+     * @param targets      the targets supplied to the first node, or null
      */
     public static void run(Level level, FocusPackage pack, Trajectory @Nullable [] trajectories, HitResult @Nullable [] targets) {
         run(level, pack, null, new CastStreams(trajectories, targets));
@@ -153,7 +156,8 @@ public final class FocusEngine {
     }
 
     /**
-     * Collects the element ids of every effect in a unit list, descending into split branches.
+     * Collects the element ids of every effect in a unit list, descending into split
+     * branches.
      *
      * @param units the units to inspect
      * @return the effect ids in encounter order; empty when none

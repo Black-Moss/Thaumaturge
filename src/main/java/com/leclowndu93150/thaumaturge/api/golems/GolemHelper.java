@@ -15,8 +15,8 @@ import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Static facade for the golem task, seal and provisioning systems. Backed by the mod at init via {@link #bind}; all
- * calls before binding throw {@link IllegalStateException}.
+ * Static facade for the golem task, seal and provisioning systems. Backed by the mod at
+ * init via {@link #bind}; all calls before binding throw {@link IllegalStateException}.
  *
  * @since 1.0.0
  */
@@ -61,7 +61,7 @@ public final class GolemHelper {
 
     /**
      * @param level the level
-     * @param pos the placement to look up
+     * @param pos   the placement to look up
      * @return the placed seal there, or null
      */
     public static @Nullable ISealEntity getSealEntity(Level level, @Nullable SealPos pos) {
@@ -72,7 +72,7 @@ public final class GolemHelper {
      * Adds a task to the level's task list. Server side only.
      *
      * @param level the level
-     * @param task the task to add
+     * @param task  the task to add
      */
     public static void addGolemTask(Level level, Task task) {
         impl().addGolemTask(level, task);
@@ -142,7 +142,7 @@ public final class GolemHelper {
     /**
      * Enumerates positions inside a seal's working area.
      *
-     * @param seal the placed seal
+     * @param seal  the placed seal
      * @param count the enumeration index
      * @return the position for that index
      */

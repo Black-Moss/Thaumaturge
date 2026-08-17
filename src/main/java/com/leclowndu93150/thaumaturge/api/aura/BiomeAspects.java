@@ -6,8 +6,9 @@ import java.util.List;
 import net.minecraft.resources.ResourceKey;
 
 /**
- * Data map value listing the aspects associated with a biome. Worldgen uses it to bias vis crystal cluster types toward
- * the biome's character; other systems may sample it for biome-flavoured effects.
+ * Data map value listing the aspects associated with a biome. Worldgen uses it to bias vis crystal
+ * cluster types toward the biome's character; other systems may sample it for biome-flavoured
+ * effects.
  *
  * @param aspects the candidate aspects for the biome; never empty
  * @since 1.0.0

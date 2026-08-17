@@ -9,9 +9,9 @@ import net.minecraft.resources.RegistryFixedCodec;
 /**
  * A knowledge gain attached to a research stage or completion reward.
  *
- * <p>
- * {@code category} resolves through the {@link IResearchCategory#REGISTRY_KEY} datapack registry; the holder may be a
- * direct reference or, for global knowledge, the synthetic global category placed by the bootstrap.
+ * <p>{@code category} resolves through the {@link IResearchCategory#REGISTRY_KEY} datapack
+ * registry; the holder may be a direct reference or, for global knowledge, the synthetic global
+ * category placed by the bootstrap.
  *
  * @param type the knowledge type
  * @param category the target category

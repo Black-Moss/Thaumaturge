@@ -20,12 +20,12 @@ public final class GolemAddon extends GolemPart {
     private final IAddonFunction function;
 
     /**
-     * @param research research entries gating this addon; empty means ungated
-     * @param icon the icon drawn in the golem press
-     * @param model the model rendered for this addon, or null when it has no visual
+     * @param research   research entries gating this addon; empty means ungated
+     * @param icon       the icon drawn in the golem press
+     * @param model      the model rendered for this addon, or null when it has no visual
      * @param components the crafting components consumed
-     * @param function the behavior ticked for this addon, or null when it has none
-     * @param traits traits granted by this addon
+     * @param function   the behavior ticked for this addon, or null when it has none
+     * @param traits     traits granted by this addon
      */
     public GolemAddon(List<Identifier> research, Identifier icon, @Nullable GolemPartModel model, List<GolemComponent> components, @Nullable IAddonFunction function, List<Holder<GolemTrait>> traits) {
         super(research, icon, components, traits, model);

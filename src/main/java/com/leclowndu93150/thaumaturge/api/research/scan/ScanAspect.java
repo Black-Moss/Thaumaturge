@@ -13,9 +13,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Scannable subject matching anything whose aspect composition contains a given aspect. Used to let players discover
- * each aspect by scanning something that carries it. A successful scan also awards a point of observation knowledge to
- * the basics, auromancy, and alchemy categories.
+ * Scannable subject matching anything whose aspect composition contains a given aspect. Used to
+ * let players discover each aspect by scanning something that carries it. A successful scan also
+ * awards a point of observation knowledge to the basics, auromancy, and alchemy categories.
  *
  * @since 1.0.0
  */

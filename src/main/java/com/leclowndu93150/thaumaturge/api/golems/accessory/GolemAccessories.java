@@ -8,11 +8,10 @@ import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Registry of {@link GolemAccessory} definitions. Accessories register during mod construction or common setup and are
- * looked up by id when golems load or render.
+ * Registry of {@link GolemAccessory} definitions. Accessories register during mod
+ * construction or common setup and are looked up by id when golems load or render.
  *
- * <p>
- * Registration is not thread safe; register from a single mod initialization path.
+ * <p>Registration is not thread safe; register from a single mod initialization path.
  *
  * @since 1.0.0
  */

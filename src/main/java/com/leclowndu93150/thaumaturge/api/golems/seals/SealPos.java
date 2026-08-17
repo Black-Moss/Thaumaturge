@@ -10,7 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 /**
  * The placement of a seal: the block it is attached to and the face it sits on.
  *
- * @param pos the block the seal is attached to
+ * @param pos  the block the seal is attached to
  * @param face the face of that block the seal occupies
  * @since 1.0.0
  */

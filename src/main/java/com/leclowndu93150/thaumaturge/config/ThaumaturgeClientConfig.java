@@ -21,10 +21,9 @@ public final class ThaumaturgeClientConfig {
 
         DIAL_BOTTOM = builder.comment("When true, the caster vis dial renders at the bottom left of the screen instead of the top left.").define("hud.dial_bottom", false);
 
-        /*
-         * HIDE_RECIPES_IF_MISSING_RESEARCH = builder .comment("Hide recipes from JEI if you don't have the research for it")
-         * .define("jei.hide_recipes_without_research", false);
-         */
+        /*HIDE_RECIPES_IF_MISSING_RESEARCH = builder
+        .comment("Hide recipes from JEI if you don't have the research for it")
+        .define("jei.hide_recipes_without_research", false);*/
 
         SPEC = builder.build();
     }
@@ -43,7 +42,7 @@ public final class ThaumaturgeClientConfig {
         return DIAL_BOTTOM.get();
     }
 
-    /*
-     * public static boolean hideRecipesIfMissingResearch(){ return HIDE_RECIPES_IF_MISSING_RESEARCH.get(); }
-     */
+    /*public static boolean hideRecipesIfMissingResearch(){
+        return HIDE_RECIPES_IF_MISSING_RESEARCH.get();
+    }*/
 }

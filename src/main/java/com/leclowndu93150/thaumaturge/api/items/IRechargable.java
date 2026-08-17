@@ -6,10 +6,9 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Marks an item that stores a vis charge and can be recharged from the aura.
  *
- * <p>
- * Charge is persisted on the stack through the {@code thaumaturge:charge} data component and manipulated through
- * {@link RechargeAccess}. Implementations declare their capacity and whether a charge indicator is shown while the item
- * is held.
+ * <p>Charge is persisted on the stack through the {@code thaumaturge:charge} data component and
+ * manipulated through {@link RechargeAccess}. Implementations declare their capacity and whether
+ * a charge indicator is shown while the item is held.
  *
  * @since 1.0.0
  */

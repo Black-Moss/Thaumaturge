@@ -7,8 +7,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
 /**
- * An infusion altar recipe. The central pedestal holds the catalyst; the surrounding pedestals hold the components,
- * consumed one at a time while essentia drains from nearby containers.
+ * An infusion altar recipe. The central pedestal holds the catalyst; the
+ * surrounding pedestals hold the components, consumed one at a time while
+ * essentia drains from nearby containers.
  *
  * @since 1.0
  */
@@ -39,11 +40,12 @@ public interface IInfusionRecipe extends ResearchGated {
     ItemStack resultItem();
 
     /**
-     * Matches the available pedestal stacks against {@link #components()}, one stack per component, order-insensitive.
+     * Matches the available pedestal stacks against {@link #components()}, one stack per
+     * component, order-insensitive.
      *
      * @param available the stacks present on the surrounding pedestals
-     * @return single-count copies of the matched stacks in component order, or {@code null} when the stacks do not satisfy
-     *         the components exactly
+     * @return single-count copies of the matched stacks in component order, or {@code null}
+     *         when the stacks do not satisfy the components exactly
      */
     default List<ItemStack> matchComponents(List<ItemStack> available) {
         if (available.size() != components().size()) {

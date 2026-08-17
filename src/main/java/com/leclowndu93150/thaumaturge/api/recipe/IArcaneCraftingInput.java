@@ -8,12 +8,11 @@ import net.minecraft.world.item.crafting.RecipeInput;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The crafting grid presented to an {@link IArcaneRecipe}, combining a vanilla {@link RecipeInput} grid with the
- * workbench state a recipe needs to price itself.
+ * The crafting grid presented to an {@link IArcaneRecipe}, combining a vanilla
+ * {@link RecipeInput} grid with the workbench state a recipe needs to price itself.
  *
- * <p>
- * Implementations are supplied by the arcane workbench; addons match against this type rather than the concrete
- * container.
+ * <p>Implementations are supplied by the arcane workbench; addons match against this type
+ * rather than the concrete container.
  *
  * @since 1.0.0
  */
@@ -42,7 +41,8 @@ public interface IArcaneCraftingInput extends RecipeInput, IArcaneWorkbench {
     int height();
 
     /**
-     * The player performing the craft, when one is known. Recipes use this to resolve research gating and vis discounts.
+     * The player performing the craft, when one is known. Recipes use this to resolve
+     * research gating and vis discounts.
      *
      * @return the crafting player, or null when the craft is not player-driven
      */

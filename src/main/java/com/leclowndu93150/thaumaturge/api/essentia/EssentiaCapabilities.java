@@ -8,12 +8,11 @@ import net.neoforged.neoforge.capabilities.ItemCapability;
 /**
  * Registry-style holder for the essentia capability types.
  *
- * <p>
- * {@link #TRANSPORT} is the sided block capability that exposes {@link IEssentiaTransport}; it accepts a nullable
- * {@link Direction} context the way vanilla item / fluid handlers do.
+ * <p>{@link #TRANSPORT} is the sided block capability that exposes {@link IEssentiaTransport};
+ * it accepts a nullable {@link Direction} context the way vanilla item / fluid handlers do.
  *
- * <p>
- * {@link #CONTAINER} is the item capability for {@link IEssentiaContainerItem}; it requires no context.
+ * <p>{@link #CONTAINER} is the item capability for {@link IEssentiaContainerItem}; it requires
+ * no context.
  *
  * @since 1.0.0
  */
