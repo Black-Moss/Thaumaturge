@@ -7,9 +7,8 @@ import net.minecraft.resources.ResourceKey;
 /**
  * Typed registry keys for the built-in research categories shipped by Thaumaturge.
  *
- * <p>
- * Addons may reference these keys to attach research entries to one of the canonical categories without depending on
- * the concrete implementation.
+ * <p>Addons may reference these keys to attach research entries to one of the canonical
+ * categories without depending on the concrete implementation.
  *
  * @since 1.0.0
  */

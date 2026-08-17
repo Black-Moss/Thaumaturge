@@ -9,18 +9,16 @@ import net.neoforged.neoforge.registries.datamaps.DataMapType;
 /**
  * Public handles for the aspect data maps that assign base aspects to items and entities.
  *
- * <p>
- * {@link #BASE_ASPECTS} maps each {@link Item} to its declared {@link AspectList}, keyed under
+ * <p>{@link #BASE_ASPECTS} maps each {@link Item} to its declared {@link AspectList}, keyed under
  * {@code thaumaturge:base_aspects}. Addons declare item aspects by shipping a data map entry file at
- * {@code data/<namespace>/data_maps/item/base_aspects.json}. Entries feed the aspect index; items with no declared
- * entry fall through to recipe-derived aspects.
+ * {@code data/<namespace>/data_maps/item/base_aspects.json}. Entries feed the aspect index; items
+ * with no declared entry fall through to recipe-derived aspects.
  *
- * <p>
- * {@link #ENTITY_ASPECTS} maps each {@link EntityType} to its {@link AspectList}, keyed under
+ * <p>{@link #ENTITY_ASPECTS} maps each {@link EntityType} to its {@link AspectList}, keyed under
  * {@code thaumaturge:entity_aspects}, consumed by the scanning system.
  *
- * <p>
- * Both maps are synced to clients. Their {@link AspectList} values serialize through {@link AspectList#CODEC}.
+ * <p>Both maps are synced to clients. Their {@link AspectList} values serialize through
+ * {@link AspectList#CODEC}.
  *
  * @since 1.0.0
  */

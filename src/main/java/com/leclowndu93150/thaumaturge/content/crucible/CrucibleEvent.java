@@ -10,7 +10,6 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 
 /**
  * Base Class for Crucible Events, used to handle events related to the Crucible block entity.
- *
  * @see CrucibleEvent.CrucibleCraftedEvent
  * @see CrucibleEvent.CrucibleDecomposeItemEvent
  */

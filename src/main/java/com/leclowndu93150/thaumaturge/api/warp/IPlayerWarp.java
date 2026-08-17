@@ -1,12 +1,13 @@
 package com.leclowndu93150.thaumaturge.api.warp;
 
 /**
- * Per-player warp state. Each pool is clamped to {@code [0, 500]} on every mutation. The counter tracks the total warp
- * held at the moment warp was last gained and drives the frequency of warp events.
+ * Per-player warp state. Each pool is clamped to {@code [0, 500]} on every mutation.
+ * The counter tracks the total warp held at the moment warp was last gained and
+ * drives the frequency of warp events.
  *
- * <p>
- * Mutations through this interface change stored state only. Use {@link WarpHelper#addWarp} to apply warp with the full
- * side effects (counter update, client notification, research triggers).
+ * <p>Mutations through this interface change stored state only. Use
+ * {@link WarpHelper#addWarp} to apply warp with the full side effects
+ * (counter update, client notification, research triggers).
  *
  * @since 1.0
  */

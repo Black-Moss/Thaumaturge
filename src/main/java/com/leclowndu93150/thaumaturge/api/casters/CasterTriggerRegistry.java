@@ -15,12 +15,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Registry of block states that react to being right-clicked with an {@link ICaster} item, such as crafting-structure
- * formation triggers. Triggers are grouped by the registering mod id and looked up by exact block state.
+ * Registry of block states that react to being right-clicked with an {@link ICaster} item,
+ * such as crafting-structure formation triggers. Triggers are grouped by the registering
+ * mod id and looked up by exact block state.
  *
- * @apiNote Registration is write-at-init: mods register their triggers during mod construction or common setup and
- *          never mutate the registry afterwards. Lookups happen from gameplay threads and rely on that discipline;
- *          there is no internal synchronization.
+ * @apiNote Registration is write-at-init: mods register their triggers during mod
+ *          construction or common setup and never mutate the registry afterwards. Lookups
+ *          happen from gameplay threads and rely on that discipline; there is no internal
+ *          synchronization.
  * @since 1.0.0
  */
 public final class CasterTriggerRegistry {
@@ -34,8 +36,8 @@ public final class CasterTriggerRegistry {
      * Registers a trigger for every block state of every block in a tag.
      *
      * @param manager the manager invoked when a matching state is caster-clicked
-     * @param event the event number handed back to the manager
-     * @param tag the block tag whose members activate the trigger
+     * @param event   the event number handed back to the manager
+     * @param tag     the block tag whose members activate the trigger
      */
     public static void registerCasterBlockTagTrigger(ICasterTriggerManager manager, int event, TagKey<Block> tag) {
         TAG_TRIGGERS.computeIfAbsent(tag, key -> new ArrayList<>()).add(new Trigger(manager, event));
@@ -45,9 +47,9 @@ public final class CasterTriggerRegistry {
      * Registers a trigger under an explicit mod id group.
      *
      * @param manager the manager invoked when the state is caster-clicked
-     * @param event the event number handed back to the manager
-     * @param state the exact block state that activates the trigger
-     * @param modid the mod id group to register under
+     * @param event   the event number handed back to the manager
+     * @param state   the exact block state that activates the trigger
+     * @param modid   the mod id group to register under
      */
     public static void registerCasterBlockTrigger(ICasterTriggerManager manager, int event, BlockState state, String modid) {
         LinkedHashMap<BlockState, List<Trigger>> group = TRIGGERS.computeIfAbsent(modid, key -> new LinkedHashMap<>());
@@ -58,8 +60,8 @@ public final class CasterTriggerRegistry {
      * Registers a trigger under the default group.
      *
      * @param manager the manager invoked when the state is caster-clicked
-     * @param event the event number handed back to the manager
-     * @param state the exact block state that activates the trigger
+     * @param event   the event number handed back to the manager
+     * @param state   the exact block state that activates the trigger
      */
     public static void registerCasterBlockTrigger(ICasterTriggerManager manager, int event, BlockState state) {
         registerCasterBlockTrigger(manager, event, state, DEFAULT);
@@ -98,14 +100,15 @@ public final class CasterTriggerRegistry {
     }
 
     /**
-     * Runs the triggers registered for a block state across every group, stopping at the first one that reports success.
+     * Runs the triggers registered for a block state across every group, stopping at the
+     * first one that reports success.
      *
-     * @param level the level the click happened in
+     * @param level       the level the click happened in
      * @param casterStack the caster stack used
-     * @param player the clicking player
-     * @param pos the clicked position
-     * @param side the clicked face
-     * @param state the clicked block state
+     * @param player      the clicking player
+     * @param pos         the clicked position
+     * @param side        the clicked face
+     * @param state       the clicked block state
      * @return true when a trigger handled the click
      */
     public static boolean performTrigger(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, BlockState state) {
@@ -128,15 +131,16 @@ public final class CasterTriggerRegistry {
     }
 
     /**
-     * Runs the triggers registered for a block state within one group, stopping at the first one that reports success.
+     * Runs the triggers registered for a block state within one group, stopping at the
+     * first one that reports success.
      *
-     * @param level the level the click happened in
+     * @param level       the level the click happened in
      * @param casterStack the caster stack used
-     * @param player the clicking player
-     * @param pos the clicked position
-     * @param side the clicked face
-     * @param state the clicked block state
-     * @param modid the mod id group to run
+     * @param player      the clicking player
+     * @param pos         the clicked position
+     * @param side        the clicked face
+     * @param state       the clicked block state
+     * @param modid       the mod id group to run
      * @return true when a trigger in the group handled the click
      */
     public static boolean performTrigger(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, BlockState state, String modid) {

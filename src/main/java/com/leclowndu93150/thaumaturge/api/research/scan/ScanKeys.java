@@ -8,8 +8,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 
 /**
- * Canonical research-key layout for knowledge gained by scanning. Scanned subjects are recorded in the player's
- * research list under stable identifiers in the {@code thaumaturge} namespace with a {@code scanned/} path prefix.
+ * Canonical research-key layout for knowledge gained by scanning. Scanned subjects are recorded in
+ * the player's research list under stable identifiers in the {@code thaumaturge} namespace with a
+ * {@code scanned/} path prefix.
  *
  * @since 1.0.0
  */
@@ -84,8 +85,8 @@ public final class ScanKeys {
     }
 
     /**
-     * The shared key path prefix of every celestial observation made on the given day. Used to expire observations from
-     * previous days.
+     * The shared key path prefix of every celestial observation made on the given day. Used to
+     * expire observations from previous days.
      *
      * @param worldDay the world day
      * @return the path prefix

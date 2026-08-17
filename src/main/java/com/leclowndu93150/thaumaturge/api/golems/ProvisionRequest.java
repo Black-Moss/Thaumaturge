@@ -11,8 +11,9 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A request for golems to deliver an item stack somewhere: to a seal, a block face or an entity. Requests live in the
- * per-level provision list and expire on a game-time timeout unless a task links to them.
+ * A request for golems to deliver an item stack somewhere: to a seal, a block face or an
+ * entity. Requests live in the per-level provision list and expire on a game-time timeout
+ * unless a task links to them.
  *
  * @since 1.0.0
  */
@@ -84,7 +85,8 @@ public final class ProvisionRequest {
     }
 
     /**
-     * Tags this request with a requester UI discriminator so identical requests from different sources do not collapse.
+     * Tags this request with a requester UI discriminator so identical requests from
+     * different sources do not collapse.
      *
      * @param ui the discriminator
      */

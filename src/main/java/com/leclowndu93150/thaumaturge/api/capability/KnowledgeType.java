@@ -9,11 +9,10 @@ import net.minecraft.util.StringRepresentable;
 /**
  * Kind of category knowledge a player may accumulate in addition to specific research entries.
  *
- * <p>
- * Each entry advances a player's raw counter for a {@link com.leclowndu93150.thaumaturge.api.research.IResearchCategory
- * category}. The raw counter is divided by {@link #progression()} to yield the visible level reported by
- * {@link IPlayerKnowledge#knowledge(KnowledgeType, net.minecraft.resources.ResourceKey)}; for example, every
- * thirty-second theory yields one level.
+ * <p>Each entry advances a player's raw counter for a {@link com.leclowndu93150.thaumaturge.api.research.IResearchCategory category}.
+ * The raw counter is divided by {@link #progression()} to yield the visible level reported by
+ * {@link IPlayerKnowledge#knowledge(KnowledgeType, net.minecraft.resources.ResourceKey)}; for
+ * example, every thirty-second theory yields one level.
  *
  * @since 1.0.0
  */

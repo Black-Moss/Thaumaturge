@@ -6,27 +6,30 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 /**
- * An item capable of storing vis, holding a focus, and casting it. Implemented by the caster's gauntlet.
+ * An item capable of storing vis, holding a focus, and casting it. Implemented by the
+ * caster's gauntlet.
  *
  * @since 1.0.0
  */
 public interface ICaster {
     /**
-     * The multiplier applied to any vis cost paid through this caster. Values below 1 are discounts.
+     * The multiplier applied to any vis cost paid through this caster. Values below 1 are
+     * discounts.
      *
-     * @param stack the caster stack
-     * @param player the player paying the cost
+     * @param stack    the caster stack
+     * @param player   the player paying the cost
      * @param crafting true when the cost is an arcane crafting cost rather than a cast
      * @return the cost multiplier, 1.0 meaning full price
      */
     float getConsumptionModifier(ItemStack stack, Player player, boolean crafting);
 
     /**
-     * Attempts to pay a vis cost from the aura around the player. The consumption modifier is applied before draining.
+     * Attempts to pay a vis cost from the aura around the player. The consumption modifier is
+     * applied before draining.
      *
-     * @param stack the caster stack
-     * @param player the player paying the cost
-     * @param amount the unmodified vis cost
+     * @param stack    the caster stack
+     * @param player   the player paying the cost
+     * @param amount   the unmodified vis cost
      * @param crafting true when paying an arcane crafting cost
      * @param simulate true to only test whether the cost could be paid
      * @return true when the full cost was (or could be) paid
@@ -50,7 +53,8 @@ public interface ICaster {
     void setFocus(ItemStack stack, ItemStack focus);
 
     /**
-     * The block state remembered by a sneak-right-click block pick, consumed by foci that place or exchange blocks.
+     * The block state remembered by a sneak-right-click block pick, consumed by foci that
+     * place or exchange blocks.
      *
      * @param stack the caster stack
      * @return the picked block state, or null when nothing is picked

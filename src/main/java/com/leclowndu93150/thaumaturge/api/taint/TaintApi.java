@@ -5,10 +5,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 /**
- * Static facade over the taint spread engine. Addons can seed, query, and drive taint without touching internals.
+ * Static facade over the taint spread engine. Addons can seed, query, and drive taint without
+ * touching internals.
  *
- * <p>
- * All mutating calls are server side; passing a client level is a no-op for queries and ignored for mutators.
+ * <p>All mutating calls are server side; passing a client level is a no-op for queries and
+ * ignored for mutators.
  *
  * @since 1.0.0
  */
@@ -18,11 +19,12 @@ public final class TaintApi {
     private TaintApi() {}
 
     /**
-     * Registers a taint seed anchor. Spread checks treat registered positions as live seeds as long as a taint seed entity
-     * is present within one block of the position; stale entries are pruned automatically during spread checks.
+     * Registers a taint seed anchor. Spread checks treat registered positions as live seeds as
+     * long as a taint seed entity is present within one block of the position; stale entries are
+     * pruned automatically during spread checks.
      *
      * @param level the level owning the seed
-     * @param pos the seed anchor position
+     * @param pos   the seed anchor position
      */
     public static void addTaintSeed(ServerLevel level, BlockPos pos) {
         bindingOrThrow().addTaintSeed(level, pos);
@@ -32,18 +34,18 @@ public final class TaintApi {
      * Removes a taint seed anchor previously registered via {@link #addTaintSeed}.
      *
      * @param level the level owning the seed
-     * @param pos the seed anchor position
+     * @param pos   the seed anchor position
      */
     public static void removeTaintSeed(ServerLevel level, BlockPos pos) {
         bindingOrThrow().removeTaintSeed(level, pos);
     }
 
     /**
-     * Returns whether the position lies within the configured spread radius of a live taint seed. A registered seed whose
-     * entity has died is pruned and reported as absent.
+     * Returns whether the position lies within the configured spread radius of a live taint
+     * seed. A registered seed whose entity has died is pruned and reported as absent.
      *
      * @param level the level to query
-     * @param pos the position to test
+     * @param pos   the position to test
      * @return {@code true} when a live seed is in range
      */
     public static boolean isNearTaintSeed(Level level, BlockPos pos) {
@@ -51,11 +53,11 @@ public final class TaintApi {
     }
 
     /**
-     * Returns whether the position lies on the outer fringe of a seed's spread zone, the ring where new taint seeds may
-     * sprout naturally.
+     * Returns whether the position lies on the outer fringe of a seed's spread zone, the ring
+     * where new taint seeds may sprout naturally.
      *
      * @param level the level to query
-     * @param pos the position to test
+     * @param pos   the position to test
      * @return {@code true} when the position is between 80% and 100% of the spread radius
      */
     public static boolean isAtTaintSeedEdge(Level level, BlockPos pos) {
@@ -63,11 +65,12 @@ public final class TaintApi {
     }
 
     /**
-     * Runs one taint spread attempt from the given position, identical to the random-tick spread performed by taint blocks.
-     * Honours the wuss-mode and spread-rate configuration unless {@code force} is set.
+     * Runs one taint spread attempt from the given position, identical to the random-tick spread
+     * performed by taint blocks. Honours the wuss-mode and spread-rate configuration unless
+     * {@code force} is set.
      *
      * @param level the level to mutate
-     * @param pos the spread origin
+     * @param pos   the spread origin
      * @param force when true, bypasses the configured rate and wuss-mode gates
      */
     public static void spreadFibres(ServerLevel level, BlockPos pos, boolean force) {
@@ -75,7 +78,8 @@ public final class TaintApi {
     }
 
     /**
-     * Binds the facade's implementation. Called once at mod init by the implementation; addons must not call this.
+     * Binds the facade's implementation. Called once at mod init by the implementation; addons
+     * must not call this.
      *
      * @param bindings the implementation
      * @throws IllegalStateException when already bound
@@ -95,8 +99,9 @@ public final class TaintApi {
     }
 
     /**
-     * Implementation hook supplied by Thaumaturge at mod init. Each method on this interface corresponds to a public static
-     * on {@link TaintApi}. Addons must not implement this interface.
+     * Implementation hook supplied by Thaumaturge at mod init. Each method on this interface
+     * corresponds to a public static on {@link TaintApi}. Addons must not implement this
+     * interface.
      *
      * @since 1.0.0
      */

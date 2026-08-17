@@ -10,20 +10,19 @@ import net.minecraft.resources.ResourceKey;
 /**
  * An aspect is one of the fundamental thaumic essences that make up the world.
  *
- * <p>
- * Aspects are loaded from datapack JSON under {@code data/<namespace>/thaumaturge/aspect/} and exposed through the
- * {@link #REGISTRY_KEY} datapack registry. Code typically references aspects by {@link ResourceKey} (see the constants
- * in {@code TCAspects}) and resolves them through a {@link net.minecraft.core.HolderLookup.Provider
- * HolderLookup.Provider} or a {@link Holder}.
+ * <p>Aspects are loaded from datapack JSON under {@code data/<namespace>/thaumaturge/aspect/}
+ * and exposed through the {@link #REGISTRY_KEY} datapack registry. Code typically references
+ * aspects by {@link ResourceKey} (see the constants in {@code TCAspects}) and resolves them
+ * through a {@link net.minecraft.core.HolderLookup.Provider HolderLookup.Provider} or a
+ * {@link Holder}.
  *
- * <p>
- * Aspects come in two kinds. A primal aspect has no components and represents one of the six base essences. A compound
- * aspect declares exactly two component aspects whose combination yields it; this drives discovery and recombination.
- * {@link #isPrimal()} reports the kind.
+ * <p>Aspects come in two kinds. A primal aspect has no components and represents one of the
+ * six base essences. A compound aspect declares exactly two component aspects whose
+ * combination yields it; this drives discovery and recombination. {@link #isPrimal()} reports
+ * the kind.
  *
- * <p>
- * Implementations are immutable value carriers. Equality semantics are defined by the implementation; addons should
- * treat aspects as values and not rely on reference identity.
+ * <p>Implementations are immutable value carriers. Equality semantics are defined by the
+ * implementation; addons should treat aspects as values and not rely on reference identity.
  *
  * @since 1.0.0
  */
@@ -39,15 +38,16 @@ public interface IAspect {
     String tag();
 
     /**
-     * The packed RGB color of this aspect, used for tinting tooltips, particles, and aspect icons.
+     * The packed RGB color of this aspect, used for tinting tooltips, particles, and aspect
+     * icons.
      *
      * @return the color as {@code 0xRRGGBB}
      */
     int color();
 
     /**
-     * The components that make up this aspect. Empty when this aspect is primal, otherwise contains exactly two component
-     * aspects whose combination produces this aspect.
+     * The components that make up this aspect. Empty when this aspect is primal, otherwise
+     * contains exactly two component aspects whose combination produces this aspect.
      *
      * @return the component aspect holders, in canonical order
      */
@@ -68,8 +68,9 @@ public interface IAspect {
     Identifier texture();
 
     /**
-     * The OpenGL blend function used when drawing this aspect's icon. Most aspects use the default additive blend; entropy
-     * and its derived aspects use one-minus-source for visual contrast.
+     * The OpenGL blend function used when drawing this aspect's icon. Most aspects use the
+     * default additive blend; entropy and its derived aspects use one-minus-source for visual
+     * contrast.
      *
      * @return the OpenGL blend function constant
      */

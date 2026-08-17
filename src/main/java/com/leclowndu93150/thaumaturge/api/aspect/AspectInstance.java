@@ -9,8 +9,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryFixedCodec;
 
 /**
- * A quantity of a specific aspect. Used as the element type of {@link AspectList} and as the shape that crosses save
- * and network boundaries.
+ * A quantity of a specific aspect. Used as the element type of {@link AspectList} and as the
+ * shape that crosses save and network boundaries.
  *
  * @param aspect the aspect, referenced by holder so the entry survives datapack reloads
  * @param amount the amount in vis units; required to be positive

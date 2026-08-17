@@ -7,8 +7,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The vigor of an aura node. Absent modifier means an average node; the modifier scales how often the node refills
- * itself and how brightly it renders.
+ * The vigor of an aura node. Absent modifier means an average node; the modifier scales how
+ * often the node refills itself and how brightly it renders.
  *
  * @since 1.0.0
  */

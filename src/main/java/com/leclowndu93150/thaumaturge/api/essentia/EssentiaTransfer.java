@@ -10,16 +10,16 @@ import org.jspecify.annotations.Nullable;
 /**
  * Batched, simulation-aware essentia movement between two {@link IEssentiaTransport} endpoints.
  *
- * <p>
- * The core flow in Thaumaturge moves a single unit per tick; addons that pipe essentia at scale need to move many units
- * at once and to size a move before committing it. These helpers do both, driving the endpoints through the
- * simulate-aware overloads on {@link IEssentiaTransport} so that accuracy matches whatever those devices report.
+ * <p>The core flow in Thaumaturge moves a single unit per tick; addons that pipe essentia at scale
+ * need to move many units at once and to size a move before committing it. These helpers do both,
+ * driving the endpoints through the simulate-aware overloads on {@link IEssentiaTransport} so that
+ * accuracy matches whatever those devices report.
  *
- * <p>
- * A transfer respects sidedness: the source must {@linkplain IEssentiaTransport#canOutputTo output} on its face and the
- * destination must {@linkplain IEssentiaTransport#canInputFrom input} on its face. The moved amount is the minimum of
- * the requested cap, what the source will release, and what the destination will accept. When {@code simulate} is true
- * nothing is committed and the return value reports how much would move.
+ * <p>A transfer respects sidedness: the source must {@linkplain IEssentiaTransport#canOutputTo
+ * output} on its face and the destination must {@linkplain IEssentiaTransport#canInputFrom input}
+ * on its face. The moved amount is the minimum of the requested cap, what the source will release,
+ * and what the destination will accept. When {@code simulate} is true nothing is committed and the
+ * return value reports how much would move.
  *
  * @since 1.0.0
  */
@@ -27,16 +27,17 @@ public final class EssentiaTransfer {
     private EssentiaTransfer() {}
 
     /**
-     * Moves up to {@code max} of {@code aspect} from {@code src} through {@code srcFace} into {@code dst} through
-     * {@code dstFace}.
+     * Moves up to {@code max} of {@code aspect} from {@code src} through {@code srcFace} into
+     * {@code dst} through {@code dstFace}.
      *
-     * @param src the source device
-     * @param srcFace the source side essentia leaves through
-     * @param dst the destination device
-     * @param dstFace the destination side essentia enters through
-     * @param aspect the aspect to move
-     * @param max the maximum amount to move; non-positive values move nothing
-     * @param simulate when true, neither device is modified and the return value is the amount that would move
+     * @param src      the source device
+     * @param srcFace  the source side essentia leaves through
+     * @param dst      the destination device
+     * @param dstFace  the destination side essentia enters through
+     * @param aspect   the aspect to move
+     * @param max      the maximum amount to move; non-positive values move nothing
+     * @param simulate when true, neither device is modified and the return value is the amount that
+     *                 would move
      * @return the amount actually moved, or that would move when simulating
      */
     public static int transfer(IEssentiaTransport src, Direction srcFace, IEssentiaTransport dst, Direction dstFace, Holder<IAspect> aspect, int max, boolean simulate) {
@@ -66,18 +67,19 @@ public final class EssentiaTransfer {
     }
 
     /**
-     * Resolves the transport capability at each position and moves up to {@code max} of {@code aspect} between them. The
-     * faces are the sides of each block that face the transfer.
+     * Resolves the transport capability at each position and moves up to {@code max} of
+     * {@code aspect} between them. The faces are the sides of each block that face the transfer.
      *
-     * @param level the level
-     * @param srcPos the source block position
-     * @param srcFace the source side essentia leaves through
-     * @param dstPos the destination block position
-     * @param dstFace the destination side essentia enters through
-     * @param aspect the aspect to move
-     * @param max the maximum amount to move
+     * @param level    the level
+     * @param srcPos   the source block position
+     * @param srcFace  the source side essentia leaves through
+     * @param dstPos   the destination block position
+     * @param dstFace  the destination side essentia enters through
+     * @param aspect   the aspect to move
+     * @param max      the maximum amount to move
      * @param simulate when true, nothing is committed
-     * @return the amount moved, or that would move when simulating; zero when either endpoint exposes no transport
+     * @return the amount moved, or that would move when simulating; zero when either endpoint
+     *         exposes no transport
      */
     public static int transfer(Level level, BlockPos srcPos, Direction srcFace, BlockPos dstPos, Direction dstFace, Holder<IAspect> aspect, int max, boolean simulate) {
         @Nullable

@@ -4,8 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 /**
- * Data-map value attached to items under {@code thaumaturge:warp}. Crafting an item carrying this value inflicts that
- * much {@link WarpType#NORMAL} warp on the crafter, and holding or wearing it contributes to gear warp.
+ * Data-map value attached to items under {@code thaumaturge:warp}. Crafting an
+ * item carrying this value inflicts that much {@link WarpType#NORMAL} warp on
+ * the crafter, and holding or wearing it contributes to gear warp.
  *
  * @param amount the warp inflicted; must be positive
  * @since 1.0

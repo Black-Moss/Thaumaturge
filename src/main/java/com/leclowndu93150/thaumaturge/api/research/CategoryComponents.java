@@ -8,8 +8,8 @@ import net.minecraft.resources.ResourceKey;
 /**
  * Helpers for resolving display text for {@link IResearchCategory research categories}.
  *
- * <p>
- * Translation keys follow the {@code research_category.<namespace>.<path>} convention used by the lang provider.
+ * <p>Translation keys follow the {@code research_category.<namespace>.<path>} convention used by
+ * the lang provider.
  *
  * @since 1.0.0
  */

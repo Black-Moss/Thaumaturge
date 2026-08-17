@@ -4,8 +4,8 @@ import java.util.function.Supplier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * One crafting component of a golem part. A component is either a fixed item stack or a placeholder resolved against
- * the golem's material at assembly time.
+ * One crafting component of a golem part. A component is either a fixed item stack or a
+ * placeholder resolved against the golem's material at assembly time.
  *
  * @since 1.0.0
  */
@@ -28,7 +28,8 @@ public final class GolemComponent {
     /**
      * Creates a component for a fixed item stack.
      *
-     * @param item supplies the stack; evaluated lazily so items may be referenced before registries are bound
+     * @param item supplies the stack; evaluated lazily so items may be referenced before
+     *             registries are bound
      * @return the component
      */
     public static GolemComponent of(Supplier<ItemStack> item) {

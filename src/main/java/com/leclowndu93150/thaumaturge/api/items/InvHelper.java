@@ -22,8 +22,9 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Inventory access and filter matching used by golem seals and provisioning. Replaces the Inventory access and filter
- * matching used by golem seals and provisioning, built on the NeoForge resource transfer API.
+ * Inventory access and filter matching used by golem seals and provisioning. Replaces the Inventory
+ * access and filter matching used by golem seals and provisioning, built on the NeoForge resource
+ * transfer API.
  *
  * @since 1.0.0
  */
@@ -31,8 +32,8 @@ public final class InvHelper {
     private InvHelper() {}
 
     /**
-     * Comparison flags for filter matching. Damage maps the legacy metadata toggle, tags replace the ore dictionary toggle
-     * and mod matches by item namespace.
+     * Comparison flags for filter matching. Damage maps the legacy metadata toggle, tags
+     * replace the ore dictionary toggle and mod matches by item namespace.
      *
      * @since 1.0.0
      */
@@ -54,7 +55,8 @@ public final class InvHelper {
         }
 
         /**
-         * Relaxes component matching: the first stack's components must be present on the second, which may carry extras.
+         * Relaxes component matching: the first stack's components must be present on the
+         * second, which may carry extras.
          *
          * @return this filter
          */
@@ -65,7 +67,8 @@ public final class InvHelper {
     }
 
     /**
-     * A filter match result: the matched stack and the size limit of the filter slot that matched, or zero when unlimited.
+     * A filter match result: the matched stack and the size limit of the filter slot that
+     * matched, or zero when unlimited.
      *
      * @since 1.0.0
      */
@@ -74,8 +77,8 @@ public final class InvHelper {
 
     /**
      * @param level the level
-     * @param pos the block to query
-     * @param side the side to access from, or null for the unsided handler
+     * @param pos   the block to query
+     * @param side  the side to access from, or null for the unsided handler
      * @return the item handler there, or null when absent
      */
     public static @Nullable ResourceHandler<ItemResource> getItemHandlerAt(Level level, BlockPos pos, @Nullable Direction side) {
@@ -235,10 +238,10 @@ public final class InvHelper {
      * Finds the first stack in a handler that passes a ghost-stack filter.
      *
      * @param filterStacks the ghost stacks
-     * @param blacklist whether matching stacks are excluded instead of required
-     * @param inv the inventory to scan
-     * @param filter the comparison flags
-     * @param leaveOne whether the last item of a kind must stay behind
+     * @param blacklist    whether matching stacks are excluded instead of required
+     * @param inv          the inventory to scan
+     * @param filter       the comparison flags
+     * @param leaveOne     whether the last item of a kind must stay behind
      * @return the first matching stack, or an empty stack
      */
     public static ItemStack findFirstMatchFromFilter(List<ItemStack> filterStacks, boolean blacklist, ResourceHandler<ItemResource> inv, InvFilter filter, boolean leaveOne) {
@@ -312,7 +315,8 @@ public final class InvHelper {
     }
 
     /**
-     * Finds the first candidate stack that passes a ghost-stack filter, with the matching slot's size limit.
+     * Finds the first candidate stack that passes a ghost-stack filter, with the matching
+     * slot's size limit.
      */
     public static FilterMatch findFirstMatchFromFilterWithSize(List<ItemStack> filterStacks, List<Integer> filterSizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
         candidates : for (ItemStack candidate : candidates) {
@@ -398,15 +402,16 @@ public final class InvHelper {
     }
 
     /**
-     * Pushes a stack into the inventory beyond the given side, spilling the remainder into the world as an item entity.
+     * Pushes a stack into the inventory beyond the given side, spilling the remainder into
+     * the world as an item entity.
      */
     public static void ejectStackAt(Level level, BlockPos pos, Direction side, ItemStack out) {
         ejectStackAt(level, pos, side, out, false);
     }
 
     /**
-     * Pushes a stack into the inventory beyond the given side. In smart mode the remainder is returned instead of spilled
-     * when an inventory exists there.
+     * Pushes a stack into the inventory beyond the given side. In smart mode the remainder
+     * is returned instead of spilled when an inventory exists there.
      *
      * @return the remainder in smart mode, otherwise an empty stack
      */
@@ -456,8 +461,8 @@ public final class InvHelper {
     public static final InvFilter BASE_TAGS = new InvFilter(false, false, true, false);
 
     /**
-     * @return whether inventories adjacent to the position, ignoring the top, together hold the stack's count of matching
-     *         items
+     * @return whether inventories adjacent to the position, ignoring the top, together hold
+     *         the stack's count of matching items
      */
     public static boolean checkAdjacentChests(Level level, BlockPos pos, ItemStack stack) {
         int needed = stack.getCount();

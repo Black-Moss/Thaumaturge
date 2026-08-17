@@ -25,12 +25,12 @@ public final class GolemArm extends GolemPart {
     private final IArmFunction function;
 
     /**
-     * @param research research entries gating these arms; empty means ungated
-     * @param icon the icon drawn in the golem press
-     * @param model the model rendered for these arms
+     * @param research   research entries gating these arms; empty means ungated
+     * @param icon       the icon drawn in the golem press
+     * @param model      the model rendered for these arms
      * @param components the crafting components consumed
-     * @param function the behavior attached to these arms, or null when they have none
-     * @param traits traits granted by these arms
+     * @param function   the behavior attached to these arms, or null when they have none
+     * @param traits     traits granted by these arms
      */
     public GolemArm(List<Identifier> research, Identifier icon, @Nullable GolemPartModel model, List<GolemComponent> components, @Nullable IArmFunction function, List<Holder<GolemTrait>> traits) {
         super(research, icon, components, traits, model);
@@ -51,7 +51,7 @@ public final class GolemArm extends GolemPart {
         /**
          * Called after the golem lands a melee hit.
          *
-         * @param golem the attacking golem
+         * @param golem  the attacking golem
          * @param target the entity that was hit
          */
         void onMeleeAttack(IGolemAPI golem, Entity target);
@@ -59,9 +59,9 @@ public final class GolemArm extends GolemPart {
         /**
          * Called when the golem performs a ranged attack.
          *
-         * @param golem the attacking golem
+         * @param golem  the attacking golem
          * @param target the attack target
-         * @param power attack charge in the range 0.1 to 1
+         * @param power  attack charge in the range 0.1 to 1
          */
         void onRangedAttack(IGolemAPI golem, LivingEntity target, float power);
 

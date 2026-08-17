@@ -7,13 +7,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 
 /**
- * A multiblock structure diagram shown on a research entry page, rendered as an exploded isometric view of the
- * structure's layers with an optional vis cost underneath.
+ * A multiblock structure diagram shown on a research entry page, rendered as an exploded
+ * isometric view of the structure's layers with an optional vis cost underneath.
  *
- * <p>
- * Cells are listed top layer first. Within a layer, cells run in x-major order matching the in-world footprint. Each
- * cell is either an item id ({@code "minecraft:glass"}), an item tag reference ({@code "#minecraft:wooden_slabs"},
- * cycled in the display), or the empty string for a position left open.
+ * <p>Cells are listed top layer first. Within a layer, cells run in x-major order matching
+ * the in-world footprint. Each cell is either an item id ({@code "minecraft:glass"}), an item
+ * tag reference ({@code "#minecraft:wooden_slabs"}, cycled in the display), or the empty
+ * string for a position left open.
  *
  * @param xSize the structure footprint along x, at least 1
  * @param ySize the structure height in layers, at least 1

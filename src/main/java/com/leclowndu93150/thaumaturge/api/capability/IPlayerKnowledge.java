@@ -7,21 +7,19 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Per-player record of completed research, in-progress stages, per-entry flags, and accumulated category knowledge.
+ * Per-player record of completed research, in-progress stages, per-entry flags, and accumulated
+ * category knowledge.
  *
- * <p>
- * The instance lives on the player as a NeoForge {@link net.neoforged.neoforge.attachment.AttachmentType data
- * attachment} and is the authoritative source for research progression. The server owns the value; clients receive a
- * copy on login, on dimension change, and whenever the server publishes a change.
+ * <p>The instance lives on the player as a NeoForge {@link net.neoforged.neoforge.attachment.AttachmentType data attachment}
+ * and is the authoritative source for research progression. The server owns the value; clients
+ * receive a copy on login, on dimension change, and whenever the server publishes a change.
  *
- * <p>
- * All mutating methods are server-side; they return {@code true} when the call produced an observable change,
- * {@code false} otherwise. Callers that mutate must invoke {@link #sync(ServerPlayer)} to publish the new state to the
- * owner.
+ * <p>All mutating methods are server-side; they return {@code true} when the call produced an
+ * observable change, {@code false} otherwise. Callers that mutate must invoke {@link #sync(ServerPlayer)}
+ * to publish the new state to the owner.
  *
- * <p>
- * Research is identified by {@link Identifier}. Stage gating uses {@link #researchStage(Identifier)} queries; see
- * {@link #isResearchKnown(Identifier, int)}.
+ * <p>Research is identified by {@link Identifier}. Stage gating uses {@link
+ * #researchStage(Identifier)} queries; see {@link #isResearchKnown(Identifier, int)}.
  *
  * @since 1.0.0
  */
@@ -81,8 +79,8 @@ public interface IPlayerKnowledge {
     boolean addResearch(Identifier research);
 
     /**
-     * Sets the current stage of the given research. Has no effect when the entry is not known or when {@code stage} is
-     * non-positive.
+     * Sets the current stage of the given research. Has no effect when the entry is not known or
+     * when {@code stage} is non-positive.
      *
      * @param research the research entry identifier
      * @param stage the new stage; must be positive
@@ -134,19 +132,20 @@ public interface IPlayerKnowledge {
 
     /**
      * Adds raw progress for the given knowledge type and category. The raw counter is scaled by
-     * {@link KnowledgeType#progression()} when read through {@link #knowledge(KnowledgeType, ResourceKey)}. Negative
-     * {@code amount} is permitted; the counter clamps at zero.
+     * {@link KnowledgeType#progression()} when read through {@link #knowledge(KnowledgeType, ResourceKey)}.
+     * Negative {@code amount} is permitted; the counter clamps at zero.
      *
      * @param type the knowledge type
-     * @param category the category key; may be the synthetic global category when {@link KnowledgeType} does not partition
-     *            by category
+     * @param category the category key; may be the synthetic global category when {@link KnowledgeType}
+     *                 does not partition by category
      * @param amount the raw amount to add, may be negative
      * @return {@code true} when the stored counter changed
      */
     boolean addKnowledge(KnowledgeType type, ResourceKey<IResearchCategory> category, int amount);
 
     /**
-     * Returns the visible level of accumulated category knowledge, computed as {@code rawKnowledge / type.progression()}.
+     * Returns the visible level of accumulated category knowledge, computed as
+     * {@code rawKnowledge / type.progression()}.
      *
      * @param type the knowledge type
      * @param category the category key
@@ -164,7 +163,8 @@ public interface IPlayerKnowledge {
     int rawKnowledge(KnowledgeType type, ResourceKey<IResearchCategory> category);
 
     /**
-     * Publishes this record to the given player. Call after any mutation that must be reflected in the client's mirror.
+     * Publishes this record to the given player. Call after any mutation that must be reflected
+     * in the client's mirror.
      *
      * @param player the player to sync; must not be null
      */

@@ -3,14 +3,13 @@ package com.leclowndu93150.thaumaturge.api.golems.accessory;
 import net.minecraft.resources.Identifier;
 
 /**
- * A wearable golem accessory applied by using its item on a golem. Accessories stack freely except within an exclusion
- * group, of which a golem may wear at most one.
+ * A wearable golem accessory applied by using its item on a golem. Accessories stack freely
+ * except within an exclusion group, of which a golem may wear at most one.
  *
- * <p>
- * Stat fields modify the wearing golem: {@code healthBonus} and {@code armorBonus} add flat points, {@code rangeFactor}
- * and {@code speedFactor} multiply sight range and movement speed, and {@code regenFactor} multiplies the self-repair
- * interval, so values below 1 heal faster. When {@code killCredit} is set, entities slain by the golem count as kills
- * by its owner.
+ * <p>Stat fields modify the wearing golem: {@code healthBonus} and {@code armorBonus} add flat
+ * points, {@code rangeFactor} and {@code speedFactor} multiply sight range and movement speed,
+ * and {@code regenFactor} multiplies the self-repair interval, so values below 1 heal faster.
+ * When {@code killCredit} is set, entities slain by the golem count as kills by its owner.
  *
  * @param id the accessory id, unique across all registered accessories
  * @param group the exclusion group, or {@link Group#NONE} for unrestricted accessories

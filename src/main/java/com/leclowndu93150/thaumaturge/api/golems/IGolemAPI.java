@@ -50,7 +50,7 @@ public interface IGolemAPI {
     ItemStack dropItem(ItemStack stack);
 
     /**
-     * @param stack the stack to test
+     * @param stack   the stack to test
      * @param partial whether carrying only part of the stack counts
      * @return whether the golem has room for the stack
      */

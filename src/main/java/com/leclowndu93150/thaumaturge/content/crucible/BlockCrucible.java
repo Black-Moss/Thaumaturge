@@ -82,7 +82,7 @@ public class BlockCrucible extends BaseEntityBlock {
                     return InteractionResult.SUCCESS;
                 }
             }
-        } else if (!player.isCrouching() /* && (!(player.getItemInHand(hand).getItem() instanceof ICaster)) */
+        } else if (!player.isCrouching() /*&& (!(player.getItemInHand(hand).getItem() instanceof ICaster))*/
                 && hitResult.getDirection() == Direction.UP) {
             ItemStack input = itemStack.copyWithCount(1);
             if (crucible.getHeat() > 150 && crucible.getTank().getAmountAsInt(0) > 0 && crucible.attemptSmelt(input, player) == null) {

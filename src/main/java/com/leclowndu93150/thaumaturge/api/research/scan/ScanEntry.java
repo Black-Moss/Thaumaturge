@@ -21,17 +21,17 @@ import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Data-driven scannable subject loaded from datapacks under {@code thaumaturge/scan}. Each entry grants one research
- * key when the scanned target matches any of its declared blocks, items, or entity types. Target sets accept direct
- * identifiers and {@code #tag} references.
+ * Data-driven scannable subject loaded from datapacks under {@code thaumaturge/scan}. Each entry
+ * grants one research key when the scanned target matches any of its declared blocks, items, or
+ * entity types. Target sets accept direct identifiers and {@code #tag} references.
  *
- * <p>
- * Blocks match both the placed block and its item form, so an entry listing a block also covers the held or dropped
- * item without a separate item declaration. Item entities match through their contained stack.
+ * <p>Blocks match both the placed block and its item form, so an entry listing a block also
+ * covers the held or dropped item without a separate item declaration. Item entities match
+ * through their contained stack.
  *
- * <p>
- * The {@link ScanningManager} evaluates every loaded entry on each scan attempt; no registration call is needed.
- * Subjects that require code (custom predicates, gating, dynamic keys) implement {@link IScanThing} instead.
+ * <p>The {@link ScanningManager} evaluates every loaded entry on each scan attempt; no
+ * registration call is needed. Subjects that require code (custom predicates, gating, dynamic
+ * keys) implement {@link IScanThing} instead.
  *
  * @param key the research key granted when the target matches
  * @param blocks blocks matched in world or as items, empty to match no blocks

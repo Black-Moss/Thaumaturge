@@ -13,9 +13,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Static accessor for detecting goggles, revealers, and vis-discount gear worn by an entity.
  *
- * <p>
- * Side-agnostic: the head slot lookup uses {@link LivingEntity#getItemBySlot(EquipmentSlot)}, which works identically
- * on client and server.
+ * <p>Side-agnostic: the head slot lookup uses {@link LivingEntity#getItemBySlot(EquipmentSlot)},
+ * which works identically on client and server.
  *
  * @since 1.0.0
  */
@@ -24,7 +23,8 @@ public final class GogglesAccess {
     private static Curios curios;
 
     /**
-     * Binds the vis discount attribute. Called by Thaumaturge during mod init; addons must not call this.
+     * Binds the vis discount attribute. Called by Thaumaturge during mod init; addons must not
+     * call this.
      *
      * @param impl supplies the vis discount attribute holder
      * @throws IllegalStateException when already bound
@@ -37,8 +37,8 @@ public final class GogglesAccess {
     }
 
     /**
-     * Binds curios slot scanning. Called by Thaumaturge when Curios is present; addons must not call this. When never
-     * bound, only vanilla equipment slots are considered.
+     * Binds curios slot scanning. Called by Thaumaturge when Curios is present; addons must
+     * not call this. When never bound, only vanilla equipment slots are considered.
      *
      * @param impl the curios hook
      */
@@ -67,7 +67,8 @@ public final class GogglesAccess {
     private GogglesAccess() {}
 
     /**
-     * Returns whether the entity wears a head-slot stack implementing {@link IGoggles} with popups enabled.
+     * Returns whether the entity wears a head-slot stack implementing {@link IGoggles} with
+     * popups enabled.
      *
      * @param entity the entity to query; null returns {@code false}
      * @return {@code true} when the wearer should see in-game popups and HUD overlays
@@ -90,8 +91,9 @@ public final class GogglesAccess {
     }
 
     /**
-     * Returns whether the entity wears a stack implementing {@link IRevealer} that reveals aura nodes. Held revealers do
-     * not count; the gear must occupy the head slot or an equipped curio slot.
+     * Returns whether the entity wears a stack implementing {@link IRevealer} that reveals
+     * aura nodes. Held revealers do not count; the gear must occupy the head slot or an
+     * equipped curio slot.
      *
      * @param entity the entity to query; null returns {@code false}
      * @return {@code true} when nodes should be revealed for the entity
@@ -111,9 +113,8 @@ public final class GogglesAccess {
     }
 
     /**
-     * Sums the vis discount percentages contributed by ever held/worn item that has a modifier for the attribute the vis
-     * discount attribute by the player. Each piece implementing {@link IVisDiscountGear} automatically obtain an attribute
-     * modifier for the the vis discount attribute attribute.
+     * Sums the vis discount percentages contributed by ever held/worn item that has a modifier for the attribute the vis discount attribute by the player.
+     * Each piece implementing {@link IVisDiscountGear} automatically obtain an attribute modifier for the the vis discount attribute attribute.
      *
      * @param player the player to query; null returns zero
      * @return the total discount in whole percent units, never negative

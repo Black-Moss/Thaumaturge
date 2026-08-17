@@ -6,8 +6,8 @@ import java.util.List;
 import net.minecraft.resources.Identifier;
 
 /**
- * An extra page attached to a research entry that only becomes visible once the entry itself is complete and every
- * research listed in {@link #requiredResearch()} is complete.
+ * An extra page attached to a research entry that only becomes visible once the entry itself is
+ * complete and every research listed in {@link #requiredResearch()} is complete.
  *
  * @param textKey translation key for the page body text
  * @param recipes recipe identifiers displayed on the page

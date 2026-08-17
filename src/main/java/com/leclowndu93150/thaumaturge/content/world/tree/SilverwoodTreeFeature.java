@@ -62,10 +62,10 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
             }
         }
 
-        /*
-         * BlockState soil = level.getBlockState(new BlockPos(x, y - 1, z)); if (!soil.is(BlockTags.DIRT) &&
-         * !soil.is(Blocks.FARMLAND)) { return false; }
-         */
+        /*BlockState soil = level.getBlockState(new BlockPos(x, y - 1, z));
+        if (!soil.is(BlockTags.DIRT) && !soil.is(Blocks.FARMLAND)) {
+            return false;
+        }*/
 
         Set<BlockPos> placedLogs = new HashSet<>();
         Set<BlockPos> placedLeaves = new HashSet<>();

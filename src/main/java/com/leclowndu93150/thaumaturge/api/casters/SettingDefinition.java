@@ -6,15 +6,16 @@ import net.minecraft.util.Mth;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The schema of one configurable knob on a focus element, such as projectile speed or effect potency. Definitions
- * describe the selectable values; the chosen value itself is an integer stored in {@link FocusUnit#settings()}.
+ * The schema of one configurable knob on a focus element, such as projectile speed or
+ * effect potency. Definitions describe the selectable values; the chosen value itself is an
+ * integer stored in {@link FocusUnit#settings()}.
  *
- * <p>
- * The schema lives on the element; values live in the spell data, and nothing is shared between casts and screens.
+ * <p>The schema lives on the element; values live in the spell data, and nothing is shared between
+ * casts and screens.
  *
- * @param key the setting id, unique within its element
- * @param nameKey the translation key for the setting's display name
- * @param values the selectable value model
+ * @param key      the setting id, unique within its element
+ * @param nameKey  the translation key for the setting's display name
+ * @param values   the selectable value model
  * @param research the research required to change this setting, or null when ungated
  * @since 1.0.0
  */
@@ -22,9 +23,9 @@ public record SettingDefinition(String key, String nameKey, Values values, @Null
     /**
      * Creates an ungated definition.
      *
-     * @param key the setting id, unique within its element
+     * @param key     the setting id, unique within its element
      * @param nameKey the translation key for the setting's display name
-     * @param values the selectable value model
+     * @param values  the selectable value model
      */
     public SettingDefinition(String key, String nameKey, Values values) {
         this(key, nameKey, values, null);
@@ -40,7 +41,8 @@ public record SettingDefinition(String key, String nameKey, Values values, @Null
     }
 
     /**
-     * The ordered set of values a setting can take. Values are addressed by index so screens can step through them.
+     * The ordered set of values a setting can take. Values are addressed by index so screens
+     * can step through them.
      *
      * @since 1.0.0
      */
@@ -109,10 +111,11 @@ public record SettingDefinition(String key, String nameKey, Values values, @Null
     }
 
     /**
-     * A fixed list of values, each with its own translation key for display; the first value is the default.
+     * A fixed list of values, each with its own translation key for display; the first value
+     * is the default.
      *
      * @param entries the selectable values in display order
-     * @param labels one translation key per value, same length and order as {@code entries}
+     * @param labels  one translation key per value, same length and order as {@code entries}
      * @since 1.0.0
      */
     public record IntList(int[] entries, String[] labels) implements Values {

@@ -10,13 +10,13 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Static facade producing constructed {@link DamageSource} instances for the Thaumaturge damage types. Behavior (armor
- * bypass, magic flag, etc.) follows the tag wiring under {@code data/thaumaturge/tags/damage_type/} which is consumed
- * by vanilla at attack resolution time.
+ * Static facade producing constructed {@link DamageSource} instances for the Thaumaturge damage
+ * types. Behavior (armor bypass, magic flag, etc.) follows the tag wiring under
+ * {@code data/thaumaturge/tags/damage_type/} which is consumed by vanilla at attack resolution
+ * time.
  *
- * <p>
- * All factories are safe to call on either side; they read the damage-type registry off the level's registry access and
- * never touch chunk state.
+ * <p>All factories are safe to call on either side; they read the damage-type registry off the
+ * level's registry access and never touch chunk state.
  *
  * @since 1.0.0
  */
@@ -24,7 +24,8 @@ public final class TCDamageSources {
     private TCDamageSources() {}
 
     /**
-     * Produces a {@link DamageSource} for raw taint damage. Bypasses armor and shields; ignored by witches.
+     * Produces a {@link DamageSource} for raw taint damage. Bypasses armor and shields; ignored
+     * by witches.
      */
     public static DamageSource taint(Level level) {
         return source(level, TCDamageTypes.TAINT);
@@ -52,8 +53,8 @@ public final class TCDamageSources {
     }
 
     /**
-     * Produces a {@link DamageSource} for the fire focus effect: fire-typed indirect projectile damage attributed to the
-     * caster.
+     * Produces a {@link DamageSource} for the fire focus effect: fire-typed indirect projectile
+     * damage attributed to the caster.
      */
     public static DamageSource focusFire(Level level, @Nullable Entity direct, @Nullable Entity caster) {
         return new DamageSource(holder(level, TCDamageTypes.FOCUS_FIRE), direct, caster);

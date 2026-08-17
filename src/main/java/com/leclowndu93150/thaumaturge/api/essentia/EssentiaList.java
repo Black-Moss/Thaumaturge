@@ -6,12 +6,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * Persisted essentia payload, a thin wrapper around {@link AspectList} that carries the same (aspect, amount) entries
- * but lives in its own type so {@code DataComponentType} registrations separate raw aspect tagging from stored
- * essentia.
+ * Persisted essentia payload, a thin wrapper around {@link AspectList} that carries the same
+ * (aspect, amount) entries but lives in its own type so {@code DataComponentType} registrations
+ * separate raw aspect tagging from stored essentia.
  *
- * <p>
- * The codecs delegate to {@link AspectList#CODEC} and {@link AspectList#STREAM_CODEC}; the wire shape is identical.
+ * <p>The codecs delegate to {@link AspectList#CODEC} and {@link AspectList#STREAM_CODEC}; the
+ * wire shape is identical.
  *
  * @param contents the aspect quantities stored, never {@code null}
  * @since 1.0.0

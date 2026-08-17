@@ -11,12 +11,13 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ExtraCodecs;
 
 /**
- * Immutable per-aspect vis storage held by a wand as a data component. Amounts are in centivis: one hundred centivis
- * equal one vis unit. Aspects are keyed by {@link ResourceKey} so the record stays valid across datapack reloads.
+ * Immutable per-aspect vis storage held by a wand as a data component. Amounts are in centivis:
+ * one hundred centivis equal one vis unit. Aspects are keyed by {@link ResourceKey} so the record
+ * stays valid across datapack reloads.
  *
- * <p>
- * All mutators return a new instance. Use {@link #CODEC} for persistence and {@link #STREAM_CODEC} for network sync.
- * Read access from an item stack is exposed through {@link WandAccess}.
+ * <p>All mutators return a new instance. Use {@link #CODEC} for persistence and
+ * {@link #STREAM_CODEC} for network sync. Read access from an item stack is exposed through
+ * {@link WandAccess}.
  *
  * @param centivis the per-aspect centivis amounts; copied defensively on construction
  * @since 1.0.0

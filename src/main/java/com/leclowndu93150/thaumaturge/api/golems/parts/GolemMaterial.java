@@ -10,8 +10,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A material a golem can be assembled from. Materials contribute health, armor and melee damage, the golem's body
- * texture, and the base and mechanism items consumed when parts declare material placeholders.
+ * A material a golem can be assembled from. Materials contribute health, armor and melee
+ * damage, the golem's body texture, and the base and mechanism items consumed when parts
+ * declare material placeholders.
  *
  * @since 1.0.0
  */
@@ -30,15 +31,16 @@ public final class GolemMaterial {
     private final List<Holder<GolemTrait>> traits;
 
     /**
-     * @param research research entries gating this material in the golem press; empty means always available
-     * @param texture the body texture rendered on golems of this material
-     * @param itemColor the {@code 0xRRGGBB} tint applied to golem placer items
-     * @param healthMod health added to the golem's base of 10
-     * @param armor the golem's armor rating
-     * @param damage the golem's base melee damage when it can fight
-     * @param componentBase supplies the material's base crafting item
+     * @param research           research entries gating this material in the golem press;
+     *                           empty means always available
+     * @param texture            the body texture rendered on golems of this material
+     * @param itemColor          the {@code 0xRRGGBB} tint applied to golem placer items
+     * @param healthMod          health added to the golem's base of 10
+     * @param armor              the golem's armor rating
+     * @param damage             the golem's base melee damage when it can fight
+     * @param componentBase      supplies the material's base crafting item
      * @param componentMechanism supplies the material's mechanism crafting item
-     * @param traits traits granted by the material
+     * @param traits             traits granted by the material
      */
     public GolemMaterial(List<Identifier> research, Identifier texture, int itemColor, int healthMod, int armor, int damage, Supplier<ItemStack> componentBase, Supplier<ItemStack> componentMechanism, List<Holder<GolemTrait>> traits) {
         this.research = List.copyOf(research);

@@ -8,8 +8,9 @@ import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Scannable subject matching one of a set of blocks in the world. Each block's item form is automatically registered as
- * a companion {@link ScanItem} so the held or dropped item grants the same key.
+ * Scannable subject matching one of a set of blocks in the world. Each block's item form is
+ * automatically registered as a companion {@link ScanItem} so the held or dropped item grants
+ * the same key.
  *
  * @since 1.0.0
  */

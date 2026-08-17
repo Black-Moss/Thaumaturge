@@ -56,9 +56,8 @@ import org.jspecify.annotations.Nullable;
 public final class ThaumaturgeJEIPlugin implements IModPlugin {
     private static final Identifier PLUGIN_UID = Identifier.fromNamespaceAndPath(TCIds.MODID, "jei_plugin");
 
-    /*
-     * public static Map<IRecipeType<?>,List<RecipeHolder<?>>> searchAffectedRecipes; public static IJeiRuntime runtime;
-     */
+    /*public static Map<IRecipeType<?>,List<RecipeHolder<?>>> searchAffectedRecipes;
+    public static IJeiRuntime runtime;*/
 
     public ThaumaturgeJEIPlugin() {}
 
@@ -183,20 +182,24 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         AspectJeiSync.onRuntimeAvailable(jeiRuntime);
     }
 
-    /*
-     * @Override public void onRuntimeAvailable(IJeiRuntime jeiRuntime) { runtime = jeiRuntime; if
-     * (ThaumaturgeClientConfig.hideRecipesIfMissingResearch()) hideUnresearchedRecipes(jeiRuntime); }
-     *
-     * private <I extends RecipeInput, R extends Recipe<I> & ResearchGated> void hideUnresearchedRecipes(IJeiRuntime
-     * runtime){ searchAffectedRecipes = new HashMap<>(); for (RecipeType<@NonNull R> type : new
-     * RecipeType[]{TCRecipeTypes.DUST_TRIGGER.get(),TCRecipeTypes.CRUCIBLE.get()}) { RecipeMap recipes =
-     * TCClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, type); List<RecipeHolder<@NonNull R>> holders =
-     * List.copyOf(recipes.byType(type)); Identifier uid = BuiltInRegistries.RECIPE_TYPE.getKey(type);
-     * List<RecipeHolder<@NonNull R>> hided =
-     * holders.stream().filter(r->!r.value().doesPassGate(Minecraft.getInstance().player)).toList();
-     * IRecipeHolderType<@NonNull R> jeiType = (IRecipeHolderType<R>) runtime.getRecipeManager().getRecipeType(uid).get();
-     * runtime.getRecipeManager().hideRecipes(jeiType,hided); searchAffectedRecipes.put(jeiType,List.copyOf(holders)); } }
-     */
+    /*  @Override
+    public  void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        runtime = jeiRuntime;
+        if (ThaumaturgeClientConfig.hideRecipesIfMissingResearch()) hideUnresearchedRecipes(jeiRuntime);
+    }
+
+    private <I extends RecipeInput, R extends Recipe<I> & ResearchGated> void hideUnresearchedRecipes(IJeiRuntime runtime){
+        searchAffectedRecipes = new HashMap<>();
+        for (RecipeType<@NonNull R> type : new RecipeType[]{TCRecipeTypes.DUST_TRIGGER.get(),TCRecipeTypes.CRUCIBLE.get()}) {
+            RecipeMap recipes = TCClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, type);
+            List<RecipeHolder<@NonNull R>> holders = List.copyOf(recipes.byType(type));
+            Identifier uid = BuiltInRegistries.RECIPE_TYPE.getKey(type);
+            List<RecipeHolder<@NonNull R>> hided = holders.stream().filter(r->!r.value().doesPassGate(Minecraft.getInstance().player)).toList();
+            IRecipeHolderType<@NonNull R> jeiType = (IRecipeHolderType<R>) runtime.getRecipeManager().getRecipeType(uid).get();
+            runtime.getRecipeManager().hideRecipes(jeiType,hided);
+            searchAffectedRecipes.put(jeiType,List.copyOf(holders));
+        }
+    }*/
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
