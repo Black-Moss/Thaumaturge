@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumaturge.client.network.StreamEffectClientHandler;
 import com.leclowndu93150.thaumaturge.client.network.TubeEventClientHandler;
 import com.leclowndu93150.thaumaturge.client.network.WispZapClientHandler;
 import com.leclowndu93150.thaumaturge.client.screen.ThaumatoriumClientHandler;
+import com.leclowndu93150.thaumaturge.client.warding.WardClientHandler;
 import com.leclowndu93150.thaumaturge.client.warp.WarpFXClientHandler;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundBoreDigPayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundFocusImpactPayload;
@@ -189,5 +190,13 @@ public final class TCPayloads {
                 ServerboundRequestSyncAspectPoolPayload.TYPE,
                 ServerboundRequestSyncAspectPoolPayload.STREAM_CODEC,
                 ServerboundRequestSyncAspectPoolPayload::handle);
+        registrar.playToClient(
+                ClientboundWardChunkPayload.TYPE,
+                ClientboundWardChunkPayload.STREAM_CODEC,
+                (payload, context) -> WardClientHandler.handleChunk(payload, context));
+        registrar.playToClient(
+                ClientboundWardUpdatePayload.TYPE,
+                ClientboundWardUpdatePayload.STREAM_CODEC,
+                (payload, context) -> WardClientHandler.handleUpdate(payload, context));
     }
 }

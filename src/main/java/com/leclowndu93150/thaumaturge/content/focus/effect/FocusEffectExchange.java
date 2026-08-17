@@ -119,7 +119,7 @@ public final class FocusEffectExchange implements FocusEffect, IFocusBlockPicker
     public void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
         float shade = 0.25F + level.getRandom().nextFloat() * 0.25F;
         ShieldSparkParticleOptions data =
-                new ShieldSparkParticleOptions(ARGB.colorFromFloat(1.0F, shade, shade, shade), 0.6F, 0.5F, 9, true);
+                new ShieldSparkParticleOptions(ARGB.colorFromFloat(1.0F, shade, shade, shade), 0.6F, 0.5F, 9, 0, true);
         level.addParticle(data, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0);
     }
 
