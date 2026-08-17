@@ -18,8 +18,8 @@ public class ScanItem implements IScanThing {
     private final Item item;
 
     /**
-     * Creates the subject. Holds the {@link Item} rather than a stack so instances can be
-     * created before item components are bound.
+     * Creates the subject. Holds the {@link Item} rather than a stack so instances can be created before item components
+     * are bound.
      *
      * @param research the research key granted on scan
      * @param item the item this subject matches

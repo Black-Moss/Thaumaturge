@@ -12,9 +12,10 @@ import net.minecraft.world.level.Level;
 /**
  * Static accessor for reading and writing the vis charge stored on {@link IRechargable} stacks.
  *
- * <p>Charge is held in the {@code thaumaturge:charge} data component. All mutators operate on the
- * given stack in place. Draining from the aura is server-authoritative and routes through
- * {@link AuraHelper}; call the world-aware recharge methods only on the logical server.
+ * <p>
+ * Charge is held in the {@code thaumaturge:charge} data component. All mutators operate on the given stack in place.
+ * Draining from the aura is server-authoritative and routes through {@link AuraHelper}; call the world-aware recharge
+ * methods only on the logical server.
  *
  * @since 1.0.0
  */
@@ -22,8 +23,7 @@ public final class RechargeAccess {
     private static Supplier<DataComponentType<Integer>> chargeBinding;
 
     /**
-     * Binds the charge component type. Called by Thaumaturge during mod init; addons must not
-     * call this.
+     * Binds the charge component type. Called by Thaumaturge during mod init; addons must not call this.
      *
      * @param impl supplies the {@code thaumaturge:charge} component type
      * @throws IllegalStateException when already bound
@@ -47,8 +47,9 @@ public final class RechargeAccess {
     /**
      * Recharges a stack by draining vis from the aura at a position.
      *
-     * <p>No charge is transferred when the holder is in an aura-preserving state, when the stack
-     * is already full, or when the aura has no vis to give.
+     * <p>
+     * No charge is transferred when the holder is in an aura-preserving state, when the stack is already full, or when the
+     * aura has no vis to give.
      *
      * @param level the world to drain from
      * @param stack the stack to recharge

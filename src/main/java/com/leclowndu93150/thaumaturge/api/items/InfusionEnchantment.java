@@ -10,10 +10,10 @@ import net.minecraft.util.StringRepresentable;
 /**
  * An enchantment applied through infusion crafting rather than the vanilla enchanting table.
  *
- * <p>Each value declares the tool classes it may be applied to and the maximum level it may
- * reach. Levels are stored per stack in the {@code thaumaturge:infusion_enchantments} data
- * component. Applicability is tested against an item's tool classes, weapon status, armor slot,
- * or {@link IRechargable} nature.
+ * <p>
+ * Each value declares the tool classes it may be applied to and the maximum level it may reach. Levels are stored per
+ * stack in the {@code thaumaturge:infusion_enchantments} data component. Applicability is tested against an item's tool
+ * classes, weapon status, armor slot, or {@link IRechargable} nature.
  *
  * @since 1.0.0
  */
@@ -49,8 +49,7 @@ public enum InfusionEnchantment implements StringRepresentable {
     public static final Codec<InfusionEnchantment> CODEC = StringRepresentable.fromEnum(InfusionEnchantment::values);
 
     /** Network codec for payload and component sync. */
-    public static final StreamCodec<ByteBuf, InfusionEnchantment> STREAM_CODEC =
-            ByteBufCodecs.idMapper(i -> values()[i], InfusionEnchantment::ordinal);
+    public static final StreamCodec<ByteBuf, InfusionEnchantment> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], InfusionEnchantment::ordinal);
 
     private final String name;
     private final Set<String> toolClasses;

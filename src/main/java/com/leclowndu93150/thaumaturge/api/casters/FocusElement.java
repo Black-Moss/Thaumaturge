@@ -9,13 +9,13 @@ import net.minecraft.resources.ResourceKey;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The behavior and metadata of one kind of spell node. Implementations are stateless
- * singletons registered through {@link FocusElementType}; per-spell configuration arrives as
- * {@link FocusSettings} and per-cast state as {@link CastContext}.
+ * The behavior and metadata of one kind of spell node. Implementations are stateless singletons registered through
+ * {@link FocusElementType}; per-spell configuration arrives as {@link FocusSettings} and per-cast state as
+ * {@link CastContext}.
  *
- * <p>Every element is one of four kinds, dispatched exhaustively by the engine:
- * {@link FocusMedium} delivers, {@link FocusEffect} applies, {@link FocusMod} transforms,
- * {@link FocusSplit} forks.
+ * <p>
+ * Every element is one of four kinds, dispatched exhaustively by the engine: {@link FocusMedium} delivers,
+ * {@link FocusEffect} applies, {@link FocusMod} transforms, {@link FocusSplit} forks.
  *
  * @since 1.0.0
  */
@@ -30,8 +30,7 @@ public sealed interface FocusElement permits FocusMedium, FocusEffect, FocusMod,
     Set<SupplyType> SUPPLIES_BOTH = Set.of(SupplyType.TARGET, SupplyType.TRAJECTORY);
 
     /**
-     * The registry id of this element. Must match the id under which the element's
-     * {@link FocusElementType} is registered.
+     * The registry id of this element. Must match the id under which the element's {@link FocusElementType} is registered.
      *
      * @return the element id, e.g. {@code thaumaturge:fire}
      */
@@ -55,8 +54,7 @@ public sealed interface FocusElement permits FocusMedium, FocusEffect, FocusMod,
     }
 
     /**
-     * The aspect associated with this element, shown and charged as a crystal in the focal
-     * manipulator.
+     * The aspect associated with this element, shown and charged as a crystal in the focal manipulator.
      *
      * @return the aspect key, or null when the element has none
      */
@@ -93,8 +91,8 @@ public sealed interface FocusElement permits FocusMedium, FocusEffect, FocusMod,
     }
 
     /**
-     * What the previous node must supply for this element to function. An empty set means
-     * the element cannot be attached below another node.
+     * What the previous node must supply for this element to function. An empty set means the element cannot be attached
+     * below another node.
      *
      * @return the required supply types
      */

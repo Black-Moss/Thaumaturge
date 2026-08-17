@@ -23,12 +23,12 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Registry and dispatcher for everything the thaumometer can scan. Addons register
- * {@link IScanThing} subjects at mod init; the thaumometer routes every scan attempt through
- * {@link #scanTheThing scanTheThing}.
+ * Registry and dispatcher for everything the thaumometer can scan. Addons register {@link IScanThing} subjects at mod
+ * init; the thaumometer routes every scan attempt through {@link #scanTheThing scanTheThing}.
  *
- * <p>Knowledge and aspect lookups go through a binding installed by the implementation at mod
- * init; addons must not call {@link #bind bind}.
+ * <p>
+ * Knowledge and aspect lookups go through a binding installed by the implementation at mod init; addons must not call
+ * {@link #bind bind}.
  *
  * @since 1.0.0
  */
@@ -46,8 +46,7 @@ public final class ScanningManager {
      */
     public interface Bindings {
         /**
-         * Grants the given research key, advancing the entry when one exists for the key or
-         * recording the bare key otherwise.
+         * Grants the given research key, advancing the entry when one exists for the key or recording the bare key otherwise.
          *
          * @param player the player; must be a server player to take effect
          * @param research the research key
@@ -84,8 +83,8 @@ public final class ScanningManager {
     }
 
     /**
-     * Registers a scannable subject. Call during mod init or later; registration is not
-     * thread-safe and must happen on the main thread.
+     * Registers a scannable subject. Call during mod init or later; registration is not thread-safe and must happen on the
+     * main thread.
      *
      * @param thing the subject to add
      */
@@ -94,13 +93,12 @@ public final class ScanningManager {
     }
 
     /**
-     * Scans the given target for the player, granting every matching subject's research key and
-     * running its success hook. Sends the player an action-bar result message. When the target is
-     * a block position exposing an item handler, every contained stack is scanned as well, up to
-     * an internal limit.
+     * Scans the given target for the player, granting every matching subject's research key and running its success hook.
+     * Sends the player an action-bar result message. When the target is a block position exposing an item handler, every
+     * contained stack is scanned as well, up to an internal limit.
      *
-     * <p>Server-side only; calling on the client does nothing useful because research grants
-     * require a server player.
+     * <p>
+     * Server-side only; calling on the client does nothing useful because research grants require a server player.
      *
      * @param player the scanning player
      * @param target the scan target; entity, stack, position, or {@code null}
@@ -139,16 +137,13 @@ public final class ScanningManager {
             player.sendOverlayMessage(failure.copy().withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
         } else if (!suppress) {
             if (found) {
-                player.sendOverlayMessage(Component.translatable("tc.knownobject")
-                        .withStyle(ChatFormatting.GREEN, ChatFormatting.ITALIC));
+                player.sendOverlayMessage(Component.translatable("tc.knownobject").withStyle(ChatFormatting.GREEN, ChatFormatting.ITALIC));
             } else {
-                player.sendOverlayMessage(Component.translatable("tc.unknownobject")
-                        .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+                player.sendOverlayMessage(Component.translatable("tc.unknownobject").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
             }
         }
         if (target instanceof BlockPos pos) {
-            ResourceHandler<ItemResource> handler =
-                    player.level().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP);
+            ResourceHandler<ItemResource> handler = player.level().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP);
             if (handler != null) {
                 int scanned = 0;
                 for (int index = 0; index < handler.size(); index++) {
@@ -158,8 +153,7 @@ public final class ScanningManager {
                         scanned++;
                     }
                     if (scanned >= MAX_CONTAINER_SCANS) {
-                        player.sendOverlayMessage(Component.translatable("tc.invtoolarge")
-                                .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+                        player.sendOverlayMessage(Component.translatable("tc.invtoolarge").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
                         break;
                     }
                 }
@@ -168,8 +162,8 @@ public final class ScanningManager {
     }
 
     /**
-     * Returns whether any subject still has something to teach the player about the target.
-     * Safe to call on the client; reads the synced knowledge copy.
+     * Returns whether any subject still has something to teach the player about the target. Safe to call on the client;
+     * reads the synced knowledge copy.
      *
      * @param player the player
      * @param target the scan target
@@ -194,17 +188,12 @@ public final class ScanningManager {
     }
 
     private static Iterable<ScanEntry> scanEntries(Player player) {
-        return player.level()
-                .registryAccess()
-                .lookup(ScanEntry.REGISTRY_KEY)
-                .<Iterable<ScanEntry>>map(registry ->
-                        registry.listElements().map(Holder.Reference::value).toList())
-                .orElse(List.of());
+        return player.level().registryAccess().lookup(ScanEntry.REGISTRY_KEY).<Iterable<ScanEntry>>map(registry -> registry.listElements().map(Holder.Reference::value).toList()).orElse(List.of());
     }
 
     /**
-     * Normalizes a scan target into an item stack when possible. Item entities yield their stack,
-     * positions yield the block's clone item, and fluid blocks yield the fluid's bucket.
+     * Normalizes a scan target into an item stack when possible. Item entities yield their stack, positions yield the
+     * block's clone item, and fluid blocks yield the fluid's bucket.
      *
      * @param player the scanning player, used for level access
      * @param target the scan target

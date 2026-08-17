@@ -6,17 +6,20 @@ import net.minecraft.core.Holder;
 /**
  * Static facade resolving how much the viewing player understands about an aspect.
  *
- * <p>This is the single gate every display surface passes through. {@link AspectComponents#name}
- * and {@link AspectComponents#description} consult it themselves, so a new tooltip, screen, or
- * compat integration masks undiscovered aspects without doing anything, and revealing one is an
- * explicit call to {@link AspectComponents#trueName}.
+ * <p>
+ * This is the single gate every display surface passes through. {@link AspectComponents#name} and
+ * {@link AspectComponents#description} consult it themselves, so a new tooltip, screen, or compat integration masks
+ * undiscovered aspects without doing anything, and revealing one is an explicit call to
+ * {@link AspectComponents#trueName}.
  *
- * <p>The resolver is player-scoped and therefore client-only. It is left unbound on the dedicated
- * server, where {@link #of} reports {@link AspectKnowledge#KNOWN} for everything, so server-built
- * messages and datagen keep real names.
+ * <p>
+ * The resolver is player-scoped and therefore client-only. It is left unbound on the dedicated server, where
+ * {@link #of} reports {@link AspectKnowledge#KNOWN} for everything, so server-built messages and datagen keep real
+ * names.
  *
- * <p>The implementation is bound once at client init by Thaumaturge via {@link #bind(Function)};
- * addons must not call {@code bind}.
+ * <p>
+ * The implementation is bound once at client init by Thaumaturge via {@link #bind(Function)}; addons must not call
+ * {@code bind}.
  *
  * @since 1.0.0
  */

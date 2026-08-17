@@ -7,8 +7,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * The vigor of an aura node. Absent modifier means an average node; the modifier scales how
- * often the node refills itself and how brightly it renders.
+ * The vigor of an aura node. Absent modifier means an average node; the modifier scales how often the node refills
+ * itself and how brightly it renders.
  *
  * @since 1.0.0
  */
@@ -23,8 +23,7 @@ public enum NodeModifier implements StringRepresentable {
     /** Codec keyed by the lowercase name. */
     public static final Codec<NodeModifier> CODEC = StringRepresentable.fromEnum(NodeModifier::values);
     /** Network codec using the enum ordinal. */
-    public static final StreamCodec<ByteBuf, NodeModifier> STREAM_CODEC =
-            ByteBufCodecs.idMapper(id -> NodeModifier.values()[id], NodeModifier::ordinal);
+    public static final StreamCodec<ByteBuf, NodeModifier> STREAM_CODEC = ByteBufCodecs.idMapper(id -> NodeModifier.values()[id], NodeModifier::ordinal);
 
     private final String name;
 

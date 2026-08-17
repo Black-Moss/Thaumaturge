@@ -5,13 +5,14 @@ import net.minecraft.resources.Identifier;
 /**
  * Implemented by jar blocks to declare the capacity and glass textures of one jar kind.
  *
- * <p>Both properties belong to the block rather than the block entity, so every jar of a given
- * kind shares them. Renderers derive the fill level from {@link #jarCapacity()}, so a jar
- * reports a full body at whatever capacity is chosen.
+ * <p>
+ * Both properties belong to the block rather than the block entity, so every jar of a given kind shares them. Renderers
+ * derive the fill level from {@link #jarCapacity()}, so a jar reports a full body at whatever capacity is chosen.
  *
- * <p>The three texture slots correspond to the slots of the shared jar model. A jar kind is
- * defined by supplying textures for them; the geometry, the fluid overlay and the metal
- * fittings are shared by every jar and cannot be replaced through this interface.
+ * <p>
+ * The three texture slots correspond to the slots of the shared jar model. A jar kind is defined by supplying textures
+ * for them; the geometry, the fluid overlay and the metal fittings are shared by every jar and cannot be replaced
+ * through this interface.
  *
  * @since 1.0.0
  */
@@ -38,8 +39,7 @@ public interface IEssentiaJar {
     }
 
     /**
-     * The texture applied to the four sides of the jar's glass body. Also used as the
-     * particle texture.
+     * The texture applied to the four sides of the jar's glass body. Also used as the particle texture.
      *
      * @return the side texture location, without the {@code textures/} prefix or extension
      */

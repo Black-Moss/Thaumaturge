@@ -5,16 +5,17 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Static facade over the world's effective aspect index. This is the addon-facing way to read the
- * aspect composition of any item; addons must not reach into the implementation package.
+ * Static facade over the world's effective aspect index. This is the addon-facing way to read the aspect composition of
+ * any item; addons must not reach into the implementation package.
  *
- * <p>The backing {@link IAspectIndex} is rebuilt on every server resource reload and synced to
- * clients, so both sides may call {@link #of(Item)} and {@link #of(ItemStack)} directly. Reads
- * before the first index build return {@link AspectList#EMPTY} rather than throwing, because the
- * empty index is bound as the initial value.
+ * <p>
+ * The backing {@link IAspectIndex} is rebuilt on every server resource reload and synced to clients, so both sides may
+ * call {@link #of(Item)} and {@link #of(ItemStack)} directly. Reads before the first index build return
+ * {@link AspectList#EMPTY} rather than throwing, because the empty index is bound as the initial value.
  *
- * <p>The implementation is bound once at mod init by Thaumaturge via {@link #bind(Supplier)}; addons
- * must not call {@code bind}.
+ * <p>
+ * The implementation is bound once at mod init by Thaumaturge via {@link #bind(Supplier)}; addons must not call
+ * {@code bind}.
  *
  * @since 1.0.0
  */
@@ -47,8 +48,7 @@ public final class AspectIndexAccess {
     }
 
     /**
-     * Looks up the effective aspect composition of the given stack, honoring per-stack component
-     * overrides.
+     * Looks up the effective aspect composition of the given stack, honoring per-stack component overrides.
      *
      * @param stack the stack to query
      * @return the aspect list, or {@link AspectList#EMPTY} when none
@@ -58,8 +58,7 @@ public final class AspectIndexAccess {
     }
 
     /**
-     * Binds the facade's implementation. Called once at mod init by Thaumaturge; addons must not
-     * call this.
+     * Binds the facade's implementation. Called once at mod init by Thaumaturge; addons must not call this.
      *
      * @param impl a supplier of the live index; must return the current index on every call
      * @throws IllegalStateException when already bound

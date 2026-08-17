@@ -8,15 +8,15 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Visual routing contract for blocks that emit or receive essentia stream effects.
  *
- * <p>By default a stream travels directly between its two endpoints and may clip through
- * the block models at either end. A {@link net.minecraft.world.level.block.Block} implementing
- * this interface declares a port instead: the stream attaches at {@link StreamPort#anchor()}
- * and travels straight through {@link StreamPort#clearance()} before it is allowed to curve
- * toward the far endpoint. Arriving streams pass the same two points in reverse order.
+ * <p>
+ * By default a stream travels directly between its two endpoints and may clip through the block models at either end. A
+ * {@link net.minecraft.world.level.block.Block} implementing this interface declares a port instead: the stream
+ * attaches at {@link StreamPort#anchor()} and travels straight through {@link StreamPort#clearance()} before it is
+ * allowed to curve toward the far endpoint. Arriving streams pass the same two points in reverse order.
  *
- * <p>Queried on the client only, once per spawned stream. Implementations must derive the
- * port purely from the given arguments and must not access block entities or other level
- * state.
+ * <p>
+ * Queried on the client only, once per spawned stream. Implementations must derive the port purely from the given
+ * arguments and must not access block entities or other level state.
  *
  * @since 1.0.0
  */
@@ -39,5 +39,6 @@ public interface IEssentiaStreamPort {
      * @param anchor the point the stream visually attaches to, in world coordinates
      * @param clearance the point the stream passes through straight off the port before curving away
      */
-    record StreamPort(Vec3 anchor, Vec3 clearance) {}
+    record StreamPort(Vec3 anchor, Vec3 clearance) {
+    }
 }

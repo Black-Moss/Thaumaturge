@@ -10,14 +10,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundUnlockResearchPayload(Identifier research) implements CustomPacketPayload {
-    public static final Type<ServerboundUnlockResearchPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_research"));
+    public static final Type<ServerboundUnlockResearchPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "unlock_research"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundUnlockResearchPayload> STREAM_CODEC =
-            StreamCodec.composite(
-                    Identifier.STREAM_CODEC,
-                    ServerboundUnlockResearchPayload::research,
-                    ServerboundUnlockResearchPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundUnlockResearchPayload> STREAM_CODEC = StreamCodec.composite(Identifier.STREAM_CODEC, ServerboundUnlockResearchPayload::research,
+            ServerboundUnlockResearchPayload::new);
 
     public static void handle(ServerboundUnlockResearchPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {

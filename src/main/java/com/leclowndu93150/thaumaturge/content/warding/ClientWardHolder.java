@@ -34,8 +34,7 @@ public final class ClientWardHolder {
     public static void put(BlockPos pos, boolean owned) {
         BlockPos immutable = pos.immutable();
         WARDS.put(immutable, owned);
-        SECTIONS.computeIfAbsent(SectionPos.of(immutable), key -> ConcurrentHashMap.newKeySet())
-                .add(immutable);
+        SECTIONS.computeIfAbsent(SectionPos.of(immutable), key -> ConcurrentHashMap.newKeySet()).add(immutable);
     }
 
     public static void remove(BlockPos pos) {

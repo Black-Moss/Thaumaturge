@@ -17,12 +17,8 @@ public final class WardConnectedTexture {
     private static final int STATE_FULL = 4;
 
     private static final String[] CORNER_NAMES = {"tl", "tr", "bl", "br"};
-    private static final String[][] STATE_NAMES = {
-        {"none", "top", "left", "inner", "full"},
-        {"none", "top", "right", "inner", "full"},
-        {"none", "bottom", "left", "inner", "full"},
-        {"none", "bottom", "right", "inner", "full"}
-    };
+    private static final String[][] STATE_NAMES = {{"none", "top", "left", "inner", "full"}, {"none", "top", "right", "inner", "full"}, {"none", "bottom", "left", "inner", "full"},
+            {"none", "bottom", "right", "inner", "full"}};
 
     private static final int[] EDGE_A_BIT = {1, 1, 6, 6};
     private static final int[] EDGE_B_BIT = {3, 4, 3, 4};
@@ -36,8 +32,7 @@ public final class WardConnectedTexture {
     static {
         for (int corner = 0; corner < CORNERS; corner++) {
             for (int state = 0; state < STATES; state++) {
-                SPRITES[corner][state] =
-                        TCIds.rl("block/ward/" + CORNER_NAMES[corner] + "_" + STATE_NAMES[corner][state]);
+                SPRITES[corner][state] = TCIds.rl("block/ward/" + CORNER_NAMES[corner] + "_" + STATE_NAMES[corner][state]);
             }
         }
     }
@@ -48,8 +43,7 @@ public final class WardConnectedTexture {
         return SPRITES[corner][state];
     }
 
-    public static int stateFor(
-            BlockPos pos, Direction face, int corner, BlockPos.MutableBlockPos cursor, Predicate<BlockPos> connected) {
+    public static int stateFor(BlockPos pos, Direction face, int corner, BlockPos.MutableBlockPos cursor, Predicate<BlockPos> connected) {
         boolean edgeA = probe(pos, face, EDGE_A_BIT[corner], cursor, connected);
         boolean edgeB = probe(pos, face, EDGE_B_BIT[corner], cursor, connected);
         if (!edgeA && !edgeB) {
@@ -64,8 +58,7 @@ public final class WardConnectedTexture {
         return probe(pos, face, DIAGONAL_BIT[corner], cursor, connected) ? STATE_FULL : STATE_INNER;
     }
 
-    private static boolean probe(
-            BlockPos pos, Direction face, int bit, BlockPos.MutableBlockPos cursor, Predicate<BlockPos> connected) {
+    private static boolean probe(BlockPos pos, Direction face, int bit, BlockPos.MutableBlockPos cursor, Predicate<BlockPos> connected) {
         int x = pos.getX();
         int y = pos.getY();
         int z = pos.getZ();

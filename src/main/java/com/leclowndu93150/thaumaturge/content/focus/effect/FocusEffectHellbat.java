@@ -64,15 +64,11 @@ public final class FocusEffectHellbat implements FocusEffect {
     }
 
     @Override
-    public boolean apply(
-            CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
+    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
         if (!(ctx.level() instanceof ServerLevel level)) {
             return false;
         }
-        LivingEntity struck =
-                target instanceof EntityHitResult entityHit && entityHit.getEntity() instanceof LivingEntity living
-                        ? living
-                        : null;
+        LivingEntity struck = target instanceof EntityHitResult entityHit && entityHit.getEntity() instanceof LivingEntity living ? living : null;
         LivingEntity caster = ctx.caster();
         if (struck == caster) {
             struck = null;
@@ -89,14 +85,8 @@ public final class FocusEffectHellbat implements FocusEffect {
             if (bat == null) {
                 continue;
             }
-            bat.snapTo(
-                    origin.x
-                            + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD,
-                    origin.y + 1.0 + level.getRandom().nextFloat() * SPAWN_SPREAD,
-                    origin.z
-                            + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD,
-                    level.getRandom().nextFloat() * 360.0F,
-                    0.0F);
+            bat.snapTo(origin.x + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD, origin.y + 1.0 + level.getRandom().nextFloat() * SPAWN_SPREAD,
+                    origin.z + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD, level.getRandom().nextFloat() * 360.0F, 0.0F);
             bat.summon(caster, struck, bonus);
             if (level.addFreshEntity(bat)) {
                 spawned = true;
@@ -104,23 +94,14 @@ public final class FocusEffectHellbat implements FocusEffect {
         }
         if (spawned) {
             level.levelEvent(SPAWN_LEVEL_EVENT, BlockPos.containing(origin), 0);
-            level.playSound(
-                    null,
-                    origin.x,
-                    origin.y,
-                    origin.z,
-                    TCSounds.ICE.get(),
-                    SoundSource.PLAYERS,
-                    0.2F,
-                    0.95F + level.getRandom().nextFloat() * 0.1F);
+            level.playSound(null, origin.x, origin.y, origin.z, TCSounds.ICE.get(), SoundSource.PLAYERS, 0.2F, 0.95F + level.getRandom().nextFloat() * 0.1F);
         }
         return spawned;
     }
 
     private static int remainingBatBudget(ServerLevel level, @Nullable LivingEntity caster, Vec3 origin) {
         AABB area = new AABB(origin, origin).inflate(ACTIVE_BAT_RANGE);
-        int active = level.getEntitiesOfClass(EntityFireBat.class, area, bat -> bat.owner == caster)
-                .size();
+        int active = level.getEntitiesOfClass(EntityFireBat.class, area, bat -> bat.owner == caster).size();
         return MAX_ACTIVE_BATS - active;
     }
 
@@ -131,8 +112,7 @@ public final class FocusEffectHellbat implements FocusEffect {
 
     @Override
     public void impactParticles(Level level, Vec3 pos, Vec3 motion, Vec3 drift) {
-        FlameFanParticleOptions data =
-                new FlameFanParticleOptions((float) (1.0 + level.getRandom().nextGaussian() * 0.2F), -0.1F, 0.7F);
+        FlameFanParticleOptions data = new FlameFanParticleOptions((float) (1.0 + level.getRandom().nextGaussian() * 0.2F), -0.1F, 0.7F);
         level.addParticle(data, pos.x, pos.y, pos.z, 0.0, 0.0, 0.0);
     }
 }

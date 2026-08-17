@@ -12,16 +12,7 @@ public final class ShieldSparkParticle extends TCParticle {
     private final float startAlpha;
     private final boolean additive;
 
-    private ShieldSparkParticle(
-            ClientLevel level,
-            double x,
-            double y,
-            double z,
-            double vx,
-            double vy,
-            double vz,
-            ShieldSparkParticleOptions options,
-            ParticleSheet sheet) {
+    private ShieldSparkParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ShieldSparkParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         setColor(options.color());
         this.startAlpha = options.alpha();
@@ -49,16 +40,7 @@ public final class ShieldSparkParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("shield_spark");
 
         @Override
-        public Particle createParticle(
-                ShieldSparkParticleOptions options,
-                ClientLevel level,
-                double x,
-                double y,
-                double z,
-                double vx,
-                double vy,
-                double vz,
-                RandomSource random) {
+        public Particle createParticle(ShieldSparkParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
             return new ShieldSparkParticle(level, x, y, z, vx, vy, vz, options, SHEET);
         }
     }

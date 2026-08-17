@@ -8,8 +8,8 @@ import net.minecraft.resources.ResourceKey;
 /**
  * Helpers for resolving display text for {@link IResearchCategory research categories}.
  *
- * <p>Translation keys follow the {@code research_category.<namespace>.<path>} convention used by
- * the lang provider.
+ * <p>
+ * Translation keys follow the {@code research_category.<namespace>.<path>} convention used by the lang provider.
  *
  * @since 1.0.0
  */
@@ -43,7 +43,6 @@ public final class CategoryComponents {
      * @return the translation key
      */
     public static String translationKey(ResourceKey<IResearchCategory> key) {
-        return "research_category." + key.identifier().getNamespace() + "."
-                + key.identifier().getPath();
+        return "research_category." + key.identifier().getNamespace() + "." + key.identifier().getPath();
     }
 }

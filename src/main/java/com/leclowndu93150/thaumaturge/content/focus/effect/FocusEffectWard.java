@@ -70,8 +70,7 @@ public final class FocusEffectWard implements FocusEffect {
     }
 
     @Override
-    public boolean apply(
-            CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
+    public boolean apply(CastContext ctx, FocusSettings settings, HitResult target, @Nullable Trajectory trajectory, int index) {
         if (!(target instanceof BlockHitResult blockHit) || !(ctx.level() instanceof ServerLevel level)) {
             return false;
         }
@@ -86,9 +85,7 @@ public final class FocusEffectWard implements FocusEffect {
         if (!WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, false)) {
             return false;
         }
-        boolean changed = WardHandler.isWarded(level, pos)
-                ? WardHandler.unward(level, pos, owner)
-                : WardHandler.ward(level, pos, owner);
+        boolean changed = WardHandler.isWarded(level, pos) ? WardHandler.unward(level, pos, owner) : WardHandler.ward(level, pos, owner);
         if (!changed) {
             return false;
         }
@@ -108,21 +105,10 @@ public final class FocusEffectWard implements FocusEffect {
             float red = Mth.clamp(baseRed - COLOR_JITTER + random.nextFloat() * COLOR_JITTER * 2.0F, 0.0F, 1.0F);
             float green = Mth.clamp(baseGreen - COLOR_JITTER + random.nextFloat() * COLOR_JITTER * 2.0F, 0.0F, 1.0F);
             float blue = Mth.clamp(baseBlue - COLOR_JITTER + random.nextFloat() * COLOR_JITTER * 2.0F, 0.0F, 1.0F);
-            ShieldSparkParticleOptions data = new ShieldSparkParticleOptions(
-                    ARGB.colorFromFloat(1.0F, red, green, blue),
-                    SPARKLE_ALPHA,
-                    SPARKLE_BASE_SCALE + random.nextFloat() * SPARKLE_SCALE_JITTER,
-                    SPARKLE_BASE_AGE + random.nextInt(SPARKLE_AGE_JITTER),
-                    random.nextInt(SPARKLE_DELAY_JITTER),
-                    true);
-            level.addParticle(
-                    data,
-                    pos.x - SPARKLE_SPREAD / 2.0F + random.nextFloat() * SPARKLE_SPREAD,
-                    pos.y - SPARKLE_SPREAD / 2.0F + random.nextFloat() * SPARKLE_SPREAD,
-                    pos.z - SPARKLE_SPREAD / 2.0F + random.nextFloat() * SPARKLE_SPREAD,
-                    0.0,
-                    random.nextFloat() * SPARKLE_RISE,
-                    0.0);
+            ShieldSparkParticleOptions data = new ShieldSparkParticleOptions(ARGB.colorFromFloat(1.0F, red, green, blue), SPARKLE_ALPHA, SPARKLE_BASE_SCALE + random.nextFloat() * SPARKLE_SCALE_JITTER,
+                    SPARKLE_BASE_AGE + random.nextInt(SPARKLE_AGE_JITTER), random.nextInt(SPARKLE_DELAY_JITTER), true);
+            level.addParticle(data, pos.x - SPARKLE_SPREAD / 2.0F + random.nextFloat() * SPARKLE_SPREAD, pos.y - SPARKLE_SPREAD / 2.0F + random.nextFloat() * SPARKLE_SPREAD,
+                    pos.z - SPARKLE_SPREAD / 2.0F + random.nextFloat() * SPARKLE_SPREAD, 0.0, random.nextFloat() * SPARKLE_RISE, 0.0);
         }
     }
 }

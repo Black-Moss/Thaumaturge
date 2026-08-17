@@ -13,31 +13,28 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record ServerboundClearResearchFlagsPayload(Identifier research, List<ResearchFlag> flags)
-        implements CustomPacketPayload {
-    public static final Type<ServerboundClearResearchFlagsPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "clear_research_flags"));
+public record ServerboundClearResearchFlagsPayload(Identifier research, List<ResearchFlag> flags) implements CustomPacketPayload {
+    public static final Type<ServerboundClearResearchFlagsPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "clear_research_flags"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundClearResearchFlagsPayload> STREAM_CODEC =
-            StreamCodec.composite(
-                    Identifier.STREAM_CODEC,
-                    ServerboundClearResearchFlagsPayload::research,
-                    ResearchFlag.STREAM_CODEC.apply(ByteBufCodecs.list()),
-                    ServerboundClearResearchFlagsPayload::flags,
-                    ServerboundClearResearchFlagsPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundClearResearchFlagsPayload> STREAM_CODEC = StreamCodec.composite(Identifier.STREAM_CODEC,
+            ServerboundClearResearchFlagsPayload::research, ResearchFlag.STREAM_CODEC.apply(ByteBufCodecs.list()), ServerboundClearResearchFlagsPayload::flags,
+            ServerboundClearResearchFlagsPayload::new);
 
     public static void handle(ServerboundClearResearchFlagsPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer player)) return;
+            if (!(context.player() instanceof ServerPlayer player))
+                return;
             IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-            if (!knowledge.isResearchKnown(payload.research())) return;
+            if (!knowledge.isResearchKnown(payload.research()))
+                return;
             boolean changed = false;
             for (ResearchFlag flag : payload.flags()) {
                 if (knowledge.clearResearchFlag(payload.research(), flag)) {
                     changed = true;
                 }
             }
-            if (changed) knowledge.sync(player);
+            if (changed)
+                knowledge.sync(player);
         });
     }
 

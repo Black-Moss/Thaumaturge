@@ -28,10 +28,7 @@ public final class BlockPedestal extends BaseEntityBlock {
     public static final MapCodec<BlockPedestal> CODEC = simpleCodec(BlockPedestal::new);
     public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, 15);
 
-    private static final VoxelShape SHAPE = Shapes.or(
-            Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0),
-            Block.box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0),
-            Block.box(2.0, 12.0, 2.0, 14.0, 16.0, 14.0));
+    private static final VoxelShape SHAPE = Shapes.or(Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0), Block.box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0), Block.box(2.0, 12.0, 2.0, 14.0, 16.0, 14.0));
 
     public BlockPedestal(Properties properties) {
         super(properties);
@@ -44,13 +41,7 @@ public final class BlockPedestal extends BaseEntityBlock {
     }
 
     @Override
-    protected void neighborChanged(
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            Block neighborBlock,
-            @Nullable Orientation orientation,
-            boolean movedByPiston) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
         if (!level.isClientSide()) {
             BlockInlay.updateNetwork(level, pos);
         }
@@ -72,20 +63,12 @@ public final class BlockPedestal extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(
-            BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         return swap(level, pos, player, InteractionHand.MAIN_HAND);
     }
 
     @Override
-    protected InteractionResult useItemOn(
-            ItemStack stack,
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            Player player,
-            InteractionHand hand,
-            BlockHitResult hit) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         return swap(level, pos, player, hand);
     }
 
@@ -115,10 +98,8 @@ public final class BlockPedestal extends BaseEntityBlock {
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(
-            BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        if (level.getBlockEntity(pos) instanceof BlockEntityPedestal pedestal
-                && !pedestal.getItem().isEmpty()) {
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityPedestal pedestal && !pedestal.getItem().isEmpty()) {
             Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, pedestal.getItem());
         }
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);

@@ -37,11 +37,7 @@ public final class MenuHandMirror extends AbstractContainerMenu {
         addSlot(new Slot(input, 0, INPUT_SLOT_X, INPUT_SLOT_Y));
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(
-                        inventory,
-                        column + row * 9 + 9,
-                        PLAYER_INV_X + column * SLOT_SIZE,
-                        PLAYER_INV_Y + row * SLOT_SIZE));
+                addSlot(new Slot(inventory, column + row * 9 + 9, PLAYER_INV_X + column * SLOT_SIZE, PLAYER_INV_Y + row * SLOT_SIZE));
             }
         }
         for (int column = 0; column < 9; column++) {

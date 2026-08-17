@@ -27,8 +27,7 @@ public class ScanBlockState implements IScanThing {
     }
 
     /**
-     * Creates the subject, optionally registering the block's item form as a companion
-     * {@link ScanItem}.
+     * Creates the subject, optionally registering the block's item form as a companion {@link ScanItem}.
      *
      * @param research the research key granted on scan
      * @param blockState the exact state this subject matches

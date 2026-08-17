@@ -34,10 +34,7 @@ public final class WardHandler {
 
     public static boolean canWard(BlockGetter level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        return !state.isAir()
-                && !state.hasBlockEntity()
-                && state.isSolidRender()
-                && state.getDestroySpeed(level, pos) >= 0.0F;
+        return !state.isAir() && !state.hasBlockEntity() && state.isSolidRender() && state.getDestroySpeed(level, pos) >= 0.0F;
     }
 
     public static boolean ward(ServerLevel level, BlockPos pos, UUID owner) {
@@ -47,8 +44,7 @@ public final class WardHandler {
         LevelChunk chunk = level.getChunkAt(pos);
         chunk.getData(TCAttachments.WARDS.get()).put(pos, owner);
         chunk.markUnsaved();
-        PacketDistributor.sendToPlayersTrackingChunk(
-                level, chunk.getPos(), new ClientboundWardUpdatePayload(pos, Optional.of(owner)));
+        PacketDistributor.sendToPlayersTrackingChunk(level, chunk.getPos(), new ClientboundWardUpdatePayload(pos, Optional.of(owner)));
         return true;
     }
 
@@ -62,8 +58,7 @@ public final class WardHandler {
         }
         LevelChunk chunk = level.getChunkAt(pos);
         chunk.markUnsaved();
-        PacketDistributor.sendToPlayersTrackingChunk(
-                level, chunk.getPos(), new ClientboundWardUpdatePayload(pos, Optional.empty()));
+        PacketDistributor.sendToPlayersTrackingChunk(level, chunk.getPos(), new ClientboundWardUpdatePayload(pos, Optional.empty()));
         return true;
     }
 

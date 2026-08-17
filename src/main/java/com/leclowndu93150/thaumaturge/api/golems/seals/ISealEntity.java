@@ -6,8 +6,8 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A placed seal in the world: the seal behavior instance plus per-placement state such as
- * priority, color, lock, redstone sensitivity and working area.
+ * A placed seal in the world: the seal behavior instance plus per-placement state such as priority, color, lock,
+ * redstone sensitivity and working area.
  *
  * @since 1.0.0
  */

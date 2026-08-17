@@ -9,20 +9,22 @@ import net.minecraft.world.entity.player.Player;
 /**
  * Static facade over a player's aspect research point pools.
  *
- * <p>Every aspect a player has discovered carries a point balance earned by scanning. Points
- * are spent to place aspects on research notes, so this is the currency of research
- * progression. Discovery is tracked separately from the balance: an aspect may be discovered
- * with zero points remaining.
+ * <p>
+ * Every aspect a player has discovered carries a point balance earned by scanning. Points are spent to place aspects on
+ * research notes, so this is the currency of research progression. Discovery is tracked separately from the balance: an
+ * aspect may be discovered with zero points remaining.
  *
- * <p>Primal aspects are always considered discovered. Compound aspects report discovery only
- * once the player has actually encountered them.
+ * <p>
+ * Primal aspects are always considered discovered. Compound aspects report discovery only once the player has actually
+ * encountered them.
  *
- * <p>Mutating methods require a {@link ServerPlayer} and take effect on the server, syncing to
- * the owning client automatically. Query methods accept any {@link Player} and are safe on
- * both sides.
+ * <p>
+ * Mutating methods require a {@link ServerPlayer} and take effect on the server, syncing to the owning client
+ * automatically. Query methods accept any {@link Player} and are safe on both sides.
  *
- * <p>The implementation is bound once at mod init by Thaumaturge via {@link #bind(Bindings)};
- * addons must not call {@code bind}.
+ * <p>
+ * The implementation is bound once at mod init by Thaumaturge via {@link #bind(Bindings)}; addons must not call
+ * {@code bind}.
  *
  * @since 1.0.0
  */
@@ -52,8 +54,7 @@ public final class AspectPoolAccess {
     }
 
     /**
-     * Whether the player has discovered the given aspect. Primal aspects are always
-     * discovered.
+     * Whether the player has discovered the given aspect. Primal aspects are always discovered.
      *
      * @param player the player to query
      * @param aspect the aspect to test
@@ -75,8 +76,7 @@ public final class AspectPoolAccess {
     }
 
     /**
-     * Whether every component of the given aspect has been discovered. Always {@code true}
-     * for primal aspects.
+     * Whether every component of the given aspect has been discovered. Always {@code true} for primal aspects.
      *
      * @param player the player to query
      * @param aspect the aspect whose components are tested
@@ -87,8 +87,8 @@ public final class AspectPoolAccess {
     }
 
     /**
-     * Grants points for the given aspect, discovering it when new. Grants are subject to the
-     * diminishing returns applied to large balances.
+     * Grants points for the given aspect, discovering it when new. Grants are subject to the diminishing returns applied to
+     * large balances.
      *
      * @param player the player to grant to
      * @param aspect the aspect to grant
@@ -102,7 +102,7 @@ public final class AspectPoolAccess {
     /**
      * Grants points for every entry of the given list.
      *
-     * @param player  the player to grant to
+     * @param player the player to grant to
      * @param aspects the aspects and amounts to grant
      */
     public static void grantAll(ServerPlayer player, AspectList aspects) {
@@ -125,7 +125,7 @@ public final class AspectPoolAccess {
      * Whether the player can afford every entry of the given cost.
      *
      * @param player the player to query
-     * @param cost   the aspects and amounts required
+     * @param cost the aspects and amounts required
      * @return {@code true} when the whole cost is affordable
      */
     public static boolean canAfford(Player player, AspectList cost) {
@@ -136,7 +136,7 @@ public final class AspectPoolAccess {
      * Spends the whole cost atomically. Nothing is deducted when any entry is unaffordable.
      *
      * @param player the player to charge
-     * @param cost   the aspects and amounts to spend
+     * @param cost the aspects and amounts to spend
      * @return {@code true} when the whole cost was deducted
      */
     public static boolean spendAll(ServerPlayer player, AspectList cost) {
@@ -155,8 +155,8 @@ public final class AspectPoolAccess {
     }
 
     /**
-     * Implementation hook. Each method corresponds to a public static on
-     * {@link AspectPoolAccess}. Addons must not implement this interface.
+     * Implementation hook. Each method corresponds to a public static on {@link AspectPoolAccess}. Addons must not
+     * implement this interface.
      *
      * @since 1.0.0
      */

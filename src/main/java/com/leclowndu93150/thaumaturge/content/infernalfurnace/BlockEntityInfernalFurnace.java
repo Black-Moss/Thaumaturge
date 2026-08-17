@@ -68,12 +68,7 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
         if (!level.isEmptyBlock(pos.relative(side))) {
             pos = pos.relative(side.getOpposite());
         }
-        ItemEntity entity = new ItemEntity(
-                level,
-                pos.getX() + 0.5 + side.getStepX(),
-                (float) pos.getY() + side.getStepY(),
-                pos.getZ() + 0.5 + side.getStepZ(),
-                out);
+        ItemEntity entity = new ItemEntity(level, pos.getX() + 0.5 + side.getStepX(), (float) pos.getY() + side.getStepY(), pos.getZ() + 0.5 + side.getStepZ(), out);
         entity.setDeltaMovement(0.3 * side.getStepX(), 0.3 * side.getStepY(), 0.3 * side.getStepZ());
         level.addFreshEntity(entity);
         return ItemStack.EMPTY;
@@ -84,7 +79,8 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     protected void syncToClient() {
-        if (level == null || level.isClientSide()) return;
+        if (level == null || level.isClientSide())
+            return;
         BlockState current = getBlockState();
         level.sendBlockUpdated(getBlockPos(), current, current, 3);
     }
@@ -106,7 +102,8 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     private void tick() {
-        if (level == null || level.isClientSide()) return;
+        if (level == null || level.isClientSide())
+            return;
         if (facingX == -5) {
             setFacing();
         }
@@ -128,46 +125,24 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
                     ItemStack inputStack = inventory.getResource(slot).toStack(inventory.getAmountAsInt(slot));
                     Optional<AbstractCookingRecipe> recipe = getCookingRecipe(inputStack);
                     if (recipe.isPresent()) {
-                        if (speedyTime > 0) speedyTime--;
+                        if (speedyTime > 0)
+                            speedyTime--;
 
-                        ejectItem(
-                                recipe.get().assemble(new SingleRecipeInput(inputStack)),
-                                inputStack.copy(),
-                                recipe.get());
+                        ejectItem(recipe.get().assemble(new SingleRecipeInput(inputStack)), inputStack.copy(), recipe.get());
 
                         RandomSource rand = level.getRandom();
 
-                        float qx = facingX == 0
-                                ? (rand.nextFloat() - rand.nextFloat()) * 0.5F
-                                : facingX * rand.nextFloat();
-                        float qz = facingZ == 0
-                                ? (rand.nextFloat() - rand.nextFloat()) * 0.5F
-                                : facingZ * rand.nextFloat();
-                        double x =
-                                getBlockPos().getX() + 0.5F + (rand.nextFloat() - rand.nextFloat()) * 0.3F + -facingX;
+                        float qx = facingX == 0 ? (rand.nextFloat() - rand.nextFloat()) * 0.5F : facingX * rand.nextFloat();
+                        float qz = facingZ == 0 ? (rand.nextFloat() - rand.nextFloat()) * 0.5F : facingZ * rand.nextFloat();
+                        double x = getBlockPos().getX() + 0.5F + (rand.nextFloat() - rand.nextFloat()) * 0.3F + -facingX;
                         double y = getBlockPos().getY() + 0.3F;
-                        double z =
-                                getBlockPos().getZ() + 0.5F + (rand.nextFloat() - rand.nextFloat()) * 0.3F + -facingZ;
+                        double z = getBlockPos().getZ() + 0.5F + (rand.nextFloat() - rand.nextFloat()) * 0.3F + -facingZ;
 
-                        ((ServerLevel) level)
-                                .sendParticles(ParticleTypes.LAVA, x, y, z, 4, qx, 0.2 * rand.nextFloat(), qz, 0.001);
-                        level.playSound(
-                                null,
-                                getBlockPos(),
-                                SoundEvents.LAVA_POP,
-                                SoundSource.BLOCKS,
-                                0.1F + rand.nextFloat() * 0.1F,
-                                0.9F + rand.nextFloat() * 0.15F);
+                        ((ServerLevel) level).sendParticles(ParticleTypes.LAVA, x, y, z, 4, qx, 0.2 * rand.nextFloat(), qz, 0.001);
+                        level.playSound(null, getBlockPos(), SoundEvents.LAVA_POP, SoundSource.BLOCKS, 0.1F + rand.nextFloat() * 0.1F, 0.9F + rand.nextFloat() * 0.15F);
 
                         if (level.getRandom().nextInt(20) == 0)
-                            AuraHelper.polluteAura(
-                                    level,
-                                    getBlockPos()
-                                            .relative(getBlockState()
-                                                    .getValue(BlockInfernalFurnace.FACING)
-                                                    .getOpposite()),
-                                    1.0F,
-                                    true);
+                            AuraHelper.polluteAura(level, getBlockPos().relative(getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite()), 1.0F, true);
 
                         // Remove after smelting
                         inventory.set(slot, ItemResource.of(inputStack), inventory.getAmountAsInt(slot) - 1);
@@ -180,7 +155,8 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
             }
         }
 
-        if (speedyTime <= 0) this.speedyTime = (int) AuraHelper.drainVis(level, getBlockPos(), 20, false);
+        if (speedyTime <= 0)
+            this.speedyTime = (int) AuraHelper.drainVis(level, getBlockPos(), 20, false);
 
         if (this.furnaceCookTime == 0 && !cooking) {
             for (int slot = 0; slot < inventory.size(); slot++) {
@@ -200,8 +176,7 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     public ItemStack addItemsToInventory(ItemStack item) {
         if (canSmelt(item)) {
             Transaction transaction = Transaction.openRoot();
-            item = item.copyWithCount(
-                    item.getCount() - inventory.insert(ItemResource.of(item), item.getCount(), transaction));
+            item = item.copyWithCount(item.getCount() - inventory.insert(ItemResource.of(item), item.getCount(), transaction));
             transaction.commit();
         } else {
             destroyItemEffects();
@@ -211,14 +186,9 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     private void destroyItemEffects() {
-        if (level == null || level.isClientSide()) return;
-        level.playSound(
-                null,
-                getBlockPos(),
-                SoundEvents.LAVA_EXTINGUISH,
-                SoundSource.BLOCKS,
-                0.3F,
-                2.6F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.8F);
+        if (level == null || level.isClientSide())
+            return;
+        level.playSound(null, getBlockPos(), SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 2.6F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.8F);
         double x = getBlockPos().getX() + level.getRandom().nextFloat();
         double y = getBlockPos().getY() + 1;
         double z = getBlockPos().getZ() + level.getRandom().nextFloat();
@@ -226,8 +196,10 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     public void ejectItem(ItemStack item, ItemStack furnaceStack, AbstractCookingRecipe recipe) {
-        if (item == null || item.isEmpty()) return;
-        if (level == null || level.isClientSide()) return;
+        if (item == null || item.isEmpty())
+            return;
+        if (level == null || level.isClientSide())
+            return;
         ArrayList<ItemStack> toEject = new ArrayList<>();
         toEject.add(item.copy());
         int bellows = getBellows() + 1;
@@ -249,8 +221,7 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
 
         for (ItemStack stack : toEject) {
             if (!stack.isEmpty()) {
-                Direction direction =
-                        getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite();
+                Direction direction = getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite();
                 ejectStackAt(level, getBlockPos(), direction, stack);
             }
         }
@@ -272,18 +243,9 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
             int splitted = ExperienceOrb.getExperienceValue((int) xp);
             xp -= splitted;
 
-            ExperienceOrb orb = new ExperienceOrb(
-                    level,
-                    getBlockPos().getX() + lx,
-                    getBlockPos().getY() + 0.4F,
-                    getBlockPos().getZ() + lz,
-                    splitted);
-            mx = facingX == 0
-                    ? (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.025F
-                    : facingX * 0.13F;
-            mz = facingZ == 0
-                    ? (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.025F
-                    : facingZ * 0.13F;
+            ExperienceOrb orb = new ExperienceOrb(level, getBlockPos().getX() + lx, getBlockPos().getY() + 0.4F, getBlockPos().getZ() + lz, splitted);
+            mx = facingX == 0 ? (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.025F : facingX * 0.13F;
+            mz = facingZ == 0 ? (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.025F : facingZ * 0.13F;
             orb.setDeltaMovement(mx, 0, mz);
             level.addFreshEntity(orb);
         }
@@ -292,15 +254,11 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        if (level == null || level.isClientSide()) return;
+        if (level == null || level.isClientSide())
+            return;
         for (int slot = 0; slot < inventory.size(); slot++) {
-            Direction direction =
-                    getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite();
-            ItemEntity entity = new ItemEntity(
-                    level,
-                    pos.getX() + direction.getStepX(),
-                    (float) pos.getY() + direction.getStepY(),
-                    pos.getZ() + direction.getStepZ(),
+            Direction direction = getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite();
+            ItemEntity entity = new ItemEntity(level, pos.getX() + direction.getStepX(), (float) pos.getY() + direction.getStepY(), pos.getZ() + direction.getStepZ(),
                     inventory.getResource(slot).toStack(inventory.getAmountAsInt(slot)));
             entity.setDeltaMovement(0.3 * direction.getStepX(), 0.3 * direction.getStepY(), 0.3 * direction.getStepZ());
             level.addFreshEntity(entity);
@@ -308,15 +266,20 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     private ItemStack[] getSmeltingBonus(ItemStack in) {
-        if (level == null) return new ItemStack[0];
+        if (level == null)
+            return new ItemStack[0];
         List<InfernalBonus> bonuses = in.getData(InfernalBonus.DATA_MAP);
-        if (bonuses == null || bonuses.isEmpty()) return new ItemStack[0];
+        if (bonuses == null || bonuses.isEmpty())
+            return new ItemStack[0];
         ArrayList<ItemStack> out = new ArrayList<>();
         for (InfernalBonus bonus : bonuses) {
-            if (level.getRandom().nextFloat() > bonus.chance()) continue;
-            if (!bonus.items().isBound()) continue;
+            if (level.getRandom().nextFloat() > bonus.chance())
+                continue;
+            if (!bonus.items().isBound())
+                continue;
             Optional<Holder<Item>> optItem = getRandomBoundItem(bonus);
-            if (optItem.isEmpty()) continue;
+            if (optItem.isEmpty())
+                continue;
 
             int count = Math.max(1, bonus.count().sample(level.getRandom()));
             out.add(new ItemStack(optItem.get().value(), count));
@@ -325,8 +288,10 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     private Optional<Holder<Item>> getRandomBoundItem(InfernalBonus bonus) {
-        if (!bonus.items().isBound()) return Optional.empty();
-        if (level == null) return Optional.empty();
+        if (!bonus.items().isBound())
+            return Optional.empty();
+        if (level == null)
+            return Optional.empty();
 
         Optional<Holder<Item>> optItem = Optional.empty();
         int attempts = 0;
@@ -350,10 +315,8 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector problemreporter$scopedcollector =
-                new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput tagvalueoutput =
-                    TagValueOutput.createWithContext(problemreporter$scopedcollector, registries);
+        try (ProblemReporter.ScopedCollector problemreporter$scopedcollector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
+            TagValueOutput tagvalueoutput = TagValueOutput.createWithContext(problemreporter$scopedcollector, registries);
             saveAdditional(tagvalueoutput);
             nbt.merge(tagvalueoutput.buildResult());
         }
@@ -366,13 +329,9 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     private int getBellows() {
-        if (level == null) return 0;
-        Direction[] directions = Arrays.stream(Direction.values())
-                .filter(dir -> dir != Direction.UP
-                        && dir
-                                != getBlockState()
-                                        .getValue(BlockInfernalFurnace.FACING)
-                                        .getOpposite())
+        if (level == null)
+            return 0;
+        Direction[] directions = Arrays.stream(Direction.values()).filter(dir -> dir != Direction.UP && dir != getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite())
                 .toArray(Direction[]::new);
         return Math.min(4, BellowsHelper.countBellows(level, getBlockPos(), directions, 2));
     }
@@ -387,11 +346,9 @@ public class BlockEntityInfernalFurnace extends BlockEntity {
     }
 
     private Optional<AbstractCookingRecipe> getCookingRecipe(ItemStack input) {
-        if (level == null || level.isClientSide()) return Optional.empty();
-        return ((ServerLevel) level)
-                .recipeAccess()
-                .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(input), level)
-                .map(RecipeHolder::value);
+        if (level == null || level.isClientSide())
+            return Optional.empty();
+        return ((ServerLevel) level).recipeAccess().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(input), level).map(RecipeHolder::value);
     }
 
     private boolean canSmelt(ItemStack stack) {

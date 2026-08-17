@@ -12,16 +12,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundThaumatoriumTogglePayload(BlockPos pos, Identifier recipeId) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<ServerboundThaumatoriumTogglePayload> TYPE =
-            new CustomPacketPayload.Type<>(TCIds.rl("thaumatorium_toggle"));
+    public static final CustomPacketPayload.Type<ServerboundThaumatoriumTogglePayload> TYPE = new CustomPacketPayload.Type<>(TCIds.rl("thaumatorium_toggle"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundThaumatoriumTogglePayload> STREAM_CODEC =
-            StreamCodec.composite(
-                    BlockPos.STREAM_CODEC,
-                    ServerboundThaumatoriumTogglePayload::pos,
-                    Identifier.STREAM_CODEC,
-                    ServerboundThaumatoriumTogglePayload::recipeId,
-                    ServerboundThaumatoriumTogglePayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundThaumatoriumTogglePayload> STREAM_CODEC = StreamCodec.composite(BlockPos.STREAM_CODEC,
+            ServerboundThaumatoriumTogglePayload::pos, Identifier.STREAM_CODEC, ServerboundThaumatoriumTogglePayload::recipeId, ServerboundThaumatoriumTogglePayload::new);
 
     public static void handle(ServerboundThaumatoriumTogglePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
