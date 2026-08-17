@@ -61,11 +61,11 @@ public final class TCPayloads {
         registrar.playToServer(
                 ServerboundThaumatoriumTogglePayload.TYPE,
                 ServerboundThaumatoriumTogglePayload.STREAM_CODEC,
-                ServerboundThaumatoriumToggleHandler::handle);
+                ServerboundThaumatoriumTogglePayload::handle);
         registrar.playToServer(
                 ServerboundGolemPressPayload.TYPE,
                 ServerboundGolemPressPayload.STREAM_CODEC,
-                ServerboundGolemPressHandler::handle);
+                ServerboundGolemPressPayload::handle);
         registrar.playToServer(
                 ServerboundCloudJumpPayload.TYPE,
                 ServerboundCloudJumpPayload.STREAM_CODEC,
@@ -73,7 +73,7 @@ public final class TCPayloads {
         registrar.playToServer(
                 ServerboundAdvanceStagePayload.TYPE,
                 ServerboundAdvanceStagePayload.STREAM_CODEC,
-                ServerboundAdvanceStageHandler::handle);
+                ServerboundAdvanceStagePayload::handle);
         registrar.playToClient(
                 ClientboundAspectGainPayload.TYPE,
                 ClientboundAspectGainPayload.STREAM_CODEC,
@@ -121,11 +121,11 @@ public final class TCPayloads {
         registrar.playToServer(
                 ServerboundClearResearchFlagsPayload.TYPE,
                 ServerboundClearResearchFlagsPayload.STREAM_CODEC,
-                ServerboundClearResearchFlagsHandler::handle);
+                ServerboundClearResearchFlagsPayload::handle);
         registrar.playToServer(
                 ServerboundUnlockResearchPayload.TYPE,
                 ServerboundUnlockResearchPayload.STREAM_CODEC,
-                ServerboundUnlockResearchHandler::handle);
+                ServerboundUnlockResearchPayload::handle);
         registrar.playToClient(
                 ClientboundSpawnParticlePayload.TYPE,
                 ClientboundSpawnParticlePayload.STREAM_CODEC,
@@ -145,7 +145,7 @@ public final class TCPayloads {
         registrar.playToServer(
                 ServerboundRequestAuraChunkPayload.TYPE,
                 ServerboundRequestAuraChunkPayload.STREAM_CODEC,
-                ServerboundRequestAuraChunkHandler::handle);
+                ServerboundRequestAuraChunkPayload::handle);
         registrar.playToClient(
                 ClientboundWarpFXPayload.TYPE,
                 ClientboundWarpFXPayload.STREAM_CODEC,
