@@ -25,6 +25,16 @@ public final class TCFXPipelines {
 
     private TCFXPipelines() {}
 
+    public static RenderPipeline additiveTextured(Identifier location, Identifier fragmentShader) {
+        return RenderPipeline.builder(BASE)
+                .withLocation(location)
+                .withFragmentShader(fragmentShader)
+                .withColorTargetState(new ColorTargetState(new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE)))
+                .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+                .withCull(false)
+                .build();
+    }
+
     public static RenderPipeline additiveTextured(Identifier location) {
         return RenderPipeline.builder(BASE)
                 .withLocation(location)

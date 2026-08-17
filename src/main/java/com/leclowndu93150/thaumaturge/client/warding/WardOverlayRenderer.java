@@ -59,7 +59,8 @@ public final class WardOverlayRenderer {
     private static final float[] CORNER_U = {0.0F, HALF, 0.0F, HALF};
     private static final float[] CORNER_V = {0.0F, 0.0F, HALF, HALF};
 
-    private static final RenderPipeline PIPELINE = TCFXPipelines.additiveTextured(TCIds.rl("pipeline/ward_runes"));
+    private static final RenderPipeline PIPELINE =
+            TCFXPipelines.additiveTextured(TCIds.rl("pipeline/ward_runes"), TCIds.rl("core/ward_add"));
     private static final RenderType RUNES = RenderType.create(
             "thaumaturge_ward_runes",
             RenderSetup.builder(PIPELINE)
