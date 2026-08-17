@@ -21,13 +21,16 @@ import net.minecraft.resources.ResourceKey;
 /**
  * An immutable, ordered list of aspect quantities.
  *
- * <p>Iteration order is insertion order. Two instances are equal when they contain the same
- * (aspect, amount) entries in the same order.
+ * <p>
+ * Iteration order is insertion order. Two instances are equal when they contain the same (aspect, amount) entries in
+ * the same order.
  *
- * <p>All mutating operations return a new instance and leave the receiver untouched. Empty
- * results from {@link #reduce}, {@link #remove}, and similar are returned as {@link #EMPTY}.
+ * <p>
+ * All mutating operations return a new instance and leave the receiver untouched. Empty results from {@link #reduce},
+ * {@link #remove}, and similar are returned as {@link #EMPTY}.
  *
- * <p>For datapack serialization use {@link #CODEC}. For network sync use {@link #STREAM_CODEC}.
+ * <p>
+ * For datapack serialization use {@link #CODEC}. For network sync use {@link #STREAM_CODEC}.
  *
  * @since 1.0.0
  */
@@ -36,25 +39,19 @@ public final class AspectList {
     public static final AspectList EMPTY = new AspectList(Collections.emptyList());
 
     /** Codec; serializes as a JSON array of {@link AspectInstance}. */
-    public static final Codec<AspectList> CODEC = AspectInstance.CODEC
-            .listOf()
-            .flatXmap(
-                    entries -> {
-                        AspectList result = AspectList.EMPTY;
-                        for (AspectInstance entry : entries) {
-                            result = result.add(entry);
-                        }
-                        return DataResult.success(result);
-                    },
-                    list -> DataResult.success(list.entries()));
+    public static final Codec<AspectList> CODEC = AspectInstance.CODEC.listOf().flatXmap(entries -> {
+        AspectList result = AspectList.EMPTY;
+        for (AspectInstance entry : entries) {
+            result = result.add(entry);
+        }
+        return DataResult.success(result);
+    }, list -> DataResult.success(list.entries()));
 
     /** Non-Empty Codec; serializes as a non-empty JSON array of {@link AspectInstance}. */
-    public static final Codec<AspectList> NON_EMPTY_CODEC = CODEC.validate(list ->
-            list.isEmpty() ? DataResult.error(() -> "Aspect List must not be empty", EMPTY) : DataResult.success(list));
+    public static final Codec<AspectList> NON_EMPTY_CODEC = CODEC.validate(list -> list.isEmpty() ? DataResult.error(() -> "Aspect List must not be empty", EMPTY) : DataResult.success(list));
 
     /** Network codec; preserves order. */
-    public static final StreamCodec<RegistryFriendlyByteBuf, AspectList> STREAM_CODEC =
-            AspectInstance.STREAM_CODEC.apply(ByteBufCodecs.list()).map(AspectList::ofEntries, AspectList::entries);
+    public static final StreamCodec<RegistryFriendlyByteBuf, AspectList> STREAM_CODEC = AspectInstance.STREAM_CODEC.apply(ByteBufCodecs.list()).map(AspectList::ofEntries, AspectList::entries);
 
     private final List<AspectInstance> entries;
 
@@ -63,8 +60,8 @@ public final class AspectList {
     }
 
     /**
-     * Constructs an aspect list from an ordered sequence of entries. Duplicate aspects collapse
-     * into a single entry whose amount is the sum.
+     * Constructs an aspect list from an ordered sequence of entries. Duplicate aspects collapse into a single entry whose
+     * amount is the sum.
      *
      * @param entries the entries; null elements are not permitted
      * @return the resulting aspect list, never {@code null}
@@ -78,8 +75,8 @@ public final class AspectList {
     }
 
     /**
-     * Returns an aspect list containing exactly the given entries. Convenience for code that
-     * already knows there are no duplicates.
+     * Returns an aspect list containing exactly the given entries. Convenience for code that already knows there are no
+     * duplicates.
      *
      * @param entries the entries
      * @return an aspect list, never {@code null}
@@ -140,11 +137,10 @@ public final class AspectList {
     }
 
     /**
-     * The amount of the given aspect contained in this list, resolving the key against the given
-     * registry view. Convenience for callers that hold a {@link ResourceKey} rather than a
-     * {@link Holder}.
+     * The amount of the given aspect contained in this list, resolving the key against the given registry view. Convenience
+     * for callers that hold a {@link ResourceKey} rather than a {@link Holder}.
      *
-     * @param key        the aspect key, compared after resolution against {@code registries}
+     * @param key the aspect key, compared after resolution against {@code registries}
      * @param registries the registry view used to resolve the key
      * @return the amount, or zero when the key is absent or cannot be resolved
      */
@@ -154,8 +150,8 @@ public final class AspectList {
     }
 
     /**
-     * Returns an aspect list with the given amount added. Existing amounts of the same aspect
-     * are summed; otherwise the aspect is appended at the end.
+     * Returns an aspect list with the given amount added. Existing amounts of the same aspect are summed; otherwise the
+     * aspect is appended at the end.
      *
      * @param aspect the aspect
      * @param amount the amount to add, must be positive
@@ -198,8 +194,8 @@ public final class AspectList {
     }
 
     /**
-     * Returns an aspect list with the given amount of {@code aspect} removed. The aspect is
-     * dropped when its remaining amount would be zero or negative.
+     * Returns an aspect list with the given amount of {@code aspect} removed. The aspect is dropped when its remaining
+     * amount would be zero or negative.
      *
      * @param aspect the aspect to remove from
      * @param amount the amount to remove
@@ -238,8 +234,8 @@ public final class AspectList {
     }
 
     /**
-     * Returns an aspect list with the given amount reduced from {@code aspect}, only when the
-     * receiver has enough. Otherwise the receiver is returned unchanged.
+     * Returns an aspect list with the given amount reduced from {@code aspect}, only when the receiver has enough.
+     * Otherwise the receiver is returned unchanged.
      *
      * @param aspect the aspect
      * @param amount the amount to remove
@@ -253,8 +249,8 @@ public final class AspectList {
     }
 
     /**
-     * Returns an aspect list whose entries are the maximum of this list's amounts and the
-     * given list's amounts. The legacy operation was named {@code merge}.
+     * Returns an aspect list whose entries are the maximum of this list's amounts and the given list's amounts. The legacy
+     * operation was named {@code merge}.
      *
      * @param other the other list
      * @return the merged aspect list

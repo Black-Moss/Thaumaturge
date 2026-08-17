@@ -13,20 +13,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record ServerboundGolemPressPayload(BlockPos pos, GolemProperties props, boolean craft)
-        implements CustomPacketPayload {
-    public static final Type<ServerboundGolemPressPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_press"));
+public record ServerboundGolemPressPayload(BlockPos pos, GolemProperties props, boolean craft) implements CustomPacketPayload {
+    public static final Type<ServerboundGolemPressPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_press"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundGolemPressPayload> STREAM_CODEC =
-            StreamCodec.composite(
-                    BlockPos.STREAM_CODEC,
-                    ServerboundGolemPressPayload::pos,
-                    GolemProperties.STREAM_CODEC,
-                    ServerboundGolemPressPayload::props,
-                    ByteBufCodecs.BOOL,
-                    ServerboundGolemPressPayload::craft,
-                    ServerboundGolemPressPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundGolemPressPayload> STREAM_CODEC = StreamCodec.composite(BlockPos.STREAM_CODEC, ServerboundGolemPressPayload::pos,
+            GolemProperties.STREAM_CODEC, ServerboundGolemPressPayload::props, ByteBufCodecs.BOOL, ServerboundGolemPressPayload::craft, ServerboundGolemPressPayload::new);
 
     public static void handle(ServerboundGolemPressPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {

@@ -7,8 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 
 public final class ItemInfernalFurnace extends ItemMultiblockPlacer {
-    private static final ResourceKey<Blueprint> BLUEPRINT =
-            ResourceKey.create(Blueprint.REGISTRY_KEY, TCIds.rl("infernal_furnace"));
+    private static final ResourceKey<Blueprint> BLUEPRINT = ResourceKey.create(Blueprint.REGISTRY_KEY, TCIds.rl("infernal_furnace"));
 
     public ItemInfernalFurnace(Block block, Properties properties) {
         super(block, properties);

@@ -7,16 +7,15 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
- * A wand cap type. Caps determine how efficiently a wand spends its stored primal vis: the
- * cost of any drain is multiplied by the cap's cost modifier, so values below 1 are discounts.
- * A cap may declare special aspects that use a different modifier than the base one.
+ * A wand cap type. Caps determine how efficiently a wand spends its stored primal vis: the cost of any drain is
+ * multiplied by the cap's cost modifier, so values below 1 are discounts. A cap may declare special aspects that use a
+ * different modifier than the base one.
  *
  * @since 1.0.0
  */
 public final class WandCap {
     /** The registry key for wand caps. */
-    public static final ResourceKey<Registry<WandCap>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "wand_cap"));
+    public static final ResourceKey<Registry<WandCap>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "wand_cap"));
 
     private final float baseCostModifier;
     private final List<ResourceKey<IAspect>> specialCostAspects;
@@ -25,21 +24,14 @@ public final class WandCap {
     private final Identifier texture;
 
     /**
-     * @param baseCostModifier    the vis cost multiplier for aspects not listed as special
-     * @param specialCostAspects  aspects that use {@code specialCostModifier} instead of the
-     *                            base modifier; empty for none
-     * @param specialCostModifier the vis cost multiplier for the special aspects; ignored when
-     *                            no special aspects are declared
-     * @param craftCost           the crafting cost factor of this cap, multiplied with the
-     *                            rod's factor to price wand assembly
-     * @param texture             the texture rendered on wand models built with this cap
+     * @param baseCostModifier the vis cost multiplier for aspects not listed as special
+     * @param specialCostAspects aspects that use {@code specialCostModifier} instead of the base modifier; empty for none
+     * @param specialCostModifier the vis cost multiplier for the special aspects; ignored when no special aspects are
+     *            declared
+     * @param craftCost the crafting cost factor of this cap, multiplied with the rod's factor to price wand assembly
+     * @param texture the texture rendered on wand models built with this cap
      */
-    public WandCap(
-            float baseCostModifier,
-            List<ResourceKey<IAspect>> specialCostAspects,
-            float specialCostModifier,
-            int craftCost,
-            Identifier texture) {
+    public WandCap(float baseCostModifier, List<ResourceKey<IAspect>> specialCostAspects, float specialCostModifier, int craftCost, Identifier texture) {
         this.baseCostModifier = baseCostModifier;
         this.specialCostAspects = List.copyOf(specialCostAspects);
         this.specialCostModifier = specialCostModifier;

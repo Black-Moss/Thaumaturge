@@ -6,10 +6,12 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Marker for items that store an {@link AspectList} as their essentia payload.
  *
- * <p>The payload travels through a {@link net.minecraft.core.component.DataComponentType
- * DataComponentType}, not item NBT; implementations forward to the registered component.
+ * <p>
+ * The payload travels through a {@link net.minecraft.core.component.DataComponentType DataComponentType}, not item NBT;
+ * implementations forward to the registered component.
  *
- * <p>Items exposing this interface should be registered against {@link EssentiaCapabilities#CONTAINER}.
+ * <p>
+ * Items exposing this interface should be registered against {@link EssentiaCapabilities#CONTAINER}.
  *
  * @since 1.0.0
  */
@@ -25,7 +27,7 @@ public interface IEssentiaContainerItem {
     /**
      * Writes the given aspects onto the stack.
      *
-     * @param stack   the item stack, never {@code null}
+     * @param stack the item stack, never {@code null}
      * @param aspects the aspects to store
      */
     void setAspects(ItemStack stack, AspectList aspects);

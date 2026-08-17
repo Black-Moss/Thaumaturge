@@ -4,14 +4,14 @@ import com.mojang.serialization.Codec;
 import net.minecraft.resources.Identifier;
 
 /**
- * Icon shown on a research entry's node in the Thaumonomicon. An icon is a full texture path,
- * an item identifier, or a focus element reference; entries may declare several icons, which
- * the browser cycles through while the node is visible.
+ * Icon shown on a research entry's node in the Thaumonomicon. An icon is a full texture path, an item identifier, or a
+ * focus element reference; entries may declare several icons, which the browser cycles through while the node is
+ * visible.
  *
- * <p>The serialized form is a single string. Strings prefixed with {@code focus:} name a focus
- * element whose tinted part icon is rendered; strings ending in {@code .png} are treated as
- * texture paths; anything else is treated as an item identifier, matching the legacy research
- * JSON convention.
+ * <p>
+ * The serialized form is a single string. Strings prefixed with {@code focus:} name a focus element whose tinted part
+ * icon is rendered; strings ending in {@code .png} are treated as texture paths; anything else is treated as an item
+ * identifier, matching the legacy research JSON convention.
  *
  * @param id the texture path, item identifier, or focus element identifier
  * @param kind how {@link #id} is resolved when the icon is rendered

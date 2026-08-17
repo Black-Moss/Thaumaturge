@@ -37,14 +37,7 @@ public final class WardClientHandler {
             hitY = (float) (location.y - pos.getY());
             hitZ = (float) (location.z - pos.getZ());
         }
-        level.addParticle(
-                new WardFlashParticleOptions(face, hitX, hitY, hitZ),
-                pos.getX() + CENTER,
-                pos.getY() + CENTER,
-                pos.getZ() + CENTER,
-                0.0,
-                0.0,
-                0.0);
+        level.addParticle(new WardFlashParticleOptions(face, hitX, hitY, hitZ), pos.getX() + CENTER, pos.getY() + CENTER, pos.getZ() + CENTER, 0.0, 0.0, 0.0);
     }
 
     public static void handleChunk(ClientboundWardChunkPayload payload, IPayloadContext context) {
@@ -65,9 +58,7 @@ public final class WardClientHandler {
     public static void handleUpdate(ClientboundWardUpdatePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (payload.owner().isPresent()) {
-                ClientWardHolder.put(
-                        payload.pos(),
-                        payload.owner().get().equals(context.player().getUUID()));
+                ClientWardHolder.put(payload.pos(), payload.owner().get().equals(context.player().getUUID()));
             } else {
                 ClientWardHolder.remove(payload.pos());
             }

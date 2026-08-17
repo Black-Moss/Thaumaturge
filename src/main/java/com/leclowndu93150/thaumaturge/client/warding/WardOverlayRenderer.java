@@ -59,13 +59,8 @@ public final class WardOverlayRenderer {
     private static final float[] CORNER_U = {0.0F, HALF, 0.0F, HALF};
     private static final float[] CORNER_V = {0.0F, 0.0F, HALF, HALF};
 
-    private static final RenderPipeline PIPELINE =
-            TCFXPipelines.additiveTextured(TCIds.rl("pipeline/ward_runes"), TCIds.rl("core/ward_add"));
-    private static final RenderType RUNES = RenderType.create(
-            "thaumaturge_ward_runes",
-            RenderSetup.builder(PIPELINE)
-                    .withTexture("Sampler0", TextureAtlas.LOCATION_BLOCKS)
-                    .createRenderSetup());
+    private static final RenderPipeline PIPELINE = TCFXPipelines.additiveTextured(TCIds.rl("pipeline/ward_runes"), TCIds.rl("core/ward_add"));
+    private static final RenderType RUNES = RenderType.create("thaumaturge_ward_runes", RenderSetup.builder(PIPELINE).withTexture("Sampler0", TextureAtlas.LOCATION_BLOCKS).createRenderSetup());
 
     private WardOverlayRenderer() {}
 
@@ -89,8 +84,7 @@ public final class WardOverlayRenderer {
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         VertexConsumer buffer = buffers.getBuffer(RUNES);
         Matrix4f pose = event.getPoseStack().last().pose();
-        TextureAtlasSprite[] sprites =
-                new TextureAtlasSprite[WardConnectedTexture.CORNERS * WardConnectedTexture.STATES];
+        TextureAtlasSprite[] sprites = new TextureAtlasSprite[WardConnectedTexture.CORNERS * WardConnectedTexture.STATES];
         BlockPos.MutableBlockPos neighbour = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (SectionPos section : ClientWardHolder.sections()) {
@@ -107,26 +101,13 @@ public final class WardOverlayRenderer {
         buffers.endBatch(RUNES);
     }
 
-    private static void drawWard(
-            VertexConsumer buffer,
-            Matrix4f pose,
-            TextureAtlasSprite[] sprites,
-            BlockPos.MutableBlockPos neighbour,
-            BlockPos.MutableBlockPos cursor,
-            BlockPos pos,
-            Vec3 cam,
-            float time) {
+    private static void drawWard(VertexConsumer buffer, Matrix4f pose, TextureAtlasSprite[] sprites, BlockPos.MutableBlockPos neighbour, BlockPos.MutableBlockPos cursor, BlockPos pos, Vec3 cam, float time) {
         boolean owned = ClientWardHolder.isOwned(pos);
         float red = Math.min(Mth.sin(time / RED_PERIOD + pos.getX()) * PULSE + RED_BASE, 1.0F);
-        float green = Math.min(
-                Mth.sin(time / GREEN_PERIOD + pos.getY()) * PULSE + (owned ? OWNED_GREEN_BASE : FOREIGN_CHANNEL_BASE),
-                1.0F);
-        float blue = Math.min(
-                Mth.sin(time / BLUE_PERIOD + pos.getZ()) * PULSE + (owned ? OWNED_BLUE_BASE : FOREIGN_CHANNEL_BASE),
-                1.0F);
+        float green = Math.min(Mth.sin(time / GREEN_PERIOD + pos.getY()) * PULSE + (owned ? OWNED_GREEN_BASE : FOREIGN_CHANNEL_BASE), 1.0F);
+        float blue = Math.min(Mth.sin(time / BLUE_PERIOD + pos.getZ()) * PULSE + (owned ? OWNED_BLUE_BASE : FOREIGN_CHANNEL_BASE), 1.0F);
         float alpha = owned ? OWNED_ALPHA : FOREIGN_ALPHA;
-        Predicate<BlockPos> connected =
-                probe -> ClientWardHolder.isWarded(probe) && ClientWardHolder.isOwned(probe) == owned;
+        Predicate<BlockPos> connected = probe -> ClientWardHolder.isWarded(probe) && ClientWardHolder.isOwned(probe) == owned;
         for (Direction face : Direction.values()) {
             neighbour.setWithOffset(pos, face);
             if (ClientWardHolder.isWarded(neighbour)) {
@@ -137,10 +118,7 @@ public final class WardOverlayRenderer {
                 int slot = corner * WardConnectedTexture.STATES + state;
                 TextureAtlasSprite sprite = sprites[slot];
                 if (sprite == null) {
-                    sprite = Minecraft.getInstance()
-                            .getAtlasManager()
-                            .getAtlasOrThrow(AtlasIds.BLOCKS)
-                            .getSprite(WardConnectedTexture.sprite(corner, state));
+                    sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(WardConnectedTexture.sprite(corner, state));
                     sprites[slot] = sprite;
                 }
                 drawCorner(buffer, pose, pos, face, corner, sprite, cam, red, green, blue, alpha);
@@ -148,18 +126,7 @@ public final class WardOverlayRenderer {
         }
     }
 
-    private static void drawCorner(
-            VertexConsumer buffer,
-            Matrix4f pose,
-            BlockPos pos,
-            Direction face,
-            int corner,
-            TextureAtlasSprite sprite,
-            Vec3 cam,
-            float red,
-            float green,
-            float blue,
-            float alpha) {
+    private static void drawCorner(VertexConsumer buffer, Matrix4f pose, BlockPos pos, Direction face, int corner, TextureAtlasSprite sprite, Vec3 cam, float red, float green, float blue, float alpha) {
         int index = face.ordinal();
         int[] base = FACE_BASE[index];
         int[] uAxis = FACE_U[index];
@@ -171,88 +138,13 @@ public final class WardOverlayRenderer {
         float v0 = CORNER_V[corner];
         float u1 = u0 + HALF;
         float v1 = v0 + HALF;
-        vertex(
-                buffer,
-                pose,
-                originX,
-                originY,
-                originZ,
-                uAxis,
-                vAxis,
-                u0,
-                v0,
-                sprite.getU0(),
-                sprite.getV0(),
-                red,
-                green,
-                blue,
-                alpha);
-        vertex(
-                buffer,
-                pose,
-                originX,
-                originY,
-                originZ,
-                uAxis,
-                vAxis,
-                u1,
-                v0,
-                sprite.getU1(),
-                sprite.getV0(),
-                red,
-                green,
-                blue,
-                alpha);
-        vertex(
-                buffer,
-                pose,
-                originX,
-                originY,
-                originZ,
-                uAxis,
-                vAxis,
-                u1,
-                v1,
-                sprite.getU1(),
-                sprite.getV1(),
-                red,
-                green,
-                blue,
-                alpha);
-        vertex(
-                buffer,
-                pose,
-                originX,
-                originY,
-                originZ,
-                uAxis,
-                vAxis,
-                u0,
-                v1,
-                sprite.getU0(),
-                sprite.getV1(),
-                red,
-                green,
-                blue,
-                alpha);
+        vertex(buffer, pose, originX, originY, originZ, uAxis, vAxis, u0, v0, sprite.getU0(), sprite.getV0(), red, green, blue, alpha);
+        vertex(buffer, pose, originX, originY, originZ, uAxis, vAxis, u1, v0, sprite.getU1(), sprite.getV0(), red, green, blue, alpha);
+        vertex(buffer, pose, originX, originY, originZ, uAxis, vAxis, u1, v1, sprite.getU1(), sprite.getV1(), red, green, blue, alpha);
+        vertex(buffer, pose, originX, originY, originZ, uAxis, vAxis, u0, v1, sprite.getU0(), sprite.getV1(), red, green, blue, alpha);
     }
 
-    private static void vertex(
-            VertexConsumer buffer,
-            Matrix4f pose,
-            float originX,
-            float originY,
-            float originZ,
-            int[] uAxis,
-            int[] vAxis,
-            float u,
-            float v,
-            float spriteU,
-            float spriteV,
-            float red,
-            float green,
-            float blue,
-            float alpha) {
+    private static void vertex(VertexConsumer buffer, Matrix4f pose, float originX, float originY, float originZ, int[] uAxis, int[] vAxis, float u, float v, float spriteU, float spriteV, float red, float green, float blue, float alpha) {
         float x = originX + (uAxis[0] * u + vAxis[0] * v) * SPAN;
         float y = originY + (uAxis[1] * u + vAxis[1] * v) * SPAN;
         float z = originZ + (uAxis[2] * u + vAxis[2] * v) * SPAN;

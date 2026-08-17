@@ -25,17 +25,12 @@ public final class ItemEssentiaCrystal extends Item implements IEssentiaContaine
         return Component.translatable("item.thaumaturge.essentia_crystal", AspectComponents.name(aspect));
     }
 
-    /*    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
-        Holder<IAspect> aspect = aspectOf(stack);
-        if (aspect != null) {
-            int color = aspect.value().color();
-            Component line = Component.translatable("aspect.thaumaturge." + aspect.value().tag() + ".desc")
-                    .withStyle(style -> style.withColor(color));
-            tooltip.accept(line);
-        }
-    }*/
+    /*
+     * @Override public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+     * Consumer<Component> tooltip, TooltipFlag flag) { Holder<IAspect> aspect = aspectOf(stack); if (aspect != null) { int
+     * color = aspect.value().color(); Component line = Component.translatable("aspect.thaumaturge." + aspect.value().tag()
+     * + ".desc") .withStyle(style -> style.withColor(color)); tooltip.accept(line); } }
+     */
 
     public static Holder<IAspect> aspectOf(ItemStack stack) {
         AspectInstance instance = stack.get(TCDataComponents.CRYSTAL_ASPECT.get());
@@ -59,9 +54,7 @@ public final class ItemEssentiaCrystal extends Item implements IEssentiaContaine
             stack.remove(TCDataComponents.CRYSTAL_ASPECT.get());
             return;
         }
-        stack.set(
-                TCDataComponents.CRYSTAL_ASPECT.get(),
-                aspects.entries().getFirst().withAmount(1));
+        stack.set(TCDataComponents.CRYSTAL_ASPECT.get(), aspects.entries().getFirst().withAmount(1));
     }
 
     @Override

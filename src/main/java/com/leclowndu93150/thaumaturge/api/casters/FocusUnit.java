@@ -5,18 +5,17 @@ import java.util.Map;
 import net.minecraft.resources.Identifier;
 
 /**
- * One configured node of a spell: the id of a registered focus element plus the setting
- * values chosen for it. Split elements additionally carry their branch packages.
+ * One configured node of a spell: the id of a registered focus element plus the setting values chosen for it. Split
+ * elements additionally carry their branch packages.
  *
- * <p>Units are pure data. The behavior they reference lives in the
- * {@link FocusElementType} registry and is resolved at execution time through
- * {@link FocusEngine#element(Identifier)}.
+ * <p>
+ * Units are pure data. The behavior they reference lives in the {@link FocusElementType} registry and is resolved at
+ * execution time through {@link FocusEngine#element(Identifier)}.
  *
- * @param element  the id of the focus element this unit configures
- * @param settings the chosen setting values, keyed by {@link SettingDefinition#key()};
- *                 keys absent from the map fall back to the definition's default
- * @param branches the branch packages of a {@link FocusSplit} element; empty for every
- *                 other element kind
+ * @param element the id of the focus element this unit configures
+ * @param settings the chosen setting values, keyed by {@link SettingDefinition#key()}; keys absent from the map fall
+ *            back to the definition's default
+ * @param branches the branch packages of a {@link FocusSplit} element; empty for every other element kind
  * @since 1.0.0
  */
 public record FocusUnit(Identifier element, Map<String, Integer> settings, List<FocusPackage> branches) {
@@ -41,7 +40,7 @@ public record FocusUnit(Identifier element, Map<String, Integer> settings, List<
     /**
      * Creates a unit with explicit settings and no branches.
      *
-     * @param element  the focus element id
+     * @param element the focus element id
      * @param settings the setting values
      * @return the unit
      */

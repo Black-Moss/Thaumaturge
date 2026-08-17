@@ -25,8 +25,7 @@ public final class WardFlashParticle extends TCParticle {
 
     private final Quaternionf faceRotation;
 
-    private WardFlashParticle(
-            ClientLevel level, double x, double y, double z, WardFlashParticleOptions options, ParticleSheet sheet) {
+    private WardFlashParticle(ClientLevel level, double x, double y, double z, WardFlashParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         Direction face = options.face();
         float sx = Mth.clamp(options.hitX() - 0.6F + this.random.nextFloat() * HIT_JITTER, -HIT_CLAMP, HIT_CLAMP);
@@ -41,10 +40,7 @@ public final class WardFlashParticle extends TCParticle {
         if (face.getStepZ() != 0) {
             sz = 0.0F;
         }
-        setPos(
-                x + sx + face.getStepX() * FACE_OFFSET,
-                y + sy + face.getStepY() * FACE_OFFSET,
-                z + sz + face.getStepZ() * FACE_OFFSET);
+        setPos(x + sx + face.getStepX() * FACE_OFFSET, y + sy + face.getStepY() * FACE_OFFSET, z + sz + face.getStepZ() * FACE_OFFSET);
         this.xo = this.x;
         this.yo = this.y;
         this.zo = this.z;
@@ -52,9 +48,7 @@ public final class WardFlashParticle extends TCParticle {
         this.quadSize = 0.5F * (float) (BASE_SCALE + this.random.nextGaussian() * SCALE_JITTER);
         this.alpha = 0.0F;
         this.setSize(0.01F, 0.01F);
-        this.faceRotation = new Quaternionf()
-                .rotationTo(0.0F, 0.0F, 1.0F, face.getStepX(), face.getStepY(), face.getStepZ())
-                .rotateZ((float) Math.toRadians(this.random.nextInt(360)));
+        this.faceRotation = new Quaternionf().rotationTo(0.0F, 0.0F, 1.0F, face.getStepX(), face.getStepY(), face.getStepZ()).rotateZ((float) Math.toRadians(this.random.nextInt(360)));
     }
 
     @Override
@@ -79,16 +73,7 @@ public final class WardFlashParticle extends TCParticle {
         private static final ParticleSheet SHEET = TCParticleSheets.sheet("ward_flash");
 
         @Override
-        public Particle createParticle(
-                WardFlashParticleOptions options,
-                ClientLevel level,
-                double x,
-                double y,
-                double z,
-                double vx,
-                double vy,
-                double vz,
-                RandomSource random) {
+        public Particle createParticle(WardFlashParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
             return new WardFlashParticle(level, x, y, z, options, SHEET);
         }
     }

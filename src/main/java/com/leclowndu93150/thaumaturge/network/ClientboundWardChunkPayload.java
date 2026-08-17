@@ -15,18 +15,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ChunkPos;
 
-public record ClientboundWardChunkPayload(ChunkPos chunk, List<ClientboundWardChunkPayload.Group> groups)
-        implements CustomPacketPayload {
-    public static final Type<ClientboundWardChunkPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "ward_chunk"));
+public record ClientboundWardChunkPayload(ChunkPos chunk, List<ClientboundWardChunkPayload.Group> groups) implements CustomPacketPayload {
+    public static final Type<ClientboundWardChunkPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "ward_chunk"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundWardChunkPayload> STREAM_CODEC =
-            StreamCodec.composite(
-                    ChunkPos.STREAM_CODEC,
-                    ClientboundWardChunkPayload::chunk,
-                    Group.STREAM_CODEC.apply(ByteBufCodecs.list()),
-                    ClientboundWardChunkPayload::groups,
-                    ClientboundWardChunkPayload::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundWardChunkPayload> STREAM_CODEC = StreamCodec.composite(ChunkPos.STREAM_CODEC, ClientboundWardChunkPayload::chunk,
+            Group.STREAM_CODEC.apply(ByteBufCodecs.list()), ClientboundWardChunkPayload::groups, ClientboundWardChunkPayload::new);
 
     private static final int LOCAL_MASK = 15;
     private static final int Z_SHIFT = 4;
@@ -45,10 +38,7 @@ public record ClientboundWardChunkPayload(ChunkPos chunk, List<ClientboundWardCh
     }
 
     public BlockPos unpack(int packed) {
-        return new BlockPos(
-                chunk.getMinBlockX() + (packed & LOCAL_MASK),
-                packed >> Y_SHIFT,
-                chunk.getMinBlockZ() + (packed >> Z_SHIFT & LOCAL_MASK));
+        return new BlockPos(chunk.getMinBlockX() + (packed & LOCAL_MASK), packed >> Y_SHIFT, chunk.getMinBlockZ() + (packed >> Z_SHIFT & LOCAL_MASK));
     }
 
     private static int pack(BlockPos pos) {
@@ -61,11 +51,7 @@ public record ClientboundWardChunkPayload(ChunkPos chunk, List<ClientboundWardCh
     }
 
     public record Group(UUID owner, List<Integer> positions) {
-        private static final StreamCodec<RegistryFriendlyByteBuf, Group> STREAM_CODEC = StreamCodec.composite(
-                UUIDUtil.STREAM_CODEC,
-                Group::owner,
-                ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-                Group::positions,
-                Group::new);
+        private static final StreamCodec<RegistryFriendlyByteBuf, Group> STREAM_CODEC = StreamCodec.composite(UUIDUtil.STREAM_CODEC, Group::owner, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
+                Group::positions, Group::new);
     }
 }

@@ -22,9 +22,8 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Inventory access and filter matching used by golem seals and provisioning. Replaces the Inventory
- * access and filter matching used by golem seals and provisioning, built on the NeoForge resource
- * transfer API.
+ * Inventory access and filter matching used by golem seals and provisioning. Replaces the Inventory access and filter
+ * matching used by golem seals and provisioning, built on the NeoForge resource transfer API.
  *
  * @since 1.0.0
  */
@@ -32,8 +31,8 @@ public final class InvHelper {
     private InvHelper() {}
 
     /**
-     * Comparison flags for filter matching. Damage maps the legacy metadata toggle, tags
-     * replace the ore dictionary toggle and mod matches by item namespace.
+     * Comparison flags for filter matching. Damage maps the legacy metadata toggle, tags replace the ore dictionary toggle
+     * and mod matches by item namespace.
      *
      * @since 1.0.0
      */
@@ -55,8 +54,7 @@ public final class InvHelper {
         }
 
         /**
-         * Relaxes component matching: the first stack's components must be present on the
-         * second, which may carry extras.
+         * Relaxes component matching: the first stack's components must be present on the second, which may carry extras.
          *
          * @return this filter
          */
@@ -67,21 +65,20 @@ public final class InvHelper {
     }
 
     /**
-     * A filter match result: the matched stack and the size limit of the filter slot that
-     * matched, or zero when unlimited.
+     * A filter match result: the matched stack and the size limit of the filter slot that matched, or zero when unlimited.
      *
      * @since 1.0.0
      */
-    public record FilterMatch(ItemStack stack, int sizeLimit) {}
+    public record FilterMatch(ItemStack stack, int sizeLimit) {
+    }
 
     /**
      * @param level the level
-     * @param pos   the block to query
-     * @param side  the side to access from, or null for the unsided handler
+     * @param pos the block to query
+     * @param side the side to access from, or null for the unsided handler
      * @return the item handler there, or null when absent
      */
-    public static @Nullable ResourceHandler<ItemResource> getItemHandlerAt(
-            Level level, BlockPos pos, @Nullable Direction side) {
+    public static @Nullable ResourceHandler<ItemResource> getItemHandlerAt(Level level, BlockPos pos, @Nullable Direction side) {
         return level.getCapability(Capabilities.Item.BLOCK, pos, side);
     }
 
@@ -90,8 +87,7 @@ public final class InvHelper {
      *
      * @return the remainder that did not fit
      */
-    public static ItemStack insertStack(
-            @Nullable ResourceHandler<ItemResource> handler, ItemStack stack, boolean simulate) {
+    public static ItemStack insertStack(@Nullable ResourceHandler<ItemResource> handler, ItemStack stack, boolean simulate) {
         if (handler == null || stack.isEmpty()) {
             return stack;
         }
@@ -115,8 +111,7 @@ public final class InvHelper {
      *
      * @return the remainder that did not fit
      */
-    public static ItemStack insertStackAt(
-            Level level, BlockPos pos, Direction side, ItemStack stack, boolean simulate) {
+    public static ItemStack insertStackAt(Level level, BlockPos pos, Direction side, ItemStack stack, boolean simulate) {
         ResourceHandler<ItemResource> inventory = getItemHandlerAt(level, pos, side);
         return inventory != null ? insertStack(inventory, stack, simulate) : stack;
     }
@@ -152,8 +147,7 @@ public final class InvHelper {
     /**
      * @return the total count of matching items in the handler
      */
-    public static int countTotalItemsIn(
-            @Nullable ResourceHandler<ItemResource> inventory, ItemStack stack, InvFilter filter) {
+    public static int countTotalItemsIn(@Nullable ResourceHandler<ItemResource> inventory, ItemStack stack, InvFilter filter) {
         int count = 0;
         if (inventory != null) {
             for (int index = 0; index < inventory.size(); index++) {
@@ -211,8 +205,7 @@ public final class InvHelper {
 
     private static boolean componentsContainedIn(ItemStack first, ItemStack second) {
         for (DataComponentType<?> type : first.getComponents().keySet()) {
-            if (!Objects.equals(
-                    first.getComponents().get(type), second.getComponents().get(type))) {
+            if (!Objects.equals(first.getComponents().get(type), second.getComponents().get(type))) {
                 return false;
             }
         }
@@ -226,8 +219,7 @@ public final class InvHelper {
         DataComponentMap firstComponents = first.getComponents();
         DataComponentMap secondComponents = second.getComponents();
         for (DataComponentType<?> type : firstComponents.keySet()) {
-            if (type != DataComponents.DAMAGE
-                    && !Objects.equals(firstComponents.get(type), secondComponents.get(type))) {
+            if (type != DataComponents.DAMAGE && !Objects.equals(firstComponents.get(type), secondComponents.get(type))) {
                 return false;
             }
         }
@@ -243,26 +235,19 @@ public final class InvHelper {
      * Finds the first stack in a handler that passes a ghost-stack filter.
      *
      * @param filterStacks the ghost stacks
-     * @param blacklist    whether matching stacks are excluded instead of required
-     * @param inv          the inventory to scan
-     * @param filter       the comparison flags
-     * @param leaveOne     whether the last item of a kind must stay behind
+     * @param blacklist whether matching stacks are excluded instead of required
+     * @param inv the inventory to scan
+     * @param filter the comparison flags
+     * @param leaveOne whether the last item of a kind must stay behind
      * @return the first matching stack, or an empty stack
      */
-    public static ItemStack findFirstMatchFromFilter(
-            List<ItemStack> filterStacks,
-            boolean blacklist,
-            ResourceHandler<ItemResource> inv,
-            InvFilter filter,
-            boolean leaveOne) {
-        slots:
-        for (int index = 0; index < inv.size(); index++) {
+    public static ItemStack findFirstMatchFromFilter(List<ItemStack> filterStacks, boolean blacklist, ResourceHandler<ItemResource> inv, InvFilter filter, boolean leaveOne) {
+        slots : for (int index = 0; index < inv.size(); index++) {
             ItemResource resource = inv.getResource(index);
             if (resource.isEmpty()) {
                 continue;
             }
-            ItemStack candidate = resource.toStack(
-                    Math.min(inv.getAmountAsInt(index), resource.toStack(1).getMaxStackSize()));
+            ItemStack candidate = resource.toStack(Math.min(inv.getAmountAsInt(index), resource.toStack(1).getMaxStackSize()));
             if (candidate.isEmpty() || (leaveOne && countTotalItemsIn(inv, candidate, filter) < 2)) {
                 continue;
             }
@@ -293,8 +278,7 @@ public final class InvHelper {
     /**
      * @return whether a stack passes a ghost-stack filter
      */
-    public static boolean matchesFilters(
-            List<ItemStack> filterStacks, boolean blacklist, ItemStack stack, InvFilter filter) {
+    public static boolean matchesFilters(List<ItemStack> filterStacks, boolean blacklist, ItemStack stack, InvFilter filter) {
         if (stack.isEmpty()) {
             return false;
         }
@@ -323,28 +307,15 @@ public final class InvHelper {
      *
      * @return the matching stack, or an empty stack
      */
-    public static ItemStack findFirstMatchFromFilter(
-            List<ItemStack> filterStacks,
-            List<Integer> filterSizes,
-            boolean blacklist,
-            List<ItemStack> candidates,
-            InvFilter filter) {
-        return findFirstMatchFromFilterWithSize(filterStacks, filterSizes, blacklist, candidates, filter)
-                .stack();
+    public static ItemStack findFirstMatchFromFilter(List<ItemStack> filterStacks, List<Integer> filterSizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
+        return findFirstMatchFromFilterWithSize(filterStacks, filterSizes, blacklist, candidates, filter).stack();
     }
 
     /**
-     * Finds the first candidate stack that passes a ghost-stack filter, with the matching
-     * slot's size limit.
+     * Finds the first candidate stack that passes a ghost-stack filter, with the matching slot's size limit.
      */
-    public static FilterMatch findFirstMatchFromFilterWithSize(
-            List<ItemStack> filterStacks,
-            List<Integer> filterSizes,
-            boolean blacklist,
-            List<ItemStack> candidates,
-            InvFilter filter) {
-        candidates:
-        for (ItemStack candidate : candidates) {
+    public static FilterMatch findFirstMatchFromFilterWithSize(List<ItemStack> filterStacks, List<Integer> filterSizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
+        candidates : for (ItemStack candidate : candidates) {
             if (candidate.isEmpty()) {
                 continue;
             }
@@ -392,8 +363,7 @@ public final class InvHelper {
      *
      * @return the removed items, or an empty stack
      */
-    public static ItemStack removeStackFrom(
-            Level level, BlockPos pos, Direction side, ItemStack stack, InvFilter filter, boolean simulate) {
+    public static ItemStack removeStackFrom(Level level, BlockPos pos, Direction side, ItemStack stack, InvFilter filter, boolean simulate) {
         return removeStackFrom(getItemHandlerAt(level, pos, side), stack, filter, simulate);
     }
 
@@ -402,8 +372,7 @@ public final class InvHelper {
      *
      * @return the removed items, or an empty stack
      */
-    public static ItemStack removeStackFrom(
-            @Nullable ResourceHandler<ItemResource> inventory, ItemStack stack, InvFilter filter, boolean simulate) {
+    public static ItemStack removeStackFrom(@Nullable ResourceHandler<ItemResource> inventory, ItemStack stack, InvFilter filter, boolean simulate) {
         if (inventory == null || stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -429,16 +398,15 @@ public final class InvHelper {
     }
 
     /**
-     * Pushes a stack into the inventory beyond the given side, spilling the remainder into
-     * the world as an item entity.
+     * Pushes a stack into the inventory beyond the given side, spilling the remainder into the world as an item entity.
      */
     public static void ejectStackAt(Level level, BlockPos pos, Direction side, ItemStack out) {
         ejectStackAt(level, pos, side, out, false);
     }
 
     /**
-     * Pushes a stack into the inventory beyond the given side. In smart mode the remainder
-     * is returned instead of spilled when an inventory exists there.
+     * Pushes a stack into the inventory beyond the given side. In smart mode the remainder is returned instead of spilled
+     * when an inventory exists there.
      *
      * @return the remainder in smart mode, otherwise an empty stack
      */
@@ -455,12 +423,7 @@ public final class InvHelper {
         if (level.getBlockState(target).isCollisionShapeFullBlock(level, target)) {
             spawnPos = pos.relative(side.getOpposite());
         }
-        ItemEntity entity = new ItemEntity(
-                level,
-                spawnPos.getX() + 0.5 + side.getStepX(),
-                spawnPos.getY() + side.getStepY(),
-                spawnPos.getZ() + 0.5 + side.getStepZ(),
-                remainder);
+        ItemEntity entity = new ItemEntity(level, spawnPos.getX() + 0.5 + side.getStepX(), spawnPos.getY() + side.getStepY(), spawnPos.getZ() + 0.5 + side.getStepZ(), remainder);
         entity.setDeltaMovement(0.3 * side.getStepX(), 0.3 * side.getStepY(), 0.3 * side.getStepZ());
         level.addFreshEntity(entity);
         return ItemStack.EMPTY;
@@ -485,8 +448,7 @@ public final class InvHelper {
      */
     public static void dropItemAtEntity(Level level, ItemStack stack, Entity entity) {
         if (!level.isClientSide() && !stack.isEmpty()) {
-            level.addFreshEntity(new ItemEntity(
-                    level, entity.getX(), entity.getY() + entity.getEyeHeight() / 2.0F, entity.getZ(), stack.copy()));
+            level.addFreshEntity(new ItemEntity(level, entity.getX(), entity.getY() + entity.getEyeHeight() / 2.0F, entity.getZ(), stack.copy()));
         }
     }
 
@@ -494,8 +456,8 @@ public final class InvHelper {
     public static final InvFilter BASE_TAGS = new InvFilter(false, false, true, false);
 
     /**
-     * @return whether inventories adjacent to the position, ignoring the top, together hold
-     *         the stack's count of matching items
+     * @return whether inventories adjacent to the position, ignoring the top, together hold the stack's count of matching
+     *         items
      */
     public static boolean checkAdjacentChests(Level level, BlockPos pos, ItemStack stack) {
         int needed = stack.getCount();
@@ -522,8 +484,7 @@ public final class InvHelper {
             if (face == Direction.UP || remaining.isEmpty()) {
                 continue;
             }
-            ItemStack removed =
-                    removeStackFrom(level, pos.relative(face), face.getOpposite(), remaining, BASE_TAGS, false);
+            ItemStack removed = removeStackFrom(level, pos.relative(face), face.getOpposite(), remaining, BASE_TAGS, false);
             remaining.setCount(remaining.getCount() - removed.getCount());
         }
         return remaining.isEmpty();
@@ -587,8 +548,7 @@ public final class InvHelper {
      * @param simulate whether to only check availability
      * @return whether every stack is available or was consumed
      */
-    public static boolean consumeItemsFromAdjacentInventoryOrPlayer(
-            Level level, BlockPos pos, Player player, boolean simulate, ItemStack... items) {
+    public static boolean consumeItemsFromAdjacentInventoryOrPlayer(Level level, BlockPos pos, Player player, boolean simulate, ItemStack... items) {
         for (ItemStack stack : items) {
             if (!checkAdjacentChests(level, pos, stack) && !isPlayerCarryingAmount(player, stack, true)) {
                 return false;

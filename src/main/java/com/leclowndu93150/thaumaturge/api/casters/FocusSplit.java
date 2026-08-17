@@ -1,9 +1,8 @@
 package com.leclowndu93150.thaumaturge.api.casters;
 
 /**
- * An element that forks the spell into independent branches. The branches live in the
- * unit's {@link FocusUnit#branches()}; the engine executes each in order, feeding it the
- * streams this element passes through.
+ * An element that forks the spell into independent branches. The branches live in the unit's
+ * {@link FocusUnit#branches()}; the engine executes each in order, feeding it the streams this element passes through.
  *
  * @since 1.0.0
  */
@@ -11,7 +10,7 @@ public non-sealed interface FocusSplit extends FocusElement {
     /**
      * The streams handed to every branch.
      *
-     * @param ctx      the execution scope
+     * @param ctx the execution scope
      * @param settings the configured settings
      * @param incoming the streams supplied by the previous node
      * @return the branch input streams, never null

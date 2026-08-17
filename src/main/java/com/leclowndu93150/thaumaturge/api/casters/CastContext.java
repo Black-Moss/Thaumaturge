@@ -9,9 +9,8 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The execution scope a focus element runs in: the level, the caster, the accumulated power,
- * and the continuation of the spell after the current node. Elements read from it; only the
- * engine advances it.
+ * The execution scope a focus element runs in: the level, the caster, the accumulated power, and the continuation of
+ * the spell after the current node. Elements read from it; only the engine advances it.
  *
  * @since 1.0.0
  */
@@ -24,13 +23,7 @@ public final class CastContext {
     private float power;
     private int cursor;
 
-    CastContext(
-            Level level,
-            UUID castId,
-            @Nullable UUID casterId,
-            @Nullable LivingEntity caster,
-            float power,
-            List<FocusUnit> program) {
+    CastContext(Level level, UUID castId, @Nullable UUID casterId, @Nullable LivingEntity caster, float power, List<FocusUnit> program) {
         this.level = level;
         this.castId = castId;
         this.casterId = casterId;
@@ -67,8 +60,7 @@ public final class CastContext {
     }
 
     /**
-     * The casting entity, resolved from the caster id through the level when not already
-     * known.
+     * The casting entity, resolved from the caster id through the level when not already known.
      *
      * @return the caster, or null when it cannot be resolved
      */
@@ -89,9 +81,8 @@ public final class CastContext {
     }
 
     /**
-     * The remainder of the spell after the current node, for mediums that resolve their
-     * targets later through an intermediary. The continuation carries the current power and
-     * the caster id.
+     * The remainder of the spell after the current node, for mediums that resolve their targets later through an
+     * intermediary. The continuation carries the current power and the caster id.
      *
      * @return the remaining package, or null when the current node is last
      */
@@ -103,8 +94,8 @@ public final class CastContext {
     }
 
     /**
-     * The element ids of every effect in the executing spell, descending into split
-     * branches. Used by mediums that render from the effects they deliver.
+     * The element ids of every effect in the executing spell, descending into split branches. Used by mediums that render
+     * from the effects they deliver.
      *
      * @return the effect ids in encounter order; empty when none
      */

@@ -18,45 +18,36 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The serialized form of a complete spell: an ordered list of {@link FocusUnit units} plus
- * the base power, compiled complexity, and the id of the caster it belongs to. Packages are
- * immutable values; executing one never changes it.
+ * The serialized form of a complete spell: an ordered list of {@link FocusUnit units} plus the base power, compiled
+ * complexity, and the id of the caster it belongs to. Packages are immutable values; executing one never changes it.
  *
- * <p>Each unit encodes as {@code key} plus optional {@code settings} and {@code packages} fields,
- * so packages stored on items or entities keep decoding.
+ * <p>
+ * Each unit encodes as {@code key} plus optional {@code settings} and {@code packages} fields, so packages stored on
+ * items or entities keep decoding.
  *
- * @param power      the base power the cast starts at; node multipliers fold into a working
- *                   copy during execution
+ * @param power the base power the cast starts at; node multipliers fold into a working copy during execution
  * @param complexity the total complexity of the focus this package was compiled from
- * @param casterId   the id of the casting entity, empty when the package has none
- * @param units      the spell nodes in execution order
+ * @param casterId the id of the casting entity, empty when the package has none
+ * @param units the spell nodes in execution order
  * @since 1.0.0
  */
 public record FocusPackage(float power, int complexity, Optional<UUID> casterId, List<FocusUnit> units) {
     private static final float DEFAULT_POWER = 1.0F;
 
     /**
-     * Serializes power, complexity, the caster id when known, and every unit with its
-     * settings and, for splits, branch packages. Decoding fails when a unit references an
-     * element id absent from the bound registry.
+     * Serializes power, complexity, the caster id when known, and every unit with its settings and, for splits, branch
+     * packages. Decoding fails when a unit references an element id absent from the bound registry.
      */
     public static final Codec<FocusPackage> CODEC = Codec.recursive("FocusPackage", self -> {
-        Codec<FocusUnit> unitCodec = RecordCodecBuilder.<FocusUnit>create(i -> i.group(
-                                Identifier.CODEC.fieldOf("key").forGetter(FocusUnit::element),
-                                Codec.unboundedMap(Codec.STRING, Codec.INT)
-                                        .optionalFieldOf("settings", Map.of())
-                                        .forGetter(FocusUnit::settings),
-                                self.listOf()
-                                        .optionalFieldOf("packages", List.of())
-                                        .forGetter(FocusUnit::branches))
-                        .apply(i, FocusUnit::new))
-                .validate(FocusPackage::validateUnit);
-        return RecordCodecBuilder.create(i -> i.group(
-                        Codec.FLOAT.optionalFieldOf("power", DEFAULT_POWER).forGetter(FocusPackage::power),
-                        Codec.INT.optionalFieldOf("complexity", 0).forGetter(FocusPackage::complexity),
-                        UUIDUtil.CODEC.optionalFieldOf("caster").forGetter(FocusPackage::casterId),
-                        unitCodec.listOf().fieldOf("nodes").forGetter(FocusPackage::units))
-                .apply(i, FocusPackage::new));
+        Codec<FocusUnit> unitCodec = RecordCodecBuilder.<FocusUnit>create(i -> i
+                .group(Identifier.CODEC.fieldOf("key").forGetter(FocusUnit::element), Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf("settings", Map.of()).forGetter(FocusUnit::settings),
+                        self.listOf().optionalFieldOf("packages", List.of()).forGetter(FocusUnit::branches))
+                .apply(i, FocusUnit::new)).validate(FocusPackage::validateUnit);
+        return RecordCodecBuilder
+                .create(i -> i
+                        .group(Codec.FLOAT.optionalFieldOf("power", DEFAULT_POWER).forGetter(FocusPackage::power), Codec.INT.optionalFieldOf("complexity", 0).forGetter(FocusPackage::complexity),
+                                UUIDUtil.CODEC.optionalFieldOf("caster").forGetter(FocusPackage::casterId), unitCodec.listOf().fieldOf("nodes").forGetter(FocusPackage::units))
+                        .apply(i, FocusPackage::new));
     });
 
     /** Network encoding mirroring {@link #CODEC}. */
@@ -79,8 +70,7 @@ public record FocusPackage(float power, int complexity, Optional<UUID> casterId,
     }
 
     /**
-     * A hash over every unit's element id and setting values, used to group identical foci
-     * regardless of runtime state.
+     * A hash over every unit's element id and setting values, used to group identical foci regardless of runtime state.
      *
      * @return the sorting hash
      */
@@ -190,7 +180,7 @@ public record FocusPackage(float power, int complexity, Optional<UUID> casterId,
         /**
          * Appends an element with explicit settings.
          *
-         * @param element  the focus element id
+         * @param element the focus element id
          * @param settings the setting values
          * @return this builder
          */

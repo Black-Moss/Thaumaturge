@@ -4,8 +4,8 @@ import java.util.List;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Configuration surface for seals with an item filter. Filter slots hold ghost stacks; the
- * optional per-slot size limits how many items a matching operation may move.
+ * Configuration surface for seals with an item filter. Filter slots hold ghost stacks; the optional per-slot size
+ * limits how many items a matching operation may move.
  *
  * @since 1.0.0
  */

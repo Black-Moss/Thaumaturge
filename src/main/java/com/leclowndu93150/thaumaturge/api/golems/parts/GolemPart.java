@@ -7,9 +7,8 @@ import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Base description shared by every golem part kind: the research gating it, the icon shown
- * in the golem press, the crafting components it consumes, the traits it grants and the
- * model it renders with.
+ * Base description shared by every golem part kind: the research gating it, the icon shown in the golem press, the
+ * crafting components it consumes, the traits it grants and the model it renders with.
  *
  * @since 1.0.0
  */
@@ -20,12 +19,7 @@ public abstract class GolemPart {
     private final List<Holder<GolemTrait>> traits;
     private final GolemPartModel model;
 
-    protected GolemPart(
-            List<Identifier> research,
-            Identifier icon,
-            List<GolemComponent> components,
-            List<Holder<GolemTrait>> traits,
-            @Nullable GolemPartModel model) {
+    protected GolemPart(List<Identifier> research, Identifier icon, List<GolemComponent> components, List<Holder<GolemTrait>> traits, @Nullable GolemPartModel model) {
         this.research = List.copyOf(research);
         this.icon = icon;
         this.components = List.copyOf(components);
@@ -77,7 +71,7 @@ public abstract class GolemPart {
      * The translation key for a part's display name in golem UIs.
      *
      * @param kind the part kind, one of {@code head}, {@code arm}, {@code leg}, {@code addon}
-     * @param id   the part id
+     * @param id the part id
      * @return {@code golem.<kind>.<namespace>.<path>}
      */
     public static String nameKey(String kind, Identifier id) {
@@ -88,7 +82,7 @@ public abstract class GolemPart {
      * The translation key for a part's descriptive text in golem UIs.
      *
      * @param kind the part kind, one of {@code head}, {@code arm}, {@code leg}, {@code addon}
-     * @param id   the part id
+     * @param id the part id
      * @return {@code golem.<kind>.text.<namespace>.<path>}
      */
     public static String descriptionKey(String kind, Identifier id) {

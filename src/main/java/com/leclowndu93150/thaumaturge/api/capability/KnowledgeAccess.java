@@ -6,8 +6,9 @@ import net.minecraft.world.entity.player.Player;
 /**
  * Static accessor for a player's {@link IPlayerKnowledge} record.
  *
- * <p>The accessor is bound at mod init time by the implementation. Addons use {@link #of(Player)}
- * to read or mutate a player's record without depending on the internal attachment registry.
+ * <p>
+ * The accessor is bound at mod init time by the implementation. Addons use {@link #of(Player)} to read or mutate a
+ * player's record without depending on the internal attachment registry.
  *
  * @since 1.0.0
  */
@@ -31,8 +32,7 @@ public final class KnowledgeAccess {
     }
 
     /**
-     * Binds the accessor's implementation. Called once at mod init by the implementation; addons
-     * must not call this.
+     * Binds the accessor's implementation. Called once at mod init by the implementation; addons must not call this.
      *
      * @param impl the accessor implementation
      * @apiNote This is a one-shot binding; calling it more than once throws.

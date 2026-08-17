@@ -5,16 +5,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
- * Typed handles to the built-in Thaumaturge aspects. Each constant is a {@link ResourceKey}
- * that can be resolved against a {@link net.minecraft.core.HolderLookup.Provider} to obtain
- * the {@link net.minecraft.core.Holder Holder} or value at runtime.
+ * Typed handles to the built-in Thaumaturge aspects. Each constant is a {@link ResourceKey} that can be resolved
+ * against a {@link net.minecraft.core.HolderLookup.Provider} to obtain the {@link net.minecraft.core.Holder Holder} or
+ * value at runtime.
  *
- * <p>Holding a {@code ResourceKey} rather than the value itself means code is safe to
- * reference these constants in {@code <clinit>} and is unaffected by datapack reloads or
- * registration order.
+ * <p>
+ * Holding a {@code ResourceKey} rather than the value itself means code is safe to reference these constants in
+ * {@code <clinit>} and is unaffected by datapack reloads or registration order.
  *
- * <p>Addons should declare their own {@code ResourceKey} constants for any aspects they ship,
- * following the same pattern.
+ * <p>
+ * Addons should declare their own {@code ResourceKey} constants for any aspects they ship, following the same pattern.
  *
  * @since 1.0.0
  */
@@ -59,8 +59,8 @@ public final class TCAspects {
     public static final ResourceKey<IAspect> HUMANUS = key("humanus");
 
     /**
-     * The six primal aspects in canonical display order: aer, ignis, aqua, terra, ordo, perditio.
-     * This order is used by wand vis pools and the arcane workbench crystal slots.
+     * The six primal aspects in canonical display order: aer, ignis, aqua, terra, ordo, perditio. This order is used by
+     * wand vis pools and the arcane workbench crystal slots.
      */
     public static final List<ResourceKey<IAspect>> PRIMALS = List.of(AER, IGNIS, AQUA, TERRA, ORDO, PERDITIO);
 

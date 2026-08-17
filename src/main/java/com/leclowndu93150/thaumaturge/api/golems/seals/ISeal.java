@@ -10,9 +10,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 /**
- * The behavior of a seal kind. A fresh instance is created per placement; per-placement
- * configuration such as item filters lives on the instance and round-trips through
- * {@link #readCustomNBT} and {@link #writeCustomNBT}.
+ * The behavior of a seal kind. A fresh instance is created per placement; per-placement configuration such as item
+ * filters lives on the instance and round-trips through {@link #readCustomNBT} and {@link #writeCustomNBT}.
  *
  * @since 1.0.0
  */
@@ -24,8 +23,8 @@ public interface ISeal {
 
     /**
      * @param level the level
-     * @param pos   the block the seal would attach to
-     * @param face  the face it would occupy
+     * @param pos the block the seal would attach to
+     * @param face the face it would occupy
      * @return whether the seal may exist there
      */
     boolean canPlaceAt(Level level, BlockPos pos, Direction face);
@@ -34,7 +33,7 @@ public interface ISeal {
      * Runs once per level tick while the seal is placed, loaded and not redstone suppressed.
      *
      * @param level the level
-     * @param seal  the placed seal
+     * @param seal the placed seal
      */
     void tickSeal(Level level, ISealEntity seal);
 

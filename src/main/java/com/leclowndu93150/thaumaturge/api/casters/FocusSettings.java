@@ -3,8 +3,8 @@ package com.leclowndu93150.thaumaturge.api.casters;
 import java.util.Map;
 
 /**
- * The resolved setting values of one {@link FocusUnit}, combining the stored values with the
- * defaults of the owning element's {@link SettingDefinition definitions}.
+ * The resolved setting values of one {@link FocusUnit}, combining the stored values with the defaults of the owning
+ * element's {@link SettingDefinition definitions}.
  *
  * @since 1.0.0
  */
@@ -23,7 +23,7 @@ public final class FocusSettings {
      * Resolves settings for an element.
      *
      * @param element the element supplying the definitions
-     * @param values  the stored values, usually {@link FocusUnit#settings()}
+     * @param values the stored values, usually {@link FocusUnit#settings()}
      * @return the resolved view
      */
     public static FocusSettings of(FocusElement element, Map<String, Integer> values) {
@@ -50,8 +50,8 @@ public final class FocusSettings {
     }
 
     /**
-     * The value of a setting: the stored value when present, else the definition's default,
-     * else 0 for keys the element does not define.
+     * The value of a setting: the stored value when present, else the definition's default, else 0 for keys the element
+     * does not define.
      *
      * @param key the setting id
      * @return the resolved value

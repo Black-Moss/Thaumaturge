@@ -12,8 +12,7 @@ import net.minecraft.core.UUIDUtil;
 import org.jspecify.annotations.Nullable;
 
 public final class WardChunkData {
-    public static final MapCodec<WardChunkData> CODEC =
-            Entry.CODEC.listOf().optionalFieldOf("wards", List.of()).xmap(WardChunkData::new, WardChunkData::entries);
+    public static final MapCodec<WardChunkData> CODEC = Entry.CODEC.listOf().optionalFieldOf("wards", List.of()).xmap(WardChunkData::new, WardChunkData::entries);
 
     private final Map<BlockPos, UUID> owners = new ConcurrentHashMap<>();
 
@@ -50,15 +49,11 @@ public final class WardChunkData {
     }
 
     private List<Entry> entries() {
-        return owners.entrySet().stream()
-                .map(entry -> new Entry(entry.getKey(), entry.getValue()))
-                .toList();
+        return owners.entrySet().stream().map(entry -> new Entry(entry.getKey(), entry.getValue())).toList();
     }
 
     private record Entry(BlockPos pos, UUID owner) {
-        private static final Codec<Entry> CODEC = RecordCodecBuilder.create(inst -> inst.group(
-                        BlockPos.CODEC.fieldOf("pos").forGetter(Entry::pos),
-                        UUIDUtil.CODEC.fieldOf("owner").forGetter(Entry::owner))
-                .apply(inst, Entry::new));
+        private static final Codec<Entry> CODEC = RecordCodecBuilder
+                .create(inst -> inst.group(BlockPos.CODEC.fieldOf("pos").forGetter(Entry::pos), UUIDUtil.CODEC.fieldOf("owner").forGetter(Entry::owner)).apply(inst, Entry::new));
     }
 }

@@ -9,23 +9,22 @@ import net.minecraft.util.StringRepresentable;
 /**
  * Kind of category knowledge a player may accumulate in addition to specific research entries.
  *
- * <p>Each entry advances a player's raw counter for a {@link com.leclowndu93150.thaumaturge.api.research.IResearchCategory category}.
- * The raw counter is divided by {@link #progression()} to yield the visible level reported by
- * {@link IPlayerKnowledge#knowledge(KnowledgeType, net.minecraft.resources.ResourceKey)}; for
- * example, every thirty-second theory yields one level.
+ * <p>
+ * Each entry advances a player's raw counter for a {@link com.leclowndu93150.thaumaturge.api.research.IResearchCategory
+ * category}. The raw counter is divided by {@link #progression()} to yield the visible level reported by
+ * {@link IPlayerKnowledge#knowledge(KnowledgeType, net.minecraft.resources.ResourceKey)}; for example, every
+ * thirty-second theory yields one level.
  *
  * @since 1.0.0
  */
 public enum KnowledgeType implements StringRepresentable {
-    THEORY("theory", "T", 32),
-    OBSERVATION("observation", "O", 16);
+    THEORY("theory", "T", 32), OBSERVATION("observation", "O", 16);
 
     /** Codec for datapack and component serialization. */
     public static final Codec<KnowledgeType> CODEC = StringRepresentable.fromEnum(KnowledgeType::values);
 
     /** Network codec for payload sync. */
-    public static final StreamCodec<ByteBuf, KnowledgeType> STREAM_CODEC =
-            ByteBufCodecs.idMapper(i -> values()[i], KnowledgeType::ordinal);
+    public static final StreamCodec<ByteBuf, KnowledgeType> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], KnowledgeType::ordinal);
 
     private final String name;
     private final String abbreviation;

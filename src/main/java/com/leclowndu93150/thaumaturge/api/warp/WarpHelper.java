@@ -6,8 +6,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Static facade for reading and inflicting warp. Backed by the mod at init via
- * {@link #bind}; all calls before binding throw {@link IllegalStateException}.
+ * Static facade for reading and inflicting warp. Backed by the mod at init via {@link #bind}; all calls before binding
+ * throw {@link IllegalStateException}.
  *
  * @since 1.0
  */
@@ -34,10 +34,9 @@ public final class WarpHelper {
     }
 
     /**
-     * Adds or removes warp with full side effects: the event counter resets to
-     * the player's new total on any gain, the client is notified, and the
-     * first-warp research trigger fires. Does nothing when {@code amount} is
-     * zero. Server side only.
+     * Adds or removes warp with full side effects: the event counter resets to the player's new total on any gain, the
+     * client is notified, and the first-warp research trigger fires. Does nothing when {@code amount} is zero. Server side
+     * only.
      *
      * @param player the affected player
      * @param amount the warp to add; negative to remove
@@ -57,8 +56,8 @@ public final class WarpHelper {
 
     /**
      * Computes the warp a single stack contributes while held or worn: the
-     * {@link com.leclowndu93150.thaumaturge.api.items.IWarpingGear} value plus
-     * any {@code thaumaturge:warp} data-map entry on the item.
+     * {@link com.leclowndu93150.thaumaturge.api.items.IWarpingGear} value plus any {@code thaumaturge:warp} data-map entry
+     * on the item.
      *
      * @param stack the stack to evaluate; empty stacks contribute zero
      * @param wearer the entity holding or wearing the stack

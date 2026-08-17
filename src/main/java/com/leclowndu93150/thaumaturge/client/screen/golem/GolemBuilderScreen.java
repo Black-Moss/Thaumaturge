@@ -111,23 +111,28 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         super.init();
         valHeads.clear();
         TCGolemParts.heads().forEach(head -> {
-            if (knowsAll(head.research())) valHeads.add(head);
+            if (knowsAll(head.research()))
+                valHeads.add(head);
         });
         valMats.clear();
         TCGolemParts.materials().forEach(mat -> {
-            if (knowsAll(mat.research())) valMats.add(mat);
+            if (knowsAll(mat.research()))
+                valMats.add(mat);
         });
         valArms.clear();
         TCGolemParts.arms().forEach(arm -> {
-            if (knowsAll(arm.research())) valArms.add(arm);
+            if (knowsAll(arm.research()))
+                valArms.add(arm);
         });
         valLegs.clear();
         TCGolemParts.legs().forEach(leg -> {
-            if (knowsAll(leg.research())) valLegs.add(leg);
+            if (knowsAll(leg.research()))
+                valLegs.add(leg);
         });
         valAddons.clear();
         TCGolemParts.addons().forEach(addon -> {
-            if (knowsAll(addon.research())) valAddons.add(addon);
+            if (knowsAll(addon.research()))
+                valAddons.add(addon);
         });
         if (headIndex >= valHeads.size()) {
             headIndex = 0;
@@ -164,95 +169,25 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         clearWidgets();
         craftButton = new CraftButton(leftPos + CRAFT_X, topPos + CRAFT_Y, this::craft);
         addRenderableWidget(craftButton);
-        addScrollPair(
-                valHeads.size(),
-                112,
-                16,
-                () -> headIndex--,
-                () -> headIndex++,
-                () -> headIndex,
-                valHeads::size,
-                this::setHeadIndex);
-        addScrollPair(
-                valMats.size(),
-                16,
-                16,
-                () -> matIndex--,
-                () -> matIndex++,
-                () -> matIndex,
-                valMats::size,
-                this::setMatIndex);
-        addScrollPair(
-                valArms.size(),
-                112,
-                40,
-                () -> armIndex--,
-                () -> armIndex++,
-                () -> armIndex,
-                valArms::size,
-                this::setArmIndex);
-        addScrollPair(
-                valLegs.size(),
-                112,
-                64,
-                () -> legIndex--,
-                () -> legIndex++,
-                () -> legIndex,
-                valLegs::size,
-                this::setLegIndex);
-        addScrollPair(
-                valAddons.size(),
-                16,
-                64,
-                () -> addonIndex--,
-                () -> addonIndex++,
-                () -> addonIndex,
-                valAddons::size,
-                this::setAddonIndex);
+        addScrollPair(valHeads.size(), 112, 16, () -> headIndex--, () -> headIndex++, () -> headIndex, valHeads::size, this::setHeadIndex);
+        addScrollPair(valMats.size(), 16, 16, () -> matIndex--, () -> matIndex++, () -> matIndex, valMats::size, this::setMatIndex);
+        addScrollPair(valArms.size(), 112, 40, () -> armIndex--, () -> armIndex++, () -> armIndex, valArms::size, this::setArmIndex);
+        addScrollPair(valLegs.size(), 112, 64, () -> legIndex--, () -> legIndex++, () -> legIndex, valLegs::size, this::setLegIndex);
+        addScrollPair(valAddons.size(), 16, 64, () -> addonIndex--, () -> addonIndex++, () -> addonIndex, valAddons::size, this::setAddonIndex);
         if (!valHeads.isEmpty()) {
-            addPartButton(
-                    120,
-                    24,
-                    valHeads.get(headIndex).icon(),
-                    "head",
-                    keyOf(TCGolemParts.heads(), valHeads.get(headIndex)),
-                    WHITE);
+            addPartButton(120, 24, valHeads.get(headIndex).icon(), "head", keyOf(TCGolemParts.heads(), valHeads.get(headIndex)), WHITE);
         }
         if (!valMats.isEmpty()) {
-            addPartButton(
-                    24,
-                    24,
-                    MATERIAL_ICON,
-                    "material",
-                    keyOf(TCGolemParts.materials(), valMats.get(matIndex)),
-                    valMats.get(matIndex).itemColor());
+            addPartButton(24, 24, MATERIAL_ICON, "material", keyOf(TCGolemParts.materials(), valMats.get(matIndex)), valMats.get(matIndex).itemColor());
         }
         if (!valArms.isEmpty()) {
-            addPartButton(
-                    120,
-                    48,
-                    valArms.get(armIndex).icon(),
-                    "arm",
-                    keyOf(TCGolemParts.arms(), valArms.get(armIndex)),
-                    WHITE);
+            addPartButton(120, 48, valArms.get(armIndex).icon(), "arm", keyOf(TCGolemParts.arms(), valArms.get(armIndex)), WHITE);
         }
         if (!valLegs.isEmpty()) {
-            addPartButton(
-                    120,
-                    72,
-                    valLegs.get(legIndex).icon(),
-                    "leg",
-                    keyOf(TCGolemParts.legs(), valLegs.get(legIndex)),
-                    WHITE);
+            addPartButton(120, 72, valLegs.get(legIndex).icon(), "leg", keyOf(TCGolemParts.legs(), valLegs.get(legIndex)), WHITE);
         }
         if (!valAddons.isEmpty() && !"none".equals(keyOf(TCGolemParts.addons(), valAddons.get(addonIndex)))) {
-            addPartButton(
-                    24,
-                    72,
-                    valAddons.get(addonIndex).icon(),
-                    "addon",
-                    keyOf(TCGolemParts.addons(), valAddons.get(addonIndex)),
-                    WHITE);
+            addPartButton(24, 72, valAddons.get(addonIndex).icon(), "addon", keyOf(TCGolemParts.addons(), valAddons.get(addonIndex)), WHITE);
         }
         if (valHeads.isEmpty() || valMats.isEmpty() || valArms.isEmpty() || valLegs.isEmpty() || valAddons.isEmpty()) {
             props = GolemProperties.createDefault();
@@ -275,8 +210,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         props.setAddon(valAddons.get(addonIndex));
         BlockEntityGolemBuilder builder = menu.blockEntity();
         if (builder != null) {
-            ClientPacketDistributor.sendToServer(
-                    new ServerboundGolemPressPayload(builder.getBlockPos(), props.copy(), false));
+            ClientPacketDistributor.sendToServer(new ServerboundGolemPressPayload(builder.getBlockPos(), props.copy(), false));
         }
         redoComps();
         GolemTrait[] tags = props.getTraits().toArray(new GolemTrait[0]);
@@ -286,16 +220,10 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             int row = 0;
             int col = 0;
             for (GolemTrait tag : tags) {
-                TCHoverButton button = TCHoverButton.centered(
-                        leftPos + 72 + col * 16 - xx,
-                        topPos + 48 + 16 * row - yy,
-                        16,
-                        new TCButtonIcon.TextureIcon(tag.icon()),
-                        Component.translatable(
-                                GolemTrait.nameKey(TCGolemTraits.registry().getKey(tag))),
-                        () -> {});
-                button.setDescription(Component.translatable(
-                        GolemTrait.descriptionKey(TCGolemTraits.registry().getKey(tag))));
+                TCHoverButton button = TCHoverButton.centered(leftPos + 72 + col * 16 - xx, topPos + 48 + 16 * row - yy, 16, new TCButtonIcon.TextureIcon(tag.icon()),
+                        Component.translatable(GolemTrait.nameKey(TCGolemTraits.registry().getKey(tag))), () -> {
+                        });
+                button.setDescription(Component.translatable(GolemTrait.descriptionKey(TCGolemTraits.registry().getKey(tag))));
                 addRenderableWidget(button);
                 if (++row > 3) {
                     row = 0;
@@ -316,9 +244,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             armorValue = (int) (armorValue * 0.75);
         }
         armor = armorValue / 2.0F;
-        double damageValue = props.hasTrait(TCGolemTraits.FIGHTER.get())
-                ? props.getMaterial().damage()
-                : 0.0;
+        double damageValue = props.hasTrait(TCGolemTraits.FIGHTER.get()) ? props.getMaterial().damage() : 0.0;
         if (props.hasTrait(TCGolemTraits.BRUTAL.get())) {
             damageValue = Math.max(damageValue * 1.5, damageValue + 1.0);
         }
@@ -357,52 +283,29 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         int size();
     }
 
-    private void addScrollPair(
-            int optionCount,
-            int baseX,
-            int baseY,
-            Runnable decrement,
-            Runnable increment,
-            IndexGetter index,
-            SizeGetter size,
-            IndexSetter setter) {
+    private void addScrollPair(int optionCount, int baseX, int baseY, Runnable decrement, Runnable increment, IndexGetter index, SizeGetter size, IndexSetter setter) {
         if (optionCount <= 1) {
             return;
         }
-        addRenderableWidget(TCScrollButton.of(
-                leftPos + baseX - 5 - 6,
-                topPos - 5 + baseY + 8,
-                TCScrollButton.Direction.LEFT,
-                Component.empty(),
-                () -> {
-                    decrement.run();
-                    if (index.get() < 0) {
-                        setter.set(size.size() - 1);
-                    }
-                    gatherInfo();
-                }));
-        addRenderableWidget(TCScrollButton.of(
-                leftPos + baseX - 5 + 22,
-                topPos - 5 + baseY + 8,
-                TCScrollButton.Direction.RIGHT,
-                Component.empty(),
-                () -> {
-                    increment.run();
-                    if (index.get() >= size.size()) {
-                        setter.set(0);
-                    }
-                    gatherInfo();
-                }));
+        addRenderableWidget(TCScrollButton.of(leftPos + baseX - 5 - 6, topPos - 5 + baseY + 8, TCScrollButton.Direction.LEFT, Component.empty(), () -> {
+            decrement.run();
+            if (index.get() < 0) {
+                setter.set(size.size() - 1);
+            }
+            gatherInfo();
+        }));
+        addRenderableWidget(TCScrollButton.of(leftPos + baseX - 5 + 22, topPos - 5 + baseY + 8, TCScrollButton.Direction.RIGHT, Component.empty(), () -> {
+            increment.run();
+            if (index.get() >= size.size()) {
+                setter.set(0);
+            }
+            gatherInfo();
+        }));
     }
 
     private void addPartButton(int x, int y, Identifier icon, String kind, Identifier id, int color) {
-        TCHoverButton button = TCHoverButton.centered(
-                leftPos + x,
-                topPos + y,
-                16,
-                new TCButtonIcon.TextureIcon(icon),
-                Component.translatable(GolemPart.nameKey(kind, id)),
-                () -> {});
+        TCHoverButton button = TCHoverButton.centered(leftPos + x, topPos + y, 16, new TCButtonIcon.TextureIcon(icon), Component.translatable(GolemPart.nameKey(kind, id)), () -> {
+        });
         button.setDescription(Component.translatable(GolemPart.descriptionKey(kind, id)));
         button.setTintColor(ARGB.opaque(color));
         addRenderableWidget(button);
@@ -453,8 +356,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         if (craftButton == null) {
             return;
         }
-        MutableComponent text =
-                Component.translatable("gui.thaumaturge.golembuilder.craft").copy();
+        MutableComponent text = Component.translatable("gui.thaumaturge.golembuilder.craft").copy();
         if (disableAll) {
             text.append(newline("gui.thaumaturge.golembuilder.problem.in_progress"));
         } else if (components.isEmpty()) {
@@ -463,14 +365,11 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             for (int i = 0; i < components.size(); i++) {
                 if (i < owns.length && !owns[i]) {
                     ItemStack stack = components.get(i);
-                    text.append(newline(
-                            "gui.thaumaturge.golembuilder.problem.component", stack.getCount(), stack.getHoverName()));
+                    text.append(newline("gui.thaumaturge.golembuilder.problem.component", stack.getCount(), stack.getHoverName()));
                 }
             }
             if (allFound) {
-                text.append(Component.literal("\n")
-                        .append(Component.translatable("gui.thaumaturge.golembuilder.problem.ready")
-                                .withStyle(ChatFormatting.GREEN)));
+                text.append(Component.literal("\n").append(Component.translatable("gui.thaumaturge.golembuilder.problem.ready").withStyle(ChatFormatting.GREEN)));
             }
         }
         craftButton.setTooltip(Tooltip.create(text));
@@ -485,28 +384,17 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         if (!components.isEmpty()) {
             Holder<IAspect> machina = machinaHolder();
             if (machina != null) {
-                TCHoverButton aspectButton = TCHoverButton.centered(
-                        leftPos + 152,
-                        topPos + 24,
-                        16,
-                        new TCButtonIcon.AspectIcon(machina),
-                        Component.translatable(
-                                "aspect.thaumaturge." + machina.value().tag()),
-                        () -> {});
-                aspectButton.setDescription(Component.translatable(
-                        "aspect.thaumaturge." + machina.value().tag() + ".desc"));
+                TCHoverButton aspectButton = TCHoverButton.centered(leftPos + 152, topPos + 24, 16, new TCButtonIcon.AspectIcon(machina),
+                        Component.translatable("aspect.thaumaturge." + machina.value().tag()), () -> {
+                        });
+                aspectButton.setDescription(Component.translatable("aspect.thaumaturge." + machina.value().tag() + ".desc"));
                 addRenderableWidget(aspectButton);
             }
             int row = 1;
             int col = 0;
             for (ItemStack stack : components) {
-                TCHoverButton componentButton = TCHoverButton.centered(
-                        leftPos + 152 + col * 16,
-                        topPos + 24 + 16 * row,
-                        16,
-                        new TCButtonIcon.StackIcon(stack),
-                        Component.empty(),
-                        () -> {});
+                TCHoverButton componentButton = TCHoverButton.centered(leftPos + 152 + col * 16, topPos + 24 + 16 * row, 16, new TCButtonIcon.StackIcon(stack), Component.empty(), () -> {
+                });
                 componentButton.setMessage(stack.getHoverName());
                 addRenderableWidget(componentButton);
                 if (++row > 3) {
@@ -535,12 +423,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         if (minecraft == null || minecraft.level == null) {
             return null;
         }
-        return minecraft
-                .level
-                .registryAccess()
-                .lookupOrThrow(IAspect.REGISTRY_KEY)
-                .get(TCAspects.MACHINA)
-                .orElse(null);
+        return minecraft.level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(TCAspects.MACHINA).orElse(null);
     }
 
     private void craft() {
@@ -549,8 +432,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         }
         BlockEntityGolemBuilder builder = menu.blockEntity();
         if (builder != null) {
-            ClientPacketDistributor.sendToServer(
-                    new ServerboundGolemPressPayload(builder.getBlockPos(), props.copy(), true));
+            ClientPacketDistributor.sendToServer(new ServerboundGolemPressPayload(builder.getBlockPos(), props.copy(), true));
             disableAll = true;
         }
     }
@@ -562,17 +444,7 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             int col = 0;
             for (int i = 0; i < components.size(); i++) {
                 if (owns.length > i && !owns[i]) {
-                    graphics.blit(
-                            RenderPipelines.GUI_TEXTURED,
-                            TEXTURE,
-                            leftPos + COMPONENT_GRID_X + col * 16,
-                            topPos + COMPONENT_GRID_Y + 16 * row,
-                            MISSING_U,
-                            MISSING_V,
-                            16,
-                            16,
-                            256,
-                            256,
+                    graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + COMPONENT_GRID_X + col * 16, topPos + COMPONENT_GRID_Y + 16 * row, MISSING_U, MISSING_V, 16, 16, 256, 256,
                             ARGB.color(128, 0xFFFFFF));
                 }
                 if (++row > 3) {
@@ -582,17 +454,8 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             }
         }
         if (menu.cost() > 0) {
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    TEXTURE,
-                    leftPos + PROGRESS_X,
-                    topPos + PROGRESS_Y,
-                    PROGRESS_U,
-                    PROGRESS_V,
-                    (int) (PROGRESS_WIDTH * (1.0F - (float) menu.cost() / Math.max(1, menu.maxCost()))),
-                    PROGRESS_HEIGHT,
-                    256,
-                    256);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + PROGRESS_X, topPos + PROGRESS_Y, PROGRESS_U, PROGRESS_V,
+                    (int) (PROGRESS_WIDTH * (1.0F - (float) menu.cost() / Math.max(1, menu.maxCost()))), PROGRESS_HEIGHT, 256, 256);
             if (!disableAll) {
                 disableAll = true;
                 computeOwnership();
@@ -632,16 +495,11 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
             String costText = String.valueOf(cost);
             graphics.text(font, costText, COST_RIGHT_X - font.width(costText), COST_Y, WHITE, true);
         }
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED, TEXTURE, 12, 12, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED, TEXTURE, 12, 60, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED, TEXTURE, 108, 12, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED, TEXTURE, 108, 36, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED, TEXTURE, 108, 60, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 12, 12, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 12, 60, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 108, 12, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 108, 36, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 108, 60, SOCKET_U, SOCKET_V, SOCKET_SIZE, SOCKET_SIZE, 256, 256);
     }
 
     static final class CraftButton extends TCButton {
@@ -652,30 +510,9 @@ public final class GolemBuilderScreen extends AbstractTCContainerScreen<MenuGole
         @Override
         protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             int alpha = isHovered() && active ? 255 : 230;
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
-                    TEXTURE,
-                    getX(),
-                    getY(),
-                    CRAFT_U,
-                    CRAFT_V,
-                    CRAFT_WIDTH,
-                    CRAFT_HEIGHT,
-                    256,
-                    256,
-                    ARGB.color(alpha, 0xFFFFFF));
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, getX(), getY(), CRAFT_U, CRAFT_V, CRAFT_WIDTH, CRAFT_HEIGHT, 256, 256, ARGB.color(alpha, 0xFFFFFF));
             if (!active) {
-                graphics.blit(
-                        RenderPipelines.GUI_TEXTURED,
-                        TEXTURE,
-                        getX(),
-                        getY(),
-                        CRAFT_U,
-                        CRAFT_DISABLED_V,
-                        CRAFT_WIDTH,
-                        CRAFT_HEIGHT,
-                        256,
-                        256);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, getX(), getY(), CRAFT_U, CRAFT_DISABLED_V, CRAFT_WIDTH, CRAFT_HEIGHT, 256, 256);
             }
         }
     }

@@ -9,23 +9,23 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 
 /**
- * A research category. Categories partition the Thaumonomicon into thematic tabs and
- * supply the formula used to convert scanned aspects into category progress.
+ * A research category. Categories partition the Thaumonomicon into thematic tabs and supply the formula used to convert
+ * scanned aspects into category progress.
  *
- * <p>Categories are loaded from the {@link #REGISTRY_KEY} datapack registry under
- * {@code data/<namespace>/thaumaturge/research_category/}. Code typically resolves a category by
- * {@link ResourceKey} and looks up the holder through a registry access.
+ * <p>
+ * Categories are loaded from the {@link #REGISTRY_KEY} datapack registry under
+ * {@code data/<namespace>/thaumaturge/research_category/}. Code typically resolves a category by {@link ResourceKey}
+ * and looks up the holder through a registry access.
  *
  * @since 1.0.0
  */
 public interface IResearchCategory {
     /** Datapack registry key for research categories. */
-    ResourceKey<Registry<IResearchCategory>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "research_category"));
+    ResourceKey<Registry<IResearchCategory>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "research_category"));
 
     /**
-     * Identifier of the research entry that gates access to this category in the Thaumonomicon.
-     * When absent the category is unconditionally visible.
+     * Identifier of the research entry that gates access to this category in the Thaumonomicon. When absent the category is
+     * unconditionally visible.
      *
      * @return the gating research entry identifier, or empty
      */
@@ -39,10 +39,9 @@ public interface IResearchCategory {
     AspectList formula();
 
     /**
-     * Converts an aspect composition into raw category knowledge using this category's
-     * {@link #formula() formula}. Each formula aspect contributes the scanned amount weighted by
-     * a tenth of the formula amount; the result is the square root of the weighted sum, rounded
-     * up.
+     * Converts an aspect composition into raw category knowledge using this category's {@link #formula() formula}. Each
+     * formula aspect contributes the scanned amount weighted by a tenth of the formula amount; the result is the square
+     * root of the weighted sum, rounded up.
      *
      * @param aspects the scanned aspect composition
      * @return the raw knowledge points earned, non-negative
@@ -52,9 +51,8 @@ public interface IResearchCategory {
     }
 
     /**
-     * Converts an aspect composition into raw category knowledge with a multiplier applied
-     * inside the formula. The multiplier is squared before weighting so it scales the
-     * pre-root sum.
+     * Converts an aspect composition into raw category knowledge with a multiplier applied inside the formula. The
+     * multiplier is squared before weighting so it scales the pre-root sum.
      *
      * @param aspects the scanned aspect composition
      * @param modifier the multiplier

@@ -10,8 +10,8 @@ import java.util.Set;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The composition of a golem: its material, four parts and experience rank. Trait queries
- * resolve the union of all part traits with opposing pairs cancelling each other.
+ * The composition of a golem: its material, four parts and experience rank. Trait queries resolve the union of all part
+ * traits with opposing pairs cancelling each other.
  *
  * @since 1.0.0
  */

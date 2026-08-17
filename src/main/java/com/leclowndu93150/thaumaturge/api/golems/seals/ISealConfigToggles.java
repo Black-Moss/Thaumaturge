@@ -29,8 +29,8 @@ public interface ISealConfigToggles {
 
         /**
          * @param value the initial value
-         * @param key   the NBT key the value persists under
-         * @param name  the translation key suffix shown in the seal UI
+         * @param key the NBT key the value persists under
+         * @param name the translation key suffix shown in the seal UI
          */
         public SealToggle(boolean value, String key, String name) {
             this.value = value;

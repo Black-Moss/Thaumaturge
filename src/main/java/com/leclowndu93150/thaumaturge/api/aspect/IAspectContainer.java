@@ -5,10 +5,11 @@ import net.minecraft.core.Holder;
 /**
  * Sided aspect containers contract for blocks that can store aspects.
  *
- * <p>Aspects are referenced as {@code Holder<IAspect>} so that implementations remain valid across
- * datapack reloads.
+ * <p>
+ * Aspects are referenced as {@code Holder<IAspect>} so that implementations remain valid across datapack reloads.
  *
- * <p>Implementations expose the capability through {@link AspectCapabilities#CONTAINER}.
+ * <p>
+ * Implementations expose the capability through {@link AspectCapabilities#CONTAINER}.
  *
  * @since 1.0.0
  */

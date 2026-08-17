@@ -23,10 +23,7 @@ public final class TCTooltips {
     }
 
     public static Component knowledgeLabel(KnowledgeType type, ResourceKey<IResearchCategory> category) {
-        return Component.translatable(
-                "tc.knowledge.tooltip",
-                Component.translatable("knowledge_type.thaumaturge." + type.getSerializedName()),
-                CategoryComponents.name(category));
+        return Component.translatable("tc.knowledge.tooltip", Component.translatable("knowledge_type.thaumaturge." + type.getSerializedName()), CategoryComponents.name(category));
     }
 
     public static Component need(String which) {
@@ -58,10 +55,7 @@ public final class TCTooltips {
     }
 
     public static Component researchStage(int stage, int total) {
-        return Component.translatable("tc.research.stage")
-                .append(Component.literal(" "))
-                .append(Component.translatable("tc.research.stage.short", stage, total))
-                .withStyle(ChatFormatting.AQUA);
+        return Component.translatable("tc.research.stage").append(Component.literal(" ")).append(Component.translatable("tc.research.stage.short", stage, total)).withStyle(ChatFormatting.AQUA);
     }
 
     public static Component researchMissing() {
@@ -80,14 +74,7 @@ public final class TCTooltips {
         return Component.empty().append(name).withStyle(ChatFormatting.GOLD);
     }
 
-    public static List<Component> entryHover(
-            Component name,
-            EntryStatus status,
-            int currentStage,
-            int totalStages,
-            List<Component> missingParents,
-            boolean hasNewResearch,
-            boolean hasNewPage) {
+    public static List<Component> entryHover(Component name, EntryStatus status, int currentStage, int totalStages, List<Component> missingParents, boolean hasNewResearch, boolean hasNewPage) {
         List<Component> lines = new ArrayList<>();
         lines.add(entryNameGold(name));
         switch (status) {
@@ -104,10 +91,13 @@ public final class TCTooltips {
                     lines.add(Component.literal(" - ").append(parent).withStyle(ChatFormatting.YELLOW));
                 }
             }
-            case COMPLETE -> {}
+            case COMPLETE -> {
+            }
         }
-        if (hasNewResearch) lines.add(researchNew());
-        if (hasNewPage) lines.add(pageNew());
+        if (hasNewResearch)
+            lines.add(researchNew());
+        if (hasNewPage)
+            lines.add(pageNew());
         return lines;
     }
 
@@ -121,8 +111,6 @@ public final class TCTooltips {
     }
 
     public enum EntryStatus {
-        CAN_UNLOCK,
-        MISSING_PREREQ,
-        COMPLETE
+        CAN_UNLOCK, MISSING_PREREQ, COMPLETE
     }
 }

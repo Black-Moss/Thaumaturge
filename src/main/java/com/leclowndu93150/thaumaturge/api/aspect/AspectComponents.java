@@ -8,10 +8,10 @@ import net.minecraft.network.chat.MutableComponent;
 /**
  * Localized component factories for aspects. Used by tooltips, GUI labels, and chat output.
  *
- * <p>Translation keys follow the pattern {@code aspect.<namespace>.<tag>} for the display name,
- * {@code aspect.<namespace>.<tag>.desc} for the English description, and
- * {@code aspect.<namespace>.<tag>.help} for the study hint. The namespace is
- * derived from the aspect's registry id, so addon aspects resolve against the addon's lang
+ * <p>
+ * Translation keys follow the pattern {@code aspect.<namespace>.<tag>} for the display name,
+ * {@code aspect.<namespace>.<tag>.desc} for the English description, and {@code aspect.<namespace>.<tag>.help} for the
+ * study hint. The namespace is derived from the aspect's registry id, so addon aspects resolve against the addon's lang
  * files without further configuration.
  *
  * @since 1.0.0
@@ -28,13 +28,13 @@ public final class AspectComponents {
     /**
      * Returns the display name of the given aspect as the viewing player may see it.
      *
-     * <p>Aspects the player has not discovered resolve to a generic placeholder rather than their
-     * real name, so display surfaces mask by default. Use {@link #trueName} only where the reveal
-     * is the point, such as the discovery message itself.
+     * <p>
+     * Aspects the player has not discovered resolve to a generic placeholder rather than their real name, so display
+     * surfaces mask by default. Use {@link #trueName} only where the reveal is the point, such as the discovery message
+     * itself.
      *
      * @param aspect the aspect, referenced by holder so the registry id is available
-     * @return the real name when the aspect is {@link AspectKnowledge#KNOWN}, otherwise a
-     * placeholder
+     * @return the real name when the aspect is {@link AspectKnowledge#KNOWN}, otherwise a placeholder
      * @see #trueName
      */
     public static MutableComponent name(Holder<IAspect> aspect) {
@@ -48,8 +48,7 @@ public final class AspectComponents {
      * Returns the display name of the given aspect in a form short enough for a chip-sized label.
      *
      * @param aspect the aspect, referenced by holder so the registry id is available
-     * @return the real name when the aspect is {@link AspectKnowledge#KNOWN}, otherwise a short
-     * placeholder
+     * @return the real name when the aspect is {@link AspectKnowledge#KNOWN}, otherwise a short placeholder
      */
     public static MutableComponent shortName(Holder<IAspect> aspect) {
         if (AspectKnowledgeAccess.isKnown(aspect)) {
@@ -59,13 +58,12 @@ public final class AspectComponents {
     }
 
     /**
-     * Returns the localized display name of the given aspect regardless of whether the viewing
-     * player has discovered it.
+     * Returns the localized display name of the given aspect regardless of whether the viewing player has discovered it.
      *
      * @param aspect the aspect, referenced by holder so the registry id is available
      * @return a translatable component bound to {@code aspect.<namespace>.<tag>}
-     * @apiNote this bypasses discovery masking. Prefer {@link #name} unless the call site exists
-     * specifically to reveal the aspect.
+     * @apiNote this bypasses discovery masking. Prefer {@link #name} unless the call site exists specifically to reveal the
+     *          aspect.
      */
     public static MutableComponent trueName(Holder<IAspect> aspect) {
         return Component.translatable(translationKey(aspect, ""));
@@ -75,8 +73,8 @@ public final class AspectComponents {
      * Returns the description of the given aspect as the viewing player may see it.
      *
      * @param aspect the aspect, referenced by holder so the registry id is available
-     * @return a translatable component bound to {@code aspect.<namespace>.<tag>.desc}, or a
-     * placeholder when the aspect is not {@link AspectKnowledge#KNOWN}
+     * @return a translatable component bound to {@code aspect.<namespace>.<tag>.desc}, or a placeholder when the aspect is
+     *         not {@link AspectKnowledge#KNOWN}
      */
     public static MutableComponent description(Holder<IAspect> aspect) {
         if (AspectKnowledgeAccess.isKnown(aspect)) {
@@ -86,8 +84,8 @@ public final class AspectComponents {
     }
 
     /**
-     * Returns the localized study hint of the given aspect, a short phrase naming the kind of
-     * thing a player should examine to discover it.
+     * Returns the localized study hint of the given aspect, a short phrase naming the kind of thing a player should examine
+     * to discover it.
      *
      * @param aspect the aspect, referenced by holder so the registry id is available
      * @return a translatable component bound to {@code aspect.<namespace>.<tag>.help}
@@ -97,15 +95,15 @@ public final class AspectComponents {
     }
 
     /**
-     * Returns a phrase naming the two aspects that combine into the given aspect, for use as a
-     * lead toward an aspect the player can derive but has not discovered.
+     * Returns a phrase naming the two aspects that combine into the given aspect, for use as a lead toward an aspect the
+     * player can derive but has not discovered.
      *
-     * <p>The component names are themselves masked, so a component the player does not know reads
-     * as a placeholder rather than leaking.
+     * <p>
+     * The component names are themselves masked, so a component the player does not know reads as a placeholder rather than
+     * leaking.
      *
      * @param aspect the aspect, referenced by holder so the registry id is available
-     * @return a phrase such as {@code Terra + Aqua}, or an empty component when the aspect is not
-     * a two-component compound
+     * @return a phrase such as {@code Terra + Aqua}, or an empty component when the aspect is not a two-component compound
      */
     public static MutableComponent composition(Holder<IAspect> aspect) {
         List<Holder<IAspect>> parts = aspect.value().components();
@@ -116,8 +114,7 @@ public final class AspectComponents {
     }
 
     private static String translationKey(Holder<IAspect> holder, String suffix) {
-        String namespace =
-                holder.unwrapKey().map(key -> key.identifier().getNamespace()).orElse("thaumaturge");
+        String namespace = holder.unwrapKey().map(key -> key.identifier().getNamespace()).orElse("thaumaturge");
         return "aspect." + namespace + "." + holder.value().tag() + suffix;
     }
 }

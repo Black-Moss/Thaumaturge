@@ -15,26 +15,19 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemHead extends GolemPart {
     /** The registry key for golem heads. */
-    public static final ResourceKey<Registry<GolemHead>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_head"));
+    public static final ResourceKey<Registry<GolemHead>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_head"));
 
     private final IHeadFunction function;
 
     /**
-     * @param research   research entries gating this head; empty means ungated
-     * @param icon       the icon drawn in the golem press
-     * @param model      the model rendered for this head
+     * @param research research entries gating this head; empty means ungated
+     * @param icon the icon drawn in the golem press
+     * @param model the model rendered for this head
      * @param components the crafting components consumed
-     * @param function   the behavior ticked for this head, or null when it has none
-     * @param traits     traits granted by this head
+     * @param function the behavior ticked for this head, or null when it has none
+     * @param traits traits granted by this head
      */
-    public GolemHead(
-            List<Identifier> research,
-            Identifier icon,
-            @Nullable GolemPartModel model,
-            List<GolemComponent> components,
-            @Nullable IHeadFunction function,
-            List<Holder<GolemTrait>> traits) {
+    public GolemHead(List<Identifier> research, Identifier icon, @Nullable GolemPartModel model, List<GolemComponent> components, @Nullable IHeadFunction function, List<Holder<GolemTrait>> traits) {
         super(research, icon, components, traits, model);
         this.function = function;
     }

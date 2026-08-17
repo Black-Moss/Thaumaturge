@@ -5,9 +5,8 @@ import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
 /**
- * A single step within an {@link IResearchEntry}. Stages list the recipes shown, the things the
- * player must obtain or craft, the knowledge or research rewards required to advance, and any
- * warp inflicted on completion.
+ * A single step within an {@link IResearchEntry}. Stages list the recipes shown, the things the player must obtain or
+ * craft, the knowledge or research rewards required to advance, and any warp inflicted on completion.
  *
  * @since 1.0.0
  */
@@ -48,8 +47,7 @@ public interface IResearchStage {
     List<KnowledgeReward> knowledge();
 
     /**
-     * Knowledge the player must hold to advance past this stage. The listed amounts are consumed
-     * when the stage completes.
+     * Knowledge the player must hold to advance past this stage. The listed amounts are consumed when the stage completes.
      *
      * @return the knowledge costs, never null
      */
@@ -58,8 +56,8 @@ public interface IResearchStage {
     }
 
     /**
-     * Multiblock structure diagram displayed for this stage, shown as an exploded isometric
-     * view with its activation vis cost.
+     * Multiblock structure diagram displayed for this stage, shown as an exploded isometric view with its activation vis
+     * cost.
      *
      * @return the construct diagram, or empty when the stage has none
      */

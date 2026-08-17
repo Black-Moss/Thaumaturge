@@ -8,8 +8,8 @@ import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Scannable subject matching entities either by exact {@link EntityType} or by class hierarchy.
- * An optional extra filter narrows matches further; it replaces the legacy NBT matcher.
+ * Scannable subject matching entities either by exact {@link EntityType} or by class hierarchy. An optional extra
+ * filter narrows matches further; it replaces the legacy NBT matcher.
  *
  * @since 1.0.0
  */
@@ -53,12 +53,7 @@ public class ScanEntity implements IScanThing {
         this(research, null, entityClass, inheritedClasses, filter);
     }
 
-    private ScanEntity(
-            Identifier research,
-            @Nullable EntityType<?> entityType,
-            @Nullable Class<?> entityClass,
-            boolean inheritedClasses,
-            @Nullable Predicate<Entity> filter) {
+    private ScanEntity(Identifier research, @Nullable EntityType<?> entityType, @Nullable Class<?> entityClass, boolean inheritedClasses, @Nullable Predicate<Entity> filter) {
         this.research = research;
         this.entityType = entityType;
         this.entityClass = entityClass;

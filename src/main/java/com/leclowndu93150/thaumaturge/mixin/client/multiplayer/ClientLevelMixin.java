@@ -13,11 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ClientLevel.class)
 public class ClientLevelMixin {
-    @Inject(
-            method =
-                    "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/phys/HitResult;)V",
-            at = @At("HEAD"),
-            cancellable = true)
+    @Inject(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/phys/HitResult;)V", at = @At("HEAD"), cancellable = true)
     private void thaumaturge$wardHitEffect(BlockPos pos, Direction direction, HitResult hitResult, CallbackInfo ci) {
         if (ClientWardHolder.isWarded(pos)) {
             WardClientHandler.spawnHitEffect((ClientLevel) (Object) this, pos, direction, hitResult);

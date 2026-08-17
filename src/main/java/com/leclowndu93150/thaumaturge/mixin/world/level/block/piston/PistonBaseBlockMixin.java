@@ -14,14 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PistonBaseBlock.class)
 public class PistonBaseBlockMixin {
     @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
-    private static void thaumaturge$wardResistsPistons(
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            Direction direction,
-            boolean allowDestroyable,
-            Direction connectionDirection,
-            CallbackInfoReturnable<Boolean> cir) {
+    private static void thaumaturge$wardResistsPistons(BlockState state, Level level, BlockPos pos, Direction direction, boolean allowDestroyable, Direction connectionDirection, CallbackInfoReturnable<Boolean> cir) {
         if (WardHandler.isWarded(level, pos)) {
             cir.setReturnValue(false);
         }
