@@ -329,7 +329,8 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockInfusionMatrix> INFUSION_MATRIX = BLOCKS.registerBlock("infusion_matrix", BlockInfusionMatrix::new,
             props -> props.mapColor(MapColor.STONE).strength(-1.0F, 3600000.0F).sound(SoundType.STONE).noLootTable().noOcclusion().lightLevel(s -> 15));
 
-    public static final DeferredBlock<BlockPedestal> PEDESTAL_ARCANE = BLOCKS.registerBlock("pedestal_arcane", BlockPedestal::new, TCBlocks::pedestalProps);
+    public static final DeferredBlock<BlockPedestal> PEDESTAL_ARCANE = BLOCKS.registerBlock("pedestal_arcane", props -> new BlockPedestal(BlockPedestal.Variant.ARCANE, props),
+            TCBlocks::pedestalProps);
 
     public static final DeferredBlock<BlockRechargePedestal> RECHARGE_PEDESTAL = BLOCKS.registerBlock("recharge_pedestal", BlockRechargePedestal::new, TCBlocks::pedestalProps);
 
@@ -356,9 +357,11 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockPlaceholder> PLACEHOLDER_TABLE = BLOCKS.registerBlock("placeholder_table", BlockPlaceholder::new, TCBlocks::pressPlaceholderProps);
 
-    public static final DeferredBlock<BlockPedestal> PEDESTAL_ANCIENT = BLOCKS.registerBlock("pedestal_ancient", BlockPedestal::new, TCBlocks::pedestalProps);
+    public static final DeferredBlock<BlockPedestal> PEDESTAL_ANCIENT = BLOCKS.registerBlock("pedestal_ancient", props -> new BlockPedestal(BlockPedestal.Variant.ELDRITCH, props),
+            TCBlocks::pedestalProps);
 
-    public static final DeferredBlock<BlockPedestal> PEDESTAL_ELDRITCH = BLOCKS.registerBlock("pedestal_eldritch", BlockPedestal::new, TCBlocks::pedestalProps);
+    public static final DeferredBlock<BlockPedestal> PEDESTAL_ELDRITCH = BLOCKS.registerBlock("pedestal_eldritch", props -> new BlockPedestal(BlockPedestal.Variant.ELDRITCH, props),
+            TCBlocks::pedestalProps);
 
     public static final DeferredBlock<BlockPillar> PILLAR_ARCANE = BLOCKS.registerBlock("pillar_arcane", BlockPillar::new, TCBlocks::pillarProps);
 
