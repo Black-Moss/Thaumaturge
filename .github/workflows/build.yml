@@ -31,6 +31,16 @@ jobs:
           cache-disabled: ${{ inputs.is-release }}
           cache-read-only: false
 
+      - name: Apply Spotless
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: ./gradlew spotlessApply
+
+      - name: Commit Spotless changes
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+           commit_message: "style: apply spotless formatting"
+
       - name: Data Generation
         run: ./gradlew runData
 
