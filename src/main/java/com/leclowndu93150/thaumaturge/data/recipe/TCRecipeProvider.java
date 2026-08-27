@@ -377,6 +377,10 @@ public final class TCRecipeProvider extends RecipeProvider {
                 Ingredient.of(TCItems.THAUMIUM_SWORD.get())).component(Ingredient.of(TCItems.CRYSTAL_AER.get())).component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
                 .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get())).component(Ingredient.of(TCItems.PLANK_GREATWOOD.get())).aspect(TCAspects.AER, 30).aspect(TCAspects.MOTUS, 30)
                 .aspect(TCAspects.AVERSIO, 30).instability(1).gate(gate).unlockedBy("has", has(TCItems.THAUMIUM_SWORD)).save(output);
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, enchantedTool(TCItems.ELEMENTAL_SPEAR.get(), Map.of(InfusionEnchantment.ESSENCE, 2)),
+                Ingredient.of(TCItems.THAUMIUM_SPEAR.get())).component(Ingredient.of(TCItems.CRYSTAL_AER.get())).component(Ingredient.of(TCItems.CRYSTAL_AER.get()))
+                .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get())).component(Ingredient.of(TCItems.PLANK_GREATWOOD.get())).aspect(TCAspects.MOTUS, 60).aspect(TCAspects.AER, 30)
+                .aspect(TCAspects.POTENTIA, 30).instability(1).gate(gate).unlockedBy("has", has(TCItems.THAUMIUM_SPEAR)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, enchantedTool(TCItems.ELEMENTAL_SHOVEL.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1)),
                 Ingredient.of(TCItems.THAUMIUM_SHOVEL.get())).component(Ingredient.of(TCItems.CRYSTAL_TERRA.get())).component(Ingredient.of(TCItems.CRYSTAL_TERRA.get()))
                 .component(Ingredient.of(TCItems.NUGGET_QUARTZ.get())).component(Ingredient.of(TCItems.PLANK_GREATWOOD.get())).aspect(TCAspects.TERRA, 60).aspect(TCAspects.FABRICO, 30).instability(1)
@@ -440,8 +444,9 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private void buildGearRecipes() {
         toolRecipes("thaumium", TCItemTags.INGOTS_THAUMIUM, TCItems.THAUMIUM_SWORD.get(), TCItems.THAUMIUM_PICKAXE.get(), TCItems.THAUMIUM_AXE.get(), TCItems.THAUMIUM_SHOVEL.get(),
-                TCItems.THAUMIUM_HOE.get());
-        toolRecipes("void", TCItemTags.INGOTS_VOID_METAL, TCItems.VOID_SWORD.get(), TCItems.VOID_PICKAXE.get(), TCItems.VOID_AXE.get(), TCItems.VOID_SHOVEL.get(), TCItems.VOID_HOE.get());
+                TCItems.THAUMIUM_HOE.get(), TCItems.THAUMIUM_SPEAR.get());
+        toolRecipes("void", TCItemTags.INGOTS_VOID_METAL, TCItems.VOID_SWORD.get(), TCItems.VOID_PICKAXE.get(), TCItems.VOID_AXE.get(), TCItems.VOID_SHOVEL.get(), TCItems.VOID_HOE.get(),
+                TCItems.VOID_SPEAR.get());
         armorRecipes("thaumium", TCItemTags.INGOTS_THAUMIUM, TCItems.THAUMIUM_HELM.get(), TCItems.THAUMIUM_CHEST.get(), TCItems.THAUMIUM_LEGS.get(), TCItems.THAUMIUM_BOOTS.get());
         armorRecipes("void", TCItemTags.INGOTS_VOID_METAL, TCItems.VOID_HELM.get(), TCItems.VOID_CHEST.get(), TCItems.VOID_LEGS.get(), TCItems.VOID_BOOTS.get());
         robeDyeRecipe(TCItems.CLOTH_CHEST.get());
@@ -458,12 +463,13 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy(getHasName(target), has(target)).group("cloth_robes").save(output, TCIds.MODID + ":" + BuiltInRegistries.ITEM.getKey(target).getPath() + "_dyed");
     }
 
-    private void toolRecipes(String name, TagKey<Item> ingot, Item sword, Item pickaxe, Item axe, Item shovel, Item hoe) {
+    private void toolRecipes(String name, TagKey<Item> ingot, Item sword, Item pickaxe, Item axe, Item shovel, Item hoe, Item spear) {
         shaped(RecipeCategory.COMBAT, sword).pattern("I").pattern("I").pattern("S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
         shaped(RecipeCategory.TOOLS, pickaxe).pattern("III").pattern(" S ").pattern(" S ").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
         shaped(RecipeCategory.TOOLS, axe).pattern("II").pattern("IS").pattern(" S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
         shaped(RecipeCategory.TOOLS, shovel).pattern("I").pattern("S").pattern("S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
         shaped(RecipeCategory.TOOLS, hoe).pattern("II").pattern(" S").pattern(" S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
+        shaped(RecipeCategory.COMBAT, spear).pattern("  I").pattern(" S ").pattern("S  ").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
     }
 
     private void armorRecipes(String name, TagKey<Item> ingot, Item helm, Item chest, Item legs, Item boots) {

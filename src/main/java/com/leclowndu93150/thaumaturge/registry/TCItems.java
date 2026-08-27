@@ -18,6 +18,7 @@ import com.leclowndu93150.thaumaturge.content.equipment.ElementalAxeItem;
 import com.leclowndu93150.thaumaturge.content.equipment.ElementalHoeItem;
 import com.leclowndu93150.thaumaturge.content.equipment.ElementalPickaxeItem;
 import com.leclowndu93150.thaumaturge.content.equipment.ElementalShovelItem;
+import com.leclowndu93150.thaumaturge.content.equipment.ElementalSpearItem;
 import com.leclowndu93150.thaumaturge.content.equipment.ElementalSwordItem;
 import com.leclowndu93150.thaumaturge.content.equipment.FortressArmorItem;
 import com.leclowndu93150.thaumaturge.content.equipment.GrappleGunItem;
@@ -219,6 +220,8 @@ public final class TCItems {
     public static final DeferredItem<Item> THAUMIUM_AXE = ITEMS.registerItem("thaumium_axe", Item::new, props -> props.axe(TCMaterials.TOOL_THAUMIUM, 4.5F, -3.0F));
     public static final DeferredItem<Item> THAUMIUM_SHOVEL = ITEMS.registerItem("thaumium_shovel", Item::new, props -> props.shovel(TCMaterials.TOOL_THAUMIUM, 1.5F, -3.0F));
     public static final DeferredItem<HoeItem> THAUMIUM_HOE = ITEMS.registerItem("thaumium_hoe", props -> new HoeItem(TCMaterials.TOOL_THAUMIUM, -3.0F, 0.0F, props));
+    public static final DeferredItem<Item> THAUMIUM_SPEAR = ITEMS.registerItem("thaumium_spear", Item::new,
+            props -> props.spear(TCMaterials.TOOL_THAUMIUM, 1.0F, 1.0F, 0.55F, 3.0F, 10.5F, 6.5F, 5.1F, 10.5F, 4.6F));
     public static final DeferredItem<Item> THAUMIUM_HELM = ITEMS.registerItem("thaumium_helm", Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.HELMET));
     public static final DeferredItem<Item> THAUMIUM_CHEST = ITEMS.registerItem("thaumium_chest", Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.CHESTPLATE));
     public static final DeferredItem<Item> THAUMIUM_LEGS = ITEMS.registerItem("thaumium_legs", Item::new, props -> props.humanoidArmor(TCMaterials.ARMOR_THAUMIUM, ArmorType.LEGGINGS));
@@ -229,6 +232,8 @@ public final class TCItems {
     public static final DeferredItem<VoidGearItem> VOID_AXE = ITEMS.registerItem("void_axe", VoidGearItem::new, props -> props.axe(TCMaterials.TOOL_VOID, 4.0F, -3.0F));
     public static final DeferredItem<VoidGearItem> VOID_SHOVEL = ITEMS.registerItem("void_shovel", VoidGearItem::new, props -> props.shovel(TCMaterials.TOOL_VOID, 1.5F, -3.0F));
     public static final DeferredItem<VoidHoeItem> VOID_HOE = ITEMS.registerItem("void_hoe", props -> new VoidHoeItem(TCMaterials.TOOL_VOID, -3.0F, 0.0F, props));
+    public static final DeferredItem<VoidGearItem> VOID_SPEAR = ITEMS.registerItem("void_spear", VoidGearItem::new,
+            props -> props.spear(TCMaterials.TOOL_VOID, 1.05F, 1.075F, 0.5F, 3.0F, 10.0F, 6.5F, 5.1F, 10.0F, 4.6F));
     public static final DeferredItem<VoidGearItem> VOID_HELM = ITEMS.registerItem("void_helm", VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.HELMET));
     public static final DeferredItem<VoidGearItem> VOID_CHEST = ITEMS.registerItem("void_chest", VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.CHESTPLATE));
     public static final DeferredItem<VoidGearItem> VOID_LEGS = ITEMS.registerItem("void_legs", VoidGearItem::new, props -> props.humanoidArmor(TCMaterials.ARMOR_VOID, ArmorType.LEGGINGS));
@@ -244,6 +249,8 @@ public final class TCItems {
             props -> props.shovel(TCMaterials.TOOL_ELEMENTAL, 1.5F, -3.0F).rarity(Rarity.RARE));
     public static final DeferredItem<ElementalHoeItem> ELEMENTAL_HOE = ITEMS.registerItem("elemental_hoe", props -> new ElementalHoeItem(TCMaterials.TOOL_ELEMENTAL, -3.0F, 0.0F, props),
             props -> props.rarity(Rarity.RARE));
+    public static final DeferredItem<ElementalSpearItem> ELEMENTAL_SPEAR = ITEMS.registerItem("elemental_spear", ElementalSpearItem::new,
+            props -> props.spear(TCMaterials.TOOL_ELEMENTAL, 1.1F, 1.15F, 0.45F, 2.75F, 9.5F, 6.0F, 5.1F, 9.5F, 4.6F).rarity(Rarity.RARE));
     public static final DeferredItem<PrimalCrusherItem> PRIMAL_CRUSHER = ITEMS.registerItem("primal_crusher", PrimalCrusherItem::new,
             props -> props.pickaxe(TCMaterials.TOOL_PRIMAL_VOID, 3.5F, -2.8F).rarity(Rarity.RARE));
 

@@ -805,6 +805,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.thaumium_axe", "Thaumium Axe");
         add("item.thaumaturge.thaumium_shovel", "Thaumium Shovel");
         add("item.thaumaturge.thaumium_hoe", "Thaumium Hoe");
+        add("item.thaumaturge.thaumium_spear", "Thaumium Spear");
         add("item.thaumaturge.thaumium_helm", "Thaumium Helm");
         add("item.thaumaturge.thaumium_chest", "Thaumium Chestplate");
         add("item.thaumaturge.thaumium_legs", "Thaumium Greaves");
@@ -814,6 +815,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.void_axe", "Void Axe");
         add("item.thaumaturge.void_shovel", "Void Shovel");
         add("item.thaumaturge.void_hoe", "Void Hoe");
+        add("item.thaumaturge.void_spear", "Void Spear");
         add("item.thaumaturge.void_helm", "Void Helm");
         add("item.thaumaturge.void_chest", "Void Chestplate");
         add("item.thaumaturge.void_legs", "Void Greaves");
@@ -823,6 +825,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.elemental_axe", "Axe of the Stream");
         add("item.thaumaturge.elemental_shovel", "Shovel of the Earthmover");
         add("item.thaumaturge.elemental_hoe", "Hoe of Growth");
+        add("item.thaumaturge.elemental_spear", "Spear of the Firmament");
         add("item.thaumaturge.primal_crusher", "Primal Crusher");
         add("item.thaumaturge.traveller_boots", "Boots of the Traveller");
         add("item.thaumaturge.cloth_chest", "Apprentice's Robes");
