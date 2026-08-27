@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.device.bore;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.casters.BlockBreakerEngine;
+import com.leclowndu93150.thaumaturge.content.device.BlockEntityLampArcane;
 import com.leclowndu93150.thaumaturge.content.equipment.RefiningResults;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
@@ -17,7 +18,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -43,6 +47,10 @@ public final class ArcaneBoreCore {
     private static final float SPIRAL_BASE_STEP = 3.0F;
     private static final float SPIRAL_INNER_BOOST = 10.0F;
     private static final int FULL_TURN = 360;
+    private static final int TUNNEL_LIGHT_STEPS = 32;
+    private static final int TUNNEL_LIGHT_SIDEWAYS = 3;
+    private static final int TUNNEL_LIGHT_DROP = 2;
+    private static final int MAX_TUNNEL_LIGHT = 15;
 
     private @Nullable BlockPos digTarget;
     private @Nullable BlockPos digTargetPrev;
@@ -112,6 +120,7 @@ public final class ArcaneBoreCore {
             if (dug) {
                 collectAndEjectDrops(host, level, digTarget, state);
                 damageTool(host);
+                lightTunnel(host, level);
             }
         }
         digTarget = null;
@@ -175,6 +184,36 @@ public final class ArcaneBoreCore {
             }
         }
         host.dropBoreOutput(level, stack);
+    }
+
+    private void lightTunnel(ArcaneBoreHost host, ServerLevel level) {
+        if (!hasAdjacentLamp(host, level)) {
+            return;
+        }
+        Direction facing = host.boreFacing();
+        int distance = host.boreRandom().nextInt(TUNNEL_LIGHT_STEPS) * 2;
+        int phase = distance / 2 % 4;
+        int sideways = phase == 0 ? TUNNEL_LIGHT_SIDEWAYS : phase == 2 ? -TUNNEL_LIGHT_SIDEWAYS : 0;
+        BlockPos origin = host.borePos().relative(facing, 1 + distance);
+        int x = origin.getX() + (facing.getStepX() != 0 ? 0 : sideways);
+        int y = origin.getY() - (phase == 3 && facing.getStepY() == 0 ? TUNNEL_LIGHT_DROP : 0);
+        int z = origin.getZ() + (facing.getStepX() != 0 ? sideways : 0);
+        BlockPos target = new BlockPos(x, y, z);
+        if (level.getBlockState(target).isAir() && level.getBrightness(LightLayer.BLOCK, target) < MAX_TUNNEL_LIGHT) {
+            level.setBlock(target, TCBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
+        }
+    }
+
+    private static boolean hasAdjacentLamp(ArcaneBoreHost host, ServerLevel level) {
+        BlockPos pos = host.borePos();
+        for (Direction side : Direction.values()) {
+            BlockPos lamp = pos.relative(side);
+            BlockState state = level.getBlockState(lamp);
+            if (state.hasProperty(BlockStateProperties.ENABLED) && state.getValue(BlockStateProperties.ENABLED) && level.getBlockEntity(lamp) instanceof BlockEntityLampArcane) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void findNextBlockToDig(ArcaneBoreHost host) {
