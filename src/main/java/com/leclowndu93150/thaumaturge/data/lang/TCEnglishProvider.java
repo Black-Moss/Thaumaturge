@@ -308,10 +308,12 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jei.thaumaturge.category.multiblock_dust_trigger", "Multiblock Trigger");
         add("jei.thaumaturge.category.aspect_composition", "Aspect Composition");
         add("jei.thaumaturge.category.aspect_from_stacks", "Aspect from ItemStack");
+        add("jei.thaumaturge.category.infernal_furnace", "Infernal Furnace");
         add("jei.thaumaturge.dust_trigger.usage", "Right-click the target block with Salis Mundus to trigger this transmutation.");
         add("jei.thaumaturge.dust_trigger.target.tag", "Any block in tag %1$s");
         add("jei.thaumaturge.dust_trigger.target.multiblock", "Right-click any block of the multiblock to trigger this transmutation.");
         add("jei.thaumaturge.research.missing_research", "Missing research: ");
+        add("jei.thaumaturge.infernal_furnace.count", "Count: %s");
         add("tooltip.thaumaturge.aspects.header", "Aspects:");
 
         // Resources
