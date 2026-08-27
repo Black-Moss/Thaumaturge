@@ -767,6 +767,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.thaumium_axe", "神秘斧");
         add("item.thaumaturge.thaumium_shovel", "神秘锹");
         add("item.thaumaturge.thaumium_hoe", "神秘锄");
+        add("item.thaumaturge.thaumium_spear", "神秘长矛");
         add("item.thaumaturge.thaumium_helm", "神秘头盔");
         add("item.thaumaturge.thaumium_chest", "神秘胸甲");
         add("item.thaumaturge.thaumium_legs", "神秘护胫");
@@ -776,6 +777,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.void_axe", "虚空斧");
         add("item.thaumaturge.void_shovel", "虚空锹");
         add("item.thaumaturge.void_hoe", "虚空锄");
+        add("item.thaumaturge.void_spear", "虚空长矛");
         add("item.thaumaturge.void_helm", "虚空头盔");
         add("item.thaumaturge.void_chest", "虚空胸甲");
         add("item.thaumaturge.void_legs", "虚空护胫");
@@ -785,6 +787,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.elemental_axe", "奔流斧");
         add("item.thaumaturge.elemental_shovel", "后土铲");
         add("item.thaumaturge.elemental_hoe", "句芒锄");
+        add("item.thaumaturge.elemental_spear", "苍穹矛");
         add("item.thaumaturge.primal_crusher", "元始杵");
         add("item.thaumaturge.traveller_boots", "旅行者之靴");
         add("item.thaumaturge.cloth_chest", "学徒法袍");
