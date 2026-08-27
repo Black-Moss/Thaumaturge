@@ -47,7 +47,6 @@ public final class ArcaneBoreCore {
     private static final float SPIRAL_BASE_STEP = 3.0F;
     private static final float SPIRAL_INNER_BOOST = 10.0F;
     private static final int FULL_TURN = 360;
-    private static final int TUNNEL_LIGHT_STEPS = 32;
     private static final int TUNNEL_LIGHT_SIDEWAYS = 3;
     private static final int TUNNEL_LIGHT_DROP = 2;
     private static final int MAX_TUNNEL_LIGHT = 15;
@@ -191,9 +190,11 @@ public final class ArcaneBoreCore {
             return;
         }
         Direction facing = host.boreFacing();
-        int distance = host.boreRandom().nextInt(TUNNEL_LIGHT_STEPS) * 2;
+        ItemStack tool = host.boreTool();
+        int distance = host.boreRandom().nextInt(Math.max(1, ArcaneBoreTool.digDepth(tool) / 2)) * 2;
         int phase = distance / 2 % 4;
-        int sideways = phase == 0 ? TUNNEL_LIGHT_SIDEWAYS : phase == 2 ? -TUNNEL_LIGHT_SIDEWAYS : 0;
+        int spread = Math.min(TUNNEL_LIGHT_SIDEWAYS, ArcaneBoreTool.digRadius(tool));
+        int sideways = phase == 0 ? spread : phase == 2 ? -spread : 0;
         BlockPos origin = host.borePos().relative(facing, 1 + distance);
         int x = origin.getX() + (facing.getStepX() != 0 ? 0 : sideways);
         int y = origin.getY() - (phase == 3 && facing.getStepY() == 0 ? TUNNEL_LIGHT_DROP : 0);
