@@ -30,6 +30,8 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
         tag(TCBiomeTags.HAS_ELDRITCH_OBELISK).add(Biomes.PLAINS).add(Biomes.SUNFLOWER_PLAINS).add(Biomes.DESERT).add(Biomes.SAVANNA).add(Biomes.TAIGA).add(Biomes.SNOWY_PLAINS).add(Biomes.SNOWY_TAIGA)
                 .add(Biomes.SWAMP).add(Biomes.FOREST).add(Biomes.DARK_FOREST);
 
+        tag(TCBiomeTags.HAS_BRAINY_HUSK).add(Biomes.DESERT);
+
         tag(TCBiomeTags.HAS_MOUND).add(Biomes.PLAINS).add(Biomes.SUNFLOWER_PLAINS).add(Biomes.FOREST).add(Biomes.FLOWER_FOREST).add(Biomes.BIRCH_FOREST).add(Biomes.OLD_GROWTH_BIRCH_FOREST)
                 .add(Biomes.DARK_FOREST).add(Biomes.TAIGA).add(Biomes.SAVANNA).add(Biomes.MEADOW).add(TCBiomes.MAGICAL_FOREST).add(TCBiomes.EERIE);
     }
