@@ -178,6 +178,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("gui.thaumaturge.arcane_workbench.required_vis_discount", "%s 魔力（%s%% 减免）");
         add("gui.thaumaturge.arcane_workbench.required_vis_crude", "%s 魔力（未聚焦）");
         add("gui.thaumaturge.arcane_workbench.wand_pay.tooltip", "法杖将代替水晶贡献的元始魔力（每个水晶 %s）");
+        add("gui.thaumaturge.arcane_workbench.crystal_needed.tooltip", "需要一颗魔力水晶，或由法杖槽中的法杖提供 %s 点该元始魔力");
         add("button.thaumaturge.create_theory", "创造理论");
         add("button.thaumaturge.complete_theory", "完成理论");
         add("button.thaumaturge.scrap_theory", "放弃理论");
@@ -767,6 +768,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.thaumium_axe", "神秘斧");
         add("item.thaumaturge.thaumium_shovel", "神秘锹");
         add("item.thaumaturge.thaumium_hoe", "神秘锄");
+        add("item.thaumaturge.thaumium_spear", "神秘长矛");
         add("item.thaumaturge.thaumium_helm", "神秘头盔");
         add("item.thaumaturge.thaumium_chest", "神秘胸甲");
         add("item.thaumaturge.thaumium_legs", "神秘护胫");
@@ -776,6 +778,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.void_axe", "虚空斧");
         add("item.thaumaturge.void_shovel", "虚空锹");
         add("item.thaumaturge.void_hoe", "虚空锄");
+        add("item.thaumaturge.void_spear", "虚空长矛");
         add("item.thaumaturge.void_helm", "虚空头盔");
         add("item.thaumaturge.void_chest", "虚空胸甲");
         add("item.thaumaturge.void_legs", "虚空护胫");
@@ -785,6 +788,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("item.thaumaturge.elemental_axe", "奔流斧");
         add("item.thaumaturge.elemental_shovel", "后土铲");
         add("item.thaumaturge.elemental_hoe", "句芒锄");
+        add("item.thaumaturge.elemental_spear", "苍穹矛");
         add("item.thaumaturge.primal_crusher", "元始杵");
         add("item.thaumaturge.traveller_boots", "旅行者之靴");
         add("item.thaumaturge.cloth_chest", "学徒法袍");
@@ -1206,7 +1210,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("block.thaumaturge.activator_rail", "奥术激活轨道");
         add("item.thaumaturge.turret_basic", "自动十字弩");
         add("item.thaumaturge.turret_advanced", "高级自动弩");
-        add("item.thaumaturge.turret_bore", "奥术钻探机");
+        add("block.thaumaturge.arcane_bore", "奥术钻探机");
         add("item.thaumaturge.grapple_gun", "奥术机动装置");
         add("item.thaumaturge.grapple_gun_tip", "机动装置头部");
         add("item.thaumaturge.grapple_gun_spool", "机动装置滚轴");
