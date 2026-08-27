@@ -178,6 +178,7 @@ public final class TCSimplifiedChineseProvider extends LanguageProvider {
         add("gui.thaumaturge.arcane_workbench.required_vis_discount", "%s 魔力（%s%% 减免）");
         add("gui.thaumaturge.arcane_workbench.required_vis_crude", "%s 魔力（未聚焦）");
         add("gui.thaumaturge.arcane_workbench.wand_pay.tooltip", "法杖将代替水晶贡献的元始魔力（每个水晶 %s）");
+        add("gui.thaumaturge.arcane_workbench.crystal_needed.tooltip", "需要一颗魔力水晶，或由法杖槽中的法杖提供 %s 点该元始魔力");
         add("button.thaumaturge.create_theory", "创造理论");
         add("button.thaumaturge.complete_theory", "完成理论");
         add("button.thaumaturge.scrap_theory", "放弃理论");
