@@ -175,6 +175,9 @@ public final class TCRecipeProvider extends RecipeProvider {
         oreSmelting(TCItems.AMBER, TCItemTags.ORES_AMBER, 1F, "amber");
         oreSmelting(Items.QUARTZ, Tags.Items.ORES_QUARTZ, 0.2F, "quartz");
 
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(Items.RESIN_CLUMP), RecipeCategory.MISC, TCItems.AMBER.get(), AMBER_FROM_RESIN_XP, AMBER_FROM_RESIN_TIME).group("amber")
+                .unlockedBy("has", has(Items.RESIN_CLUMP)).save(output, ResourceKey.create(Registries.RECIPE, TCIds.rl("amber_from_resin")));
+
         block3x3(TCItems.METAL_BRASS_BLOCK, TCItemTags.INGOTS_BRASS, TCItems.INGOT_BRASS, TCItemTags.STORAGE_BLOCKS_BRASS);
         block3x3(TCItems.METAL_THAUMIUM_BLOCK, TCItemTags.INGOTS_THAUMIUM, TCItems.INGOT_THAUMIUM, TCItemTags.STORAGE_BLOCKS_THAUMIUM);
         block3x3(TCItems.METAL_VOID_BLOCK, TCItemTags.INGOTS_VOID_METAL, TCItems.INGOT_VOID, TCItemTags.STORAGE_BLOCKS_VOID_METAL);
@@ -953,6 +956,8 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private static final TagKey<Item> NUGGETS_COPPER = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "nuggets/copper"));
     private static final TagKey<Item> NUGGETS_SILVER = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "nuggets/silver"));
+    private static final float AMBER_FROM_RESIN_XP = 0.2F;
+    private static final int AMBER_FROM_RESIN_TIME = 100;
     private static final int WAND_CAP_GOLD_VIS = 9;
     private static final int WAND_CAP_COPPER_VIS = 6;
     private static final int WAND_CAP_SILVER_VIS = 12;
