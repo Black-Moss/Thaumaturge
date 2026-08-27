@@ -1268,6 +1268,8 @@ public final class TCEnglishProvider extends LanguageProvider {
 
     private void langConstructs() {
         add("block.thaumaturge.activator_rail", "Arcane Activator Rail");
+        add("gui.thaumaturge.scan.scanning", "Scanning");
+        add("tooltip.thaumaturge.thaumometer.inventory_scan", "Hold on the cursor and hover an item to scan it");
         add("item.thaumaturge.turret_basic", "Automated Crossbow");
         add("item.thaumaturge.turret_advanced", "Advanced Automated Crossbow");
         add("block.thaumaturge.arcane_bore", "Arcane Bore");

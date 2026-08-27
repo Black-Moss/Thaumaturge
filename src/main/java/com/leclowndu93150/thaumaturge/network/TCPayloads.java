@@ -49,6 +49,7 @@ public final class TCPayloads {
         registrar.playToServer(ServerboundLogisticsSearchPayload.TYPE, ServerboundLogisticsSearchPayload.STREAM_CODEC, ServerboundLogisticsSearchPayload::handle);
         registrar.playToServer(ServerboundCloudJumpPayload.TYPE, ServerboundCloudJumpPayload.STREAM_CODEC, ServerboundCloudJumpPayload::handle);
         registrar.playToServer(ServerboundAdvanceStagePayload.TYPE, ServerboundAdvanceStagePayload.STREAM_CODEC, ServerboundAdvanceStagePayload::handle);
+        registrar.playToServer(ServerboundScanSlotPayload.TYPE, ServerboundScanSlotPayload.STREAM_CODEC, ServerboundScanSlotPayload::handle);
         registrar.playToClient(ClientboundAspectGainPayload.TYPE, ClientboundAspectGainPayload.STREAM_CODEC, (payload, context) -> AspectGainClientHandler.handle(payload, context));
         registrar.playToClient(ClientboundUpdateJEIAspectListPayload.TYPE, ClientboundUpdateJEIAspectListPayload.STREAM_CODEC,
                 (payload, context) -> AspectGainClientHandler.handleJEISync(payload, context));
