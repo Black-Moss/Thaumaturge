@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
+import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -35,6 +36,8 @@ public final class InstabilityEvents {
     private static final double EVENT_RANGE = 10.0;
     private static final int EJECT_RETRIES = 25;
     private static final int ARC_COLOR = 0x4C004C;
+    private static final float ZAP_VOLUME = 0.1F;
+    private static final float ZAP_PITCH_VARIATION = 0.2F;
 
     private InstabilityEvents() {}
 
@@ -108,19 +111,29 @@ public final class InstabilityEvents {
                 }
             }
             EffectDispatch.spawnArc(level, Vec3.atCenterOf(matrixPos), Vec3.atCenterOf(pedestalPos.above()), ARC_COLOR, 0.0F);
+            playZapSound(level, matrixPos);
             return;
         }
     }
 
     private static void zap(ServerLevel level, BlockPos matrixPos, boolean all) {
         RandomSource rand = level.getRandom();
+        boolean playedSound = false;
         for (LivingEntity target : nearbyLiving(level, matrixPos)) {
+            if (!playedSound) {
+                playZapSound(level, matrixPos);
+                playedSound = true;
+            }
             EffectDispatch.spawnArc(level, Vec3.atCenterOf(matrixPos), target.position().add(0.0, target.getBbHeight() / 2.0, 0.0), ARC_COLOR, 0.0F);
             target.hurt(level.damageSources().magic(), 4 + rand.nextInt(4));
             if (!all) {
                 return;
             }
         }
+    }
+
+    private static void playZapSound(ServerLevel level, BlockPos pos) {
+        level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, 1.0F + level.getRandom().nextFloat() * ZAP_PITCH_VARIATION);
     }
 
     private static void harm(ServerLevel level, BlockPos matrixPos, boolean all) {
