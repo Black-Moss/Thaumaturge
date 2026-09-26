@@ -256,7 +256,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         if (energized && !this.energized) {
             aspectsBaseOriginal = aspectsBase;
             aspectsBase = decomposeToPrimals(aspectsBase);
-            aspects = decomposeToPrimals(aspects);
+            aspects = aspectsBase;
         } else if (!energized && this.energized && aspectsBaseOriginal != null) {
             aspectsBase = aspectsBaseOriginal;
             aspectsBaseOriginal = null;
