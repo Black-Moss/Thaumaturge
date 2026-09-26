@@ -57,10 +57,10 @@ public final class TCPlacedFeatures {
     private static final int CINDERPEARL_RARITY = 30;
     private static final int CINDERPEARL_TRIES = 18;
     private static final int CINDERPEARL_XZ_SPREAD = 8;
-    private static final int NODE_WILD_RARITY = 25;
+    private static final int NODE_WILD_RARITY = 36;
     private static final int NODE_MAGICAL_RARITY = 12;
     private static final int NODE_EERIE_RARITY = 8;
-    private static final int NODE_NETHER_RARITY = 40;
+    private static final int NODE_NETHER_RARITY = 36;
     private static final int OBSIDIAN_TOTEM_RARITY = 1440;
     private static final int HILLTOP_STONES_RARITY = 720;
     private static final int NODE_NETHER_MIN_Y = 32;
