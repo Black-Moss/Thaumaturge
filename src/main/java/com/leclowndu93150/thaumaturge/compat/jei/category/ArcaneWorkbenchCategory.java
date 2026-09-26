@@ -134,12 +134,14 @@ public final class ArcaneWorkbenchCategory implements IRecipeCategory<RecipeHold
         int width = recipe.getWidth();
         int height = recipe.getHeight();
         List<Optional<Ingredient>> ingredients = recipe.getIngredients();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Optional<Ingredient> ingredient = ingredients.get(x + y * width);
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
                 IRecipeSlotBuilder slot = builder.addInputSlot(GRID_ORIGIN_X + x * GRID_SPACING, GRID_ORIGIN_Y + y * GRID_SPACING);
-                if (ingredient.isPresent())
-                    slot.add(ingredient.get());
+                if (x < width && y < height) {
+                    Optional<Ingredient> ingredient = ingredients.get(x + y * width);
+                    if (ingredient.isPresent())
+                        slot.add(ingredient.get());
+                }
             }
         }
     }
@@ -150,29 +152,22 @@ public final class ArcaneWorkbenchCategory implements IRecipeCategory<RecipeHold
             int x = i % 3;
             int y = i / 3;
             IRecipeSlotBuilder slot = builder.addInputSlot(GRID_ORIGIN_X + x * GRID_SPACING, GRID_ORIGIN_Y + y * GRID_SPACING);
-            try {
+            if (i < ingredients.size()) {
                 slot.add(ingredients.get(i));
-            } catch (Exception ignored) {
             }
         }
     }
 
     private void layoutCrystals(IRecipeLayoutBuilder builder, AspectList crystals) {
-        if (crystals.isEmpty())
-            return;
         int index = 0;
         List<AspectInstance> aspects = crystals.entries().stream().sorted(Comparator.comparingInt(k -> MenuArcaneWorkbench.PRIMAL_ORDER.indexOf(k.aspect().getKey()))).toList();
         for (int i = 0; i < 6; i++) {
-            boolean isAdded = Objects.equals(aspects.get(index).aspect().getKey(), MenuArcaneWorkbench.PRIMAL_ORDER.get(i));
+            IRecipeSlotBuilder slot = builder.addInputSlot(CRYSTAL_X, CRYSTAL_Y + i * CRYSTAL_SPACING);
+            boolean isAdded = index < aspects.size() && Objects.equals(aspects.get(index).aspect().getKey(), MenuArcaneWorkbench.PRIMAL_ORDER.get(i));
             if (isAdded) {
-                IRecipeSlotBuilder slot = builder.addInputSlot(CRYSTAL_X, CRYSTAL_Y + index * CRYSTAL_SPACING);
                 AspectInstance instance = aspects.get(index);
                 slot.add(EssentiaCrystalFactory.of(instance.aspect(), instance.amount()));
                 index++;
-                if (index >= aspects.size())
-                    break;
-            } else {
-                builder.addInputSlot(BARRIER_X, BARRIER_Y);
             }
         }
     }

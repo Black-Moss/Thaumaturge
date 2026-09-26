@@ -245,8 +245,8 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
-        registration.addRecipeTransferHandler(MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), ArcaneWorkbenchCategory.RECIPE_TYPE, 1, 15, 16, 36);
-        registration.addRecipeTransferHandler(MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), RecipeTypes.CRAFTING, 1, 9, 16, 36);
+        registration.addRecipeTransferHandler(MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), ArcaneWorkbenchCategory.RECIPE_TYPE, 1, 15, 17, 36);
+        registration.addRecipeTransferHandler(MenuArcaneWorkbench.class, TCMenus.ARCANE_WORKBENCH.get(), RecipeTypes.CRAFTING, 1, 9, 17, 36);
     }
 
     private static void registerAspectCompositions(IRecipeRegistration registration) {
