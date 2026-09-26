@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.api.research.scan;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -210,6 +211,9 @@ public final class ScanningManager {
         }
         if (target instanceof BlockPos pos) {
             BlockState state = player.level().getBlockState(pos);
+            if (state.is(TCBlocks.NODE.get())) {
+                return ItemStack.EMPTY;
+            }
             ItemStack stack = state.getCloneItemStack(player.level(), pos, false);
             if (stack.isEmpty()) {
                 FluidState fluid = state.getFluidState();
