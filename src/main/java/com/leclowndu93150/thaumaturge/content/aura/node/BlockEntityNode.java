@@ -45,6 +45,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.commands.FillBiomeCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -94,6 +95,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final int NODE_DRAIN_INTERVAL = 5;
     private static final int ORB_BURST_MAX_PER_ASPECT = 10;
     private static final float ZAP_WIDTH = 0.3F;
+    private static final float ZAP_VOLUME = 0.1F;
+    private static final float ZAP_PITCH_VARIATION = 0.2F;
     private static final int LOCK_BASIC = 1;
     private static final int LOCK_ADVANCED = 2;
     private static final int LOCK_BASIC_REGEN_FACTOR = 2;
@@ -644,6 +647,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             other.wait = other.regeneration / 2;
             other.setChanged();
             serverLevel.sendBlockUpdated(otherPos, other.getBlockState(), other.getBlockState(), 3);
+            serverLevel.playSound(null, otherPos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, 1.0F + random.nextFloat() * ZAP_PITCH_VARIATION);
             Effects.arcBolt(serverLevel, Vec3.atCenterOf(otherPos)).to(Vec3.atCenterOf(pos)).width(ZAP_WIDTH).send();
             return true;
         }
