@@ -912,11 +912,11 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('R', TCItems.VIS_RESONATOR).define('E', TCItems.NUGGET_BRASS).define('S', Items.REDSTONE).define('P', Items.PISTON).define('W', ItemTags.PLANKS).gate(gate("vis_generator"))
                 .unlockedBy("has", has(TCItems.VIS_RESONATOR)).save(output);
 
-        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_INPUT), 100).aspect(TCAspects.AER, 1).aspect(TCAspects.AQUA, 1).pattern("BQB").pattern("IGI").define('I', TCItems.PLATE_IRON)
+        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_INPUT), 100).aspect(TCAspects.AER, 1).aspect(TCAspects.AQUA, 1).pattern("BQB").pattern("IGI").define('I', TCItemTags.PLATES_IRON)
                 .define('B', TCItems.PLATE_BRASS).define('Q', Items.DISPENSER).define('G', TCItems.ALCHEMICAL_CONSTRUCT).gate(gate("essentia_transport")).unlockedBy("has", has(TCItems.PLATE_BRASS))
                 .save(output);
 
-        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_OUTPUT), 100).aspect(TCAspects.AER, 1).aspect(TCAspects.AQUA, 1).pattern("BQB").pattern("IGI").define('I', TCItems.PLATE_IRON)
+        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_OUTPUT), 100).aspect(TCAspects.AER, 1).aspect(TCAspects.AQUA, 1).pattern("BQB").pattern("IGI").define('I', TCItemTags.PLATES_IRON)
                 .define('B', TCItems.PLATE_BRASS).define('Q', Items.HOPPER).define('G', TCItems.ALCHEMICAL_CONSTRUCT).gate(gate("essentia_transport")).unlockedBy("has", has(TCItems.PLATE_BRASS))
                 .save(output);
     }
@@ -1112,7 +1112,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         arcaneShaped(new ItemStackTemplate(TCItems.FOCUS_POUCH), 25).pattern("LGL").pattern("LBL").pattern("LLL").define('B', TCItems.GIRDLE_MUNDANE).define('L', Items.LEATHER)
                 .define('G', Items.GOLD_INGOT).gate(gate("focus_pouch")).unlockedBy("has", has(Items.LEATHER)).save(output);
         arcaneShaped(new ItemStackTemplate(TCItems.SANITY_CHECKER), 20).aspect(TCAspects.ORDO, 1).aspect(TCAspects.PERDITIO, 1).pattern("BN ").pattern("M N").pattern("BN ")
-                .define('N', TCItems.NUGGET_BRASS).define('B', TCItems.BRAIN).define('M', TCItems.MIRRORED_GLASS).gate(gate("warp")).unlockedBy("has", has(TCItems.MIRRORED_GLASS)).save(output);
+                .define('N', TCItemTags.NUGGETS_BRASS).define('B', TCItems.BRAIN).define('M', TCItems.MIRRORED_GLASS).gate(gate("warp")).unlockedBy("has", has(TCItems.MIRRORED_GLASS)).save(output);
         arcaneShaped(new ItemStackTemplate(TCItems.RESONATOR), 50).pattern("I I").pattern("INI").pattern(" S ").define('I', TCItems.PLATE_IRON).define('N', Items.QUARTZ).define('S', Items.STICK)
                 .gate(gate("tubes")).unlockedBy("has", has(TCItems.PLATE_IRON)).save(output);
     }
