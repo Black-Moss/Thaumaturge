@@ -35,6 +35,7 @@ public final class InfusionRunicAugmentRecipe implements Recipe<InfusionInput>, 
     public static final int BASE_INSTABILITY = 5;
     private static final int BASE_COST = 20;
     private static final int MAX_CHARGE = 120;
+    private static final int DISPLAY_LEVELS = 5;
 
     public static final MapCodec<InfusionRunicAugmentRecipe> MAP_CODEC = RecordCodecBuilder
             .mapCodec(i -> i.group(Ingredient.CODEC.listOf(1, 64).fieldOf("components").forGetter(r -> r.baseComponents), Ingredient.CODEC.fieldOf("per_level").forGetter(r -> r.perLevel),
@@ -171,10 +172,20 @@ public final class InfusionRunicAugmentRecipe implements Recipe<InfusionInput>, 
 
     @Override
     public List<RecipeDisplay> display() {
-        ItemStack out = resultItem();
-        SlotDisplay resultDisplay = out.isEmpty() ? SlotDisplay.Empty.INSTANCE : new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(out));
-        return List.of(new InfusionRecipeDisplay(displayCatalyst.display(), baseComponents.stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(), baseAspects, BASE_INSTABILITY,
-                resultDisplay));
+        ItemStack catalyst = displayCatalyst.items().findFirst().map(holder -> new ItemStack(holder.value())).orElse(ItemStack.EMPTY);
+        if (catalyst.isEmpty()) {
+            return List.of(new InfusionRecipeDisplay(displayCatalyst.display(), baseComponents.stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(), baseAspects, BASE_INSTABILITY,
+                    SlotDisplay.Empty.INSTANCE));
+        }
+        List<RecipeDisplay> displays = new ArrayList<>(DISPLAY_LEVELS);
+        for (int charge = 0; charge < DISPLAY_LEVELS; charge++) {
+            catalyst.set(TCDataComponents.RUNIC_CHARGE.get(), charge);
+            SlotDisplay catalystDisplay = new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(catalyst));
+            SlotDisplay resultDisplay = new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(augmentedResult(catalyst)));
+            displays.add(new InfusionRecipeDisplay(catalystDisplay, scaledComponents(catalyst).stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(), scaledAspects(catalyst),
+                    scaledInstability(catalyst), resultDisplay));
+        }
+        return List.copyOf(displays);
     }
 
     @Override
