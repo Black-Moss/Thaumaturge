@@ -296,7 +296,8 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
     }
 
     private static void submitMeshPart(TCMeshPart part, PoseStack poseStack, SubmitNodeCollector collector, Identifier texture, boolean xray, int color, GolemRenderState state) {
-        RenderType type = xray ? xrayType(texture) : ARGB.alpha(color) < 255 ? RenderTypes.entityTranslucent(texture) : RenderTypes.entityCutout(texture);
+        boolean translucent = ARGB.alpha(color) < 255 || !texture.equals(state.props.getMaterial().texture());
+        RenderType type = xray ? xrayType(texture) : translucent ? RenderTypes.entityTranslucent(texture) : RenderTypes.entityCutout(texture);
         int light = state.lightCoords;
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
     }
