@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
+import com.leclowndu93150.thaumaturge.api.items.IRechargable;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
@@ -57,6 +58,10 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
         super(TCBlockEntities.RECHARGE_PEDESTAL.get(), pos, state);
     }
 
+    public static boolean accepts(ItemStack stack) {
+        return !stack.isEmpty() && (stack.getItem() instanceof ItemWand || stack.getItem() instanceof IRechargable);
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityRechargePedestal pedestal) {
         if (level instanceof ServerLevel serverLevel) {
             pedestal.tickServer(serverLevel);
@@ -70,7 +75,7 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
             setChanged();
             syncToClient();
         }
-        if (getItem().isEmpty()) {
+        if (!accepts(getItem())) {
             return;
         }
         if (getItem().getItem() instanceof ItemWand) {

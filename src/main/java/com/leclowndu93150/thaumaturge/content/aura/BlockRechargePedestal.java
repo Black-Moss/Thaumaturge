@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.aura;
 
-import com.leclowndu93150.thaumaturge.api.items.IRechargable;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -71,7 +70,7 @@ public final class BlockRechargePedestal extends BaseEntityBlock {
         }
         ItemStack held = player.getItemInHand(hand);
         ItemStack current = pedestal.getItem();
-        if (current.isEmpty() && !(held.getItem() instanceof IRechargable)) {
+        if (current.isEmpty() && !BlockEntityRechargePedestal.accepts(held)) {
             return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
