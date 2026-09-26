@@ -5,6 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -29,6 +31,10 @@ public final class BlockPedestal extends BaseEntityBlock {
     public static final MapCodec<BlockPedestal> CODEC = RecordCodecBuilder
             .mapCodec(instance -> instance.group(Variant.CODEC.fieldOf("variant").forGetter(block -> block.variant), propertiesCodec()).apply(instance, BlockPedestal::new));
     public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, 15);
+    private static final float PICKUP_VOLUME = 0.2F;
+    private static final float PICKUP_PITCH_VARIATION = 0.7F;
+    private static final float INSERT_PITCH = 1.6F;
+    private static final float REMOVE_PITCH = 1.5F;
 
     private final Variant variant;
 
@@ -87,6 +93,7 @@ public final class BlockPedestal extends BaseEntityBlock {
         if (current.isEmpty() && held.isEmpty()) {
             return InteractionResult.PASS;
         }
+        boolean wasEmpty = current.isEmpty();
         if (!current.isEmpty()) {
             if (!player.getInventory().add(current)) {
                 player.drop(current, false);
@@ -97,6 +104,8 @@ public final class BlockPedestal extends BaseEntityBlock {
             pedestal.setItem(held.copyWithCount(1));
             held.consume(1, player);
         }
+        float pitch = (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * PICKUP_PITCH_VARIATION + 1.0F;
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, PICKUP_VOLUME, pitch * (wasEmpty ? INSERT_PITCH : REMOVE_PITCH));
         return InteractionResult.SUCCESS;
     }
 
