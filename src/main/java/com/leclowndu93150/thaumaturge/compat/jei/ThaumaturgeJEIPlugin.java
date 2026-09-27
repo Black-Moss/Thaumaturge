@@ -82,6 +82,9 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(TCItems.PHIAL.get(), aspectsInterpreter);
         registration.registerFromDataComponentTypes(TCItems.CELESTIAL_NOTES.asItem(), TCDataComponents.CELESTIAL_BODY.get());
         registration.registerFromDataComponentTypes(TCItems.RESEARCH_NOTE.get(), TCDataComponents.RESEARCH_NOTE.get());
+        registration.registerFromDataComponentTypes(TCItems.WAND.get(), TCDataComponents.WAND_PARTS.get());
+        registration.registerFromDataComponentTypes(TCItems.VERDANT_CHARM.get(), TCDataComponents.VERDANT_TYPE.get());
+        registration.registerFromDataComponentTypes(TCItems.GOLEM_PLACER.get(), TCDataComponents.GOLEM_PROPERTIES.get());
     }
 
     @Override
