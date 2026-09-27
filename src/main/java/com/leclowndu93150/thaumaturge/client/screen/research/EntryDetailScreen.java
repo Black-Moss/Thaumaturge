@@ -957,6 +957,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         if (hover != null && !hover.isEmpty()) {
             graphics.setTooltipForNextFrame(font, hover, mouseX, mouseY);
         }
+        List<Component> popup = RecipeDisplayWidget.hoverPopupForDisplay(cx - gridW / 2, cy - gridH / 2, current, mouseX, mouseY);
+        if (popup != null) {
+            graphics.setTooltipForNextFrame(font, popup, Optional.empty(), mouseX, mouseY);
+        }
         if (displays.size() > 1) {
             float bob = bob();
             if (recipePage > 0) {
