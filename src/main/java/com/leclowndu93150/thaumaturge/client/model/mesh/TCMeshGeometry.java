@@ -4,6 +4,7 @@ import com.mojang.math.Transformation;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.dispatch.ModelState;
@@ -48,8 +49,12 @@ public final class TCMeshGeometry implements ExtendedUnbakedGeometry {
         if (cornerSpace) {
             transform.translate(-CENTER_OFFSET, -CENTER_OFFSET, -CENTER_OFFSET);
         }
+        Map<String, Boolean> visibility = additionalProperties.getOrDefault(NeoForgeModelProperties.PART_VISIBILITY, Map.of());
         QuadCollection.Builder builder = new QuadCollection.Builder();
         for (TCMeshPart part : mesh.parts()) {
+            if (!visibility.getOrDefault(part.name(), true)) {
+                continue;
+            }
             String slot = part.materialSlot();
             Material material = textureSlots.getMaterial(slot);
             if (material == null) {

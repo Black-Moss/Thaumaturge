@@ -1178,6 +1178,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.advanced_alchemical_furnace_nozzle", "Advanced Alchemical Furnace Nozzle");
         add("block.thaumaturge.essentia_crystalizer", "Essentia Crystallizer");
         add("block.thaumaturge.essentia_reservoir", "Essentia Reservoir");
+        add("block.thaumaturge.flux_scrubber", "Flux Scrubber");
         add("block.thaumaturge.arcane_pressure_plate", "Arcane Pressure Plate");
         add("item.thaumaturge.arcane_key_iron", "Iron Key");
         add("item.thaumaturge.arcane_key_gold", "Gold Key");
@@ -1583,6 +1584,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("config.jade.plugin_thaumaturge.display.reservoirs_off", "Off");
         add("config.jade.plugin_thaumaturge.display.reservoirs_always", "Always");
         add("config.jade.plugin_thaumaturge.display.reservoirs_goggles", "Goggles");
+        add("config.jade.plugin_thaumaturge.display.flux_scrubbers", "Flux Scrubbers");
+        add("config.jade.plugin_thaumaturge.display.flux_scrubbers_off", "Off");
+        add("config.jade.plugin_thaumaturge.display.flux_scrubbers_always", "Always");
+        add("config.jade.plugin_thaumaturge.display.flux_scrubbers_goggles", "Goggles");
         add("config.jade.plugin_thaumaturge.display.crystalizers_off", "Off");
         add("config.jade.plugin_thaumaturge.display.crystalizers_always", "Always");
         add("config.jade.plugin_thaumaturge.display.crystalizers_goggles", "Goggles");
@@ -1692,6 +1697,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jade.thaumaturge.transducer.status.1", "Transducing");
         add("jade.thaumaturge.transducer.status.2", "Node energized");
         add("jade.thaumaturge.transducer.charge", "Charge: %s%%");
+        add("jade.thaumaturge.flux_scrubber.charges", "Charges: %s");
+        add("jade.thaumaturge.flux_scrubber.power", "Power: %s%%");
         add("jade.thaumaturge.relay.linked_node", "Linked to energized node");
         add("jade.thaumaturge.relay.linked_relay", "Linked through %s relays");
         add("jade.thaumaturge.relay.unlinked", "No energized node in range");

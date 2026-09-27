@@ -40,6 +40,10 @@ public final class ThaumaturgeCommonConfig {
     public static final ModConfigSpec.BooleanValue NO_SLEEP;
     public static final ModConfigSpec.BooleanValue NO_STRESS;
     public static final ModConfigSpec.BooleanValue SHOW_GOLEM_EMOTES;
+    public static final ModConfigSpec.IntValue FLUX_SCRUBBER_CHARGES_PER_ROLL;
+    public static final ModConfigSpec.DoubleValue FLUX_SCRUBBER_ESSENTIA_CHANCE;
+    public static final ModConfigSpec.IntValue FLUX_SCRUBBER_ESSENTIA_PER_ROLL;
+    public static final ModConfigSpec.IntValue FLUX_SCRUBBER_ESSENTIA_CAPACITY;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -130,6 +134,14 @@ public final class ThaumaturgeCommonConfig {
         builder.pop();
         builder.push("golems");
         SHOW_GOLEM_EMOTES = builder.comment("Will golems display emote particles if they receive orders or encounter problems.").define("showGolemEmotes", true);
+        builder.pop();
+        builder.push("fluxScrubber");
+        FLUX_SCRUBBER_CHARGES_PER_ROLL = builder.comment("Physical Flux quanta (Goo or Gas) the Flux Scrubber must clean before it rolls for Praecantatio. Lower values recover Praecantatio faster.")
+                .defineInRange("chargesPerRoll", 2, 1, 64);
+        FLUX_SCRUBBER_ESSENTIA_CHANCE = builder.comment("Chance (0 to 1) that a roll succeeds and yields Praecantatio. 1.0 always succeeds.").defineInRange("essentiaChance", 0.8, 0.0, 1.0);
+        FLUX_SCRUBBER_ESSENTIA_PER_ROLL = builder.comment("Praecantatio produced per successful roll. Raise essentiaCapacity so large rolls can build up before a tube drains them.")
+                .defineInRange("essentiaPerRoll", 1, 0, 64);
+        FLUX_SCRUBBER_ESSENTIA_CAPACITY = builder.comment("Most Praecantatio the Flux Scrubber holds before an attached tube or jar has to drain it.").defineInRange("essentiaCapacity", 16, 1, 1024);
         builder.pop();
         SPEC = builder.build();
     }

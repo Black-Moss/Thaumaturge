@@ -25,6 +25,7 @@ import com.leclowndu93150.thaumaturge.content.device.BlockEntityStabilizer;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVisGenerator;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
 import com.leclowndu93150.thaumaturge.content.device.bore.BlockEntityArcaneBore;
+import com.leclowndu93150.thaumaturge.content.device.fluxscrubber.BlockEntityFluxScrubber;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockEntityItemGrate;
 import com.leclowndu93150.thaumaturge.content.device.mirror.BlockEntityMirror;
 import com.leclowndu93150.thaumaturge.content.device.mirror.BlockEntityMirrorEssentia;
@@ -149,6 +150,9 @@ public final class TCBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEssentiaReservoir>> ESSENTIA_RESERVOIR = BLOCK_ENTITIES.register("essentia_reservoir",
             () -> new BlockEntityType<>(BlockEntityEssentiaReservoir::new, Set.of(TCBlocks.ESSENTIA_RESERVOIR.get())));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityFluxScrubber>> FLUX_SCRUBBER = BLOCK_ENTITIES.register("flux_scrubber",
+            () -> new BlockEntityType<>(BlockEntityFluxScrubber::new, Set.of(TCBlocks.FLUX_SCRUBBER.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAlembic>> ALEMBIC = BLOCK_ENTITIES.register("alembic",
             () -> new BlockEntityType<>(BlockEntityAlembic::new, Set.of(TCBlocks.ALEMBIC.get())));
