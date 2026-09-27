@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.api.aura.BiomeAuraModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
+import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataMaps;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -38,6 +40,8 @@ public final class NodeGenerator {
     private static final int ENV_STONE_THRESHOLD = 500;
     private static final int ENV_FOLIAGE_THRESHOLD = 100;
     private static final int PLACE_FLAGS = 3;
+    private static final int GUARANTEED_NODE_ATTEMPTS = 64;
+    private static final float TAINTED_LANDS_AURA_BOOST = 1.5F;
 
     private NodeGenerator() {}
 
@@ -46,7 +50,44 @@ public final class NodeGenerator {
         if (data == null) {
             return false;
         }
-        return createNodeAt(level, pos, data.type(), data.modifier().orElse(null), data.aspects());
+        boolean placed = createNodeAt(level, pos, data.type(), data.modifier().orElse(null), data.aspects());
+        if (placed && data.type() == NodeType.TAINTED && !(level instanceof ServerLevel) && level.getBlockEntity(pos) instanceof BlockEntityNode node) {
+            node.markNaturalTaintBootstrap();
+        }
+        return placed;
+    }
+
+    public static boolean createGuaranteedTaintedNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random) {
+        return createGuaranteedTaintedLandsNodeAt(level, pos, random, NodeType.TAINTED);
+    }
+
+    public static boolean createGuaranteedHungryNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random) {
+        return createGuaranteedTaintedLandsNodeAt(level, pos, random, NodeType.HUNGRY);
+    }
+
+    private static boolean createGuaranteedTaintedLandsNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random, NodeType requiredType) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !level.getBiome(pos).is(TCBiomeTags.IS_TAINTED)) {
+            return false;
+        }
+        NodeType rolledType = requiredType == NodeType.HUNGRY ? NodeType.NORMAL : requiredType;
+        for (int attempt = 0; attempt < GUARANTEED_NODE_ATTEMPTS; attempt++) {
+            NodeData data = rollRandomNodeData(level, pos, random, false, false, false, DEFAULT_SPECIAL_RARITY, DEFAULT_BASE_AURA);
+            if (data == null || data.type() != rolledType) {
+                continue;
+            }
+            AspectList aspects = data.aspects();
+            if (requiredType == NodeType.HUNGRY) {
+                aspects = addTypeFlavor(level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY), aspects, NodeType.HUNGRY, random);
+            }
+            if (!createNodeAt(level, pos, requiredType, data.modifier().orElse(null), aspects)) {
+                return false;
+            }
+            if (level.getBlockEntity(pos) instanceof BlockEntityNode node) {
+                node.markNaturalTaintBootstrap();
+            }
+            return true;
+        }
+        return false;
     }
 
     public static @Nullable NodeData rollRandomNodeData(ServerLevelAccessor level, BlockPos pos, RandomSource random, boolean silverwood, boolean eerie, boolean small, int specialRarity, int baseAura) {
@@ -85,6 +126,13 @@ public final class NodeGenerator {
         Holder<Biome> biome = level.getBiome(pos);
         BiomeAuraModifier auraModifier = biome.getData(TCDataMaps.BIOME_AURA_MODIFIER);
         int biomeAura = (int) (baseAura * (auraModifier == null ? 1.0F : auraModifier.value()));
+        if (type != NodeType.PURE && biome.is(TCBiomeTags.IS_TAINTED)) {
+            biomeAura = Math.round(biomeAura * TAINTED_LANDS_AURA_BOOST);
+            if (!ThaumaturgeCommonConfig.WUSS_MODE.get() && random.nextBoolean()) {
+                type = NodeType.TAINTED;
+                biomeAura = Math.round(biomeAura * TAINTED_LANDS_AURA_BOOST);
+            }
+        }
         if (silverwood || small) {
             biomeAura /= 4;
         }
@@ -139,8 +187,9 @@ public final class NodeGenerator {
         double dark = ThaumaturgeCommonConfig.DARK_NODE_CHANCE.get() * scale;
         double unstable = ThaumaturgeCommonConfig.UNSTABLE_NODE_CHANCE.get() * scale;
         double pure = ThaumaturgeCommonConfig.PURE_NODE_CHANCE.get() * scale;
+        double tainted = ThaumaturgeCommonConfig.WUSS_MODE.get() ? 0.0 : ThaumaturgeCommonConfig.TAINTED_NODE_CHANCE.get() * scale;
         double hungry = ThaumaturgeCommonConfig.HUNGRY_NODE_CHANCE.get() * scale;
-        double specialTotal = dark + unstable + pure + hungry;
+        double specialTotal = dark + unstable + pure + tainted + hungry;
         double roll = random.nextDouble() * Math.max(100.0, specialTotal);
         if ((roll -= dark) < 0.0) {
             return NodeType.DARK;
@@ -150,6 +199,9 @@ public final class NodeGenerator {
         }
         if ((roll -= pure) < 0.0) {
             return NodeType.PURE;
+        }
+        if ((roll -= tainted) < 0.0) {
+            return NodeType.TAINTED;
         }
         if (roll < hungry) {
             return NodeType.HUNGRY;

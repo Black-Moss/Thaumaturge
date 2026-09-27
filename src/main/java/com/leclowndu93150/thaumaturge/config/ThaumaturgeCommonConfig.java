@@ -25,6 +25,7 @@ public final class ThaumaturgeCommonConfig {
     public static final ModConfigSpec.DoubleValue DARK_NODE_CHANCE;
     public static final ModConfigSpec.DoubleValue UNSTABLE_NODE_CHANCE;
     public static final ModConfigSpec.DoubleValue PURE_NODE_CHANCE;
+    public static final ModConfigSpec.DoubleValue TAINTED_NODE_CHANCE;
     public static final ModConfigSpec.DoubleValue HUNGRY_NODE_CHANCE;
     public static final ModConfigSpec.IntValue HUNGRY_NODE_BLOCK_EAT_RANGE;
     public static final ModConfigSpec.BooleanValue SCALE_HUNGRY_NODE_RANGE_BY_MODIFIER;
@@ -85,11 +86,13 @@ public final class ThaumaturgeCommonConfig {
         NETHER_NODE_CHANCE = builder.comment("Chance from 0 to 100 for a node placement attempt in each Nether chunk. The default is about one attempt per 36 chunks. 0 disables Nether nodes.")
                 .defineInRange("netherSpawnChance", 100.0 / 36.0, 0.0, 100.0);
         builder.comment(
-                "The following values are percentages among ordinary random nodes. At the default special_rarity of 18, their total is 5.5556%, leaving 94.4444% normal nodes. Datapack special_rarity scales these percentages by 18 / special_rarity. If the scaled total exceeds 100, it is normalized and no normal nodes spawn. Silverwood and eerie nodes keep their forced types.")
+                "The following values are percentages among ordinary random nodes. At the default special_rarity of 18, their total is 6.6667%, leaving 93.3333% normal nodes. Datapack special_rarity scales these percentages by 18 / special_rarity. If the scaled total exceeds 100, it is normalized and no normal nodes spawn. Silverwood and eerie nodes keep their forced types.")
                 .push("types");
         DARK_NODE_CHANCE = builder.comment("Dark-node percentage, from 0 to 100. Default: 1.6667%.").defineInRange("darkChance", 5.0 / 3.0, 0.0, 100.0);
         UNSTABLE_NODE_CHANCE = builder.comment("Unstable-node percentage, from 0 to 100. Default: 1.6667%.").defineInRange("unstableChance", 5.0 / 3.0, 0.0, 100.0);
         PURE_NODE_CHANCE = builder.comment("Pure-node percentage, from 0 to 100. Default: 1.6667%.").defineInRange("pureChance", 5.0 / 3.0, 0.0, 100.0);
+        TAINTED_NODE_CHANCE = builder.comment("Tainted-node percentage, from 0 to 100. Default: 1.1111%, Thaumcraft 5's effective natural tainted-node chance. Wuss mode turns this type off.")
+                .defineInRange("taintedChance", 10.0 / 9.0, 0.0, 100.0);
         HUNGRY_NODE_CHANCE = builder.comment("Hungry-node percentage, from 0 to 100. Default: 0.5556%, approximately one hungry node per 180 ordinary nodes.").defineInRange("hungryChance", 5.0 / 9.0,
                 0.0, 100.0);
         builder.pop(2);
