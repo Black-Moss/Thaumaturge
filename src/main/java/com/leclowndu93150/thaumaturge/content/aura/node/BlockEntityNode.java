@@ -928,9 +928,6 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     public boolean drainToWand(ServerLevel serverLevel, Player player, ItemStack wandStack, int useTicks) {
-        if (energized) {
-            return false;
-        }
         if (useTicks % NODE_DRAIN_INTERVAL != 0) {
             return false;
         }
