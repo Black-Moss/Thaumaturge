@@ -1,12 +1,18 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
+import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.neoforged.neoforge.event.EventHooks;
 
 public class EntityBrainyZombie extends Zombie {
@@ -14,6 +20,10 @@ public class EntityBrainyZombie extends Zombie {
 
     public EntityBrainyZombie(EntityType<? extends EntityBrainyZombie> type, Level level) {
         super(type, level);
+    }
+
+    public static boolean checkBrainyZombieSpawnRules(EntityType<? extends Monster> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
+        return !level.getBiome(pos).is(TCBiomeTags.IS_TAINTED) && Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
     }
 
     public static AttributeSupplier.Builder createAttributes() {

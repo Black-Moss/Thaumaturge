@@ -10,10 +10,15 @@ import com.leclowndu93150.thaumaturge.content.entity.construct.EntityArcaneBore;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbow;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintChicken;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintCow;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintCreeper;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintPig;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSheep;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSpider;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSpore;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSporeSwarmer;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintVillager;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
@@ -33,7 +38,7 @@ public final class TCEntityEvents {
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
         event.register(TCEntities.BRAINY_HUSK.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
-        event.register(TCEntities.BRAINY_ZOMBIE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
+        event.register(TCEntities.BRAINY_ZOMBIE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, EntityBrainyZombie::checkBrainyZombieSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
         event.register(TCEntities.GIANT_BRAINY_ZOMBIE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
@@ -77,6 +82,11 @@ public final class TCEntityEvents {
         event.put(TCEntities.TAINT_SEED_PRIME.get(), EntityTaintSeedPrime.createAttributes().build());
         event.put(TCEntities.TAINT_SWARM.get(), EntityTaintSwarm.createAttributes().build());
         event.put(TCEntities.TAINT_SPIDER.get(), EntityTaintSpider.createAttributes().build());
+        event.put(TCEntities.TAINT_COW.get(), EntityTaintCow.createAttributes().build());
+        event.put(TCEntities.TAINT_PIG.get(), EntityTaintPig.createAttributes().build());
+        event.put(TCEntities.TAINT_CHICKEN.get(), EntityTaintChicken.createAttributes().build());
+        event.put(TCEntities.TAINT_SHEEP.get(), EntityTaintSheep.createAttributes().build());
+        event.put(TCEntities.TAINT_VILLAGER.get(), EntityTaintVillager.createAttributes().build());
         event.put(TCEntities.TAINT_CREEPER.get(), EntityTaintCreeper.createAttributes().build());
         event.put(TCEntities.TAINT_SPORE.get(), EntityTaintSpore.createAttributes().build());
         event.put(TCEntities.TAINT_SPORE_SWARMER.get(), EntityTaintSporeSwarmer.createAttributes().build());

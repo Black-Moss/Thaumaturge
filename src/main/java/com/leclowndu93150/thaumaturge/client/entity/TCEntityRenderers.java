@@ -1,10 +1,15 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.client.entity.taint.TaintChickenRenderer;
+import com.leclowndu93150.thaumaturge.client.entity.taint.TaintCowRenderer;
 import com.leclowndu93150.thaumaturge.client.entity.taint.TaintCreeperRenderer;
+import com.leclowndu93150.thaumaturge.client.entity.taint.TaintPigRenderer;
+import com.leclowndu93150.thaumaturge.client.entity.taint.TaintSheepRenderer;
 import com.leclowndu93150.thaumaturge.client.entity.taint.TaintSpiderRenderer;
 import com.leclowndu93150.thaumaturge.client.entity.taint.TaintSporeRenderer;
 import com.leclowndu93150.thaumaturge.client.entity.taint.TaintSporeSwarmerRenderer;
+import com.leclowndu93150.thaumaturge.client.entity.taint.TaintVillagerRenderer;
 import com.leclowndu93150.thaumaturge.client.golem.GolemDartRenderer;
 import com.leclowndu93150.thaumaturge.client.golem.GolemRenderer;
 import com.leclowndu93150.thaumaturge.client.model.entity.ArcaneBoreModel;
@@ -107,6 +112,11 @@ public final class TCEntityRenderers {
         event.registerEntityRenderer(TCEntities.TAINT_CRAWLER.get(), TaintCrawlerRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_SPIDER.get(), TaintSpiderRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_CREEPER.get(), TaintCreeperRenderer::new);
+        event.registerEntityRenderer(TCEntities.TAINT_COW.get(), TaintCowRenderer::new);
+        event.registerEntityRenderer(TCEntities.TAINT_PIG.get(), TaintPigRenderer::new);
+        event.registerEntityRenderer(TCEntities.TAINT_CHICKEN.get(), TaintChickenRenderer::new);
+        event.registerEntityRenderer(TCEntities.TAINT_SHEEP.get(), TaintSheepRenderer::new);
+        event.registerEntityRenderer(TCEntities.TAINT_VILLAGER.get(), TaintVillagerRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_SPORE.get(), TaintSporeRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_SPORE_SWARMER.get(), TaintSporeSwarmerRenderer::new);
         event.registerEntityRenderer(TCEntities.TAINT_SEED.get(), context -> new TaintSeedRenderer(context, TAINT_SEED_SHADOW));
