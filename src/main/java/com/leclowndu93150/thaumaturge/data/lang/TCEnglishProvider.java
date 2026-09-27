@@ -1156,6 +1156,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.golem_fetter", "Golem Fetter");
         add("block.thaumaturge.warded_glass", "Warded Glass");
         add("block.thaumaturge.arcane_door", "Arcane Door");
+        add("block.thaumaturge.alchemical_furnace", "Alchemical Furnace");
         add("block.thaumaturge.arcane_pressure_plate", "Arcane Pressure Plate");
         add("item.thaumaturge.arcane_key_iron", "Iron Key");
         add("item.thaumaturge.arcane_key_gold", "Gold Key");

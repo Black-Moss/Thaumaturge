@@ -154,6 +154,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.ALEMBIC.get());
         dropSelf(TCBlocks.BELLOWS.get());
         dropSelf(TCBlocks.SMELTER_BASIC.get());
+        dropSelf(TCBlocks.ALCHEMICAL_FURNACE.get());
         dropSelf(TCBlocks.SMELTER_THAUMIUM.get());
         dropSelf(TCBlocks.SMELTER_VOID.get());
         dropSelf(TCBlocks.SMELTER_AUX.get());
