@@ -20,10 +20,21 @@ public enum GolemComponentProvider implements IEntityComponentProvider {
     }
 
     @Override
+    public boolean isRequired() {
+        return true;
+    }
+
+    @Override
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
+        if (!JadeConfig.shouldShow(config, JadeConfig.GOLEMS, accessor))
+            return;
         if (!(accessor.getEntity() instanceof EntityThaumaturgeGolem golem)) {
             return;
         }
-        tooltip.add(Component.translatable("jade.thaumaturge.golem.rank", golem.getProperties().getRank(), accessor.getServerData().getIntOr("RankXp", 0)));
+        int rank = golem.getProperties().getRank();
+        tooltip.add(Component.translatable("jade.thaumaturge.golem.rank", rank));
+        if (accessor.showDetails() && rank < EntityThaumaturgeGolem.MAX_RANK) {
+            tooltip.add(Component.translatable("jade.thaumaturge.golem.xp", accessor.getServerData().getIntOr("RankXp", 0), accessor.getServerData().getIntOr("RankXpRequired", 0)));
+        }
     }
 }
