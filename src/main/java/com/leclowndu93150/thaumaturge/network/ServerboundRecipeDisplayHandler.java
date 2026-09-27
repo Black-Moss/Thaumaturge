@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumaturge.network;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -28,11 +30,18 @@ public final class ServerboundRecipeDisplayHandler {
                 return;
             RecipeManager manager = level.recipeAccess();
             ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, payload.recipeId());
-            manager.byKey(key).ifPresent(holder -> {
-                List<RecipeDisplay> displays = holder.value().display();
+            List<RecipeDisplay> displays = manager.byKey(key).map(holder -> holder.value().display()).orElseGet(() -> groupDisplays(manager, payload.recipeId().toString()));
+            if (!displays.isEmpty()) {
                 PacketDistributor.sendToPlayer(player, new ClientboundRecipeDisplayPayload(payload.recipeId(), displays));
-            });
+            }
         });
+    }
+
+    private static List<RecipeDisplay> groupDisplays(RecipeManager manager, String group) {
+        List<RecipeDisplay> displays = new ArrayList<>();
+        manager.getRecipes().stream().filter(holder -> group.equals(holder.value().group())).sorted(Comparator.comparing((RecipeHolder<?> holder) -> holder.id().identifier()))
+                .forEach(holder -> displays.addAll(holder.value().display()));
+        return displays;
     }
 
     public static void handleItemRequest(ServerboundRequestItemRecipePayload payload, IPayloadContext context) {

@@ -145,8 +145,8 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(TCItemTags.NUGGETS_BRASS)).save(output);
 
         for (DyeColor color : DyeColor.values()) {
-            shapeless(RecipeCategory.MISC, TCItems.NITORS.get(color).get()).requires(TCItemTags.NITORS).requires(color.getTag()).unlockedBy("has", has(TCItemTags.NITORS)).save(output,
-                    TCIds.MODID + ":nitors/" + color.getName());
+            shapeless(RecipeCategory.MISC, TCItems.NITORS.get(color).get()).requires(TCItemTags.NITORS).requires(color.getTag()).group(NITOR_DYE_GROUP).unlockedBy("has", has(TCItemTags.NITORS))
+                    .save(output, TCIds.MODID + ":nitors/" + color.getName());
         }
 
         shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.STONE_ARCANE, 8).pattern("SSS").pattern("SVS").pattern("SSS").define('S', Tags.Items.STONES).define('V', TCItems.ESSENTIA_CRYSTAL)
@@ -996,6 +996,7 @@ public final class TCRecipeProvider extends RecipeProvider {
     private static final TagKey<Item> NUGGETS_COPPER = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "nuggets/copper"));
     private static final TagKey<Item> NUGGETS_SILVER = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "nuggets/silver"));
     private static final float AMBER_FROM_RESIN_XP = 0.2F;
+    private static final String NITOR_DYE_GROUP = TCIds.rl("nitor_dye").toString();
     private static final int AMBER_FROM_RESIN_TIME = 100;
     private static final int WAND_CAP_GOLD_VIS = 9;
     private static final int WAND_CAP_COPPER_VIS = 6;

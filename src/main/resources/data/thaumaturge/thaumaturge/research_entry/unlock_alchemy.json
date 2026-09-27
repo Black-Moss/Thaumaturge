@@ -44,7 +44,7 @@
       "text": "research.thaumaturge.unlock_alchemy.stage_2",
       "recipes": [
         "thaumaturge:crucible/nitor_yellow",
-        "thaumaturge:nitors/red"
+        "thaumaturge:nitor_dye"
       ],
       "craft": [
         {

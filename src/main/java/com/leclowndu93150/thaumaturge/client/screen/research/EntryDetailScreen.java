@@ -190,6 +190,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private static final int RECIPE_BOOKMARK_TIP_W = 4;
     private static final int RECIPE_BOOKMARK_ICON_OFFSET = 7;
     private static final int RECIPE_BOOKMARK_TINT_SELECTED = 0xFFFF8080;
+    private static final int RECIPE_BOOKMARK_CYCLE_TICKS = 20;
     private static final int RECIPE_BOOKMARK_TINT_NORMAL = 0xFFFFFFFF;
 
     private static final int LABEL_TINT = 0x40FFFFFF;
@@ -928,8 +929,8 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 continue;
             }
             ItemStack result = ItemStack.EMPTY;
-            RecipeDisplay first = displays.get(0);
-            SlotDisplay sd = first.result();
+            RecipeDisplay shown = displays.get(minecraft.player.tickCount / RECIPE_BOOKMARK_CYCLE_TICKS % displays.size());
+            SlotDisplay sd = shown.result();
             try {
                 result = sd.resolveForFirstStack(SlotDisplayContext.fromLevel(minecraft.level));
             } catch (Exception ignored) {
@@ -943,7 +944,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                     RECIPE_BOOKMARK_H, RECIPE_BOOKMARK_W, RECIPE_BOOKMARK_H, TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE, tint);
             graphics.blit(RenderPipelines.GUI_TEXTURED, TCScreenTextures.RESEARCH_BOOK, x + shJitter, slotY - 1, (float) RECIPE_BOOKMARK_TIP_U, (float) RECIPE_BOOKMARK_V, RECIPE_BOOKMARK_TIP_W,
                     RECIPE_BOOKMARK_H, RECIPE_BOOKMARK_TIP_W, RECIPE_BOOKMARK_H, TCScreenTextures.TEX_SIZE, TCScreenTextures.TEX_SIZE);
-            RecipeDisplayWidget.renderBookmarkIcon(graphics, x + shJitter + RECIPE_BOOKMARK_ICON_OFFSET - le, slotY - 1, first);
+            RecipeDisplayWidget.renderBookmarkIcon(graphics, x + shJitter + RECIPE_BOOKMARK_ICON_OFFSET - le, slotY - 1, shown);
             if (hoverState && !result.isEmpty()) {
                 graphics.setTooltipForNextFrame(font, result, mouseX, mouseY);
             }
