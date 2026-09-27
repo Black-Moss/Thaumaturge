@@ -167,6 +167,7 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> TAINT_LOG = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_LOG);
     public static final DeferredItem<BlockItem> TAINT_FEATURE = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_FEATURE);
     public static final DeferredItem<BlockItem> TAINT_FIBRE = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_FIBRE);
+    public static final DeferredItem<BlockItem> TAINT_SPORE_STALK = ITEMS.registerSimpleBlockItem(TCBlocks.TAINT_SPORE_STALK);
 
     public static final DeferredItem<BucketItem> BUCKET_LIQUID_DEATH = ITEMS.registerItem("liquid_death_bucket", props -> new BucketItem(TCFluids.LIQUID_DEATH_SOURCE.get(), props),
             props -> props.craftRemainder(Items.BUCKET).stacksTo(1).rarity(Rarity.RARE));

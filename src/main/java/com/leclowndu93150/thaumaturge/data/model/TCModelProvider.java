@@ -9,16 +9,17 @@ import com.leclowndu93150.thaumaturge.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
-import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
-import com.leclowndu93150.thaumaturge.content.warding.BlockArcanePressurePlate;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport;
+import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
 import com.leclowndu93150.thaumaturge.content.item.CelestialBody;
 import com.leclowndu93150.thaumaturge.content.item.PrimordialPearlItem;
 import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
+import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintSporeStalk;
+import com.leclowndu93150.thaumaturge.content.warding.BlockArcanePressurePlate;
 import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalBlockstateGenerator;
 import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumaturge.data.model.crystal.EssentiaCrystalModelGenerator;
@@ -31,6 +32,7 @@ import com.mojang.math.Transformation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.color.item.GrassColorSource;
@@ -57,18 +59,17 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
-import net.neoforged.neoforge.client.model.generators.template.RootTransformsBuilder;
-import net.neoforged.neoforge.common.util.TransformationHelper;
-import java.util.function.Consumer;
-import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.state.properties.*;
+import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
+import net.neoforged.neoforge.client.model.generators.template.RootTransformsBuilder;
+import net.neoforged.neoforge.common.util.TransformationHelper;
 import org.joml.Matrix4f;
+import org.jspecify.annotations.Nullable;
 
 public final class TCModelProvider extends ModelProvider {
     private static final int ROBES_UNDYED_ARGB = 0xFF6A3880;
@@ -1293,6 +1294,7 @@ public final class TCModelProvider extends ModelProvider {
         registerTaintLog(blockModels);
         registerTaintFeature(blockModels);
         registerTaintFibre(blockModels);
+        registerTaintSporeStalk(blockModels);
 
         blockItemModel(itemModels, TCBlocks.TAINT_ROCK.asItem(), "taint_rock");
         blockItemModel(itemModels, TCBlocks.TAINT_SOIL.asItem(), "taint_soil_0");
@@ -1301,6 +1303,15 @@ public final class TCModelProvider extends ModelProvider {
         blockItemModel(itemModels, TCBlocks.TAINT_LOG.asItem(), "taint_log");
         blockItemModel(itemModels, TCBlocks.TAINT_FEATURE.asItem(), "taint_orb_0");
         blockItemModel(itemModels, TCBlocks.TAINT_FIBRE.asItem(), "taint_fibre");
+        blockItemModel(itemModels, TCBlocks.TAINT_SPORE_STALK.asItem(), "taint_spore_stalk_immature");
+    }
+
+    private void registerTaintSporeStalk(BlockModelGenerators blockModels) {
+        Block stalk = TCBlocks.TAINT_SPORE_STALK.get();
+        Identifier immature = ModelTemplates.CROSS.createWithSuffix(stalk, "_immature", TextureMapping.cross(texture("taint_spore_stalk_1")), blockModels.modelOutput);
+        Identifier mature = ModelTemplates.CROSS.createWithSuffix(stalk, "_mature", TextureMapping.cross(texture("taint_spore_stalk_2")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(stalk)
+                .with(PropertyDispatch.initial(BlockTaintSporeStalk.MATURE).select(false, BlockModelGenerators.plainVariant(immature)).select(true, BlockModelGenerators.plainVariant(mature))));
     }
 
     private void registerFluxGoo(BlockModelGenerators blockModels) {

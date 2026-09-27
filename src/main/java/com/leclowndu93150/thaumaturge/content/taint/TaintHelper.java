@@ -39,6 +39,9 @@ public final class TaintHelper {
     private static final double SEED_SPAWN_CHANCE = 0.01;
     private static final float SEED_SPAWN_MIN_PRESSURE = 0.85F;
     private static final float SEED_SPAWN_PRESSURE = 0.08F;
+    private static final int SATELLITE_ATTEMPTS = 8;
+    private static final int SATELLITE_RANGE_XZ = 9;
+    private static final int SATELLITE_RANGE_Y = 3;
     private static final float FEATURE_ON_LEAVES_CHANCE = 0.6F;
     private static final double SEED_VALIDATION_RANGE = 1.0;
     private static final double SEED_EDGE_RATIO = 0.8;
@@ -250,25 +253,46 @@ public final class TaintHelper {
     }
 
     private static void trySpawnTaintSeed(ServerLevel level, BlockPos target, BlockState targetState, RandomSource random) {
-        if (random.nextDouble() >= SEED_SPAWN_CHANCE || !targetState.is(TCBlocks.TAINT_SOIL.get()) && !targetState.is(TCBlocks.TAINT_ROCK.get())) {
-            return;
+        if (random.nextDouble() < SEED_SPAWN_CHANCE && TaintEcology.getSaturation(level, target) >= SEED_SPAWN_MIN_PRESSURE) {
+            tryCreateTaintSeed(level, target, targetState, random, true);
         }
-        if (!level.getBlockState(target.above()).isAir() || AuraHelper.getFlux(level, target) < SEED_FLUX_THRESHOLD || TaintEcology.getSaturation(level, target) < SEED_SPAWN_MIN_PRESSURE
-                || !isAtTaintSeedEdge(level, target)) {
-            return;
+    }
+
+    public static boolean trySpawnSatelliteSeed(ServerLevel level, BlockPos origin, RandomSource random) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || level.getDifficulty() == Difficulty.PEACEFUL || TaintBlooms.isProtected(level, origin)
+                || TaintEcology.getSaturation(level, origin) < SEED_SPAWN_MIN_PRESSURE) {
+            return false;
+        }
+        for (int attempt = 0; attempt < SATELLITE_ATTEMPTS; attempt++) {
+            BlockPos target = origin.offset(random.nextInt(SATELLITE_RANGE_XZ) - SATELLITE_RANGE_XZ / 2, random.nextInt(SATELLITE_RANGE_Y) - SATELLITE_RANGE_Y / 2,
+                    random.nextInt(SATELLITE_RANGE_XZ) - SATELLITE_RANGE_XZ / 2);
+            if (level.hasChunkAt(target) && tryCreateTaintSeed(level, target, level.getBlockState(target), random, false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean tryCreateTaintSeed(ServerLevel level, BlockPos target, BlockState targetState, RandomSource random, boolean requireSeedEdge) {
+        if (!targetState.is(TCBlocks.TAINT_SOIL.get()) && !targetState.is(TCBlocks.TAINT_ROCK.get())) {
+            return false;
+        }
+        if (!level.getBlockState(target.above()).isAir() || AuraHelper.getFlux(level, target) < SEED_FLUX_THRESHOLD || requireSeedEdge && !isAtTaintSeedEdge(level, target)) {
+            return false;
         }
         EntityTaintSeed seed = TCEntities.TAINT_SEED.get().create(level, EntitySpawnReason.NATURAL);
         if (seed == null) {
-            return;
+            return false;
         }
         seed.snapTo(target.getX() + 0.5, target.getY() + 1, target.getZ() + 0.5, random.nextInt(360), 0.0F);
         if (!canSeedSpawnAt(level, seed)) {
             seed.discard();
-            return;
+            return false;
         }
         AuraHelper.drainFlux(level, target, SEED_FLUX_COST, false);
         level.addFreshEntity(seed);
         TaintEcology.addPressure(level, target, SEED_SPAWN_PRESSURE);
+        return true;
     }
 
     private static boolean canSeedSpawnAt(ServerLevel level, EntityTaintSeed seed) {

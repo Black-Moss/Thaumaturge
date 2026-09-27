@@ -13,6 +13,10 @@ import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCross
 import com.leclowndu93150.thaumaturge.content.entity.projectile.EntityGrapple;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
 import com.leclowndu93150.thaumaturge.content.misc.alumentum.ThrownAlumentum;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintCreeper;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSpider;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSpore;
+import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSporeSwarmer;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -60,6 +64,18 @@ public final class TCEntities {
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSeedPrime>> TAINT_SEED_PRIME = register("taint_seed_prime",
             () -> EntityType.Builder.of(EntityTaintSeedPrime::new, MobCategory.MONSTER).sized(2.0F, 2.0F).notInPeaceful().clientTrackingRange(8));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSpider>> TAINT_SPIDER = register("taint_spider",
+            () -> EntityType.Builder.of(EntityTaintSpider::new, MobCategory.MONSTER).sized(0.4F, 0.3F).eyeHeight(0.1F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintCreeper>> TAINT_CREEPER = register("taint_creeper",
+            () -> EntityType.Builder.of(EntityTaintCreeper::new, MobCategory.MONSTER).sized(0.6F, 1.7F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSpore>> TAINT_SPORE = register("taint_spore",
+            () -> EntityType.Builder.of(EntityTaintSpore::new, MobCategory.MONSTER).sized(0.7F, 0.7F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSporeSwarmer>> TAINT_SPORE_SWARMER = register("taint_spore_swarmer",
+            () -> EntityType.Builder.of(EntityTaintSporeSwarmer::new, MobCategory.MONSTER).sized(0.9F, 0.9F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSwarm>> TAINT_SWARM = register("taint_swarm",
             () -> EntityType.Builder.of(EntityTaintSwarm::new, MobCategory.MONSTER).sized(2.0F, 2.0F).notInPeaceful().clientTrackingRange(8));

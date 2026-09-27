@@ -581,6 +581,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("entity.thaumaturge.taint_seed_prime", "Greater Taint Seed");
         add("entity.thaumaturge.taint_crawler", "Taint Crawler");
         add("entity.thaumaturge.taint_swarm", "Taint Swarm");
+        add("entity.thaumaturge.taint_spider", "Tainted Crawler");
+        add("entity.thaumaturge.taint_creeper", "Tainted Creeper");
+        add("entity.thaumaturge.taint_spore", "Taint Spore");
+        add("entity.thaumaturge.taint_spore_swarmer", "Taint Spore Swarmer");
+        add("block.thaumaturge.taint_spore_stalk", "Taint Spore Stalk");
         add("entity.thaumaturge.taintacle", "Taintacle");
         add("entity.thaumaturge.taintacle_small", "Lesser Taintacle");
         add("entity.thaumaturge.falling_taint", "Falling Taint");

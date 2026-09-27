@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumaturge.client.network.StreamEffectClientHandler;
 import com.leclowndu93150.thaumaturge.client.network.TubeEventClientHandler;
 import com.leclowndu93150.thaumaturge.client.network.WispZapClientHandler;
 import com.leclowndu93150.thaumaturge.client.screen.ThaumatoriumClientHandler;
+import com.leclowndu93150.thaumaturge.client.taint.TaintEnvironmentClientEvents;
 import com.leclowndu93150.thaumaturge.client.warding.WardClientHandler;
 import com.leclowndu93150.thaumaturge.client.warp.WarpFXClientHandler;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundBoreDigPayload;
@@ -41,6 +42,7 @@ public final class TCPayloads {
         registrar.playToClient(ClientboundAspectIndexPayload.TYPE, ClientboundAspectIndexPayload.STREAM_CODEC, (payload, context) -> AspectIndexClientHandler.handle(payload, context));
         registrar.playToClient(ClientboundOpenThaumonomiconPayload.TYPE, ClientboundOpenThaumonomiconPayload.STREAM_CODEC, (payload, context) -> OpenThaumonomiconHandler.handle(payload, context));
         registrar.playToClient(ClientboundSealPayload.TYPE, ClientboundSealPayload.STREAM_CODEC, (payload, context) -> SealClientHandler.handle(payload, context));
+        registrar.playToClient(ClientboundTaintEnvironmentPayload.TYPE, ClientboundTaintEnvironmentPayload.STREAM_CODEC, (payload, context) -> TaintEnvironmentClientEvents.handle(payload, context));
         registrar.playToClient(ClientboundGolemPressStuffPayload.TYPE, ClientboundGolemPressStuffPayload.STREAM_CODEC, (payload, context) -> GolemPressClientHandler.handle(payload, context));
         registrar.playToClient(ClientboundThaumatoriumRecipesPayload.TYPE, ClientboundThaumatoriumRecipesPayload.STREAM_CODEC, ThaumatoriumClientHandler::handle);
         registrar.playToServer(ServerboundThaumatoriumTogglePayload.TYPE, ServerboundThaumatoriumTogglePayload.STREAM_CODEC, ServerboundThaumatoriumTogglePayload::handle);
