@@ -29,6 +29,16 @@ public final class ArcaneAccess {
         return player.getAbilities().instabuild || locks(level, origin).canAccess(origin, player.getUUID());
     }
 
+    public static boolean sharesAccess(ServerLevel level, BlockPos first, BlockPos second) {
+        ArcaneLockChunkData secondLocks = locks(level, second);
+        for (UUID player : locks(level, first).accessors(first)) {
+            if (secondLocks.canAccess(second, player)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean canBind(ServerLevel level, BlockPos origin, Player player, boolean gold) {
         UUID id = player.getUUID();
         return gold ? id.equals(owner(level, origin)) : locks(level, origin).canDelegateIron(origin, id);

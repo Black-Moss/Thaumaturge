@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.warding;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,17 @@ public final class ArcaneLockChunkData {
     public boolean canAccess(BlockPos pos, UUID player) {
         Lock lock = locks.get(pos);
         return lock != null && (lock.owner().equals(player) || lock.iron().contains(player) || lock.gold().contains(player));
+    }
+
+    public Set<UUID> accessors(BlockPos pos) {
+        Lock lock = locks.get(pos);
+        if (lock == null) {
+            return Set.of();
+        }
+        Set<UUID> accessors = new HashSet<>(lock.iron());
+        accessors.addAll(lock.gold());
+        accessors.add(lock.owner());
+        return accessors;
     }
 
     public boolean canDelegateIron(BlockPos pos, UUID player) {
