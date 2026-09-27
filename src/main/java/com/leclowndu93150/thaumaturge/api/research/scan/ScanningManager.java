@@ -122,8 +122,11 @@ public final class ScanningManager {
                 continue;
             }
             Identifier key = thing.getResearchKey(player, target);
-            if (key != null && !bindingOrThrow().progressResearch(player, key)) {
-                continue;
+            if (key != null) {
+                boolean alreadyKnown = KnowledgeAccess.of(player).isResearchKnown(key);
+                if (!bindingOrThrow().progressResearch(player, key) && !(alreadyKnown && thing.canScanAfterResearchKnown(player, target))) {
+                    continue;
+                }
             }
             if (key == null) {
                 suppress = true;
@@ -178,7 +181,7 @@ public final class ScanningManager {
                 continue;
             }
             Identifier key = thing.getResearchKey(player, target);
-            if (key != null && !KnowledgeAccess.of(player).isResearchKnown(key)) {
+            if (key != null && (!KnowledgeAccess.of(player).isResearchKnown(key) || thing.canScanAfterResearchKnown(player, target))) {
                 return true;
             }
         }
