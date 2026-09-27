@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
+import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
@@ -110,6 +111,12 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final Identifier RESEARCH_NODE_TAPPER_2 = TCIds.rl("node_tapper_2");
     private static final Identifier RESEARCH_NODE_PRESERVE = TCIds.rl("node_preserve");
     private static final int MAX_DECOMPOSE_DEPTH = 8;
+    private static final int PEARL_PRIMAL_DROP = 2;
+    private static final int PEARL_PRIMAL_SPREAD = 6;
+    private static final int PEARL_PRIMAL_SPREAD_RESEARCHED = 9;
+    private static final int PEARL_NEW_PRIMAL_MAX = 3;
+    private static final int PEARL_NEW_PRIMAL_MAX_RESEARCHED = 4;
+    private static final int PEARL_BRIGHT_CHANCE = 5;
 
     private NodeType nodeType = NodeType.NORMAL;
     private @Nullable NodeModifier nodeModifier;
@@ -322,6 +329,54 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     public void beginJarring(int ticks) {
         jarringTicks = ticks;
         setChanged();
+    }
+
+    public void applyPrimordialPearl(RandomSource random, boolean researched) {
+        for (AspectInstance entry : List.copyOf(aspectsBase.entries())) {
+            Holder<IAspect> aspect = entry.aspect();
+            if (!aspect.value().isPrimal()) {
+                if (random.nextBoolean()) {
+                    setBaseAmount(aspect, entry.amount() - 1);
+                }
+                continue;
+            }
+            setBaseAmount(aspect, entry.amount() - PEARL_PRIMAL_DROP + random.nextInt(researched ? PEARL_PRIMAL_SPREAD_RESEARCHED : PEARL_PRIMAL_SPREAD));
+        }
+        if (level != null) {
+            HolderLookup.RegistryLookup<IAspect> registry = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
+            for (ResourceKey<IAspect> key : TCAspects.PRIMALS) {
+                Holder<IAspect> primal = registry.getOrThrow(key);
+                int replacement = random.nextInt(researched ? PEARL_NEW_PRIMAL_MAX_RESEARCHED : PEARL_NEW_PRIMAL_MAX);
+                if (replacement > aspectsBase.amountOf(primal)) {
+                    setBaseAmount(primal, replacement);
+                    if (aspects.amountOf(primal) < replacement) {
+                        aspects = aspects.add(primal, 1);
+                    }
+                }
+            }
+        }
+        if (nodeModifier == NodeModifier.FADING && random.nextBoolean()) {
+            nodeModifier = NodeModifier.PALE;
+        } else if (nodeModifier == NodeModifier.PALE && random.nextBoolean()) {
+            nodeModifier = null;
+        } else if (nodeModifier == null && random.nextInt(PEARL_BRIGHT_CHANCE) == 0) {
+            nodeModifier = NodeModifier.BRIGHT;
+        }
+        nodeChange();
+    }
+
+    private void setBaseAmount(Holder<IAspect> aspect, int amount) {
+        int target = Math.max(0, amount);
+        int current = aspectsBase.amountOf(aspect);
+        if (target > current) {
+            aspectsBase = aspectsBase.add(aspect, target - current);
+        } else if (target < current) {
+            aspectsBase = aspectsBase.remove(aspect, current - target);
+        }
+        int contained = aspects.amountOf(aspect);
+        if (contained > target) {
+            aspects = aspects.remove(aspect, contained - target);
+        }
     }
 
     public void nodeChange() {
