@@ -15,6 +15,7 @@ import com.leclowndu93150.thaumaturge.content.golem.ai.GotoBlockGoal;
 import com.leclowndu93150.thaumaturge.content.golem.ai.GotoEntityGoal;
 import com.leclowndu93150.thaumaturge.content.golem.ai.GotoHomeGoal;
 import com.leclowndu93150.thaumaturge.content.particle.GolemEmoteParticleOptions;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCEntityDataSerializers;
 import com.leclowndu93150.thaumaturge.registry.TCGolemTraits;
@@ -68,6 +69,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -385,6 +387,10 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     @Override
     public void tick() {
         super.tick();
+        if (!level().isClientSide() && isFettered()) {
+            pauseForFetter();
+            return;
+        }
         GolemProperties props = props();
         if (props.hasTrait(TCGolemTraits.FLYER.get())) {
             setNoGravity(true);
@@ -427,6 +433,26 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         tickPartFunction(props.getArms().function());
         tickPartFunction(props.getLegs().function());
         tickPartFunction(props.getAddon().function());
+    }
+
+    @Override
+    public boolean isEffectiveAi() {
+        return super.isEffectiveAi() && !isFettered();
+    }
+
+    public boolean isFettered() {
+        BlockState below = level().getBlockState(blockPosition().below());
+        return below.is(TCBlocks.GOLEM_FETTER.get()) && below.getValue(BlockGolemFetter.POWERED);
+    }
+
+    private void pauseForFetter() {
+        getNavigation().stop();
+        setDeltaMovement(Vec3.ZERO);
+        setTarget(null);
+        if (task != null) {
+            task.setReserved(false);
+            task = null;
+        }
     }
 
     private void tickPartFunction(@Nullable IGolemFunction function) {

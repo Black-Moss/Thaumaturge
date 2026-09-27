@@ -28,6 +28,7 @@ import com.leclowndu93150.thaumaturge.content.decor.banner.BannerWallBlock;
 import com.leclowndu93150.thaumaturge.content.device.BlockArcaneEar;
 import com.leclowndu93150.thaumaturge.content.device.bore.BlockArcaneBore;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
+import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenser;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenserLattice;
 import com.leclowndu93150.thaumaturge.content.device.BlockDioptra;
@@ -352,6 +353,9 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockItemGrate> ITEM_GRATE = BLOCKS.registerBlock("item_grate", BlockItemGrate::new,
             props -> props.mapColor(MapColor.METAL).strength(2.0F).sound(SoundType.METAL).noOcclusion());
+
+    public static final DeferredBlock<BlockGolemFetter> GOLEM_FETTER = BLOCKS.registerBlock("golem_fetter", BlockGolemFetter::new,
+            props -> props.mapColor(MapColor.STONE).strength(2.0F).sound(SoundType.STONE));
 
     public static final DeferredBlock<BlockGolemBuilder> GOLEM_BUILDER = BLOCKS.registerBlock("golem_builder", BlockGolemBuilder::new,
             props -> props.mapColor(MapColor.STONE).strength(2.0F, 20.0F).sound(SoundType.STONE).noOcclusion());

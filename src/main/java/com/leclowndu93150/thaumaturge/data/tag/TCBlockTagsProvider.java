@@ -27,7 +27,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.MAGICAL_PLANTS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get()).add(TCBlocks.PLANT_VISHROOM.get());
         tag(BlockTags.FLOWERS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TCBlocks.TUBE.get()).add(TCBlocks.TUBE_VALVE.get()).add(TCBlocks.TUBE_RESTRICT.get()).add(TCBlocks.TUBE_FILTER.get()).add(TCBlocks.TUBE_ONEWAY.get())
-                .add(TCBlocks.TUBE_BUFFER.get()).add(TCBlocks.ESSENTIA_INPUT.get()).add(TCBlocks.ESSENTIA_OUTPUT.get()).add(TCBlocks.FOCAL_MANIPULATOR.get()).add(TCBlocks.ITEM_GRATE.get());
+                .add(TCBlocks.TUBE_BUFFER.get()).add(TCBlocks.ESSENTIA_INPUT.get()).add(TCBlocks.ESSENTIA_OUTPUT.get()).add(TCBlocks.FOCAL_MANIPULATOR.get()).add(TCBlocks.ITEM_GRATE.get())
+                .add(TCBlocks.GOLEM_FETTER.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(TCBlocks.CENTRIFUGE.get()).add(TCBlocks.ALEMBIC.get()).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.RESEARCH_TABLE.get())
                 .add(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());
         tag(TCBlockTags.INFUSION_STABILISERS).add(Blocks.SKELETON_SKULL).add(Blocks.SKELETON_WALL_SKULL).add(Blocks.WITHER_SKELETON_SKULL).add(Blocks.WITHER_SKELETON_WALL_SKULL)

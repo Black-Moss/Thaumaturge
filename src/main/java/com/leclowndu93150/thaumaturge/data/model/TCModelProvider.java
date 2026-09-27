@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
+import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
@@ -243,6 +244,7 @@ public final class TCModelProvider extends ModelProvider {
                 .select(true, new MultiVariant(WeightedList.of(new Variant(levitatorOn)))).select(false, new MultiVariant(WeightedList.of(new Variant(levitatorOff))))).with(levitatorFacing));
         itemModels.itemModelOutput.accept(TCItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
         registerItemGrate(blockModels, itemModels);
+        registerGolemFetter(blockModels, itemModels);
 
         registerInvisibleBlock(blockModels, TCBlocks.GOLEM_BUILDER.get());
         itemModels.itemModelOutput.accept(TCItems.GOLEM_BUILDER.get(),
@@ -335,6 +337,18 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(grate)
                 .with(PropertyDispatch.initial(BlockItemGrate.OPEN).select(true, BlockModelGenerators.plainVariant(open)).select(false, BlockModelGenerators.plainVariant(closed))));
         itemModels.itemModelOutput.accept(TCItems.ITEM_GRATE.get(), ItemModelUtils.plainModel(open));
+    }
+
+    private static void registerGolemFetter(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block fetter = TCBlocks.GOLEM_FETTER.get();
+        Material side = TextureMapping.getBlockTexture(fetter, "_side");
+        Identifier off = ModelTemplates.CUBE_BOTTOM_TOP.create(fetter,
+                new TextureMapping().put(TextureSlot.BOTTOM, side).put(TextureSlot.SIDE, side).put(TextureSlot.TOP, TextureMapping.getBlockTexture(fetter)), blockModels.modelOutput);
+        Identifier powered = ModelTemplates.CUBE_BOTTOM_TOP.createWithSuffix(fetter, "_powered",
+                new TextureMapping().put(TextureSlot.BOTTOM, side).put(TextureSlot.SIDE, side).put(TextureSlot.TOP, TextureMapping.getBlockTexture(fetter, "_active")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(fetter)
+                .with(PropertyDispatch.initial(BlockGolemFetter.POWERED).select(false, BlockModelGenerators.plainVariant(off)).select(true, BlockModelGenerators.plainVariant(powered))));
+        itemModels.itemModelOutput.accept(TCItems.GOLEM_FETTER.get(), ItemModelUtils.plainModel(off));
     }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {

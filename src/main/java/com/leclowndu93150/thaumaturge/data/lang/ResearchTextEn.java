@@ -358,6 +358,9 @@ public final class ResearchTextEn {
         add.accept("research.thaumaturge.levitator.title", "Arcane Levitator");
         add.accept("research.thaumaturge.levitator.stage_0",
                 "I have always been fascinated by the power of flight. I am sure flying is almost within my grasp, but first I need to learn the fundamentals.<BR>I need to study simple levitation first. ");
+        add.accept("research.thaumaturge.golem_fetter.title", "Golem Fetter");
+        add.accept("research.thaumaturge.golem_fetter.stage_0",
+                "This simple device allows a golemancer to bring their golems to a temporary halt.<BR>If this block is activated with a redstone signal any golem that passes over it will come to complete standstill and cease its current task.<BR>Once this block is deactivated the golem will once again go about its business.");
         add.accept("research.thaumaturge.item_grate.title", "Item Grate");
         add.accept("research.thaumaturge.item_grate.stage_0",
                 "The item grate allows you to toggle it open or close it with your hand, or with a redstone signal. If in the open position, any dropped items will simply fall right through it.<BR>Items can also be piped into the top of an item grate using a hopper or other means and if open, it will be ejected out the bottom.");

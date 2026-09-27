@@ -812,6 +812,10 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('G', TCItems.MECHANISM_SIMPLE).define('B', TCItemTags.PLATES_BRASS).define('P', Tags.Items.GLASS_PANES).define('C', Items.COMPARATOR).gate(gate("mind_clockwork", 1))
                 .unlockedBy("has", has(TCItems.MECHANISM_SIMPLE)).save(output);
 
+        arcaneShaped(new ItemStackTemplate(TCItems.GOLEM_FETTER), 10).aspect(TCAspects.TERRA, 5).aspect(TCAspects.ORDO, 5).pattern("SSS").pattern("IRI").pattern("BBB")
+                .define('S', TCItems.STONE_ARCANE).define('I', Tags.Items.INGOTS_IRON).define('R', Items.BEACON).define('B', TCItems.STONE_ARCANE_BRICK).gate(gate("golem_fetter"))
+                .unlockedBy("has", has(Items.BEACON)).save(output);
+
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.MIND_BIOTHAUMIC), Ingredient.of(TCItems.MIND_CLOCKWORK.get()))
                 .component(Ingredient.of(TCItems.BRAIN.get())).component(Ingredient.of(TCItems.MECHANISM_COMPLEX.get())).aspect(TCAspects.COGNITIO, 50).aspect(TCAspects.MACHINA, 25).instability(4)
                 .gate(gate("mind_biothaumic")).unlockedBy("has", has(TCItems.MIND_CLOCKWORK)).save(output);
