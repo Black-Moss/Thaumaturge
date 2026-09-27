@@ -44,6 +44,7 @@ import com.leclowndu93150.thaumaturge.content.golem.ItemSealPlacer;
 import com.leclowndu93150.thaumaturge.content.golem.press.ItemGolemPress;
 import com.leclowndu93150.thaumaturge.content.infernalfurnace.ItemInfernalFurnace;
 import com.leclowndu93150.thaumaturge.content.item.CausalityCollapserItem;
+import com.leclowndu93150.thaumaturge.content.item.BathSaltsItem;
 import com.leclowndu93150.thaumaturge.content.item.CelestialBody;
 import com.leclowndu93150.thaumaturge.content.item.CelestialNotesItem;
 import com.leclowndu93150.thaumaturge.content.item.LabelItem;
@@ -416,7 +417,7 @@ public final class TCItems {
     public static final DeferredItem<Item> MODULE_VISION = ITEMS.registerSimpleItem("module_vision");
     public static final DeferredItem<Item> MODULE_AGGRESSION = ITEMS.registerSimpleItem("module_aggression");
     public static final DeferredItem<Item> MORPHIC_RESONATOR = ITEMS.registerSimpleItem("morphic_resonator");
-    public static final DeferredItem<Item> BATH_SALTS = ITEMS.registerSimpleItem("bath_salts");
+    public static final DeferredItem<BathSaltsItem> BATH_SALTS = ITEMS.registerItem("bath_salts", BathSaltsItem::new);
     public static final DeferredItem<ItemSanitySoap> SANITY_SOAP = ITEMS.registerItem("sanity_soap", ItemSanitySoap::new);
 
     public static final DeferredItem<Item> CHUNK_BEEF = registerChunk("chunk_beef");
