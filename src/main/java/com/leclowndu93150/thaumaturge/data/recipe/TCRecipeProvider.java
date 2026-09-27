@@ -129,7 +129,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         shapeless(RecipeCategory.MISC, TCItems.SCRIBING_TOOLS).requires(Items.GLASS_BOTTLE).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.FEATHERS).unlockedBy("has", has(Tags.Items.GLASS_PANES))
                 .save(output, TCIds.MODID + ":scribing_tools_alt");
 
-        shapeless(RecipeCategory.MISC, TCItems.LABEL).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.SLIME_BALLS).requires(Items.PAPER, 4).unlockedBy("has", has(Tags.Items.SLIME_BALLS))
+        shapeless(RecipeCategory.MISC, TCItems.LABEL, 4).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.SLIME_BALLS).requires(Items.PAPER, 4).unlockedBy("has", has(Tags.Items.SLIME_BALLS))
                 .save(output);
 
         shapeless(RecipeCategory.MISC, TCItems.LABEL).requires(TCItems.LABEL).unlockedBy("has", has(TCItems.LABEL)).save(output, TCIds.MODID + ":label_clear");
