@@ -18,6 +18,7 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.placement.TreePlacements;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
@@ -45,6 +46,7 @@ public final class TCConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> SILVERWOOD_TREE_GROWN = TCTreeGrowers.SILVERWOOD_TREE_GROWN;
     public static final ResourceKey<ConfiguredFeature<?, ?>> BIG_MAGIC_TREE = key("big_magic_tree");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_TREES = key("magic_forest_trees");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> TAINTED_LANDS_TREES = key("tainted_lands_trees");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_FLORA = key("magic_forest_flora");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MANA_PODS = key("mana_pods");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRYSTALS = key("crystals");
@@ -68,6 +70,7 @@ public final class TCConfiguredFeatures {
     private static final int SILVERWOOD_GROWN_EXTRA_HEIGHT = 4;
     private static final float MAGIC_FOREST_SILVERWOOD_CHANCE = 1.0F / 18.0F;
     private static final float MAGIC_FOREST_GREATWOOD_CHANCE = 1.0F / 12.0F;
+    private static final float TAINTED_LANDS_BIG_TREE_CHANCE = 1.0F / 8.0F;
     private static final int CRYSTAL_ATTEMPTS = 8;
     private static final int CRYSTAL_MAX_TOTAL = 64;
     private static final int CRYSTAL_BIOME_ASPECT_CHANCE = 3;
@@ -101,6 +104,9 @@ public final class TCConfiguredFeatures {
                                 List.of(new WeightedPlacedFeature(placed.getOrThrow(TCPlacedFeatures.SILVERWOOD_CHECKED), MAGIC_FOREST_SILVERWOOD_CHANCE),
                                         new WeightedPlacedFeature(placed.getOrThrow(TCPlacedFeatures.GREATWOOD_CHECKED), MAGIC_FOREST_GREATWOOD_CHANCE)),
                                 placed.getOrThrow(TCPlacedFeatures.BIG_MAGIC_CHECKED))));
+
+        context.register(TAINTED_LANDS_TREES, new ConfiguredFeature<>(Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(
+                List.of(new WeightedPlacedFeature(placed.getOrThrow(TCPlacedFeatures.BIG_MAGIC_CHECKED), TAINTED_LANDS_BIG_TREE_CHANCE)), placed.getOrThrow(TreePlacements.OAK_CHECKED))));
 
         context.register(MAGIC_FOREST_BROWN_MUSHROOM,
                 new ConfiguredFeature<>(Feature.HUGE_BROWN_MUSHROOM,

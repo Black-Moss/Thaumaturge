@@ -49,6 +49,8 @@ public final class TCEntityEvents {
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
         event.register(TCEntities.THAUMIC_SLIME.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ThaumicSlime::checkSpawnRules,
                 RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(TCEntities.TAINTACLE.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AbstractTaintacle::checkTaintacleSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
     @SubscribeEvent
