@@ -125,11 +125,14 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
     private static final int HELPER_ARROW_Y = 144;
     private static final int HELPER_PAGE_HALF_GAP = 18;
     private static final int HELPER_ROW_WIDTH = 72;
+    private static final double ASPECT_CLICK_DISTANCE_SQ = 4.0;
 
     private boolean helperOpen;
     private int helperPage;
 
     private @Nullable Holder<IAspect> draggedAspect;
+    private double aspectDragStartX;
+    private double aspectDragStartY;
     private @Nullable Holder<IAspect> select1;
     private @Nullable Holder<IAspect> select2;
     private int page;
@@ -539,12 +542,18 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
                     if (components.size() == 2) {
                         select1 = components.get(0);
                         select2 = components.get(1);
-                        playSound(TCSounds.HHON.get(), 0.2F, 1.0F);
+                        if (hasAvailableComponents(select1, select2)) {
+                            combineSelectedAspects();
+                        } else {
+                            playSound(TCSounds.HHON.get(), 0.2F, 1.0F);
+                        }
                         return true;
                     }
                 }
                 if (availableOf(palette) > 0) {
                     draggedAspect = palette;
+                    aspectDragStartX = mx;
+                    aspectDragStartY = my;
                     playSound(TCSounds.HHOFF.get(), 0.2F, 1.0F);
                 }
                 return true;
@@ -572,7 +581,9 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
             double my = event.y();
             HexGrid.Hex hex = hexAt(mx, my);
             ResearchNoteData data = noteData();
-            if (hex != null && data != null && !data.complete()) {
+            if (isAspectClick(mx, my)) {
+                selectPaletteAspect(draggedAspect);
+            } else if (hex != null && data != null && !data.complete()) {
                 ResearchNoteData.Cell cell = data.cellAt(hex);
                 if (cell != null && cell.type() == ResearchNoteData.TYPE_BLANK) {
                     ClientPacketDistributor.sendToServer(new ServerboundTablePlaceAspectPayload(menu.pos(), hex.q(), hex.r(), Optional.of(AspectPools.idOf(draggedAspect))));
@@ -587,6 +598,20 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
             return true;
         }
         return super.mouseReleased(event);
+    }
+
+    private boolean isAspectClick(double mouseX, double mouseY) {
+        double dx = mouseX - aspectDragStartX;
+        double dy = mouseY - aspectDragStartY;
+        return dx * dx + dy * dy <= ASPECT_CLICK_DISTANCE_SQ;
+    }
+
+    private void selectPaletteAspect(Holder<IAspect> aspect) {
+        if (select1 == null) {
+            select1 = aspect;
+        } else {
+            select2 = aspect;
+        }
     }
 
     private boolean handleHelperArrows(double mx, double my) {
@@ -624,16 +649,28 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
         if (select1 == null || select2 == null || !inRect(mx, my, leftPos + COMBINE_X, topPos + COMBINE_Y, COMBINE_W, COMBINE_H)) {
             return false;
         }
-        if (System.currentTimeMillis() < combineCooldownUntil) {
-            return true;
+        combineSelectedAspects();
+        return true;
+    }
+
+    private boolean hasAvailableComponents(Holder<IAspect> first, Holder<IAspect> second) {
+        if (first.equals(second)) {
+            return availableOf(first) >= 2;
+        }
+        return availableOf(first) > 0 && availableOf(second) > 0;
+    }
+
+    private void combineSelectedAspects() {
+        if (select1 == null || select2 == null || System.currentTimeMillis() < combineCooldownUntil) {
+            return;
         }
         combineCooldownUntil = System.currentTimeMillis() + COMBINE_COOLDOWN_MS;
         BlockEntityResearchTable table = table();
         boolean bonus1 = table != null && pool().amount(AspectPools.idOf(select1)) <= 0 && table.bonusAspects().amountOf(select1) > 0;
-        boolean bonus2 = table != null && pool().amount(AspectPools.idOf(select2)) <= 0 && table.bonusAspects().amountOf(select2) > 0;
+        int secondPoolAmount = pool().amount(AspectPools.idOf(select2)) - (select1.equals(select2) && !bonus1 ? 1 : 0);
+        boolean bonus2 = table != null && secondPoolAmount <= 0 && table.bonusAspects().amountOf(select2) > 0;
         ClientPacketDistributor.sendToServer(new ServerboundTableCombinePayload(menu.pos(), AspectPools.idOf(select1), AspectPools.idOf(select2), bonus1, bonus2));
         playSound(TCSounds.HHON.get(), 0.3F, 1.0F);
-        return true;
     }
 
     private boolean handleSelectRemove(double mx, double my) {
