@@ -51,9 +51,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
@@ -173,7 +171,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         if ((state.getFluidState().is(FluidTags.LAVA) || state.is(Blocks.FIRE)) && random.nextInt(20) == 0) {
             return TCAspects.IGNIS;
         }
-        if ((state.getBlock() instanceof RedStoneWireBlock || state.getBlock() instanceof PistonBaseBlock || state.is(TCBlockTags.CANDLES)) && random.nextInt(20) == 0) {
+        if (state.is(TCBlockTags.RESEARCH_BONUS_ORDO) && random.nextInt(20) == 0) {
             return TCAspects.ORDO;
         }
         return null;

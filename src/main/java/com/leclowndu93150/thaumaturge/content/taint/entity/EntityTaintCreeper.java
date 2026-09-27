@@ -6,6 +6,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 
 public final class EntityTaintCreeper extends Creeper implements ITaintedMob {
@@ -15,6 +16,11 @@ public final class EntityTaintCreeper extends Creeper implements ITaintedMob {
 
     public EntityTaintCreeper(EntityType<? extends Creeper> type, Level level) {
         super(type, level);
+    }
+
+    @Override
+    public boolean ignoreExplosion(Explosion explosion) {
+        return dead || super.ignoreExplosion(explosion);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
