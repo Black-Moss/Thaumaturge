@@ -137,6 +137,11 @@ public final class InfusionRecipe implements Recipe<InfusionInput>, IInfusionRec
     }
 
     @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+    @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.NOT_PLACEABLE;
     }

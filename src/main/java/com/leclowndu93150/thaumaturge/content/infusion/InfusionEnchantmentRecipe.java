@@ -166,6 +166,11 @@ public final class InfusionEnchantmentRecipe implements Recipe<InfusionInput>, I
     }
 
     @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+    @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.NOT_PLACEABLE;
     }
