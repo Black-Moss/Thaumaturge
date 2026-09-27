@@ -110,7 +110,7 @@ public final class TCCommands {
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
-        LiteralArgumentBuilder<CommandSourceStack> tc = Commands.literal("tc").then(Commands.literal("table").executes(TCCommands::giveResearchTable))
+        LiteralArgumentBuilder<CommandSourceStack> tc = TCCommandRoot.root().then(Commands.literal("table").executes(TCCommands::giveResearchTable))
                 .then(Commands.literal("outermaze").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> generateOuterMaze(ctx, 0, 0))
                         .then(Commands.argument("width", IntegerArgumentType.integer(5, 31))
                                 .then(Commands.argument("height", IntegerArgumentType.integer(5, 31))

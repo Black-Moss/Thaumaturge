@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.server.command.admin;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.server.command.TCCommandRoot;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import java.util.List;
 import net.minecraft.commands.CommandSourceStack;
@@ -16,11 +17,11 @@ public final class ThaumaturgeCommand {
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
-        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal(TCIds.MODID).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
+        LiteralArgumentBuilder<CommandSourceStack> root = TCCommandRoot.root();
         List<AdminSubcommand> subcommands = List.of(new ResearchSubcommand(), new KnowledgeSubcommand(), new AspectSubcommand(), PlacementSubcommand.structures(), PlacementSubcommand.features(),
                 new ShowcaseSubcommand(), new LocateSubcommand(), new BuildSubcommand());
         for (AdminSubcommand subcommand : subcommands) {
-            root.then(subcommand.build(event.getBuildContext()));
+            root.then(subcommand.build(event.getBuildContext()).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)));
         }
         event.getDispatcher().register(root);
     }

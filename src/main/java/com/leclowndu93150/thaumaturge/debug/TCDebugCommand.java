@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.debug;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.debug.network.ClientboundToggleRaycastDebugPayload;
+import com.leclowndu93150.thaumaturge.server.command.TCCommandRoot;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -21,7 +22,7 @@ public final class TCDebugCommand {
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
-        LiteralArgumentBuilder<CommandSourceStack> tc = Commands.literal("tc_debug").then(Commands.literal("raycast").executes(TCDebugCommand::toggleRaycast));
+        LiteralArgumentBuilder<CommandSourceStack> tc = TCCommandRoot.root().then(Commands.literal("debug").then(Commands.literal("raycast").executes(TCDebugCommand::toggleRaycast)));
         event.getDispatcher().register(tc);
     }
 
