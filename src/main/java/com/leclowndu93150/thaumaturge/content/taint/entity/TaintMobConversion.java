@@ -6,6 +6,9 @@ import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.registry.TCDataMaps;
 import com.leclowndu93150.thaumaturge.registry.TCEntityTags;
+import java.util.List;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;
@@ -21,6 +24,8 @@ public final class TaintMobConversion {
     private static final float REPLACEMENT_PRESSURE = 0.04F;
     private static final float GENERIC_PRESSURE = 0.01F;
     private static final float MIN_HEALTH = 1.0F;
+    private static final List<DataComponentType<?>> COPIED_COMPONENTS = List.of(DataComponents.COW_VARIANT, DataComponents.PIG_VARIANT, DataComponents.CHICKEN_VARIANT, DataComponents.SHEEP_COLOR,
+            DataComponents.VILLAGER_VARIANT);
 
     private TaintMobConversion() {}
 
@@ -77,11 +82,21 @@ public final class TaintMobConversion {
         if (source instanceof AgeableMob sourceAgeable && replacement instanceof AgeableMob replacementAgeable) {
             replacementAgeable.setAge(sourceAgeable.getAge());
         }
+        for (DataComponentType<?> type : COPIED_COMPONENTS) {
+            copyComponent(source, replacement, type);
+        }
         if (replacement instanceof TaintConversionTarget target) {
             target.copyConvertedState(source);
         }
         float healthRatio = source.getMaxHealth() <= 0.0F ? 1.0F : source.getHealth() / source.getMaxHealth();
         replacement.setHealth(Math.max(MIN_HEALTH, Math.min(replacement.getMaxHealth(), replacement.getMaxHealth() * healthRatio)));
         return replacement;
+    }
+
+    private static <T> void copyComponent(Entity source, Entity target, DataComponentType<T> type) {
+        T value = source.get(type);
+        if (value != null) {
+            target.setComponent(type, value);
+        }
     }
 }

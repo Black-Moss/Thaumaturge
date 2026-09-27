@@ -71,7 +71,7 @@ public final class TCEntities {
             () -> EntityType.Builder.of(EntityTaintSeedPrime::new, MobCategory.MONSTER).sized(2.0F, 2.0F).notInPeaceful().clientTrackingRange(8));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSpider>> TAINT_SPIDER = register("taint_spider",
-            () -> EntityType.Builder.of(EntityTaintSpider::new, MobCategory.MONSTER).sized(0.4F, 0.3F).eyeHeight(0.1F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
+            () -> EntityType.Builder.of(EntityTaintSpider::new, MobCategory.MONSTER).sized(1.4F, 0.9F).eyeHeight(0.65F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintCreeper>> TAINT_CREEPER = register("taint_creeper",
             () -> EntityType.Builder.of(EntityTaintCreeper::new, MobCategory.MONSTER).sized(0.6F, 1.7F).notInPeaceful().clientTrackingRange(8).updateInterval(3));

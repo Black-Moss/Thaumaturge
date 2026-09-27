@@ -29,6 +29,8 @@ public final class TCEntityTypeTagsProvider extends KeyTagProvider<EntityType<?>
         tag(EntityTypeTags.INVERTED_HEALING_AND_HARM).add(key(TCEntities.ELDRITCH_GUARDIAN.get())).add(key(TCEntities.INHABITED_ZOMBIE.get())).add(key(TCEntities.BRAINY_ZOMBIE.get()))
                 .add(key(TCEntities.GIANT_BRAINY_ZOMBIE.get())).add(key(TCEntities.BRAINY_DROWNED.get())).add(key(TCEntities.BRAINY_HUSK.get()));
         tag(TCEntityTags.TAINT_CONVERSION_IMMUNE).add(key(TCEntities.THAUMATURGE_GOLEM.get()));
+        tag(TCEntityTags.TAINT_OVERLAY).add(key(TCEntities.TAINT_CREEPER.get())).add(key(TCEntities.TAINT_SPIDER.get())).add(key(TCEntities.TAINT_COW.get())).add(key(TCEntities.TAINT_PIG.get()))
+                .add(key(TCEntities.TAINT_CHICKEN.get())).add(key(TCEntities.TAINT_SHEEP.get())).add(key(TCEntities.TAINT_VILLAGER.get()));
         tag(EntityTypeTags.WITHER_FRIENDS).add(key(TCEntities.ELDRITCH_GUARDIAN.get()));
     }
 

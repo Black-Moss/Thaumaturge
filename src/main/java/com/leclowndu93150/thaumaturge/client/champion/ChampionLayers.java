@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.champion;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.client.taint.overlay.TaintOverlayLayer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -24,6 +25,6 @@ public final class ChampionLayers {
     }
 
     private static <S extends LivingEntityRenderState, M extends EntityModel<? super S>> void addTaintedLayer(LivingEntityRenderer<?, S, M> renderer) {
-        renderer.addLayer(new TaintedSwirlLayer<>(renderer));
+        renderer.addLayer(new TaintOverlayLayer<>(renderer));
     }
 }
