@@ -35,6 +35,8 @@ public final class TCBlockTags {
 
     public static final TagKey<Block> LAMP_GROWTH_BLACKLIST = key("lamp_growth_blacklist");
 
+    public static final TagKey<Block> ARCANE_WORKBENCH_CHARGER_HOSTS = key("arcane_workbench_charger_hosts");
+
     private TCBlockTags() {}
 
     private static TagKey<Block> key(String path) {
