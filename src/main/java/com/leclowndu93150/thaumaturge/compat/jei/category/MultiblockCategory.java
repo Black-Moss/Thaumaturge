@@ -95,14 +95,14 @@ public final class MultiblockCategory implements IRecipeCategory<RecipeHolder<Du
         builder.addSlot(RecipeIngredientRole.INPUT, DUST_SLOT_X + 1, DUST_SLOT_Y + 1).add(TCItems.SALIS_MUNDUS.get()).addRichTooltipCallback((view, tooltip) -> tooltip.add(usage));
 
         DustTrigger recipe = holder.value();
+        Blueprint blueprint = lookupBlueprint(((DustTriggerMultiblockRecipe) recipe).blueprintId());
 
         ItemStack result = DustTriggerCategory.resultStack(recipe);
-        if (!result.isEmpty()) {
+        if (!result.isEmpty() && !isKeptBlueprintInput(blueprint, result)) {
             builder.addSlot(RecipeIngredientRole.OUTPUT, RESULT_SLOT_X + 1, RESULT_SLOT_Y + 1).add(result);
         }
 
         Object2IntMap<BlueprintSource> inputMap = new Object2IntOpenHashMap<>();
-        Blueprint blueprint = lookupBlueprint(((DustTriggerMultiblockRecipe) recipe).blueprintId());
         if (blueprint != null) {
             for (int y = 0; y < blueprint.ySize(); y++) {
                 for (int x = 0; x < blueprint.xSize(); x++) {
@@ -126,7 +126,11 @@ public final class MultiblockCategory implements IRecipeCategory<RecipeHolder<Du
 
     @Override
     public void draw(RecipeHolder<DustTrigger> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
-        resultIcon.draw(guiGraphics, RESULT_SLOT_X - 6, RESULT_SLOT_Y - 6);
+        Blueprint blueprint = lookupBlueprint(((DustTriggerMultiblockRecipe) holder.value()).blueprintId());
+        ItemStack result = DustTriggerCategory.resultStack(holder.value());
+        if (!result.isEmpty() && !isKeptBlueprintInput(blueprint, result)) {
+            resultIcon.draw(guiGraphics, RESULT_SLOT_X - 6, RESULT_SLOT_Y - 6);
+        }
         arrow.draw(guiGraphics, WIDTH / 2 - arrow.getWidth() / 2 - 20, 0);
         boolean doesPassGate = holder.value().doesPassGate(Minecraft.getInstance().player);
         if (!doesPassGate)
@@ -154,6 +158,28 @@ public final class MultiblockCategory implements IRecipeCategory<RecipeHolder<Du
                     new BlockPreviewRenderState(blocks, 25, rotation / 8F + 90, 1, 15, 0, 0, area.getX() - 35, area.getY() + 5, area.getX() + WIDTH, area.getY() + HEIGHT, null));
             rotation++;
         }
+    }
+
+    private static boolean isKeptBlueprintInput(@Nullable Blueprint blueprint, ItemStack stack) {
+        if (blueprint == null || stack.isEmpty()) {
+            return false;
+        }
+        for (int y = 0; y < blueprint.ySize(); y++) {
+            for (int x = 0; x < blueprint.xSize(); x++) {
+                for (int z = 0; z < blueprint.zSize(); z++) {
+                    BlueprintPart part = blueprint.cell(y, x, z);
+                    if (part == null || !(part.target() instanceof BlueprintTarget.Keep)) {
+                        continue;
+                    }
+                    for (ItemStack representation : part.source().getRepresentations()) {
+                        if (ItemStack.isSameItemSameComponents(stack, representation)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private @Nullable Blueprint lookupBlueprint(Identifier blueprintId) {
