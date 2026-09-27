@@ -49,15 +49,17 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
 
     @Override
     public void tick(ServerLevel level, BlockPos pos, BlockState blockState, FluidState fluidState) {
-        updateTick(level, pos, fluidState, level.getRandom());
+        if (level.getFluidState(pos).getType().isSame(this)) {
+            spreadTick(level, pos, fluidState, level.getRandom());
+        }
     }
 
     @Override
     protected void randomTick(ServerLevel level, BlockPos pos, FluidState state, RandomSource random) {
-        updateTick(level, pos, state, random);
+        lifecycleTick(level, pos, state, random);
     }
 
-    private void updateTick(ServerLevel level, BlockPos pos, FluidState state, RandomSource rand) {
+    private void lifecycleTick(ServerLevel level, BlockPos pos, FluidState state, RandomSource rand) {
         if (!level.getFluidState(pos).getType().isSame(this)) {
             return;
         }
