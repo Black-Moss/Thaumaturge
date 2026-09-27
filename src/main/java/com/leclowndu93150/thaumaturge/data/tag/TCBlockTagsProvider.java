@@ -24,6 +24,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
         tag(TCBlockTags.LAMP_GROWTH_BLACKLIST);
         tag(TCBlockTags.ARCANE_WORKBENCH_CHARGER_HOSTS).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.FOCAL_MANIPULATOR.get());
+        tag(TCBlockTags.PHYSICAL_FLUX).add(TCBlocks.FLUX_GOO.get()).add(TCBlocks.FLUX_GAS.get());
+        tag(TCBlockTags.FLUX_SCRUBBABLE).addTag(TCBlockTags.PHYSICAL_FLUX);
         tag(TCBlockTags.WARDABLE_NON_SOLID).add(TCBlocks.WARDED_GLASS.get()).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(TCBlockTags.ARCANE_LOCKS).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(BlockTags.DOORS).add(TCBlocks.ARCANE_DOOR.get());

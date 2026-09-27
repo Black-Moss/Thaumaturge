@@ -541,6 +541,7 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langTaint() {
 
         add("block.thaumaturge.flux_goo", "Flux Goo");
+        add("block.thaumaturge.flux_gas", "Flux Gas");
         add("fluid_type.thaumaturge.flux_goo", "Flux Goo");
 
         add("block.thaumaturge.taint_rock", "Tainted Rock");

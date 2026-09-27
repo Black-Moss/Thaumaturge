@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.taint.flux;
 import com.leclowndu93150.thaumaturge.content.particle.BubbleParticleOptions;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,7 +18,7 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockFluxGoo extends LiquidBlock {
+public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock {
     public static final MapCodec<LiquidBlock> CODEC = simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
 
     private static final int REPLACEABLE_AMOUNT_THRESHOLD = 5;
@@ -57,6 +58,24 @@ public final class BlockFluxGoo extends LiquidBlock {
             int maxAge = 2 + random.nextInt(3);
             BubbleParticleOptions data = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, FUME_R, FUME_G, FUME_B), FUME_ALPHA, scale, maxAge, -0.01F, false);
             level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
+        }
+    }
+
+    @Override
+    public int fluxAmount(BlockState state) {
+        return state.getFluidState().getAmount();
+    }
+
+    @Override
+    public BlockState withFluxAmount(int amount) {
+        return FluxGooFluid.gooBlockState(amount);
+    }
+
+    @Override
+    public void scheduleFluxTick(ServerLevel level, BlockPos pos) {
+        FluidState fluid = level.getFluidState(pos);
+        if (!fluid.isEmpty()) {
+            level.scheduleTick(pos, fluid.getType(), fluid.getType().getTickDelay(level));
         }
     }
 

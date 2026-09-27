@@ -31,11 +31,12 @@ import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.research.link.ResearchLinkData;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
+import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGas;
+import com.leclowndu93150.thaumaturge.content.taint.flux.FluxGooFluid;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.content.warp.WarpEvents;
 import com.leclowndu93150.thaumaturge.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
-import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.leclowndu93150.thaumaturge.registry.TCFocusElements;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -118,6 +119,7 @@ public final class TCCommands {
                 .then(Commands.literal("particle").then(Commands.literal("list").executes(TCCommands::listParticles))
                         .then(Commands.argument("name", StringArgumentType.word()).suggests(PARTICLE_NAMES).executes(TCCommands::runParticle)))
                 .then(Commands.literal("flux_goo").then(Commands.literal("set").then(Commands.argument("level", IntegerArgumentType.integer(1, 8)).executes(TCCommands::setFluxGoo))))
+                .then(Commands.literal("flux_gas").then(Commands.literal("set").then(Commands.argument("level", IntegerArgumentType.integer(1, 8)).executes(TCCommands::setFluxGas))))
                 .then(Commands.literal("effect").then(Commands.literal("vis_exhaust").executes(ctx -> giveEffect(ctx, "vis_exhaust")))
                         .then(Commands.literal("infectious_vis_exhaust").executes(ctx -> giveEffect(ctx, "infectious_vis_exhaust")))
                         .then(Commands.literal("flux_taint").executes(ctx -> giveEffect(ctx, "flux_taint"))))
@@ -425,9 +427,23 @@ public final class TCCommands {
             int level = IntegerArgumentType.getInteger(ctx, "level");
             BlockPos pos = player.blockPosition();
             ServerLevel serverLevel = (ServerLevel) player.level();
-            var state = TCBlocks.FLUX_GOO.get().defaultBlockState();
-            serverLevel.setBlock(pos, state, Block.UPDATE_ALL);
+            serverLevel.setBlock(pos, FluxGooFluid.gooBlockState(level), Block.UPDATE_ALL);
             ctx.getSource().sendSuccess(() -> Component.literal("Placed flux goo at level " + level), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int setFluxGas(CommandContext<CommandSourceStack> ctx) {
+        try {
+            ServerPlayer player = ctx.getSource().getPlayerOrException();
+            int level = IntegerArgumentType.getInteger(ctx, "level");
+            BlockPos pos = player.blockPosition();
+            ServerLevel serverLevel = (ServerLevel) player.level();
+            serverLevel.setBlock(pos, BlockFluxGas.gasBlockState(level), Block.UPDATE_ALL);
+            ctx.getSource().sendSuccess(() -> Component.literal("Placed flux gas at level " + level), false);
             return Command.SINGLE_SUCCESS;
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));

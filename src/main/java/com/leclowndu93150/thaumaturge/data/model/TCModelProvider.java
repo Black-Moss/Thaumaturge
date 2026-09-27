@@ -510,6 +510,7 @@ public final class TCModelProvider extends ModelProvider {
         registerAlchemicalFurnace(blockModels, itemModels);
         registerAdvancedAlchemicalFurnace(blockModels, itemModels);
         registerEssentiaCrystalizer(blockModels, itemModels);
+        registerFluxGas(blockModels);
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
@@ -909,6 +910,12 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(lit).with(rotations));
 
         itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName + "_off"), Optional.empty(), List.of()));
+    }
+
+    private static void registerFluxGas(BlockModelGenerators blockModels) {
+        Block gas = TCBlocks.FLUX_GAS.get();
+        Identifier model = ModelTemplates.CUBE_ALL.create(gas, TextureMapping.cube(gas).forceAllTranslucent(), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(gas, BlockModelGenerators.plainVariant(model)));
     }
 
     private static void registerEssentiaCrystalizer(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
