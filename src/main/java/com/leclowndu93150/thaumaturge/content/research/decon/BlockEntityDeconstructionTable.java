@@ -135,7 +135,15 @@ public final class BlockEntityDeconstructionTable extends BlockEntity implements
         });
     }
 
-    public void dropContents(Level level, BlockPos pos) {
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null && !level.isClientSide()) {
+            dropContents(level, pos);
+        }
+    }
+
+    private void dropContents(Level level, BlockPos pos) {
         SimpleContainer container = new SimpleContainer(1);
         ItemResource resource = inventory.getResource(SLOT_INPUT);
         int amount = inventory.getAmountAsInt(SLOT_INPUT);

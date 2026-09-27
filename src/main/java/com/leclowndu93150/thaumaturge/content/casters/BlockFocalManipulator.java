@@ -5,8 +5,6 @@ import com.leclowndu93150.thaumaturge.content.research.DeviceGate;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -43,14 +41,6 @@ public final class BlockFocalManipulator extends BaseEntityBlock {
         return level.isClientSide()
                 ? createTickerHelper(type, TCBlockEntities.FOCAL_MANIPULATOR.get(), BlockEntityFocalManipulator::clientTick)
                 : createTickerHelper(type, TCBlockEntities.FOCAL_MANIPULATOR.get(), BlockEntityFocalManipulator::serverTick);
-    }
-
-    @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        if (level.getBlockEntity(pos) instanceof BlockEntityFocalManipulator table && !table.focusStack().isEmpty()) {
-            Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, table.focusStack());
-        }
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

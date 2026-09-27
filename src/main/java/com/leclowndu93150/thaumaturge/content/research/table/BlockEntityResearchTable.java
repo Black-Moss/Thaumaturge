@@ -389,7 +389,15 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         return !tools.isEmpty() && tools.isDamageableItem() && tools.getDamageValue() < tools.getMaxDamage();
     }
 
-    public void dropContents(Level level, BlockPos pos) {
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null && !level.isClientSide()) {
+            dropContents(level, pos);
+        }
+    }
+
+    private void dropContents(Level level, BlockPos pos) {
         SimpleContainer container = new SimpleContainer(SLOT_COUNT);
         for (int i = 0; i < SLOT_COUNT; i++) {
             ItemResource resource = inventory.getResource(i);

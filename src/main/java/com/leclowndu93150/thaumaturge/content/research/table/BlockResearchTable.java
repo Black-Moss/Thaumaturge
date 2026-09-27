@@ -155,17 +155,10 @@ public final class BlockResearchTable extends BaseEntityBlock {
 
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        if (level.getBlockEntity(pos) instanceof BlockEntityResearchTable be) {
-            be.dropContents(level, pos);
-        }
         Direction facing = state.getValue(FACING);
         BlockPos partnerPos = pos.relative(facing);
         BlockState partner = level.getBlockState(partnerPos);
         if (partner.is(this) && partner.getValue(FACING) == facing.getOpposite() && partner.getValue(PART) != state.getValue(PART)) {
-            if (level.getBlockEntity(partnerPos) instanceof BlockEntityResearchTable partnerBe) {
-                partnerBe.dropContents(level, partnerPos);
-                level.removeBlockEntity(partnerPos);
-            }
             level.setBlock(partnerPos, TCBlocks.TABLE_WOOD.get().defaultBlockState(), 3);
         }
     }

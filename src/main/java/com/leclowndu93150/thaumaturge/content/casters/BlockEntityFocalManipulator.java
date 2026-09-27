@@ -38,6 +38,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -78,6 +79,15 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
 
     public ItemStacksResourceHandler items() {
         return inventory;
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        ItemStack focus = focusStack();
+        if (level != null && !level.isClientSide() && !focus.isEmpty()) {
+            Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, focus);
+        }
     }
 
     public ItemStack focusStack() {
