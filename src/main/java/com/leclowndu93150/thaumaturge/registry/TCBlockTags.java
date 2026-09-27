@@ -10,6 +10,10 @@ public final class TCBlockTags {
     public static final TagKey<Block> CRUCIBLE_HEAT_SOURCES = key("crucible_heat_sources");
     public static final TagKey<Block> SCAN_CLAY = key("scan/f_matclay");
 
+    public static final TagKey<Block> PLANKS = common("planks");
+    public static final TagKey<Block> PLANKS_GREATWOOD = common("planks/greatwood");
+    public static final TagKey<Block> PLANKS_SILVERWOOD = common("planks/silverwood");
+
     public static final TagKey<Block> GREATWOOD_LOGS = key("greatwood_logs");
     public static final TagKey<Block> SILVERWOOD_LOGS = key("silverwood_logs");
 

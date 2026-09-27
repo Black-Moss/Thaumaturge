@@ -27,6 +27,13 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         copy(BlockTags.LEAVES, ItemTags.LEAVES);
         copy(BlockTags.SAPLINGS, ItemTags.SAPLINGS);
         copy(BlockTags.PLANKS, ItemTags.PLANKS);
+        copy(BlockTags.WOODEN_SLABS, ItemTags.WOODEN_SLABS);
+        copy(BlockTags.SLABS, ItemTags.SLABS);
+        copy(BlockTags.STAIRS, ItemTags.STAIRS);
+        copy(BlockTags.WOODEN_STAIRS, ItemTags.WOODEN_STAIRS);
+        copy(TCBlockTags.PLANKS, TCItemTags.PLANKS);
+        copy(TCBlockTags.PLANKS_GREATWOOD, TCItemTags.PLANKS_GREATWOOD);
+        copy(TCBlockTags.PLANKS_SILVERWOOD, TCItemTags.PLANKS_SILVERWOOD);
         copy(TCBlockTags.GREATWOOD_LOGS, TCItemTags.GREATWOOD_LOGS);
         copy(TCBlockTags.SILVERWOOD_LOGS, TCItemTags.SILVERWOOD_LOGS);
         copy(Tags.Blocks.OVERWORLD_NATURAL_LOGS, Tags.Items.OVERWORLD_NATURAL_LOGS);

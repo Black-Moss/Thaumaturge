@@ -73,6 +73,9 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.SAPLINGS).add(TCBlocks.SAPLING_GREATWOOD.get()).add(TCBlocks.SAPLING_SILVERWOOD.get());
 
         tag(BlockTags.PLANKS).add(TCBlocks.PLANK_GREATWOOD.get()).add(TCBlocks.PLANK_SILVERWOOD.get());
+        tag(TCBlockTags.PLANKS_GREATWOOD).add(TCBlocks.PLANK_GREATWOOD.get());
+        tag(TCBlockTags.PLANKS_SILVERWOOD).add(TCBlocks.PLANK_SILVERWOOD.get());
+        tag(TCBlockTags.PLANKS).addTags(TCBlockTags.PLANKS_GREATWOOD, TCBlockTags.PLANKS_SILVERWOOD);
 
         tag(BlockTags.MINEABLE_WITH_HOE).add(TCBlocks.LEAVES_GREATWOOD.get()).add(TCBlocks.LEAVES_SILVERWOOD.get());
 

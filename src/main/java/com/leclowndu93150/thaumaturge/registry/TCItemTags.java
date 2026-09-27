@@ -13,6 +13,10 @@ public final class TCItemTags {
     public static final TagKey<Item> NITORS = key("nitors");
     public static final TagKey<Item> MEAT_CHUNKS = key("meat_chunks");
 
+    public static final TagKey<Item> PLANKS = common("planks");
+    public static final TagKey<Item> PLANKS_GREATWOOD = common("planks/greatwood");
+    public static final TagKey<Item> PLANKS_SILVERWOOD = common("planks/silverwood");
+
     public static final TagKey<Item> GREATWOOD_LOGS = key("greatwood_logs");
     public static final TagKey<Item> SILVERWOOD_LOGS = key("silverwood_logs");
 
