@@ -103,6 +103,7 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
         if (!ThaumaturgeServerConfig.INFERNAL_FURNACE_TURN_TO_BLAZE.get())
             level.setBlock(pos, Blocks.LAVA.defaultBlockState(), Block.UPDATE_ALL);
         else {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
             if (level instanceof ServerLevel serverLevel) {
                 Blaze blaze = EntityType.BLAZE.create(serverLevel, EntitySpawnReason.TRIGGERED);
                 if (blaze != null) {
