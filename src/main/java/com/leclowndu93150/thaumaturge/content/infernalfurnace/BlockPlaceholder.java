@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.infernalfurnace;
 
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.AdvancedAlchemicalFurnaceStructure;
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockGolemBuilder;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import net.minecraft.core.BlockPos;
@@ -76,6 +77,9 @@ public class BlockPlaceholder extends Block {
                     }
                 }
             }
+        }
+        if (!level.isClientSide() && AdvancedAlchemicalFurnaceStructure.isPart(state)) {
+            AdvancedAlchemicalFurnaceStructure.disassembleAround(level, pos);
         }
         super.destroy(level, pos, state);
     }

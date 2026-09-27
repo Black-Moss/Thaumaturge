@@ -23,6 +23,8 @@ public class TCModelsHandlers {
 
     public static final Identifier GOLEM_BUILDER_MODEL_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "golem_builder");
 
+    public static final Identifier ADVANCED_ALCHEMICAL_FURNACE_MODEL_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "advanced_alchemical_furnace");
+
     public static final Identifier DECON_TABLE_MODEL_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "deconstruction_table");
 
     public static final Identifier WAND_MODEL_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "wand");
@@ -40,6 +42,7 @@ public class TCModelsHandlers {
         event.register(JAR_NODE_MODEL_ID, JarNodeItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(CENTRIFUGE_MODEL_ID, CentrifugeItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(GOLEM_BUILDER_MODEL_ID, GolemBuilderItemSpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(ADVANCED_ALCHEMICAL_FURNACE_MODEL_ID, AdvancedAlchemicalFurnaceItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(DECON_TABLE_MODEL_ID, DeconTableItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(WAND_MODEL_ID, WandItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(NODE_STABILIZER_MODEL_ID, NodeStabilizerItemSpecialRenderer.Unbaked.MAP_CODEC);

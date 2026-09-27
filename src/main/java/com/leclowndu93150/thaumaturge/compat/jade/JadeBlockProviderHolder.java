@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityEverfullUrn;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEntityCentrifuge;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
@@ -45,6 +46,7 @@ final class JadeBlockProviderHolder {
             new JadeBlockHandler<>(BlockEntityVisRelay.class, JadeConfig.VIS_RELAYS, JadeMachineDetails::relay),
             new JadeBlockHandler<>(BlockEntityNodeTransducer.class, JadeConfig.NODE_TRANSDUCERS, JadeMachineDetails::transducer),
             new JadeBlockHandler<>(BlockEntitySmelter.class, JadeConfig.SMELTERS, JadeMachineDetails::smelter),
+            new JadeBlockHandler<>(BlockEntityAdvancedAlchemicalFurnace.class, JadeConfig.ADVANCED_ALCHEMICAL_FURNACES, JadeMachineDetails::advancedFurnace),
             new JadeBlockHandler<>(BlockEntityGolemBuilder.class, JadeConfig.GOLEM_BUILDERS, JadeMachineDetails::golemBuilder),
             new JadeBlockHandler<>(BlockEntityVoidSiphon.class, JadeConfig.VOID_SIPHONS, JadeMachineDetails::siphon),
             new JadeBlockHandler<>(BlockEntityDeconstructionTable.class, JadeConfig.DECONSTRUCTION_TABLES, JadeMachineDetails::deconstruction),
@@ -54,7 +56,10 @@ final class JadeBlockProviderHolder {
             new JadeBlockHandler<>(BlockEntityFocalManipulator.class, JadeConfig.FOCAL_MANIPULATORS, JadeMachineDetails::focal));
     private static final Map<Block, Class<? extends BlockEntity>> CONTROLLERS = Map.of(TCBlocks.PLACEHOLDER_IRON_BARS.get(), BlockEntityGolemBuilder.class, TCBlocks.PLACEHOLDER_ANVIL.get(),
             BlockEntityGolemBuilder.class, TCBlocks.PLACEHOLDER_CAULDRON.get(), BlockEntityGolemBuilder.class, TCBlocks.PLACEHOLDER_TABLE.get(), BlockEntityGolemBuilder.class,
-            TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockEntityInfernalFurnace.class, TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockEntityInfernalFurnace.class);
+            TCBlocks.NETHER_BRICKS_PLACEHOLDER.get(), BlockEntityInfernalFurnace.class, TCBlocks.OBSIDIAN_PLACEHOLDER.get(), BlockEntityInfernalFurnace.class,
+            TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_ALEMBIC_PLACEHOLDER.get(), BlockEntityAdvancedAlchemicalFurnace.class, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_CONSTRUCT_PLACEHOLDER.get(),
+            BlockEntityAdvancedAlchemicalFurnace.class, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_ADVANCED_CONSTRUCT_PLACEHOLDER.get(), BlockEntityAdvancedAlchemicalFurnace.class,
+            TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_NOZZLE.get(), BlockEntityAdvancedAlchemicalFurnace.class);
 
     private JadeBlockProviderHolder() {}
 

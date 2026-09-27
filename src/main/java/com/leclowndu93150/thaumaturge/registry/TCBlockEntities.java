@@ -46,6 +46,7 @@ import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJarBrain;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJarVoid;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatorium;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatoriumTop;
@@ -133,6 +134,9 @@ public final class TCBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntitySmelter>> SMELTER = BLOCK_ENTITIES.register("smelter", () -> new BlockEntityType<>(BlockEntitySmelter::new,
             Set.of(TCBlocks.SMELTER_BASIC.get(), TCBlocks.SMELTER_THAUMIUM.get(), TCBlocks.SMELTER_VOID.get(), TCBlocks.ALCHEMICAL_FURNACE.get())));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAdvancedAlchemicalFurnace>> ADVANCED_ALCHEMICAL_FURNACE = BLOCK_ENTITIES.register("advanced_alchemical_furnace",
+            () -> new BlockEntityType<>(BlockEntityAdvancedAlchemicalFurnace::new, Set.of(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAlembic>> ALEMBIC = BLOCK_ENTITIES.register("alembic",
             () -> new BlockEntityType<>(BlockEntityAlembic::new, Set.of(TCBlocks.ALEMBIC.get())));

@@ -17,6 +17,7 @@ final class JadeConfig {
     static final Identifier VIS_RELAYS = option("vis_relays");
     static final Identifier NODE_TRANSDUCERS = option("node_transducers");
     static final Identifier SMELTERS = option("smelters");
+    static final Identifier ADVANCED_ALCHEMICAL_FURNACES = option("advanced_alchemical_furnaces");
     static final Identifier JARS = option("jars");
     static final Identifier ALEMBICS = option("alembics");
     static final Identifier CRUCIBLES = option("crucibles");
@@ -36,8 +37,9 @@ final class JadeConfig {
     static final Identifier INFERNAL_FURNACES = option("infernal_furnaces");
     static final Identifier FOCAL_MANIPULATORS = option("focal_manipulators");
 
-    private static final List<Identifier> OPTIONS = List.of(NODES, GOLEMS, VIS_RELAYS, NODE_TRANSDUCERS, SMELTERS, JARS, ALEMBICS, CRUCIBLES, TUBES, VALVES, RESTRICTED_TUBES, FILTER_TUBES,
-            ONE_WAY_TUBES, BUFFERS, THAUMATORIUMS, CENTRIFUGES, GOLEM_BUILDERS, VOID_SIPHONS, DECONSTRUCTION_TABLES, SPAS, EVERFULL_URNS, INFERNAL_FURNACES, FOCAL_MANIPULATORS);
+    private static final List<Identifier> OPTIONS = List.of(NODES, GOLEMS, VIS_RELAYS, NODE_TRANSDUCERS, SMELTERS, ADVANCED_ALCHEMICAL_FURNACES, JARS, ALEMBICS, CRUCIBLES, TUBES, VALVES,
+            RESTRICTED_TUBES, FILTER_TUBES, ONE_WAY_TUBES, BUFFERS, THAUMATORIUMS, CENTRIFUGES, GOLEM_BUILDERS, VOID_SIPHONS, DECONSTRUCTION_TABLES, SPAS, EVERFULL_URNS, INFERNAL_FURNACES,
+            FOCAL_MANIPULATORS);
 
     private JadeConfig() {}
 

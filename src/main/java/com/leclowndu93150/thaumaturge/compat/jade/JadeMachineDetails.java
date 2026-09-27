@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeTransduce
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
 import com.leclowndu93150.thaumaturge.content.casters.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockEntityGolemBuilder;
 import com.leclowndu93150.thaumaturge.content.infernalfurnace.BlockEntityInfernalFurnace;
@@ -37,6 +38,32 @@ final class JadeMachineDetails {
             data.detail("jade.thaumaturge.machine.progress", progress);
         if (burn > 0)
             data.detail("jade.thaumaturge.machine.heat", burn);
+    }
+    static void advancedFurnace(BlockEntityAdvancedAlchemicalFurnace machine, JadeDetailBuilder data) {
+        data.title(Component.translatable("block.thaumaturge.advanced_alchemical_furnace"));
+        int cost = machine.inputCost();
+        data.summary("jade.thaumaturge.advanced_furnace.status." + advancedFurnaceStatus(machine, cost));
+        progress(data, machine.cycleDuration() - machine.cooldown(), machine.cycleDuration());
+        data.storage(machine.aspects(), 0, false);
+        if (!machine.input().isEmpty()) {
+            data.detail("jade.thaumaturge.advanced_furnace.input", machine.input().getHoverName());
+            data.detail("jade.thaumaturge.advanced_furnace.input_cost", cost * BlockEntityAdvancedAlchemicalFurnace.HEAT_PER_ASPECT, cost, cost);
+        }
+        data.detail("jade.thaumaturge.advanced_furnace.ignis", machine.heat(), BlockEntityAdvancedAlchemicalFurnace.MAX_POWER);
+        data.detail("jade.thaumaturge.advanced_furnace.perditio", machine.perditio(), BlockEntityAdvancedAlchemicalFurnace.MAX_POWER);
+        data.detail("jade.thaumaturge.advanced_furnace.aqua", machine.aqua(), BlockEntityAdvancedAlchemicalFurnace.MAX_POWER);
+    }
+    private static String advancedFurnaceStatus(BlockEntityAdvancedAlchemicalFurnace machine, int cost) {
+        if (!machine.isAssembled())
+            return "unformed";
+        if (machine.cooldown() > 0)
+            return "processing";
+        int stored = machine.aspects().totalAmount();
+        if (stored >= BlockEntityAdvancedAlchemicalFurnace.MAX_ESSENTIA || stored + cost > BlockEntityAdvancedAlchemicalFurnace.MAX_ESSENTIA)
+            return "storage_full";
+        if (cost > 0 && (machine.heat() < cost * BlockEntityAdvancedAlchemicalFurnace.HEAT_PER_ASPECT || machine.perditio() < cost || machine.aqua() < cost))
+            return "waiting_vis";
+        return "ready";
     }
     static void golemBuilder(BlockEntityGolemBuilder machine, JadeDetailBuilder data) {
         data.title(Component.translatable("block.thaumaturge.golem_builder"));

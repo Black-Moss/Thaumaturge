@@ -1294,6 +1294,8 @@ public final class TCRecipeProvider extends RecipeProvider {
                 new DustTriggerTagRecipe(Tags.Blocks.PLAYER_WORKSTATIONS_CRAFTING_TABLES, new ItemStackTemplate(TCBlocks.ARCANE_WORKBENCH.get().asItem()), Optional.of(gate("first_steps", 0))));
         dustTrigger("cauldron_to_crucible", new DustTriggerSimpleRecipe(Blocks.CAULDRON, new ItemStackTemplate(TCBlocks.CRUCIBLE.get().asItem()), Optional.of(gate("unlock_alchemy", 0))));
         dustTrigger("golem_press", new DustTriggerMultiblockRecipe(TCIds.rl("golem_press"), new ItemStackTemplate(TCBlocks.GOLEM_BUILDER.get().asItem()), Optional.of(gate("mind_clockwork"))));
+        dustTrigger("advanced_alchemical_furnace", new DustTriggerMultiblockRecipe(TCIds.rl("advanced_alchemical_furnace"), new ItemStackTemplate(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE.get().asItem()),
+                Optional.of(gate("advanced_alchemical_furnace"))));
         dustTrigger("infernal_furnace",
                 new DustTriggerMultiblockRecipe(TCIds.rl("infernal_furnace"), new ItemStackTemplate(TCBlocks.INFERNAL_FURNACE.get().asItem()), Optional.of(gate("infernal_furnace"))));
         dustTrigger("infusion_altar", new DustTriggerMultiblockRecipe(TCIds.rl("infusion_altar"), new ItemStackTemplate(TCBlocks.INFUSION_MATRIX.get().asItem()), Optional.of(gate("infusion"))));
