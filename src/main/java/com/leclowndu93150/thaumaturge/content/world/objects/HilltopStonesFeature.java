@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world.objects;
 
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
+import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.mojang.serialization.Codec;
@@ -61,7 +62,7 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
                 for (int y = 1; y <= FILL_DEPTH; y++) {
                     if (j - y >= level.getMinY()) {
                         BlockState below = level.getBlockState(cursor.set(x, j - y, z));
-                        if (below.isAir() || below.is(Blocks.SNOW) || below.is(Blocks.SHORT_GRASS) || below.is(BlockTags.SMALL_FLOWERS)) {
+                        if (below.isAir() || isGroundCover(below)) {
                             level.setBlock(cursor, fill, PLACE_FLAGS);
                         }
                     }
@@ -152,7 +153,11 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
         if (isValidGround(ground)) {
             return true;
         }
-        return (ground.is(Blocks.SNOW) || ground.is(Blocks.SHORT_GRASS)) && isValidGround(below);
+        return isGroundCover(ground) && isValidGround(below);
+    }
+
+    private static boolean isGroundCover(BlockState state) {
+        return state.is(Blocks.SNOW) || state.is(Blocks.SHORT_GRASS) || state.is(BlockTags.SMALL_FLOWERS) || state.is(TCBlockTags.MAGICAL_PLANTS);
     }
 
     private static boolean isValidGround(BlockState state) {
@@ -166,7 +171,7 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
             if (isValidGround(state)) {
                 return state;
             }
-            if (!state.isAir() && !state.is(Blocks.SNOW) && !state.is(Blocks.SHORT_GRASS)) {
+            if (!state.isAir() && !isGroundCover(state)) {
                 break;
             }
             cursor.move(Direction.DOWN);

@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
+import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -53,6 +54,9 @@ public final class WandChargingEvents {
             return;
         }
         ServerLevel level = event.getLevel();
+        if (!event.getState().is(TCBlockTags.MAGICAL_PLANTS)) {
+            return;
+        }
         ResourceKey<IAspect> aspect = plantAspect(event.getState().getBlock());
         if (aspect == null) {
             return;
