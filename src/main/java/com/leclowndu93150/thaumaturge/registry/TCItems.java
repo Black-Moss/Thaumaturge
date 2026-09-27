@@ -134,6 +134,7 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> SMELTER_THAUMIUM = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_THAUMIUM);
 
     public static final DeferredItem<BlockItem> SMELTER_VOID = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_VOID);
+    public static final DeferredItem<BlockItem> ALCHEMICAL_FURNACE = ITEMS.registerSimpleBlockItem(TCBlocks.ALCHEMICAL_FURNACE);
 
     public static final DeferredItem<BlockItem> SMELTER_AUX = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_AUX);
 

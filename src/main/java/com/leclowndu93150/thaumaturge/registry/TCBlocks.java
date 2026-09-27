@@ -179,6 +179,9 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockSmelter> SMELTER_VOID = BLOCKS.registerBlock("smelter_void", BlockSmelter::new, props -> props.mapColor(MapColor.METAL).strength(2F, 20.0F)
             .sound(SoundType.METAL).instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().lightLevel(bs -> bs.getValue(BlockSmelter.LIT) ? 13 : 0));
 
+    public static final DeferredBlock<BlockSmelter> ALCHEMICAL_FURNACE = BLOCKS.registerBlock("alchemical_furnace", BlockSmelter::new,
+            props -> props.mapColor(MapColor.STONE).strength(3.0F, 17.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
     public static final DeferredBlock<BlockSmelterAux> SMELTER_AUX = BLOCKS.registerBlock("smelter_aux", BlockSmelterAux::new,
             props -> props.mapColor(MapColor.METAL).strength(1F, 20.0F).sound(SoundType.METAL).instrument(NoteBlockInstrument.BASEDRUM).noOcclusion().requiresCorrectToolForDrops());
 

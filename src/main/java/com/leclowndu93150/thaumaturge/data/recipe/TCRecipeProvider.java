@@ -751,6 +751,9 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('F', Tags.Items.PLAYER_WORKSTATIONS_FURNACES).define('P', TCItemTags.PLATES_BRASS).define('R', TCItems.CRUCIBLE).gate(gate("essentia_smelter", 1))
                 .unlockedBy("has", has(TCItems.CRUCIBLE)).save(output);
 
+        arcaneShaped(new ItemStackTemplate(TCItems.ALCHEMICAL_FURNACE), 10).aspect(TCAspects.IGNIS, 5).aspect(TCAspects.AQUA, 5).pattern("SCS").pattern("SFS").pattern("SSS")
+                .define('S', TCItems.STONE_ARCANE).define('C', TCItems.CRUCIBLE).define('F', Items.FURNACE).gate(gate("essentia_smelter")).unlockedBy("has", has(TCItems.CRUCIBLE)).save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.SMELTER_THAUMIUM), 250).aspect(TCAspects.IGNIS, 2).pattern("PRP").pattern("CFC").pattern("CCC").define('C', TCItemTags.PLATES_THAUMIUM)
                 .define('F', TCItems.ALCHEMICAL_CONSTRUCT).define('P', TCItemTags.PLATES_BRASS).define('R', TCItems.SMELTER_BASIC).gate(gate("essentia_smelter_thaumium"))
                 .unlockedBy("has", has(TCItems.SMELTER_BASIC)).save(output);
