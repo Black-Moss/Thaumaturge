@@ -27,6 +27,7 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         copy(BlockTags.LEAVES, ItemTags.LEAVES);
         copy(BlockTags.SAPLINGS, ItemTags.SAPLINGS);
         copy(BlockTags.PLANKS, ItemTags.PLANKS);
+        copy(BlockTags.FLOWERS, ItemTags.FLOWERS);
         copy(BlockTags.WOODEN_SLABS, ItemTags.WOODEN_SLABS);
         copy(BlockTags.SLABS, ItemTags.SLABS);
         copy(BlockTags.STAIRS, ItemTags.STAIRS);
