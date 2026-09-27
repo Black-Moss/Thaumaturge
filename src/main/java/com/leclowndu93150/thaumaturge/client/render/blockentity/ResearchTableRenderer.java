@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.items.IScribeTools;
 import com.leclowndu93150.thaumaturge.client.entity.TCModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.ResearchTableModel;
+import com.leclowndu93150.thaumaturge.client.render.ModelPartGeometry;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
 import com.leclowndu93150.thaumaturge.content.research.table.BlockEntityResearchTable;
@@ -11,6 +12,7 @@ import com.leclowndu93150.thaumaturge.content.research.table.BlockResearchTable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -90,10 +92,10 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
         };
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
 
-        collector.submitModelPart(model.table, poseStack, RenderTypes.entityCutout(TABLE_TEXTURE), light, OverlayTexture.NO_OVERLAY, null, -1, null);
+        submitPart(collector, poseStack, model.table, TABLE_TEXTURE, light, -1);
 
         if (state.hasTools) {
-            collector.submitModelPart(model.inkwell, poseStack, RenderTypes.entityCutout(TABLE_TEXTURE), light, OverlayTexture.NO_OVERLAY, null, -1, null);
+            submitPart(collector, poseStack, model.inkwell, TABLE_TEXTURE, light, -1);
             poseStack.pushPose();
             poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
             poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
@@ -115,14 +117,18 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
         }
 
         if (state.hasNote) {
-            collector.submitModelPart(model.scrollTube, poseStack, RenderTypes.entityCutout(SCROLL_TEXTURE), light, OverlayTexture.NO_OVERLAY, null, -1, null);
+            submitPart(collector, poseStack, model.scrollTube, SCROLL_TEXTURE, light, -1);
             poseStack.pushPose();
             poseStack.scale(RIBBON_SCALE, RIBBON_SCALE, RIBBON_SCALE);
-            collector.submitModelPart(model.scrollRibbon, poseStack, RenderTypes.entityCutout(SCROLL_TEXTURE), light, OverlayTexture.NO_OVERLAY, null, 0xFF000000 | state.noteColor, null);
+            submitPart(collector, poseStack, model.scrollRibbon, SCROLL_TEXTURE, light, 0xFF000000 | state.noteColor);
             poseStack.popPose();
         }
 
         poseStack.popPose();
+    }
+
+    private static void submitPart(SubmitNodeCollector collector, PoseStack poseStack, ModelPart part, Identifier texture, int light, int color) {
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(texture), (pose, buffer) -> ModelPartGeometry.emit(part, pose, buffer, light, OverlayTexture.NO_OVERLAY, color));
     }
 
     private static void parchmentQuad(PoseStack.Pose pose, VertexConsumer buffer, int light) {
