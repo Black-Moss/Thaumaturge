@@ -123,6 +123,7 @@ public final class TCCreativeTabs {
                 output.accept(TCItems.TUBE_FILTER.get());
                 output.accept(TCItems.TUBE_ONEWAY.get());
                 output.accept(TCItems.TUBE_BUFFER.get());
+                output.accept(TCItems.ESSENTIA_RESERVOIR.get());
                 output.accept(TCItems.BRAIN_BOX.get());
 
                 output.accept(TCItems.CRYSTAL_AER.get());
