@@ -101,7 +101,7 @@ public final class TCPlacedFeatures {
         context.register(SILVERWOOD_NATURAL, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.SILVERWOOD_TREE), List.of(RarityFilter.onAverageOnceEvery(SILVERWOOD_RARITY),
                 InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_OCEAN_FLOOR, PlacementUtils.filteredByBlockSurvival(TCBlocks.SAPLING_SILVERWOOD.get()), BiomeFilter.biome())));
 
-        context.register(MAGIC_FOREST_FLORA, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_FLORA), List.of(BiomeFilter.biome())));
+        context.register(MAGIC_FOREST_FLORA, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_FLORA), List.of(PlacementUtils.HEIGHTMAP, BiomeFilter.biome())));
 
         context.register(MANA_PODS,
                 new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.MANA_PODS), List.of(CountPlacement.of(MANA_POD_ATTEMPTS), InSquarePlacement.spread(), BiomeFilter.biome())));
