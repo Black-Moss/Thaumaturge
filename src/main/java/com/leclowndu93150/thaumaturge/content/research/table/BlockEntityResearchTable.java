@@ -20,6 +20,7 @@ import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -71,6 +72,8 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
 
     private static final int RECALC_INTERVAL_TICKS = 600;
     private static final int BONUS_SCAN_RADIUS = 8;
+    private static final int BOOKSHELF_BONUS_CHANCE = 300;
+    private static final int BRAIN_JAR_BONUS_CHANCE = 200;
     private static final float EXPERTISE_REFUND_CHANCE = 0.25F;
     private static final float MASTERY_REFUND_CHANCE = 0.5F;
     private static final float MASTERY_FREE_CHANCE = 0.1F;
@@ -131,7 +134,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
                     if (!level.isLoaded(cursor)) {
                         continue;
                     }
-                    ResourceKey<IAspect> match = bonusFor(level.getBlockState(cursor), random);
+                    ResourceKey<IAspect> match = bonusFor(level.getBlockState(cursor), random, aspects);
                     if (match != null && addBonus(aspects, match)) {
                         changed = true;
                         break scan;
@@ -145,7 +148,11 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         }
     }
 
-    private @Nullable ResourceKey<IAspect> bonusFor(BlockState state, RandomSource random) {
+    private @Nullable ResourceKey<IAspect> bonusFor(BlockState state, RandomSource random, HolderLookup.RegistryLookup<IAspect> aspects) {
+        if ((state.is(Blocks.BOOKSHELF) && random.nextInt(BOOKSHELF_BONUS_CHANCE) == 0) || (state.is(TCBlocks.JAR_BRAIN.get()) && random.nextInt(BRAIN_JAR_BONUS_CHANCE) == 0)) {
+            List<Holder.Reference<IAspect>> candidates = aspects.listElements().toList();
+            return candidates.isEmpty() ? null : candidates.get(random.nextInt(candidates.size())).key();
+        }
         if (state.is(TCBlocks.CRYSTAL_AER.get()) && random.nextInt(10) == 0)
             return TCAspects.AER;
         if (state.is(TCBlocks.CRYSTAL_IGNIS.get()) && random.nextInt(10) == 0)
