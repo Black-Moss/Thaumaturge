@@ -6,13 +6,19 @@ import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.casters.CastContext;
 import com.leclowndu93150.thaumaturge.api.casters.FocusEffect;
 import com.leclowndu93150.thaumaturge.api.casters.FocusSettings;
+import com.leclowndu93150.thaumaturge.api.casters.FocusPackage;
+import com.leclowndu93150.thaumaturge.api.casters.FocusUnit;
 import com.leclowndu93150.thaumaturge.api.casters.Trajectory;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.content.focus.FocusFX;
+import com.leclowndu93150.thaumaturge.content.focus.medium.FocusMediumTouch;
 import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.content.warding.WardHandler;
+import com.leclowndu93150.thaumaturge.content.warding.ClientWardHolder;
+import com.leclowndu93150.thaumaturge.registry.TCFocusElements;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -54,6 +60,21 @@ public final class FocusEffectWard implements FocusEffect {
         return ID;
     }
 
+    public static boolean removesOwnedWard(Player player, FocusPackage focus) {
+        List<FocusUnit> units = focus.units();
+        if (units.size() != 2 || !units.get(0).element().equals(TCFocusElements.TOUCH.getId()) || !units.get(1).element().equals(ID) || units.stream().anyMatch(unit -> !unit.branches().isEmpty())) {
+            return false;
+        }
+        if (!(FocusMediumTouch.target(player) instanceof BlockHitResult blockHit)) {
+            return false;
+        }
+        BlockPos pos = blockHit.getBlockPos();
+        if (player.level() instanceof ServerLevel level) {
+            return player.getUUID().equals(WardHandler.owner(level, pos));
+        }
+        return WardHandler.isWarded(player.level(), pos) && ClientWardHolder.isOwned(pos);
+    }
+
     @Override
     public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_ward"), Optional.empty(), false);
@@ -79,14 +100,21 @@ public final class FocusEffectWard implements FocusEffect {
         }
         BlockPos pos = blockHit.getBlockPos();
         UUID owner = player.getUUID();
-        if (!WardHandler.isWarded(level, pos) && !WardHandler.canWard(level, pos)) {
+        if (WardHandler.isWarded(level, pos)) {
+            if (!WardHandler.unward(level, pos, owner)) {
+                return false;
+            }
+            FocusFX.impact(level, Vec3.atCenterOf(pos), id());
+            level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH);
+            return true;
+        }
+        if (!WardHandler.canWard(level, pos)) {
             return false;
         }
         if (!WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, false)) {
             return false;
         }
-        boolean changed = WardHandler.isWarded(level, pos) ? WardHandler.unward(level, pos, owner) : WardHandler.ward(level, pos, owner);
-        if (!changed) {
+        if (!WardHandler.ward(level, pos, owner)) {
             return false;
         }
         WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, true);

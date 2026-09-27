@@ -23,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public class FocusMediumTouch implements FocusMedium {
     private static final Identifier KEY = TCIds.rl("touch");
@@ -66,6 +67,11 @@ public class FocusMediumTouch implements FocusMedium {
         if (ctx.level() instanceof ServerLevel level) {
             FocusFX.burst(level, trajectory.source(), trajectory.direction().scale(1.0 / MOTION_HALF), ctx.effects(), ctx.caster());
         }
+    }
+
+    public static @Nullable HitResult target(Player player) {
+        Trajectory trajectory = CastStreams.fromCaster(player).trajectories()[0];
+        return FocusRayTrace.pointedOrBlock(player.level(), player, trajectory.source(), trajectory.direction().normalize(), RAY_MIN_RANGE, player.blockInteractionRange(), RAY_PADDING);
     }
 
     @Override

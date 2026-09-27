@@ -18,6 +18,7 @@ import com.leclowndu93150.thaumaturge.api.wands.WandRod;
 import com.leclowndu93150.thaumaturge.api.wands.WandVis;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.casters.CasterManager;
+import com.leclowndu93150.thaumaturge.content.focus.effect.FocusEffectWard;
 import com.leclowndu93150.thaumaturge.content.casters.ItemFocus;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.misc.TCActionBar;
@@ -118,7 +119,7 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
             if (player.isShiftKeyDown() && containsElement(core, IFocusBlockPicker.class)) {
                 return InteractionResult.PASS;
             }
-            if (!consumeVis(wandStack, player, focus.getVisCost(focusStack), false, level.isClientSide())) {
+            if (!FocusEffectWard.removesOwnedWard(player, core) && !consumeVis(wandStack, player, focus.getVisCost(focusStack), false, level.isClientSide())) {
                 if (player instanceof ServerPlayer serverPlayer) {
                     sendWandActionBar(serverPlayer, "tc.wand.notenoughvis");
                 }
