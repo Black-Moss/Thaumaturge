@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumaturge.content.golem.tasks.GolemTasks;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPoolData;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintColumns;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintPressure;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxSamples;
 import com.leclowndu93150.thaumaturge.content.warding.ArcaneLockChunkData;
@@ -70,6 +71,9 @@ public final class TCAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<TaintPressure>> TAINT_PRESSURE = register("taint_pressure",
             () -> AttachmentType.builder(TaintPressure::new).serialize(TaintPressure.CODEC).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<TaintColumns>> TAINT_COLUMNS = register("taint_columns",
+            () -> AttachmentType.builder(TaintColumns::new).serialize(TaintColumns.CODEC).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ArcaneLockChunkData>> ARCANE_LOCKS = register("arcane_locks",
             () -> AttachmentType.builder(ArcaneLockChunkData::new).serialize(ArcaneLockChunkData.CODEC).build());

@@ -40,6 +40,11 @@ public final class TCBlockTags {
     public static final TagKey<Block> WARDABLE_NON_SOLID = key("wardable_non_solid");
     public static final TagKey<Block> PHYSICAL_FLUX = key("physical_flux");
     public static final TagKey<Block> FLUX_SCRUBBABLE = key("flux_scrubbable");
+    public static final TagKey<Block> TAINT_CONVERTIBLE_LOG = key("taint_convertible/log");
+    public static final TagKey<Block> TAINT_CONVERTIBLE_SOIL = key("taint_convertible/soil");
+    public static final TagKey<Block> TAINT_CONVERTIBLE_ROCK = key("taint_convertible/rock");
+    public static final TagKey<Block> TAINT_CONVERTIBLE_CRUST = key("taint_convertible/crust");
+    public static final TagKey<Block> TAINT_CONVERSION_IMMUNE = key("taint_conversion_immune");
     public static final TagKey<Block> ARCANE_LOCKS = key("arcane_locks");
 
     private TCBlockTags() {}

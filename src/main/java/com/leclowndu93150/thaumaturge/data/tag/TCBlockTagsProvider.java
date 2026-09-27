@@ -26,6 +26,13 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.ARCANE_WORKBENCH_CHARGER_HOSTS).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.FOCAL_MANIPULATOR.get());
         tag(TCBlockTags.PHYSICAL_FLUX).add(TCBlocks.FLUX_GOO.get()).add(TCBlocks.FLUX_GAS.get());
         tag(TCBlockTags.FLUX_SCRUBBABLE).addTag(TCBlockTags.PHYSICAL_FLUX);
+        tag(TCBlockTags.TAINT_CONVERTIBLE_LOG).addTag(BlockTags.LOGS);
+        tag(TCBlockTags.TAINT_CONVERTIBLE_SOIL).addTag(BlockTags.SAND).addTag(BlockTags.DIRT).add(Blocks.CLAY);
+        tag(TCBlockTags.TAINT_CONVERTIBLE_ROCK).addTag(BlockTags.BASE_STONE_OVERWORLD).addTag(BlockTags.STONE_ORE_REPLACEABLES).addTag(BlockTags.STONE_BRICKS).addTag(Tags.Blocks.STONES)
+                .addTag(Tags.Blocks.COBBLESTONES).addTag(Tags.Blocks.ORES);
+        tag(TCBlockTags.TAINT_CONVERTIBLE_CRUST).add(Blocks.RED_MUSHROOM_BLOCK).add(Blocks.BROWN_MUSHROOM_BLOCK).add(Blocks.MUSHROOM_STEM).add(Blocks.PUMPKIN).add(Blocks.CARVED_PUMPKIN)
+                .add(Blocks.JACK_O_LANTERN).add(Blocks.MELON).add(Blocks.CACTUS).add(Blocks.SPONGE).add(Blocks.WET_SPONGE).addTag(BlockTags.CORAL_BLOCKS).addTag(BlockTags.PLANKS);
+        tag(TCBlockTags.TAINT_CONVERSION_IMMUNE);
         tag(TCBlockTags.WARDABLE_NON_SOLID).add(TCBlocks.WARDED_GLASS.get()).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(TCBlockTags.ARCANE_LOCKS).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(BlockTags.DOORS).add(TCBlocks.ARCANE_DOOR.get());

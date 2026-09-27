@@ -6,35 +6,54 @@ import com.leclowndu93150.thaumaturge.content.entity.AbstractTaintSeed;
 import com.leclowndu93150.thaumaturge.content.entity.EntityTaintSeed;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
 import com.leclowndu93150.thaumaturge.content.taint.block.ITaintBlock;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.content.taint.spread.TaintSeedRegistry;
+import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.common.Tags;
+import org.jspecify.annotations.Nullable;
 
 public final class TaintHelper {
-    private static final float FLUX_PER_CONVERSION = 0.01F;
     private static final float SEED_FLUX_THRESHOLD = 5.0F;
     private static final float SEED_FLUX_COST = 5.0F;
-    private static final double SEED_SPAWN_RATE_FACTOR = 0.33;
+    private static final double SEED_SPAWN_CHANCE = 0.01;
+    private static final float SEED_SPAWN_MIN_PRESSURE = 0.85F;
+    private static final float SEED_SPAWN_PRESSURE = 0.08F;
     private static final float FEATURE_ON_LEAVES_CHANCE = 0.6F;
     private static final double SEED_VALIDATION_RANGE = 1.0;
+    private static final double SEED_EDGE_RATIO = 0.8;
     private static final float MAX_SPREAD_HARDNESS = 10.0F;
     private static final float MAX_CONVERT_HARDNESS = 5.0F;
+    private static final double PERCENT = 100.0;
+    private static final int SPREAD_HORIZONTAL = 3;
+    private static final int SPREAD_VERTICAL = 5;
+    private static final int LIGHT_CONVERSION_NEIGHBOURS = 2;
+    private static final int HEAVY_CONVERSION_NEIGHBOURS = 3;
+    private static final float CONVERSION_PRESSURE = 0.01F;
+    private static final float FRONTIER_RATE_SCALE = 5.0F;
+    private static final float FRONTIER_MAX_FLUX = 2.0F;
+    private static final float FRONTIER_FLUX_ACCELERATION = 0.5F;
+    private static final float FRONTIER_PRESSURE = 0.01F;
+    private static final float FRONTIER_FLUX_PRESSURE = 0.01F;
+    private static final float FRONTIER_MAX_FLUX_PRESSURE = 0.02F;
 
     private TaintHelper() {}
 
@@ -56,17 +75,32 @@ public final class TaintHelper {
         }
         double area = spreadArea() * spreadArea();
         TaintSeedRegistry registry = TaintSeedRegistry.get(serverLevel);
+        List<BlockPos> stale = null;
+        boolean found = false;
         for (BlockPos seed : registry.all()) {
-            if (seed.distSqr(pos) <= area) {
-                AABB box = new AABB(seed).inflate(SEED_VALIDATION_RANGE);
-                if (serverLevel.getEntitiesOfClass(AbstractTaintSeed.class, box).isEmpty()) {
-                    registry.removeSeed(seed);
-                    return false;
+            if (seed.distSqr(pos) > area) {
+                continue;
+            }
+            if (serverLevel.getEntitiesOfClass(AbstractTaintSeed.class, new AABB(seed).inflate(SEED_VALIDATION_RANGE)).isEmpty()) {
+                if (stale == null) {
+                    stale = new ArrayList<>();
                 }
-                return true;
+                stale.add(seed);
+                continue;
+            }
+            found = true;
+            break;
+        }
+        if (stale != null) {
+            for (BlockPos seed : stale) {
+                registry.removeSeed(seed);
             }
         }
-        return false;
+        return found;
+    }
+
+    public static boolean isEcologicallySustained(ServerLevel level, BlockPos pos) {
+        return TaintBiomeManager.isTainted(level, pos) || isNearTaintSeed(level, pos);
     }
 
     public static boolean isAtTaintSeedEdge(Level level, BlockPos pos) {
@@ -74,7 +108,7 @@ public final class TaintHelper {
             return false;
         }
         double area = spreadArea() * spreadArea();
-        double fringe = spreadArea() * 0.8 * (spreadArea() * 0.8);
+        double fringe = spreadArea() * SEED_EDGE_RATIO * (spreadArea() * SEED_EDGE_RATIO);
         for (BlockPos seed : TaintSeedRegistry.get(serverLevel).all()) {
             double d = seed.distSqr(pos);
             if (d < area && d > fringe) {
@@ -95,95 +129,115 @@ public final class TaintHelper {
         return false;
     }
 
+    public static int countAdjacentTaint(LevelReader level, BlockPos pos) {
+        int count = 0;
+        for (Direction direction : Direction.values()) {
+            if (level.getBlockState(pos.relative(direction)).getBlock() instanceof ITaintBlock) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static void spreadFibres(ServerLevel level, BlockPos pos, boolean force) {
-        if (!force && ThaumaturgeCommonConfig.WUSS_MODE.get()) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !level.hasChunkAt(pos)) {
             return;
         }
         RandomSource random = level.getRandom();
-        float saturation = AuraHelper.getFluxSaturation(level, pos);
-        float mod = 0.001F + saturation * 2.0F;
-        double rate = ThaumaturgeCommonConfig.TAINT_SPREAD_RATE.get() / 100.0;
-        if (!force && random.nextFloat() > rate * mod) {
+        if (!force && random.nextDouble() * PERCENT >= ThaumaturgeCommonConfig.TAINT_SPREAD_RATE.get()) {
             return;
         }
-        if (!isNearTaintSeed(level, pos)) {
+        BlockPos target = pos.offset(random.nextInt(SPREAD_HORIZONTAL) - 1, random.nextInt(SPREAD_VERTICAL) - SPREAD_VERTICAL / 2, random.nextInt(SPREAD_HORIZONTAL) - 1);
+        if (target.equals(pos) || !level.hasChunkAt(target)) {
             return;
         }
-        BlockPos target = pos.offset(random.nextInt(3) - 1, random.nextInt(3) - 1, random.nextInt(3) - 1);
-        if (target.equals(pos)) {
+        boolean targetTainted = TaintBiomeManager.isTainted(level, target);
+        if (!targetTainted && !force) {
             return;
         }
         BlockState targetState = level.getBlockState(target);
         float hardness = targetState.getDestroySpeed(level, target);
-        if (hardness < 0 || hardness > MAX_SPREAD_HARDNESS) {
+        if (hardness < 0 || hardness > MAX_SPREAD_HARDNESS || targetState.is(TCBlockTags.TAINT_CONVERSION_IMMUNE)) {
             return;
         }
 
         boolean isLeaves = targetState.is(BlockTags.LEAVES);
         boolean isReplaceable = targetState.isAir() || targetState.canBeReplaced();
-
         if (!isLeaves && !targetState.liquid() && isReplaceable) {
-            if (isAdjacentToSolidBlock(level, target) && !BlockTaintFibre.isOnlyAdjacentToTaint(level, target)) {
-                level.setBlock(target, TCBlocks.TAINT_FIBRE.get().defaultBlockState(), Block.UPDATE_ALL);
-                AuraHelper.drainFlux(level, target, FLUX_PER_CONVERSION, false);
+            if (isAdjacentToSolidBlock(level, target) && !BlockTaintFibre.isOnlyAdjacentToTaint(level, target) && ensureTargetBiome(level, target, force, targetTainted)) {
+                level.setBlock(target, BlockTaintFibre.stateForWorld(level, target), Block.UPDATE_ALL);
+                TaintEcology.addPressure(level, target, CONVERSION_PRESSURE);
             }
             return;
         }
 
         if (isLeaves) {
-            Direction logFace = random.nextFloat() < FEATURE_ON_LEAVES_CHANCE ? findAdjacentTaintLog(level, target) : null;
-            if (logFace != null) {
+            Direction logFace = findAdjacentTaintLog(level, target);
+            if (logFace != null && random.nextFloat() < FEATURE_ON_LEAVES_CHANCE) {
                 level.setBlock(target, TCBlocks.TAINT_FEATURE.get().defaultBlockState().setValue(DirectionalBlock.FACING, logFace.getOpposite()), Block.UPDATE_ALL);
-            } else {
-                level.setBlock(target, TCBlocks.TAINT_FIBRE.get().defaultBlockState(), Block.UPDATE_ALL);
-                AuraHelper.drainFlux(level, target, FLUX_PER_CONVERSION, false);
             }
             return;
         }
 
-        if (BlockTaintFibre.isHemmedByTaint(level, target) && hardness < MAX_CONVERT_HARDNESS) {
-            if (targetState.is(BlockTags.LOGS) && !(targetState.getBlock() instanceof ITaintBlock)) {
-                Direction.Axis axis = Direction.Axis.Y;
-                if (targetState.hasProperty(RotatedPillarBlock.AXIS)) {
-                    axis = targetState.getValue(RotatedPillarBlock.AXIS);
+        if (hardness < MAX_CONVERT_HARDNESS) {
+            BlockState converted = convertedState(targetState, countAdjacentTaint(level, target));
+            if (converted != null) {
+                if (ensureTargetBiome(level, target, force, targetTainted)) {
+                    level.setBlock(target, converted, Block.UPDATE_ALL);
+                    TaintEcology.addPressure(level, target, CONVERSION_PRESSURE);
                 }
-                level.setBlock(target, TCBlocks.TAINT_LOG.get().defaultBlockState().setValue(RotatedPillarBlock.AXIS, axis), Block.UPDATE_ALL);
-                return;
-            }
-            if (isCrustConvertible(targetState)) {
-                level.setBlock(target, TCBlocks.TAINT_CRUST.get().defaultBlockState(), Block.UPDATE_ALL);
-                AuraHelper.drainFlux(level, target, FLUX_PER_CONVERSION, false);
-                return;
-            }
-            if (isSoilConvertible(targetState)) {
-                level.setBlock(target, TCBlocks.TAINT_SOIL.get().defaultBlockState(), Block.UPDATE_ALL);
-                AuraHelper.drainFlux(level, target, FLUX_PER_CONVERSION, false);
-                return;
-            }
-            if (isRockConvertible(targetState)) {
-                level.setBlock(target, TCBlocks.TAINT_ROCK.get().defaultBlockState(), Block.UPDATE_ALL);
-                AuraHelper.drainFlux(level, target, FLUX_PER_CONVERSION, false);
                 return;
             }
         }
 
-        trySpawnTaintSeed(level, target, targetState, random, rate);
+        trySpawnTaintSeed(level, target, targetState, random);
     }
 
-    private static void trySpawnTaintSeed(ServerLevel level, BlockPos target, BlockState targetState, RandomSource random, double rate) {
-        if (!targetState.is(TCBlocks.TAINT_SOIL.get()) && !targetState.is(TCBlocks.TAINT_ROCK.get())) {
+    public static boolean trySpreadTaintedBiome(ServerLevel level, BlockPos pos, RandomSource random) {
+        int rate = ThaumaturgeCommonConfig.TAINT_FRONTIER_RATE.get();
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || rate <= 0 || !TaintBiomeManager.isTainted(level, pos) || countAdjacentTaint(level, pos) < LIGHT_CONVERSION_NEIGHBOURS) {
+            return false;
+        }
+        float saturation = Mth.clamp(AuraHelper.getFluxSaturation(level, pos), 0.0F, FRONTIER_MAX_FLUX);
+        float acceleration = 1.0F + Math.min(FRONTIER_FLUX_ACCELERATION, saturation * FRONTIER_FLUX_ACCELERATION);
+        if (random.nextInt(Math.max(1, Math.round(rate * FRONTIER_RATE_SCALE / acceleration))) != 0) {
+            return false;
+        }
+        BlockPos target = pos.offset(random.nextInt(SPREAD_HORIZONTAL) - 1, 0, random.nextInt(SPREAD_HORIZONTAL) - 1);
+        if (!level.hasChunkAt(target) || !TaintBiomeManager.taintColumn(level, target)) {
+            return false;
+        }
+        TaintEcology.addPressure(level, target, FRONTIER_PRESSURE + Math.min(FRONTIER_MAX_FLUX_PRESSURE, saturation * FRONTIER_FLUX_PRESSURE));
+        return true;
+    }
+
+    private static boolean ensureTargetBiome(ServerLevel level, BlockPos target, boolean force, boolean alreadyTainted) {
+        return alreadyTainted || TaintBiomeManager.isTainted(level, target) || force && TaintBiomeManager.taintColumn(level, target);
+    }
+
+    private static @Nullable BlockState convertedState(BlockState state, int adjacentTaint) {
+        if (adjacentTaint >= LIGHT_CONVERSION_NEIGHBOURS && state.is(TCBlockTags.TAINT_CONVERTIBLE_LOG) && !(state.getBlock() instanceof ITaintBlock)) {
+            Direction.Axis axis = state.hasProperty(RotatedPillarBlock.AXIS) ? state.getValue(RotatedPillarBlock.AXIS) : Direction.Axis.Y;
+            return TCBlocks.TAINT_LOG.get().defaultBlockState().setValue(RotatedPillarBlock.AXIS, axis);
+        }
+        if (adjacentTaint >= LIGHT_CONVERSION_NEIGHBOURS && state.is(TCBlockTags.TAINT_CONVERTIBLE_CRUST)) {
+            return TCBlocks.TAINT_CRUST.get().defaultBlockState();
+        }
+        if (adjacentTaint >= HEAVY_CONVERSION_NEIGHBOURS && state.is(TCBlockTags.TAINT_CONVERTIBLE_SOIL)) {
+            return TCBlocks.TAINT_SOIL.get().defaultBlockState();
+        }
+        if (adjacentTaint >= HEAVY_CONVERSION_NEIGHBOURS && state.is(TCBlockTags.TAINT_CONVERTIBLE_ROCK)) {
+            return TCBlocks.TAINT_ROCK.get().defaultBlockState();
+        }
+        return null;
+    }
+
+    private static void trySpawnTaintSeed(ServerLevel level, BlockPos target, BlockState targetState, RandomSource random) {
+        if (random.nextDouble() >= SEED_SPAWN_CHANCE || !targetState.is(TCBlocks.TAINT_SOIL.get()) && !targetState.is(TCBlocks.TAINT_ROCK.get())) {
             return;
         }
-        if (!level.getBlockState(target.above()).isAir()) {
-            return;
-        }
-        if (AuraHelper.getFlux(level, target) < SEED_FLUX_THRESHOLD) {
-            return;
-        }
-        if (random.nextFloat() >= rate * SEED_SPAWN_RATE_FACTOR) {
-            return;
-        }
-        if (!isAtTaintSeedEdge(level, target)) {
+        if (!level.getBlockState(target.above()).isAir() || AuraHelper.getFlux(level, target) < SEED_FLUX_THRESHOLD || TaintEcology.getSaturation(level, target) < SEED_SPAWN_MIN_PRESSURE
+                || !isAtTaintSeedEdge(level, target)) {
             return;
         }
         EntityTaintSeed seed = TCEntities.TAINT_SEED.get().create(level, EntitySpawnReason.NATURAL);
@@ -197,6 +251,7 @@ public final class TaintHelper {
         }
         AuraHelper.drainFlux(level, target, SEED_FLUX_COST, false);
         level.addFreshEntity(seed);
+        TaintEcology.addPressure(level, target, SEED_SPAWN_PRESSURE);
     }
 
     private static boolean canSeedSpawnAt(ServerLevel level, EntityTaintSeed seed) {
@@ -206,37 +261,14 @@ public final class TaintHelper {
         if (!level.noCollision(seed)) {
             return false;
         }
-        double fringe = spreadArea() * 0.8;
+        double fringe = spreadArea() * SEED_EDGE_RATIO;
         AABB box = seed.getBoundingBox().inflate(fringe);
         return level.getEntitiesOfClass(AbstractTaintSeed.class, box, other -> other != seed).isEmpty();
     }
 
-    private static boolean isCrustConvertible(BlockState state) {
-        if (state.is(Blocks.RED_MUSHROOM_BLOCK) || state.is(Blocks.BROWN_MUSHROOM_BLOCK) || state.is(Blocks.MUSHROOM_STEM)) {
-            return true;
-        }
-        if (state.is(Blocks.PUMPKIN) || state.is(Blocks.CARVED_PUMPKIN) || state.is(Blocks.JACK_O_LANTERN) || state.is(Blocks.MELON)) {
-            return true;
-        }
-        if (state.is(Blocks.CACTUS) || state.is(Blocks.SPONGE) || state.is(Blocks.WET_SPONGE)) {
-            return true;
-        }
-        return state.is(BlockTags.CORAL_BLOCKS) || state.is(BlockTags.PLANKS);
-    }
-
-    private static boolean isSoilConvertible(BlockState state) {
-        return state.is(BlockTags.SAND) || state.is(BlockTags.DIRT) || state.is(Blocks.CLAY);
-    }
-
-    private static boolean isRockConvertible(BlockState state) {
-        return state.is(BlockTags.BASE_STONE_OVERWORLD) || state.is(BlockTags.STONE_ORE_REPLACEABLES) || state.is(BlockTags.STONE_BRICKS) || state.is(Tags.Blocks.STONES)
-                || state.is(Tags.Blocks.COBBLESTONES) || state.is(Tags.Blocks.ORES);
-    }
-
-    private static Direction findAdjacentTaintLog(ServerLevel level, BlockPos pos) {
+    private static @Nullable Direction findAdjacentTaintLog(ServerLevel level, BlockPos pos) {
         for (Direction direction : Direction.values()) {
-            BlockState neighborState = level.getBlockState(pos.relative(direction));
-            if (neighborState.is(TCBlocks.TAINT_LOG.get())) {
+            if (level.getBlockState(pos.relative(direction)).is(TCBlocks.TAINT_LOG.get())) {
                 return direction;
             }
         }
