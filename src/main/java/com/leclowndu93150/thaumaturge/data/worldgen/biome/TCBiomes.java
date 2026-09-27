@@ -142,6 +142,7 @@ public final class TCBiomes {
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, TCPlacedFeatures.TREES_TAINTED_LANDS);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, VegetationPlacements.PATCH_GRASS_FOREST);
         BiomeDefaultFeatures.addDefaultExtraVegetation(generation, false);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, TCPlacedFeatures.TAINT_BIOME);
 
         return new Biome.BiomeBuilder().hasPrecipitation(true).temperature(TAINTED_LANDS_TEMPERATURE).downfall(TAINTED_LANDS_DOWNFALL)
                 .setAttribute(EnvironmentAttributes.SKY_COLOR, ARGB.opaque(TAINTED_LANDS_SKY)).setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, ARGB.opaque(TAINTED_LANDS_WATER_FOG))
