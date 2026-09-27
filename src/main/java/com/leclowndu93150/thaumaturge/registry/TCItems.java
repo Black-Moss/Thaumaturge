@@ -496,6 +496,7 @@ public final class TCItems {
     //
 
     public static final DeferredItem<BlockItem> PLANT_SHIMMERLEAF = ITEMS.registerSimpleBlockItem(TCBlocks.PLANT_SHIMMERLEAF);
+    public static final DeferredItem<BlockItem> ETHEREAL_BLOOM = ITEMS.registerSimpleBlockItem(TCBlocks.ETHEREAL_BLOOM);
     public static final DeferredItem<BlockItem> PLANT_CINDERPEARL = ITEMS.registerSimpleBlockItem(TCBlocks.PLANT_CINDERPEARL);
     public static final DeferredItem<BlockItem> PLANT_VISHROOM = ITEMS.registerSimpleBlockItem(TCBlocks.PLANT_VISHROOM);
     public static final DeferredItem<BlockItem> GRASS_AMBIENT = ITEMS.registerSimpleBlockItem(TCBlocks.GRASS_AMBIENT);

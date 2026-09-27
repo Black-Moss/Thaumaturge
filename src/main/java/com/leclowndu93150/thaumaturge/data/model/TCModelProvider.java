@@ -1234,10 +1234,12 @@ public final class TCModelProvider extends ModelProvider {
         pottedPlant(blockModels, TCBlocks.POTTED_VISHROOM.get(), TCBlocks.PLANT_VISHROOM.get());
 
         cross(blockModels, TCBlocks.PLANT_SHIMMERLEAF.get());
+        cross(blockModels, TCBlocks.ETHEREAL_BLOOM.get());
         cross(blockModels, TCBlocks.PLANT_CINDERPEARL.get());
         cross(blockModels, TCBlocks.PLANT_VISHROOM.get());
 
         flatItemFromBlock(itemModels, TCItems.PLANT_SHIMMERLEAF.get(), TCBlocks.PLANT_SHIMMERLEAF.get());
+        flatItemFromBlock(itemModels, TCItems.ETHEREAL_BLOOM.get(), TCBlocks.ETHEREAL_BLOOM.get());
         flatItemFromBlock(itemModels, TCItems.PLANT_CINDERPEARL.get(), TCBlocks.PLANT_CINDERPEARL.get());
         flatItemFromBlock(itemModels, TCItems.PLANT_VISHROOM.get(), TCBlocks.PLANT_VISHROOM.get());
 

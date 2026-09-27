@@ -510,6 +510,7 @@ public final class TCEnglishProvider extends LanguageProvider {
     private void langEPlants() {
 
         add("block.thaumaturge.shimmerleaf", "Shimmerleaf");
+        add("block.thaumaturge.ethereal_bloom", "Ethereal Bloom");
         add("block.thaumaturge.cinderpearl", "Cinderpearl");
         add("block.thaumaturge.vishroom", "Vishroom");
         add("block.thaumaturge.potted_sapling_greatwood", "Potted Greatwood Sapling");

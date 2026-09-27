@@ -4,6 +4,8 @@ import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.content.taint.spread.TaintSeedRegistry;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
@@ -32,6 +34,8 @@ public abstract class AbstractTaintSeed extends Monster implements ITaintedMob {
     private static final float AMBIENT_FUME_SCALE = 1.5F;
     private static final float STARVE_DAMAGE = 0.5F;
     private static final float STARVE_POLLUTION = 0.1F;
+    private static final int MAX_EXTRA_SPREAD_ATTEMPTS = 3;
+    private static final float SPREAD_ATTEMPTS_PER_SATURATION = 2.0F;
     private static final float FLUX_TAINT_RADIUS_MULT = 4.0F;
     private static final int FLUX_TAINT_TICKS = 100;
     private static final byte EVENT_ATTACK = 16;
@@ -102,12 +106,16 @@ public abstract class AbstractTaintSeed extends Monster implements ITaintedMob {
                     .motion(0.0, AMBIENT_FUME_RISE + this.random.nextDouble() * AMBIENT_FUME_RISE, 0.0).scale(AMBIENT_FUME_SCALE).send();
         }
         BlockPos pos = this.blockPosition();
-        float saturation = AuraHelper.getFluxSaturation(server, pos);
+        TaintEcology.touchActiveSeed(server, pos);
+        TaintBiomeManager.taintColumn(server, pos);
+        float saturation = Math.max(0.0F, AuraHelper.getFluxSaturation(server, pos));
         if (saturation <= 0.0F) {
             this.hurtServer(server, server.damageSources().starve(), STARVE_DAMAGE);
             AuraHelper.polluteAura(server, pos, STARVE_POLLUTION, false);
-        } else {
-            int area = getArea();
+        }
+        int area = getArea();
+        int attempts = 1 + Math.min(MAX_EXTRA_SPREAD_ATTEMPTS, Mth.floor(saturation * SPREAD_ATTEMPTS_PER_SATURATION));
+        for (int attempt = 0; attempt < attempts; attempt++) {
             int dx = Mth.nextInt(server.getRandom(), -area * 3, area * 3);
             int dy = Mth.nextInt(server.getRandom(), -area, area);
             int dz = Mth.nextInt(server.getRandom(), -area * 3, area * 3);

@@ -67,6 +67,7 @@ import com.leclowndu93150.thaumaturge.content.misc.nitor.BlockEntityNitor;
 import com.leclowndu93150.thaumaturge.content.research.decon.BlockEntityDeconstructionTable;
 import com.leclowndu93150.thaumaturge.content.research.table.BlockEntityResearchTable;
 import com.leclowndu93150.thaumaturge.content.spa.BlockEntitySpa;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.BlockEntityEtherealBloom;
 import com.leclowndu93150.thaumaturge.content.workbench.BlockEntityArcaneWorkbench;
 import java.util.HashSet;
 import java.util.Set;
@@ -141,6 +142,9 @@ public final class TCBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEssentiaCrystalizer>> ESSENTIA_CRYSTALIZER = BLOCK_ENTITIES.register("essentia_crystalizer",
             () -> new BlockEntityType<>(BlockEntityEssentiaCrystalizer::new, Set.of(TCBlocks.ESSENTIA_CRYSTALIZER.get())));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEtherealBloom>> ETHEREAL_BLOOM = BLOCK_ENTITIES.register("ethereal_bloom",
+            () -> new BlockEntityType<>(BlockEntityEtherealBloom::new, Set.of(TCBlocks.ETHEREAL_BLOOM.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAlembic>> ALEMBIC = BLOCK_ENTITIES.register("alembic",
             () -> new BlockEntityType<>(BlockEntityAlembic::new, Set.of(TCBlocks.ALEMBIC.get())));

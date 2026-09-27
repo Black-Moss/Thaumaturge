@@ -142,6 +142,15 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
         return computeState(TCBlocks.TAINT_FIBRE.get().defaultBlockState(), level, pos);
     }
 
+    public static boolean hasSolidAttachment(LevelReader level, BlockPos pos) {
+        for (Direction direction : Direction.values()) {
+            if (canAttachTo(level, pos.relative(direction), direction.getOpposite())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static BlockState computeState(BlockState state, LevelReader level, BlockPos pos) {
         boolean north = canAttachTo(level, pos.north(), Direction.SOUTH);
         boolean east = canAttachTo(level, pos.east(), Direction.WEST);
@@ -165,12 +174,7 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        for (Direction direction : Direction.values()) {
-            if (canAttachTo(level, pos.relative(direction), direction.getOpposite())) {
-                return true;
-            }
-        }
-        return false;
+        return hasSolidAttachment(level, pos);
     }
 
     @Override

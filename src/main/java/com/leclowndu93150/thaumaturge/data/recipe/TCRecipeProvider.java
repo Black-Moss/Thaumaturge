@@ -587,6 +587,10 @@ public final class TCRecipeProvider extends RecipeProvider {
                 DataComponentIngredient.of(TCDataComponents.ASPECTS.get(), AspectList.of(new AspectInstance(aspects.getOrThrow(TCAspects.VITIUM), PhialItem.BASE_AMOUNT)), TCItems.PHIAL.get()))
                 .aspect(TCAspects.VITIUM, 30).aspect(TCAspects.AQUA, 30).gate(gate("bottle_taint")).unlockedBy("has", has(TCItems.PHIAL.get())).save(output);
 
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.ETHEREAL_BLOOM), Ingredient.of(TCItems.PLANT_SHIMMERLEAF.get())).aspect(TCAspects.LUX, 8)
+                .aspect(TCAspects.HERBA, 16).aspect(TCAspects.VICTUS, 16).aspect(TCAspects.VITIUM, 16).gate(gate("ethereal_bloom")).unlockedBy("has", has(TCItems.PLANT_SHIMMERLEAF.get()))
+                .save(output);
+
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.BATH_SALTS), Ingredient.of(TCItems.SALIS_MUNDUS)).aspect(TCAspects.COGNITIO, 40).aspect(TCAspects.AER, 40)
                 .aspect(TCAspects.ORDO, 40).aspect(TCAspects.VICTUS, 40).gate(gate("bath_salts")).unlockedBy("has", has(TCItems.SALIS_MUNDUS)).save(output);
 

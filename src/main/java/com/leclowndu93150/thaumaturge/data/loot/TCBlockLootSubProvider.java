@@ -206,6 +206,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         add(TCBlocks.LEAVES_GREATWOOD.get(), createLeavesDrops(TCBlocks.LEAVES_GREATWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get()));
         add(TCBlocks.LEAVES_SILVERWOOD.get(), createLeavesDrops(TCBlocks.LEAVES_SILVERWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get()));
         dropSelf(TCBlocks.PLANT_SHIMMERLEAF.get());
+        dropSelf(TCBlocks.ETHEREAL_BLOOM.get());
         dropSelf(TCBlocks.PLANT_CINDERPEARL.get());
         dropSelf(TCBlocks.PLANT_VISHROOM.get());
         add(TCBlocks.GRASS_AMBIENT.get(), block -> createSingleItemTableWithSilkTouch(block, Blocks.DIRT));
