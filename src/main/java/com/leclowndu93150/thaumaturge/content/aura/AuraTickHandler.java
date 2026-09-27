@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.aura;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.aura.pressure.FluxPressureEvents;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxAuraFloor;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxOutbreaks;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
@@ -38,6 +39,7 @@ public final class AuraTickHandler {
     private static final float DEGRADE_CHANCE = 0.1F;
     private static final float RIFT_FLUX_RATIO = 0.75F;
     private static final float RIFT_CHANCE_DIVISOR = 5000.0F;
+    private static final float PRESSURE_EVENT_CHANCE_SCALE = 100.0F;
     private static final float PHYSICAL_FLUX_SEEP_CAP = 0.5F;
 
     private AuraTickHandler() {}
@@ -140,9 +142,14 @@ public final class AuraTickHandler {
             chunk.markUnsaved();
         }
 
-        if (flux > base * RIFT_FLUX_RATIO && rand.nextFloat() < flux / RIFT_CHANCE_DIVISOR) {
+        if (flux <= base * RIFT_FLUX_RATIO) {
+            return;
+        }
+        if (rand.nextFloat() < flux / RIFT_CHANCE_DIVISOR) {
             ChunkPos pos = aura.getChunkPos();
             AuraManager.queueRiftTrigger(level, new BlockPos(pos.x() * 16, 0, pos.z() * 16));
+        } else if (rand.nextFloat() < flux / (Math.max(1.0F, base) * PRESSURE_EVENT_CHANCE_SCALE)) {
+            FluxPressureEvents.queue(level, aura.getChunkPos());
         }
     }
 

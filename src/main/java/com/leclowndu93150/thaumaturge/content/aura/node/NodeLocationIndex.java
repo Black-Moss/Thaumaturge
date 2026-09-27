@@ -52,6 +52,21 @@ public final class NodeLocationIndex extends SavedData {
                 .min(Comparator.comparingDouble((BlockPos pos) -> pos.distSqr(origin)).thenComparingLong(BlockPos::asLong));
     }
 
+    public Optional<BlockPos> findNearestAny(BlockPos origin, double maxDistance) {
+        double maxDistanceSq = maxDistance * maxDistance;
+        BlockPos nearest = null;
+        double nearestSq = Double.MAX_VALUE;
+        for (long packed : nodes.keySet()) {
+            BlockPos pos = BlockPos.of(packed);
+            double distSq = pos.distSqr(origin);
+            if (distSq <= maxDistanceSq && distSq < nearestSq) {
+                nearest = pos;
+                nearestSq = distSq;
+            }
+        }
+        return Optional.ofNullable(nearest);
+    }
+
     private record Entry(BlockPos pos, NodeType type) {
         private static final Codec<Entry> CODEC = RecordCodecBuilder
                 .create(instance -> instance.group(BlockPos.CODEC.fieldOf("pos").forGetter(Entry::pos), NodeType.CODEC.fieldOf("type").forGetter(Entry::type)).apply(instance, Entry::new));
