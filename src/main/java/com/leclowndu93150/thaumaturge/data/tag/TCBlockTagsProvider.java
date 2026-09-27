@@ -26,6 +26,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.ARCANE_WORKBENCH_CHARGER_HOSTS).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.FOCAL_MANIPULATOR.get());
         tag(TCBlockTags.PHYSICAL_FLUX).add(TCBlocks.FLUX_GOO.get()).add(TCBlocks.FLUX_GAS.get());
         tag(TCBlockTags.FLUX_SCRUBBABLE).addTag(TCBlockTags.PHYSICAL_FLUX);
+        tag(TCBlockTags.CANDLES).addAll(TCBlocks.CANDLES.values().stream().map(DeferredHolder::get));
         tag(TCBlockTags.TAINT_CONVERTIBLE_LOG).addTag(BlockTags.LOGS);
         tag(TCBlockTags.TAINT_CONVERTIBLE_SOIL).addTag(BlockTags.SAND).addTag(BlockTags.DIRT).add(Blocks.CLAY);
         tag(TCBlockTags.TAINT_CONVERTIBLE_ROCK).addTag(BlockTags.BASE_STONE_OVERWORLD).addTag(BlockTags.STONE_ORE_REPLACEABLES).addTag(BlockTags.STONE_BRICKS).addTag(Tags.Blocks.STONES)

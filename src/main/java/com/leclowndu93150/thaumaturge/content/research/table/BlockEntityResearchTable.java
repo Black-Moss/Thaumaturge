@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
+import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
@@ -172,7 +173,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
         if ((state.getFluidState().is(FluidTags.LAVA) || state.is(Blocks.FIRE)) && random.nextInt(20) == 0) {
             return TCAspects.IGNIS;
         }
-        if ((state.getBlock() instanceof RedStoneWireBlock || state.getBlock() instanceof PistonBaseBlock) && random.nextInt(20) == 0) {
+        if ((state.getBlock() instanceof RedStoneWireBlock || state.getBlock() instanceof PistonBaseBlock || state.is(TCBlockTags.CANDLES)) && random.nextInt(20) == 0) {
             return TCAspects.ORDO;
         }
         return null;
