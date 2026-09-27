@@ -20,6 +20,10 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
         tag(TCBlockTags.LAMP_GROWTH_BLACKLIST);
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TCBlocks.TUBE.get()).add(TCBlocks.TUBE_VALVE.get()).add(TCBlocks.TUBE_RESTRICT.get()).add(TCBlocks.TUBE_FILTER.get()).add(TCBlocks.TUBE_ONEWAY.get())
+                .add(TCBlocks.TUBE_BUFFER.get()).add(TCBlocks.ESSENTIA_INPUT.get()).add(TCBlocks.ESSENTIA_OUTPUT.get()).add(TCBlocks.FOCAL_MANIPULATOR.get());
+        tag(BlockTags.MINEABLE_WITH_AXE).add(TCBlocks.CENTRIFUGE.get()).add(TCBlocks.ALEMBIC.get()).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.RESEARCH_TABLE.get())
+                .add(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());
         tag(TCBlockTags.INFUSION_STABILISERS).add(Blocks.SKELETON_SKULL).add(Blocks.SKELETON_WALL_SKULL).add(Blocks.WITHER_SKELETON_SKULL).add(Blocks.WITHER_SKELETON_WALL_SKULL)
                 .add(Blocks.ZOMBIE_HEAD).add(Blocks.ZOMBIE_WALL_HEAD).add(Blocks.PLAYER_HEAD).add(Blocks.PLAYER_WALL_HEAD).add(Blocks.CREEPER_HEAD).add(Blocks.CREEPER_WALL_HEAD)
                 .add(Blocks.DRAGON_HEAD).add(Blocks.DRAGON_WALL_HEAD).add(Blocks.PIGLIN_HEAD).add(Blocks.PIGLIN_WALL_HEAD);
@@ -84,7 +88,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TCBlocks.ORE_AMBER.get()).add(TCBlocks.ORE_CINNABAR.get()).add(TCBlocks.ORE_QUARTZ.get()).add(TCBlocks.SMELTER_BASIC.get())
                 .add(TCBlocks.SMELTER_THAUMIUM.get()).add(TCBlocks.SMELTER_VOID.get()).add(TCBlocks.SMELTER_AUX.get()).add(TCBlocks.SMELTER_VENT.get()).add(TCBlocks.SPA.get())
-                .add(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()).add(TCBlocks.ALCHEMICAL_CONSTRUCT.get()).add(TCBlocks.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
+                .add(TCBlocks.ALCHEMICAL_CONSTRUCT.get()).add(TCBlocks.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
 
         tag(BlockTags.NEEDS_STONE_TOOL).add(TCBlocks.ORE_AMBER.get());
 
