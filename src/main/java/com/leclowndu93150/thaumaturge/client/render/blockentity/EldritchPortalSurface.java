@@ -15,7 +15,7 @@ public final class EldritchPortalSurface {
     public static final Identifier PARTICLE_FIELD_TEXTURE = TCIds.rl("textures/misc/particlefield.png");
 
     public static final RenderType SURFACE = RenderType.create("tc_eldritch_portal_surface",
-            RenderSetup.builder(TCRenderPipelines.PORTAL_SURFACE).withTexture("Sampler0", TUNNEL_TEXTURE).withTexture("Sampler1", PARTICLE_FIELD_TEXTURE).createRenderSetup());
+            RenderSetup.builder(TCRenderPipelines.PORTAL_SURFACE).withTexture("Sampler0", PARTICLE_FIELD_TEXTURE).withTexture("Sampler1", TUNNEL_TEXTURE).createRenderSetup());
 
     private EldritchPortalSurface() {}
 

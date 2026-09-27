@@ -48,9 +48,9 @@ const float UV_SHARPNESS = 3.0;
 
 void main() {
     vec2 base = texCoord0 * UV_SHARPNESS;
-    vec3 color = texture(Sampler0, layer_uv(base, 0)).rgb * COLORS[0];
+    vec3 color = texture(Sampler1, layer_uv(base, 0)).rgb * COLORS[0];
     for (int i = 1; i < 16; i++) {
-        vec4 tex = texture(Sampler1, layer_uv(base, i));
+        vec4 tex = texture(Sampler0, layer_uv(base, i));
         color += tex.rgb * tex.a * COLORS[i];
     }
     fragColor = apply_fog(vec4(color, 1.0), sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
