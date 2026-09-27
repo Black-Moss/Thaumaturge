@@ -11,6 +11,10 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 public final class IrisCompat {
     private IrisCompat() {}
 
+    public static boolean shaderPackInUse() {
+        return ModList.get().isLoaded(TCIds.IRIS) && IrisPipelineBinding.shaderPackInUse();
+    }
+
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         if (!ModList.get().isLoaded(TCIds.IRIS)) {

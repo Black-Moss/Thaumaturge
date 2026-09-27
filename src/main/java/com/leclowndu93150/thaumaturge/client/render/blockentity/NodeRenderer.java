@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.client.casters.WandTipTracker;
 import com.leclowndu93150.thaumaturge.client.effect.FloatyLineRenderer;
 import com.leclowndu93150.thaumaturge.client.effect.LateWorldRenderQueue;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumaturge.compat.iris.IrisCompat;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
@@ -51,6 +52,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     private static final float BASE_LAYER_SCALE = 0.25F;
     private static final float FAINT_ALPHA = 0.1F;
     private static final float FAINT_SCALE = 0.5F;
+    private static final int FAINT_SHADER_PACK_COLOR = ARGB.gray(FAINT_ALPHA);
     private static final float JARRED_SIZE = 0.7F;
     private static final float JARRED_HEIGHT = 0.4F;
     private static final int STRIP_ASPECT = 0;
@@ -104,6 +106,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         state.visible = false;
         state.depthIgnore = false;
         state.alpha = 0.0F;
+        state.shaderPack = IrisCompat.shaderPackInUse();
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;
@@ -215,6 +218,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         copy.modifier = state.modifier;
         copy.visible = state.visible;
         copy.depthIgnore = state.depthIgnore;
+        copy.shaderPack = state.shaderPack;
         copy.alpha = state.alpha;
         copy.size = state.size;
         copy.ticks = state.ticks;
@@ -239,7 +243,11 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     public static void forEachLayer(NodeRenderState state, LayerSink sink) {
         int frame = (int) ((state.ticks * FRAME_ADVANCE_PER_TICK + state.frameSeed) % GRID + GRID) % GRID;
         if (!state.visible || state.layers.isEmpty()) {
-            sink.layer(0, NODE_ADDITIVE, 0.0F, FAINT_SCALE, FAINT_ALPHA, 0xFFFFFF, STRIP_NORMAL, frame);
+            if (state.shaderPack) {
+                sink.layer(0, NODE_ADDITIVE, 0.0F, FAINT_SCALE, 1.0F, FAINT_SHADER_PACK_COLOR, STRIP_NORMAL, frame);
+            } else {
+                sink.layer(0, NODE_ADDITIVE, 0.0F, FAINT_SCALE, FAINT_ALPHA, 0xFFFFFF, STRIP_NORMAL, frame);
+            }
             return;
         }
         float average = 0.0F;

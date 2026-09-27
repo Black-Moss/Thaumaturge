@@ -19,6 +19,7 @@ public final class NodeRenderState extends BlockEntityRenderState {
     public @Nullable NodeModifier modifier;
     public boolean visible;
     public boolean depthIgnore;
+    public boolean shaderPack;
     public float alpha;
     public float ticks;
     public long time;

@@ -27,6 +27,10 @@ public final class IrisPipelineBinding {
         }
     }
 
+    static boolean shaderPackInUse() {
+        return IrisApi.getInstance().isShaderPackInUse();
+    }
+
     private static @Nullable IrisProgram programFor(RenderPipeline pipeline) {
         VertexFormat format = pipeline.getVertexFormat();
         if (format == DefaultVertexFormat.PARTICLE) {
