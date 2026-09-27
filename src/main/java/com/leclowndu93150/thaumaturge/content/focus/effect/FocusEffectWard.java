@@ -100,24 +100,33 @@ public final class FocusEffectWard implements FocusEffect {
         }
         BlockPos pos = blockHit.getBlockPos();
         UUID owner = player.getUUID();
+        BlockPos partner = WardHandler.partner(level.getBlockState(pos), pos);
         if (WardHandler.isWarded(level, pos)) {
             if (!WardHandler.unward(level, pos, owner)) {
                 return false;
+            }
+            if (partner != null) {
+                WardHandler.unward(level, partner, owner);
             }
             FocusFX.impact(level, Vec3.atCenterOf(pos), id());
             level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH);
             return true;
         }
-        if (!WardHandler.canWard(level, pos)) {
+        if (!WardHandler.canWard(level, pos) || (partner != null && !WardHandler.canWard(level, partner))) {
             return false;
         }
-        if (!WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, aspect(), false)) {
+        float visCost = partner == null ? VIS_COST_PER_BLOCK : VIS_COST_PER_BLOCK * 2.0F;
+        if (!WandVisHelper.consumeVisFromHotbar(player, visCost, aspect(), false)) {
             return false;
         }
         if (!WardHandler.ward(level, pos, owner)) {
             return false;
         }
-        WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, aspect(), true);
+        if (partner != null && !WardHandler.ward(level, partner, owner)) {
+            WardHandler.unward(level, pos, owner);
+            return false;
+        }
+        WandVisHelper.consumeVisFromHotbar(player, visCost, aspect(), true);
         FocusFX.impact(level, Vec3.atCenterOf(pos), id());
         level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH);
         return true;

@@ -109,6 +109,9 @@ public final class TCDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> MIRROR_LINK = DATA_COMPONENTS.registerComponentType("mirror_link",
             builder -> builder.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> ARCANE_KEY_LINK = DATA_COMPONENTS.registerComponentType("arcane_key_link",
+            builder -> builder.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ShareBinding>> SHARE_BINDING = DATA_COMPONENTS.registerComponentType("share_binding",
             builder -> builder.persistent(ShareBinding.CODEC).networkSynchronized(ShareBinding.STREAM_CODEC));
 

@@ -283,6 +283,16 @@ public final class TCRecipeProvider extends RecipeProvider {
         arcaneShaped(new ItemStackTemplate(TCItems.WARDED_GLASS.get(), 8), 25).aspect(TCAspects.AQUA, 5).aspect(TCAspects.ORDO, 10).aspect(TCAspects.TERRA, 5).aspect(TCAspects.IGNIS, 5).pattern("GGG")
                 .pattern("WBW").pattern("GGG").define('G', Tags.Items.GLASS_BLOCKS).define('W', TCItems.PLANK_GREATWOOD).define('B', TCItems.BRAIN).gate(wardedArcana)
                 .unlockedBy("has", has(TCItems.BRAIN)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.ARCANE_DOOR.get()), 45).aspect(TCAspects.AQUA, 20).aspect(TCAspects.ORDO, 10).aspect(TCAspects.TERRA, 10).aspect(TCAspects.IGNIS, 5).pattern("TDT")
+                .pattern("DBD").pattern("TDT").define('T', TCItemTags.INGOTS_THAUMIUM).define('D', TCItems.PLANK_GREATWOOD).define('B', TCItems.BRAIN).gate(wardedArcana)
+                .unlockedBy("has", has(TCItems.BRAIN)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.ARCANE_PRESSURE_PLATE.get()), 45).aspect(TCAspects.AQUA, 20).aspect(TCAspects.ORDO, 10).aspect(TCAspects.TERRA, 10).aspect(TCAspects.IGNIS, 5)
+                .pattern(" B ").pattern("TDT").define('T', TCItemTags.INGOTS_THAUMIUM).define('D', TCItems.PLANK_GREATWOOD).define('B', TCItems.BRAIN).gate(wardedArcana)
+                .unlockedBy("has", has(TCItems.BRAIN)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.ARCANE_KEY_IRON.get(), 2), 10).aspect(TCAspects.AQUA, 5).aspect(TCAspects.ORDO, 5).pattern("NNI").pattern("N  ").define('N', Tags.Items.NUGGETS_IRON)
+                .define('I', Tags.Items.INGOTS_IRON).gate(wardedArcana).unlockedBy("has", has(Tags.Items.INGOTS_IRON)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.ARCANE_KEY_GOLD.get(), 2), 10).aspect(TCAspects.AQUA, 5).aspect(TCAspects.ORDO, 5).pattern("NNI").pattern("N  ").define('N', Tags.Items.NUGGETS_GOLD)
+                .define('I', Tags.Items.INGOTS_GOLD).gate(wardedArcana).unlockedBy("has", has(Tags.Items.INGOTS_GOLD)).save(output);
     }
 
     private void buildDecorRecipes() {

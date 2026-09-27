@@ -253,6 +253,8 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.ITEM_GRATE.get());
         dropSelf(TCBlocks.GOLEM_FETTER.get());
         dropSelf(TCBlocks.WARDED_GLASS.get());
+        add(TCBlocks.ARCANE_DOOR.get(), this::createDoorTable);
+        dropSelf(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         dropSelf(TCBlocks.POTION_SPRAYER.get());
         dropSelf(TCBlocks.PATTERN_CRAFTER.get());
         dropSelf(TCBlocks.INLAY.get());

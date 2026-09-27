@@ -13,6 +13,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
@@ -61,6 +63,20 @@ public final class WardHandler {
         chunk.markUnsaved();
         PacketDistributor.sendToPlayersTrackingChunk(level, chunk.getPos(), new ClientboundWardUpdatePayload(pos, Optional.empty()));
         return true;
+    }
+
+    public static void clear(ServerLevel level, BlockPos pos) {
+        UUID owner = owner(level, pos);
+        if (owner != null) {
+            unward(level, pos, owner);
+        }
+    }
+
+    public static @Nullable BlockPos partner(BlockState state, BlockPos pos) {
+        if (!state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+            return null;
+        }
+        return state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
     }
 
     public static void syncChunk(ServerPlayer player, LevelChunk chunk) {
