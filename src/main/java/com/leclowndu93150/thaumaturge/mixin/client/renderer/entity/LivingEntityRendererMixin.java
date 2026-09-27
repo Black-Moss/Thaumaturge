@@ -1,8 +1,10 @@
 package com.leclowndu93150.thaumaturge.mixin.client.renderer.entity;
 
 import com.leclowndu93150.thaumaturge.client.champion.ChampionRenderState;
+import com.leclowndu93150.thaumaturge.client.taint.overlay.TaintOverlayRenderState;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionModifier;
+import com.leclowndu93150.thaumaturge.registry.TCEntityTags;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -18,8 +20,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("TAIL"))
     private void thaumaturge$extractChampionType(T entity, S state, float partialTicks, CallbackInfo ci) {
-        ((ChampionRenderState) state).thaumaturge$setChampionType(ChampionHelper.championType(entity));
+        int championType = ChampionHelper.championType(entity);
+        ((ChampionRenderState) state).thaumaturge$setChampionType(championType);
         ((ChampionRenderState) state).thaumaturge$setEntityId(entity.getId());
+        ((TaintOverlayRenderState) state).thaumaturge$setTaintOverlay(championType == ChampionModifier.TAINTED || entity.is(TCEntityTags.TAINT_OVERLAY));
     }
 
     @Inject(method = "getModelTint", at = @At("RETURN"), cancellable = true)

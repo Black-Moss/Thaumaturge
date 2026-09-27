@@ -88,11 +88,6 @@ public final class TCRenderPipelines {
             .withShaderDefine("NO_OVERLAY").withShaderDefine("NO_CARDINAL_LIGHTING").withSampler("Sampler0").withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS).withDepthStencilState(ALWAYS_NO_WRITE).withCull(false).build();
 
-    public static final RenderPipeline TAINTED_SWIRL_NO_DEPTH = RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
-            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/tainted_swirl_no_depth")).withShaderDefine("ALPHA_CUTOUT", 0.1F).withShaderDefine("APPLY_TEXTURE_MATRIX")
-            .withShaderDefine("NO_OVERLAY").withShaderDefine("NO_CARDINAL_LIGHTING").withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withDepthStencilState(TEST_NO_WRITE)
-            .withCull(false).build();
-
     public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
             .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/gui_textured_additive")).withColorTargetState(new ColorTargetState(TC_ADDITIVE)).build();
 
@@ -113,7 +108,6 @@ public final class TCRenderPipelines {
         event.registerPipeline(ENTITY_TRANSLUCENT_FLAT);
         event.registerPipeline(ENTITY_ADDITIVE_EMISSIVE);
         event.registerPipeline(ENTITY_TRANSLUCENT_NO_DEPTH);
-        event.registerPipeline(TAINTED_SWIRL_NO_DEPTH);
     }
 
     private TCRenderPipelines() {}

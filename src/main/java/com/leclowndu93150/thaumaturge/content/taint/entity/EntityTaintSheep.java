@@ -42,7 +42,6 @@ public final class EntityTaintSheep extends Sheep implements ITaintedMob, TaintC
     @Override
     public void copyConvertedState(LivingEntity source) {
         if (source instanceof Sheep sheep) {
-            setColor(sheep.getColor());
             setSheared(sheep.isSheared());
         }
     }
