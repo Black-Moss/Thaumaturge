@@ -41,7 +41,6 @@ import com.leclowndu93150.thaumaturge.content.warp.WarpEvents;
 import com.leclowndu93150.thaumaturge.data.worldgen.feature.TCConfiguredFeatures;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
-import com.leclowndu93150.thaumaturge.registry.TCFocusElements;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
 import com.mojang.brigadier.Command;
@@ -101,9 +100,6 @@ public final class TCCommands {
     private static final SuggestionProvider<CommandSourceStack> WARP_TYPES = (ctx, builder) -> SharedSuggestionProvider
             .suggest(Arrays.stream(WarpType.values()).map(t -> t.name().toLowerCase(Locale.ROOT)), builder);
 
-    private static final SuggestionProvider<CommandSourceStack> FOCUS_ELEMENTS = (ctx, builder) -> SharedSuggestionProvider
-            .suggest(TCFocusElements.registry().keySet().stream().map(Identifier::toString), builder);
-
     private static final SuggestionProvider<CommandSourceStack> FLUX_EVENTS = (ctx, builder) -> SharedSuggestionProvider.suggest(FluxPressureEventTypes.ALL.stream().map(FluxPressureEvent::name),
             builder);
 
@@ -156,7 +152,7 @@ public final class TCCommands {
                 .then(Commands.literal("link").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(Commands.literal("unlink").executes(TCCommands::shareUnlink))).then(
                         Commands.literal("focus").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
-                                        .then(Commands.argument("elements", StringArgumentType.greedyString()).suggests(FOCUS_ELEMENTS).executes(TCCommands::giveFocus))))
+                                        .then(Commands.argument("elements", StringArgumentType.greedyString()).suggests(FocusElementArguments.SUGGESTIONS).executes(TCCommands::giveFocus))))
                 .then(Commands
                         .literal("warp").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(
                                 Commands.literal("info").executes(TCCommands::warpInfo))
@@ -635,16 +631,10 @@ public final class TCCommands {
         try {
             ServerPlayer player = ctx.getSource().getPlayerOrException();
             int tier = IntegerArgumentType.getInteger(ctx, "tier");
-            String[] tokens = StringArgumentType.getString(ctx, "elements").trim().split("\\s+");
             FocusPackage.Builder core = FocusPackage.builder().caster(player);
             int complexity = 0;
-            for (String token : tokens) {
-                Identifier id = token.contains(":") ? Identifier.parse(token) : Identifier.fromNamespaceAndPath(TCIds.MODID, token);
+            for (Identifier id : FocusElementArguments.parse(StringArgumentType.getString(ctx, "elements"))) {
                 FocusElement element = FocusEngine.element(id);
-                if (element == null) {
-                    ctx.getSource().sendFailure(Component.literal("Unknown focus element: " + id));
-                    return 0;
-                }
                 complexity += element.complexity(FocusSettings.defaults(element));
                 core.add(id);
             }
