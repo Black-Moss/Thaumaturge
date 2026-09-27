@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.taint.ecology;
 
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
@@ -41,7 +42,7 @@ public final class TaintBiomeManager {
     }
 
     public static boolean taintColumn(ServerLevel level, BlockPos pos) {
-        if (isTainted(level, pos) || level.getBiome(pos).is(BiomeTags.IS_RIVER)) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || isTainted(level, pos) || level.getBiome(pos).is(BiomeTags.IS_RIVER) || TaintBlooms.isProtected(level, pos)) {
             return false;
         }
         return replaceColumn(level, pos, TCBiomes.TAINTED_LANDS);

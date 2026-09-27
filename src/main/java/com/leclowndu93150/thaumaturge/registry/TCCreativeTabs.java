@@ -245,6 +245,7 @@ public final class TCCreativeTabs {
                 output.accept(TCItems.PLANK_GREATWOOD.get());
                 output.accept(TCItems.PLANK_SILVERWOOD.get());
                 output.accept(TCItems.PLANT_SHIMMERLEAF.get());
+                output.accept(TCItems.ETHEREAL_BLOOM.get());
                 output.accept(TCItems.PLANT_CINDERPEARL.get());
                 output.accept(TCItems.PLANT_VISHROOM.get());
                 output.accept(TCItems.GRASS_AMBIENT.get());

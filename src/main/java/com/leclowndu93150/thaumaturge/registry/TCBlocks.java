@@ -104,6 +104,7 @@ import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintGeyser;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintLog;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintRock;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintSoil;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.BlockEtherealBloom;
 import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGas;
 import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumaturge.content.taint.flux.FluxGooRefs;
@@ -607,6 +608,9 @@ public final class TCBlocks {
 
     public static final DeferredBlock<FlowerPotBlock> POTTED_SAPLING_GREATWOOD = pottedPlant("potted_sapling_greatwood", SAPLING_GREATWOOD);
     public static final DeferredBlock<FlowerPotBlock> POTTED_SAPLING_SILVERWOOD = pottedPlant("potted_sapling_silverwood", SAPLING_SILVERWOOD);
+    public static final DeferredBlock<BlockEtherealBloom> ETHEREAL_BLOOM = BLOCKS.registerBlock("ethereal_bloom", BlockEtherealBloom::new,
+            props -> props.mapColor(MapColor.PLANT).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 12).pushReaction(PushReaction.DESTROY).noOcclusion());
+
     public static final DeferredBlock<FlowerPotBlock> POTTED_SHIMMERLEAF = pottedPlant("potted_shimmerleaf", PLANT_SHIMMERLEAF);
     public static final DeferredBlock<FlowerPotBlock> POTTED_CINDERPEARL = pottedPlant("potted_cinderpearl", PLANT_CINDERPEARL);
     public static final DeferredBlock<FlowerPotBlock> POTTED_VISHROOM = pottedPlant("potted_vishroom", PLANT_VISHROOM);

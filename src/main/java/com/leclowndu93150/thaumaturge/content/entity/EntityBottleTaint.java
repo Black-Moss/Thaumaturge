@@ -1,6 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -22,15 +26,23 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
+import org.jspecify.annotations.Nullable;
 
 public final class EntityBottleTaint extends ThrowableItemProjectile implements ItemSupplier {
     private static final double SPLASH_RADIUS = 5.0;
     private static final int FLUX_TAINT_TICKS = 100;
-    private static final int GOO_ATTEMPTS = 10;
-    private static final float GOO_SPREAD_RADIUS = 4.0F;
+    private static final int TAINT_ATTEMPTS = 10;
+    private static final float TAINT_SPREAD_RADIUS = 5.0F;
+    private static final float TAINT_PRESSURE = 0.03F;
+    private static final int FIBRE_SEARCH_UP = 2;
+    private static final int FIBRE_SEARCH_DOWN = 3;
+    private static final int HYBRID_GOO_ATTEMPTS = 3;
+    private static final int HYBRID_GOO_RANGE = 5;
+    private static final int HYBRID_GOO_MAX_EXTRA_QUANTA = 2;
     private static final int SPLOSION_COUNT = 100;
     private static final int BOTTLE_CRACK_COUNT = 8;
 
@@ -71,7 +83,8 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
             return;
         }
         applyAreaEffect(server);
-        scatterGoo(server);
+        seedTaint(server);
+        scatterHybridGoo(server);
         server.broadcastEntityEvent(this, (byte) 3);
         this.discard();
     }
@@ -83,23 +96,52 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
         }
     }
 
-    private void scatterGoo(ServerLevel server) {
+    private void seedTaint(ServerLevel server) {
         BlockPos center = this.blockPosition();
-        for (int attempt = 0; attempt < GOO_ATTEMPTS; attempt++) {
-            int xx = (int) ((this.random.nextFloat() - this.random.nextFloat()) * GOO_SPREAD_RADIUS);
-            int zz = (int) ((this.random.nextFloat() - this.random.nextFloat()) * GOO_SPREAD_RADIUS);
-            BlockPos p = center.offset(xx, 0, zz);
-            if (server.getRandom().nextBoolean()) {
-                if (canHostGoo(server, p)) {
-                    PhysicalFlux.placeGoo(server, p, PhysicalFlux.MAX_QUANTA);
-                } else {
-                    p = p.below();
-                    if (canHostGoo(server, p)) {
-                        PhysicalFlux.placeGoo(server, p, PhysicalFlux.MAX_QUANTA);
-                    }
-                }
+        for (int attempt = 0; attempt < TAINT_ATTEMPTS; attempt++) {
+            if (!this.random.nextBoolean()) {
+                continue;
+            }
+            int xx = (int) ((this.random.nextFloat() - this.random.nextFloat()) * TAINT_SPREAD_RADIUS);
+            int zz = (int) ((this.random.nextFloat() - this.random.nextFloat()) * TAINT_SPREAD_RADIUS);
+            BlockPos column = center.offset(xx, 0, zz);
+            if (!server.hasChunkAt(column) || TaintBlooms.isProtected(server, column)) {
+                continue;
+            }
+            if (!TaintBiomeManager.isTainted(server, column) && !TaintBiomeManager.taintColumn(server, column)) {
+                continue;
+            }
+            BlockPos fibrePos = findFibrePosition(server, column);
+            if (fibrePos != null) {
+                server.setBlock(fibrePos, BlockTaintFibre.stateForWorld(server, fibrePos), Block.UPDATE_ALL);
+                TaintEcology.addPressure(server, fibrePos, TAINT_PRESSURE);
             }
         }
+    }
+
+    private void scatterHybridGoo(ServerLevel server) {
+        BlockPos center = this.blockPosition();
+        for (int attempt = 0; attempt < HYBRID_GOO_ATTEMPTS; attempt++) {
+            BlockPos target = center.offset(this.random.nextInt(HYBRID_GOO_RANGE) - HYBRID_GOO_RANGE / 2, 0, this.random.nextInt(HYBRID_GOO_RANGE) - HYBRID_GOO_RANGE / 2);
+            int quanta = 1 + this.random.nextInt(HYBRID_GOO_MAX_EXTRA_QUANTA);
+            if (canHostGoo(server, target)) {
+                PhysicalFlux.placeGoo(server, target, quanta);
+            } else if (canHostGoo(server, target.below())) {
+                PhysicalFlux.placeGoo(server, target.below(), quanta);
+            }
+        }
+    }
+
+    private static @Nullable BlockPos findFibrePosition(ServerLevel server, BlockPos column) {
+        BlockPos.MutableBlockPos cursor = column.mutable();
+        for (int dy = FIBRE_SEARCH_UP; dy >= -FIBRE_SEARCH_DOWN; dy--) {
+            cursor.set(column.getX(), column.getY() + dy, column.getZ());
+            BlockState here = server.getBlockState(cursor);
+            if ((here.isAir() || here.canBeReplaced()) && here.getFluidState().isEmpty() && BlockTaintFibre.hasSolidAttachment(server, cursor)) {
+                return cursor.immutable();
+            }
+        }
+        return null;
     }
 
     private static boolean canHostGoo(ServerLevel server, BlockPos pos) {

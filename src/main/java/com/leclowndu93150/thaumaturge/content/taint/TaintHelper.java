@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityTaintSeed;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
 import com.leclowndu93150.thaumaturge.content.taint.block.ITaintBlock;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.content.taint.spread.TaintSeedRegistry;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
@@ -140,7 +141,7 @@ public final class TaintHelper {
     }
 
     public static void spreadFibres(ServerLevel level, BlockPos pos, boolean force) {
-        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !level.hasChunkAt(pos)) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !level.hasChunkAt(pos) || TaintBlooms.isProtected(level, pos)) {
             return;
         }
         RandomSource random = level.getRandom();
@@ -148,7 +149,7 @@ public final class TaintHelper {
             return;
         }
         BlockPos target = pos.offset(random.nextInt(SPREAD_HORIZONTAL) - 1, random.nextInt(SPREAD_VERTICAL) - SPREAD_VERTICAL / 2, random.nextInt(SPREAD_HORIZONTAL) - 1);
-        if (target.equals(pos) || !level.hasChunkAt(target)) {
+        if (target.equals(pos) || !level.hasChunkAt(target) || TaintBlooms.isProtected(level, target)) {
             return;
         }
         boolean targetTainted = TaintBiomeManager.isTainted(level, target);
@@ -195,7 +196,8 @@ public final class TaintHelper {
 
     public static boolean trySpreadTaintedBiome(ServerLevel level, BlockPos pos, RandomSource random) {
         int rate = ThaumaturgeCommonConfig.TAINT_FRONTIER_RATE.get();
-        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || rate <= 0 || !TaintBiomeManager.isTainted(level, pos) || countAdjacentTaint(level, pos) < LIGHT_CONVERSION_NEIGHBOURS) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || rate <= 0 || !TaintBiomeManager.isTainted(level, pos) || countAdjacentTaint(level, pos) < LIGHT_CONVERSION_NEIGHBOURS
+                || TaintBlooms.isProtected(level, pos)) {
             return false;
         }
         float saturation = Mth.clamp(AuraHelper.getFluxSaturation(level, pos), 0.0F, FRONTIER_MAX_FLUX);

@@ -273,6 +273,9 @@ public final class ResearchTextEn {
         add.accept("research.thaumaturge.bottle_taint.title", "Bottled Taint");
         add.accept("research.thaumaturge.bottle_taint.stage_0",
                 "I should be able to replicate the Taint causing properties of flux. I am not exactly sure why I would want to, but sometimes progress requires risk.<BR>The process should be fairly simple - I merely need to create a concentrated mixture of flux and it should easily react with almost anything to create Taint. ");
+        add.accept("research.thaumaturge.ethereal_bloom.title", "Ethereal Bloom");
+        add.accept("research.thaumaturge.ethereal_bloom.stage_0",
+                "Shimmerleaf is often overshadowed by its mystical neighbor the Silverwood tree, but it has magical properties of its own.<BR>Like the Silverwood, Shimmerleaf flowers have purifying properties that lie dormant. I have found a way to awaken these properties and turn it into an §lEthereal Bloom§r.<BR>Ethereal blooms slowly, but surely, restore land corrupted by mystical means to its former glory - this includes the blight known as Taint. While they cannot combat Taint directly, few tainted growths can survive outside their native environment for long and tend to die back.");
         add.accept("research.thaumaturge.bath_salts.title", "Purifying Bath Salts");
         add.accept("research.thaumaturge.bath_salts.stage_0",
                 "Warp is a danger for even the most careful of thaumaturges. For those that have done a bit too much dabbling, Warp effects are probably more than just an annoyance.<BR>I should make solving this problem a priority. Even if I am not able to remove Warp, at the very least I should be able to alleviate it's effects.");
