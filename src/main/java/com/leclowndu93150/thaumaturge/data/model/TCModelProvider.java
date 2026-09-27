@@ -21,6 +21,7 @@ import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
 import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalBlockstateGenerator;
 import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumaturge.data.model.crystal.EssentiaCrystalModelGenerator;
+import com.leclowndu93150.thaumaturge.data.model.warding.WardedGlassModelGenerator;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
@@ -687,6 +688,7 @@ public final class TCModelProvider extends ModelProvider {
 
         CrystalBlockstateGenerator.register(blockModels);
         CrystalItemModelGenerator.register(itemModels);
+        WardedGlassModelGenerator.register(blockModels, itemModels);
         EssentiaCrystalModelGenerator.register(itemModels);
         registerManaPod(blockModels, itemModels);
         stoneAndStairModels(blockModels);

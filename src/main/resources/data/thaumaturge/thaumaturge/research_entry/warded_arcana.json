@@ -1,0 +1,22 @@
+{
+  "category": "thaumaturge:artifice",
+  "name": "research.thaumaturge.warded_arcana.title",
+  "parents": [
+    "thaumaturge:base_artifice",
+    "thaumaturge:focus_ward"
+  ],
+  "column": -5,
+  "row": -4,
+  "icons": [
+    "thaumaturge:warded_glass"
+  ],
+  "stages": [
+    {
+      "text": "research.thaumaturge.warded_arcana.stage_0",
+      "recipes": [
+        "thaumaturge:arcane_workbench/warded_glass"
+      ]
+    }
+  ],
+  "complexity": 1
+}

@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 public final class WardConnectedTexture {
     public static final int CORNERS = 4;
     public static final int STATES = 5;
+    public static final int NEIGHBOURS = 8;
 
     private static final int STATE_NONE = 0;
     private static final int STATE_EDGE_A = 1;
@@ -56,6 +57,16 @@ public final class WardConnectedTexture {
             return STATE_EDGE_B;
         }
         return probe(pos, face, DIAGONAL_BIT[corner], cursor, connected) ? STATE_FULL : STATE_INNER;
+    }
+
+    public static int connectionMask(BlockPos pos, Direction face, BlockPos.MutableBlockPos cursor, Predicate<BlockPos> connected) {
+        int mask = 0;
+        for (int bit = 0; bit < NEIGHBOURS; bit++) {
+            if (probe(pos, face, bit, cursor, connected)) {
+                mask |= 1 << bit;
+            }
+        }
+        return mask;
     }
 
     private static boolean probe(BlockPos pos, Direction face, int bit, BlockPos.MutableBlockPos cursor, Predicate<BlockPos> connected) {

@@ -29,6 +29,7 @@ import com.leclowndu93150.thaumaturge.content.device.BlockArcaneEar;
 import com.leclowndu93150.thaumaturge.content.device.bore.BlockArcaneBore;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
+import com.leclowndu93150.thaumaturge.content.warding.BlockWardedGlass;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenser;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenserLattice;
 import com.leclowndu93150.thaumaturge.content.device.BlockDioptra;
@@ -734,6 +735,10 @@ public final class TCBlocks {
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 200000.0F).lightLevel(state -> 15).noOcclusion().noLootTable().noCollision());
 
     public static final DeferredBlock<BlockAmber> AMBER_BLOCK = BLOCKS.registerBlock("amber_block", BlockAmber::new, TCBlocks::amberProps);
+
+    public static final DeferredBlock<BlockWardedGlass> WARDED_GLASS = BLOCKS.registerBlock("warded_glass", BlockWardedGlass::new,
+            props -> props.strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn((state, level, pos, entityType) -> false).isRedstoneConductor((state, level, pos) -> false)
+                    .isSuffocating((state, level, pos) -> false).isViewBlocking((state, level, pos) -> false));
 
     public static final DeferredBlock<BlockPlaceholder> OBSIDIAN_PLACEHOLDER = BLOCKS.registerBlock("placeholder_obsidian", props -> new BlockPlaceholder(props, true),
             props -> props.mapColor(MapColor.STONE).strength(2.5F, 3600000.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());

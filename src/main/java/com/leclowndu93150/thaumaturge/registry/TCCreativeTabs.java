@@ -208,6 +208,7 @@ public final class TCCreativeTabs {
                 }
                 output.accept(TCItems.BANNER_CRIMSON_CULT.get());
                 output.accept(TCItems.TALLOW.get());
+                output.accept(TCItems.WARDED_GLASS.get());
                 for (DyeColor dye : DyeColor.values()) {
                     output.accept(TCItems.CANDLES.get(dye).get());
                 }

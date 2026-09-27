@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.warding;
 import com.leclowndu93150.thaumaturge.network.ClientboundWardChunkPayload;
 import com.leclowndu93150.thaumaturge.network.ClientboundWardUpdatePayload;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
+import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +35,7 @@ public final class WardHandler {
 
     public static boolean canWard(BlockGetter level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        return !state.isAir() && !state.hasBlockEntity() && state.isSolidRender() && state.getDestroySpeed(level, pos) >= 0.0F;
+        return !state.isAir() && !state.hasBlockEntity() && (state.isSolidRender() || state.is(TCBlockTags.WARDABLE_NON_SOLID)) && state.getDestroySpeed(level, pos) >= 0.0F;
     }
 
     public static boolean ward(ServerLevel level, BlockPos pos, UUID owner) {

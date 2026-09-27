@@ -358,6 +358,8 @@ public final class ResearchTextEn {
         add.accept("research.thaumaturge.levitator.title", "Arcane Levitator");
         add.accept("research.thaumaturge.levitator.stage_0",
                 "I have always been fascinated by the power of flight. I am sure flying is almost within my grasp, but first I need to learn the fundamentals.<BR>I need to study simple levitation first. ");
+        add.accept("research.thaumaturge.warded_arcana.title", "Warded Arcana");
+        add.accept("research.thaumaturge.warded_arcana.stage_0", "Warded glass is a simple cosmetic block, but like other warded objects it cannot be broken except by the person who placed it.");
         add.accept("research.thaumaturge.golem_fetter.title", "Golem Fetter");
         add.accept("research.thaumaturge.golem_fetter.stage_0",
                 "This simple device allows a golemancer to bring their golems to a temporary halt.<BR>If this block is activated with a redstone signal any golem that passes over it will come to complete standstill and cease its current task.<BR>Once this block is deactivated the golem will once again go about its business.");

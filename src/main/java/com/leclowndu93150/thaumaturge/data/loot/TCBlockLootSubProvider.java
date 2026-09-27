@@ -252,6 +252,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.LEVITATOR.get());
         dropSelf(TCBlocks.ITEM_GRATE.get());
         dropSelf(TCBlocks.GOLEM_FETTER.get());
+        dropSelf(TCBlocks.WARDED_GLASS.get());
         dropSelf(TCBlocks.POTION_SPRAYER.get());
         dropSelf(TCBlocks.PATTERN_CRAFTER.get());
         dropSelf(TCBlocks.INLAY.get());

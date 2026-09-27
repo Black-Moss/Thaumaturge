@@ -280,6 +280,7 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> LEVITATOR = ITEMS.registerSimpleBlockItem(TCBlocks.LEVITATOR);
     public static final DeferredItem<BlockItem> ITEM_GRATE = ITEMS.registerSimpleBlockItem(TCBlocks.ITEM_GRATE);
     public static final DeferredItem<BlockItem> GOLEM_FETTER = ITEMS.registerSimpleBlockItem(TCBlocks.GOLEM_FETTER);
+    public static final DeferredItem<BlockItem> WARDED_GLASS = ITEMS.registerSimpleBlockItem(TCBlocks.WARDED_GLASS);
     public static final DeferredItem<BlockItem> POTION_SPRAYER = ITEMS.registerSimpleBlockItem(TCBlocks.POTION_SPRAYER);
     public static final DeferredItem<BlockItem> PATTERN_CRAFTER = ITEMS.registerSimpleBlockItem(TCBlocks.PATTERN_CRAFTER);
     public static final DeferredItem<BlockItem> INLAY = ITEMS.registerSimpleBlockItem(TCBlocks.INLAY);
