@@ -5,12 +5,14 @@ import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.FluidRenderer;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
@@ -41,8 +43,10 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
     @Override
     protected void renderToTexture(BlockPreviewRenderState state, PoseStack poseStack) {
 
-        float scale = 1 * state.zoom() * state.previewScale();
-        poseStack.scale(scale, scale, 1);
+        if (state.blocks().isEmpty())
+            return;
+        float scale = state.zoom() * state.previewScale();
+        poseStack.scale(scale, scale, scale);
         poseStack.translate(-state.centerX(), -state.centerY(), 0);
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
         poseStack.mulPose(Axis.XP.rotationDegrees(state.rotX()));
@@ -63,18 +67,28 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
         float mbCenterZ = (minZ + maxZ + 1) / 2.0F;
         poseStack.translate(-mbCenterX, -mbCenterY, -mbCenterZ);
 
-        PreviewBlockGetter blockGetter = new PreviewBlockGetter(state.blocks());
+        Map<BlockPos, BlockState> visible = new HashMap<>();
+        for (var entry : state.blocks().entrySet()) {
+            if (state.visibleLayer() < 0 || entry.getKey().getY() <= minY + state.visibleLayer())
+                visible.put(entry.getKey(), entry.getValue());
+        }
+        PreviewBlockGetter blockGetter = new PreviewBlockGetter(visible);
+        FluidRenderer fluids = new FluidRenderer(Minecraft.getInstance().getModelManager().getFluidStateModelSet());
         RandomSource random = RandomSource.create();
         QuadInstance quadInstance = new QuadInstance();
         BlockStateModelSet modelSet = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
 
-        for (Map.Entry<BlockPos, BlockState> block : state.blocks().entrySet()) {
+        for (Map.Entry<BlockPos, BlockState> block : visible.entrySet()) {
             BlockPos blockPos = block.getKey();
             BlockState bs = block.getValue();
             BlockStateModel model = modelSet.get(bs);
             poseStack.pushPose();
             poseStack.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
+            if (!bs.getFluidState().isEmpty()) {
+                fluids.tesselate(blockGetter, blockPos, layer -> new PreviewFluidVertexConsumer(bufferSource.getBuffer(getRenderTypeForLayer(layer)), poseStack.last(), blockPos), bs,
+                        bs.getFluidState());
+            }
             random.setSeed(42L);
             List<BlockStateModelPart> parts = new ArrayList<>();
             model.collectParts(blockGetter, blockPos, bs, random, parts);
@@ -122,6 +136,6 @@ public class BlockPreviewRenderer extends PictureInPictureRenderer<BlockPreviewR
 
     @Override
     protected String getTextureLabel() {
-        return "chisel block preview";
+        return "Thaumaturge multiblock preview";
     }
 }

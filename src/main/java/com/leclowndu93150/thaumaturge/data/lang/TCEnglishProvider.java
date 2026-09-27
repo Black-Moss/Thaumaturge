@@ -129,6 +129,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tooltip.thaumaturge.runic_charge", "Runic shield +%s");
         add("tooltip.thaumaturge.infusion_stabiliser", "Infusion Stabilizer");
         add("recipe.type.runic_augment", "Runic Augmentation");
+        add("thaumonomicon.preview.all_layers", "All layers");
+        add("thaumonomicon.preview.layers", "Layers 1-%s / %s");
+        add("thaumonomicon.preview.previous_layer", "Show fewer layers");
+        add("thaumonomicon.preview.next_layer", "Show more layers");
         add("recipe.type.construct", "Mystical Construct");
         add("wandtable.text1", "Vis Cost");
         add("gui.thaumaturge.research_table.title", "Research Table");

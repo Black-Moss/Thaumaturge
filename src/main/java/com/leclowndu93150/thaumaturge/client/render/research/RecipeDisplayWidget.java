@@ -8,13 +8,12 @@ import com.leclowndu93150.thaumaturge.api.recipe.BlueprintPart;
 import com.leclowndu93150.thaumaturge.api.recipe.BlueprintSource;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumaturge.client.screen.TCScreenTextures;
-import com.leclowndu93150.thaumaturge.client.screen.pip.BlockPreviewRenderState;
+import com.leclowndu93150.thaumaturge.client.screen.pip.BlockPreviews;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionRecipeDisplay;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeDisplay;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.MultiblockRecipeDisplay;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingRecipeDisplay;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
-import com.leclowndu93150.thaumaturge.mixin.client.gui.GuiGraphicsExtractorAccessor;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.block.state.BlockState;
-import org.joml.Matrix3x2f;
 import org.jspecify.annotations.Nullable;
 
 public final class RecipeDisplayWidget {
@@ -120,6 +118,10 @@ public final class RecipeDisplayWidget {
     }
 
     public static void renderCrafting(GuiGraphicsExtractor graphics, int x, int y, RecipeDisplay display, long gameTime) {
+        renderCrafting(graphics, x, y, display, gameTime, automaticRotation(), -1);
+    }
+
+    public static void renderCrafting(GuiGraphicsExtractor graphics, int x, int y, RecipeDisplay display, long gameTime, float rotation, int layer) {
         int cx = x + CENTER_OFFSET;
         int cy = y + CENTER_OFFSET;
         ContextMap context = SlotDisplayContext.fromLevel(Minecraft.getInstance().level);
@@ -132,7 +134,7 @@ public final class RecipeDisplayWidget {
             return;
         }
         if (display instanceof MultiblockRecipeDisplay multiblock) {
-            drawConstructPage(graphics, cx, cy, multiblock, context);
+            drawConstructPage(graphics, cx, cy, multiblock, context, rotation, layer);
             return;
         }
         Layout layout = collect(display, context);
@@ -472,13 +474,6 @@ public final class RecipeDisplayWidget {
     private static final int CONSTRUCT_INGREDIENT_STRIDE = 17;
     private static final int CONSTRUCT_INGREDIENT_Y = 90;
 
-    private static final float PREVIEW_ROT_X = 25.0F;
-    private static final float PREVIEW_SPIN_DEG_PER_SEC = 7.5F;
-    private static final float PREVIEW_SCALE = 15.0F;
-    private static final int PREVIEW_HALF_WIDTH = 70;
-    private static final int PREVIEW_TOP = -60;
-    private static final int PREVIEW_BOTTOM = 84;
-
     private static final int ASPECT_CELL = 20;
     private static final int ASPECT_HALF_CELL = 10;
 
@@ -535,7 +530,7 @@ public final class RecipeDisplayWidget {
         graphics.text(font, text, cx - offset / 2, cy + INFUSION_INSTABILITY_Y, LABEL_COLOR, false);
     }
 
-    private static void drawConstructPage(GuiGraphicsExtractor graphics, int cx, int cy, MultiblockRecipeDisplay display, ContextMap context) {
+    private static void drawConstructPage(GuiGraphicsExtractor graphics, int cx, int cy, MultiblockRecipeDisplay display, ContextMap context, float rotation, int layer) {
         Font font = Minecraft.getInstance().font;
         drawKindLabel(graphics, font, cx, cy, "recipe.type.construct");
         drawSlotFrame(graphics, cx, cy);
@@ -543,7 +538,7 @@ public final class RecipeDisplayWidget {
         if (!result.isEmpty()) {
             graphics.item(result, cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y);
         }
-        drawBlueprintPreview(graphics, cx, cy, display.blueprint());
+        BlockPreviews.render(graphics, cx, cy - 12, blueprintBlocks(display.blueprint()), 96, 100, 16, rotation, layer);
         List<ItemStack> ingredients = blueprintIngredients(display.blueprint());
         for (int a = 0; a < ingredients.size(); a++) {
             int ix = cx + CONSTRUCT_INGREDIENT_X + a * CONSTRUCT_INGREDIENT_STRIDE;
@@ -552,28 +547,43 @@ public final class RecipeDisplayWidget {
         }
     }
 
-    private static void drawBlueprintPreview(GuiGraphicsExtractor graphics, int cx, int cy, Identifier blueprintId) {
-        Blueprint blueprint = lookupBlueprint(blueprintId);
-        if (blueprint == null) {
-            return;
+    public static float automaticRotation() {
+        return (System.currentTimeMillis() % 72000L) / 200.0F;
+    }
+
+    public static int multiblockLayerCount(RecipeDisplay display) {
+        if (!(display instanceof MultiblockRecipeDisplay multiblock))
+            return 0;
+        Blueprint blueprint = lookupBlueprint(multiblock.blueprint());
+        return blueprint == null ? 0 : blueprint.ySize();
+    }
+
+    public static void renderBookmarkIcon(GuiGraphicsExtractor graphics, int x, int y, RecipeDisplay display) {
+        if (display instanceof MultiblockRecipeDisplay multiblock) {
+            BlockPreviews.render(graphics, x + 8, y + 8, blueprintBlocks(multiblock.blueprint()), 16, 16, 16, -35, -1);
+        } else {
+            ItemStack result = display.result().resolveForFirstStack(SlotDisplayContext.fromLevel(Minecraft.getInstance().level));
+            if (!result.isEmpty())
+                graphics.item(result, x, y);
         }
+    }
+
+    private static Map<BlockPos, BlockState> blueprintBlocks(Identifier blueprintId) {
+        Blueprint blueprint = lookupBlueprint(blueprintId);
         Map<BlockPos, BlockState> blocks = new HashMap<>();
+        if (blueprint == null)
+            return blocks;
         for (int y = 0; y < blueprint.ySize(); y++) {
             for (int x = 0; x < blueprint.xSize(); x++) {
                 for (int z = 0; z < blueprint.zSize(); z++) {
                     BlueprintPart part = blueprint.cell(y, x, z);
-                    if (part != null) {
-                        blocks.put(new BlockPos(x, -y + (blueprint.ySize() - 1), z), part.source().getState());
+                    if (part != null && !part.source().getState().isAir()) {
+                        blocks.put(new BlockPos(x, blueprint.ySize() - y - 1, z), part.source().getState());
                     }
                 }
             }
         }
-        Matrix3x2f pose = graphics.pose();
-        int px = Math.round(pose.m20);
-        int py = Math.round(pose.m21);
-        float rotY = System.currentTimeMillis() % 2_880_000L / 1000.0F * PREVIEW_SPIN_DEG_PER_SEC + 90.0F;
-        ((GuiGraphicsExtractorAccessor) graphics).thaumaturge$getGuiRenderState().addPicturesInPictureState(new BlockPreviewRenderState(blocks, PREVIEW_ROT_X, rotY, 1, PREVIEW_SCALE, 0, 0,
-                px + cx - PREVIEW_HALF_WIDTH, py + cy + PREVIEW_TOP, px + cx + PREVIEW_HALF_WIDTH, py + cy + PREVIEW_BOTTOM, null));
+        return blocks;
     }
 
     private static void drawKindLabel(GuiGraphicsExtractor graphics, Font font, int cx, int cy, String key) {

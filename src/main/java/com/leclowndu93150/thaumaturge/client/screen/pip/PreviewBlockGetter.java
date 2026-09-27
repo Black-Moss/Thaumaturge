@@ -11,7 +11,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 public class PreviewBlockGetter implements BlockAndTintGetter {
@@ -32,7 +31,7 @@ public class PreviewBlockGetter implements BlockAndTintGetter {
 
     @Override
     public FluidState getFluidState(BlockPos pos) {
-        return Fluids.EMPTY.defaultFluidState();
+        return getBlockState(pos).getFluidState();
     }
 
     @Override
