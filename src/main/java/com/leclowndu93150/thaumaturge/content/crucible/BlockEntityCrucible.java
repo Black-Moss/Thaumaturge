@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
@@ -13,6 +12,7 @@ import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumaturge.content.recipe.ThaumaturgeCraftingManager;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInput;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.mixin.world.entity.item.ItemEntityAccessor;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
@@ -51,7 +51,11 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectContainer {
 
     public static final int TANK_CAPACITY = 1000;
-    public static final int MAX_ASPECT = 500;
+    public static final int MAX_ASPECT = 100;
+    private static final long OVERFLOW_INTERVAL = 5L;
+    private static final int PHYSICAL_SPILL_CHANCE = 4;
+    private static final float OVERFLOW_FLUX = 1.0F;
+    private static final float LEAK_FLUX = 0.25F;
 
     private final FluidStacksResourceHandler tank = new FluidStacksResourceHandler(1, TANK_CAPACITY) {
         @Override
@@ -104,8 +108,8 @@ public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectCo
                 heat--;
             }
 
-            if (aspects.totalAmount() > MAX_ASPECT)
-                spillRandom();
+            if (aspects.totalAmount() > MAX_ASPECT && counter % OVERFLOW_INTERVAL == 0L)
+                spillOverflow();
 
             if (counter >= 100L) {
                 spillRandom();
@@ -226,29 +230,45 @@ public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectCo
     }
 
     public void spillRemnants() {
-        if (level == null || level.isClientSide())
+        if (!(level instanceof ServerLevel serverLevel))
             return;
         int total = aspects.totalAmount();
         if (tank.getAmountAsInt(0) > 0 || total > 0) {
             tank.set(0, FluidResource.EMPTY, 0);
-            AuraHelper.polluteAura(level, getBlockPos(), total * 0.25f, true);
-            int fluxAmount = aspects.amountOf(level.registryAccess().getOrThrow(TCAspects.VITIUM));
-            if (fluxAmount > 0)
-                AuraHelper.polluteAura(level, getBlockPos(), fluxAmount * 0.75f, false);
+            int physicalSpills = 0;
+            for (int i = 0; i < total; i++) {
+                if (serverLevel.getRandom().nextInt(PHYSICAL_SPILL_CHANCE) == 0 && PhysicalFlux.spill(serverLevel, getBlockPos(), serverLevel.getRandom()))
+                    physicalSpills++;
+            }
+            if (total > physicalSpills)
+                AuraHelper.polluteAura(serverLevel, getBlockPos(), total - physicalSpills, true);
             this.aspects = AspectList.EMPTY;
-            level.blockEvent(getBlockPos(), getBlockState().getBlock(), 2, 5);
+            serverLevel.blockEvent(getBlockPos(), getBlockState().getBlock(), 2, 5);
             setChanged();
             syncToClient();
         }
     }
 
+    private void spillOverflow() {
+        if (!(level instanceof ServerLevel serverLevel) || aspects.isEmpty())
+            return;
+        Holder<IAspect> randAspect = aspects.entries().get(serverLevel.getRandom().nextInt(aspects.size())).aspect();
+        aspects = aspects.reduce(randAspect, 1);
+        boolean physical = serverLevel.getRandom().nextInt(PHYSICAL_SPILL_CHANCE) == 0 && PhysicalFlux.spill(serverLevel, getBlockPos(), serverLevel.getRandom());
+        if (!physical)
+            AuraHelper.polluteAura(serverLevel, getBlockPos(), OVERFLOW_FLUX, true);
+        setChanged();
+        syncToClient();
+    }
+
     public void spillRandom() {
-        if (level == null || level.isClientSide())
+        if (!(level instanceof ServerLevel serverLevel))
             return;
         if (!aspects.isEmpty()) {
-            Holder<IAspect> randAspect = aspects.entries().get(level.getRandom().nextInt(aspects.size())).aspect();
+            Holder<IAspect> randAspect = aspects.entries().get(serverLevel.getRandom().nextInt(aspects.size())).aspect();
             aspects = aspects.reduce(randAspect, 1);
-            AuraHelper.polluteAura(level, getBlockPos(), randAspect.is(TCAspects.VITIUM) ? 1.0f : 0.25f, true);
+            if (serverLevel.getRandom().nextInt(PHYSICAL_SPILL_CHANCE) != 0 && PhysicalFlux.spill(serverLevel, getBlockPos(), serverLevel.getRandom()))
+                AuraHelper.polluteAura(serverLevel, getBlockPos(), LEAK_FLUX, true);
         }
         setChanged();
         syncToClient();

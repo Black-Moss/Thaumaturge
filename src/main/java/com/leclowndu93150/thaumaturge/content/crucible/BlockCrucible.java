@@ -20,7 +20,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -95,14 +94,6 @@ public class BlockCrucible extends BaseEntityBlock {
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> type) {
         return createTickerHelper(type, TCBlockEntities.CRUCIBLE.get(), BlockEntityCrucible::staticTick);
-    }
-
-    @Override
-    public void destroy(LevelAccessor level, BlockPos pos, BlockState state) {
-        if (level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible) {
-            crucible.spillRemnants();
-        }
-        super.destroy(level, pos, state);
     }
 
     @Override
