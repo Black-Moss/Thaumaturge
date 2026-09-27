@@ -316,6 +316,7 @@ public final class TCCreativeTabs {
                 output.accept(TCItems.EVERFULL_URN.get());
                 output.accept(TCItems.VIS_GENERATOR.get());
                 output.accept(TCItems.CONDENSER.get());
+                output.accept(TCItems.FLUX_SCRUBBER.get());
                 output.accept(TCItems.CONDENSER_LATTICE.get());
                 output.accept(TCItems.CONDENSER_LATTICE_DIRTY.get());
                 output.accept(TCItems.STABILIZER.get());

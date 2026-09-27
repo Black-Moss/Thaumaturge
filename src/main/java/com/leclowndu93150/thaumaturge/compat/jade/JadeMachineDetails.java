@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeTransduce
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
 import com.leclowndu93150.thaumaturge.content.casters.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
+import com.leclowndu93150.thaumaturge.content.device.fluxscrubber.BlockEntityFluxScrubber;
 import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockEntityGolemBuilder;
@@ -72,6 +73,10 @@ final class JadeMachineDetails {
         int output = machine.output().getAmountAsInt(BlockEntityGolemBuilder.SLOT_OUTPUT);
         if (output > 0)
             data.summary("jade.thaumaturge.machine.output", output);
+    }
+    static void fluxScrubber(BlockEntityFluxScrubber machine, JadeDetailBuilder data) {
+        data.summary("jade.thaumaturge.flux_scrubber.charges", machine.charges());
+        data.detail("jade.thaumaturge.flux_scrubber.power", Math.round(machine.power() / BlockEntityFluxScrubber.WORK_VIS * 100.0F));
     }
     static void siphon(BlockEntityVoidSiphon machine, JadeDetailBuilder data) {
         progress(data, machine.progress(), BlockEntityVoidSiphon.PROGRESS_REQUIRED);

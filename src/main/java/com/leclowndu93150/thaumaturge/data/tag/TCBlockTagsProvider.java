@@ -116,7 +116,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.SPA.get()).add(TCBlocks.ALCHEMICAL_CONSTRUCT.get()).add(TCBlocks.ADVANCED_ALCHEMICAL_CONSTRUCT.get()).add(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE.get())
                 .add(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_ALEMBIC_PLACEHOLDER.get()).add(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_CONSTRUCT_PLACEHOLDER.get())
                 .add(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_ADVANCED_CONSTRUCT_PLACEHOLDER.get()).add(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_NOZZLE.get()).add(TCBlocks.ESSENTIA_CRYSTALIZER.get())
-                .add(TCBlocks.ESSENTIA_RESERVOIR.get());
+                .add(TCBlocks.ESSENTIA_RESERVOIR.get()).add(TCBlocks.FLUX_SCRUBBER.get());
 
         tag(BlockTags.NEEDS_STONE_TOOL).add(TCBlocks.ORE_AMBER.get());
 

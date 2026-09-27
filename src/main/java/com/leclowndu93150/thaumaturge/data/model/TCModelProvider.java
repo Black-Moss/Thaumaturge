@@ -515,6 +515,7 @@ public final class TCModelProvider extends ModelProvider {
         registerAdvancedAlchemicalFurnace(blockModels, itemModels);
         registerEssentiaCrystalizer(blockModels, itemModels);
         registerEssentiaReservoir(blockModels, itemModels);
+        registerFluxScrubber(blockModels, itemModels);
         registerFluxGas(blockModels);
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
@@ -954,13 +955,27 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.composite(ItemModelUtils.plainModel(tank), ItemModelUtils.plainModel(fitting)));
     }
 
+    private static void registerFluxScrubber(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block block = TCBlocks.FLUX_SCRUBBER.get();
+        Identifier mesh = TCIds.rl("models/mesh/flux_scrubber.tcmesh");
+        TextureMapping textures = new TextureMapping().put(LEGACY_MESH_SLOT, blockTexture("flux_scrubber")).put(TextureSlot.PARTICLE, blockTexture("al_furnace_side"));
+        Identifier model = legacyMeshBuilder(mesh, null, root -> root.translation(0.0F, 0.0F, -0.5F)).partVisibility("Tip", false).build().create(block, textures, blockModels.modelOutput);
+        Identifier itemModel = legacyMeshTemplate(mesh, "_item", root -> root.translation(0.0F, 0.0F, -0.5F)).create(block, textures, blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)).with(northBasedFacing()));
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(itemModel));
+    }
+
     private static ModelTemplate legacyMeshTemplate(Identifier mesh, @Nullable String suffix, Consumer<RootTransformsBuilder> rootTransform) {
+        return legacyMeshBuilder(mesh, suffix, rootTransform).build();
+    }
+
+    private static ExtendedModelTemplateBuilder legacyMeshBuilder(Identifier mesh, @Nullable String suffix, Consumer<RootTransformsBuilder> rootTransform) {
         ExtendedModelTemplateBuilder builder = ExtendedModelTemplateBuilder.builder().parent(Identifier.withDefaultNamespace("block/block")).requiredTextureSlot(LEGACY_MESH_SLOT)
                 .requiredTextureSlot(TextureSlot.PARTICLE).customLoader(TCMeshLoaderBuilder::new, loader -> loader.mesh(mesh).flipV(true)).rootTransforms(rootTransform);
         if (suffix != null) {
             builder.suffix(suffix);
         }
-        return builder.build();
+        return builder;
     }
 
     private static PropertyDispatch<VariantMutator> northBasedFacing() {

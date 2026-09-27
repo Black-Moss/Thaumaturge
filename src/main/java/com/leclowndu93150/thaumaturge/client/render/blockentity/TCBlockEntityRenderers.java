@@ -32,6 +32,7 @@ public final class TCBlockEntityRenderers {
         event.registerBlockEntityRenderer(TCBlockEntities.CENTRIFUGE.get(), CentrifugeRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ESSENTIA_CRYSTALIZER.get(), EssentiaCrystalizerRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ESSENTIA_RESERVOIR.get(), EssentiaReservoirRenderer::new);
+        event.registerBlockEntityRenderer(TCBlockEntities.FLUX_SCRUBBER.get(), FluxScrubberRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.GOLEM_BUILDER.get(), GolemBuilderRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.ADVANCED_ALCHEMICAL_FURNACE.get(), AdvancedAlchemicalFurnaceRenderer::new);
         event.registerBlockEntityRenderer(TCBlockEntities.HUNGRY_CHEST.get(), HungryChestRenderer::new);

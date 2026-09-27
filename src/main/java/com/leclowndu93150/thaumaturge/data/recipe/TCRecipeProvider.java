@@ -818,6 +818,10 @@ public final class TCRecipeProvider extends RecipeProvider {
         arcaneShaped(new ItemStackTemplate(TCItems.BELLOWS), 25).aspect(TCAspects.AER).pattern("PP ").pattern("LLI").pattern("PP ").define('P', ItemTags.PLANKS).define('L', Tags.Items.LEATHERS)
                 .define('I', Tags.Items.INGOTS_IRON).gate(gate("bellows")).unlockedBy("has", has(Tags.Items.LEATHERS)).save(output);
 
+        arcaneShaped(new ItemStackTemplate(TCItems.FLUX_SCRUBBER), 200).aspect(TCAspects.AQUA, 2).aspect(TCAspects.ORDO, 2).aspect(TCAspects.AER, 1).pattern(" B ").pattern("GOG").pattern("STS")
+                .define('B', TCItems.BELLOWS).define('G', Items.IRON_BARS).define('O', TCItems.FILTER).define('S', TCItems.STONE_ARCANE_BRICK).define('T', TCItems.TUBE).gate(gate("flux_scrubber"))
+                .unlockedBy("has", has(TCItems.BELLOWS)).save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.THAUMONOMICON_SHARING), 500).allAspects().pattern(" B ").pattern("MQM").pattern(" B ").define('B', TCItems.BRAIN).define('M', TCItems.MIRROR)
                 .define('Q', Items.WRITABLE_BOOK).gate(gate("share_book", 1)).unlockedBy("has", has(TCItems.BRAIN)).save(output);
     }
