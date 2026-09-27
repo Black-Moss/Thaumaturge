@@ -18,7 +18,7 @@ public final class ThaumaturgeCommand {
     public static void onRegister(RegisterCommandsEvent event) {
         LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal(TCIds.MODID).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
         List<AdminSubcommand> subcommands = List.of(new ResearchSubcommand(), new KnowledgeSubcommand(), new AspectSubcommand(), PlacementSubcommand.structures(), PlacementSubcommand.features(),
-                new ShowcaseSubcommand());
+                new ShowcaseSubcommand(), new LocateSubcommand());
         for (AdminSubcommand subcommand : subcommands) {
             root.then(subcommand.build(event.getBuildContext()));
         }

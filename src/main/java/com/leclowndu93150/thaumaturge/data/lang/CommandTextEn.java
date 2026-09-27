@@ -40,6 +40,11 @@ public final class CommandTextEn {
         add.accept("commands.thaumaturge.aspects.query.none", "%s has not discovered any aspects");
         add.accept("commands.thaumaturge.aspects.query.entry", "%s %s");
 
+        add.accept("commands.thaumaturge.locate.node.invalid_type", "Unknown node type: %s");
+        add.accept("commands.thaumaturge.locate.node.not_found", "No indexed %s node found beyond 10 blocks in this dimension. Nodes are indexed as chunks load.");
+        add.accept("commands.thaumaturge.locate.node.copy", "Click to copy coordinates");
+        add.accept("commands.thaumaturge.locate.node.found", "Nearest indexed %s node is at %s (%s blocks away)");
+
         add.accept("commands.thaumaturge.showcase.built", "Built a showcase of %s blocks and %s items from %s, %s, %s");
         add.accept("commands.thaumaturge.showcase.too_tall", "The showcase does not fit inside the build height here");
         add.accept("commands.thaumaturge.showcase.unloaded", "Part of the showcase area is not loaded");

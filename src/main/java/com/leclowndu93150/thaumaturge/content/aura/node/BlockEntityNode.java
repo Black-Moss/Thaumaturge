@@ -163,6 +163,27 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
 
     public void setNodeType(NodeType type) {
         this.nodeType = type;
+        updateLocationIndex();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        updateLocationIndex();
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level instanceof ServerLevel serverLevel && state.is(TCBlocks.NODE.get())) {
+            NodeLocationIndex.get(serverLevel).remove(pos);
+        }
+    }
+
+    private void updateLocationIndex() {
+        if (level instanceof ServerLevel serverLevel && getBlockState().is(TCBlocks.NODE.get())) {
+            NodeLocationIndex.get(serverLevel).register(worldPosition, nodeType);
+        }
     }
 
     public @Nullable NodeModifier getNodeModifier() {
@@ -497,7 +518,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         } else if (nodeModifier == NodeModifier.PALE) {
             nodeModifier = NodeModifier.FADING;
         } else if (nodeModifier == NodeModifier.FADING && nodeType != NodeType.HUNGRY) {
-            nodeType = NodeType.HUNGRY;
+            setNodeType(NodeType.HUNGRY);
         }
         nodeChange();
     }
@@ -509,7 +530,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         }
         float flux = AuraHelper.getFlux(serverLevel, pos);
         if (nodeType != NodeType.TAINTED && nodeType != NodeType.PURE && flux > base * FLUX_TAINT_THRESHOLD && random.nextInt(FLUX_TAINT_CHANCE) == 0) {
-            nodeType = NodeType.TAINTED;
+            setNodeType(NodeType.TAINTED);
             nodeChange();
             return;
         }
@@ -668,7 +689,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
                     return true;
                 }
             } else if (random.nextInt(UNSTABLE_CURE_ROLL / lock) == UNSTABLE_CURE_MAGIC) {
-                nodeType = NodeType.NORMAL;
+                setNodeType(NodeType.NORMAL);
                 nodeChange();
                 return true;
             }
@@ -1002,6 +1023,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         drainColor = input.getIntOr("DrainColor", 0xFFFFFF);
         jarringTicks = input.getIntOr("Jarring", 0);
         regeneration = -1;
+        updateLocationIndex();
     }
 
     @Override
