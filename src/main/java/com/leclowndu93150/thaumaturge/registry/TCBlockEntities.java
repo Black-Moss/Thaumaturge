@@ -13,6 +13,7 @@ import com.leclowndu93150.thaumaturge.content.decor.BlockEntityBarrierStone;
 import com.leclowndu93150.thaumaturge.content.decor.banner.BlockEntityBanner;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityArcaneEar;
 import com.leclowndu93150.thaumaturge.content.device.bore.BlockEntityArcaneBore;
+import com.leclowndu93150.thaumaturge.content.device.grate.BlockEntityItemGrate;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityCondenser;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityDioptra;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityEverfullUrn;
@@ -270,6 +271,9 @@ public final class TCBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityLevitator>> LEVITATOR = BLOCK_ENTITIES.register("levitator",
             () -> new BlockEntityType<>(BlockEntityLevitator::new, Set.of(TCBlocks.LEVITATOR.get())));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityItemGrate>> ITEM_GRATE = BLOCK_ENTITIES.register("item_grate",
+            () -> new BlockEntityType<>(BlockEntityItemGrate::new, Set.of(TCBlocks.ITEM_GRATE.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityGolemBuilder>> GOLEM_BUILDER = BLOCK_ENTITIES.register("golem_builder",
             () -> new BlockEntityType<>(BlockEntityGolemBuilder::new, Set.of(TCBlocks.GOLEM_BUILDER.get())));

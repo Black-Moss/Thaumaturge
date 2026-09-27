@@ -917,6 +917,8 @@ public final class TCRecipeProvider extends RecipeProvider {
         arcaneShaped(new ItemStackTemplate(TCItems.HUNGRY_CHEST), 15).aspect(TCAspects.TERRA, 1).aspect(TCAspects.AQUA, 1).pattern("WTW").pattern("W W").pattern("WWW")
                 .define('W', TCItemTags.PLANKS_GREATWOOD).define('T', ItemTags.WOODEN_TRAPDOORS).gate(gate("hungry_chest")).unlockedBy("has", has(TCItemTags.PLANKS_GREATWOOD)).save(output);
 
+        shaped(RecipeCategory.REDSTONE, TCItems.ITEM_GRATE).pattern("#").pattern("H").define('#', Items.IRON_BARS).define('H', Items.HOPPER).unlockedBy("has", has(Items.HOPPER)).save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.CENTRIFUGE), 100).aspect(TCAspects.ORDO, 1).aspect(TCAspects.PERDITIO, 1).pattern(" T ").pattern("RCP").pattern(" T ").define('T', TCItems.TUBE)
                 .define('P', TCItems.MECHANISM_SIMPLE).define('R', TCItems.MORPHIC_RESONATOR).define('C', TCItems.ALCHEMICAL_CONSTRUCT).gate(gate("centrifuge"))
                 .unlockedBy("has", has(TCItems.MORPHIC_RESONATOR)).save(output);

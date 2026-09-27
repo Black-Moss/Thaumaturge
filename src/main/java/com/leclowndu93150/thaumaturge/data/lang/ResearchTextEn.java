@@ -358,6 +358,9 @@ public final class ResearchTextEn {
         add.accept("research.thaumaturge.levitator.title", "Arcane Levitator");
         add.accept("research.thaumaturge.levitator.stage_0",
                 "I have always been fascinated by the power of flight. I am sure flying is almost within my grasp, but first I need to learn the fundamentals.<BR>I need to study simple levitation first. ");
+        add.accept("research.thaumaturge.item_grate.title", "Item Grate");
+        add.accept("research.thaumaturge.item_grate.stage_0",
+                "The item grate allows you to toggle it open or close it with your hand, or with a redstone signal. If in the open position, any dropped items will simply fall right through it.<BR>Items can also be piped into the top of an item grate using a hopper or other means and if open, it will be ejected out the bottom.");
         add.accept("research.thaumaturge.levitator.stage_1",
                 "While not true flight, the Arcane Levitator is the next best thing.<BR>When placed the levitator lifts any item or creature above it up to 8 blocks into the air. A sneaking creature or player will be slowly lowered.<BR>While levitating something it consumes 1 vis per second from the aura.<BR>The levitator can be placed in any orientation, and when placed horizontally will push creatures along while keeping them aloft.<BR>A toggle on the back of the device allows you to alter the range at which it operates, but also changes the amount of vis it uses.");
         add.accept("research.thaumaturge.infernal_furnace.title", "Infernal Furnace");

@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.client.model.*;
 import com.leclowndu93150.thaumaturge.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
+import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
@@ -241,6 +242,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.LEVITATOR.get()).with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
                 .select(true, new MultiVariant(WeightedList.of(new Variant(levitatorOn)))).select(false, new MultiVariant(WeightedList.of(new Variant(levitatorOff))))).with(levitatorFacing));
         itemModels.itemModelOutput.accept(TCItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
+        registerItemGrate(blockModels, itemModels);
 
         registerInvisibleBlock(blockModels, TCBlocks.GOLEM_BUILDER.get());
         itemModels.itemModelOutput.accept(TCItems.GOLEM_BUILDER.get(),
@@ -324,6 +326,15 @@ public final class TCModelProvider extends ModelProvider {
         Identifier model = ModelTemplates.PARTICLE_ONLY.createWithSuffix(block, "_state", TextureMapping.particle(new Material(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/mirrorframe"))),
                 blockModels.modelOutput);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)));
+    }
+
+    private static void registerItemGrate(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block grate = TCBlocks.ITEM_GRATE.get();
+        Identifier open = ModelTemplates.CUBE_ALL.create(grate, TextureMapping.cube(grate), blockModels.modelOutput);
+        Identifier closed = ModelTemplates.CUBE_ALL.createWithSuffix(grate, "_closed", TextureMapping.cube(TextureMapping.getBlockTexture(grate, "_closed")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(grate)
+                .with(PropertyDispatch.initial(BlockItemGrate.OPEN).select(true, BlockModelGenerators.plainVariant(open)).select(false, BlockModelGenerators.plainVariant(closed))));
+        itemModels.itemModelOutput.accept(TCItems.ITEM_GRATE.get(), ItemModelUtils.plainModel(open));
     }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {
