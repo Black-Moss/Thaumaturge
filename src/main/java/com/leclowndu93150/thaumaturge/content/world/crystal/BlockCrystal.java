@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -126,6 +127,21 @@ public final class BlockCrystal extends Block {
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         return hasSturdyNeighbour(level, pos);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+        if (!state.canSurvive(level, pos)) {
+            ticks.scheduleTick(pos, this, 1);
+        }
+        return super.updateShape(state, level, ticks, pos, direction, neighbourPos, neighbourState, random);
+    }
+
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!state.canSurvive(level, pos)) {
+            level.destroyBlock(pos, true);
+        }
     }
 
     @Override
