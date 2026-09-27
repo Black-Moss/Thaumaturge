@@ -24,6 +24,9 @@ public final class TCRenderPipelines {
     private static final DepthStencilState TEST_NO_WRITE = new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false);
     private static final DepthStencilState ALWAYS_NO_WRITE = new DepthStencilState(CompareOp.ALWAYS_PASS, false);
 
+    private static final RenderPipeline.Snippet RIFT_SNIPPET = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET, RenderPipelines.GLOBALS_SNIPPET).withSampler("Sampler0")
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS).withDepthStencilState(DepthStencilState.DEFAULT).buildSnippet();
+
     public static final RenderPipeline FX_ADDITIVE = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_additive"))
             .withFragmentShader(FX_FRAGMENT).withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withDepthStencilState(TEST_NO_WRITE).withCull(false).build();
 
@@ -43,16 +46,15 @@ public final class TCRenderPipelines {
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES).withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false)).withCull(false)
             .build();
 
-    public static final RenderPipeline RIFT_GLOW = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow"))
+    public static final RenderPipeline RIFT_GLOW = RenderPipeline.builder(RIFT_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow"))
             .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withDepthStencilState(TEST_NO_WRITE).withCull(false).build();
 
-    public static final RenderPipeline RIFT_GLOW_NO_DEPTH = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET)
-            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow_no_depth")).withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
-            .withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withDepthStencilState(ALWAYS_NO_WRITE)
-            .withCull(false).build();
+    public static final RenderPipeline RIFT_GLOW_NO_DEPTH = RenderPipeline.builder(RIFT_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_glow_no_depth"))
+            .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
+            .withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withDepthStencilState(ALWAYS_NO_WRITE).withCull(false).build();
 
-    public static final RenderPipeline RIFT_SOLID = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_solid"))
+    public static final RenderPipeline RIFT_SOLID = RenderPipeline.builder(RIFT_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/rift_solid"))
             .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withCull(false).build();
 
