@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.warding;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.particle.WardFlashParticleOptions;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -23,6 +24,15 @@ public final class WardEvents {
 
     @SubscribeEvent
     public static void onBreakBlock(BreakBlockEvent event) {
+        if (event.getPlayer().getAbilities().instabuild) {
+            if (event.getLevel() instanceof ServerLevel level) {
+                UUID owner = WardHandler.owner(level, event.getPos());
+                if (owner != null) {
+                    WardHandler.unward(level, event.getPos(), owner);
+                }
+            }
+            return;
+        }
         if (WardHandler.isWarded(event.getLevel(), event.getPos())) {
             event.setCanceled(true);
         }
@@ -30,6 +40,9 @@ public final class WardEvents {
 
     @SubscribeEvent
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+        if (event.getEntity().getAbilities().instabuild) {
+            return;
+        }
         event.getPosition().ifPresent(pos -> {
             if (WardHandler.isWarded(event.getEntity().level(), pos)) {
                 event.setCanceled(true);
