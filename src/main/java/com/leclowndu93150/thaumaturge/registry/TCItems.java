@@ -215,6 +215,7 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> LAMP_GROWTH = ITEMS.registerSimpleBlockItem(TCBlocks.LAMP_GROWTH);
     public static final DeferredItem<BlockItem> LAMP_FERTILITY = ITEMS.registerSimpleBlockItem(TCBlocks.LAMP_FERTILITY);
     public static final DeferredItem<BlockItem> CENTRIFUGE = ITEMS.registerSimpleBlockItem(TCBlocks.CENTRIFUGE);
+    public static final DeferredItem<BlockItem> ESSENTIA_CRYSTALIZER = ITEMS.registerSimpleBlockItem(TCBlocks.ESSENTIA_CRYSTALIZER);
     public static final DeferredItem<BlockItem> HUNGRY_CHEST = ITEMS.registerSimpleBlockItem(TCBlocks.HUNGRY_CHEST);
     public static final DeferredItem<BlockItem> MATRIX_SPEED = ITEMS.registerSimpleBlockItem(TCBlocks.MATRIX_SPEED);
     public static final DeferredItem<BlockItem> MATRIX_COST = ITEMS.registerSimpleBlockItem(TCBlocks.MATRIX_COST);

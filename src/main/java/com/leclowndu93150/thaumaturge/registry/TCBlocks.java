@@ -63,6 +63,7 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.equipment.BlockEffectGlimmer;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockCentrifuge;
 import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockAdvancedAlchemicalFurnace;
+import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEssentiaPort;
 import com.leclowndu93150.thaumaturge.content.essentia.bellows.BlockBellows;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
@@ -198,6 +199,9 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockPlaceholder> ADVANCED_ALCHEMICAL_FURNACE_NOZZLE = BLOCKS.registerBlock("advanced_alchemical_furnace_nozzle", BlockPlaceholder::new,
             TCBlocks::advancedFurnacePlaceholderProps);
+
+    public static final DeferredBlock<BlockEssentiaCrystalizer> ESSENTIA_CRYSTALIZER = BLOCKS.registerBlock("essentia_crystalizer", BlockEssentiaCrystalizer::new,
+            props -> props.mapColor(MapColor.METAL).strength(1.0F, 10.0F).sound(SoundType.METAL).noOcclusion());
 
     public static final DeferredBlock<BlockSmelterAux> SMELTER_AUX = BLOCKS.registerBlock("smelter_aux", BlockSmelterAux::new,
             props -> props.mapColor(MapColor.METAL).strength(1F, 20.0F).sound(SoundType.METAL).instrument(NoteBlockInstrument.BASEDRUM).noOcclusion().requiresCorrectToolForDrops());

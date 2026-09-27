@@ -97,6 +97,7 @@ public final class TCCreativeTabs {
                 output.accept(TCItems.ALCHEMICAL_CONSTRUCT.get());
                 output.accept(TCItems.ADVANCED_ALCHEMICAL_CONSTRUCT.get());
                 output.accept(TCItems.CENTRIFUGE.get());
+                output.accept(TCItems.ESSENTIA_CRYSTALIZER.get());
 
                 output.accept(TCItems.ALEMBIC.get());
                 output.accept(TCItems.BELLOWS.get());
