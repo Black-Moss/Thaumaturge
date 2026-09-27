@@ -47,6 +47,17 @@ public final class BlockThaumatoriumTop extends BaseEntityBlock {
     }
 
     @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide() && player.isCreative()) {
+            BlockPos below = pos.below();
+            if (level.getBlockState(below).is(TCBlocks.THAUMATORIUM.get())) {
+                level.destroyBlock(below, false);
+            }
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
         if (level.getBlockState(pos.below()).is(TCBlocks.THAUMATORIUM.get())) {
