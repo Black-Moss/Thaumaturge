@@ -37,6 +37,9 @@ public final class BlockTaintFeature extends DirectionalBlock implements ITaintB
     private static final int GEYSER_CHANCE = 100;
     private static final float CRAWLER_ON_BREAK_CHANCE = 0.333F;
     private static final float BREAK_POLLUTE_AMOUNT = 1.0F;
+    private static final int PASSIVE_POLLUTE_CHANCE = 200;
+    private static final float PASSIVE_POLLUTE_AMOUNT = 1.0F;
+    private static final float PASSIVE_POLLUTE_MAX_RATIO = 0.2F;
 
     public BlockTaintFeature(Properties properties) {
         super(properties);
@@ -78,9 +81,17 @@ public final class BlockTaintFeature extends DirectionalBlock implements ITaintB
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         TaintHelper.trySpreadTaintedBiome(level, pos, random);
-        if (!TaintHelper.isEcologicallySustained(level, pos) && random.nextInt(DIE_CHANCE) == 0) {
+        boolean sustained = TaintHelper.isEcologicallySustained(level, pos);
+        if (!sustained && random.nextInt(DIE_CHANCE) == 0) {
             die(level, pos, state);
             return;
+        }
+        if (sustained && random.nextInt(PASSIVE_POLLUTE_CHANCE) == 0) {
+            int auraBase = AuraHelper.getAuraBase(level, pos);
+            if (auraBase > 0 && AuraHelper.getFlux(level, pos) <= auraBase * PASSIVE_POLLUTE_MAX_RATIO) {
+                AuraHelper.polluteAura(level, pos, PASSIVE_POLLUTE_AMOUNT, true);
+                return;
+            }
         }
         TaintHelper.spreadFibres(level, pos, false);
         BlockState below = level.getBlockState(pos.below());

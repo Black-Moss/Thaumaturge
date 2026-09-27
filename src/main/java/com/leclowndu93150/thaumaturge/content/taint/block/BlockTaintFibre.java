@@ -1,7 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.taint.block;
 
+import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
 import com.mojang.serialization.MapCodec;
@@ -15,6 +19,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -65,6 +70,9 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
 
     private static final int WALK_EFFECT_CHANCE = 750;
     private static final int WALK_EFFECT_DURATION = 200;
+    private static final float STALK_PRESSURE = 0.02F;
+    private static final int BREAK_POLLUTE_MIN = 3;
+    private static final int BREAK_POLLUTE_SPREAD = 3;
 
     public BlockTaintFibre(Properties properties) {
         super(properties);
@@ -194,7 +202,31 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
             die(level, pos, state);
             return;
         }
+        if (state.getValue(GROWTH3) && tryGrowSporeStalk(level, pos)) {
+            return;
+        }
         TaintHelper.spreadFibres(level, pos, false);
+    }
+
+    private static boolean tryGrowSporeStalk(ServerLevel level, BlockPos pos) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || TaintBlooms.isProtected(level, pos) || !TaintEcology.isTainted(level, pos)) {
+            return false;
+        }
+        BlockState stalk = TCBlocks.TAINT_SPORE_STALK.get().defaultBlockState();
+        if (!stalk.canSurvive(level, pos)) {
+            return false;
+        }
+        level.setBlock(pos, stalk, Block.UPDATE_ALL);
+        TaintEcology.addPressure(level, pos, STALK_PRESSURE);
+        return true;
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (level instanceof ServerLevel serverLevel && state.getValue(GROWTH3)) {
+            AuraHelper.polluteAura(serverLevel, pos, BREAK_POLLUTE_MIN + serverLevel.getRandom().nextInt(BREAK_POLLUTE_SPREAD), true);
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
