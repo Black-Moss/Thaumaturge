@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.data.worldgen.feature;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.world.objects.ConfigNodeSpawnFilter;
 import com.leclowndu93150.thaumaturge.content.world.objects.ConfigRarityFilter;
+import com.leclowndu93150.thaumaturge.content.world.objects.SurfaceBiomeSearch;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import java.util.List;
 import net.minecraft.core.HolderGetter;
@@ -94,7 +95,7 @@ public final class TCPlacedFeatures {
                         List.of(PlacementUtils.countExtra(MAGIC_FOREST_TREE_COUNT, MAGIC_FOREST_EXTRA_TREE_CHANCE, MAGIC_FOREST_EXTRA_TREE_COUNT), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP,
                                 PlacementUtils.filteredByBlockSurvival(TCBlocks.SAPLING_GREATWOOD.get()), BiomeFilter.biome())));
 
-        context.register(TAINT_BIOME, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.TAINT_BIOME), List.of()));
+        context.register(TAINT_BIOME, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.TAINT_BIOME), List.of(SurfaceBiomeSearch.INSTANCE, BiomeFilter.biome())));
 
         context.register(TREES_TAINTED_LANDS, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.TAINTED_LANDS_TREES),
                 List.of(CountPlacement.of(TAINTED_LANDS_TREE_COUNT), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP, BiomeFilter.biome())));
