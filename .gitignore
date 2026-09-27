@@ -25,9 +25,6 @@ run-gametest
 
 sources/
 
-# Python files
-*.py
-
 **/__pycache__/
 server-taint-test.log
 
@@ -41,6 +38,4 @@ nv-gametest.log
 .env
 build-datagen
 
-tools/assetaudit/conf/assetaudit.env
-tools/assetaudit/audit.db*
-tools/assetaudit/uploads/
+/tools/
