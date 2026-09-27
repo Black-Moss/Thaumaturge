@@ -24,6 +24,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -74,6 +75,12 @@ public final class FocusEffectHellbat implements FocusEffect {
             struck = null;
         }
         Vec3 origin = target.getLocation();
+        double spawnY = origin.y + 1.5;
+        if (target instanceof BlockHitResult blockHit) {
+            spawnY = blockHit.getBlockPos().getY() + 1.5;
+        } else if (target instanceof EntityHitResult entityHit) {
+            spawnY = entityHit.getEntity().getY() + entityHit.getEntity().getBbHeight() + 0.5;
+        }
         int bats = Math.min(settings.value("bats"), remainingBatBudget(level, caster, origin));
         if (bats <= 0) {
             return false;
@@ -85,8 +92,11 @@ public final class FocusEffectHellbat implements FocusEffect {
             if (bat == null) {
                 continue;
             }
-            bat.snapTo(origin.x + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD, origin.y + 1.0 + level.getRandom().nextFloat() * SPAWN_SPREAD,
+            bat.snapTo(origin.x + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD, spawnY + level.getRandom().nextFloat() * SPAWN_SPREAD,
                     origin.z + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * SPAWN_SPREAD, level.getRandom().nextFloat() * 360.0F, 0.0F);
+            if (!level.noCollision(bat)) {
+                continue;
+            }
             bat.summon(caster, struck, bonus);
             if (level.addFreshEntity(bat)) {
                 spawned = true;
