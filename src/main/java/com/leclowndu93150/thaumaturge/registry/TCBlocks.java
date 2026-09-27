@@ -65,6 +65,7 @@ import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEssentia
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJarBrain;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJarVoid;
+import com.leclowndu93150.thaumaturge.content.essentia.reservoir.BlockEssentiaReservoir;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockAlembic;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelterAux;
@@ -205,6 +206,9 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockEssentiaCrystalizer> ESSENTIA_CRYSTALIZER = BLOCKS.registerBlock("essentia_crystalizer", BlockEssentiaCrystalizer::new,
             props -> props.mapColor(MapColor.METAL).strength(1.0F, 10.0F).sound(SoundType.METAL).noOcclusion());
+
+    public static final DeferredBlock<BlockEssentiaReservoir> ESSENTIA_RESERVOIR = BLOCKS.registerBlock("essentia_reservoir", BlockEssentiaReservoir::new,
+            props -> props.mapColor(MapColor.METAL).strength(2.0F, 17.0F).sound(SoundType.METAL).noOcclusion());
 
     public static final DeferredBlock<BlockSmelterAux> SMELTER_AUX = BLOCKS.registerBlock("smelter_aux", BlockSmelterAux::new,
             props -> props.mapColor(MapColor.METAL).strength(1F, 20.0F).sound(SoundType.METAL).instrument(NoteBlockInstrument.BASEDRUM).noOcclusion().requiresCorrectToolForDrops());

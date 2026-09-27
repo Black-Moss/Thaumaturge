@@ -110,6 +110,7 @@ public final class TCRecipeProvider extends RecipeProvider {
         buildInfusionEnchantmentRecipes();
         buildRunicAugmentRecipe();
         buildElementalToolRecipes();
+        buildEssentiaReservoirRecipe();
         buildTravellerBootsRecipe();
         buildRechargePedestalRecipe();
         buildFocalManipulatorRecipe();
@@ -397,6 +398,14 @@ public final class TCRecipeProvider extends RecipeProvider {
 
         arcaneShaped(new ItemStackTemplate(TCItems.PEDESTAL_ELDRITCH), 150).pattern("SSS").pattern(" B ").pattern("SSS").define('S', TCItems.SLAB_ELDRITCH).define('B', TCItems.STONE_ELDRITCH_TILE)
                 .gate(gate("infusion_eldritch")).unlockedBy("has", has(TCItems.STONE_ELDRITCH_TILE)).save(output);
+    }
+
+    private void buildEssentiaReservoirRecipe() {
+        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TCItems.ESSENTIA_RESERVOIR), Ingredient.of(TCItems.TUBE_BUFFER.get()))
+                .component(Ingredient.of(TCItems.INGOT_VOID.get())).component(Ingredient.of(TCItems.JAR_NORMAL.get())).component(Ingredient.of(TCItems.JAR_NORMAL.get()))
+                .component(Ingredient.of(TCItems.INGOT_VOID.get())).component(Ingredient.of(TCItems.JAR_NORMAL.get())).component(Ingredient.of(TCItems.JAR_NORMAL.get())).aspect(TCAspects.AQUA, 8)
+                .aspect(TCAspects.VACUOS, 8).aspect(TCAspects.PRAECANTATIO, 8).aspect(TCAspects.PERMUTATIO, 8).instability(6).gate(gate("essentia_reservoir"))
+                .unlockedBy("has", has(TCItems.TUBE_BUFFER)).save(output);
     }
 
     private void buildElementalToolRecipes() {

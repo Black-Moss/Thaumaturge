@@ -12,8 +12,6 @@ import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumaturge.content.decor.BlockEntityBarrierStone;
 import com.leclowndu93150.thaumaturge.content.decor.banner.BlockEntityBanner;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityArcaneEar;
-import com.leclowndu93150.thaumaturge.content.device.bore.BlockEntityArcaneBore;
-import com.leclowndu93150.thaumaturge.content.device.grate.BlockEntityItemGrate;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityCondenser;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityDioptra;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityEverfullUrn;
@@ -26,6 +24,8 @@ import com.leclowndu93150.thaumaturge.content.device.BlockEntityRedstoneRelay;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityStabilizer;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVisGenerator;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
+import com.leclowndu93150.thaumaturge.content.device.bore.BlockEntityArcaneBore;
+import com.leclowndu93150.thaumaturge.content.device.grate.BlockEntityItemGrate;
 import com.leclowndu93150.thaumaturge.content.device.mirror.BlockEntityMirror;
 import com.leclowndu93150.thaumaturge.content.device.mirror.BlockEntityMirrorEssentia;
 import com.leclowndu93150.thaumaturge.content.device.patterncrafter.BlockEntityPatternCrafter;
@@ -40,14 +40,15 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritch
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEntityCentrifuge;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEntityEssentiaPort;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.bellows.BlockEntityBellows;
+import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEntityEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJarBrain;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJarVoid;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
+import com.leclowndu93150.thaumaturge.content.essentia.reservoir.BlockEntityEssentiaReservoir;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
-import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
-import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEntityEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatorium;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatoriumTop;
@@ -145,6 +146,9 @@ public final class TCBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEtherealBloom>> ETHEREAL_BLOOM = BLOCK_ENTITIES.register("ethereal_bloom",
             () -> new BlockEntityType<>(BlockEntityEtherealBloom::new, Set.of(TCBlocks.ETHEREAL_BLOOM.get())));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityEssentiaReservoir>> ESSENTIA_RESERVOIR = BLOCK_ENTITIES.register("essentia_reservoir",
+            () -> new BlockEntityType<>(BlockEntityEssentiaReservoir::new, Set.of(TCBlocks.ESSENTIA_RESERVOIR.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityAlembic>> ALEMBIC = BLOCK_ENTITIES.register("alembic",
             () -> new BlockEntityType<>(BlockEntityAlembic::new, Set.of(TCBlocks.ALEMBIC.get())));

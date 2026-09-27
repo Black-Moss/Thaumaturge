@@ -75,6 +75,9 @@ public final class TCModelProvider extends ModelProvider {
     private static final int ROBES_UNDYED_ARGB = 0xFF6A3880;
 
     private static final TextureSlot LEGACY_MESH_SLOT = TextureSlot.create("legacy");
+    private static final TextureSlot RESERVOIR_TANK_SLOT = TextureSlot.create("tank");
+    private static final float RESERVOIR_TANK_MIN = 2.0F;
+    private static final float RESERVOIR_TANK_MAX = 14.0F;
     private static final ModelTemplate BLOCK_PARTICLE = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("block/block")), Optional.empty(), TextureSlot.PARTICLE);
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("item/generated")), Optional.empty(), TextureSlot.LAYER0, TextureSlot.LAYER1,
             TextureSlot.LAYER2);
@@ -511,6 +514,7 @@ public final class TCModelProvider extends ModelProvider {
         registerAlchemicalFurnace(blockModels, itemModels);
         registerAdvancedAlchemicalFurnace(blockModels, itemModels);
         registerEssentiaCrystalizer(blockModels, itemModels);
+        registerEssentiaReservoir(blockModels, itemModels);
         registerFluxGas(blockModels);
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
@@ -930,6 +934,26 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(itemModel));
     }
 
+    private static void registerEssentiaReservoir(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block block = TCBlocks.ESSENTIA_RESERVOIR.get();
+        Identifier mesh = TCIds.rl("models/mesh/essentia_reservoir.tcmesh");
+        TextureMapping fittingTextures = new TextureMapping().put(LEGACY_MESH_SLOT, blockTexture("essentia_reservoir_model")).put(TextureSlot.PARTICLE, blockTexture("essentia_reservoir"));
+        Identifier fitting = legacyMeshTemplate(mesh, "_fitting", root -> root.translation(0.0F, 0.0F, -0.5F)).create(block, fittingTextures, blockModels.modelOutput);
+        ModelTemplate tankTemplate = ExtendedModelTemplateBuilder.builder().parent(Identifier.withDefaultNamespace("block/block")).suffix("_tank").requiredTextureSlot(RESERVOIR_TANK_SLOT)
+                .requiredTextureSlot(TextureSlot.PARTICLE).ambientOcclusion(false).element(element -> element.from(RESERVOIR_TANK_MIN, RESERVOIR_TANK_MIN, RESERVOIR_TANK_MIN)
+                        .to(RESERVOIR_TANK_MAX, RESERVOIR_TANK_MAX, RESERVOIR_TANK_MAX).textureAll(RESERVOIR_TANK_SLOT))
+                .build();
+        Identifier tank = tankTemplate.create(block,
+                new TextureMapping().put(RESERVOIR_TANK_SLOT, blockTexture("essentia_reservoir")).put(TextureSlot.PARTICLE, blockTexture("essentia_reservoir")).forceAllTranslucent(),
+                blockModels.modelOutput);
+        MultiPartGenerator generator = MultiPartGenerator.multiPart(block).with(BlockModelGenerators.plainVariant(tank));
+        for (Direction direction : Direction.values()) {
+            generator = generator.with(new ConditionBuilder().term(BlockStateProperties.FACING, direction), new MultiVariant(WeightedList.of(legacyFacing(direction).apply(new Variant(fitting)))));
+        }
+        blockModels.blockStateOutput.accept(generator);
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.composite(ItemModelUtils.plainModel(tank), ItemModelUtils.plainModel(fitting)));
+    }
+
     private static ModelTemplate legacyMeshTemplate(Identifier mesh, @Nullable String suffix, Consumer<RootTransformsBuilder> rootTransform) {
         ExtendedModelTemplateBuilder builder = ExtendedModelTemplateBuilder.builder().parent(Identifier.withDefaultNamespace("block/block")).requiredTextureSlot(LEGACY_MESH_SLOT)
                 .requiredTextureSlot(TextureSlot.PARTICLE).customLoader(TCMeshLoaderBuilder::new, loader -> loader.mesh(mesh).flipV(true)).rootTransforms(rootTransform);
@@ -940,9 +964,18 @@ public final class TCModelProvider extends ModelProvider {
     }
 
     private static PropertyDispatch<VariantMutator> northBasedFacing() {
-        return PropertyDispatch.modify(BlockStateProperties.FACING).select(Direction.NORTH, BlockModelGenerators.NOP).select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
-                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270).select(Direction.EAST, BlockModelGenerators.Y_ROT_90).select(Direction.UP, BlockModelGenerators.X_ROT_270)
-                .select(Direction.DOWN, BlockModelGenerators.X_ROT_90);
+        return PropertyDispatch.modify(BlockStateProperties.FACING).generate(TCModelProvider::legacyFacing);
+    }
+
+    private static VariantMutator legacyFacing(Direction direction) {
+        return switch (direction) {
+            case NORTH -> BlockModelGenerators.NOP;
+            case SOUTH -> BlockModelGenerators.Y_ROT_180;
+            case WEST -> BlockModelGenerators.Y_ROT_270;
+            case EAST -> BlockModelGenerators.Y_ROT_90;
+            case UP -> BlockModelGenerators.X_ROT_270;
+            case DOWN -> BlockModelGenerators.X_ROT_90;
+        };
     }
 
     private static void registerAdvancedAlchemicalFurnace(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
