@@ -37,6 +37,7 @@ public final class FocusEffectPrimal implements FocusEffect {
     private static final float EXPLOSION_STRENGTH = 1.5F;
     private static final int CHAOS_CHANCE = 100;
     private static final float CHAOS_FLUX = 5.0F;
+    private static final float CHAOS_TAINT_SPREAD = 6.0F;
 
     @Override
     public Identifier id() {
@@ -79,7 +80,7 @@ public final class FocusEffectPrimal implements FocusEffect {
             BlockPos pos = BlockPos.containing(origin);
             if (level.getRandom().nextBoolean()) {
                 if (ThaumaturgeCommonConfig.TAINT_FROM_FLUX.get() && !ThaumaturgeCommonConfig.WUSS_MODE.get()) {
-                    TaintSplosion.burst(level, pos, level.getRandom());
+                    TaintSplosion.burstOnSurface(level, pos, level.getRandom(), CHAOS_TAINT_SPREAD);
                 } else {
                     AuraHelper.polluteAura(level, pos, CHAOS_FLUX, true);
                 }

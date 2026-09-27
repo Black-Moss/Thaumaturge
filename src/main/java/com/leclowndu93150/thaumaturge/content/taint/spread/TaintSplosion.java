@@ -11,19 +11,27 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 public final class TaintSplosion {
     private static final int ATTEMPTS = 10;
-    private static final float SPREAD = 6.0F;
     private static final float PRESSURE = 0.01F;
 
     private TaintSplosion() {}
 
-    public static void burst(ServerLevel level, BlockPos center, RandomSource random) {
+    public static void burstOnSurface(ServerLevel level, BlockPos center, RandomSource random, float spread) {
+        burst(level, center, random, spread, true);
+    }
+
+    public static void burstAtHeight(ServerLevel level, BlockPos center, RandomSource random, float spread) {
+        burst(level, center, random, spread, false);
+    }
+
+    private static void burst(ServerLevel level, BlockPos center, RandomSource random, float spread, boolean onSurface) {
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
-            int x = center.getX() + (int) ((random.nextFloat() - random.nextFloat()) * SPREAD);
-            int z = center.getZ() + (int) ((random.nextFloat() - random.nextFloat()) * SPREAD);
+            int x = center.getX() + (int) ((random.nextFloat() - random.nextFloat()) * spread);
+            int z = center.getZ() + (int) ((random.nextFloat() - random.nextFloat()) * spread);
             if (!random.nextBoolean()) {
                 continue;
             }
-            BlockPos column = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+            int y = onSurface ? level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) : center.getY();
+            BlockPos column = new BlockPos(x, y, z);
             if (!level.hasChunkAt(column) || !TaintBiomeManager.taintColumn(level, column)) {
                 continue;
             }

@@ -27,6 +27,13 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(TCBlockTags.PHYSICAL_FLUX).add(TCBlocks.FLUX_GOO.get()).add(TCBlocks.FLUX_GAS.get());
         tag(TCBlockTags.FLUX_SCRUBBABLE).addTag(TCBlockTags.PHYSICAL_FLUX);
         tag(TCBlockTags.CANDLES).addAll(TCBlocks.CANDLES.values().stream().map(DeferredHolder::get));
+        tag(TCBlockTags.RESEARCH_BONUS_ORDO).addTag(TCBlockTags.CANDLES).addTag(BlockTags.BUTTONS).addTag(BlockTags.RAILS).addTag(BlockTags.FLOWER_POTS)
+                .add(Blocks.TORCH, Blocks.WALL_TORCH, Blocks.SOUL_TORCH, Blocks.SOUL_WALL_TORCH, Blocks.COPPER_TORCH, Blocks.COPPER_WALL_TORCH, Blocks.REDSTONE_TORCH, Blocks.REDSTONE_WALL_TORCH)
+                .add(Blocks.REDSTONE_WIRE, Blocks.LEVER, Blocks.REPEATER, Blocks.COMPARATOR, Blocks.LADDER, Blocks.TRIPWIRE, Blocks.TRIPWIRE_HOOK)
+                .add(Blocks.SKELETON_SKULL, Blocks.SKELETON_WALL_SKULL, Blocks.WITHER_SKELETON_SKULL, Blocks.WITHER_SKELETON_WALL_SKULL, Blocks.ZOMBIE_HEAD, Blocks.ZOMBIE_WALL_HEAD,
+                        Blocks.PLAYER_HEAD, Blocks.PLAYER_WALL_HEAD, Blocks.CREEPER_HEAD, Blocks.CREEPER_WALL_HEAD, Blocks.DRAGON_HEAD, Blocks.DRAGON_WALL_HEAD, Blocks.PIGLIN_HEAD,
+                        Blocks.PIGLIN_WALL_HEAD)
+                .add(Blocks.PISTON, Blocks.STICKY_PISTON, Blocks.PISTON_HEAD, Blocks.MOVING_PISTON);
         tag(TCBlockTags.TAINT_CONVERTIBLE_LOG).addTag(BlockTags.LOGS);
         tag(TCBlockTags.TAINT_CONVERTIBLE_SOIL).addTag(BlockTags.SAND).addTag(BlockTags.DIRT).add(Blocks.CLAY);
         tag(TCBlockTags.TAINT_CONVERTIBLE_ROCK).addTag(BlockTags.BASE_STONE_OVERWORLD).addTag(BlockTags.STONE_ORE_REPLACEABLES).addTag(BlockTags.STONE_BRICKS).addTag(Tags.Blocks.STONES)
