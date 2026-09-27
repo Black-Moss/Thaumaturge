@@ -45,6 +45,7 @@ import java.util.Random;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
@@ -1416,6 +1417,10 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (event.button() == 1) {
+            onClose();
+            return true;
+        }
         if (event.button() == 0) {
             double mx = event.x();
             double my = event.y();
@@ -1737,16 +1742,26 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     @Override
     public void onClose() {
-        if (shownRecipe != null || showingAspects || showingKnowledge) {
+        if (shownRecipe != null || showingAspects || showingKnowledge || showingConstruct) {
             shownRecipe = null;
             showingAspects = false;
             showingKnowledge = false;
+            showingConstruct = false;
             history.clear();
             playSound(TCSounds.PAGE.get(), 0.4F, 1.1F);
             return;
         }
         if (minecraft != null)
             minecraft.setScreen(parent);
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (minecraft != null && minecraft.options.keyInventory.matches(event)) {
+            onClose();
+            return true;
+        }
+        return super.keyPressed(event);
     }
 
     @Override
