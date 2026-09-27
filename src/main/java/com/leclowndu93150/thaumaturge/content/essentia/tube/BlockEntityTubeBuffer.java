@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.BellowsHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
@@ -21,17 +22,22 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.BlockHitResult;
 
-public final class BlockEntityTubeBuffer extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityTubeBuffer extends BlockEntity implements IEssentiaTransport, IInteractWithCaster {
     public static final int MAX_AMOUNT = 10;
     private static final Codec<List<Integer>> CHOKED_CODEC = Codec.INT.listOf();
     private static final Codec<List<Boolean>> OPEN_CODEC = Codec.BOOL.listOf();
@@ -113,6 +119,21 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
         }
         setChanged();
         sync();
+    }
+
+    @Override
+    public boolean onCasterRightClick(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, InteractionHand hand) {
+        if (!(level instanceof ServerLevel)) {
+            return true;
+        }
+        if (!(player.pick(player.blockInteractionRange(), 0.0F, false) instanceof BlockHitResult hit) || !hit.getBlockPos().equals(pos)) {
+            return false;
+        }
+        if (!handleCasterClick(BlockTube.resolveSubHit(hit, pos), player.isShiftKeyDown())) {
+            return false;
+        }
+        player.swing(hand);
+        return true;
     }
 
     public boolean handleCasterClick(int subHit, boolean sneaking) {
