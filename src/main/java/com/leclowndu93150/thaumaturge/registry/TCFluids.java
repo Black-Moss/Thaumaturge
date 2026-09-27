@@ -33,7 +33,7 @@ public final class TCFluids {
     }
 
     private static BaseFlowingFluid.Properties purifyingProps() {
-        return new BaseFlowingFluid.Properties(TCFluidTypes.PURIFYING, PURIFYING_SOURCE, PURIFYING_FLOWING).block(() -> (LiquidBlock) TCBlocks.PURIFYING_FLUID.get());
+        return new BaseFlowingFluid.Properties(TCFluidTypes.PURIFYING, PURIFYING_SOURCE, PURIFYING_FLOWING).block(() -> (LiquidBlock) TCBlocks.PURIFYING_FLUID.get()).bucket(TCItems.BUCKET_PURIFYING);
     }
 
     private static BaseFlowingFluid.Properties props() {

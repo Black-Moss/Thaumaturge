@@ -35,6 +35,7 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.*;
@@ -51,6 +52,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.jspecify.annotations.Nullable;
 
 @JeiPlugin
@@ -89,6 +92,8 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
 
     @Override
     public void registerExtraIngredients(IExtraIngredientRegistration registration) {
+        registration.addExtraIngredients(NeoForgeTypes.FLUID_STACK, List.of(new FluidStack(TCFluids.FLUX_GOO_SOURCE.get(), FluidType.BUCKET_VOLUME),
+                new FluidStack(TCFluids.PURIFYING_SOURCE.get(), FluidType.BUCKET_VOLUME), new FluidStack(TCFluids.LIQUID_DEATH_SOURCE.get(), FluidType.BUCKET_VOLUME)));
         RegistryAccess registryAccess = clientRegistryAccess();
         if (registryAccess == null) {
             return;

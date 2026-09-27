@@ -162,6 +162,7 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(
                 MultiVariantGenerator.dispatch(TCBlocks.PURIFYING_FLUID.get(), new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/purifying_fluid"))))));
         itemModels.generateFlatItem(TCItems.BUCKET_LIQUID_DEATH.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.BUCKET_PURIFYING.get(), ModelTemplates.FLAT_ITEM);
         blockModels.blockStateOutput.accept(
                 MultiVariantGenerator.dispatch(TCBlocks.LIQUID_DEATH.get(), new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/liquid_death"))))));
     }
