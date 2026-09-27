@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.data.loot;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.content.manabean.BlockEntityManaPod;
 import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.world.crystal.BlockCrystal;
@@ -37,11 +38,21 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 public final class TCBlockLootSubProvider extends BlockLootSubProvider {
+    private static final float[] TAINT_ROCK_CRYSTAL_CHANCES = {1 / 15.0F, 2 / 15.0F, 3 / 15.0F, 4 / 15.0F, 5 / 15.0F, 6 / 15.0F, 7 / 15.0F, 8 / 15.0F, 9 / 15.0F, 10 / 15.0F, 11 / 15.0F, 12 / 15.0F,
+            13 / 15.0F, 14 / 15.0F, 15 / 15.0F};
     private static final float AMBER_CURIO_CHANCE = 0.1F;
     private static final float[] VENT_CURIO_CHANCES = {0.01F, 0.01F, 0.02F, 0.03F};
 
     private LootTable.Builder dropSelfWithoutExplosion(Block block) {
         return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(block)));
+    }
+
+    private LootTable.Builder taintRockTable(Block block) {
+        Holder<IAspect> aspect = lookupProvider.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(TCAspects.VITIUM);
+        return createSilkTouchDispatchTable(block,
+                applyExplosionCondition(block,
+                        LootItem.lootTableItem(TCItems.ESSENTIA_CRYSTAL.get()).apply(SetComponentsFunction.setComponent(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1))).when(
+                                BonusLevelTableCondition.bonusLevelFlatChance(lookupProvider.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), TAINT_ROCK_CRYSTAL_CHANCES))));
     }
 
     private LootTable.Builder crystalTable(BlockCrystal block) {
@@ -190,7 +201,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.PLANT_CINDERPEARL.get());
         dropSelf(TCBlocks.PLANT_VISHROOM.get());
         add(TCBlocks.GRASS_AMBIENT.get(), block -> createSingleItemTableWithSilkTouch(block, Blocks.DIRT));
-        dropSelf(TCBlocks.TAINT_ROCK.get());
+        add(TCBlocks.TAINT_ROCK.get(), this::taintRockTable);
         dropSelf(TCBlocks.TAINT_SOIL.get());
         dropSelf(TCBlocks.TAINT_CRUST.get());
         dropSelf(TCBlocks.TAINT_GEYSER.get());
