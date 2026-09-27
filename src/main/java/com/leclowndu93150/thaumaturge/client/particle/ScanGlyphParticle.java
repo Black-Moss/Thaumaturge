@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.content.particle.ScanGlyphParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 
 public final class ScanGlyphParticle extends TCParticle {
@@ -27,6 +28,11 @@ public final class ScanGlyphParticle extends TCParticle {
     protected void update() {
         frame(this.age % FRAME_COUNT);
         this.alpha = Keyframes.sample(progress(), 0.0F, 1.0F, 0.8F, 0.0F);
+    }
+
+    @Override
+    protected int getLightCoords(float partialTick) {
+        return LightCoordsUtil.FULL_BRIGHT;
     }
 
     @Override
