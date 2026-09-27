@@ -290,8 +290,8 @@ public final class TCItems {
     public static final DeferredItem<DoubleHighBlockItem> ARCANE_DOOR = ITEMS.registerItem("arcane_door",
             props -> new DoubleHighBlockItem(TCBlocks.ARCANE_DOOR.get(), props.useBlockDescriptionPrefix()));
     public static final DeferredItem<BlockItem> ARCANE_PRESSURE_PLATE = ITEMS.registerSimpleBlockItem(TCBlocks.ARCANE_PRESSURE_PLATE);
-    public static final DeferredItem<ItemArcaneKey> ARCANE_KEY_IRON = ITEMS.registerItem("arcane_key_iron", props -> new ItemArcaneKey(props, false), props -> props.stacksTo(1));
-    public static final DeferredItem<ItemArcaneKey> ARCANE_KEY_GOLD = ITEMS.registerItem("arcane_key_gold", props -> new ItemArcaneKey(props, true), props -> props.stacksTo(1));
+    public static final DeferredItem<ItemArcaneKey> ARCANE_KEY_IRON = ITEMS.registerItem("arcane_key_iron", props -> new ItemArcaneKey(props, false), props -> props.stacksTo(16));
+    public static final DeferredItem<ItemArcaneKey> ARCANE_KEY_GOLD = ITEMS.registerItem("arcane_key_gold", props -> new ItemArcaneKey(props, true), props -> props.stacksTo(16));
     public static final DeferredItem<BlockItem> POTION_SPRAYER = ITEMS.registerSimpleBlockItem(TCBlocks.POTION_SPRAYER);
     public static final DeferredItem<BlockItem> PATTERN_CRAFTER = ITEMS.registerSimpleBlockItem(TCBlocks.PATTERN_CRAFTER);
     public static final DeferredItem<BlockItem> INLAY = ITEMS.registerSimpleBlockItem(TCBlocks.INLAY);
