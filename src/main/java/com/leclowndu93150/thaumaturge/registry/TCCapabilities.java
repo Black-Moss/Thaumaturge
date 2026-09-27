@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.AdvancedAlchemicalFurnaceStructure;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
 import net.minecraft.core.Direction;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -102,6 +103,8 @@ public final class TCCapabilities {
 
     private static void golemBuilder(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.GOLEM_BUILDER.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
+        event.registerBlock(EssentiaCapabilities.TRANSPORT, (level, pos, state, be, side) -> AdvancedAlchemicalFurnaceStructure.nozzle(level, pos, side),
+                TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_NOZZLE.get());
         event.registerBlockEntity(Capabilities.Item.BLOCK, TCBlockEntities.GOLEM_BUILDER.get(), (be, side) -> be.output());
     }
 

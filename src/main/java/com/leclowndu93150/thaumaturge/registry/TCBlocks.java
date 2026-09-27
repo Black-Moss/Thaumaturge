@@ -62,6 +62,7 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchStruct
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.equipment.BlockEffectGlimmer;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockCentrifuge;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEssentiaPort;
 import com.leclowndu93150.thaumaturge.content.essentia.bellows.BlockBellows;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
@@ -182,6 +183,22 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockSmelter> ALCHEMICAL_FURNACE = BLOCKS.registerBlock("alchemical_furnace", BlockSmelter::new,
             props -> props.mapColor(MapColor.STONE).strength(3.0F, 17.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
+    public static final DeferredBlock<BlockAdvancedAlchemicalFurnace> ADVANCED_ALCHEMICAL_FURNACE = BLOCKS.registerBlock("advanced_alchemical_furnace", BlockAdvancedAlchemicalFurnace::new,
+            props -> props.mapColor(MapColor.METAL).strength(5.0F, 12.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion().pushReaction(PushReaction.BLOCK)
+                    .lightLevel(state -> state.getValue(BlockAdvancedAlchemicalFurnace.LIT) ? 10 : 0));
+
+    public static final DeferredBlock<BlockPlaceholder> ADVANCED_ALCHEMICAL_FURNACE_ALEMBIC_PLACEHOLDER = BLOCKS.registerBlock("advanced_alchemical_furnace_alembic_placeholder", BlockPlaceholder::new,
+            TCBlocks::advancedFurnacePlaceholderProps);
+
+    public static final DeferredBlock<BlockPlaceholder> ADVANCED_ALCHEMICAL_FURNACE_CONSTRUCT_PLACEHOLDER = BLOCKS.registerBlock("advanced_alchemical_furnace_construct_placeholder",
+            BlockPlaceholder::new, TCBlocks::advancedFurnacePlaceholderProps);
+
+    public static final DeferredBlock<BlockPlaceholder> ADVANCED_ALCHEMICAL_FURNACE_ADVANCED_CONSTRUCT_PLACEHOLDER = BLOCKS.registerBlock("advanced_alchemical_furnace_advanced_construct_placeholder",
+            BlockPlaceholder::new, TCBlocks::advancedFurnacePlaceholderProps);
+
+    public static final DeferredBlock<BlockPlaceholder> ADVANCED_ALCHEMICAL_FURNACE_NOZZLE = BLOCKS.registerBlock("advanced_alchemical_furnace_nozzle", BlockPlaceholder::new,
+            TCBlocks::advancedFurnacePlaceholderProps);
+
     public static final DeferredBlock<BlockSmelterAux> SMELTER_AUX = BLOCKS.registerBlock("smelter_aux", BlockSmelterAux::new,
             props -> props.mapColor(MapColor.METAL).strength(1F, 20.0F).sound(SoundType.METAL).instrument(NoteBlockInstrument.BASEDRUM).noOcclusion().requiresCorrectToolForDrops());
 
@@ -243,6 +260,10 @@ public final class TCBlocks {
 
     private static BlockBehaviour.Properties pressPlaceholderProps(BlockBehaviour.Properties props) {
         return props.mapColor(MapColor.STONE).strength(2.5F, 3600000.0F).sound(SoundType.STONE).noLootTable();
+    }
+
+    private static BlockBehaviour.Properties advancedFurnacePlaceholderProps(BlockBehaviour.Properties props) {
+        return props.mapColor(MapColor.METAL).strength(2.5F, 3600000.0F).sound(SoundType.METAL);
     }
 
     private static BlockBehaviour.Properties pedestalProps(BlockBehaviour.Properties props) {

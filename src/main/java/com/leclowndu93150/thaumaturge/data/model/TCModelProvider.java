@@ -68,6 +68,7 @@ import org.joml.Matrix4f;
 public final class TCModelProvider extends ModelProvider {
     private static final int ROBES_UNDYED_ARGB = 0xFF6A3880;
 
+    private static final ModelTemplate BLOCK_PARTICLE = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("block/block")), Optional.empty(), TextureSlot.PARTICLE);
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("item/generated")), Optional.empty(), TextureSlot.LAYER0, TextureSlot.LAYER1,
             TextureSlot.LAYER2);
     private static final int FOLIAGE_DEFAULT_COLOR = 0x48B518;
@@ -501,6 +502,7 @@ public final class TCModelProvider extends ModelProvider {
         registerSmelter(blockModels, itemModels, TCBlocks.SMELTER_THAUMIUM.get(), "smelter_thaumium");
         registerSmelter(blockModels, itemModels, TCBlocks.SMELTER_VOID.get(), "smelter_void");
         registerAlchemicalFurnace(blockModels, itemModels);
+        registerAdvancedAlchemicalFurnace(blockModels, itemModels);
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
@@ -900,6 +902,17 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(lit).with(rotations));
 
         itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName + "_off"), Optional.empty(), List.of()));
+    }
+
+    private static void registerAdvancedAlchemicalFurnace(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        registerInvisibleBlock(blockModels, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE.get());
+        registerInvisibleBlock(blockModels, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_ALEMBIC_PLACEHOLDER.get());
+        registerInvisibleBlock(blockModels, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_CONSTRUCT_PLACEHOLDER.get());
+        registerInvisibleBlock(blockModels, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_ADVANCED_CONSTRUCT_PLACEHOLDER.get());
+        registerInvisibleBlock(blockModels, TCBlocks.ADVANCED_ALCHEMICAL_FURNACE_NOZZLE.get());
+        Identifier base = BLOCK_PARTICLE.create(TCIds.rl("item/advanced_alchemical_furnace_base"), TextureMapping.particle(blockTexture("advanced_alchemical_furnace")), blockModels.modelOutput);
+        itemModels.itemModelOutput.accept(TCItems.ADVANCED_ALCHEMICAL_FURNACE.get(),
+                new SpecialModelWrapper.Unbaked(base, Optional.empty(), new AdvancedAlchemicalFurnaceItemSpecialRenderer.Unbaked()));
     }
 
     private static void registerAlchemicalFurnace(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {

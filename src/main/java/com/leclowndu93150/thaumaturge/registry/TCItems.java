@@ -44,6 +44,7 @@ import com.leclowndu93150.thaumaturge.content.golem.ItemGolemBell;
 import com.leclowndu93150.thaumaturge.content.golem.ItemGolemPlacer;
 import com.leclowndu93150.thaumaturge.content.golem.ItemSealPlacer;
 import com.leclowndu93150.thaumaturge.content.golem.press.ItemGolemPress;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.ItemAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.infernalfurnace.ItemInfernalFurnace;
 import com.leclowndu93150.thaumaturge.content.item.CausalityCollapserItem;
 import com.leclowndu93150.thaumaturge.content.item.BathSaltsItem;
@@ -135,6 +136,7 @@ public final class TCItems {
 
     public static final DeferredItem<BlockItem> SMELTER_VOID = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_VOID);
     public static final DeferredItem<BlockItem> ALCHEMICAL_FURNACE = ITEMS.registerSimpleBlockItem(TCBlocks.ALCHEMICAL_FURNACE);
+    public static final DeferredItem<BlockItem> ADVANCED_ALCHEMICAL_FURNACE = registerSimpleBlockItem(TCBlocks.ADVANCED_ALCHEMICAL_FURNACE, ItemAdvancedAlchemicalFurnace::new);
 
     public static final DeferredItem<BlockItem> SMELTER_AUX = ITEMS.registerSimpleBlockItem(TCBlocks.SMELTER_AUX);
 
