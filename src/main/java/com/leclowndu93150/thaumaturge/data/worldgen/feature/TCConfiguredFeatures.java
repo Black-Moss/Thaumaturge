@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.content.aura.node.NodeFeatureConfig;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumaturge.content.world.crystal.CrystalClusterConfig;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicForestFloraConfig;
+import com.leclowndu93150.thaumaturge.content.world.taint.TaintBiomeConfig;
 import com.leclowndu93150.thaumaturge.content.world.tree.BigMagicTreeConfig;
 import com.leclowndu93150.thaumaturge.content.world.tree.BigTreeConfig;
 import com.leclowndu93150.thaumaturge.content.world.tree.SilverwoodTreeConfig;
@@ -21,14 +22,15 @@ import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.TreePlacements;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HugeMushroomBlock;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.WeightedPlacedFeature;
-import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.HugeMushroomFeatureConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.RandomFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.ReplaceBlockConfiguration;
@@ -47,6 +49,7 @@ public final class TCConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> BIG_MAGIC_TREE = key("big_magic_tree");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_TREES = key("magic_forest_trees");
     public static final ResourceKey<ConfiguredFeature<?, ?>> TAINTED_LANDS_TREES = key("tainted_lands_trees");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> TAINT_BIOME = key("taint_biome");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_FLORA = key("magic_forest_flora");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MANA_PODS = key("mana_pods");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRYSTALS = key("crystals");
@@ -71,6 +74,14 @@ public final class TCConfiguredFeatures {
     private static final float MAGIC_FOREST_SILVERWOOD_CHANCE = 1.0F / 18.0F;
     private static final float MAGIC_FOREST_GREATWOOD_CHANCE = 1.0F / 12.0F;
     private static final float TAINTED_LANDS_BIG_TREE_CHANCE = 1.0F / 8.0F;
+    private static final int TAINT_BIOME_MAX_CRUST_BLOBS = 2;
+    private static final int TAINT_BIOME_MIN_CRUST_RADIUS = 1;
+    private static final int TAINT_BIOME_MAX_CRUST_RADIUS = 2;
+    private static final int TAINT_BIOME_GRASS_FIBRE_ATTEMPTS = 10;
+    private static final int TAINT_BIOME_GENERAL_FIBRE_ATTEMPTS = 8;
+    private static final int TAINT_BIOME_GROUND_SEARCH_DEPTH = 32;
+    private static final int TAINT_BIOME_LANDMARK_RADIUS_CHUNKS = 4;
+    private static final int TAINT_BIOME_LANDMARK_ATTEMPTS = 48;
     private static final int CRYSTAL_ATTEMPTS = 8;
     private static final int CRYSTAL_MAX_TOTAL = 64;
     private static final int CRYSTAL_BIOME_ASPECT_CHANCE = 3;
@@ -107,6 +118,12 @@ public final class TCConfiguredFeatures {
 
         context.register(TAINTED_LANDS_TREES, new ConfiguredFeature<>(Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(
                 List.of(new WeightedPlacedFeature(placed.getOrThrow(TCPlacedFeatures.BIG_MAGIC_CHECKED), TAINTED_LANDS_BIG_TREE_CHANCE)), placed.getOrThrow(TreePlacements.OAK_CHECKED))));
+
+        context.register(TAINT_BIOME,
+                new ConfiguredFeature<>(TCFeatures.TAINT_BIOME.get(),
+                        new TaintBiomeConfig(TCBlocks.TAINT_CRUST.get(), TAINT_BIOME_MAX_CRUST_BLOBS, UniformInt.of(TAINT_BIOME_MIN_CRUST_RADIUS, TAINT_BIOME_MAX_CRUST_RADIUS),
+                                TAINT_BIOME_GRASS_FIBRE_ATTEMPTS, TAINT_BIOME_GENERAL_FIBRE_ATTEMPTS, TAINT_BIOME_GROUND_SEARCH_DEPTH, true, TAINT_BIOME_LANDMARK_RADIUS_CHUNKS,
+                                TAINT_BIOME_LANDMARK_ATTEMPTS)));
 
         context.register(MAGIC_FOREST_BROWN_MUSHROOM,
                 new ConfiguredFeature<>(Feature.HUGE_BROWN_MUSHROOM,

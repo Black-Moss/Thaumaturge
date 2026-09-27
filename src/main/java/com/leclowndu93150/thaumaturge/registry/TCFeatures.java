@@ -11,6 +11,8 @@ import com.leclowndu93150.thaumaturge.content.world.objects.HilltopStonesFeature
 import com.leclowndu93150.thaumaturge.content.world.objects.ObsidianTotemFeature;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicForestFloraConfig;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicForestFloraFeature;
+import com.leclowndu93150.thaumaturge.content.world.taint.TaintBiomeConfig;
+import com.leclowndu93150.thaumaturge.content.world.taint.TaintBiomeFeature;
 import com.leclowndu93150.thaumaturge.content.world.tree.BigMagicTreeConfig;
 import com.leclowndu93150.thaumaturge.content.world.tree.BigMagicTreeFeature;
 import com.leclowndu93150.thaumaturge.content.world.tree.BigTreeConfig;
@@ -47,6 +49,8 @@ public final class TCFeatures {
     public static final DeferredHolder<Feature<?>, CrimsonPortalFeature> CRIMSON_PORTAL = FEATURES.register("crimson_portal", () -> new CrimsonPortalFeature(NoneFeatureConfiguration.CODEC));
 
     public static final DeferredHolder<Feature<?>, HilltopStonesFeature> HILLTOP_STONES = FEATURES.register("hilltop_stones", () -> new HilltopStonesFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final DeferredHolder<Feature<?>, TaintBiomeFeature> TAINT_BIOME = FEATURES.register("taint_biome", () -> new TaintBiomeFeature(TaintBiomeConfig.CODEC));
 
     private TCFeatures() {}
 
