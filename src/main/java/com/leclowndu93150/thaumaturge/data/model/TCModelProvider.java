@@ -1208,8 +1208,9 @@ public final class TCModelProvider extends ModelProvider {
     private void registerTaintFeature(BlockModelGenerators blockModels) {
         MultiVariant orbs = orbVariants();
         PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(DirectionalBlock.FACING).select(Direction.UP, BlockModelGenerators.NOP)
-                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180).select(Direction.NORTH, BlockModelGenerators.X_ROT_270).select(Direction.SOUTH, BlockModelGenerators.X_ROT_90)
-                .select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90)).select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270));
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180).select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180)).select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.TAINT_FEATURE.get(), orbs).with(rotations));
     }
 
