@@ -45,6 +45,10 @@ public final class CommandTextEn {
         add.accept("commands.thaumaturge.locate.node.copy", "Click to copy coordinates");
         add.accept("commands.thaumaturge.locate.node.found", "Nearest indexed %s node is at %s (%s blocks away)");
 
+        add.accept("commands.thaumaturge.build.infusion_altar.height", "The infusion altar does not fit inside the build height here");
+        add.accept("commands.thaumaturge.build.infusion_altar.unloaded", "Part of the infusion altar area is not loaded");
+        add.accept("commands.thaumaturge.build.infusion_altar.success", "Built an infusion altar centered at %s, %s, %s");
+
         add.accept("commands.thaumaturge.showcase.built", "Built a showcase of %s blocks and %s items from %s, %s, %s");
         add.accept("commands.thaumaturge.showcase.too_tall", "The showcase does not fit inside the build height here");
         add.accept("commands.thaumaturge.showcase.unloaded", "Part of the showcase area is not loaded");
