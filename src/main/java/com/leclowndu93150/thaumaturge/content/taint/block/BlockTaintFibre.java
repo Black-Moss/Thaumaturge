@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.taint.block;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
 import com.mojang.serialization.MapCodec;
 import java.util.EnumMap;
@@ -137,6 +138,10 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
         return computeState(state, level, pos);
     }
 
+    public static BlockState stateForWorld(LevelReader level, BlockPos pos) {
+        return computeState(TCBlocks.TAINT_FIBRE.get().defaultBlockState(), level, pos);
+    }
+
     private static BlockState computeState(BlockState state, LevelReader level, BlockPos pos) {
         boolean north = canAttachTo(level, pos.north(), Direction.SOUTH);
         boolean east = canAttachTo(level, pos.east(), Direction.WEST);
@@ -175,12 +180,13 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TaintHelper.trySpreadTaintedBiome(level, pos, random);
         boolean hasGrowth = state.getValue(GROWTH1) || state.getValue(GROWTH2) || state.getValue(GROWTH3) || state.getValue(GROWTH4);
         if (!hasGrowth && isOnlyAdjacentToTaint(level, pos)) {
             die(level, pos, state);
             return;
         }
-        if (!TaintHelper.isNearTaintSeed(level, pos)) {
+        if (!TaintHelper.isEcologicallySustained(level, pos)) {
             die(level, pos, state);
             return;
         }

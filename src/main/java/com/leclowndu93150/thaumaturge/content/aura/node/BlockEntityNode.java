@@ -821,7 +821,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             case TAINTED -> {
                 BlockPos target = pos.offset(random.nextInt(5) - random.nextInt(5), random.nextInt(5) - random.nextInt(5), random.nextInt(5) - random.nextInt(5));
                 if (random.nextBoolean()) {
-                    TaintApi.spreadFibres(serverLevel, target, false);
+                    TaintApi.spreadFibres(serverLevel, target, true);
                 }
             }
             case PURE -> AuraHelper.drainFlux(serverLevel, pos, PURE_FLUX_CLEANSE, false);

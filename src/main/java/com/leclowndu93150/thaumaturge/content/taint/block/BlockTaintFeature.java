@@ -77,7 +77,8 @@ public final class BlockTaintFeature extends DirectionalBlock implements ITaintB
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (!TaintHelper.isNearTaintSeed(level, pos) && random.nextInt(DIE_CHANCE) == 0) {
+        TaintHelper.trySpreadTaintedBiome(level, pos, random);
+        if (!TaintHelper.isEcologicallySustained(level, pos) && random.nextInt(DIE_CHANCE) == 0) {
             die(level, pos, state);
             return;
         }
