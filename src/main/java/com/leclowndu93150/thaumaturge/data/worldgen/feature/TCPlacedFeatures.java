@@ -91,8 +91,8 @@ public final class TCPlacedFeatures {
 
         context.register(TREES_MAGIC_FOREST,
                 new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_TREES),
-                        List.of(PlacementUtils.countExtra(MAGIC_FOREST_TREE_COUNT, MAGIC_FOREST_EXTRA_TREE_CHANCE, MAGIC_FOREST_EXTRA_TREE_COUNT), InSquarePlacement.spread(),
-                                PlacementUtils.HEIGHTMAP_OCEAN_FLOOR, BiomeFilter.biome())));
+                        List.of(PlacementUtils.countExtra(MAGIC_FOREST_TREE_COUNT, MAGIC_FOREST_EXTRA_TREE_CHANCE, MAGIC_FOREST_EXTRA_TREE_COUNT), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP,
+                                PlacementUtils.filteredByBlockSurvival(TCBlocks.SAPLING_GREATWOOD.get()), BiomeFilter.biome())));
 
         context.register(GREATWOOD_NATURAL, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.GREATWOOD_TREE), List.of(RarityFilter.onAverageOnceEvery(GREATWOOD_RARITY),
                 InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_OCEAN_FLOOR, PlacementUtils.filteredByBlockSurvival(TCBlocks.SAPLING_GREATWOOD.get()), BiomeFilter.biome())));

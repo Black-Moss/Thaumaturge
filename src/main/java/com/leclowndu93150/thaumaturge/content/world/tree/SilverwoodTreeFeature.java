@@ -62,10 +62,13 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
             }
         }
 
-        /*BlockState soil = level.getBlockState(new BlockPos(x, y - 1, z));
+        if (!level.getFluidState(origin).isEmpty()) {
+            return false;
+        }
+        BlockState soil = level.getBlockState(origin.below());
         if (!soil.is(BlockTags.DIRT) && !soil.is(Blocks.FARMLAND)) {
             return false;
-        }*/
+        }
 
         Set<BlockPos> placedLogs = new HashSet<>();
         Set<BlockPos> placedLeaves = new HashSet<>();
@@ -96,10 +99,6 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                     }
                 }
             }
-        }
-
-        if (config.node()) {
-            NodeGenerator.createRandomNodeAt(level, new BlockPos(x + 1, y + height - 1, z), random, true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
         }
 
         int trunkY;
@@ -158,6 +157,13 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         placeLog(level, x + 2, y + height - 4, z, config, placedLogs, Direction.Axis.X);
         placeLog(level, x, y + height - 4, z - 2, config, placedLogs, Direction.Axis.Z);
         placeLog(level, x, y + height - 4, z + 2, config, placedLogs, Direction.Axis.Z);
+
+        if (config.node()) {
+            BlockPos nodePos = new BlockPos(x, y + height - 1, z);
+            if (NodeGenerator.createRandomNodeAt(level, nodePos, random, true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)) {
+                placedLogs.remove(nodePos);
+            }
+        }
 
         TreeLeafUpdater.run(level, placedLogs, placedLeaves, freshLeaves);
         config.flower().ifPresent(flower -> generateFlowers(level, random, origin, flower));
