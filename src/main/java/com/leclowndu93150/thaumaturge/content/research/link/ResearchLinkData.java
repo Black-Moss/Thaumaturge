@@ -5,8 +5,10 @@ import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
@@ -19,15 +21,24 @@ import org.jspecify.annotations.Nullable;
 
 public final class ResearchLinkData extends SavedData {
 
+    public record Progress(int stage, boolean complete) {
+        static final Codec<Progress> CODEC = RecordCodecBuilder.create(builder -> builder
+                .group(Codec.intRange(0, Integer.MAX_VALUE).fieldOf("stage").forGetter(Progress::stage), Codec.BOOL.fieldOf("complete").forGetter(Progress::complete)).apply(builder, Progress::new));
+
+        Progress merge(Progress other) {
+            return new Progress(Math.max(stage, other.stage), complete || other.complete);
+        }
+    }
+
     public static final class Link {
         final UUID first;
         final UUID second;
-        final Set<Identifier> union;
+        final Map<Identifier, Progress> progress;
 
-        Link(UUID first, UUID second, Set<Identifier> union) {
+        Link(UUID first, UUID second, Map<Identifier, Progress> progress) {
             this.first = first;
             this.second = second;
-            this.union = new LinkedHashSet<>(union);
+            this.progress = new LinkedHashMap<>(progress);
         }
 
         public UUID first() {
@@ -38,18 +49,17 @@ public final class ResearchLinkData extends SavedData {
             return second;
         }
 
-        public Set<Identifier> union() {
-            return union;
+        public Map<Identifier, Progress> progress() {
+            return progress;
         }
 
         public boolean involves(UUID player) {
             return first.equals(player) || second.equals(player);
         }
 
-        static final Codec<Link> CODEC = RecordCodecBuilder.create(builder -> builder
-                .group(UUIDUtil.CODEC.fieldOf("first").forGetter(link -> link.first), UUIDUtil.CODEC.fieldOf("second").forGetter(link -> link.second),
-                        LegacyIds.IDENTIFIER_CODEC.listOf().fieldOf("union").xmap(list -> (Set<Identifier>) new LinkedHashSet<>(list), List::copyOf).forGetter(link -> link.union))
-                .apply(builder, Link::new));
+        static final Codec<Link> CODEC = RecordCodecBuilder
+                .create(builder -> builder.group(UUIDUtil.CODEC.fieldOf("first").forGetter(link -> link.first), UUIDUtil.CODEC.fieldOf("second").forGetter(link -> link.second),
+                        Codec.unboundedMap(LegacyIds.IDENTIFIER_CODEC, Progress.CODEC).fieldOf("progress").forGetter(link -> link.progress)).apply(builder, Link::new));
     }
 
     public static final Codec<ResearchLinkData> CODEC = RecordCodecBuilder
@@ -58,6 +68,11 @@ public final class ResearchLinkData extends SavedData {
     public static final SavedDataType<ResearchLinkData> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "research_share"), ResearchLinkData::new, CODEC, DataFixTypes.LEVEL);
 
     private final List<Link> links;
+    private final Set<UUID> pendingPlayers = new HashSet<>();
+
+    Set<UUID> pendingPlayers() {
+        return pendingPlayers;
+    }
 
     public ResearchLinkData() {
         this(List.of());
@@ -89,7 +104,7 @@ public final class ResearchLinkData extends SavedData {
         if (existing != null) {
             return existing;
         }
-        Link link = new Link(a, b, Set.of());
+        Link link = new Link(a, b, Map.of());
         links.add(link);
         setDirty();
         return link;
