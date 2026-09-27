@@ -22,6 +22,7 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
     public static final MapCodec<LiquidBlock> CODEC = simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
 
     private static final int REPLACEABLE_AMOUNT_THRESHOLD = 5;
+    private static final float AURA_FLOOR_PER_QUANTUM = 0.5F;
     private static final int AMBIENT_FUME_DENOMINATOR = 44;
     private static final int FUME_GRID = 64;
     private static final int FUME_PARTICLE_INDEX = 64;
@@ -76,6 +77,19 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
         FluidState fluid = level.getFluidState(pos);
         if (!fluid.isEmpty()) {
             level.scheduleTick(pos, fluid.getType(), fluid.getType().getTickDelay(level));
+        }
+    }
+
+    @Override
+    public float auraFloorPerQuantum() {
+        return AURA_FLOOR_PER_QUANTUM;
+    }
+
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (level instanceof ServerLevel serverLevel) {
+            PhysicalFluxAuraFloor.observe(serverLevel, pos);
         }
     }
 

@@ -10,4 +10,6 @@ public interface PhysicalFluxBlock {
     BlockState withFluxAmount(int amount);
 
     void scheduleFluxTick(ServerLevel level, BlockPos pos);
+
+    float auraFloorPerQuantum();
 }

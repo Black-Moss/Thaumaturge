@@ -232,7 +232,7 @@ public final class TCBlocks {
             .mapColor(MapColor.COLOR_PINK).replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.DESTROY).sound(TCSoundTypes.GORE.get()).noLootTable().liquid().randomTicks());
 
     public static final DeferredBlock<BlockFluxGas> FLUX_GAS = BLOCKS.registerBlock("flux_gas", BlockFluxGas::new, props -> props.mapColor(MapColor.COLOR_PINK).replaceable().noCollision()
-            .noOcclusion().strength(100.0F).pushReaction(PushReaction.DESTROY).lightLevel(state -> 7).sound(TCSoundTypes.GORE.get()).noLootTable());
+            .noOcclusion().strength(100.0F).pushReaction(PushReaction.DESTROY).lightLevel(state -> 7).sound(TCSoundTypes.GORE.get()).noLootTable().randomTicks());
 
     public static final DeferredBlock<BlockPurifyingFluid> PURIFYING_FLUID = BLOCKS.registerBlock("purifying_fluid", props -> new BlockPurifyingFluid(TCFluids.PURIFYING_SOURCE.get(), props),
             props -> props.mapColor(MapColor.METAL).replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.DESTROY).lightLevel(state -> 5).noLootTable().liquid());

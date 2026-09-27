@@ -56,6 +56,7 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
 
     @Override
     protected void randomTick(ServerLevel level, BlockPos pos, FluidState state, RandomSource random) {
+        PhysicalFluxAuraFloor.observe(level, pos);
         lifecycleTick(level, pos, state, random);
     }
 
@@ -70,16 +71,24 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
         } else if (meta >= SMALL_SLIME_META_MAX && airAbove && rand.nextInt(SLIME_SPAWN_CHANCE) == 0) {
             spawnSlime(level, pos, 2);
         } else if (rand.nextInt(DECAY_ROLL_CHANCE) == 0) {
+            boolean pollutes = !PhysicalFluxAuraFloor.isEnabled();
             if (meta == 0) {
                 if (rand.nextBoolean()) {
-                    AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
+                    if (pollutes) {
+                        AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
+                    }
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 } else {
                     level.setBlock(pos, TCBlocks.TAINT_FIBRE.get().defaultBlockState(), Block.UPDATE_ALL);
                 }
             } else {
                 setGoo(level, pos, meta, Block.UPDATE_CLIENTS);
-                AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
+                if (pollutes) {
+                    AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
+                }
+                if (airAbove && rand.nextBoolean()) {
+                    PhysicalFlux.placeGas(level, pos.above(), 1);
+                }
             }
         } else {
             spreadTick(level, pos, state, rand);

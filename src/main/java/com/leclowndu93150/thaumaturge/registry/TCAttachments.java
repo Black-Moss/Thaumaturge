@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumaturge.content.golem.tasks.GolemTasks;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPoolData;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxSamples;
 import com.leclowndu93150.thaumaturge.content.warding.ArcaneLockChunkData;
 import com.leclowndu93150.thaumaturge.content.warding.WardChunkData;
 import com.leclowndu93150.thaumaturge.content.warp.WarpData;
@@ -54,6 +55,9 @@ public final class TCAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<BlockWorkQueues>> BLOCK_WORK_QUEUES = register("block_work_queues",
             () -> AttachmentType.builder(BlockWorkQueues::new).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<PhysicalFluxSamples>> PHYSICAL_FLUX_SAMPLES = register("physical_flux_samples",
+            () -> AttachmentType.builder(PhysicalFluxSamples::new).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SealsChunkData>> SEALS = register("seals",
             () -> AttachmentType.builder(SealsChunkData::new).serialize(SealsChunkData.CODEC).build());
