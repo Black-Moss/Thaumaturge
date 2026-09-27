@@ -521,6 +521,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("biome.thaumaturge.magical_forest", "Magical Forest");
         add("biome.thaumaturge.eerie", "Eerie");
         add("biome.thaumaturge.eldritch", "Eldritch");
+        add("biome.thaumaturge.tainted_lands", "Tainted Lands");
     }
 
     private void langMAuraHud() {

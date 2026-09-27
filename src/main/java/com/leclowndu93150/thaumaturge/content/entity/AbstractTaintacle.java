@@ -2,11 +2,16 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumaturge.content.taint.block.AbstractTaintBlock;
+import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -16,9 +21,13 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 public abstract class AbstractTaintacle extends Monster implements ITaintedMob {
+    private static final double SPAWN_SPACING_HORIZONTAL = 24.0;
+    private static final double SPAWN_SPACING_VERTICAL = 8.0;
     private static final int SUBSTRATE_CHECK_INTERVAL = 20;
     private static final float STARVE_DAMAGE = 1.0F;
     private static final byte EVENT_FLAIL = 16;
@@ -29,6 +38,20 @@ public abstract class AbstractTaintacle extends Monster implements ITaintedMob {
 
     protected AbstractTaintacle(EntityType<? extends AbstractTaintacle> type, Level level) {
         super(type, level);
+    }
+
+    public static boolean checkTaintacleSpawnRules(EntityType<? extends AbstractTaintacle> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
+        if (!level.getBiome(pos).is(TCBiomeTags.IS_TAINTED) || !onTaint(level.getBlockState(pos)) && !onTaint(level.getBlockState(pos.below()))) {
+            return false;
+        }
+        if (!level.getEntitiesOfClass(EntityTaintacle.class, new AABB(pos).inflate(SPAWN_SPACING_HORIZONTAL, SPAWN_SPACING_VERTICAL, SPAWN_SPACING_HORIZONTAL)).isEmpty()) {
+            return false;
+        }
+        return Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
+    }
+
+    private static boolean onTaint(BlockState state) {
+        return state.is(TCBlocks.TAINT_FIBRE) || state.is(TCBlocks.TAINT_SOIL);
     }
 
     public static AttributeSupplier.Builder createTaintacleAttributes(double maxHealth, double attackDamage) {

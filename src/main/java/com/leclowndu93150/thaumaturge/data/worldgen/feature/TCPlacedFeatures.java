@@ -31,6 +31,7 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SILVERWOOD_CHECKED = key("silverwood_checked");
     public static final ResourceKey<PlacedFeature> BIG_MAGIC_CHECKED = key("big_magic_checked");
     public static final ResourceKey<PlacedFeature> TREES_MAGIC_FOREST = key("trees_magic_forest");
+    public static final ResourceKey<PlacedFeature> TREES_TAINTED_LANDS = key("trees_tainted_lands");
     public static final ResourceKey<PlacedFeature> GREATWOOD_NATURAL = key("greatwood_natural");
     public static final ResourceKey<PlacedFeature> GREATWOOD_NATURAL_RARE = key("greatwood_natural_rare");
     public static final ResourceKey<PlacedFeature> SILVERWOOD_NATURAL = key("silverwood_natural");
@@ -50,6 +51,7 @@ public final class TCPlacedFeatures {
     public static final ResourceKey<PlacedFeature> CINDERPEARL = key("cinderpearl");
 
     private static final int MAGIC_FOREST_TREE_COUNT = 2;
+    private static final int TAINTED_LANDS_TREE_COUNT = 2;
     private static final float MAGIC_FOREST_EXTRA_TREE_CHANCE = 0.1F;
     private static final int MAGIC_FOREST_EXTRA_TREE_COUNT = 1;
     private static final int GREATWOOD_RARITY = 25;
@@ -90,6 +92,9 @@ public final class TCPlacedFeatures {
                 new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.MAGIC_FOREST_TREES),
                         List.of(PlacementUtils.countExtra(MAGIC_FOREST_TREE_COUNT, MAGIC_FOREST_EXTRA_TREE_CHANCE, MAGIC_FOREST_EXTRA_TREE_COUNT), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP,
                                 PlacementUtils.filteredByBlockSurvival(TCBlocks.SAPLING_GREATWOOD.get()), BiomeFilter.biome())));
+
+        context.register(TREES_TAINTED_LANDS, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.TAINTED_LANDS_TREES),
+                List.of(CountPlacement.of(TAINTED_LANDS_TREE_COUNT), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP, BiomeFilter.biome())));
 
         context.register(GREATWOOD_NATURAL, new PlacedFeature(configured.getOrThrow(TCConfiguredFeatures.GREATWOOD_TREE), List.of(RarityFilter.onAverageOnceEvery(GREATWOOD_RARITY),
                 InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_OCEAN_FLOOR, PlacementUtils.filteredByBlockSurvival(TCBlocks.SAPLING_GREATWOOD.get()), BiomeFilter.biome())));

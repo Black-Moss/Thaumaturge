@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -12,6 +13,11 @@ public final class TCWorldgenSetup {
 
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> Regions.register(new TCOverworldRegion(TCIds.rl("overworld"))));
+        event.enqueueWork(() -> {
+            Regions.register(new TCOverworldRegion(TCIds.rl("overworld")));
+            if (ThaumaturgeCommonConfig.GENERATE_TAINTED_LANDS.get()) {
+                Regions.register(new TCTaintedLandsRegion(TCIds.rl("tainted_lands")));
+            }
+        });
     }
 }

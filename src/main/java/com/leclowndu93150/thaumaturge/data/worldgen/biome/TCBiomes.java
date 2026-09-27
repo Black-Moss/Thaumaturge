@@ -27,6 +27,7 @@ public final class TCBiomes {
     public static final ResourceKey<Biome> MAGICAL_FOREST = key("magical_forest");
     public static final ResourceKey<Biome> EERIE = key("eerie");
     public static final ResourceKey<Biome> ELDRITCH = key("eldritch");
+    public static final ResourceKey<Biome> TAINTED_LANDS = key("tainted_lands");
 
     private static final float MAGICAL_FOREST_TEMPERATURE = 0.8F;
     private static final float MAGICAL_FOREST_DOWNFALL = 0.4F;
@@ -40,6 +41,16 @@ public final class TCBiomes {
     private static final float ELDRITCH_TEMPERATURE = 0.8F;
     private static final int NORMAL_WATER_COLOR = 4159204;
     private static final float ELDRITCH_DOWNFALL = 0.2F;
+    private static final float TAINTED_LANDS_TEMPERATURE = 0.5F;
+    private static final float TAINTED_LANDS_DOWNFALL = 0.5F;
+    private static final int TAINTED_LANDS_GRASS = 7160201;
+    private static final int TAINTED_LANDS_FOLIAGE = 8154503;
+    private static final int TAINTED_LANDS_SKY = 8144127;
+    private static final int TAINTED_LANDS_WATER = 8203431;
+    private static final int TAINTED_LANDS_WATER_FOG = 2755133;
+    private static final int TAINTED_LANDS_BAT_WEIGHT = 10;
+    private static final int TAINTED_LANDS_BAT_GROUP = 8;
+    private static final int TAINTED_LANDS_TAINTACLE_WEIGHT = 1;
 
     private TCBiomes() {}
 
@@ -53,6 +64,7 @@ public final class TCBiomes {
         context.register(MAGICAL_FOREST, magicalForest(placed, carvers));
         context.register(EERIE, eerie(placed, carvers));
         context.register(ELDRITCH, eldritch(placed, carvers));
+        context.register(TAINTED_LANDS, taintedLands(placed, carvers));
     }
 
     private static void globalGeneration(BiomeGenerationSettings.Builder generation) {
@@ -115,6 +127,26 @@ public final class TCBiomes {
         return new Biome.BiomeBuilder().hasPrecipitation(false).temperature(EERIE_TEMPERATURE).downfall(0.0F).setAttribute(EnvironmentAttributes.SKY_COLOR, ARGB.opaque(EERIE_SKY))
                 .specialEffects(new BiomeSpecialEffects.Builder().waterColor(EERIE_WATER).grassColorOverride(EERIE_GRASS).foliageColorOverride(EERIE_GRASS).build()).mobSpawnSettings(mobs.build())
                 .generationSettings(generation.build()).build();
+    }
+
+    private static Biome taintedLands(HolderGetter<PlacedFeature> placed, HolderGetter<ConfiguredWorldCarver<?>> carvers) {
+        MobSpawnSettings.Builder mobs = new MobSpawnSettings.Builder();
+        BiomeDefaultFeatures.farmAnimals(mobs);
+        mobs.addSpawn(MobCategory.AMBIENT, TAINTED_LANDS_BAT_WEIGHT, new MobSpawnSettings.SpawnerData(EntityType.BAT, TAINTED_LANDS_BAT_GROUP, TAINTED_LANDS_BAT_GROUP));
+        mobs.addSpawn(MobCategory.MONSTER, TAINTED_LANDS_TAINTACLE_WEIGHT, new MobSpawnSettings.SpawnerData(TCEntities.TAINTACLE.get(), 1, 1));
+
+        BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(placed, carvers);
+        globalGeneration(generation);
+        BiomeDefaultFeatures.addDefaultOres(generation);
+        BiomeDefaultFeatures.addDefaultSoftDisks(generation);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, TCPlacedFeatures.TREES_TAINTED_LANDS);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, VegetationPlacements.PATCH_GRASS_FOREST);
+        BiomeDefaultFeatures.addDefaultExtraVegetation(generation, false);
+
+        return new Biome.BiomeBuilder().hasPrecipitation(true).temperature(TAINTED_LANDS_TEMPERATURE).downfall(TAINTED_LANDS_DOWNFALL)
+                .setAttribute(EnvironmentAttributes.SKY_COLOR, ARGB.opaque(TAINTED_LANDS_SKY)).setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, ARGB.opaque(TAINTED_LANDS_WATER_FOG))
+                .specialEffects(new BiomeSpecialEffects.Builder().waterColor(TAINTED_LANDS_WATER).grassColorOverride(TAINTED_LANDS_GRASS).foliageColorOverride(TAINTED_LANDS_FOLIAGE).build())
+                .mobSpawnSettings(mobs.build()).generationSettings(generation.build()).build();
     }
 
     private static Biome eldritch(HolderGetter<PlacedFeature> placed, HolderGetter<ConfiguredWorldCarver<?>> carvers) {
