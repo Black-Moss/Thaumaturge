@@ -39,7 +39,8 @@ public final class BlueprintBootstrap {
         register(ctx, "thaumatorium",
                 new Blueprint(1, 3, 1,
                         Map.of('T', part(block(TCBlocks.ALCHEMICAL_CONSTRUCT.get()), toBlock(TCBlocks.THAUMATORIUM_TOP.get())), 'M',
-                                part(block(TCBlocks.ALCHEMICAL_CONSTRUCT.get()), toBlock(TCBlocks.THAUMATORIUM.get())), 'B', part(block(TCBlocks.CRUCIBLE.get()), BlueprintTarget.Keep.INSTANCE)),
+                                part(block(TCBlocks.ALCHEMICAL_CONSTRUCT.get()), new BlueprintTarget.BlockTarget(TCBlocks.THAUMATORIUM.get(), true, false)), 'B',
+                                part(block(TCBlocks.CRUCIBLE.get()), BlueprintTarget.Keep.INSTANCE)),
                         List.of(List.of("T"), List.of("M"), List.of("B"))));
 
         register(ctx, "infusion_altar", altar(TCBlocks.STONE_ARCANE.get(), TCBlocks.PILLAR_ARCANE.get(), TCBlocks.PEDESTAL_ARCANE.get()));
