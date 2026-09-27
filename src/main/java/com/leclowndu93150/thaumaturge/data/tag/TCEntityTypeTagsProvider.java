@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.tag;
 
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
+import com.leclowndu93150.thaumaturge.registry.TCEntityTags;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,6 +28,7 @@ public final class TCEntityTypeTagsProvider extends KeyTagProvider<EntityType<?>
                 .add(key(TCEntities.GIANT_BRAINY_ZOMBIE.get())).add(key(TCEntities.BRAINY_DROWNED.get())).add(key(TCEntities.BRAINY_HUSK.get()));
         tag(EntityTypeTags.INVERTED_HEALING_AND_HARM).add(key(TCEntities.ELDRITCH_GUARDIAN.get())).add(key(TCEntities.INHABITED_ZOMBIE.get())).add(key(TCEntities.BRAINY_ZOMBIE.get()))
                 .add(key(TCEntities.GIANT_BRAINY_ZOMBIE.get())).add(key(TCEntities.BRAINY_DROWNED.get())).add(key(TCEntities.BRAINY_HUSK.get()));
+        tag(TCEntityTags.TAINT_CONVERSION_IMMUNE).add(key(TCEntities.THAUMATURGE_GOLEM.get()));
         tag(EntityTypeTags.WITHER_FRIENDS).add(key(TCEntities.ELDRITCH_GUARDIAN.get()));
     }
 

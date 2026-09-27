@@ -1,0 +1,44 @@
+package com.leclowndu93150.thaumaturge.content.taint.entity;
+
+import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+
+public final class EntityTaintPig extends Pig implements ITaintedMob {
+    private static final double MAX_HEALTH = 20.0;
+    private static final double ATTACK_DAMAGE = 4.0;
+    private static final double MOVEMENT_SPEED = 0.275;
+    private static final double ARMOR = 2.0;
+    private static final double FOLLOW_RANGE = 24.0;
+
+    public EntityTaintPig(EntityType<? extends Pig> type, Level level) {
+        super(type, level);
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Pig.createAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE).add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED).add(Attributes.ARMOR, ARMOR)
+                .add(Attributes.FOLLOW_RANGE, FOLLOW_RANGE);
+    }
+
+    @Override
+    protected void registerGoals() {
+        TaintedLivestockGoals.addHostileGoals(this, goalSelector, targetSelector, true, true);
+    }
+
+    @Override
+    public boolean isFood(ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        return InteractionResult.PASS;
+    }
+}

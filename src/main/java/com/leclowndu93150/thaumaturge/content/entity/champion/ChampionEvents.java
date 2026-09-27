@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityOwnedConstruct;
+import com.leclowndu93150.thaumaturge.content.taint.entity.TaintMobConversion;
 import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
@@ -16,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,6 +44,7 @@ public final class ChampionEvents {
     private static final int ROLL_BOUND = 100;
     private static final double MIN_CHAMPION_HEALTH = 10.0;
     private static final float TAINT_CONVERT_HEALTH = 2.0F;
+    private static final int TAINTED_ATTACK_FLUX_TAINT_TICKS = 200;
     private static final int XP_BASE = 5;
     private static final int XP_SPREAD = 3;
     private static final int BAG_ROLL_BOUND = 9;
@@ -112,8 +115,8 @@ public final class ChampionEvents {
             return;
         }
         if (victim.getHealth() < TAINT_CONVERT_HEALTH && !victim.isInvertedHealAndHarm() && victim.isAlive() && !(victim instanceof EntityOwnedConstruct) && !(victim instanceof ITaintedMob)
-                && victim.hasEffect(TCMobEffects.FLUX_TAINT) && victim.getRandom().nextBoolean()) {
-            ChampionHelper.makeTainted(victim);
+                && victim.hasEffect(TCMobEffects.FLUX_TAINT) && victim.getRandom().nextBoolean() && victim.level() instanceof ServerLevel server) {
+            TaintMobConversion.tryConvert(server, victim);
             return;
         }
         int victimType = ChampionHelper.championType(victim);
@@ -124,6 +127,10 @@ public final class ChampionEvents {
             if (victimType >= 0 && ChampionModifier.MODS.get(victimType).trigger() == ChampionModifier.Trigger.WHEN_HURT && event.getSource().getEntity() instanceof LivingEntity attacker) {
                 event.setAmount(ChampionModifier.MODS.get(victimType).effect().perform(victim, attacker, event.getSource(), event.getAmount()));
             }
+        }
+        if (event.getAmount() > 0.0F && event.getSource().getEntity() instanceof LivingEntity taintedAttacker
+                && (taintedAttacker instanceof ITaintedMob || ChampionHelper.championType(taintedAttacker) == ChampionModifier.TAINTED)) {
+            victim.addEffect(new MobEffectInstance(TCMobEffects.FLUX_TAINT, TAINTED_ATTACK_FLUX_TAINT_TICKS, 0, true, false, false));
         }
         if (event.getAmount() > 0.0F && event.getSource().getEntity() instanceof Monster attacker && ChampionHelper.isChampion(attacker)) {
             int attackerType = ChampionHelper.championType(attacker);
