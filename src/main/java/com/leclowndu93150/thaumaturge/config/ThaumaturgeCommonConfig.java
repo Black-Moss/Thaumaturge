@@ -5,6 +5,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class ThaumaturgeCommonConfig {
     public static final ModConfigSpec SPEC;
 
+    public static final ModConfigSpec.IntValue MAGICAL_FOREST_REGION_WEIGHT;
     public static final ModConfigSpec.BooleanValue WUSS_MODE;
     public static final ModConfigSpec.DoubleValue TAINT_SPREAD_RATE;
     public static final ModConfigSpec.IntValue TAINT_SPREAD_AREA;
@@ -35,6 +36,9 @@ public final class ThaumaturgeCommonConfig {
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.push("world");
+        MAGICAL_FOREST_REGION_WEIGHT = builder
+                .comment("Magical Forest frequency relative to other TerraBlender regions. Higher values are more frequent. Applies after restarting, to newly generated terrain.")
+                .defineInRange("magicalForestRegionWeight", 6, 1, 100);
         WUSS_MODE = builder.comment("Setting this to true disables Warp, Taint spread and similar mechanics. You wuss.").define("wussMode", false);
         TAINT_SPREAD_RATE = builder.comment("The % chance of taint fibres spreading on a block tick. Setting this to 0 will effectively stop taint fibre spread.").defineInRange("taintSpreadRate",
                 100.0, 0.0, 100.0);
