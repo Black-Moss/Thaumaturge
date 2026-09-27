@@ -552,13 +552,13 @@ public final class TCBlocks {
     //
 
     public static final DeferredBlock<BlockPlantShimmerleaf> PLANT_SHIMMERLEAF = BLOCKS.registerBlock("shimmerleaf", BlockPlantShimmerleaf::new,
-            props -> props.mapColor(MapColor.PLANT).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).pushReaction(PushReaction.DESTROY).randomTicks().noOcclusion());
+            props -> props.mapColor(MapColor.PLANT).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).pushReaction(PushReaction.DESTROY).noOcclusion());
 
     public static final DeferredBlock<BlockPlantCinderpearl> PLANT_CINDERPEARL = BLOCKS.registerBlock("cinderpearl", BlockPlantCinderpearl::new,
-            props -> props.mapColor(MapColor.COLOR_ORANGE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).pushReaction(PushReaction.DESTROY).randomTicks().noOcclusion());
+            props -> props.mapColor(MapColor.COLOR_ORANGE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 8).pushReaction(PushReaction.DESTROY).noOcclusion());
 
     public static final DeferredBlock<BlockPlantVishroom> PLANT_VISHROOM = BLOCKS.registerBlock("vishroom", BlockPlantVishroom::new,
-            props -> props.mapColor(MapColor.COLOR_PURPLE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).pushReaction(PushReaction.DESTROY).randomTicks().noOcclusion());
+            props -> props.mapColor(MapColor.COLOR_PURPLE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).pushReaction(PushReaction.DESTROY).noOcclusion());
 
     public static final DeferredBlock<BlockGrassAmbient> GRASS_AMBIENT = BLOCKS.registerBlock("grass_ambient", BlockGrassAmbient::new,
             props -> props.mapColor(MapColor.GRASS).strength(0.6F).sound(SoundType.GRAVEL).randomTicks());
