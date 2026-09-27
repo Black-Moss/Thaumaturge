@@ -10,8 +10,10 @@ import com.leclowndu93150.thaumaturge.api.casters.FocusSettings;
 import com.leclowndu93150.thaumaturge.api.casters.SettingDefinition;
 import com.leclowndu93150.thaumaturge.api.casters.Trajectory;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
+import com.leclowndu93150.thaumaturge.content.taint.spread.TaintSplosion;
 import com.leclowndu93150.thaumaturge.registry.TCParticles;
 import java.util.List;
 import java.util.Optional;
@@ -76,7 +78,11 @@ public final class FocusEffectPrimal implements FocusEffect {
         if (level.getRandom().nextInt(CHAOS_CHANCE) == 0) {
             BlockPos pos = BlockPos.containing(origin);
             if (level.getRandom().nextBoolean()) {
-                AuraHelper.polluteAura(level, pos, CHAOS_FLUX, true);
+                if (ThaumaturgeCommonConfig.TAINT_FROM_FLUX.get() && !ThaumaturgeCommonConfig.WUSS_MODE.get()) {
+                    TaintSplosion.burst(level, pos, level.getRandom());
+                } else {
+                    AuraHelper.polluteAura(level, pos, CHAOS_FLUX, true);
+                }
             } else {
                 NodeGenerator.createRandomNodeAt(level, pos.above(), level.getRandom(), false, false, true, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
             }
