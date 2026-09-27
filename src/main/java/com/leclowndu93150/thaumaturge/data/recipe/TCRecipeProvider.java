@@ -52,6 +52,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -92,6 +93,10 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private static ResearchGate gate(String path, int stage) {
         return new ResearchGate(TCIds.rl(path), Optional.of(stage), false);
+    }
+
+    private static ResourceKey<Recipe<?>> recipeId(String path) {
+        return ResourceKey.create(Registries.RECIPE, TCIds.rl(path));
     }
 
     @Override
@@ -247,19 +252,25 @@ public final class TCRecipeProvider extends RecipeProvider {
 
     private void oreSmelting(ItemLike item, TagKey<Item> oreTag, float xp, String group) {
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(items.getOrThrow(oreTag)), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 200).group(group).unlockedBy("has", this.has(oreTag))
-                .save(this.output, getItemName(item) + "_from_ore");
+                .save(this.output, recipeId(getItemName(item) + "_from_ore"));
 
         SimpleCookingRecipeBuilder.blasting(Ingredient.of(items.getOrThrow(oreTag)), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 100).group(group).unlockedBy("has", this.has(oreTag))
-                .save(this.output, getItemName(item) + "_blasting_from_ore");
+                .save(this.output, recipeId(getItemName(item) + "_blasting_from_ore"));
     }
 
     private void clusterSmelting(ItemLike item, ItemLike cluster, String group) {
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(cluster), RecipeCategory.MISC, CookingBookCategory.MISC, new ItemStackTemplate(item.asItem(), 2), 1F, 200).group(group)
-                .unlockedBy("has", this.has(cluster)).save(this.output, getItemName(item) + "_from_cluster");
+                .unlockedBy("has", this.has(cluster)).save(this.output, recipeId(getItemName(item) + "_from_cluster"));
 
         SimpleCookingRecipeBuilder.blasting(Ingredient.of(cluster), RecipeCategory.MISC, CookingBookCategory.MISC, new ItemStackTemplate(item.asItem(), 2), 1F, 100).group(group)
-                .unlockedBy("has", this.has(cluster)).save(this.output, getItemName(item) + "_blasting_from_cluster");
+                .unlockedBy("has", this.has(cluster)).save(this.output, recipeId(getItemName(item) + "_blasting_from_cluster"));
+    }
+
+    @Override
+    protected void stonecutterResultFromBase(RecipeCategory category, ItemLike result, ItemLike base, int count) {
+        SingleItemRecipeBuilder.stonecutting(Ingredient.of(base), category, result, count).unlockedBy(getHasName(base), this.has(base)).save(this.output,
+                recipeId(getConversionRecipeName(result, base) + "_stonecutting"));
     }
 
     private void plateRecipe(ItemLike plate, TagKey<Item> ingotTag) {
