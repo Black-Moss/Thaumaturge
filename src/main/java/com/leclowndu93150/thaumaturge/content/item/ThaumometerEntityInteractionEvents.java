@@ -38,7 +38,8 @@ public final class ThaumometerEntityInteractionEvents {
             return false;
         }
 
-        return ThaumometerItem.beginScanAt(player, hand, target).consumesAction();
+        ThaumometerItem.beginScanAt(player, hand, target);
+        return true;
     }
 
 }
