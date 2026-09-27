@@ -790,6 +790,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("warp.thaumaturge.text.16", "The faint sound of chanting can be heard nearby.");
         add("warp.thaumaturge.text.hunger.1", "Your hunger cannot be satisfied with normal food.");
         add("warp.thaumaturge.text.hunger.2", "Your hunger begins to fade.");
+        add("warp.thaumaturge.fluxevent.1", "The nearby aura suddenly twists and warps, leaving your thoughts in a shambles.");
         add("warp.thaumaturge.fluxevent.2", "You feel something invading your mind and sapping your will.");
         add("warp.thaumaturge.fluxevent.3", "You feel a sudden release of magical tension nearby.");
         add("entity.thaumaturge.flux_rift", "Flux Rift");

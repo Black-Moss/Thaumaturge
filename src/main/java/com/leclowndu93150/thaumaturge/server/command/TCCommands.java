@@ -19,6 +19,9 @@ import com.leclowndu93150.thaumaturge.api.warp.IPlayerWarp;
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
 import com.leclowndu93150.thaumaturge.api.warp.WarpType;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
+import com.leclowndu93150.thaumaturge.content.aura.pressure.FluxPressureEvent;
+import com.leclowndu93150.thaumaturge.content.aura.pressure.FluxPressureEventTypes;
+import com.leclowndu93150.thaumaturge.content.aura.pressure.FluxPressureEvents;
 import com.leclowndu93150.thaumaturge.content.casters.ItemFocus;
 import com.leclowndu93150.thaumaturge.content.effect.StreamPathfinder;
 import com.leclowndu93150.thaumaturge.content.eldritch.maze.MazeSavedData;
@@ -47,6 +50,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.util.Arrays;
@@ -100,6 +104,9 @@ public final class TCCommands {
     private static final SuggestionProvider<CommandSourceStack> FOCUS_ELEMENTS = (ctx, builder) -> SharedSuggestionProvider
             .suggest(TCFocusElements.registry().keySet().stream().map(Identifier::toString), builder);
 
+    private static final SuggestionProvider<CommandSourceStack> FLUX_EVENTS = (ctx, builder) -> SharedSuggestionProvider.suggest(FluxPressureEventTypes.ALL.stream().map(FluxPressureEvent::name),
+            builder);
+
     private static final SuggestionProvider<CommandSourceStack> CHAMPION_MODS = (ctx, builder) -> SharedSuggestionProvider
             .suggest(Stream.concat(ChampionModifier.MODS.stream().map(ChampionModifier::name), Stream.of("random")), builder);
 
@@ -120,6 +127,8 @@ public final class TCCommands {
                         .then(Commands.argument("name", StringArgumentType.word()).suggests(PARTICLE_NAMES).executes(TCCommands::runParticle)))
                 .then(Commands.literal("flux_goo").then(Commands.literal("set").then(Commands.argument("level", IntegerArgumentType.integer(1, 8)).executes(TCCommands::setFluxGoo))))
                 .then(Commands.literal("flux_gas").then(Commands.literal("set").then(Commands.argument("level", IntegerArgumentType.integer(1, 8)).executes(TCCommands::setFluxGas))))
+                .then(Commands.literal("flux_event").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.argument("type", StringArgumentType.word()).suggests(FLUX_EVENTS).executes(TCCommands::triggerFluxEvent)))
                 .then(Commands.literal("effect").then(Commands.literal("vis_exhaust").executes(ctx -> giveEffect(ctx, "vis_exhaust")))
                         .then(Commands.literal("infectious_vis_exhaust").executes(ctx -> giveEffect(ctx, "infectious_vis_exhaust")))
                         .then(Commands.literal("flux_taint").executes(ctx -> giveEffect(ctx, "flux_taint"))))
@@ -449,6 +458,22 @@ public final class TCCommands {
             ctx.getSource().sendFailure(Component.literal("Failed: " + e.getMessage()));
             return 0;
         }
+    }
+
+    private static int triggerFluxEvent(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        String name = StringArgumentType.getString(ctx, "type");
+        FluxPressureEvent event = FluxPressureEventTypes.byName(name);
+        if (event == null) {
+            ctx.getSource().sendFailure(Component.literal("Unknown flux event: " + name));
+            return 0;
+        }
+        if (!FluxPressureEvents.trigger(player.level(), player.blockPosition(), event)) {
+            ctx.getSource().sendFailure(Component.literal("Flux event " + name + " could not trigger here (needs " + event.cost() + " local Flux, a valid target, and fluxPressureEvents on)"));
+            return 0;
+        }
+        ctx.getSource().sendSuccess(() -> Component.literal("Triggered flux event " + name + " for " + event.cost() + " Flux"), false);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int giveEffect(CommandContext<CommandSourceStack> ctx, String key) {

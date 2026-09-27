@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.aura.AuraData;
+import com.leclowndu93150.thaumaturge.content.aura.pressure.FluxPressureState;
 import com.leclowndu93150.thaumaturge.content.casters.BlockWorkQueues;
 import com.leclowndu93150.thaumaturge.content.entity.FocusCloudCooldowns;
 import com.leclowndu93150.thaumaturge.content.equipment.runic.RunicShieldState;
@@ -75,6 +76,8 @@ public final class TCAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<TaintColumns>> TAINT_COLUMNS = register("taint_columns",
             () -> AttachmentType.builder(TaintColumns::new).serialize(TaintColumns.CODEC).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<FluxPressureState>> FLUX_PRESSURE = register("flux_pressure", () -> AttachmentType.builder(FluxPressureState::new).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<TaintBloomIndex>> TAINT_BLOOMS = register("taint_blooms", () -> AttachmentType.builder(TaintBloomIndex::new).build());
 
