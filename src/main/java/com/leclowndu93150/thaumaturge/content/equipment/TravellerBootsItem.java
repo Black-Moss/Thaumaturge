@@ -70,6 +70,17 @@ public final class TravellerBootsItem extends Item implements IRechargable {
         }
     }
 
+    static void clearMovementBoosts(ServerPlayer player) {
+        AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
+        AttributeInstance jumpHeight = player.getAttribute(Attributes.JUMP_STRENGTH);
+        if (stepHeight != null) {
+            stepHeight.removeModifier(STEP_MODIFIER.id());
+        }
+        if (jumpHeight != null) {
+            jumpHeight.removeModifier(JUMP_MODIFIER.id());
+        }
+    }
+
     public static void clientMovementTick(Player player, ItemStack stack) {
         if (RechargeAccess.getCharge(stack) <= 0 || player.getAbilities().flying || player.zza <= 0.0F) {
             return;
