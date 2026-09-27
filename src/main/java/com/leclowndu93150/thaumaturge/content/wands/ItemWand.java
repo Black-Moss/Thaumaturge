@@ -119,7 +119,7 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
             if (player.isShiftKeyDown() && containsElement(core, IFocusBlockPicker.class)) {
                 return InteractionResult.PASS;
             }
-            if (!FocusEffectWard.removesOwnedWard(player, core) && !consumeVis(wandStack, player, focus.getVisCost(focusStack), false, level.isClientSide())) {
+            if (!FocusEffectWard.removesOwnedWard(player, core) && !consumeFocusVis(wandStack, player, focus, focusStack, level.isClientSide())) {
                 if (player instanceof ServerPlayer serverPlayer) {
                     sendWandActionBar(serverPlayer, "tc.wand.notenoughvis");
                 }
@@ -178,6 +178,15 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
         }
         Map<ResourceKey<IAspect>, Integer> split = WandVisHelper.evenSplit(Math.round(amount * WandEconomy.CENTIVIS_PER_VIS));
         return WandVisHelper.consumeAllVis(stack, player, split, !simulate, crafting);
+    }
+
+    private static boolean consumeFocusVis(ItemStack wandStack, Player player, ItemFocus focus, ItemStack focusStack, boolean simulate) {
+        int centivis = Math.round(focus.getVisCost(focusStack) * WandEconomy.CENTIVIS_PER_VIS);
+        if (centivis <= 0) {
+            return true;
+        }
+        Map<ResourceKey<IAspect>, Integer> split = WandVisHelper.primalSplit(centivis, focus.getVisAspects(focusStack, player.level().registryAccess()));
+        return WandVisHelper.consumeAllVis(wandStack, player, split, !simulate, false);
     }
 
     @Override

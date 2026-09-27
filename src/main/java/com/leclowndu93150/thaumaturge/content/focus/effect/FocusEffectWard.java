@@ -111,13 +111,13 @@ public final class FocusEffectWard implements FocusEffect {
         if (!WardHandler.canWard(level, pos)) {
             return false;
         }
-        if (!WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, false)) {
+        if (!WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, aspect(), false)) {
             return false;
         }
         if (!WardHandler.ward(level, pos, owner)) {
             return false;
         }
-        WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, true);
+        WandVisHelper.consumeVisFromHotbar(player, VIS_COST_PER_BLOCK, aspect(), true);
         FocusFX.impact(level, Vec3.atCenterOf(pos), id());
         level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH);
         return true;

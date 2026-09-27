@@ -74,7 +74,7 @@ public final class FocusEffectBreak implements FocusEffect {
             dur = (float) Math.sqrt(dur);
             if (ctx.caster() instanceof Player player) {
                 BlockBreakerEngine.breaker(blockHit.getBlockPos(), level.getBlockState(blockHit.getBlockPos()), player).showFx().silkTouch(silk).fortune(fortune).strength(strength).durability(dur)
-                        .delay((int) (dur / strength / DELAY_DIVISOR * index)).visCost(BASE_VIS_COST + (silk ? SILK_VIS_COST : 0.0F) + fortune * FORTUNE_VIS_COST).queue(level);
+                        .delay((int) (dur / strength / DELAY_DIVISOR * index)).visCost(BASE_VIS_COST + (silk ? SILK_VIS_COST : 0.0F) + fortune * FORTUNE_VIS_COST, aspect()).queue(level);
             }
         }
         return true;

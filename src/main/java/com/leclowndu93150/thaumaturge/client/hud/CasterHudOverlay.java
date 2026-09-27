@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.content.casters.ItemFocus;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import java.text.DecimalFormat;
+import java.util.Map;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -126,10 +127,11 @@ public final class CasterHudOverlay implements GuiLayer {
         int max = WandVisHelper.getMaxVis(casterStack);
         ItemStack focusStack = wand.getFocusStack(casterStack);
         boolean hasFocus = focusStack.getItem() instanceof ItemFocus;
-        float perAspectCost = 0.0F;
+        Map<ResourceKey<IAspect>, Integer> costSplit = null;
         if (hasFocus && focusStack.getItem() instanceof ItemFocus focus && focus.getVisCost(focusStack) > 0.0F) {
-            perAspectCost = focus.getVisCost(focusStack) * wand.getConsumptionModifier(casterStack, player, false) / WandEconomy.PRIMAL_COUNT;
+            costSplit = WandVisHelper.primalSplit(Math.round(focus.getVisCost(focusStack) * WandEconomy.CENTIVIS_PER_VIS), focus.getVisAspects(focusStack, player.registryAccess()));
         }
+        float costModifier = wand.getConsumptionModifier(casterStack, player, false);
         boolean sneak = player.isShiftKeyDown();
         long now = Util.getMillis();
         boolean snapshot = now >= changeSyncTime;
@@ -142,6 +144,7 @@ public final class CasterHudOverlay implements GuiLayer {
         int count = 0;
         for (ResourceKey<IAspect> primal : TCAspects.PRIMALS) {
             int amt = WandVisHelper.getVis(casterStack, primal);
+            float primalCost = costSplit == null ? 0.0F : costSplit.getOrDefault(primal, 0) * costModifier / WandEconomy.CENTIVIS_PER_VIS;
             graphics.pose().pushMatrix();
             if (!ThaumaturgeClientConfig.dialBottom()) {
                 graphics.pose().rotate((float) Math.toRadians(90.0));
@@ -157,7 +160,7 @@ public final class CasterHudOverlay implements GuiLayer {
             }
             graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, BAR_FRAME_X, BAR_FRAME_Y, BAR_FRAME_U, 0.0F, BAR_FRAME_W, BAR_FRAME_H, BAR_FRAME_W, BAR_FRAME_H, TEX_SIZE, TEX_SIZE);
             int markerShift = 0;
-            if (perAspectCost > 0.0F) {
+            if (primalCost > 0.0F) {
                 graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, -MARKER_HALF, -MARKER_SIZE, COST_MARKER_U, 0.0F, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, TEX_SIZE, TEX_SIZE);
                 markerShift = MARKER_SIZE;
             }
@@ -176,10 +179,10 @@ public final class CasterHudOverlay implements GuiLayer {
                 graphics.pose().rotate((float) Math.toRadians(-90.0));
                 graphics.text(mc.font, AMOUNT_FORMAT.format(amt / (float) WandEconomy.CENTIVIS_PER_VIS), AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
                 graphics.pose().popMatrix();
-                if (perAspectCost > 0.0F) {
+                if (primalCost > 0.0F) {
                     graphics.pose().pushMatrix();
                     graphics.pose().rotate((float) Math.toRadians(-90.0));
-                    graphics.text(mc.font, AMOUNT_FORMAT.format(perAspectCost), COST_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
+                    graphics.text(mc.font, AMOUNT_FORMAT.format(primalCost), COST_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
                     graphics.pose().popMatrix();
                 }
             }

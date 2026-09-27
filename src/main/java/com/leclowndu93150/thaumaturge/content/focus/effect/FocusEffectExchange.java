@@ -88,7 +88,7 @@ public final class FocusEffectExchange implements FocusEffect, IFocusBlockPicker
         BlockState picked = ((ICaster) casterStack.getItem()).getPickedBlock(casterStack);
         if (caster instanceof Player player && picked != null && !picked.isAir()) {
             BlockBreakerEngine.swapper(blockHit.getBlockPos(), level.getBlockState(blockHit.getBlockPos()), picked, player).consumeTarget().showFx(SWAP_FX_COLOR, false).pickupDrops().silkTouch(silk)
-                    .fortune(fortune).visCost(BASE_VIS_COST + (silk ? SILK_VIS_COST : 0.0F) + fortune * FORTUNE_VIS_COST).queue(level);
+                    .fortune(fortune).visCost(BASE_VIS_COST + (silk ? SILK_VIS_COST : 0.0F) + fortune * FORTUNE_VIS_COST, aspect()).queue(level);
         }
         return true;
     }
