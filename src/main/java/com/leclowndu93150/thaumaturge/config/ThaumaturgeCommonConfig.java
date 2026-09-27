@@ -6,9 +6,16 @@ public final class ThaumaturgeCommonConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.IntValue MAGICAL_FOREST_REGION_WEIGHT;
+    public static final ModConfigSpec.BooleanValue GENERATE_TAINTED_LANDS;
+    public static final ModConfigSpec.IntValue TAINTED_LANDS_REGION_WEIGHT;
     public static final ModConfigSpec.BooleanValue WUSS_MODE;
     public static final ModConfigSpec.DoubleValue TAINT_SPREAD_RATE;
     public static final ModConfigSpec.IntValue TAINT_SPREAD_AREA;
+    public static final ModConfigSpec.IntValue TAINT_FRONTIER_RATE;
+    public static final ModConfigSpec.BooleanValue TAINT_FROM_FLUX;
+    public static final ModConfigSpec.BooleanValue PHYSICAL_FLUX_AURA_FLOOR;
+    public static final ModConfigSpec.BooleanValue PHYSICAL_FLUX_TAINT_OUTBREAKS;
+    public static final ModConfigSpec.BooleanValue FLUX_PRESSURE_EVENTS;
     public static final ModConfigSpec.DoubleValue ENERGIZED_NODE_VIS_PER_POINT;
     public static final ModConfigSpec.IntValue CRIMSON_PORTAL_RARITY;
     public static final ModConfigSpec.DoubleValue WILD_NODE_CHANCE;
@@ -39,11 +46,29 @@ public final class ThaumaturgeCommonConfig {
         MAGICAL_FOREST_REGION_WEIGHT = builder
                 .comment("Magical Forest frequency relative to other TerraBlender regions. Higher values are more frequent. Applies after restarting, to newly generated terrain.")
                 .defineInRange("magicalForestRegionWeight", 6, 1, 100);
+        GENERATE_TAINTED_LANDS = builder.comment(
+                "Whether rare Tainted Lands can appear in Overworld world generation, as in Thaumcraft 4. Tainted Lands created later by Flux Goo, Bottled Taint, nodes or Taint Seeds are not affected. Applies after restarting, to newly generated terrain.")
+                .define("generateTaintedLands", true);
+        TAINTED_LANDS_REGION_WEIGHT = builder
+                .comment("Tainted Lands frequency relative to other TerraBlender regions. Higher values are more frequent. Applies after restarting, to newly generated terrain.")
+                .defineInRange("taintedLandsRegionWeight", 1, 1, 100);
         WUSS_MODE = builder.comment("Setting this to true disables Warp, Taint spread and similar mechanics. You wuss.").define("wussMode", false);
         TAINT_SPREAD_RATE = builder.comment("The % chance of taint fibres spreading on a block tick. Setting this to 0 will effectively stop taint fibre spread.").defineInRange("taintSpreadRate",
                 100.0, 0.0, 100.0);
         TAINT_SPREAD_AREA = builder.comment("The range at which taint can spread from a taint seed. This value is only a base and will be modified by flux levels.").defineInRange("taintSpreadArea",
                 32, 1, 128);
+        TAINT_FRONTIER_RATE = builder.comment(
+                "How quickly the Tainted Lands biome spreads outward, Thaumcraft 4 style. Fibrous taint tries to take over a neighbouring column with a chance of 1 in (taintFrontierRate * 5) per random tick, and only with at least two adjacent taint blocks. Higher is slower. 0 stops the biome from spreading while existing taint stays active.")
+                .defineInRange("taintFrontierRate", 200, 0, 100000);
+        TAINT_FROM_FLUX = builder.comment("Whether deep, exposed Flux Goo can fester into Fibrous Taint and Tainted Lands, as in Thaumcraft 4.").define("taintFromFlux", true);
+        PHYSICAL_FLUX_AURA_FLOOR = builder
+                .comment("Whether physical Flux Goo and Flux Gas keep a capped minimum of Aura Flux in their chunk. Turning this off leaves the goo and gas and their direct effects in place.")
+                .define("physicalFluxAuraFloor", true);
+        PHYSICAL_FLUX_TAINT_OUTBREAKS = builder.comment(
+                "Whether a large build-up of physical Flux Goo and Flux Gas in one area can start a Tainted Lands outbreak on its own. This is separate from a single deep goo block festering (taintFromFlux).")
+                .define("physicalFluxTaintOutbreaks", true);
+        FLUX_PRESSURE_EVENTS = builder.comment("Whether high Aura Flux can trigger the Thaumcraft 5 style flux pressure events alongside Flux Rifts. Turning this off does not disable Flux Rifts.")
+                .define("fluxPressureEvents", true);
         ENERGIZED_NODE_VIS_PER_POINT = builder.comment(
                 "Raw vis an energized node drains from the chunk aura to restore one aspect point. Normal nodes refine at 3.0 per point; higher values make energized nodes more wasteful. 0 makes their refill free.")
                 .defineInRange("energizedNodeVisPerPoint", 6.0, 0.0, 100.0);
