@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
-import com.leclowndu93150.thaumaturge.content.particle.TaintFumeParticleOptions;
+import com.leclowndu93150.thaumaturge.content.particle.TaintSwarmParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -9,7 +9,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -28,7 +27,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public final class EntityTaintSwarm extends Monster implements ITaintedMob {
@@ -38,11 +36,6 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
     private static final int ATTACK_COOLDOWN = 15;
     private static final int WEAKNESS_DURATION = 100;
     private static final float SELF_DAMAGE_SUMMONED = 5.0F;
-    private static final int SWARM_PARTICLES_PER_TICK = 3;
-    private static final float SWARM_PARTICLE_SCALE = 0.22F;
-    private static final float SWARM_PARTICLE_R = 0.7F;
-    private static final float SWARM_PARTICLE_G = 0.0F;
-    private static final float SWARM_PARTICLE_B = 1.0F;
 
     private int damBonus;
     private int attackTicks;
@@ -55,7 +48,7 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 30.0).add(Attributes.ATTACK_DAMAGE, 2.0).add(Attributes.FLYING_SPEED, 0.6).add(Attributes.MOVEMENT_SPEED, 0.3)
-                .add(Attributes.FOLLOW_RANGE, 32.0);
+                .add(Attributes.FOLLOW_RANGE, 8.0);
     }
 
     @Override
@@ -98,14 +91,7 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
         this.setDeltaMovement(motion.x, motion.y * 0.6, motion.z);
 
         if (!(this.level() instanceof ServerLevel server)) {
-            AABB box = this.getBoundingBox();
-            for (int n = 0; n < SWARM_PARTICLES_PER_TICK; n++) {
-                double x = box.minX + this.random.nextDouble() * (box.maxX - box.minX);
-                double y = box.minY + this.random.nextDouble() * (box.maxY - box.minY);
-                double z = box.minZ + this.random.nextDouble() * (box.maxZ - box.minZ);
-                TaintFumeParticleOptions data = new TaintFumeParticleOptions(ARGB.colorFromFloat(1.0F, SWARM_PARTICLE_R, SWARM_PARTICLE_G, SWARM_PARTICLE_B), SWARM_PARTICLE_SCALE);
-                this.level().addParticle(data, x, y, z, this.getDeltaMovement().x, this.getDeltaMovement().y, this.getDeltaMovement().z);
-            }
+            this.level().addParticle(new TaintSwarmParticleOptions(this.getId()), this.getX(), this.getY() + this.getBbHeight() * 0.5, this.getZ(), 0.0, 0.0, 0.0);
             return;
         }
         if (attackTicks > 0) {
