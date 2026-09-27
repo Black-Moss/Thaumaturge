@@ -42,7 +42,7 @@ public class BlockBellows extends BaseEntityBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection()).setValue(ENABLED, true);
+        return defaultBlockState().setValue(FACING, context.getClickedFace().getOpposite()).setValue(ENABLED, true);
     }
 
     @Override

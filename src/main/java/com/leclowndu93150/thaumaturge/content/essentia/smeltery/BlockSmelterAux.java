@@ -42,7 +42,11 @@ public class BlockSmelterAux extends Block {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        Direction face = context.getClickedFace();
+        if (!face.getAxis().isHorizontal()) {
+            return null;
+        }
+        return defaultBlockState().setValue(FACING, face.getOpposite());
     }
 
     @Override
