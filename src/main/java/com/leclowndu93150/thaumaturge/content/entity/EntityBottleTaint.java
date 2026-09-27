@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
-import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
@@ -22,7 +22,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
@@ -92,11 +91,11 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
             BlockPos p = center.offset(xx, 0, zz);
             if (server.getRandom().nextBoolean()) {
                 if (canHostGoo(server, p)) {
-                    server.setBlock(p, TCBlocks.FLUX_GOO.get().defaultBlockState(), Block.UPDATE_ALL);
+                    PhysicalFlux.placeGoo(server, p, PhysicalFlux.MAX_QUANTA);
                 } else {
                     p = p.below();
                     if (canHostGoo(server, p)) {
-                        server.setBlock(p, TCBlocks.FLUX_GOO.get().defaultBlockState(), Block.UPDATE_ALL);
+                        PhysicalFlux.placeGoo(server, p, PhysicalFlux.MAX_QUANTA);
                     }
                 }
             }

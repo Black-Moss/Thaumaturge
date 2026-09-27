@@ -104,6 +104,7 @@ import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintGeyser;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintLog;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintRock;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintSoil;
+import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGas;
 import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumaturge.content.taint.flux.FluxGooRefs;
 import com.leclowndu93150.thaumaturge.content.workbench.BlockArcaneWorkbench;
@@ -229,6 +230,9 @@ public final class TCBlocks {
 
     public static final DeferredBlock<BlockFluxGoo> FLUX_GOO = BLOCKS.registerBlock("flux_goo", props -> new BlockFluxGoo(FluxGooRefs.sourceFluid(), props), props -> props
             .mapColor(MapColor.COLOR_PINK).replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.DESTROY).sound(TCSoundTypes.GORE.get()).noLootTable().liquid().randomTicks());
+
+    public static final DeferredBlock<BlockFluxGas> FLUX_GAS = BLOCKS.registerBlock("flux_gas", BlockFluxGas::new, props -> props.mapColor(MapColor.COLOR_PINK).replaceable().noCollision()
+            .noOcclusion().strength(100.0F).pushReaction(PushReaction.DESTROY).lightLevel(state -> 7).sound(TCSoundTypes.GORE.get()).noLootTable());
 
     public static final DeferredBlock<BlockPurifyingFluid> PURIFYING_FLUID = BLOCKS.registerBlock("purifying_fluid", props -> new BlockPurifyingFluid(TCFluids.PURIFYING_SOURCE.get(), props),
             props -> props.mapColor(MapColor.METAL).replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.DESTROY).lightLevel(state -> 5).noLootTable().liquid());

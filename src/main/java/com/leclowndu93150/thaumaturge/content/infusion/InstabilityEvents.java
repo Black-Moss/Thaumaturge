@@ -8,7 +8,7 @@ import com.leclowndu93150.thaumaturge.api.warp.WarpType;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityStabilizer;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
-import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
@@ -102,7 +102,11 @@ public final class InstabilityEvents {
             }
             switch (kind) {
                 case DROP_GOO, DELETE_GOO -> {
-                    level.setBlockAndUpdate(pedestalPos.above(), TCBlocks.FLUX_GOO.get().defaultBlockState());
+                    if (rand.nextBoolean()) {
+                        PhysicalFlux.placeGoo(level, pedestalPos.above(), PhysicalFlux.MAX_QUANTA);
+                    } else {
+                        PhysicalFlux.placeGas(level, pedestalPos.above(), PhysicalFlux.MAX_QUANTA);
+                    }
                     level.playSound(null, pedestalPos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.3F, 1.0F);
                 }
                 case DROP_POLLUTE, DELETE_POLLUTE -> AuraHelper.polluteAura(level, pedestalPos, 5 + rand.nextInt(5), true);

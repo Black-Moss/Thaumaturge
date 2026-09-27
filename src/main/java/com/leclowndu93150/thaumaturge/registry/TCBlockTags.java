@@ -38,6 +38,8 @@ public final class TCBlockTags {
     public static final TagKey<Block> ARCANE_WORKBENCH_CHARGER_HOSTS = key("arcane_workbench_charger_hosts");
 
     public static final TagKey<Block> WARDABLE_NON_SOLID = key("wardable_non_solid");
+    public static final TagKey<Block> PHYSICAL_FLUX = key("physical_flux");
+    public static final TagKey<Block> FLUX_SCRUBBABLE = key("flux_scrubbable");
     public static final TagKey<Block> ARCANE_LOCKS = key("arcane_locks");
 
     private TCBlockTags() {}
