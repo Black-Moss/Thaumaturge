@@ -115,6 +115,12 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
+        add(TCBlocks.POTTED_SAPLING_GREATWOOD.get(), createPotFlowerItemTable(TCBlocks.SAPLING_GREATWOOD.get()));
+        add(TCBlocks.POTTED_SAPLING_SILVERWOOD.get(), createPotFlowerItemTable(TCBlocks.SAPLING_SILVERWOOD.get()));
+        add(TCBlocks.POTTED_SHIMMERLEAF.get(), createPotFlowerItemTable(TCBlocks.PLANT_SHIMMERLEAF.get()));
+        add(TCBlocks.POTTED_CINDERPEARL.get(), createPotFlowerItemTable(TCBlocks.PLANT_CINDERPEARL.get()));
+        add(TCBlocks.POTTED_VISHROOM.get(), createPotFlowerItemTable(TCBlocks.PLANT_VISHROOM.get()));
+
         dropSelf(TCBlocks.NODE_STABILIZER.get());
         dropSelf(TCBlocks.NODE_STABILIZER_ADVANCED.get());
         dropSelf(TCBlocks.NODE_TRANSDUCER.get());

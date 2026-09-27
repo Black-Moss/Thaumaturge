@@ -1108,6 +1108,12 @@ public final class TCModelProvider extends ModelProvider {
     }
 
     private void plantModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        pottedPlant(blockModels, TCBlocks.POTTED_SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get());
+        pottedPlant(blockModels, TCBlocks.POTTED_SAPLING_SILVERWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get());
+        pottedPlant(blockModels, TCBlocks.POTTED_SHIMMERLEAF.get(), TCBlocks.PLANT_SHIMMERLEAF.get());
+        pottedPlant(blockModels, TCBlocks.POTTED_CINDERPEARL.get(), TCBlocks.PLANT_CINDERPEARL.get());
+        pottedPlant(blockModels, TCBlocks.POTTED_VISHROOM.get(), TCBlocks.PLANT_VISHROOM.get());
+
         cross(blockModels, TCBlocks.PLANT_SHIMMERLEAF.get());
         cross(blockModels, TCBlocks.PLANT_CINDERPEARL.get());
         cross(blockModels, TCBlocks.PLANT_VISHROOM.get());
@@ -1141,6 +1147,11 @@ public final class TCModelProvider extends ModelProvider {
         Identifier beanModel = ModelLocationUtils.getModelLocation(TCItems.MANA_BEAN.get());
         ModelTemplates.FLAT_ITEM.create(beanModel, TextureMapping.layer0(new Material(TCIds.rl("item/mana_bean"))), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(TCItems.MANA_BEAN.get(), ItemModelUtils.tintedModel(beanModel, new CrystalAspectTint(0xFFFFFF)));
+    }
+
+    private void pottedPlant(BlockModelGenerators blockModels, Block pot, Block plant) {
+        Identifier model = ModelTemplates.FLOWER_POT_CROSS.create(pot, TextureMapping.plant(plant), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(pot, BlockModelGenerators.plainVariant(model)));
     }
 
     private void cross(BlockModelGenerators blockModels, Block block) {

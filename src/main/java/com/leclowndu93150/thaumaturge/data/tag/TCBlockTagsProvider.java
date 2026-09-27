@@ -19,6 +19,9 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
+        tag(BlockTags.FLOWER_POTS).add(TCBlocks.POTTED_SAPLING_GREATWOOD.get()).add(TCBlocks.POTTED_SAPLING_SILVERWOOD.get()).add(TCBlocks.POTTED_SHIMMERLEAF.get())
+                .add(TCBlocks.POTTED_CINDERPEARL.get()).add(TCBlocks.POTTED_VISHROOM.get());
+
         tag(TCBlockTags.LAMP_GROWTH_BLACKLIST);
         tag(TCBlockTags.MAGICAL_PLANTS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get()).add(TCBlocks.PLANT_VISHROOM.get());
         tag(BlockTags.FLOWERS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get());

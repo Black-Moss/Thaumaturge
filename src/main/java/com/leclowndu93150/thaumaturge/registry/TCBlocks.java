@@ -118,6 +118,8 @@ import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.PoweredRailBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
@@ -560,6 +562,12 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockPlantVishroom> PLANT_VISHROOM = BLOCKS.registerBlock("vishroom", BlockPlantVishroom::new,
             props -> props.mapColor(MapColor.COLOR_PURPLE).noCollision().instabreak().sound(SoundType.GRASS).lightLevel(state -> 6).pushReaction(PushReaction.DESTROY).noOcclusion());
 
+    public static final DeferredBlock<FlowerPotBlock> POTTED_SAPLING_GREATWOOD = pottedPlant("potted_sapling_greatwood", SAPLING_GREATWOOD);
+    public static final DeferredBlock<FlowerPotBlock> POTTED_SAPLING_SILVERWOOD = pottedPlant("potted_sapling_silverwood", SAPLING_SILVERWOOD);
+    public static final DeferredBlock<FlowerPotBlock> POTTED_SHIMMERLEAF = pottedPlant("potted_shimmerleaf", PLANT_SHIMMERLEAF);
+    public static final DeferredBlock<FlowerPotBlock> POTTED_CINDERPEARL = pottedPlant("potted_cinderpearl", PLANT_CINDERPEARL);
+    public static final DeferredBlock<FlowerPotBlock> POTTED_VISHROOM = pottedPlant("potted_vishroom", PLANT_VISHROOM);
+
     public static final DeferredBlock<BlockGrassAmbient> GRASS_AMBIENT = BLOCKS.registerBlock("grass_ambient", BlockGrassAmbient::new,
             props -> props.mapColor(MapColor.GRASS).strength(0.6F).sound(SoundType.GRAVEL).randomTicks());
 
@@ -750,6 +758,11 @@ public final class TCBlocks {
     }
 
     private TCBlocks() {}
+
+    private static DeferredBlock<FlowerPotBlock> pottedPlant(String name, DeferredBlock<? extends Block> plant) {
+        return BLOCKS.registerBlock(name, props -> new FlowerPotBlock(() -> (FlowerPotBlock) Blocks.FLOWER_POT, plant, props),
+                props -> props.instabreak().noOcclusion().pushReaction(PushReaction.DESTROY));
+    }
 
     public static void register(IEventBus modBus) {
         BLOCKS.register(modBus);

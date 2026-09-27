@@ -508,6 +508,11 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.shimmerleaf", "Shimmerleaf");
         add("block.thaumaturge.cinderpearl", "Cinderpearl");
         add("block.thaumaturge.vishroom", "Vishroom");
+        add("block.thaumaturge.potted_sapling_greatwood", "Potted Greatwood Sapling");
+        add("block.thaumaturge.potted_sapling_silverwood", "Potted Silverwood Sapling");
+        add("block.thaumaturge.potted_shimmerleaf", "Potted Shimmerleaf");
+        add("block.thaumaturge.potted_cinderpearl", "Potted Cinderpearl");
+        add("block.thaumaturge.potted_vishroom", "Potted Vishroom");
         add("block.thaumaturge.grass_ambient", "Ambient Grass Block");
         add("biome.thaumaturge.magical_forest", "Magical Forest");
         add("biome.thaumaturge.eerie", "Eerie");
