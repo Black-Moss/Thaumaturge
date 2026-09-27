@@ -49,6 +49,8 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock {
     private static final float FUME_SCALE = 0.65F;
     private static final double FUME_RISE = 0.015;
     private static final float AURA_FLOOR_PER_QUANTUM = 0.25F;
+    private static final float TAINT_WEIGHT_PER_QUANTUM = 0.35F;
+    private static final int OUTBREAK_COST = 2;
 
     public BlockFluxGas(Properties properties) {
         super(properties);
@@ -87,6 +89,16 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock {
     @Override
     public float auraFloorPerQuantum() {
         return AURA_FLOOR_PER_QUANTUM;
+    }
+
+    @Override
+    public float taintWeightPerQuantum() {
+        return TAINT_WEIGHT_PER_QUANTUM;
+    }
+
+    @Override
+    public int outbreakCost() {
+        return OUTBREAK_COST;
     }
 
     @Override

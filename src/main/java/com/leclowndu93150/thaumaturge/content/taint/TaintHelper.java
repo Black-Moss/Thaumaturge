@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.content.taint.block.ITaintBlock;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.content.taint.spread.TaintSeedRegistry;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
@@ -192,6 +193,20 @@ public final class TaintHelper {
         }
 
         trySpawnTaintSeed(level, target, targetState, random);
+    }
+
+    public static boolean canHostFoothold(BlockState state) {
+        return PhysicalFlux.isPhysicalFlux(state) || state.canBeReplaced() && state.getFluidState().isEmpty();
+    }
+
+    public static void establishFoothold(ServerLevel level, BlockPos pos, float pressure, int spreadAttempts) {
+        if (canHostFoothold(level.getBlockState(pos))) {
+            level.setBlock(pos, BlockTaintFibre.stateForWorld(level, pos), Block.UPDATE_ALL);
+        }
+        TaintEcology.addPressure(level, pos, pressure);
+        for (int attempt = 0; attempt < spreadAttempts; attempt++) {
+            spreadFibres(level, pos, true);
+        }
     }
 
     public static boolean trySpreadTaintedBiome(ServerLevel level, BlockPos pos, RandomSource random) {

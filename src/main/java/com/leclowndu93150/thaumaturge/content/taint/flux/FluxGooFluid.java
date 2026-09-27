@@ -1,7 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.taint.flux;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.entity.ThaumicSlime;
+import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import com.leclowndu93150.thaumaturge.registry.TCMobEffects;
@@ -34,6 +38,9 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
     private static final int DECAY_ROLL_CHANCE = 4;
     private static final int SMALL_SLIME_META_MIN = 2;
     private static final int SMALL_SLIME_META_MAX = 6;
+    private static final int FESTER_CHANCE = 50;
+    private static final float FESTER_PRESSURE = 0.16F;
+    private static final int FESTER_SPREAD_ATTEMPTS = 6;
     private static final int VIS_EXHAUST_DURATION = 600;
     private static final float POLLUTE_AMOUNT = 1.0F;
     private static final Direction[] HORIZONTAL = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
@@ -70,6 +77,8 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
             spawnSlime(level, pos, 1);
         } else if (meta >= SMALL_SLIME_META_MAX && airAbove && rand.nextInt(SLIME_SPAWN_CHANCE) == 0) {
             spawnSlime(level, pos, 2);
+        } else if (meta >= SMALL_SLIME_META_MAX && airAbove && tryFester(level, pos, rand)) {
+            AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
         } else if (rand.nextInt(DECAY_ROLL_CHANCE) == 0) {
             boolean pollutes = !PhysicalFluxAuraFloor.isEnabled();
             if (meta == 0) {
@@ -93,6 +102,17 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
         } else {
             spreadTick(level, pos, state, rand);
         }
+    }
+
+    private static boolean tryFester(ServerLevel level, BlockPos pos, RandomSource rand) {
+        if (!ThaumaturgeCommonConfig.TAINT_FROM_FLUX.get() || ThaumaturgeCommonConfig.WUSS_MODE.get() || rand.nextInt(FESTER_CHANCE) != 0 || TaintBlooms.isProtected(level, pos)) {
+            return false;
+        }
+        if (!TaintBiomeManager.isTainted(level, pos) && !TaintBiomeManager.taintColumn(level, pos)) {
+            return false;
+        }
+        TaintHelper.establishFoothold(level, pos, FESTER_PRESSURE, FESTER_SPREAD_ATTEMPTS);
+        return true;
     }
 
     private void spreadTick(ServerLevel level, BlockPos pos, FluidState state, RandomSource rand) {

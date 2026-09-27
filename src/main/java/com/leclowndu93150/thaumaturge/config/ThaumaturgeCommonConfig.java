@@ -66,7 +66,7 @@ public final class ThaumaturgeCommonConfig {
                 .comment("Whether physical Flux Goo and Flux Gas keep a capped minimum of Aura Flux in their chunk. Turning this off leaves the goo and gas and their direct effects in place.")
                 .define("physicalFluxAuraFloor", true);
         PHYSICAL_FLUX_TAINT_OUTBREAKS = builder.comment(
-                "Whether a large build-up of physical Flux Goo and Flux Gas in one area can start a Tainted Lands outbreak on its own. This is separate from a single deep goo block festering (taintFromFlux).")
+                "Whether a large build-up of physical Flux Goo and Flux Gas in one area can start a Tainted Lands outbreak on its own, apart from single deep goo blocks festering. Has no effect while taintFromFlux is off.")
                 .define("physicalFluxTaintOutbreaks", true);
         FLUX_PRESSURE_EVENTS = builder.comment("Whether high Aura Flux can trigger the Thaumcraft 5 style flux pressure events alongside Flux Rifts. Turning this off does not disable Flux Rifts.")
                 .define("fluxPressureEvents", true);
