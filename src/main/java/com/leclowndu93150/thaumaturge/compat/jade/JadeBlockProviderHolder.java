@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.content.device.BlockEntityEverfullUrn;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEntityCentrifuge;
 import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
+import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEntityEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
@@ -43,6 +44,7 @@ final class JadeBlockProviderHolder {
             new JadeBlockHandler<>(BlockEntityCrucible.class, JadeConfig.CRUCIBLES, JadeEssentiaDetails::crucible),
             new JadeBlockHandler<>(BlockEntityThaumatorium.class, JadeConfig.THAUMATORIUMS, JadeEssentiaDetails::thaumatorium),
             new JadeBlockHandler<>(BlockEntityCentrifuge.class, JadeConfig.CENTRIFUGES, JadeEssentiaDetails::centrifuge),
+            new JadeBlockHandler<>(BlockEntityEssentiaCrystalizer.class, JadeConfig.CRYSTALIZERS, JadeEssentiaDetails::crystalizer),
             new JadeBlockHandler<>(BlockEntityVisRelay.class, JadeConfig.VIS_RELAYS, JadeMachineDetails::relay),
             new JadeBlockHandler<>(BlockEntityNodeTransducer.class, JadeConfig.NODE_TRANSDUCERS, JadeMachineDetails::transducer),
             new JadeBlockHandler<>(BlockEntitySmelter.class, JadeConfig.SMELTERS, JadeMachineDetails::smelter),

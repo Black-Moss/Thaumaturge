@@ -754,6 +754,10 @@ public final class TCRecipeProvider extends RecipeProvider {
         arcaneShaped(new ItemStackTemplate(TCItems.ALCHEMICAL_FURNACE), 10).aspect(TCAspects.IGNIS, 5).aspect(TCAspects.AQUA, 5).pattern("SCS").pattern("SFS").pattern("SSS")
                 .define('S', TCItems.STONE_ARCANE).define('C', TCItems.CRUCIBLE).define('F', Items.FURNACE).gate(gate("essentia_smelter")).unlockedBy("has", has(TCItems.CRUCIBLE)).save(output);
 
+        arcaneShaped(new ItemStackTemplate(TCItems.ESSENTIA_CRYSTALIZER), 125).aspect(TCAspects.AQUA, 1).aspect(TCAspects.TERRA, 3).aspect(TCAspects.ORDO, 1).pattern("IDI").pattern("QCQ")
+                .pattern("WTW").define('I', Tags.Items.INGOTS_IRON).define('D', Items.DIAMOND_BLOCK).define('Q', TCItems.SALIS_MUNDUS).define('C', TCItems.ALCHEMICAL_CONSTRUCT)
+                .define('W', ItemTags.PLANKS).define('T', TCItems.TUBE).gate(gate("essentia_crystalizer")).unlockedBy("has", has(TCItems.SALIS_MUNDUS)).save(output);
+
         arcaneShaped(new ItemStackTemplate(TCItems.SMELTER_THAUMIUM), 250).aspect(TCAspects.IGNIS, 2).pattern("PRP").pattern("CFC").pattern("CCC").define('C', TCItemTags.PLATES_THAUMIUM)
                 .define('F', TCItems.ALCHEMICAL_CONSTRUCT).define('P', TCItemTags.PLATES_BRASS).define('R', TCItems.SMELTER_BASIC).gate(gate("essentia_smelter_thaumium"))
                 .unlockedBy("has", has(TCItems.SMELTER_BASIC)).save(output);

@@ -1162,6 +1162,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.advanced_alchemical_furnace_construct_placeholder", "Alchemical Construct");
         add("block.thaumaturge.advanced_alchemical_furnace_advanced_construct_placeholder", "Advanced Alchemical Construct");
         add("block.thaumaturge.advanced_alchemical_furnace_nozzle", "Advanced Alchemical Furnace Nozzle");
+        add("block.thaumaturge.essentia_crystalizer", "Essentia Crystallizer");
         add("block.thaumaturge.arcane_pressure_plate", "Arcane Pressure Plate");
         add("item.thaumaturge.arcane_key_iron", "Iron Key");
         add("item.thaumaturge.arcane_key_gold", "Gold Key");
@@ -1562,6 +1563,10 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("config.jade.plugin_thaumaturge.display.centrifuges_off", "Off");
         add("config.jade.plugin_thaumaturge.display.centrifuges_always", "Always");
         add("config.jade.plugin_thaumaturge.display.centrifuges_goggles", "Goggles");
+        add("config.jade.plugin_thaumaturge.display.crystalizers", "Essentia Crystallizers");
+        add("config.jade.plugin_thaumaturge.display.crystalizers_off", "Off");
+        add("config.jade.plugin_thaumaturge.display.crystalizers_always", "Always");
+        add("config.jade.plugin_thaumaturge.display.crystalizers_goggles", "Goggles");
         add("config.jade.plugin_thaumaturge.display.golem_builders", "Golem Builders");
         add("config.jade.plugin_thaumaturge.display.golem_builders_off", "Off");
         add("config.jade.plugin_thaumaturge.display.golem_builders_always", "Always");

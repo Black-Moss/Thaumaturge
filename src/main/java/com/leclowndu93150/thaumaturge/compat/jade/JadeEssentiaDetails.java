@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEntityCentrifuge;
+import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEntityEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatorium;
@@ -50,6 +51,16 @@ final class JadeEssentiaDetails {
         }
         data.storage(contents, 1, false);
         data.summary("jade.thaumaturge.centrifuge.state", Component.translatable(machine.isSpinning() ? "jade.thaumaturge.state.processing" : "jade.thaumaturge.state.idle"));
+    }
+    static void crystalizer(BlockEntityEssentiaCrystalizer machine, JadeDetailBuilder data) {
+        AspectList contents = AspectList.EMPTY;
+        if (machine.getEssentiaType(Direction.UP) != null) {
+            contents = contents.add(machine.getEssentiaType(Direction.UP), 1);
+        }
+        data.summary(contents.isEmpty() ? "jade.thaumaturge.state.idle" : "jade.thaumaturge.state.processing");
+        data.storage(contents, 1, false);
+        if (!contents.isEmpty())
+            data.detail("jade.thaumaturge.machine.progress", Math.min(100, machine.progress() * 100 / BlockEntityEssentiaCrystalizer.TARGET_PROGRESS));
     }
     static void tube(BlockEntityTube tube, JadeDetailBuilder data) {
         AspectList contents = AspectList.EMPTY;

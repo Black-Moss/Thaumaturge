@@ -60,6 +60,11 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
+import net.neoforged.neoforge.client.model.generators.template.RootTransformsBuilder;
+import net.neoforged.neoforge.common.util.TransformationHelper;
+import java.util.function.Consumer;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.state.properties.*;
@@ -68,6 +73,7 @@ import org.joml.Matrix4f;
 public final class TCModelProvider extends ModelProvider {
     private static final int ROBES_UNDYED_ARGB = 0xFF6A3880;
 
+    private static final TextureSlot LEGACY_MESH_SLOT = TextureSlot.create("legacy");
     private static final ModelTemplate BLOCK_PARTICLE = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("block/block")), Optional.empty(), TextureSlot.PARTICLE);
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("item/generated")), Optional.empty(), TextureSlot.LAYER0, TextureSlot.LAYER1,
             TextureSlot.LAYER2);
@@ -503,6 +509,7 @@ public final class TCModelProvider extends ModelProvider {
         registerSmelter(blockModels, itemModels, TCBlocks.SMELTER_VOID.get(), "smelter_void");
         registerAlchemicalFurnace(blockModels, itemModels);
         registerAdvancedAlchemicalFurnace(blockModels, itemModels);
+        registerEssentiaCrystalizer(blockModels, itemModels);
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_AUX.get(), "smelter_aux");
         horizontalBlock(blockModels, itemModels, TCBlocks.SMELTER_VENT.get(), "smelter_vent");
         itemModels.generateFlatItem(TCItems.THAUMONOMICON.get(), ModelTemplates.FLAT_ITEM);
@@ -902,6 +909,32 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(lit).with(rotations));
 
         itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/" + modelName + "_off"), Optional.empty(), List.of()));
+    }
+
+    private static void registerEssentiaCrystalizer(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block block = TCBlocks.ESSENTIA_CRYSTALIZER.get();
+        Identifier mesh = TCIds.rl("models/mesh/essentia_crystalizer.tcmesh");
+        TextureMapping textures = new TextureMapping().put(LEGACY_MESH_SLOT, blockTexture("essentia_crystalizer")).put(TextureSlot.PARTICLE, blockTexture("tube"));
+        Identifier model = legacyMeshTemplate(mesh, null, root -> root.translation(0.0F, 0.0F, -0.5F)).create(block, textures, blockModels.modelOutput);
+        Identifier itemModel = legacyMeshTemplate(mesh, "_item", root -> root.translation(0.0F, -0.5F, 0.0F).rotation(-90.0F, 0.0F, 0.0F, true).origin(TransformationHelper.TransformOrigin.CENTER))
+                .create(block, textures, blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)).with(northBasedFacing()));
+        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(itemModel));
+    }
+
+    private static ModelTemplate legacyMeshTemplate(Identifier mesh, @Nullable String suffix, Consumer<RootTransformsBuilder> rootTransform) {
+        ExtendedModelTemplateBuilder builder = ExtendedModelTemplateBuilder.builder().parent(Identifier.withDefaultNamespace("block/block")).requiredTextureSlot(LEGACY_MESH_SLOT)
+                .requiredTextureSlot(TextureSlot.PARTICLE).customLoader(TCMeshLoaderBuilder::new, loader -> loader.mesh(mesh).flipV(true)).rootTransforms(rootTransform);
+        if (suffix != null) {
+            builder.suffix(suffix);
+        }
+        return builder.build();
+    }
+
+    private static PropertyDispatch<VariantMutator> northBasedFacing() {
+        return PropertyDispatch.modify(BlockStateProperties.FACING).select(Direction.NORTH, BlockModelGenerators.NOP).select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180)
+                .select(Direction.WEST, BlockModelGenerators.Y_ROT_270).select(Direction.EAST, BlockModelGenerators.Y_ROT_90).select(Direction.UP, BlockModelGenerators.X_ROT_270)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_90);
     }
 
     private static void registerAdvancedAlchemicalFurnace(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
