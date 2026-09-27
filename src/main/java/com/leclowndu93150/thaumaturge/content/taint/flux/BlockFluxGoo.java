@@ -23,6 +23,8 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
 
     private static final int REPLACEABLE_AMOUNT_THRESHOLD = 5;
     private static final float AURA_FLOOR_PER_QUANTUM = 0.5F;
+    private static final float TAINT_WEIGHT_PER_QUANTUM = 1.0F;
+    private static final int OUTBREAK_COST = 0;
     private static final int AMBIENT_FUME_DENOMINATOR = 44;
     private static final int FUME_GRID = 64;
     private static final int FUME_PARTICLE_INDEX = 64;
@@ -83,6 +85,16 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
     @Override
     public float auraFloorPerQuantum() {
         return AURA_FLOOR_PER_QUANTUM;
+    }
+
+    @Override
+    public float taintWeightPerQuantum() {
+        return TAINT_WEIGHT_PER_QUANTUM;
+    }
+
+    @Override
+    public int outbreakCost() {
+        return OUTBREAK_COST;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.aura;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxAuraFloor;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxOutbreaks;
 import com.leclowndu93150.thaumaturge.registry.TCAttachments;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -74,6 +75,7 @@ public final class AuraTickHandler {
             if (chunk == null) {
                 continue;
             }
+            PhysicalFluxOutbreaks.tryOutbreak(level, chunk, rand);
             AuraData data = chunk.getData(TCAttachments.AURA.get());
             if (data.getBase() == 0) {
                 continue;

@@ -18,7 +18,7 @@ public final class PhysicalFluxAuraFloor {
     }
 
     public static void observe(ServerLevel level, BlockPos pos) {
-        if (!isEnabled()) {
+        if (!isEnabled() && !PhysicalFluxOutbreaks.isEnabled()) {
             return;
         }
         LevelChunk chunk = level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));

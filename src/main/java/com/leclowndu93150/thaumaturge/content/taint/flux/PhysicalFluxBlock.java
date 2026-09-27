@@ -12,4 +12,8 @@ public interface PhysicalFluxBlock {
     void scheduleFluxTick(ServerLevel level, BlockPos pos);
 
     float auraFloorPerQuantum();
+
+    float taintWeightPerQuantum();
+
+    int outbreakCost();
 }
