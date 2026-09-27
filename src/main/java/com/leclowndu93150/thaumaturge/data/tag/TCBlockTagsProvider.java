@@ -68,6 +68,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
         tag(BlockTags.NEEDS_IRON_TOOL).add(TCBlocks.METAL_THAUMIUM_BLOCK.get()).add(TCBlocks.METAL_BRASS_BLOCK.get()).add(TCBlocks.METAL_VOID_BLOCK.get());
 
+        tag(BlockTags.LOGS).add(TCBlocks.TAINT_LOG.get());
+
         tag(BlockTags.LOGS_THAT_BURN).addTag(TCBlockTags.GREATWOOD_LOGS).addTag(TCBlockTags.SILVERWOOD_LOGS);
 
         tag(BlockTags.LEAVES).add(TCBlocks.LEAVES_GREATWOOD.get()).add(TCBlocks.LEAVES_SILVERWOOD.get());
