@@ -48,6 +48,7 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock {
     private static final int FUME_COLOR = ARGB.color(0xFF, 0x9C, 0x1D, 0xB8);
     private static final float FUME_SCALE = 0.65F;
     private static final double FUME_RISE = 0.015;
+    private static final float AURA_FLOOR_PER_QUANTUM = 0.25F;
 
     public BlockFluxGas(Properties properties) {
         super(properties);
@@ -84,6 +85,11 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock {
     }
 
     @Override
+    public float auraFloorPerQuantum() {
+        return AURA_FLOOR_PER_QUANTUM;
+    }
+
+    @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
     }
@@ -100,9 +106,18 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock {
 
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        if (!level.isClientSide() && !oldState.is(this)) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        PhysicalFluxAuraFloor.observe(serverLevel, pos);
+        if (!oldState.is(this)) {
             level.scheduleTick(pos, this, TICK_DELAY);
         }
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        PhysicalFluxAuraFloor.observe(level, pos);
     }
 
     @Override
