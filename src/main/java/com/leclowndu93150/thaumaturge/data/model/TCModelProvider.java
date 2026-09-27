@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
+import com.leclowndu93150.thaumaturge.content.warding.BlockArcanePressurePlate;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchInset;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
@@ -246,6 +247,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
         registerItemGrate(blockModels, itemModels);
         registerGolemFetter(blockModels, itemModels);
+        registerArcaneLocks(blockModels, itemModels);
 
         registerInvisibleBlock(blockModels, TCBlocks.GOLEM_BUILDER.get());
         itemModels.itemModelOutput.accept(TCItems.GOLEM_BUILDER.get(),
@@ -338,6 +340,27 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(grate)
                 .with(PropertyDispatch.initial(BlockItemGrate.OPEN).select(true, BlockModelGenerators.plainVariant(open)).select(false, BlockModelGenerators.plainVariant(closed))));
         itemModels.itemModelOutput.accept(TCItems.ITEM_GRATE.get(), ItemModelUtils.plainModel(open));
+    }
+
+    private static void registerArcaneLocks(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        blockModels.createDoor(TCBlocks.ARCANE_DOOR.get());
+        Block plate = TCBlocks.ARCANE_PRESSURE_PLATE.get();
+        PropertyDispatch.C2<MultiVariant, Integer, Boolean> plateDispatch = PropertyDispatch.initial(BlockArcanePressurePlate.MODE, BlockStateProperties.POWERED);
+        Identifier itemModel = null;
+        for (int mode = BlockArcanePressurePlate.MODE_EVERYONE; mode <= BlockArcanePressurePlate.MODE_ALL_BUT_ACCESS; mode++) {
+            String suffix = "_" + mode;
+            TextureMapping texture = TextureMapping.defaultTexture(TextureMapping.getBlockTexture(plate, suffix));
+            Identifier up = ModelTemplates.PRESSURE_PLATE_UP.createWithSuffix(plate, suffix, texture, blockModels.modelOutput);
+            Identifier down = ModelTemplates.PRESSURE_PLATE_DOWN.createWithSuffix(plate, suffix, texture, blockModels.modelOutput);
+            plateDispatch.select(mode, false, BlockModelGenerators.plainVariant(up)).select(mode, true, BlockModelGenerators.plainVariant(down));
+            if (mode == BlockArcanePressurePlate.MODE_EVERYONE) {
+                itemModel = up;
+            }
+        }
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(plate).with(plateDispatch));
+        itemModels.itemModelOutput.accept(TCItems.ARCANE_PRESSURE_PLATE.get(), ItemModelUtils.plainModel(itemModel));
+        itemModels.generateFlatItem(TCItems.ARCANE_KEY_IRON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.ARCANE_KEY_GOLD.get(), ModelTemplates.FLAT_ITEM);
     }
 
     private static void registerGolemFetter(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {

@@ -29,6 +29,8 @@ import com.leclowndu93150.thaumaturge.content.device.BlockArcaneEar;
 import com.leclowndu93150.thaumaturge.content.device.bore.BlockArcaneBore;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
+import com.leclowndu93150.thaumaturge.content.warding.BlockArcaneDoor;
+import com.leclowndu93150.thaumaturge.content.warding.BlockArcanePressurePlate;
 import com.leclowndu93150.thaumaturge.content.warding.BlockWardedGlass;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenser;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenserLattice;
@@ -739,6 +741,12 @@ public final class TCBlocks {
     public static final DeferredBlock<BlockWardedGlass> WARDED_GLASS = BLOCKS.registerBlock("warded_glass", BlockWardedGlass::new,
             props -> props.strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn((state, level, pos, entityType) -> false).isRedstoneConductor((state, level, pos) -> false)
                     .isSuffocating((state, level, pos) -> false).isViewBlocking((state, level, pos) -> false));
+
+    public static final DeferredBlock<BlockArcaneDoor> ARCANE_DOOR = BLOCKS.registerBlock("arcane_door", BlockArcaneDoor::new,
+            props -> props.mapColor(MapColor.WOOD).strength(3.0F).sound(SoundType.WOOD).noOcclusion().pushReaction(PushReaction.DESTROY));
+
+    public static final DeferredBlock<BlockArcanePressurePlate> ARCANE_PRESSURE_PLATE = BLOCKS.registerBlock("arcane_pressure_plate", BlockArcanePressurePlate::new,
+            props -> props.mapColor(MapColor.WOOD).strength(0.5F).sound(SoundType.WOOD).noCollision().pushReaction(PushReaction.DESTROY));
 
     public static final DeferredBlock<BlockPlaceholder> OBSIDIAN_PLACEHOLDER = BLOCKS.registerBlock("placeholder_obsidian", props -> new BlockPlaceholder(props, true),
             props -> props.mapColor(MapColor.STONE).strength(2.5F, 3600000.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());

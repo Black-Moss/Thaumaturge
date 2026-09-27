@@ -24,14 +24,17 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
         tag(TCBlockTags.LAMP_GROWTH_BLACKLIST);
         tag(TCBlockTags.ARCANE_WORKBENCH_CHARGER_HOSTS).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.FOCAL_MANIPULATOR.get());
-        tag(TCBlockTags.WARDABLE_NON_SOLID).add(TCBlocks.WARDED_GLASS.get());
+        tag(TCBlockTags.WARDABLE_NON_SOLID).add(TCBlocks.WARDED_GLASS.get()).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
+        tag(TCBlockTags.ARCANE_LOCKS).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
+        tag(BlockTags.DOORS).add(TCBlocks.ARCANE_DOOR.get());
+        tag(BlockTags.PRESSURE_PLATES).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(TCBlockTags.MAGICAL_PLANTS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get()).add(TCBlocks.PLANT_VISHROOM.get());
         tag(BlockTags.FLOWERS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TCBlocks.TUBE.get()).add(TCBlocks.TUBE_VALVE.get()).add(TCBlocks.TUBE_RESTRICT.get()).add(TCBlocks.TUBE_FILTER.get()).add(TCBlocks.TUBE_ONEWAY.get())
                 .add(TCBlocks.TUBE_BUFFER.get()).add(TCBlocks.ESSENTIA_INPUT.get()).add(TCBlocks.ESSENTIA_OUTPUT.get()).add(TCBlocks.FOCAL_MANIPULATOR.get()).add(TCBlocks.ITEM_GRATE.get())
                 .add(TCBlocks.GOLEM_FETTER.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(TCBlocks.CENTRIFUGE.get()).add(TCBlocks.ALEMBIC.get()).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.RESEARCH_TABLE.get())
-                .add(TCBlocks.ARCANE_WORKBENCH_CHARGER.get());
+                .add(TCBlocks.ARCANE_WORKBENCH_CHARGER.get()).add(TCBlocks.ARCANE_DOOR.get()).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(TCBlockTags.INFUSION_STABILISERS).add(Blocks.SKELETON_SKULL).add(Blocks.SKELETON_WALL_SKULL).add(Blocks.WITHER_SKELETON_SKULL).add(Blocks.WITHER_SKELETON_WALL_SKULL)
                 .add(Blocks.ZOMBIE_HEAD).add(Blocks.ZOMBIE_WALL_HEAD).add(Blocks.PLAYER_HEAD).add(Blocks.PLAYER_WALL_HEAD).add(Blocks.CREEPER_HEAD).add(Blocks.CREEPER_WALL_HEAD)
                 .add(Blocks.DRAGON_HEAD).add(Blocks.DRAGON_WALL_HEAD).add(Blocks.PIGLIN_HEAD).add(Blocks.PIGLIN_WALL_HEAD);
