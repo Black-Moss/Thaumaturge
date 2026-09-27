@@ -15,15 +15,19 @@ import com.leclowndu93150.thaumaturge.registry.TCFeatures;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HugeMushroomBlock;
+import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.WeightedPlacedFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.HugeMushroomFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.RandomFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.ReplaceBlockConfiguration;
@@ -33,6 +37,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 public final class TCConfiguredFeatures {
+    public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_BROWN_MUSHROOM = key("magic_forest_brown_mushroom");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> MAGIC_FOREST_RED_MUSHROOM = key("magic_forest_red_mushroom");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GREATWOOD_TREE = key("greatwood_tree");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GREATWOOD_TREE_GROWN = TCTreeGrowers.GREATWOOD_TREE_GROWN;
     public static final ResourceKey<ConfiguredFeature<?, ?>> SILVERWOOD_TREE = key("silverwood_tree");
@@ -66,7 +72,7 @@ public final class TCConfiguredFeatures {
     private static final int CRYSTAL_MAX_TOTAL = 64;
     private static final int CRYSTAL_BIOME_ASPECT_CHANCE = 3;
     private static final int FLORA_GRASS_ATTEMPTS = 3;
-    private static final int FLORA_VISHROOM_ATTEMPTS = 8;
+    private static final int FLORA_VISHROOM_ATTEMPTS = 4;
 
     private TCConfiguredFeatures() {}
 
@@ -96,8 +102,27 @@ public final class TCConfiguredFeatures {
                                         new WeightedPlacedFeature(placed.getOrThrow(TCPlacedFeatures.GREATWOOD_CHECKED), MAGIC_FOREST_GREATWOOD_CHANCE)),
                                 placed.getOrThrow(TCPlacedFeatures.BIG_MAGIC_CHECKED))));
 
-        context.register(MAGIC_FOREST_FLORA, new ConfiguredFeature<>(TCFeatures.MAGIC_FOREST_FLORA.get(),
-                new MagicForestFloraConfig(TCBlocks.GRASS_AMBIENT.get(), TCBlocks.PLANT_VISHROOM.get(), FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS)));
+        context.register(MAGIC_FOREST_BROWN_MUSHROOM,
+                new ConfiguredFeature<>(Feature.HUGE_BROWN_MUSHROOM,
+                        new HugeMushroomFeatureConfiguration(BlockStateProvider.simple(Blocks.BROWN_MUSHROOM_BLOCK.defaultBlockState().setValue(HugeMushroomBlock.DOWN, false)),
+                                BlockStateProvider.simple(Blocks.MUSHROOM_STEM.defaultBlockState().setValue(HugeMushroomBlock.UP, false).setValue(HugeMushroomBlock.DOWN, false)), 3,
+                                BlockPredicate.matchesTag(BlockTags.HUGE_BROWN_MUSHROOM_CAN_PLACE_ON))));
+        context.register(MAGIC_FOREST_RED_MUSHROOM,
+                new ConfiguredFeature<>(Feature.HUGE_RED_MUSHROOM,
+                        new HugeMushroomFeatureConfiguration(BlockStateProvider.simple(Blocks.RED_MUSHROOM_BLOCK.defaultBlockState().setValue(HugeMushroomBlock.DOWN, false)),
+                                BlockStateProvider.simple(Blocks.MUSHROOM_STEM.defaultBlockState().setValue(HugeMushroomBlock.UP, false).setValue(HugeMushroomBlock.DOWN, false)), 3,
+                                BlockPredicate.matchesTag(BlockTags.HUGE_RED_MUSHROOM_CAN_PLACE_ON))));
+        HolderGetter<ConfiguredFeature<?, ?>> configured = context.lookup(Registries.CONFIGURED_FEATURE);
+        context.register(MAGIC_FOREST_FLORA,
+                new ConfiguredFeature<>(TCFeatures.MAGIC_FOREST_FLORA.get(),
+                        new MagicForestFloraConfig(TCBlocks.GRASS_AMBIENT.get(), TCBlocks.PLANT_VISHROOM.get(), FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS,
+                                context.lookup(Registries.BLOCK).getOrThrow(BlockTags.SMALL_FLOWERS), 10,
+                                List.of(new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.TALL_GRASS), 12, 1),
+                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.SHORT_GRASS), 10, 1),
+                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.FERN), 6, 1),
+                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.BROWN_MUSHROOM), 6, 4),
+                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.RED_MUSHROOM), 6, 8)),
+                                HolderSet.direct(configured.getOrThrow(MAGIC_FOREST_BROWN_MUSHROOM), configured.getOrThrow(MAGIC_FOREST_RED_MUSHROOM)), 40)));
 
         context.register(MANA_PODS, new ConfiguredFeature<>(TCFeatures.MANA_PODS.get(), NoneFeatureConfiguration.INSTANCE));
 

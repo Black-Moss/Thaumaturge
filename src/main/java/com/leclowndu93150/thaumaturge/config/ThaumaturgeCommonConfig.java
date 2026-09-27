@@ -52,9 +52,8 @@ public final class ThaumaturgeCommonConfig {
         builder.push("nodes");
         WILD_NODE_CHANCE = builder.comment("Chance from 0 to 100 for a wild node placement attempt in each Overworld chunk. The default is about one attempt per 36 chunks. 0 disables this source.")
                 .defineInRange("wildSpawnChance", 100.0 / 36.0, 0.0, 100.0);
-        MAGICAL_NODE_CHANCE = builder
-                .comment("Additional chance from 0 to 100 in each Magical Forest chunk. This stacks with wildSpawnChance. 8.333 means roughly one additional attempt per 12 chunks.")
-                .defineInRange("magicalBonusSpawnChance", 100.0 / 12.0, 0.0, 100.0);
+        MAGICAL_NODE_CHANCE = builder.comment("Optional additional chance from 0 to 100 in each Magical Forest chunk. This stacks with wildSpawnChance. Disabled by default to match TC4.")
+                .defineInRange("magicalBonusSpawnChance", 0.0, 0.0, 100.0);
         EERIE_NODE_CHANCE = builder
                 .comment("Additional chance from 0 to 100 in each Eerie biome chunk. This stacks with wildSpawnChance and its node is always dark. 12.5 means one attempt per 8 chunks.")
                 .defineInRange("eerieBonusSpawnChance", 12.5, 0.0, 100.0);

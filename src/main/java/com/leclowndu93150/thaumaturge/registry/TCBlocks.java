@@ -569,7 +569,7 @@ public final class TCBlocks {
     public static final DeferredBlock<FlowerPotBlock> POTTED_VISHROOM = pottedPlant("potted_vishroom", PLANT_VISHROOM);
 
     public static final DeferredBlock<BlockGrassAmbient> GRASS_AMBIENT = BLOCKS.registerBlock("grass_ambient", BlockGrassAmbient::new,
-            props -> props.mapColor(MapColor.GRASS).strength(0.6F).sound(SoundType.GRAVEL).randomTicks());
+            props -> props.mapColor(MapColor.GRASS).strength(0.6F).sound(SoundType.GRASS).randomTicks());
 
     //
 
