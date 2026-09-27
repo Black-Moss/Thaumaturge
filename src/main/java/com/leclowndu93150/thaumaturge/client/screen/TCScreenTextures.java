@@ -16,10 +16,17 @@ public final class TCScreenTextures {
     public static final Identifier RESEARCH_BACK_OVER = gui("gui_research_back_over.png");
     public static final Identifier PAPER = gui("paper.png");
     public static final Identifier PAPER_GILDED = gui("papergilded.png");
+    public static final Identifier RESEARCH_PREREQ_MAP = research("rd_map.png");
+    public static final Identifier RESEARCH_PREREQ_FLASK = research("rd_flask.png");
+    public static final Identifier RESEARCH_PREREQ_CHEST = research("rd_chest.png");
 
     private TCScreenTextures() {}
 
     private static Identifier gui(String name) {
         return Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/" + name);
+    }
+
+    private static Identifier research(String name) {
+        return Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/research/" + name);
     }
 }

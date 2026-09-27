@@ -17,7 +17,9 @@ import com.leclowndu93150.thaumaturge.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumaturge.api.research.ResearchAddendum;
 import com.leclowndu93150.thaumaturge.api.research.ResearchConstruct;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
+import com.leclowndu93150.thaumaturge.client.render.research.EntryIconRenderer;
 import com.leclowndu93150.thaumaturge.client.render.research.PageParser;
 import com.leclowndu93150.thaumaturge.client.render.research.RecipeDisplayCache;
 import com.leclowndu93150.thaumaturge.client.render.research.RecipeDisplayWidget;
@@ -114,6 +116,12 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private static final int CHECKMARK_V = 207;
     private static final int CHECKMARK_SIZE = 10;
     private static final int CHECKMARK_OFFSET_X = 8;
+    private static final int PREREQ_ICON_SIZE = 16;
+    private static final int PREREQ_ICON_TEX_SIZE = 32;
+    private static final int PREREQ_UNKNOWN_TINT = 0xFF80BFFF;
+    private static final String PREREQ_MAP_PREFIX = "m_";
+    private static final String PREREQ_CHEST_PREFIX = "c_";
+    private static final String PREREQ_FLASK_PREFIX = "f_";
 
     private static final int REQ_TOP_Y_OFFSET = 210 - 16;
     private static final int REQ_ROW_STEP = 18;
@@ -722,7 +730,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         for (int i = 0; i < prereqs.size(); i++) {
             Identifier prereq = prereqs.get(i);
             int slotX = innerX + shift;
-            graphics.text(font, Component.literal("?").withStyle(ChatFormatting.GOLD), slotX + 5, y + 4, 0xFFFFFFFF, true);
+            drawPrereqIcon(graphics, slotX, y, prereq);
             boolean met = knowledge.isResearchComplete(prereq);
             satisfied[i] = met;
             if (met) {
@@ -734,6 +742,38 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             }
             shift += spacing;
         }
+    }
+
+    private void drawPrereqIcon(GuiGraphicsExtractor graphics, int x, int y, Identifier prereq) {
+        HolderLookup.Provider registries = minecraft.player.registryAccess();
+        Optional<Holder.Reference<IResearchEntry>> entry = registries.lookup(IResearchEntry.REGISTRY_KEY).flatMap(lookup -> lookup.get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, prereq)));
+        if (entry.isPresent()) {
+            EntryIconRenderer.drawResearchIcon(graphics, x, y, EntryIconRenderer.resolveIcon(entry.get().value(), minecraft.player.tickCount), false);
+            return;
+        }
+        Identifier flagIcon = prereqFlagIcon(prereq.getPath());
+        if (flagIcon != null) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, flagIcon, x, y, 0.0F, 0.0F, PREREQ_ICON_SIZE, PREREQ_ICON_SIZE, PREREQ_ICON_TEX_SIZE, PREREQ_ICON_TEX_SIZE, PREREQ_ICON_TEX_SIZE,
+                    PREREQ_ICON_TEX_SIZE);
+            return;
+        }
+        Optional<Holder.Reference<IAspect>> aspect = registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().filter(holder -> ScanKeys.aspect(holder.key()).equals(prereq)).findFirst();
+        if (aspect.isPresent()) {
+            drawAspectTag(graphics, x, y, aspect.get());
+            return;
+        }
+        graphics.blit(RenderPipelines.GUI_TEXTURED, UNKNOWN_ASPECT_TEXTURE, x, y, 0.0F, 0.0F, PREREQ_ICON_SIZE, PREREQ_ICON_SIZE, PREREQ_ICON_TEX_SIZE, PREREQ_ICON_TEX_SIZE, PREREQ_ICON_TEX_SIZE,
+                PREREQ_ICON_TEX_SIZE, PREREQ_UNKNOWN_TINT);
+    }
+
+    private static @Nullable Identifier prereqFlagIcon(String path) {
+        if (path.startsWith(PREREQ_MAP_PREFIX))
+            return TCScreenTextures.RESEARCH_PREREQ_MAP;
+        if (path.startsWith(PREREQ_CHEST_PREFIX))
+            return TCScreenTextures.RESEARCH_PREREQ_CHEST;
+        if (path.startsWith(PREREQ_FLASK_PREFIX))
+            return TCScreenTextures.RESEARCH_PREREQ_FLASK;
+        return null;
     }
 
     private static int knowledgeSpacing(int rewardCount) {
