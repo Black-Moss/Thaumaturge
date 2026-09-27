@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import com.leclowndu93150.thaumaturge.content.particle.TaintSwarmParticleOptions;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -25,9 +26,11 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class EntityTaintSwarm extends Monster implements ITaintedMob {
     private static final EntityDataAccessor<Boolean> SUMMONED = SynchedEntityData.defineId(EntityTaintSwarm.class, EntityDataSerializers.BOOLEAN);
@@ -36,9 +39,19 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
     private static final int ATTACK_COOLDOWN = 15;
     private static final int WEAKNESS_DURATION = 100;
     private static final float SELF_DAMAGE_SUMMONED = 5.0F;
+    private static final int FLIGHT_RETARGET_CHANCE = 30;
+    private static final double FLIGHT_REACHED_SQ = 4.0;
+    private static final int FLIGHT_ATTEMPTS = 12;
+    private static final int FLIGHT_RANGE_XZ = 7;
+    private static final int FLIGHT_RANGE_Y = 6;
+    private static final int FLIGHT_DROP_Y = 2;
+    private static final double FLIGHT_TARGET_LIFT = 0.1;
+    private static final double FLIGHT_SPEED = 0.55;
+    private static final int FLIGHT_CEILING_ABOVE_SURFACE = 8;
 
     private int damBonus;
     private int attackTicks;
+    private @Nullable BlockPos flightTarget;
 
     public EntityTaintSwarm(EntityType<? extends EntityTaintSwarm> type, Level level) {
         super(type, level);
@@ -101,6 +114,8 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
         if (target == null || !target.isAlive()) {
             if (isSummoned()) {
                 this.hurtServer(server, server.damageSources().generic(), SELF_DAMAGE_SUMMONED);
+            } else {
+                updateTaintedFreeFlight(server);
             }
             return;
         }
@@ -119,6 +134,29 @@ public final class EntityTaintSwarm extends Monster implements ITaintedMob {
             target.setDeltaMovement(targetMotion);
             this.playSound(TCSounds.SWARMATTACK.get(), 0.3F, 0.9F + this.random.nextFloat() * 0.2F);
         }
+    }
+
+    private void updateTaintedFreeFlight(ServerLevel server) {
+        if (flightTarget == null || !isValidFlightTarget(server, flightTarget) || this.random.nextInt(FLIGHT_RETARGET_CHANCE) == 0 || flightTarget.distSqr(this.blockPosition()) < FLIGHT_REACHED_SQ) {
+            flightTarget = null;
+            for (int attempt = 0; attempt < FLIGHT_ATTEMPTS && flightTarget == null; attempt++) {
+                BlockPos candidate = this.blockPosition().offset(this.random.nextInt(FLIGHT_RANGE_XZ) - this.random.nextInt(FLIGHT_RANGE_XZ), this.random.nextInt(FLIGHT_RANGE_Y) - FLIGHT_DROP_Y,
+                        this.random.nextInt(FLIGHT_RANGE_XZ) - this.random.nextInt(FLIGHT_RANGE_XZ));
+                if (isValidFlightTarget(server, candidate)) {
+                    flightTarget = candidate;
+                }
+            }
+        }
+        if (flightTarget != null) {
+            this.moveControl.setWantedPosition(flightTarget.getX() + 0.5, flightTarget.getY() + FLIGHT_TARGET_LIFT, flightTarget.getZ() + 0.5, FLIGHT_SPEED);
+        }
+    }
+
+    private static boolean isValidFlightTarget(ServerLevel level, BlockPos pos) {
+        if (!level.hasChunkAt(pos) || !level.getBlockState(pos).isAir() || pos.getY() <= level.getMinY()) {
+            return false;
+        }
+        return pos.getY() <= level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ()) + FLIGHT_CEILING_ABOVE_SURFACE && TaintBiomeManager.isTainted(level, pos);
     }
 
     public float effectiveAttackDamage() {

@@ -406,6 +406,7 @@ public final class TCCreativeTabs {
                 output.accept(TCItems.TAINT_LOG.get());
                 output.accept(TCItems.TAINT_FEATURE.get());
                 output.accept(TCItems.TAINT_FIBRE.get());
+                output.accept(TCItems.TAINT_SPORE_STALK.get());
                 output.accept(TCItems.TAINT_CRAWLER_SPAWN_EGG.get());
                 output.accept(TCItems.TAINTACLE_SPAWN_EGG.get());
                 output.accept(TCItems.TAINT_SWARM_SPAWN_EGG.get());

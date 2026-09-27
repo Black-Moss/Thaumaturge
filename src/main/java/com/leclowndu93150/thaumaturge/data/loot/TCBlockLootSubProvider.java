@@ -217,6 +217,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropSelf(TCBlocks.TAINT_LOG.get());
         dropSelf(TCBlocks.TAINT_FEATURE.get());
         add(TCBlocks.TAINT_FIBRE.get(), noDrop());
+        add(TCBlocks.TAINT_SPORE_STALK.get(), noDrop());
     }
 
     private LootTable.Builder createLeavesDrops(Block leaves, Block sapling) {

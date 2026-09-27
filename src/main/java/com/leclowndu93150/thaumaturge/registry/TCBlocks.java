@@ -26,12 +26,6 @@ import com.leclowndu93150.thaumaturge.content.decor.BlockTable;
 import com.leclowndu93150.thaumaturge.content.decor.banner.BannerStandingBlock;
 import com.leclowndu93150.thaumaturge.content.decor.banner.BannerWallBlock;
 import com.leclowndu93150.thaumaturge.content.device.BlockArcaneEar;
-import com.leclowndu93150.thaumaturge.content.device.bore.BlockArcaneBore;
-import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
-import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
-import com.leclowndu93150.thaumaturge.content.warding.BlockArcaneDoor;
-import com.leclowndu93150.thaumaturge.content.warding.BlockArcanePressurePlate;
-import com.leclowndu93150.thaumaturge.content.warding.BlockWardedGlass;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenser;
 import com.leclowndu93150.thaumaturge.content.device.BlockCondenserLattice;
 import com.leclowndu93150.thaumaturge.content.device.BlockDioptra;
@@ -47,6 +41,8 @@ import com.leclowndu93150.thaumaturge.content.device.BlockStabilizer;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisGenerator;
 import com.leclowndu93150.thaumaturge.content.device.BlockVoidSiphon;
+import com.leclowndu93150.thaumaturge.content.device.bore.BlockArcaneBore;
+import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.device.mirror.BlockMirror;
 import com.leclowndu93150.thaumaturge.content.device.patterncrafter.BlockPatternCrafter;
 import com.leclowndu93150.thaumaturge.content.device.sprayer.BlockPotionSprayer;
@@ -62,10 +58,10 @@ import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchStruct
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchTrap;
 import com.leclowndu93150.thaumaturge.content.equipment.BlockEffectGlimmer;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockCentrifuge;
-import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockAdvancedAlchemicalFurnace;
-import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEssentiaPort;
+import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.bellows.BlockBellows;
+import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJar;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJarBrain;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockJarVoid;
@@ -84,6 +80,7 @@ import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockTubeRestrict;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockTubeValve;
 import com.leclowndu93150.thaumaturge.content.focus.BlockEffectSap;
 import com.leclowndu93150.thaumaturge.content.focus.BlockHole;
+import com.leclowndu93150.thaumaturge.content.golem.BlockGolemFetter;
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockGolemBuilder;
 import com.leclowndu93150.thaumaturge.content.infernalfurnace.BlockInfernalFurnace;
 import com.leclowndu93150.thaumaturge.content.infernalfurnace.BlockPlaceholder;
@@ -104,10 +101,14 @@ import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintGeyser;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintLog;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintRock;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintSoil;
+import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintSporeStalk;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.BlockEtherealBloom;
 import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGas;
 import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGoo;
 import com.leclowndu93150.thaumaturge.content.taint.flux.FluxGooRefs;
+import com.leclowndu93150.thaumaturge.content.warding.BlockArcaneDoor;
+import com.leclowndu93150.thaumaturge.content.warding.BlockArcanePressurePlate;
+import com.leclowndu93150.thaumaturge.content.warding.BlockWardedGlass;
 import com.leclowndu93150.thaumaturge.content.workbench.BlockArcaneWorkbench;
 import com.leclowndu93150.thaumaturge.content.workbench.BlockArcaneWorkbenchCharger;
 import com.leclowndu93150.thaumaturge.content.world.crystal.BlockCrystal;
@@ -266,6 +267,10 @@ public final class TCBlocks {
                     return 6;
                 return 0;
             }));
+
+    public static final DeferredBlock<BlockTaintSporeStalk> TAINT_SPORE_STALK = BLOCKS.registerBlock("taint_spore_stalk", BlockTaintSporeStalk::new,
+            props -> props.mapColor(MapColor.COLOR_PURPLE).strength(0.4F).sound(TCSoundTypes.GORE.get()).noOcclusion().noCollision().pushReaction(PushReaction.DESTROY).randomTicks()
+                    .lightLevel(state -> state.getValue(BlockTaintSporeStalk.MATURE) ? 10 : 0));
 
     private static BlockBehaviour.Properties pressPlaceholderProps(BlockBehaviour.Properties props) {
         return props.mapColor(MapColor.STONE).strength(2.5F, 3600000.0F).sound(SoundType.STONE).noLootTable();
