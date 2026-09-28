@@ -3,8 +3,11 @@ package com.leclowndu93150.thaumaturge.api.recipe;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
@@ -38,6 +41,25 @@ public final class ArcaneCraftingTransaction {
      */
     public static Result preview(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input) {
         return bindingOrThrow().preview(context, player, input);
+    }
+
+    /**
+     * Matches the input against the arcane recipes and reports what the matched recipe needs,
+     * without planning or paying anything. Nothing is changed and nothing is recorded, so it is
+     * safe to call at any time on the server thread, including while a transaction is open.
+     *
+     * <p>A recipe the player has not unlocked is still reported, with
+     * {@link Failure#RESEARCH_LOCKED} and {@link ResearchGateStatus#LOCKED}, so a terminal can show
+     * what is missing. Whether the craft is affordable is answered by {@link #preview}.
+     *
+     * @param context where and for whom the craft runs
+     * @param player  the crafting player
+     * @param input   the grid, crystals and wand to match
+     * @return the matched recipe's details, or a failed inspection when nothing matches
+     * @throws IllegalStateException when called before the implementation has bound the facade
+     */
+    public static Inspection inspect(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input) {
+        return bindingOrThrow().inspect(context, player, input);
     }
 
     /**
@@ -156,6 +178,95 @@ public final class ArcaneCraftingTransaction {
     }
 
     /**
+     * What {@link #inspect} found for an input.
+     *
+     * @param failure        {@link Failure#NONE} when a recipe matches and the player may craft
+     *                       it, {@link Failure#RESEARCH_LOCKED} when the only matching recipes are
+     *                       locked, or the reason no recipe was evaluated
+     * @param recipeId       the matched recipe, or null when none matched
+     * @param output         what the recipe produces from the input; empty when none matched
+     * @param remainders     the item left at each grid position, indexed like
+     *                       {@link IArcaneCraftingStore.Consumption#grid()}
+     * @param requirements   the matched recipe's cost and ingredients, or null when none matched
+     * @param researchStatus the player's standing against the recipe's research gate, or null when
+     *                       none matched
+     * @since 1.0.0
+     */
+    public record Inspection(Failure failure, @Nullable ResourceKey<Recipe<?>> recipeId, ItemStack output, List<ItemStack> remainders, @Nullable Requirements requirements,
+            @Nullable ResearchGateStatus researchStatus) {
+        /**
+         * Copies every stack so the record owns them.
+         *
+         * @throws NullPointerException when {@code failure} is null
+         */
+        public Inspection {
+            Objects.requireNonNull(failure, "failure");
+            output = output.copy();
+            remainders = remainders.stream().map(ItemStack::copy).toList();
+        }
+
+        /**
+         * Creates an inspection for an input no recipe was evaluated for.
+         *
+         * @param failure the reason
+         * @return the inspection
+         */
+        public static Inspection failure(Failure failure) {
+            return new Inspection(failure, null, ItemStack.EMPTY, List.of(), null, null);
+        }
+
+        /**
+         * Whether a recipe matched and the player may craft it.
+         *
+         * @return true when {@link #failure()} is {@link Failure#NONE}
+         */
+        public boolean successful() {
+            return failure == Failure.NONE;
+        }
+
+        /**
+         * What the recipe produces from the input.
+         *
+         * @return a copy of the output
+         */
+        @Override
+        public ItemStack output() {
+            return output.copy();
+        }
+
+        /**
+         * The remainders the recipe leaves in the grid.
+         *
+         * @return copies of the remainders
+         */
+        @Override
+        public List<ItemStack> remainders() {
+            return remainders.stream().map(ItemStack::copy).toList();
+        }
+    }
+
+    /**
+     * The fixed requirements of an arcane recipe, before any wand, source or gear discount.
+     *
+     * @param baseVis     the recipe's base aura vis cost
+     * @param crystals    the primal crystal cost, which a wand or vis sources can pay instead
+     * @param ingredients the recipe's ingredients, one per non-empty pattern slot, as given by
+     *                    {@link Recipe#placementInfo()}
+     * @since 1.0.0
+     */
+    public record Requirements(int baseVis, AspectList crystals, List<Ingredient> ingredients) {
+        /**
+         * Copies the ingredient list.
+         *
+         * @throws NullPointerException when {@code crystals} is null
+         */
+        public Requirements {
+            Objects.requireNonNull(crystals, "crystals");
+            ingredients = List.copyOf(ingredients);
+        }
+    }
+
+    /**
      * Why a craft cannot happen.
      *
      * @since 1.0.0
@@ -193,6 +304,16 @@ public final class ArcaneCraftingTransaction {
          * @return the outcome
          */
         Result preview(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input);
+
+        /**
+         * Implements {@link ArcaneCraftingTransaction#inspect}.
+         *
+         * @param context where and for whom the craft runs
+         * @param player  the crafting player
+         * @param input   the grid, crystals and wand to match
+         * @return the inspection
+         */
+        Inspection inspect(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input);
 
         /**
          * Implements {@link ArcaneCraftingTransaction#craft}.
