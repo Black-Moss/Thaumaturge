@@ -31,6 +31,21 @@ public final class ArcaneCraftingTransactions implements ArcaneCraftingTransacti
     }
 
     @Override
+    public ArcaneCraftingTransaction.Inspection inspect(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input) {
+        Failure invalid = validate(context, player);
+        if (invalid != Failure.NONE) {
+            return ArcaneCraftingTransaction.Inspection.failure(invalid);
+        }
+        Match match = match(context.level(), player, input);
+        if (match.holder() == null) {
+            return ArcaneCraftingTransaction.Inspection.failure(match.failure());
+        }
+        ArcaneCraftingRecipe recipe = match.holder().value();
+        ArcaneCraftingTransaction.Requirements requirements = new ArcaneCraftingTransaction.Requirements(recipe.getBaseVis(), recipe.getCrystals(), recipe.placementInfo().ingredients());
+        return new ArcaneCraftingTransaction.Inspection(match.failure(), match.holder().id(), recipe.assemble(input), remainders(recipe, input), requirements, recipe.gateStatus(player));
+    }
+
+    @Override
     public Result craft(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input, IArcaneCraftingStore store, TransactionContext transaction) {
         return run(context, player, input, store, transaction);
     }
@@ -41,10 +56,10 @@ public final class ArcaneCraftingTransactions implements ArcaneCraftingTransacti
             return Result.failure(invalid);
         }
         Match match = match(context.level(), player, input);
-        if (match.recipe() == null) {
+        if (match.failure() != Failure.NONE) {
             return Result.failure(match.failure());
         }
-        IArcaneRecipe recipe = match.recipe();
+        IArcaneRecipe recipe = match.holder().value();
         ItemStack output = recipe.assemble(input);
         List<ItemStack> grid = grid(input);
         List<ItemStack> remainders = remainders(recipe, input);
@@ -77,16 +92,18 @@ public final class ArcaneCraftingTransactions implements ArcaneCraftingTransacti
     }
 
     private static Match match(ServerLevel level, ServerPlayer player, IArcaneCraftingInput input) {
-        Failure failure = Failure.NO_RECIPE;
+        RecipeHolder<ArcaneCraftingRecipe> locked = null;
         for (RecipeHolder<ArcaneCraftingRecipe> holder : level.recipeAccess().recipeMap().byType(TCRecipeTypes.ARCANE.get())) {
             if (holder.value().matches(input, level)) {
                 if (holder.value().doesPassGate(player)) {
-                    return new Match(holder.value(), Failure.NONE);
+                    return new Match(holder, Failure.NONE);
                 }
-                failure = Failure.RESEARCH_LOCKED;
+                if (locked == null) {
+                    locked = holder;
+                }
             }
         }
-        return new Match(null, failure);
+        return locked == null ? new Match(null, Failure.NO_RECIPE) : new Match(locked, Failure.RESEARCH_LOCKED);
     }
 
     private static List<ItemStack> grid(IArcaneCraftingInput input) {
@@ -109,6 +126,6 @@ public final class ArcaneCraftingTransactions implements ArcaneCraftingTransacti
         return remainders;
     }
 
-    private record Match(@Nullable IArcaneRecipe recipe, Failure failure) {
+    private record Match(@Nullable RecipeHolder<ArcaneCraftingRecipe> holder, Failure failure) {
     }
 }
