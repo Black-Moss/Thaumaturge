@@ -45,32 +45,32 @@ public final class TCGolemAccessoryRenderers {
     private static void fez(PoseStack poseStack, SubmitNodeCollector collector, GolemAccessoryRenderContext context) {
         int light = context.lightCoords();
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> BoxGeometry.box(pose, buffer, -4.5F * SX, HEAD_TOP - 3.0F * SY, -4.5F * SZ, 4.5F * SX,
-                HEAD_TOP + 4.0F * SY, 4.5F * SZ, 0, 94, 9, 7, 9, TEX_SIZE, TEX_SIZE, WHITE, light, false));
+                HEAD_TOP + 4.0F * SY, 4.5F * SZ, 0, 94, 9, 7, 9, TEX_SIZE, TEX_SIZE, WHITE, light, true));
     }
 
     private static void topHat(PoseStack poseStack, SubmitNodeCollector collector, GolemAccessoryRenderContext context) {
         int light = context.lightCoords();
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> {
-            BoxGeometry.box(pose, buffer, -4.5F * SX, HEAD_TOP - 3.0F * SY, -4.5F * SZ, 4.5F * SX, HEAD_TOP + 6.0F * SY, 4.5F * SZ, 0, 110, 9, 9, 9, TEX_SIZE, TEX_SIZE, WHITE, light, false);
-            BoxGeometry.box(pose, buffer, -6.5F * SX, HEAD_TOP - 3.0F * SY, -6.5F * SZ, 6.5F * SX, HEAD_TOP - 2.0F * SY, 6.5F * SZ, 36, 114, 13, 1, 13, TEX_SIZE, TEX_SIZE, WHITE, light, false);
+            BoxGeometry.box(pose, buffer, -4.5F * SX, HEAD_TOP - 3.0F * SY, -4.5F * SZ, 4.5F * SX, HEAD_TOP + 6.0F * SY, 4.5F * SZ, 0, 110, 9, 9, 9, TEX_SIZE, TEX_SIZE, WHITE, light, true);
+            BoxGeometry.box(pose, buffer, -6.5F * SX, HEAD_TOP - 3.0F * SY, -6.5F * SZ, 6.5F * SX, HEAD_TOP - 2.0F * SY, 6.5F * SZ, 36, 114, 13, 1, 13, TEX_SIZE, TEX_SIZE, WHITE, light, true);
         });
     }
 
     private static void glasses(PoseStack poseStack, SubmitNodeCollector collector, GolemAccessoryRenderContext context) {
         int light = context.lightCoords();
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> BoxGeometry.box(pose, buffer, -4.5F * SX, HEAD_TOP - 7.0F * SY, -4.5F * SZ, 4.5F * SX,
-                HEAD_TOP - 3.0F * SY, 4.5F * SZ, 0, 80, 9, 4, 9, TEX_SIZE, TEX_SIZE, WHITE, light, false));
+                HEAD_TOP - 3.0F * SY, 4.5F * SZ, 0, 80, 9, 4, 9, TEX_SIZE, TEX_SIZE, WHITE, light, true));
     }
 
     private static void visor(PoseStack poseStack, SubmitNodeCollector collector, GolemAccessoryRenderContext context) {
         int light = context.lightCoords();
         collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> BoxGeometry.box(pose, buffer, -5.0F * SX, HEAD_TOP - 8.0F * SY, HEAD_FRONT - 0.5F * SZ,
-                5.0F * SX, HEAD_TOP - 3.0F * SY, HEAD_FRONT + 4.5F * SZ, 0, 70, 10, 5, 5, TEX_SIZE, TEX_SIZE, WHITE, light, false));
+                5.0F * SX, HEAD_TOP - 3.0F * SY, HEAD_FRONT + 4.5F * SZ, 0, 70, 10, 5, 5, TEX_SIZE, TEX_SIZE, WHITE, light, true));
     }
 
     private static void bowtie(PoseStack poseStack, SubmitNodeCollector collector, GolemAccessoryRenderContext context) {
         int light = context.lightCoords();
         collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(TEXTURE), (pose, buffer) -> BoxGeometry.box(pose, buffer, -8.5F * BX, CHEST_TOP - 4.0F * BY, -6.0F * BZ, 8.5F * BX,
-                CHEST_TOP, 6.0F * BZ, 0, 0, 17, 4, 12, TEX_SIZE, TEX_SIZE, WHITE, light, false));
+                CHEST_TOP, 6.0F * BZ, 0, 0, 17, 4, 12, TEX_SIZE, TEX_SIZE, WHITE, light, true));
     }
 }

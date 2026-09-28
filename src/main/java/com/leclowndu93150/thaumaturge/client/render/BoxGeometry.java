@@ -31,7 +31,7 @@ public final class BoxGeometry {
     private static void quad(PoseStack.Pose pose, VertexConsumer buffer, int tint, int light, int texW, int texH, boolean mirror, float[] a, float[] b, float[] c, float[] e, float uA, float vA, float uB, float vB) {
         float[][] verts = {a, b, c, e};
         float[][] uvs = {{uB / texW, vA / texH}, {uA / texW, vA / texH}, {uA / texW, vB / texH}, {uB / texW, vB / texH}};
-        if (mirror) {
+        if (!mirror) {
             float[][] rv = {verts[3], verts[2], verts[1], verts[0]};
             float[][] ru = {uvs[3], uvs[2], uvs[1], uvs[0]};
             verts = rv;
