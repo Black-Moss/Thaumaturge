@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.aura.VisRelayHelper;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.casters.FocusEngine;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCrystalAccess;
 import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
@@ -38,6 +40,7 @@ import com.leclowndu93150.thaumaturge.content.workbench.ArcaneCraftingTransactio
 import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumaturge.registry.*;
 import com.leclowndu93150.thaumaturge.registry.TCBiomeModifierSerializers;
+import com.leclowndu93150.thaumaturge.registry.TCItems;
 import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -95,6 +98,8 @@ public final class Thaumaturge {
         AspectIndexAccess.bind(AspectIndexHolder::get);
         AspectIndexBuilder.fireContributorEvent(modBus);
         WandAccess.bind(TCDataComponents.WAND_VIS);
+        EssentiaCrystalAccess.bind(TCItems.ESSENTIA_CRYSTAL, TCDataComponents.CRYSTAL_ASPECT);
+        EssentiaAccess.bind(TCDataComponents.ASPECT_FILTER);
         ArcaneCraftCost.bind(WorkbenchPayment::cost);
         ArcaneCraftingTransaction.bind(new ArcaneCraftingTransactions());
         InfusionCraftingTransaction.bind(new InfusionCraftingTransactions());
