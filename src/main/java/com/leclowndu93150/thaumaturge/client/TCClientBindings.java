@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumaturge.client;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.client.AspectRendering;
+import com.leclowndu93150.thaumaturge.client.render.aspect.AspectRenderingBindings;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +19,7 @@ public final class TCClientBindings {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
+        AspectRendering.bind(new AspectRenderingBindings());
         AspectKnowledgeAccess.bind(aspect -> {
             Player player = Minecraft.getInstance().player;
             if (player == null || AspectPools.isDiscovered(player, aspect)) {

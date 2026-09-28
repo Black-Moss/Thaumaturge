@@ -128,11 +128,7 @@ public final class AspectTagWorldRenderer {
         poseStack.pushPose();
         poseStack.mulPose(camera.rotation());
         poseStack.scale(scale, scale, scale);
-        PoseStack.Pose pose = poseStack.last();
-        addQuadVertex(buffer, pose, -HALF_QUAD, -HALF_QUAD, 0.0F, 1.0F, color, packedLight);
-        addQuadVertex(buffer, pose, HALF_QUAD, -HALF_QUAD, 1.0F, 1.0F, color, packedLight);
-        addQuadVertex(buffer, pose, HALF_QUAD, HALF_QUAD, 1.0F, 0.0F, color, packedLight);
-        addQuadVertex(buffer, pose, -HALF_QUAD, HALF_QUAD, 0.0F, 0.0F, color, packedLight);
+        renderQuad(poseStack.last(), buffer, color, packedLight);
         poseStack.popPose();
     }
 
@@ -143,8 +139,10 @@ public final class AspectTagWorldRenderer {
     public static void renderQuad(PoseStack.Pose pose, VertexConsumer buffer, Holder<IAspect> aspect, float alpha, boolean bw, int packedLight) {
         if (aspect == null || aspect.value() == null)
             return;
-        IAspect value = aspect.value();
-        int color = AspectTagRenderer.colorOf(value, alpha, bw);
+        renderQuad(pose, buffer, AspectTagRenderer.colorOf(aspect.value(), alpha, bw), packedLight);
+    }
+
+    public static void renderQuad(PoseStack.Pose pose, VertexConsumer buffer, int color, int packedLight) {
         addQuadVertex(buffer, pose, -HALF_QUAD, -HALF_QUAD, 0.0F, 1.0F, color, packedLight);
         addQuadVertex(buffer, pose, HALF_QUAD, -HALF_QUAD, 1.0F, 1.0F, color, packedLight);
         addQuadVertex(buffer, pose, HALF_QUAD, HALF_QUAD, 1.0F, 0.0F, color, packedLight);

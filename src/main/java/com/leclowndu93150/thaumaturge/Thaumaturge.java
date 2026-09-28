@@ -24,7 +24,6 @@ import com.leclowndu93150.thaumaturge.compat.dynamictrees.DynamicTreesCompat;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
-import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexBuilder;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumaturge.content.aura.AuraHelperBindings;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
@@ -96,7 +95,6 @@ public final class Thaumaturge {
 
         KnowledgeAccess.bind(player -> player.getData(TCAttachments.KNOWLEDGE));
         AspectIndexAccess.bind(AspectIndexHolder::get);
-        AspectIndexBuilder.fireContributorEvent(modBus);
         WandAccess.bind(TCDataComponents.WAND_VIS);
         EssentiaCrystalAccess.bind(TCItems.ESSENTIA_CRYSTAL, TCDataComponents.CRYSTAL_ASPECT);
         EssentiaAccess.bind(TCDataComponents.ASPECT_FILTER);
