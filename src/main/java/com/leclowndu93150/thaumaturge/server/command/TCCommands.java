@@ -733,7 +733,7 @@ public final class TCCommands {
 
     private static int listParticles(CommandContext<CommandSourceStack> ctx) {
         ctx.getSource().sendSuccess(() -> Component.literal("=== Thaumaturge Particle Demos ===").withStyle(ChatFormatting.GOLD), false);
-        ctx.getSource().sendSuccess(() -> Component.literal("Use /tc particle <name> — spawns 3 blocks in front of you").withStyle(ChatFormatting.GRAY), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("Use /thaumaturge particle <name> to spawn one 3 blocks in front of you").withStyle(ChatFormatting.GRAY), false);
         for (var entry : ParticleDemos.DEMOS.entrySet()) {
             String name = entry.getKey();
             String desc = entry.getValue().description();
@@ -748,7 +748,7 @@ public final class TCCommands {
             ServerPlayer player = ctx.getSource().getPlayerOrException();
             String name = StringArgumentType.getString(ctx, "name");
             if (!ParticleDemos.DEMOS.containsKey(name)) {
-                ctx.getSource().sendFailure(Component.literal("Unknown demo: " + name + " — try /tc particle list"));
+                ctx.getSource().sendFailure(Component.literal("Unknown demo: " + name + ", try /thaumaturge particle list"));
                 return 0;
             }
             ParticleDemos.run(player, name);
