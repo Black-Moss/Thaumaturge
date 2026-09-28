@@ -13,7 +13,7 @@ public final class TCParticleLayers {
     }
 
     public static SingleQuadParticle.Layer translucent(ParticleSheet sheet) {
-        return sheet.layer(false, TCRenderPipelines.FX_TRANSLUCENT);
+        return sheet.layer(true, TCRenderPipelines.FX_TRANSLUCENT);
     }
 
     public static SingleQuadParticle.Layer additiveNoDepth(ParticleSheet sheet) {
@@ -21,6 +21,6 @@ public final class TCParticleLayers {
     }
 
     public static SingleQuadParticle.Layer translucentNoDepth(ParticleSheet sheet) {
-        return sheet.layer(false, TCRenderPipelines.FX_TRANSLUCENT_NO_DEPTH);
+        return sheet.layer(true, TCRenderPipelines.FX_TRANSLUCENT_NO_DEPTH);
     }
 }
