@@ -1,0 +1,209 @@
+package com.leclowndu93150.thaumaturge.api.recipe;
+
+import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import java.util.List;
+import java.util.Objects;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Runs arcane crafts for workbenches other than Thaumaturge's own, such as crafting terminals and
+ * autocrafters. A craft pays wand vis, external vis sources, crystals and aura, and consumes the
+ * grid, as one NeoForge transaction: either every part happens or none does.
+ *
+ * <p>All methods are server side and must run on the server thread. The implementation is bound
+ * at mod init by Thaumaturge via {@link #bind(Bindings)}; addons must not call {@code bind}.
+ *
+ * @since 1.0.0
+ */
+public final class ArcaneCraftingTransaction {
+    private static Bindings impl;
+
+    private ArcaneCraftingTransaction() {}
+
+    /**
+     * Reports whether the input can be crafted right now and at what cost, without changing
+     * anything. The payment is tried in a transaction that is then aborted.
+     *
+     * <p>Opens a root transaction, so it must not be called while a transaction is open on the
+     * server thread.
+     *
+     * @param context where and for whom the craft runs
+     * @param player  the crafting player
+     * @param input   the grid, crystals and wand to craft from
+     * @return the outcome the craft would have; {@link Result#output()} is what it would produce
+     * @throws IllegalStateException when called before the implementation has bound the facade
+     */
+    public static Result preview(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input) {
+        return bindingOrThrow().preview(context, player, input);
+    }
+
+    /**
+     * Crafts the input as part of the given transaction.
+     *
+     * <p>The recipe is matched against {@code input}, the cost is paid, and {@code store} consumes
+     * the grid, crystals and wand vis. On failure nothing opened by this call stays applied. On
+     * success the craft becomes final when {@code transaction} and every enclosing transaction
+     * commit, and is undone when any of them aborts, so a caller can place
+     * {@link Result#output()} into its own storage inside the same transaction and abort when it
+     * does not fit.
+     *
+     * @param context     where and for whom the craft runs
+     * @param player      the crafting player
+     * @param input       the grid, crystals and wand to craft from, read from {@code store}
+     * @param store       the storage the input was read from
+     * @param transaction the open transaction the craft belongs to
+     * @return the outcome; {@link Result#output()} holds the crafted item on success
+     * @throws IllegalStateException when called before the implementation has bound the facade
+     */
+    public static Result craft(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input, IArcaneCraftingStore store, TransactionContext transaction) {
+        Objects.requireNonNull(store, "store");
+        return bindingOrThrow().craft(context, player, input, store, transaction);
+    }
+
+    /**
+     * Binds the implementation. Called once at mod init by Thaumaturge; addons must not call this.
+     *
+     * @param bindings the implementation
+     * @throws IllegalStateException when already bound
+     */
+    public static void bind(Bindings bindings) {
+        if (impl != null) {
+            throw new IllegalStateException("ArcaneCraftingTransaction already bound");
+        }
+        impl = bindings;
+    }
+
+    private static Bindings bindingOrThrow() {
+        if (impl == null) {
+            throw new IllegalStateException("ArcaneCraftingTransaction accessed before binding");
+        }
+        return impl;
+    }
+
+    /**
+     * The outcome of a preview or a craft.
+     *
+     * @param failure    why the craft cannot happen, or {@link Failure#NONE}
+     * @param output     the crafted item; empty when no recipe matched
+     * @param remainders the item left at each grid position, indexed like
+     *                   {@link IArcaneCraftingStore.Consumption#grid()}
+     * @param cost       the resolved cost, or null when the craft failed before the cost was
+     *                   planned
+     * @since 1.0.0
+     */
+    public record Result(Failure failure, ItemStack output, List<ItemStack> remainders, @Nullable ArcaneCraftCost cost) {
+        /**
+         * Copies every stack so the record owns them.
+         *
+         * @throws NullPointerException when {@code failure} is null
+         */
+        public Result {
+            Objects.requireNonNull(failure, "failure");
+            output = output.copy();
+            remainders = remainders.stream().map(ItemStack::copy).toList();
+        }
+
+        /**
+         * Creates a result for a craft that failed before a recipe or cost was known.
+         *
+         * @param failure the reason
+         * @return the result
+         */
+        public static Result failure(Failure failure) {
+            return new Result(failure, ItemStack.EMPTY, List.of(), null);
+        }
+
+        /**
+         * Whether the craft can happen, or happened.
+         *
+         * @return true when {@link #failure()} is {@link Failure#NONE}
+         */
+        public boolean successful() {
+            return failure == Failure.NONE;
+        }
+
+        /**
+         * The crafted item.
+         *
+         * @return a copy of the output
+         */
+        @Override
+        public ItemStack output() {
+            return output.copy();
+        }
+
+        /**
+         * The remainders left in the grid.
+         *
+         * @return copies of the remainders
+         */
+        @Override
+        public List<ItemStack> remainders() {
+            return remainders.stream().map(ItemStack::copy).toList();
+        }
+
+        /**
+         * The crystals the craft consumes.
+         *
+         * @return the crystal aspects, or {@link AspectList#EMPTY} when no cost was planned
+         */
+        public AspectList crystals() {
+            return cost == null ? AspectList.EMPTY : cost.crystalsNeeded();
+        }
+    }
+
+    /**
+     * Why a craft cannot happen.
+     *
+     * @since 1.0.0
+     */
+    public enum Failure {
+        /** The craft can happen, or happened. */
+        NONE,
+        /** The call was not made on the server thread. */
+        NOT_SERVER_THREAD,
+        /** The context's level or acting player does not match the player. */
+        INVALID_CONTEXT,
+        /** No arcane recipe matches the grid. */
+        NO_RECIPE,
+        /** A recipe matches, but the player has not unlocked it. */
+        RESEARCH_LOCKED,
+        /** The store no longer matched the input when the craft tried to consume it. */
+        INGREDIENTS_CHANGED,
+        /** The wand, sources, crystals or aura cannot pay the cost. */
+        PAYMENT_UNAVAILABLE
+    }
+
+    /**
+     * Implementation hook supplied by Thaumaturge. Each method corresponds to a public static on
+     * {@link ArcaneCraftingTransaction}. Addons must not implement this interface.
+     *
+     * @since 1.0.0
+     */
+    public interface Bindings {
+        /**
+         * Implements {@link ArcaneCraftingTransaction#preview}.
+         *
+         * @param context where and for whom the craft runs
+         * @param player  the crafting player
+         * @param input   the grid, crystals and wand to craft from
+         * @return the outcome
+         */
+        Result preview(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input);
+
+        /**
+         * Implements {@link ArcaneCraftingTransaction#craft}.
+         *
+         * @param context     where and for whom the craft runs
+         * @param player      the crafting player
+         * @param input       the grid, crystals and wand to craft from
+         * @param store       the storage the input was read from
+         * @param transaction the open transaction the craft belongs to
+         * @return the outcome
+         */
+        Result craft(ArcaneWorkbenchContext context, ServerPlayer player, IArcaneCraftingInput input, IArcaneCraftingStore store, TransactionContext transaction);
+    }
+}

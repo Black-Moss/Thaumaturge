@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -163,6 +164,25 @@ public final class AuraHelper {
     }
 
     /**
+     * Drains up to {@code amount} pure vis from the chunk as part of a transaction.
+     *
+     * <p>The drain is undone when the transaction or any enclosing transaction aborts, and the
+     * chunk is marked for saving once the outermost transaction commits. Non-positive amounts
+     * drain nothing.
+     *
+     * @param level       the level
+     * @param pos         block position resolving to the chunk
+     * @param amount      maximum vis to drain
+     * @param transaction the open transaction the drain belongs to
+     * @return the amount of vis drained, never greater than {@code amount} or the chunk's
+     *         available vis
+     * @since 1.0.0
+     */
+    public static float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction) {
+        return bindingOrThrow().drainVis(level, pos, amount, transaction);
+    }
+
+    /**
      * Drains up to {@code amount} flux from the chunk.
      *
      * @param level    the level
@@ -265,6 +285,8 @@ public final class AuraHelper {
         void addFlux(Level level, BlockPos pos, float amount);
 
         float drainVis(Level level, BlockPos pos, float amount, boolean simulate);
+
+        float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction);
 
         float drainFlux(Level level, BlockPos pos, float amount, boolean simulate);
 

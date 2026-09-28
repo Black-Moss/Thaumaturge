@@ -8,6 +8,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.ChunkPos;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public final class AuraData implements IAuraChunk {
     public static final MapCodec<AuraData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(Codec.SHORT.optionalFieldOf("base", (short) 0).forGetter(AuraData::getBase),
@@ -20,6 +22,7 @@ public final class AuraData implements IAuraChunk {
     private float vis;
     private float flux;
     private ChunkPos pos = new ChunkPos(0, 0);
+    private final VisJournal visJournal = new VisJournal();
 
     public AuraData() {}
 
@@ -47,6 +50,11 @@ public final class AuraData implements IAuraChunk {
         this.vis = clamp(value);
     }
 
+    public void setVis(float value, TransactionContext transaction) {
+        visJournal.updateSnapshots(transaction);
+        setVis(value);
+    }
+
     @Override
     public float getFlux() {
         return this.flux;
@@ -67,5 +75,17 @@ public final class AuraData implements IAuraChunk {
 
     private static float clamp(float value) {
         return Math.min(32766.0F, Math.max(0.0F, value));
+    }
+
+    private final class VisJournal extends SnapshotJournal<Float> {
+        @Override
+        protected Float createSnapshot() {
+            return vis;
+        }
+
+        @Override
+        protected void revertToSnapshot(Float snapshot) {
+            vis = snapshot;
+        }
     }
 }

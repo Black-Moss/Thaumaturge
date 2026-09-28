@@ -1,11 +1,15 @@
 package com.leclowndu93150.thaumaturge.content.workbench;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
+import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftingTransaction;
+import com.leclowndu93150.thaumaturge.api.recipe.ArcaneWorkbenchContext;
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingStore;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.content.misc.TCActionBar;
-import com.leclowndu93150.thaumaturge.content.recipe.ThaumaturgeCraftingManager;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
+import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCMenus;
@@ -28,6 +32,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public final class MenuArcaneWorkbench extends AbstractContainerMenu {
@@ -66,8 +73,10 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     private final Player player;
     private final @Nullable BlockEntityArcaneWorkbench tile;
     private final Runnable onChange;
+    private final SlotArcaneResult resultSlot;
     private long lastAuraRefresh = Long.MIN_VALUE;
     private int lastVis = -1;
+    private boolean displayingArcane;
 
     public MenuArcaneWorkbench(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInventory, new InventoryArcaneWorkbench(), ContainerLevelAccess.create(playerInventory.player.level(), buf.readBlockPos()), null);
@@ -84,6 +93,7 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
         this.player = playerInventory.player;
         this.tile = tile;
         this.onChange = () -> slotsChanged(craftingInventory);
+        this.resultSlot = new SlotArcaneResult(resultContainer, this, RESULT_X, RESULT_Y);
 
         craftingInventory.addChangedListener(onChange);
         addSlots(playerInventory);
@@ -92,7 +102,7 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     }
 
     private void addSlots(Inventory playerInventory) {
-        addSlot(new SlotArcaneResult(resultContainer, craftingInventory, tile, RESULT_X, RESULT_Y));
+        addSlot(resultSlot);
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
@@ -130,16 +140,13 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
     private void updateResult(ServerPlayer sp, ServerLevel level) {
         ItemStack result = ItemStack.EMPTY;
-        ArcaneCraftingInput input = craftingInventory.asArcaneCraftInput();
         RecipeHolder<?> recipeToStore = null;
+        displayingArcane = false;
 
-        IArcaneRecipe arcane = ThaumaturgeCraftingManager.findMatchingArcaneRecipe(level, input, sp);
-        if (arcane != null) {
-            tile.refreshAura();
-            WorkbenchPayment.Plan plan = WorkbenchPayment.plan(arcane, craftingInventory, sp);
-            if (WorkbenchPayment.canCraft(plan, tile)) {
-                result = arcane.assemble(input);
-            }
+        ArcaneCraftingTransaction.Result arcane = ArcaneCraftingTransaction.preview(context(sp), sp, craftingInventory.asArcaneCraftInput());
+        if (arcane.successful()) {
+            result = arcane.output();
+            displayingArcane = true;
         }
 
         CraftingInput vanillaInput = craftingInventory.asCraftInput();
@@ -153,6 +160,68 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
         resultContainer.setRecipeUsed(recipeToStore);
         resultContainer.setItem(0, result);
+    }
+
+    boolean craftsOnServer() {
+        return tile != null && player instanceof ServerPlayer && tile.getLevel() instanceof ServerLevel;
+    }
+
+    ItemStack takeCraft() {
+        ServerPlayer serverPlayer = (ServerPlayer) player;
+        ServerLevel level = (ServerLevel) tile.getLevel();
+        ItemStack crafted = ItemStack.EMPTY;
+        try (Transaction transaction = Transaction.openRoot()) {
+            crafted = craft(serverPlayer, level, transaction);
+            if (!crafted.isEmpty()) {
+                transaction.commit();
+            }
+        }
+        if (crafted.isEmpty()) {
+            updateResult(serverPlayer, level);
+        }
+        return crafted;
+    }
+
+    private ItemStack craft(ServerPlayer serverPlayer, ServerLevel level, TransactionContext transaction) {
+        ItemStack displayed = resultContainer.getItem(0);
+        if (displayed.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack crafted = displayingArcane ? craftArcane(serverPlayer, transaction) : craftVanilla(serverPlayer, level, transaction);
+        return ItemStack.matches(crafted, displayed) ? crafted : ItemStack.EMPTY;
+    }
+
+    private ItemStack craftArcane(ServerPlayer serverPlayer, TransactionContext transaction) {
+        ArcaneCraftingInput.Positioned positioned = craftingInventory.asPositionedArcaneCraftInput();
+        ArcaneCraftingInput input = positioned.input();
+        WorkbenchCraftingStore store = new WorkbenchCraftingStore(craftingInventory, serverPlayer, positioned.left(), positioned.top(), input.width(), input.height());
+        ArcaneCraftingTransaction.Result result = ArcaneCraftingTransaction.craft(context(serverPlayer), serverPlayer, input, store, transaction);
+        return result.successful() ? result.output() : ItemStack.EMPTY;
+    }
+
+    private ItemStack craftVanilla(ServerPlayer serverPlayer, ServerLevel level, TransactionContext transaction) {
+        RecipeHolder<?> used = resultContainer.getRecipeUsed();
+        if (used == null || !(used.value() instanceof CraftingRecipe recipe)) {
+            return ItemStack.EMPTY;
+        }
+        CraftingInput.Positioned positioned = craftingInventory.asPositionedCraftInput();
+        CraftingInput input = positioned.input();
+        if (!recipe.matches(input, level)) {
+            return ItemStack.EMPTY;
+        }
+        WorkbenchCraftingStore store = new WorkbenchCraftingStore(craftingInventory, serverPlayer, positioned.left(), positioned.top(), input.width(), input.height());
+        IArcaneCraftingStore.Consumption consumption = new IArcaneCraftingStore.Consumption(input.items(), recipe.getRemainingItems(input), AspectList.EMPTY, craftingInventory.wandStack());
+        ItemStack output = recipe.assemble(input);
+        if (!store.consume(consumption, transaction)) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack crafted = output.copy();
+        new RootCommitJournal(() -> ResearchProgressionEvents.recordCrafted(serverPlayer, crafted)).updateSnapshots(transaction);
+        return output;
+    }
+
+    private ArcaneWorkbenchContext context(ServerPlayer serverPlayer) {
+        return ArcaneWorkbenchContext.placed(serverPlayer, tile.getBlockPos(), tile.hostIdentity(), null);
     }
 
     @SuppressWarnings("unchecked")
@@ -204,7 +273,28 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
         if (slotId == WAND_SLOT && getCarried().getItem() instanceof ItemWand wand && wand.isStaff(getCarried())) {
             TCActionBar.sendPurple(player, "tc.workbench.staff");
         }
+        if (slotId == RESULT_SLOT && containerInput == ContainerInput.SWAP && craftsOnServer()) {
+            swapCraft(button);
+            return;
+        }
         super.clicked(slotId, button, containerInput, player);
+    }
+
+    private void swapCraft(int button) {
+        if (!Inventory.isHotbarSlot(button) && button != Inventory.SLOT_OFFHAND) {
+            return;
+        }
+        Inventory inventory = player.getInventory();
+        if (!inventory.getItem(button).isEmpty() || !resultSlot.hasItem()) {
+            return;
+        }
+        ItemStack crafted = takeCraft();
+        if (crafted.isEmpty()) {
+            return;
+        }
+        inventory.setItem(button, crafted);
+        resultSlot.onSwapCraft(crafted.getCount());
+        resultSlot.onTake(player, crafted);
     }
 
     @Override
@@ -212,6 +302,10 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
         Slot slot = this.slots.get(slotIndex);
         if (!slot.hasItem())
             return ItemStack.EMPTY;
+
+        if (slotIndex == RESULT_SLOT && craftsOnServer()) {
+            return quickMoveCraft();
+        }
 
         ItemStack stack = slot.getItem();
         ItemStack copy = stack.copy();
@@ -263,6 +357,32 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
 
         slot.onTake(player, stack);
         return copy;
+    }
+
+    private ItemStack quickMoveCraft() {
+        ServerPlayer serverPlayer = (ServerPlayer) player;
+        ServerLevel level = (ServerLevel) tile.getLevel();
+        ItemStack crafted = ItemStack.EMPTY;
+        ItemStack overflow = ItemStack.EMPTY;
+        try (Transaction transaction = Transaction.openRoot()) {
+            ItemStack output = craft(serverPlayer, level, transaction);
+            ItemStack moving = output.copy();
+            if (!output.isEmpty() && moveItemStackTo(moving, PLAYER_INV_START, HOTBAR_END, true)) {
+                transaction.commit();
+                crafted = output;
+                overflow = moving;
+            }
+        }
+        if (crafted.isEmpty()) {
+            updateResult(serverPlayer, level);
+            return ItemStack.EMPTY;
+        }
+        resultSlot.onQuickCraft(overflow, crafted);
+        if (!overflow.isEmpty()) {
+            player.drop(overflow, false);
+        }
+        resultSlot.onTake(player, crafted);
+        return crafted;
     }
 
     public InventoryArcaneWorkbench getCraftingInventory() {

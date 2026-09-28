@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
-import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -18,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
-import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
@@ -118,11 +116,5 @@ public abstract class ArcaneCraftingRecipe implements IArcaneRecipe {
     @Override
     public AspectList getCrystals() {
         return aspects;
-    }
-
-    @Override
-    public boolean matches(IArcaneCraftingInput input, Level level) {
-        WorkbenchPayment.Plan plan = WorkbenchPayment.plan(this, input, input.player());
-        return plan.crystalsSatisfied();
     }
 }

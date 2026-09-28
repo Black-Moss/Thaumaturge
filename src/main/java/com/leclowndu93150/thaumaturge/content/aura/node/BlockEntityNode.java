@@ -2,8 +2,8 @@ package com.leclowndu93150.thaumaturge.content.aura.node;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
@@ -55,10 +55,10 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -73,6 +73,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public class BlockEntityNode extends BlockEntity implements IAspectContainer {
@@ -410,6 +412,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
 
     private final Map<Identifier, Integer> cvAllowance = new HashMap<>();
     private final Map<Identifier, Integer> cvCredit = new HashMap<>();
+    private final CentivisJournal centivisJournal = new CentivisJournal();
 
     private void accrueCentivis() {
         for (AspectInstance entry : aspectsBase.entries()) {
@@ -437,6 +440,23 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     }
 
     public int drainCentivis(Holder<IAspect> aspect, int amount) {
+        AspectList before = aspects;
+        int taken = takeCentivis(aspect, amount);
+        if (!aspects.equals(before)) {
+            syncContents();
+        }
+        return taken;
+    }
+
+    public int drainCentivis(Holder<IAspect> aspect, int amount, TransactionContext transaction) {
+        if (availableCentivis(aspect) <= 0 || amount <= 0) {
+            return 0;
+        }
+        centivisJournal.updateSnapshots(transaction);
+        return takeCentivis(aspect, amount);
+    }
+
+    private int takeCentivis(Holder<IAspect> aspect, int amount) {
         if (!energized || amount <= 0) {
             return 0;
         }
@@ -446,13 +466,40 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return 0;
         }
         int credit = cvCredit.getOrDefault(id, 0);
-        while (credit < allowance && takeFromContainer(aspect, 1)) {
+        while (credit < allowance && aspects.amountOf(aspect) > 0) {
+            aspects = reduce(aspects, aspect, 1);
             credit += WandEconomy.CENTIVIS_PER_VIS;
         }
         int taken = Math.min(allowance, credit);
         cvCredit.put(id, credit - taken);
         cvAllowance.put(id, cvAllowance.getOrDefault(id, 0) - taken);
         return taken;
+    }
+
+    private record CentivisSnapshot(AspectList aspects, Map<Identifier, Integer> allowance, Map<Identifier, Integer> credit) {
+    }
+
+    private final class CentivisJournal extends SnapshotJournal<CentivisSnapshot> {
+        @Override
+        protected CentivisSnapshot createSnapshot() {
+            return new CentivisSnapshot(aspects, Map.copyOf(cvAllowance), Map.copyOf(cvCredit));
+        }
+
+        @Override
+        protected void revertToSnapshot(CentivisSnapshot snapshot) {
+            aspects = snapshot.aspects();
+            cvAllowance.clear();
+            cvAllowance.putAll(snapshot.allowance());
+            cvCredit.clear();
+            cvCredit.putAll(snapshot.credit());
+        }
+
+        @Override
+        protected void onRootCommit(CentivisSnapshot original) {
+            if (!aspects.equals(original.aspects())) {
+                syncContents();
+            }
+        }
     }
 
     public void serverTick(Level tickLevel, BlockPos pos) {

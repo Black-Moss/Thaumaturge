@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public final class AuraHelperBindings implements AuraHelper.Bindings {
@@ -74,6 +75,11 @@ public final class AuraHelperBindings implements AuraHelper.Bindings {
     @Override
     public float drainVis(Level level, BlockPos pos, float amount, boolean simulate) {
         return AuraManager.drainVis(level, pos, amount, simulate);
+    }
+
+    @Override
+    public float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction) {
+        return AuraManager.drainVis(level, pos, amount, transaction);
     }
 
     @Override
