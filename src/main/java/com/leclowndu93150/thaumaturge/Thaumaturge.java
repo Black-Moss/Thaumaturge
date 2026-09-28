@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumaturge.api.taint.TaintApi;
 import com.leclowndu93150.thaumaturge.api.wands.WandAccess;
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
+import com.leclowndu93150.thaumaturge.compat.dynamictrees.DynamicTreesCompat;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
@@ -34,6 +35,7 @@ import com.leclowndu93150.thaumaturge.content.taint.TaintApiBindings;
 import com.leclowndu93150.thaumaturge.content.warp.WarpManager;
 import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumaturge.registry.*;
+import com.leclowndu93150.thaumaturge.registry.TCBiomeModifierSerializers;
 import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -55,6 +57,7 @@ public final class Thaumaturge {
         TCBlocks.register(modBus);
         TCItems.register(modBus);
         TCFeatures.register(modBus);
+        TCBiomeModifierSerializers.register(modBus);
         TCStructures.register(modBus);
         TCBlockEntities.register(modBus);
         TCEntities.register(modBus);
@@ -109,6 +112,8 @@ public final class Thaumaturge {
 
         if (ModList.get().isLoaded(TCIds.CURIOS))
             ThaumaturgeCuriosCompat.init(modBus);
+        if (ModList.get().isLoaded(TCIds.DYNAMIC_TREES))
+            DynamicTreesCompat.init(modBus);
 
         wireGameTests(modBus);
     }

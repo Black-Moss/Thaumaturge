@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "": {
+      "type": "dynamictrees:branch",
+      "family": "thaumaturge:silverwood",
+      "textures": {
+        "bark": "thaumaturge:block/log_silverwood",
+        "rings": "thaumaturge:block/log_silverwood_top"
+      }
+    }
+  }
+}

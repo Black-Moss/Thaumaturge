@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.color.item.GrassColorSource;
@@ -55,6 +56,7 @@ import net.minecraft.client.renderer.item.properties.select.DisplayContext;
 import net.minecraft.client.renderer.special.ChestSpecialRenderer;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
@@ -88,6 +90,16 @@ public final class TCModelProvider extends ModelProvider {
 
     public TCModelProvider(PackOutput output) {
         super(output, TCIds.MODID);
+    }
+
+    @Override
+    protected Stream<? extends Holder<Block>> getKnownBlocks() {
+        return TCBlocks.BLOCKS.getEntries().stream();
+    }
+
+    @Override
+    protected Stream<? extends Holder<Item>> getKnownItems() {
+        return TCItems.ITEMS.getEntries().stream();
     }
 
     private static void registerSpear(ItemModelGenerators itemModels, Item item) {
