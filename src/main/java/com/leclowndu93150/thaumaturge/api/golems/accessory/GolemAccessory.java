@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.golems.accessory;
 
+import java.util.Objects;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -19,9 +21,39 @@ import net.minecraft.resources.Identifier;
  * @param regenFactor multiplier on the golem's self-repair interval
  * @param armorBonus flat armor added while worn
  * @param killCredit whether the golem's kills are credited to its owner
+ * @param behavior server-side behaviour with its own saved state, or empty for a stat-only
+ *                 accessory
  * @since 1.0.0
  */
-public record GolemAccessory(Identifier id, Group group, int healthBonus, float rangeFactor, float speedFactor, float regenFactor, int armorBonus, boolean killCredit) {
+public record GolemAccessory(Identifier id, Group group, int healthBonus, float rangeFactor, float speedFactor, float regenFactor, int armorBonus, boolean killCredit,
+        Optional<GolemAccessoryBehavior<?>> behavior) {
+    /**
+     * Validates the components.
+     *
+     * @throws NullPointerException when {@code id}, {@code group} or {@code behavior} is null
+     */
+    public GolemAccessory {
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(group, "group");
+        Objects.requireNonNull(behavior, "behavior");
+    }
+
+    /**
+     * Creates a stat-only accessory with no behaviour.
+     *
+     * @param id the accessory id
+     * @param group the exclusion group
+     * @param healthBonus flat max health added while worn
+     * @param rangeFactor multiplier on sight and work range
+     * @param speedFactor multiplier on movement speed
+     * @param regenFactor multiplier on the self-repair interval
+     * @param armorBonus flat armor added while worn
+     * @param killCredit whether kills are credited to the owner
+     */
+    public GolemAccessory(Identifier id, Group group, int healthBonus, float rangeFactor, float speedFactor, float regenFactor, int armorBonus, boolean killCredit) {
+        this(id, group, healthBonus, rangeFactor, speedFactor, regenFactor, armorBonus, killCredit, Optional.empty());
+    }
+
     /**
      * Exclusion groups for accessories occupying the same spot on a golem.
      *
