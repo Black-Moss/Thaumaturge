@@ -69,6 +69,7 @@ public final class TCDataGenerators {
         event.createProvider(ChampionWhitelistProvider::new);
         event.createProvider(TaintConversionProvider::new);
         event.createProvider(InfernalBonusProvider::new);
+        event.createProvider(GolemAccessoryItemProvider::new);
         event.createProvider(StrippingProvider::new);
         event.createProvider(FuelValuesProvider::new);
         event.createProvider(TCCurioProvider::new);

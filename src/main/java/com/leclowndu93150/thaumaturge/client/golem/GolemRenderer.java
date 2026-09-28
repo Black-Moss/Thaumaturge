@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.api.client.golems.GolemAccessoryAnchor;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPartModel;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
@@ -41,10 +42,12 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
     private static final Map<Identifier, RenderType> XRAY_TYPES = new ConcurrentHashMap<>();
 
     private final ItemModelResolver itemModelResolver;
+    private final GolemAccessoryRenderTable accessoryRenderers;
 
     public GolemRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.itemModelResolver = context.getItemModelResolver();
+        this.accessoryRenderers = GolemAccessoryRenderTable.collect(context);
         this.shadowRadius = 0.3F;
     }
 
@@ -93,7 +96,8 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         state.haulingItem = !hauled.isEmpty();
         state.haulerItemIsBlock = hauled.getItem() instanceof BlockItem;
         itemModelResolver.updateForTopItem(state.haulerItem, hauled, ItemDisplayContext.HEAD, entity.level(), entity, 0);
-        state.accessories = entity.getAccessoryString();
+        state.accessories = entity.getAccessories();
+        state.accessoryStates = entity.syncedAccessoryStates();
     }
 
     @Override
@@ -173,7 +177,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
             renderPartModel(state, part, GolemPartModel.LimbSide.MIDDLE, poseStack, collector, matTexture, xray, color);
         }
         if (!xray) {
-            GolemAccessoryRenderer.submitBody(state, poseStack, collector);
+            accessoryRenderers.submit(GolemAccessoryAnchor.BODY, state, poseStack, collector);
         }
         poseStack.popPose();
 
@@ -186,7 +190,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         }
         submitNamedPart(base, "head", poseStack, collector, matTexture, xray, color, state);
         if (!xray) {
-            GolemAccessoryRenderer.submitHead(state, poseStack, collector);
+            accessoryRenderers.submit(GolemAccessoryAnchor.HEAD, state, poseStack, collector);
         }
         poseStack.popPose();
 
