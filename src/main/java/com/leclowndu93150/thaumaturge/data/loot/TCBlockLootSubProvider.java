@@ -257,6 +257,7 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         dropOther(TCBlocks.OBSIDIAN_PLACEHOLDER.get(), Blocks.OBSIDIAN);
         dropSelf(TCBlocks.LEVITATOR.get());
         dropSelf(TCBlocks.ITEM_GRATE.get());
+        dropSelf(TCBlocks.TALLOW_BLOCK.get());
         dropSelf(TCBlocks.GOLEM_FETTER.get());
         dropSelf(TCBlocks.WARDED_GLASS.get());
         add(TCBlocks.ARCANE_DOOR.get(), this::createDoorTable);

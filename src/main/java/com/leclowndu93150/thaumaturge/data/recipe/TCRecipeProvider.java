@@ -700,6 +700,18 @@ public final class TCRecipeProvider extends RecipeProvider {
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.LAVA_BUCKET), Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_EMPTY))).aspect(TCAspects.IGNIS, 15)
                 .aspect(TCAspects.TERRA, 5).gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY)).save(output, TCIds.MODID + ":crucible/lava_bucket");
 
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.MOSSY_COBBLESTONE), Ingredient.of(Items.COBBLESTONE)).aspect(TCAspects.HERBA, 2)
+                .aspect(TCAspects.PRAECANTATIO, 1).gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.COBBLESTONE)).save(output, TCIds.MODID + ":crucible/mossy_cobblestone");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.ICE), Ingredient.of(Items.SNOW_BLOCK)).aspect(TCAspects.ORDO, 1).aspect(TCAspects.GELUM, 1)
+                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.SNOW_BLOCK)).save(output, TCIds.MODID + ":crucible/ice");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.CRACKED_STONE_BRICKS), Ingredient.of(Items.STONE_BRICKS)).aspect(TCAspects.PERDITIO, 2)
+                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.STONE_BRICKS)).save(output, TCIds.MODID + ":crucible/cracked_stone_bricks");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.BONE_MEAL, 4), Ingredient.of(Items.BONE)).aspect(TCAspects.PERDITIO, 1).gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.BONE)).save(output, TCIds.MODID + ":crucible/bone_meal");
+
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.BUCKET_LIQUID_DEATH.get()), Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_EMPTY)))
                 .aspect(TCAspects.MORTUUS, 100).aspect(TCAspects.PERDITIO, 50).aspect(TCAspects.ALKIMIA, 20).gate(gate("liquid_death", 0)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY))
                 .save(output, TCIds.MODID + ":crucible/liquid_death");
@@ -731,6 +743,12 @@ public final class TCRecipeProvider extends RecipeProvider {
         clusterRecipe(TCItems.CLUSTER_LEAD, TCItemTags.ORES_LEAD);
         clusterRecipe(TCItems.CLUSTER_CINNABAR, TCItemTags.ORES_CINNABAR);
         clusterRecipe(TCItems.CLUSTER_QUARTZ, Tags.Items.ORES_QUARTZ);
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.IRON_NUGGET, 3), Ingredient.of(items.getOrThrow(Tags.Items.NUGGETS_IRON))).aspect(TCAspects.METALLUM, 2)
+                .gate(gate("metal_purification")).unlockedBy("has", has(Tags.Items.NUGGETS_IRON)).save(output, TCIds.MODID + ":crucible/iron_nugget_transmutation");
+
+        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.GOLD_NUGGET, 3), Ingredient.of(items.getOrThrow(Tags.Items.NUGGETS_GOLD))).aspect(TCAspects.METALLUM, 2)
+                .aspect(TCAspects.DESIDERIUM, 1).gate(gate("metal_purification")).unlockedBy("has", has(Tags.Items.NUGGETS_GOLD)).save(output, TCIds.MODID + ":crucible/gold_nugget_transmutation");
 
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TCItems.ALUMENTUM), Ingredient.of(items.getOrThrow(ItemTags.COALS))).gate(gate("alumentum"))
                 .aspect(TCAspects.IGNIS, 10).aspect(TCAspects.POTENTIA, 10).aspect(TCAspects.PERDITIO, 5).unlockedBy("has", has(ItemTags.COALS)).save(output);
@@ -964,6 +982,8 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('W', TCItemTags.PLANKS_GREATWOOD).define('T', ItemTags.WOODEN_TRAPDOORS).gate(gate("hungry_chest")).unlockedBy("has", has(TCItemTags.PLANKS_GREATWOOD)).save(output);
 
         shaped(RecipeCategory.REDSTONE, TCItems.ITEM_GRATE).pattern("#").pattern("H").define('#', Items.IRON_BARS).define('H', Items.HOPPER).unlockedBy("has", has(Items.HOPPER)).save(output);
+        shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.TALLOW_BLOCK).pattern("TTT").pattern("TTT").pattern("TTT").define('T', TCItems.TALLOW).unlockedBy("has", has(TCItems.TALLOW)).save(output);
+        shapeless(RecipeCategory.MISC, TCItems.TALLOW, 9).requires(TCItems.TALLOW_BLOCK).unlockedBy("has", has(TCItems.TALLOW_BLOCK)).save(output, TCIds.MODID + ":tallow_from_tallow_block");
 
         arcaneShaped(new ItemStackTemplate(TCItems.CENTRIFUGE), 100).aspect(TCAspects.ORDO, 1).aspect(TCAspects.PERDITIO, 1).pattern(" T ").pattern("RCP").pattern(" T ").define('T', TCItems.TUBE)
                 .define('P', TCItems.MECHANISM_SIMPLE).define('R', TCItems.MORPHIC_RESONATOR).define('C', TCItems.ALCHEMICAL_CONSTRUCT).gate(gate("centrifuge"))

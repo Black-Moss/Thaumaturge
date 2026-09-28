@@ -289,6 +289,7 @@ public final class TCItems {
     public static final DeferredItem<BlockItem> LEVITATOR = ITEMS.registerSimpleBlockItem(TCBlocks.LEVITATOR);
     public static final DeferredItem<BlockItem> ITEM_GRATE = ITEMS.registerSimpleBlockItem(TCBlocks.ITEM_GRATE);
     public static final DeferredItem<BlockItem> GOLEM_FETTER = ITEMS.registerSimpleBlockItem(TCBlocks.GOLEM_FETTER);
+    public static final DeferredItem<BlockItem> TALLOW_BLOCK = ITEMS.registerSimpleBlockItem(TCBlocks.TALLOW_BLOCK);
     public static final DeferredItem<BlockItem> WARDED_GLASS = ITEMS.registerSimpleBlockItem(TCBlocks.WARDED_GLASS);
     public static final DeferredItem<DoubleHighBlockItem> ARCANE_DOOR = ITEMS.registerItem("arcane_door",
             props -> new DoubleHighBlockItem(TCBlocks.ARCANE_DOOR.get(), props.useBlockDescriptionPrefix()));

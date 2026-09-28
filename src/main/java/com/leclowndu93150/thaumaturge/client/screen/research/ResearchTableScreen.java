@@ -25,10 +25,13 @@ import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
@@ -68,6 +71,8 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
     private static final int PALETTE_ROWS = 5;
     private static final int PALETTE_SLOTS = 25;
     private static final int PALETTE_W = 80;
+    private static final int SEARCH_Y = 31;
+    private static final int SEARCH_MAX_LENGTH = 32;
     private static final int PALETTE_H = 80;
     private static final int PAGE_STEP = 5;
 
@@ -136,10 +141,29 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
     private @Nullable Holder<IAspect> select1;
     private @Nullable Holder<IAspect> select2;
     private int page;
+    private @Nullable EditBox aspectSearch;
     private long combineCooldownUntil;
 
     public ResearchTableScreen(MenuResearchTable menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TEXTURE, GUI_SIZE, GUI_SIZE);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        aspectSearch = new EditBox(font, leftPos + PALETTE_X, topPos + SEARCH_Y, PALETTE_W, font.lineHeight, Component.translatable("tc.search"));
+        aspectSearch.setMaxLength(SEARCH_MAX_LENGTH);
+        aspectSearch.setHint(Component.translatable("tc.search"));
+        aspectSearch.setResponder(ignored -> page = 0);
+        addRenderableWidget(aspectSearch);
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (aspectSearch != null && aspectSearch.isFocused() && !event.isEscape() && (aspectSearch.keyPressed(event) || aspectSearch.canConsumeInput())) {
+            return true;
+        }
+        return super.keyPressed(event);
     }
 
     @Override
@@ -178,6 +202,11 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
         ids.sort(Identifier::compareTo);
         for (Identifier id : ids) {
             lookup.get(ResourceKey.create(IAspect.REGISTRY_KEY, id)).ifPresent(result::add);
+        }
+        if (aspectSearch != null && !aspectSearch.getValue().isBlank()) {
+            String query = aspectSearch.getValue().toLowerCase(Locale.ROOT);
+            result.removeIf(aspect -> !AspectComponents.name(aspect).getString().toLowerCase(Locale.ROOT).contains(query)
+                    && aspect.unwrapKey().map(key -> !key.identifier().toString().contains(query)).orElse(true));
         }
         return result;
     }

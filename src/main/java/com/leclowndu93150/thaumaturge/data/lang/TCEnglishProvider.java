@@ -1167,6 +1167,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.seal_stock", "Control Seal: Stock");
         add("block.thaumaturge.levitator", "Arcane Levitator");
         add("block.thaumaturge.item_grate", "Item Grate");
+        add("block.thaumaturge.tallow_block", "Tallow Block");
         add("block.thaumaturge.golem_fetter", "Golem Fetter");
         add("block.thaumaturge.warded_glass", "Warded Glass");
         add("block.thaumaturge.arcane_door", "Arcane Door");

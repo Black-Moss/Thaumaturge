@@ -265,12 +265,14 @@ publishMods {
         projectSlug = "$curseforge_slug"
         minecraftVersions.add(minecraft_version)
         changelogType = "markdown"
+        requires("curios")
     }
 
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "$modrinth_id"
         minecraftVersions.add(minecraft_version)
+        requires("curios")
     }
 
     github {
