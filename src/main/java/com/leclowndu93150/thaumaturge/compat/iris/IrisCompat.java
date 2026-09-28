@@ -15,6 +15,10 @@ public final class IrisCompat {
         return ModList.get().isLoaded(TCIds.IRIS) && IrisPipelineBinding.shaderPackInUse();
     }
 
+    public static boolean isSolidHandPass() {
+        return ModList.get().isLoaded(TCIds.IRIS) && IrisHandPass.isSolidHandPass();
+    }
+
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         if (!ModList.get().isLoaded(TCIds.IRIS)) {

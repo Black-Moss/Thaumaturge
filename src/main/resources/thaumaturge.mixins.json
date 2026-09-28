@@ -24,6 +24,7 @@
     "client.renderer.entity.LivingEntityRenderStateMixin",
     "client.renderer.entity.LivingEntityRendererMixin",
     "client.renderer.entity.layers.HumanoidArmorLayerAccessor",
+    "iris.pathways.HandRendererMixin",
     "jei.gui.ingredients.IngredientFilterAccessor",
     "jei.gui.ingredients.IngredientFilterApiAccessor"
   ],

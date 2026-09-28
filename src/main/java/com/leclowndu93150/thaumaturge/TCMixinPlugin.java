@@ -20,6 +20,8 @@ public class TCMixinPlugin implements IMixinConfigPlugin {
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.contains("jei"))
             return FMLLoader.getCurrent().getLoadingModList().getModFileById("jei") != null;
+        if (mixinClassName.contains(".iris."))
+            return FMLLoader.getCurrent().getLoadingModList().getModFileById("iris") != null;
         return true;
     }
 
