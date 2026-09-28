@@ -3,8 +3,11 @@ package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.*;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStorage;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectEssentiaHost;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectStorage;
 import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
@@ -30,7 +33,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityAlembic extends BlockEntity implements IEssentiaTransport, IAspectContainer {
+public class BlockEntityAlembic extends BlockEntity implements IEssentiaTransport, IAspectContainer, SingleAspectEssentiaHost {
     public static final int CAPACITY = 128;
     private static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = LegacyIds.ASPECT_KEY_CODEC;
 
@@ -39,6 +42,7 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
     private int amount;
     private int tickCount;
     private Direction facing = Direction.DOWN;
+    private final SingleAspectStorage storage = new SingleAspectStorage(this);
 
     public BlockEntityAlembic(BlockPos pos, BlockState state) {
         super(TCBlockEntities.ALEMBIC.get(), pos, state);
@@ -71,7 +75,13 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
     }
 
     public void setFacing(Direction facing) {
+        if (this.facing == facing) {
+            return;
+        }
         this.facing = facing;
+        if (level != null) {
+            level.invalidateCapabilities(worldPosition);
+        }
         setChanged();
         syncToClient();
     }
@@ -81,6 +91,9 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
     }
 
     protected void clearAspect() {
+        if (amount > 0) {
+            storage.markChanged();
+        }
         this.aspect = null;
         this.amount = 0;
         setChanged();
@@ -132,8 +145,9 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
             int added = Math.min(requested, CAPACITY - amount);
             amount += added;
             requested -= added;
-            setChanged();
-            syncToClient();
+            if (added > 0) {
+                contentsChanged();
+            }
         }
         return requested;
     }
@@ -147,11 +161,44 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
                 }
                 amount = 0;
             }
-            setChanged();
-            syncToClient();
+            if (amt > 0) {
+                contentsChanged();
+            }
             return true;
         }
         return false;
+    }
+
+    public IEssentiaStorage storage(Direction side) {
+        return storage.view(side);
+    }
+
+    @Override
+    public int capacity() {
+        return CAPACITY;
+    }
+
+    @Override
+    public int storageInsertLimit(int requested) {
+        return 0;
+    }
+
+    @Override
+    public void setStorageContents(@Nullable ResourceKey<IAspect> aspect, int amount) {
+        this.aspect = aspect;
+        this.amount = amount;
+    }
+
+    @Override
+    public void onStorageCommitted() {
+        setChanged();
+        syncToClient();
+    }
+
+    private void contentsChanged() {
+        storage.markChanged();
+        setChanged();
+        syncToClient();
     }
 
     public AspectList getContents(HolderLookup.Provider registries) {
@@ -313,8 +360,7 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
             aspect = key;
             amount = Math.min(first.amount(), CAPACITY);
         }
-        setChanged();
-        syncToClient();
+        contentsChanged();
     }
 
     @Override
@@ -324,34 +370,14 @@ public class BlockEntityAlembic extends BlockEntity implements IEssentiaTranspor
 
     @Override
     public int addToContainer(Holder<IAspect> aspect, int amount) {
-        if (amount == 0)
-            return amount;
-        if ((this.amount < CAPACITY && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0) {
-            this.aspect = aspect.getKey();
-            int added = Math.min(amount, CAPACITY - this.amount);
-            this.amount += added;
-            amount -= added;
-        }
-        setChanged();
-        syncToClient();
-        return amount;
+        ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
+        return key == null ? amount : doAddToContainer(key, amount);
     }
 
     @Override
     public boolean takeFromContainer(Holder<IAspect> aspect, int amount) {
-        if (this.amount >= amount && Objects.equals(this.aspect, aspect.getKey())) {
-            this.amount -= amount;
-            if (this.amount <= 0) {
-                if (aspectFilter == null) {
-                    this.aspect = null;
-                }
-                this.amount = 0;
-            }
-            setChanged();
-            syncToClient();
-            return true;
-        }
-        return false;
+        ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
+        return key != null && doTakeFromContainer(key, amount);
     }
 
     @Override

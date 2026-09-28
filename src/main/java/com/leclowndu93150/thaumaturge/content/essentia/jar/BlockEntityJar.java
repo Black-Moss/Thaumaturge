@@ -5,9 +5,12 @@ import com.leclowndu93150.thaumaturge.api.aspect.*;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStorage;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectEssentiaHost;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectStorage;
 import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
@@ -34,7 +37,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, IAspectSource {
+public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, IAspectSource, SingleAspectEssentiaHost {
     public static final int CAPACITY = IEssentiaJar.DEFAULT_CAPACITY;
 
     public int capacity() {
@@ -49,6 +52,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     private int tickCount;
     private Direction facing = Direction.DOWN;
     private boolean braced;
+    private final SingleAspectStorage storage = new SingleAspectStorage(this);
 
     public BlockEntityJar(BlockPos pos, BlockState state) {
         this(TCBlockEntities.JAR.get(), pos, state);
@@ -103,6 +107,9 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
         if (level != null && !level.isClientSide() && amount > 0 && aspectFilter == null) {
             AuraHelper.addFlux(level, getBlockPos(), amount);
         }
+        if (amount > 0) {
+            storage.markChanged();
+        }
         if (aspectFilter == null) {
             aspect = null;
         }
@@ -122,6 +129,9 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
     }
 
     protected void clearAspect() {
+        if (amount > 0) {
+            storage.markChanged();
+        }
         this.aspect = null;
         this.amount = 0;
         setChanged();
@@ -188,8 +198,9 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
             int added = Math.min(requested, capacity() - amount);
             amount += added;
             requested -= added;
-            setChanged();
-            syncToClient();
+            if (added > 0) {
+                contentsChanged();
+            }
         }
         return requested;
     }
@@ -203,11 +214,39 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
                 }
                 amount = 0;
             }
-            setChanged();
-            syncToClient();
+            if (amt > 0) {
+                contentsChanged();
+            }
             return true;
         }
         return false;
+    }
+
+    public IEssentiaStorage storage(Direction side) {
+        return storage.view(side);
+    }
+
+    @Override
+    public int storageInsertLimit(int requested) {
+        return Math.min(requested, capacity() - amount);
+    }
+
+    @Override
+    public void setStorageContents(@Nullable ResourceKey<IAspect> aspect, int amount) {
+        this.aspect = aspect;
+        this.amount = amount;
+    }
+
+    @Override
+    public void onStorageCommitted() {
+        setChanged();
+        syncToClient();
+    }
+
+    private void contentsChanged() {
+        storage.markChanged();
+        setChanged();
+        syncToClient();
     }
 
     public AspectList getContents(HolderLookup.Provider registries) {
@@ -379,8 +418,7 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
             aspect = key;
             amount = Math.min(first.amount(), capacity());
         }
-        setChanged();
-        syncToClient();
+        contentsChanged();
     }
 
     @Override
@@ -390,34 +428,14 @@ public class BlockEntityJar extends BlockEntity implements IEssentiaTransport, I
 
     @Override
     public int addToContainer(Holder<IAspect> aspect, int amount) {
-        if (amount == 0)
-            return amount;
-        if ((this.amount < capacity() && Objects.equals(this.aspect, aspect.getKey())) || this.amount == 0) {
-            this.aspect = aspect.getKey();
-            int added = Math.min(amount, capacity() - this.amount);
-            this.amount += added;
-            amount -= added;
-        }
-        setChanged();
-        syncToClient();
-        return amount;
+        ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
+        return key == null ? amount : doAddToContainer(key, amount);
     }
 
     @Override
     public boolean takeFromContainer(Holder<IAspect> aspect, int amount) {
-        if (this.amount >= amount && Objects.equals(this.aspect, aspect.getKey())) {
-            this.amount -= amount;
-            if (this.amount <= 0) {
-                if (aspectFilter == null) {
-                    this.aspect = null;
-                }
-                this.amount = 0;
-            }
-            setChanged();
-            syncToClient();
-            return true;
-        }
-        return false;
+        ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
+        return key != null && doTakeFromContainer(key, amount);
     }
 
     @Override
