@@ -40,8 +40,8 @@ public record ClientboundStreamEffectPayload(StreamEffectKind kind, double sx, d
         return new ClientboundStreamEffectPayload(StreamEffectKind.ARC, sx, sy, sz, tx, ty, tz, color, 0, 0, gravity, 0F, -1, (byte) 0);
     }
 
-    public static ClientboundStreamEffectPayload bolt(double sx, double sy, double sz, double tx, double ty, double tz, int color, float width) {
-        return new ClientboundStreamEffectPayload(StreamEffectKind.BOLT, sx, sy, sz, tx, ty, tz, color, 0, 0, width, 0F, -1, (byte) 0);
+    public static ClientboundStreamEffectPayload bolt(double sx, double sy, double sz, double tx, double ty, double tz, int color, float width, int sourceEntityId) {
+        return new ClientboundStreamEffectPayload(StreamEffectKind.BOLT, sx, sy, sz, tx, ty, tz, color, 0, 0, width, 0F, sourceEntityId, (byte) 0);
     }
 
     public static ClientboundStreamEffectPayload beam(double sx, double sy, double sz, double tx, double ty, double tz, int color, int age, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {

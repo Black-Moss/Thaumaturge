@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public final class Effects {
     static final double DEFAULT_RADIUS = 64.0;
@@ -836,11 +837,14 @@ public final class Effects {
     }
 
     public static final class ArcBolt {
+        private static final int NO_SOURCE_ENTITY = -1;
+
         private final ServerLevel level;
         private final Vec3 from;
         private Vec3 to = null;
         private int color = 0xFFFFFF;
         private float width = 1.0F;
+        private int sourceEntityId = NO_SOURCE_ENTITY;
 
         ArcBolt(ServerLevel level, Vec3 from) {
             this.level = level;
@@ -862,10 +866,15 @@ public final class Effects {
             return this;
         }
 
+        public ArcBolt sourceEntity(@Nullable Entity entity) {
+            this.sourceEntityId = entity == null ? NO_SOURCE_ENTITY : entity.getId();
+            return this;
+        }
+
         public void send() {
             if (to == null)
                 return;
-            EffectDispatch.spawnBolt(level, from, to, color, width);
+            EffectDispatch.spawnBolt(level, from, to, color, width, sourceEntityId);
         }
     }
 
