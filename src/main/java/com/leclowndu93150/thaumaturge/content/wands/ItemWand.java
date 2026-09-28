@@ -107,6 +107,10 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack wandStack = player.getItemInHand(hand);
+        if (targetedNode(player) != null) {
+            player.startUsingItem(hand);
+            return InteractionResult.CONSUME;
+        }
         ItemStack focusStack = getFocusStack(wandStack);
         if (focusStack.getItem() instanceof ItemFocus focus) {
             if (CasterManager.isOnCooldown(player)) {
@@ -313,8 +317,8 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
         if (!(level instanceof ServerLevel) || !(entity instanceof Player player)) {
             return;
         }
-        HitResult nodeHit = player.pick(WandEconomy.CRUDE_REFINE_TARGET_RANGE, 0.0F, false);
-        if (nodeHit instanceof BlockHitResult nodeBlockHit && level.getBlockEntity(nodeBlockHit.getBlockPos()) instanceof BlockEntityNode node) {
+        BlockEntityNode node = targetedNode(player);
+        if (node != null) {
             node.drainToWand((ServerLevel) level, player, stack, ticksRemaining);
             return;
         }
@@ -339,6 +343,11 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
         } else if (ticksRemaining % NO_AURA_MESSAGE_INTERVAL_TICKS == 0 && player instanceof ServerPlayer serverPlayer) {
             sendWandActionBar(serverPlayer, "tc.wand.noaura");
         }
+    }
+
+    private static @Nullable BlockEntityNode targetedNode(Player player) {
+        HitResult hit = player.pick(player.blockInteractionRange(), 1.0F, false);
+        return hit instanceof BlockHitResult blockHit && hit.getType() == HitResult.Type.BLOCK && player.level().getBlockEntity(blockHit.getBlockPos()) instanceof BlockEntityNode node ? node : null;
     }
 
     private static void sendWandActionBar(ServerPlayer player, String key) {
