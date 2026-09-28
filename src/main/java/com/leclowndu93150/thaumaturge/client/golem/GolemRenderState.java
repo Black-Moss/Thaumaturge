@@ -1,6 +1,10 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
+import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessory;
+import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessoryStateView;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
+import com.leclowndu93150.thaumaturge.content.golem.accessory.GolemAccessoryStates;
+import java.util.List;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 
@@ -27,5 +31,6 @@ public class GolemRenderState extends EntityRenderState {
     public boolean haulingItem;
     public boolean heldItemIsBlock;
     public boolean haulerItemIsBlock;
-    public String accessories = "";
+    public List<GolemAccessory> accessories = List.of();
+    public GolemAccessoryStateView accessoryStates = GolemAccessoryStates.EMPTY;
 }

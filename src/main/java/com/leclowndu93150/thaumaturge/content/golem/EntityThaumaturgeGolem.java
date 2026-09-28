@@ -115,6 +115,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     int rankXp;
     private boolean firstRun = true;
     private final GolemAccessoryStateHolder accessoryStates = new GolemAccessoryStateHolder(this);
+    private List<GolemAccessory> accessories = List.of();
     private boolean accessorySyncOverBudget;
     private Task task;
 
@@ -139,23 +140,34 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         entityData.define(ACCESSORY_STATES, GolemAccessoryStates.EMPTY);
     }
 
-    public String getAccessoryString() {
-        return entityData.get(ACCESSORIES);
+    public List<GolemAccessory> getAccessories() {
+        return accessories;
     }
 
-    public List<GolemAccessory> getAccessories() {
-        String joined = entityData.get(ACCESSORIES);
+    public GolemAccessoryStates syncedAccessoryStates() {
+        return entityData.get(ACCESSORY_STATES);
+    }
+
+    private static List<GolemAccessory> parseAccessories(String joined) {
         if (joined.isEmpty()) {
             return List.of();
         }
-        List<GolemAccessory> accessories = new ArrayList<>();
+        List<GolemAccessory> parsed = new ArrayList<>();
         for (String id : joined.split(",")) {
             GolemAccessory accessory = GolemAccessories.get(Identifier.parse(id));
             if (accessory != null) {
-                accessories.add(accessory);
+                parsed.add(accessory);
             }
         }
-        return accessories;
+        return List.copyOf(parsed);
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (ACCESSORIES.equals(accessor)) {
+            accessories = parseAccessories(entityData.get(ACCESSORIES));
+        }
     }
 
     private boolean addAccessory(GolemAccessory accessory, ItemStack attachedStack) {
@@ -164,13 +176,13 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             if (worn == accessory) {
                 return false;
             }
-            if (accessory.group() != GolemAccessory.Group.NONE && worn.group() == accessory.group()) {
+            if (accessory.group().excludes(worn.group())) {
                 return false;
             }
         }
         String joined = entityData.get(ACCESSORIES);
         entityData.set(ACCESSORIES, joined.isEmpty() ? accessory.id().toString() : joined + "," + accessory.id());
-        accessoryStates.attach(accessory, attachedStack.copyWithCount(1));
+        accessoryStates.attach(accessory, attachedStack);
         syncAccessoryStates();
         updateEntityAttributes();
         return true;
@@ -181,8 +193,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             return;
         }
         for (GolemAccessory accessory : getAccessories()) {
-            ItemStack stack = ItemGolemAccessory.stackFor(accessory);
-            accessoryStates.remove(accessory, stack);
+            ItemStack stack = accessoryStates.detach(accessory);
             if (!stack.isEmpty()) {
                 stack.setCount(1);
                 spawnAtLocation(serverLevel, stack, 0.5F);
@@ -603,8 +614,9 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             toggleFollow(player, hand);
             return InteractionResult.SUCCESS_SERVER;
         }
-        if (player.getItemInHand(hand).getItem() instanceof ItemGolemAccessory accessoryItem) {
-            if (addAccessory(accessoryItem.accessory(), player.getItemInHand(hand))) {
+        Optional<GolemAccessory> accessory = GolemAccessories.forItem(player.getItemInHand(hand));
+        if (accessory.isPresent()) {
+            if (addAccessory(accessory.get(), player.getItemInHand(hand))) {
                 playSound(TCSounds.CLACK.get(), 1.0F, 1.0F);
                 player.getItemInHand(hand).shrink(1);
                 player.swing(hand, true);

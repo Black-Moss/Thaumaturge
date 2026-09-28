@@ -5,8 +5,9 @@ import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
 /**
- * A wearable golem accessory applied by using its item on a golem. Accessories stack freely
- * except within an exclusion group, of which a golem may wear at most one.
+ * A wearable golem accessory, put on by using an item bound to it through
+ * {@link GolemAccessoryItem#DATA_MAP} on a golem. Accessories stack freely except within an
+ * exclusion {@link Group}, of which a golem may wear at most one.
  *
  * <p>Stat fields modify the wearing golem: {@code healthBonus} and {@code armorBonus} add flat
  * points, {@code rangeFactor} and {@code speedFactor} multiply sight range and movement speed,
@@ -55,11 +56,40 @@ public record GolemAccessory(Identifier id, Group group, int healthBonus, float 
     }
 
     /**
-     * Exclusion groups for accessories occupying the same spot on a golem.
+     * An exclusion group for accessories that occupy the same spot on a golem. A golem wears at
+     * most one accessory from each group, except {@link #NONE}, which never excludes anything.
+     * Addons may declare their own groups; groups compare by id.
      *
+     * @param id the group id
      * @since 1.0.0
      */
-    public enum Group {
-        NONE, HAT, EYES
+    public record Group(Identifier id) {
+        /** The group of accessories that never exclude each other. */
+        public static final Group NONE = new Group(Identifier.fromNamespaceAndPath("thaumaturge", "none"));
+
+        /** Hats, such as the top hat and the fez. */
+        public static final Group HAT = new Group(Identifier.fromNamespaceAndPath("thaumaturge", "hat"));
+
+        /** Eyewear, such as the glasses and the visor. */
+        public static final Group EYES = new Group(Identifier.fromNamespaceAndPath("thaumaturge", "eyes"));
+
+        /**
+         * Validates the id.
+         *
+         * @throws NullPointerException when {@code id} is null
+         */
+        public Group {
+            Objects.requireNonNull(id, "id");
+        }
+
+        /**
+         * Whether an accessory in this group rules out wearing one in {@code other}.
+         *
+         * @param other the group of the other accessory
+         * @return true when both are the same group and it is not {@link #NONE}
+         */
+        public boolean excludes(Group other) {
+            return !equals(NONE) && equals(other);
+        }
     }
 }

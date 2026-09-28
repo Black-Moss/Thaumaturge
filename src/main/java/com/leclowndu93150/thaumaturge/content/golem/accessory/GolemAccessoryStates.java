@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.golem.accessory;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessories;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessory;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessoryBehavior;
+import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessoryStateView;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 
-public record GolemAccessoryStates(List<AccessoryStateSlot<?>> slots) {
+public record GolemAccessoryStates(List<AccessoryStateSlot<?>> slots) implements GolemAccessoryStateView {
     public static final GolemAccessoryStates EMPTY = new GolemAccessoryStates(List.of());
     public static final StreamCodec<RegistryFriendlyByteBuf, GolemAccessoryStates> STREAM_CODEC = StreamCodec.of(GolemAccessoryStates::encode, GolemAccessoryStates::decode);
 
@@ -21,6 +22,7 @@ public record GolemAccessoryStates(List<AccessoryStateSlot<?>> slots) {
         slots = List.copyOf(slots);
     }
 
+    @Override
     public <S> Optional<S> state(GolemAccessoryBehavior<S> behavior) {
         for (AccessoryStateSlot<?> slot : slots) {
             Optional<S> state = slot.stateFor(behavior);
