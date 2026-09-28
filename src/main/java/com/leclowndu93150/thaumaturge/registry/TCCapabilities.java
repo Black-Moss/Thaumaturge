@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
+import com.leclowndu93150.thaumaturge.api.aura.VisRelayCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
@@ -46,6 +47,7 @@ public final class TCCapabilities {
 
     private static void nodes(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.NODE.get(), (be, side) -> be);
+        event.registerBlockEntity(VisRelayCapabilities.SOURCE, TCBlockEntities.NODE.get(), (be, context) -> be.relaySource());
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.JAR_NODE.get(), (be, side) -> be);
     }
 

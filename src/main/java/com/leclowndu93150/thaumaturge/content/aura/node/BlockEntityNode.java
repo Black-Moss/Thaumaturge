@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.aura.IVisRelaySource;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
@@ -413,6 +414,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private final Map<Identifier, Integer> cvAllowance = new HashMap<>();
     private final Map<Identifier, Integer> cvCredit = new HashMap<>();
     private final CentivisJournal centivisJournal = new CentivisJournal();
+    private final IVisRelaySource relaySource = new NodeVisRelaySource(this);
 
     private void accrueCentivis() {
         for (AspectInstance entry : aspectsBase.entries()) {
@@ -439,32 +441,17 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         return Math.min(cvAllowance.getOrDefault(id, 0), stored);
     }
 
-    public int drainCentivis(Holder<IAspect> aspect, int amount) {
-        AspectList before = aspects;
-        int taken = takeCentivis(aspect, amount);
-        if (!aspects.equals(before)) {
-            syncContents();
-        }
-        return taken;
+    public IVisRelaySource relaySource() {
+        return relaySource;
     }
 
     public int drainCentivis(Holder<IAspect> aspect, int amount, TransactionContext transaction) {
         if (availableCentivis(aspect) <= 0 || amount <= 0) {
             return 0;
         }
-        centivisJournal.updateSnapshots(transaction);
-        return takeCentivis(aspect, amount);
-    }
-
-    private int takeCentivis(Holder<IAspect> aspect, int amount) {
-        if (!energized || amount <= 0) {
-            return 0;
-        }
         Identifier id = aspect.unwrapKey().orElseThrow().identifier();
         int allowance = Math.min(cvAllowance.getOrDefault(id, 0), amount);
-        if (allowance <= 0) {
-            return 0;
-        }
+        centivisJournal.updateSnapshots(transaction);
         int credit = cvCredit.getOrDefault(id, 0);
         while (credit < allowance && aspects.amountOf(aspect) > 0) {
             aspects = reduce(aspects, aspect, 1);

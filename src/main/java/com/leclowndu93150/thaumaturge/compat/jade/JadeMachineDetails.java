@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.compat.jade;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeTransducer;
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
 import com.leclowndu93150.thaumaturge.content.casters.BlockEntityFocalManipulator;
@@ -21,10 +22,16 @@ final class JadeMachineDetails {
         data.summary(relay.isLinked() ? "jade.thaumaturge.relay.linked" : "jade.thaumaturge.relay.unlinked");
         if (relay.isLinked()) {
             if (relay.depth() == 1)
-                data.detail("jade.thaumaturge.relay.linked_node");
+                linkedSource(relay, data);
             else
                 data.detail("jade.thaumaturge.relay.linked_relay", relay.depth() - 1);
         }
+    }
+    private static void linkedSource(BlockEntityVisRelay relay, JadeDetailBuilder data) {
+        if (relay.getLevel() == null || relay.parentPos() == null || relay.getLevel().getBlockEntity(relay.parentPos()) instanceof BlockEntityNode)
+            data.detail("jade.thaumaturge.relay.linked_node");
+        else
+            data.detail("jade.thaumaturge.relay.linked_source", relay.getLevel().getBlockState(relay.parentPos()).getBlock().getName());
     }
     static void transducer(BlockEntityNodeTransducer machine, JadeDetailBuilder data) {
         data.summary("jade.thaumaturge.transducer.status." + machine.getStatus());

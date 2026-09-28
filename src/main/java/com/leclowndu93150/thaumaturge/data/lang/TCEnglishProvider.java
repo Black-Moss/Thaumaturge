@@ -1711,6 +1711,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("jade.thaumaturge.flux_scrubber.charges", "Charges: %s");
         add("jade.thaumaturge.flux_scrubber.power", "Power: %s%%");
         add("jade.thaumaturge.relay.linked_node", "Linked to energized node");
+        add("jade.thaumaturge.relay.linked_source", "Linked to %s");
         add("jade.thaumaturge.relay.linked_relay", "Linked through %s relays");
         add("jade.thaumaturge.relay.unlinked", "No energized node in range");
         add("jade.thaumaturge.golem.rank", "Rank %s");
