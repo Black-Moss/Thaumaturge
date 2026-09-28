@@ -18,7 +18,8 @@ public final class WardFlashParticle extends TCParticle {
     private static final int AGE_JITTER = 5;
     private static final float BASE_SCALE = 1.4F;
     private static final float SCALE_JITTER = 0.3F;
-    private static final float FACE_OFFSET = 0.505F;
+    private static final float FACE_OFFSET = 0.005F;
+    private static final float HALF = 0.5F;
     private static final float HIT_JITTER = 0.2F;
     private static final float HIT_CLAMP = 0.4F;
     private static final float RAMP_PORTION = 5.0F;
@@ -28,18 +29,9 @@ public final class WardFlashParticle extends TCParticle {
     private WardFlashParticle(ClientLevel level, double x, double y, double z, WardFlashParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         Direction face = options.face();
-        float sx = Mth.clamp(options.hitX() - 0.6F + this.random.nextFloat() * HIT_JITTER, -HIT_CLAMP, HIT_CLAMP);
-        float sy = Mth.clamp(options.hitY() - 0.6F + this.random.nextFloat() * HIT_JITTER, -HIT_CLAMP, HIT_CLAMP);
-        float sz = Mth.clamp(options.hitZ() - 0.6F + this.random.nextFloat() * HIT_JITTER, -HIT_CLAMP, HIT_CLAMP);
-        if (face.getStepX() != 0) {
-            sx = 0.0F;
-        }
-        if (face.getStepY() != 0) {
-            sy = 0.0F;
-        }
-        if (face.getStepZ() != 0) {
-            sz = 0.0F;
-        }
+        float sx = face.getStepX() != 0 ? options.hitX() - HALF : jitter(options.hitX());
+        float sy = face.getStepY() != 0 ? options.hitY() - HALF : jitter(options.hitY());
+        float sz = face.getStepZ() != 0 ? options.hitZ() - HALF : jitter(options.hitZ());
         setPos(x + sx + face.getStepX() * FACE_OFFSET, y + sy + face.getStepY() * FACE_OFFSET, z + sz + face.getStepZ() * FACE_OFFSET);
         this.xo = this.x;
         this.yo = this.y;
@@ -49,6 +41,10 @@ public final class WardFlashParticle extends TCParticle {
         this.alpha = 0.0F;
         this.setSize(0.01F, 0.01F);
         this.faceRotation = new Quaternionf().rotationTo(0.0F, 0.0F, 1.0F, face.getStepX(), face.getStepY(), face.getStepZ()).rotateZ((float) Math.toRadians(this.random.nextInt(360)));
+    }
+
+    private float jitter(float hit) {
+        return Mth.clamp(hit - HALF + (this.random.nextFloat() - HALF) * HIT_JITTER, -HIT_CLAMP, HIT_CLAMP);
     }
 
     @Override

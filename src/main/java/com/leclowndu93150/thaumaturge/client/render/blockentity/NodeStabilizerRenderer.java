@@ -35,11 +35,11 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
     private static final Identifier OVERLAY_TEXTURE = TCIds.rl("textures/block/node_stabilizer_over.png");
 
     private static final RenderType BASE = RenderTypes.entityCutout(TEXTURE);
-    private static final RenderType OVERLAY = RenderTypes.entityTranslucentEmissive(OVERLAY_TEXTURE);
+    private static final RenderType OVERLAY = RenderTypes.entityTranslucent(OVERLAY_TEXTURE);
     private static final Identifier TRANSDUCER_TEXTURE = TCIds.rl("textures/block/node_converter.png");
     private static final Identifier TRANSDUCER_OVERLAY_TEXTURE = TCIds.rl("textures/block/node_converter_over.png");
     private static final RenderType TRANSDUCER_BASE = RenderTypes.entityCutout(TRANSDUCER_TEXTURE);
-    private static final RenderType TRANSDUCER_OVERLAY = RenderTypes.entityTranslucentEmissive(TRANSDUCER_OVERLAY_TEXTURE);
+    private static final RenderType TRANSDUCER_OVERLAY = RenderTypes.entityTranslucent(TRANSDUCER_OVERLAY_TEXTURE);
     private static final int TRANSDUCER_EXTEND_CAP = 50;
     private static final float TRANSDUCER_EXTEND_DIVISOR = 137.0F;
     private static final int TRANSDUCER_TINT_IDLE = 0xFF80FF80;
@@ -68,7 +68,7 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
     private static final float BUBBLE_ALPHA_PULSE = 0.1F;
     private static final float BUBBLE_PULSE_PERIOD = 8.0F;
     private static final int BUBBLE_ADVANCED_TINT = 0xFF4444;
-    private static final int BUBBLE_LIGHT = 0x00F000F0;
+    private static final int BUBBLE_LIGHT = 220;
     private static final double BUBBLE_SWEEP = BUBBLE_HALF * Mth.SQRT_OF_TWO;
 
     public NodeStabilizerRenderer(BlockEntityRendererProvider.Context context) {}
@@ -134,9 +134,7 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
                 PoseStack.Pose armPose = poseStack.last().copy();
                 collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
                 float pulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
-                int glow = OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse));
-                int glowUnit = Mth.clamp(glow / 16, 0, 15);
-                int glowLight = (glowUnit << 4) | (glowUnit << 20);
+                int glowLight = OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse));
                 int tint = advanced ? ADVANCED_TINT : WHITE;
                 collector.submitCustomGeometry(poseStack, OVERLAY, (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, glowLight, tint));
                 poseStack.popPose();
@@ -180,9 +178,7 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
 
     private static int statusGlow(float extend, float ticks, int arm) {
         float pulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
-        int glow = OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (extend * TRANSDUCER_GLOW_GAIN * pulse));
-        int glowUnit = Mth.clamp(glow / 16, 0, 15);
-        return (glowUnit << 4) | (glowUnit << 20);
+        return OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (extend * TRANSDUCER_GLOW_GAIN * pulse));
     }
 
     @Override
