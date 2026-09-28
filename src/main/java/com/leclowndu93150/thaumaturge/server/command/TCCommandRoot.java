@@ -12,8 +12,8 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class TCCommandRoot {
-    public static final String NAME = "thaumcraft";
-    public static final String ALIAS = "tc";
+    public static final String NAME = "thaumaturge";
+    public static final String ALIAS = "tt";
 
     private TCCommandRoot() {}
 
