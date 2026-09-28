@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.item;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.compat.iris.IrisCompat;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -51,6 +52,9 @@ public final class ThaumometerHandRenderer {
             return;
         }
         event.setCanceled(true);
+        if (IrisCompat.isSolidHandPass()) {
+            return;
+        }
         renderTwoHanded(event, mc, player);
     }
 
