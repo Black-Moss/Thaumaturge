@@ -5,10 +5,15 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.aura.VisRelayCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.AdvancedAlchemicalFurnaceStructure;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectItemStorage;
+import com.leclowndu93150.thaumaturge.content.item.PhialItem;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -84,12 +89,21 @@ public final class TCCapabilities {
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.JAR.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.JAR_VOID.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.JAR.get(), (be, side) -> be);
+        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TCBlockEntities.JAR.get(), (be, side) -> side != null && be.isConnectable(side) ? be.storage(side) : null);
+        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TCBlockEntities.JAR_VOID.get(), (be, side) -> side != null && be.isConnectable(side) ? be.storage(side) : null);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.JAR_VOID.get(), (be, side) -> be);
     }
 
     private static void essentiaItems(RegisterCapabilitiesEvent event) {
         event.registerItem(EssentiaCapabilities.CONTAINER, (stack, ctx) -> (IEssentiaContainerItem) stack.getItem(), TCItems.PHIAL.get(), TCItems.ESSENTIA_CRYSTAL.get(), TCItems.MANA_BEAN.get(),
                 TCItems.JAR_NORMAL.get(), TCItems.JAR_VOID.get());
+        event.registerItem(EssentiaCapabilities.ITEM_STORAGE, (stack, ctx) -> new SingleAspectItemStorage(stack, (IEssentiaContainerItem) stack.getItem(), jarCapacity(stack), false),
+                TCItems.JAR_NORMAL.get(), TCItems.JAR_VOID.get());
+        event.registerItem(EssentiaCapabilities.ITEM_STORAGE, (stack, ctx) -> new SingleAspectItemStorage(stack, TCItems.PHIAL.get(), PhialItem.BASE_AMOUNT, true), TCItems.PHIAL.get());
+    }
+
+    private static int jarCapacity(ItemStack stack) {
+        return stack.getItem() instanceof BlockItem item && item.getBlock() instanceof IEssentiaJar jar ? jar.jarCapacity() : IEssentiaJar.DEFAULT_CAPACITY;
     }
 
     private static void smeltery(RegisterCapabilitiesEvent event) {
@@ -104,6 +118,7 @@ public final class TCCapabilities {
         });
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.ALEMBIC.get(), (be, side) -> be);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TCBlockEntities.ALEMBIC.get(), (be, side) -> be);
+        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TCBlockEntities.ALEMBIC.get(), (be, side) -> side != null && be.isConnectable(side) ? be.storage(side) : null);
     }
 
     private static void golemBuilder(RegisterCapabilitiesEvent event) {
