@@ -9,10 +9,8 @@ import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.particle.BoreSparkleParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.InfusionCrumbsParticleOptions;
-import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
-import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -42,7 +40,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -176,8 +173,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
 
     public void onRightClick(ServerLevel level, Player player) {
         if (active && !isCrafting()) {
-            checkSurroundings = true;
-            startCraft(level, player);
+            tryStartCraft(level, player);
         } else if (!active && MatrixEnvironment.validLocation(level, worldPosition)) {
             level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
             active = true;
@@ -186,18 +182,45 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         }
     }
 
-    private void startCraft(ServerLevel level, Player player) {
+    public boolean tryStartCraft(ServerLevel level, Player player) {
+        checkSurroundings = true;
         if (!MatrixEnvironment.validLocation(level, worldPosition)) {
             active = false;
             setChanged();
             syncToClient();
-            return;
+            return false;
         }
         MatrixEnvironment env = environment(level);
-        ItemStack catalyst = pedestalItem(level, centralPedestal());
-        if (catalyst.isEmpty()) {
-            return;
+        InfusionInput input = stagedInput(level, env);
+        if (input.catalyst().isEmpty() || input.components().isEmpty()) {
+            return false;
         }
+        InfusionRecipeMatcher.Match match = InfusionRecipeMatcher.find(level, player, input);
+        if (match == null || match.locked()) {
+            return false;
+        }
+        InfusionJobRecipe recipe = match.recipe();
+        job = new InfusionCraftJob(recipe.jobComponents(input), scaledCost(env, recipe.jobEssentia(input)), recipe.jobResult(input, level.getRandom()), input.catalyst().copyWithCount(1),
+                recipe.jobInstability(input), Optional.of(player.getUUID()));
+        level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+        setChanged();
+        syncToClient();
+        return true;
+    }
+
+    InfusionInput stagedInput(ServerLevel level) {
+        return stagedInput(level, environmentSnapshot(level));
+    }
+
+    AspectList projectedCost(ServerLevel level, AspectList essentia) {
+        return scaledCost(environmentSnapshot(level), essentia);
+    }
+
+    private MatrixEnvironment environmentSnapshot(ServerLevel level) {
+        return environment != null && !checkSurroundings ? environment : MatrixEnvironment.survey(level, worldPosition);
+    }
+
+    private InfusionInput stagedInput(ServerLevel level, MatrixEnvironment env) {
         List<ItemStack> components = new ArrayList<>();
         for (BlockPos pedestalPos : env.pedestals()) {
             ItemStack stack = pedestalItem(level, pedestalPos);
@@ -205,55 +228,28 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
                 components.add(stack.copyWithCount(1));
             }
         }
-        if (components.isEmpty()) {
-            return;
-        }
-        InfusionInput input = new InfusionInput(catalyst, components);
-        float costMult = Math.max(MIN_COST_MULT, env.costMult());
-        Optional<RecipeHolder<InfusionRecipe>> match = level.recipeAccess().getRecipeFor(TCRecipeTypes.INFUSION.get(), input, level)
-                .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
-        if (match.isPresent()) {
-            InfusionRecipe recipe = match.get().value();
-            job = new InfusionCraftJob(recipe.matchComponents(components), scaleByEnvironment(recipe.aspects(), costMult), recipe.assemble(input), catalyst.copyWithCount(1), recipe.instability(),
-                    Optional.of(player.getUUID()));
-            level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-            setChanged();
-            syncToClient();
-            return;
-        }
-        Optional<RecipeHolder<InfusionEnchantmentRecipe>> enchantMatch = level.recipeAccess().getRecipeFor(TCRecipeTypes.INFUSION_ENCHANTMENT.get(), input, level)
-                .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
-        if (enchantMatch.isPresent()) {
-            InfusionEnchantmentRecipe recipe = enchantMatch.get().value();
-            job = new InfusionCraftJob(recipe.matchComponents(components), scaleByEnvironment(recipe.scaledAspects(catalyst), costMult), recipe.enchantedResult(catalyst, level.getRandom()),
-                    catalyst.copyWithCount(1), recipe.instability(), Optional.of(player.getUUID()));
-            level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-            setChanged();
-            syncToClient();
-            return;
-        }
-        Optional<RecipeHolder<InfusionRunicAugmentRecipe>> runicMatch = level.recipeAccess().getRecipeFor(TCRecipeTypes.RUNIC_AUGMENT.get(), input, level)
-                .filter(holder -> ResearchManager.doesPassGate(player, holder.value().researchGate().orElse(null)));
-        if (runicMatch.isEmpty()) {
-            return;
-        }
-        InfusionRunicAugmentRecipe recipe = runicMatch.get().value();
-        job = new InfusionCraftJob(recipe.matchScaled(catalyst, components), scaleByEnvironment(recipe.scaledAspects(catalyst), costMult), recipe.augmentedResult(catalyst), catalyst.copyWithCount(1),
-                recipe.scaledInstability(catalyst), Optional.of(player.getUUID()));
-        level.playSound(null, worldPosition, TCSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-        setChanged();
-        syncToClient();
+        return new InfusionInput(pedestalItem(level, centralPedestal()), components);
     }
 
-    private static AspectList scaleByEnvironment(AspectList aspects, float costMult) {
+    private static AspectList scaledCost(MatrixEnvironment env, AspectList essentia) {
+        float costMult = Math.max(MIN_COST_MULT, env.costMult());
         AspectList scaled = AspectList.EMPTY;
-        for (AspectInstance instance : aspects.entries()) {
+        for (AspectInstance instance : essentia.entries()) {
             int amount = (int) (instance.amount() * costMult);
             if (amount > 0) {
                 scaled = scaled.add(instance.aspect(), amount);
             }
         }
         return scaled;
+    }
+
+    static ItemStack withCatalystWear(ItemStack result, ItemStack catalyst) {
+        ItemStack worn = result.copy();
+        if (catalyst.isDamageableItem() && catalyst.getDamageValue() > 0 && worn.isDamageableItem() && worn.getDamageValue() == 0) {
+            float damageRatio = (float) catalyst.getDamageValue() / catalyst.getMaxDamage();
+            worn.setDamageValue((int) (worn.getMaxDamage() * damageRatio));
+        }
+        return worn;
     }
 
     private void craftCycle(ServerLevel level, MatrixEnvironment env, int countDelay) {
@@ -407,12 +403,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
             syncToClient();
             return;
         }
-        ItemStack result = job.result().copy();
-        ItemStack catalyst = pedestal.getItem();
-        if (catalyst.isDamageableItem() && catalyst.getDamageValue() > 0 && result.isDamageableItem() && result.getDamageValue() == 0) {
-            float damageRatio = (float) catalyst.getDamageValue() / catalyst.getMaxDamage();
-            result.setDamageValue((int) (result.getMaxDamage() * damageRatio));
-        }
+        ItemStack result = withCatalystWear(job.result(), pedestal.getItem());
         pedestal.setItem(result);
         Optional<InfusionCraftJob> finished = Optional.ofNullable(job);
         job = null;

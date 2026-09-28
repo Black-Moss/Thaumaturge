@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.infusion;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.recipe.IInfusionRecipe;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCItemTags;
@@ -21,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -31,7 +29,7 @@ import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.Level;
 
-public final class InfusionRunicAugmentRecipe implements Recipe<InfusionInput>, IInfusionRecipe {
+public final class InfusionRunicAugmentRecipe implements InfusionJobRecipe {
     public static final int BASE_INSTABILITY = 5;
     private static final int BASE_COST = 20;
     private static final int MAX_CHARGE = 120;
@@ -120,6 +118,21 @@ public final class InfusionRunicAugmentRecipe implements Recipe<InfusionInput>, 
 
     public int scaledInstability(ItemStack catalyst) {
         return BASE_INSTABILITY + charge(catalyst) / 2;
+    }
+
+    @Override
+    public List<ItemStack> jobComponents(InfusionInput input) {
+        return matchScaled(input.catalyst(), input.components());
+    }
+
+    @Override
+    public AspectList jobEssentia(InfusionInput input) {
+        return scaledAspects(input.catalyst());
+    }
+
+    @Override
+    public int jobInstability(InfusionInput input) {
+        return scaledInstability(input.catalyst());
     }
 
     public ItemStack augmentedResult(ItemStack catalyst) {

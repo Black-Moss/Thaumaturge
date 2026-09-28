@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.infusion;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.recipe.IInfusionRecipe;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import com.mojang.serialization.Codec;
@@ -18,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -27,7 +25,7 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 
-public final class InfusionRecipe implements Recipe<InfusionInput>, IInfusionRecipe {
+public final class InfusionRecipe implements InfusionJobRecipe {
     public static final MapCodec<InfusionRecipe> MAP_CODEC = RecordCodecBuilder
             .<InfusionRecipe>mapCodec(i -> i.group(Ingredient.CODEC.fieldOf("catalyst").forGetter(r -> r.catalyst), Ingredient.CODEC.listOf(1, 64).fieldOf("components").forGetter(r -> r.components),
                     AspectList.NON_EMPTY_CODEC.fieldOf("aspects").forGetter(r -> r.aspects), Codec.intRange(0, 100).optionalFieldOf("instability", 0).forGetter(r -> r.instability),
