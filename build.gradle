@@ -186,6 +186,7 @@ dependencies {
     runtimeOnly "maven.modrinth:jade:${jade_version}"
 
     compileOnly "maven.modrinth:distanthorizons:${distant_horizons_version}"
+    compileOnly "maven.modrinth:vdjF5PL5:${dynamic_trees_version}"
 
     compileOnly "maven.modrinth:iris:${iris_version}"
 }

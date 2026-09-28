@@ -93,6 +93,16 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.research.newresearch", "§6Newly discovered research§0");
         add("tc.research.newpage", "§aNew page added§0");
         add("tc.search", "Search");
+        add("treePack.thaumaturge.name", "Thaumaturge");
+        add("pack.thaumaturge.dynamic_trees", "Thaumaturge Dynamic Trees");
+        add("block.thaumaturge.greatwood_branch", "Greatwood Tree");
+        add("item.thaumaturge.greatwood_branch", "Greatwood Tree");
+        add("item.thaumaturge.greatwood_seed", "Greatwood Seed");
+        add("species.thaumaturge.greatwood", "Greatwood");
+        add("block.thaumaturge.silverwood_branch", "Silverwood Tree");
+        add("item.thaumaturge.silverwood_branch", "Silverwood Tree");
+        add("item.thaumaturge.silverwood_seed", "Silverwood Seed");
+        add("species.thaumaturge.silverwood", "Silverwood");
         add("tc.search.more", "...too many results found. Refine your search");
         add("tile.researchtable.noink.0", "You have run out of ink!");
         add("tile.researchtable.noink.1", "Refill your scribing tools.");

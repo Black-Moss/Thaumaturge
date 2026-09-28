@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.worldgen.biome;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.compat.dynamictrees.DynamicTreesWorldgenBiomeModifier;
 import com.leclowndu93150.thaumaturge.data.worldgen.feature.TCPlacedFeatures;
 import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
@@ -38,6 +39,7 @@ public final class TCBiomeModifiers {
     public static final ResourceKey<BiomeModifier> ADD_OVERWORLD_BRAINY_ZOMBIES = key("add_overworld_brainy_zombies");
     public static final ResourceKey<BiomeModifier> ADD_PECHS = key("add_pechs");
     public static final ResourceKey<BiomeModifier> ADD_DESERT_BRAINY_HUSKS = key("add_desert_brainy_husks");
+    public static final ResourceKey<BiomeModifier> DYNAMIC_TREES_WORLDGEN = key("dynamic_trees_worldgen");
 
     private static final int NETHER_WISP_WEIGHT = 5;
     private static final int NETHER_FIREBAT_WEIGHT = 10;
@@ -54,6 +56,8 @@ public final class TCBiomeModifiers {
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
         HolderGetter<PlacedFeature> features = context.lookup(Registries.PLACED_FEATURE);
+
+        context.register(DYNAMIC_TREES_WORLDGEN, DynamicTreesWorldgenBiomeModifier.INSTANCE);
 
         context.register(ADD_ORES,
                 new BiomeModifiers.AddFeaturesBiomeModifier(biomes.getOrThrow(BiomeTags.IS_OVERWORLD),

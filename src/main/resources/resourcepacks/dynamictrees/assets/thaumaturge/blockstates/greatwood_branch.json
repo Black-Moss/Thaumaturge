@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "": {
+      "type": "dynamictrees:branch",
+      "family": "thaumaturge:greatwood",
+      "textures": {
+        "bark": "thaumaturge:block/log_greatwood",
+        "rings": "thaumaturge:block/log_greatwood_top"
+      }
+    }
+  }
+}
