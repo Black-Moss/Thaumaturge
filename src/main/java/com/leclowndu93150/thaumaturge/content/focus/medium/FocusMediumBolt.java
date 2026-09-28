@@ -80,7 +80,7 @@ public class FocusMediumBolt extends FocusMediumTouch {
             r /= effects.size();
             g /= effects.size();
             b /= effects.size();
-            Effects.arcBolt(level, trajectory.source()).to(end).color((r << 16) | (g << 8) | b).width(ctx.power() * BOLT_WIDTH_FACTOR).send();
+            Effects.arcBolt(level, trajectory.source()).to(end).sourceEntity(ctx.caster()).color((r << 16) | (g << 8) | b).width(ctx.power() * BOLT_WIDTH_FACTOR).send();
         }
     }
 }
