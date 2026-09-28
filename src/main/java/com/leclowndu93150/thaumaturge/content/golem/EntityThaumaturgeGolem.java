@@ -339,7 +339,11 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         getAttribute(Attributes.STEP_HEIGHT).setBaseValue(props.hasTrait(TCGolemTraits.WHEELED.get()) ? 0.5 : 0.6);
         getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(BASE_MOVEMENT_SPEED * speedFactor);
         int homeRange = props.hasTrait(TCGolemTraits.SCOUT.get()) ? HOME_RANGE_SCOUT : HOME_RANGE;
-        setHomeTo(getHomePosition().equals(BlockPos.ZERO) ? blockPosition() : getHomePosition(), (int) (homeRange * rangeFactor));
+        if (isFollowingOwner()) {
+            clearHome();
+        } else {
+            setHomeTo(getHomePosition().equals(BlockPos.ZERO) ? blockPosition() : getHomePosition(), (int) (homeRange * rangeFactor));
+        }
         getAttribute(Attributes.FOLLOW_RANGE).setBaseValue((props.hasTrait(TCGolemTraits.SCOUT.get()) ? 56.0 : 40.0) * rangeFactor);
         getAttribute(Attributes.ARMOR).setBaseValue(computeArmor(props) + accessoryArmor);
         this.navigation = createGolemNavigation();
@@ -660,7 +664,6 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             if (ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
                 level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_TASK);
             }
-            clearHome();
         } else {
             sendActionBar(player, "golem.stay");
             if (ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
