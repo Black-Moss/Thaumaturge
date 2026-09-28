@@ -236,16 +236,14 @@ public final class ResearchTableScreen extends AbstractTCContainerScreen<MenuRes
         int start = page * PAGE_STEP;
         int drawn = 0;
         Holder<IAspect> hovered = null;
+        BlockEntityResearchTable table = table();
         for (int i = start; i < aspects.size() && drawn < PALETTE_SLOTS; i++, drawn++) {
             Holder<IAspect> aspect = aspects.get(i);
             int x = leftPos + PALETTE_X + (drawn / PALETTE_ROWS) * PALETTE_CELL;
             int y = topPos + PALETTE_Y + (drawn % PALETTE_ROWS) * PALETTE_CELL;
             float alpha = availableOf(aspect) > 0 ? 1.0F : 0.33F;
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(x, y);
-            graphics.pose().scale(0.8F);
-            AspectTagRenderer.render(graphics, font, 1, 1, aspect, pool().amount(AspectPools.idOf(aspect)), 0, 0.0, AspectTagRenderer.BlendMode.ALPHA, alpha, false);
-            graphics.pose().popMatrix();
+            int bonus = table == null ? 0 : table.bonusAspects().amountOf(aspect);
+            AspectTagRenderer.render(graphics, font, (double) x, (double) y, aspect, pool().amount(AspectPools.idOf(aspect)), bonus, 0.0, AspectTagRenderer.BlendMode.ALPHA, alpha, false);
             if (mouseX >= x && mouseX < x + PALETTE_CELL && mouseY >= y && mouseY < y + PALETTE_CELL) {
                 hovered = aspect;
             }
