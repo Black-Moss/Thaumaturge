@@ -1,9 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
+import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemProperties;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessories;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessory;
+import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessoryBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.parts.IGolemFunction;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
@@ -11,6 +13,8 @@ import com.leclowndu93150.thaumaturge.content.entity.construct.ConstructFollowOw
 import com.leclowndu93150.thaumaturge.content.entity.construct.ConstructOwnerHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.construct.ConstructOwnerHurtTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityOwnedConstruct;
+import com.leclowndu93150.thaumaturge.content.golem.accessory.GolemAccessoryStateHolder;
+import com.leclowndu93150.thaumaturge.content.golem.accessory.GolemAccessoryStates;
 import com.leclowndu93150.thaumaturge.content.golem.ai.GotoBlockGoal;
 import com.leclowndu93150.thaumaturge.content.golem.ai.GotoEntityGoal;
 import com.leclowndu93150.thaumaturge.content.golem.ai.GotoHomeGoal;
@@ -23,6 +27,9 @@ import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.UnaryOperator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -43,6 +50,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -84,6 +92,9 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     private static final EntityDataAccessor<Byte> FLAGS = SynchedEntityData.defineId(EntityThaumaturgeGolem.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Byte> CLIMBING = SynchedEntityData.defineId(EntityThaumaturgeGolem.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<String> ACCESSORIES = SynchedEntityData.defineId(EntityThaumaturgeGolem.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<GolemAccessoryStates> ACCESSORY_STATES = SynchedEntityData.defineId(EntityThaumaturgeGolem.class, TCEntityDataSerializers.GOLEM_ACCESSORY_STATES.get());
+    private static final String ACCESSORY_STATES_KEY = "accessory_states";
+    private static final int ACCESSORY_SYNC_BUDGET_BYTES = 1024;
 
     private static final int FLAG_FOLLOWING = 1 << 1;
     private static final int FLAG_COMBAT = 1 << 3;
@@ -103,6 +114,8 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     public float grinderSpeed;
     int rankXp;
     private boolean firstRun = true;
+    private final GolemAccessoryStateHolder accessoryStates = new GolemAccessoryStateHolder(this);
+    private boolean accessorySyncOverBudget;
     private Task task;
 
     public EntityThaumaturgeGolem(EntityType<? extends EntityThaumaturgeGolem> type, Level level) {
@@ -123,6 +136,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         entityData.define(FLAGS, (byte) 0);
         entityData.define(CLIMBING, (byte) 0);
         entityData.define(ACCESSORIES, "");
+        entityData.define(ACCESSORY_STATES, GolemAccessoryStates.EMPTY);
     }
 
     public String getAccessoryString() {
@@ -144,7 +158,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         return accessories;
     }
 
-    private boolean addAccessory(GolemAccessory accessory) {
+    private boolean addAccessory(GolemAccessory accessory, ItemStack attachedStack) {
         List<GolemAccessory> current = getAccessories();
         for (GolemAccessory worn : current) {
             if (worn == accessory) {
@@ -156,6 +170,8 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         }
         String joined = entityData.get(ACCESSORIES);
         entityData.set(ACCESSORIES, joined.isEmpty() ? accessory.id().toString() : joined + "," + accessory.id());
+        accessoryStates.attach(accessory, attachedStack.copyWithCount(1));
+        syncAccessoryStates();
         updateEntityAttributes();
         return true;
     }
@@ -166,11 +182,53 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         }
         for (GolemAccessory accessory : getAccessories()) {
             ItemStack stack = ItemGolemAccessory.stackFor(accessory);
+            accessoryStates.remove(accessory, stack);
             if (!stack.isEmpty()) {
+                stack.setCount(1);
                 spawnAtLocation(serverLevel, stack, 0.5F);
             }
         }
+        accessoryStates.clear();
         entityData.set(ACCESSORIES, "");
+        syncAccessoryStates();
+    }
+
+    private void syncAccessoryStates() {
+        GolemAccessoryStates synced = accessoryStates.synced();
+        int size = synced.slots().isEmpty() ? 0 : synced.encodedSize(registryAccess());
+        if (size > ACCESSORY_SYNC_BUDGET_BYTES) {
+            if (!accessorySyncOverBudget) {
+                accessorySyncOverBudget = true;
+                Thaumaturge.LOGGER.error("Golem {} accessory states encode to {} bytes, over the {} byte sync budget; clients keep the last state that fit", getUUID(), size,
+                        ACCESSORY_SYNC_BUDGET_BYTES);
+            }
+            return;
+        }
+        accessorySyncOverBudget = false;
+        entityData.set(ACCESSORY_STATES, synced);
+    }
+
+    @Override
+    public Optional<UUID> ownerIdentity() {
+        EntityReference<LivingEntity> owner = getOwnerReference();
+        return owner == null ? Optional.empty() : Optional.of(owner.getUUID());
+    }
+
+    @Override
+    public <S> Optional<S> accessoryState(GolemAccessoryBehavior<S> behavior) {
+        return level().isClientSide() ? entityData.get(ACCESSORY_STATES).state(behavior) : accessoryStates.state(behavior);
+    }
+
+    @Override
+    public <S> boolean updateAccessoryState(GolemAccessoryBehavior<S> behavior, UnaryOperator<S> update) {
+        if (level().isClientSide()) {
+            throw new IllegalStateException("Golem accessory state is server authoritative");
+        }
+        if (!accessoryStates.update(behavior, update)) {
+            return false;
+        }
+        syncAccessoryStates();
+        return true;
     }
 
     private float accessoryRegenFactor() {
@@ -414,6 +472,9 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             if (level() instanceof ServerLevel serverLevel && !serverLevel.isPvpAllowed() && getTarget() instanceof Player) {
                 setTarget(null);
             }
+            if (accessoryStates.tick()) {
+                syncAccessoryStates();
+            }
             int healInterval = (int) ((props.hasTrait(TCGolemTraits.REPAIR.get()) ? 40 : 100) * accessoryRegenFactor());
             if (tickCount % Math.max(1, healInterval) == 0) {
                 heal(1.0F);
@@ -543,7 +604,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             return InteractionResult.SUCCESS_SERVER;
         }
         if (player.getItemInHand(hand).getItem() instanceof ItemGolemAccessory accessoryItem) {
-            if (addAccessory(accessoryItem.accessory())) {
+            if (addAccessory(accessoryItem.accessory(), player.getItemInHand(hand))) {
                 playSound(TCSounds.CLACK.get(), 1.0F, 1.0F);
                 player.getItemInHand(hand).shrink(1);
                 player.swing(hand, true);
@@ -863,6 +924,9 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         output.putInt("rankXP", rankXp);
         output.putByte("color", getGolemColor());
         output.putString("accessories", entityData.get(ACCESSORIES));
+        if (!accessoryStates.isEmpty()) {
+            accessoryStates.save(output.child(ACCESSORY_STATES_KEY));
+        }
     }
 
     @Override
@@ -874,6 +938,8 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         rankXp = input.getIntOr("rankXP", 0);
         setGolemColor(input.getByteOr("color", (byte) 0));
         entityData.set(ACCESSORIES, input.getStringOr("accessories", ""));
+        accessoryStates.load(input.childOrEmpty(ACCESSORY_STATES_KEY), getAccessories());
+        syncAccessoryStates();
         updateEntityAttributes();
     }
 
