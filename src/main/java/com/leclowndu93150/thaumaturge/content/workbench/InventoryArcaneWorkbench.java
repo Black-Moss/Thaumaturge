@@ -12,6 +12,8 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public class InventoryArcaneWorkbench extends SimpleContainer implements IArcaneWorkbench, CraftingContainer {
     public static final int CRAFTING_SLOTS = 9;
@@ -20,6 +22,7 @@ public class InventoryArcaneWorkbench extends SimpleContainer implements IArcane
     public static final int SIZE = WAND_SLOT + 1;
 
     private final List<Runnable> changeListeners = new ArrayList<>();
+    private final ContentsJournal journal = new ContentsJournal();
 
     public InventoryArcaneWorkbench() {
         super(SIZE);
@@ -51,6 +54,11 @@ public class InventoryArcaneWorkbench extends SimpleContainer implements IArcane
             return SlotWorkbenchWand.isUsableWand(stack);
         }
         return super.canPlaceItem(slot, stack);
+    }
+
+    public void setItem(int slot, ItemStack stack, TransactionContext transaction) {
+        journal.updateSnapshots(transaction);
+        getItems().set(slot, stack);
     }
 
     public void addChangedListener(Runnable listener) {
@@ -90,5 +98,32 @@ public class InventoryArcaneWorkbench extends SimpleContainer implements IArcane
 
     public ArcaneCraftingInput asArcaneCraftInput() {
         return ArcaneCraftingInput.of(3, 3, getItems());
+    }
+
+    public ArcaneCraftingInput.Positioned asPositionedArcaneCraftInput() {
+        return ArcaneCraftingInput.ofPositioned(3, 3, getItems());
+    }
+
+    public CraftingInput.Positioned asPositionedCraftInput() {
+        return CraftingInput.ofPositioned(3, 3, getItems().subList(0, CRAFTING_SLOTS));
+    }
+
+    private final class ContentsJournal extends SnapshotJournal<List<ItemStack>> {
+        @Override
+        protected List<ItemStack> createSnapshot() {
+            return getItems().stream().map(ItemStack::copy).toList();
+        }
+
+        @Override
+        protected void revertToSnapshot(List<ItemStack> snapshot) {
+            for (int slot = 0; slot < snapshot.size(); slot++) {
+                getItems().set(slot, snapshot.get(slot));
+            }
+        }
+
+        @Override
+        protected void onRootCommit(List<ItemStack> original) {
+            setChanged();
+        }
     }
 }

@@ -61,7 +61,7 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe {
     }
 
     public boolean matches(IArcaneCraftingInput input, Level level) {
-        return super.matches(input, level) && this.pattern.matches(input);
+        return this.pattern.matches(input);
     }
 
     public ItemStack assemble(IArcaneCraftingInput input) {

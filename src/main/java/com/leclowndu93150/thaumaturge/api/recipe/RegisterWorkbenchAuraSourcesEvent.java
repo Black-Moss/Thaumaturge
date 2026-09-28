@@ -6,21 +6,21 @@ import net.neoforged.bus.api.Event;
 import net.neoforged.fml.event.IModBusEvent;
 
 /**
- * Lets addons register {@link IWorkbenchVisSource}s that help pay for arcane crafts. Posted once
- * during common setup to every mod's event bus, after all mods are constructed. Sources are
- * consulted in registration order.
+ * Lets addons register {@link IWorkbenchAuraSource}s that pay the aura part of crafts at hosts
+ * other than a Thaumaturge arcane workbench. Posted once during common setup to every mod's event
+ * bus, after all mods are constructed. Sources are consulted in registration order.
  *
  * @since 1.0.0
  */
-public final class RegisterWorkbenchVisSourcesEvent extends Event implements IModBusEvent {
-    private final List<IWorkbenchVisSource> sources = new ArrayList<>();
+public final class RegisterWorkbenchAuraSourcesEvent extends Event implements IModBusEvent {
+    private final List<IWorkbenchAuraSource> sources = new ArrayList<>();
 
     /**
-     * Registers a vis source.
+     * Registers an aura source.
      *
      * @param source the source to add
      */
-    public void register(IWorkbenchVisSource source) {
+    public void register(IWorkbenchAuraSource source) {
         sources.add(source);
     }
 
@@ -30,7 +30,7 @@ public final class RegisterWorkbenchVisSourcesEvent extends Event implements IMo
      *
      * @return an unmodifiable copy of the registered sources
      */
-    public List<IWorkbenchVisSource> sources() {
+    public List<IWorkbenchAuraSource> sources() {
         return List.copyOf(sources);
     }
 }

@@ -16,6 +16,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public final class AuraManager {
@@ -110,6 +112,21 @@ public final class AuraManager {
         float take = Math.min(amount, ac.getVis());
         boolean ok = modifyVisInChunk(level, pos, ac, -take, !simulate);
         return ok ? take : 0.0F;
+    }
+
+    public static float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction) {
+        AuraData ac = getAuraChunk(level, pos);
+        if (ac == null || amount <= 0.0F) {
+            return 0.0F;
+        }
+        float take = Math.min(amount, ac.getVis());
+        if (take <= 0.0F) {
+            return 0.0F;
+        }
+        ac.setVis(ac.getVis() - take, transaction);
+        BlockPos anchor = pos.immutable();
+        new RootCommitJournal(() -> markChunkDirty(level, anchor)).updateSnapshots(transaction);
+        return take;
     }
 
     public static float drainFlux(Level level, BlockPos pos, float amount, boolean simulate) {
