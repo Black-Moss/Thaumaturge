@@ -1,10 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.aura.relay;
 
 import com.leclowndu93150.thaumaturge.Thaumaturge;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -24,10 +26,17 @@ public final class BlockEntityVisRelay extends BlockEntity {
     public static final int LINK_RANGE = 8;
     public static final int HOP_CAP = 16;
 
+    public static final int PULSE_TICKS = 5;
     private static final int RELINK_INTERVAL = 40;
+    private static final int PULSE_EVENT = 0;
+    private static final long NO_PULSE = -1000L;
+    private static final int WHITE = 0xFFFFFF;
 
     private @Nullable BlockPos parentPos;
     private int depth;
+    private long lastPulseSent = NO_PULSE;
+    private long pulseStart = NO_PULSE;
+    private int pulseColor = WHITE;
 
     public BlockEntityVisRelay(BlockPos pos, BlockState state) {
         super(TCBlockEntities.VIS_RELAY.get(), pos, state);
@@ -43,6 +52,49 @@ public final class BlockEntityVisRelay extends BlockEntity {
 
     public boolean isLinked() {
         return parentPos != null && depth > 0;
+    }
+
+    public long pulseStart() {
+        return pulseStart;
+    }
+
+    public int pulseColor() {
+        return pulseColor;
+    }
+
+    public void triggerConsumeEffect(ServerLevel level, Holder<IAspect> aspect) {
+        long now = level.getGameTime();
+        if (!aspect.value().isPrimal() || now - lastPulseSent < PULSE_TICKS) {
+            return;
+        }
+        lastPulseSent = now;
+        level.blockEvent(worldPosition, getBlockState().getBlock(), PULSE_EVENT, aspect.value().color());
+    }
+
+    @Override
+    public boolean triggerEvent(int id, int param) {
+        if (id != PULSE_EVENT) {
+            return super.triggerEvent(id, param);
+        }
+        if (level != null && level.isClientSide()) {
+            long now = level.getGameTime();
+            startPulse(param, now);
+            BlockPos next = parentPos;
+            for (int hop = 0; next != null && hop < HOP_CAP && level.getBlockEntity(next) instanceof BlockEntityVisRelay parent && !parent.isPulsing(now); hop++) {
+                parent.startPulse(param, now);
+                next = parent.parentPos;
+            }
+        }
+        return true;
+    }
+
+    private void startPulse(int color, long now) {
+        pulseColor = color;
+        pulseStart = now;
+    }
+
+    private boolean isPulsing(long now) {
+        return now - pulseStart < PULSE_TICKS;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityVisRelay relay) {

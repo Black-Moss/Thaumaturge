@@ -79,7 +79,7 @@ ordering = "AFTER"
 side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "curios"
-type = "optional"
+type = "required"
 versionRange = "[15.0.0-beta,)"
 ordering = "AFTER"
 side = "BOTH"

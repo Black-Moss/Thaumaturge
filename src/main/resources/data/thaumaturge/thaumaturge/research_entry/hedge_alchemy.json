@@ -96,7 +96,11 @@
         "thaumaturge:crucible/clay_ball",
         "thaumaturge:crucible/string",
         "thaumaturge:crucible/cobweb",
-        "thaumaturge:crucible/lava_bucket"
+        "thaumaturge:crucible/lava_bucket",
+        "thaumaturge:crucible/mossy_cobblestone",
+        "thaumaturge:crucible/ice",
+        "thaumaturge:crucible/cracked_stone_bricks",
+        "thaumaturge:crucible/bone_meal"
       ],
       "craft": [
         {
@@ -145,7 +149,11 @@
         "thaumaturge:crucible/clay_ball",
         "thaumaturge:crucible/string",
         "thaumaturge:crucible/cobweb",
-        "thaumaturge:crucible/lava_bucket"
+        "thaumaturge:crucible/lava_bucket",
+        "thaumaturge:crucible/mossy_cobblestone",
+        "thaumaturge:crucible/ice",
+        "thaumaturge:crucible/cracked_stone_bricks",
+        "thaumaturge:crucible/bone_meal"
       ]
     }
   ],

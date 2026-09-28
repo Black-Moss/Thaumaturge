@@ -212,6 +212,7 @@ public final class TCCreativeTabs {
                 }
                 output.accept(TCItems.BANNER_CRIMSON_CULT.get());
                 output.accept(TCItems.TALLOW.get());
+                output.accept(TCItems.TALLOW_BLOCK.get());
                 output.accept(TCItems.WARDED_GLASS.get());
                 output.accept(TCItems.ARCANE_DOOR.get());
                 output.accept(TCItems.ARCANE_PRESSURE_PLATE.get());

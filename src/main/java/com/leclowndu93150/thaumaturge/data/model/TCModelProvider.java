@@ -258,6 +258,7 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
         registerItemGrate(blockModels, itemModels);
         registerGolemFetter(blockModels, itemModels);
+        registerTallowBlock(blockModels, itemModels);
         registerArcaneLocks(blockModels, itemModels);
 
         registerInvisibleBlock(blockModels, TCBlocks.GOLEM_BUILDER.get());
@@ -384,6 +385,15 @@ public final class TCModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(fetter)
                 .with(PropertyDispatch.initial(BlockGolemFetter.POWERED).select(false, BlockModelGenerators.plainVariant(off)).select(true, BlockModelGenerators.plainVariant(powered))));
         itemModels.itemModelOutput.accept(TCItems.GOLEM_FETTER.get(), ItemModelUtils.plainModel(off));
+    }
+
+    private static void registerTallowBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Block block = TCBlocks.TALLOW_BLOCK.get();
+        Material side = TextureMapping.getBlockTexture(block);
+        Identifier model = ModelTemplates.CUBE_BOTTOM_TOP.create(block,
+                new TextureMapping().put(TextureSlot.BOTTOM, side).put(TextureSlot.SIDE, side).put(TextureSlot.TOP, TextureMapping.getBlockTexture(block, "_top")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block, BlockModelGenerators.plainVariant(model)));
+        itemModels.itemModelOutput.accept(TCItems.TALLOW_BLOCK.get(), ItemModelUtils.plainModel(model));
     }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {

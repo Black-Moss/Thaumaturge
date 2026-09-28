@@ -6,6 +6,11 @@ import org.jspecify.annotations.Nullable;
 
 public final class VisRelayRenderState extends BlockEntityRenderState {
     public @Nullable Vec3 beamTarget;
-    public float ticks;
-    public long time;
+    public float scroll;
+    public float red = 1.0F;
+    public float green = 1.0F;
+    public float blue = 1.0F;
+    public float opacity;
+    public boolean revealing;
+    public int flareFrame;
 }
