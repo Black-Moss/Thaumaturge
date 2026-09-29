@@ -11,6 +11,7 @@ import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagCopyingItemTagProvider;
@@ -106,13 +107,21 @@ public final class TCItemTagsProvider extends BlockTagCopyingItemTagProvider {
         tag(ItemTags.HOES).add(TCItems.THAUMIUM_HOE.get(), TCItems.VOID_HOE.get(), TCItems.ELEMENTAL_HOE.get());
         tag(ItemTags.SPEARS).add(TCItems.THAUMIUM_SPEAR.get(), TCItems.VOID_SPEAR.get(), TCItems.ELEMENTAL_SPEAR.get());
 
-        tag(ItemTags.HEAD_ARMOR).add(TCItems.THAUMIUM_HELM.get(), TCItems.VOID_HELM.get(), TCItems.VOID_ROBE_HELM.get(), TCItems.FORTRESS_HELM.get(), TCItems.CRIMSON_PLATE_HELM.get(),
-                TCItems.CRIMSON_ROBE_HELM.get(), TCItems.CRIMSON_PRAETOR_HELM.get(), TCItems.GOGGLES_REVEALING.get());
-        tag(ItemTags.CHEST_ARMOR).add(TCItems.THAUMIUM_CHEST.get(), TCItems.VOID_CHEST.get(), TCItems.VOID_ROBE_CHEST.get(), TCItems.FORTRESS_CHEST.get(), TCItems.CLOTH_CHEST.get(),
-                TCItems.CRIMSON_PLATE_CHEST.get(), TCItems.CRIMSON_ROBE_CHEST.get(), TCItems.CRIMSON_PRAETOR_CHEST.get());
-        tag(ItemTags.LEG_ARMOR).add(TCItems.THAUMIUM_LEGS.get(), TCItems.VOID_LEGS.get(), TCItems.VOID_ROBE_LEGS.get(), TCItems.FORTRESS_LEGS.get(), TCItems.CLOTH_LEGS.get(),
-                TCItems.CRIMSON_PLATE_LEGS.get(), TCItems.CRIMSON_ROBE_LEGS.get(), TCItems.CRIMSON_PRAETOR_LEGS.get());
-        tag(ItemTags.FOOT_ARMOR).add(TCItems.THAUMIUM_BOOTS.get(), TCItems.VOID_BOOTS.get(), TCItems.TRAVELLER_BOOTS.get(), TCItems.CLOTH_BOOTS.get(), TCItems.CRIMSON_BOOTS.get());
+        Item[] helmets = {TCItems.THAUMIUM_HELM.get(), TCItems.VOID_HELM.get(), TCItems.VOID_ROBE_HELM.get(), TCItems.FORTRESS_HELM.get(), TCItems.CRIMSON_PLATE_HELM.get(),
+                TCItems.CRIMSON_ROBE_HELM.get(), TCItems.CRIMSON_PRAETOR_HELM.get(), TCItems.GOGGLES_REVEALING.get()};
+        Item[] chestplates = {TCItems.THAUMIUM_CHEST.get(), TCItems.VOID_CHEST.get(), TCItems.VOID_ROBE_CHEST.get(), TCItems.FORTRESS_CHEST.get(), TCItems.CLOTH_CHEST.get(),
+                TCItems.CRIMSON_PLATE_CHEST.get(), TCItems.CRIMSON_ROBE_CHEST.get(), TCItems.CRIMSON_PRAETOR_CHEST.get()};
+        Item[] leggings = {TCItems.THAUMIUM_LEGS.get(), TCItems.VOID_LEGS.get(), TCItems.VOID_ROBE_LEGS.get(), TCItems.FORTRESS_LEGS.get(), TCItems.CLOTH_LEGS.get(), TCItems.CRIMSON_PLATE_LEGS.get(),
+                TCItems.CRIMSON_ROBE_LEGS.get(), TCItems.CRIMSON_PRAETOR_LEGS.get()};
+        Item[] boots = {TCItems.THAUMIUM_BOOTS.get(), TCItems.VOID_BOOTS.get(), TCItems.TRAVELLER_BOOTS.get(), TCItems.CLOTH_BOOTS.get(), TCItems.CRIMSON_BOOTS.get()};
+        tag(ItemTags.HEAD_ARMOR).add(helmets);
+        tag(TCItemTags.ARMORS_HELMETS).add(helmets);
+        tag(ItemTags.CHEST_ARMOR).add(chestplates);
+        tag(TCItemTags.ARMORS_CHESTPLATES).add(chestplates);
+        tag(ItemTags.LEG_ARMOR).add(leggings);
+        tag(TCItemTags.ARMORS_LEGGINGS).add(leggings);
+        tag(ItemTags.FOOT_ARMOR).add(boots);
+        tag(TCItemTags.ARMORS_BOOTS).add(boots);
 
         tag(Tags.Items.MELEE_WEAPON_TOOLS).add(TCItems.THAUMIUM_SWORD.get(), TCItems.VOID_SWORD.get(), TCItems.ELEMENTAL_SWORD.get(), TCItems.CRIMSON_BLADE.get(), TCItems.THAUMIUM_AXE.get(),
                 TCItems.VOID_AXE.get(), TCItems.ELEMENTAL_AXE.get(), TCItems.THAUMIUM_SPEAR.get(), TCItems.VOID_SPEAR.get(), TCItems.ELEMENTAL_SPEAR.get());
