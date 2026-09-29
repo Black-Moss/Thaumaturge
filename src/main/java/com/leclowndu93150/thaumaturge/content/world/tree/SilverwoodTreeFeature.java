@@ -22,6 +22,13 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
     private static final int FLOWER_ATTEMPTS = 18;
     private static final int FLOWER_XZ_SPREAD = 8;
     private static final int FLOWER_Y_SPREAD = 4;
+    private static final int WORLDGEN_CLEARANCE_RADIUS = 12;
+    private static final int WORLDGEN_CLEARANCE_BELOW = 8;
+    private static final int WORLDGEN_CLEARANCE_ABOVE = 8;
+    private static final int CANOPY_CHECK_RADIUS = 5;
+    private static final int CANOPY_CHECK_BELOW_TOP = 5;
+    private static final int CANOPY_CHECK_ABOVE_TOP = 5;
+    private static final int TRUNK_CHECK_RADIUS_SQ = 4;
 
     public SilverwoodTreeFeature(Codec<SilverwoodTreeConfig> codec) {
         super(codec);
@@ -69,6 +76,12 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         if (!soil.is(BlockTags.SUBSTRATE_OVERWORLD) && !soil.is(Blocks.FARMLAND)) {
             return false;
         }
+        if (config.node() && hasNearbySilverwood(level, origin, height, config.log())) {
+            return false;
+        }
+        if (config.node() && hasTreeInCanopySpace(level, origin, height)) {
+            return false;
+        }
 
         Set<BlockPos> placedLogs = new HashSet<>();
         Set<BlockPos> placedLeaves = new HashSet<>();
@@ -99,6 +112,10 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
                     }
                 }
             }
+        }
+
+        if (config.node()) {
+            NodeGenerator.createRandomNodeAt(level, new BlockPos(x, y + height - 1, z), random, true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
         }
 
         int trunkY;
@@ -158,16 +175,46 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         placeLog(level, x, y + height - 4, z - 2, config, placedLogs, Direction.Axis.Z);
         placeLog(level, x, y + height - 4, z + 2, config, placedLogs, Direction.Axis.Z);
 
-        if (config.node()) {
-            BlockPos nodePos = new BlockPos(x, y + height - 1, z);
-            if (NodeGenerator.createRandomNodeAt(level, nodePos, random, true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)) {
-                placedLogs.remove(nodePos);
-            }
-        }
-
         TreeLeafUpdater.run(level, placedLogs, placedLeaves, freshLeaves);
         config.flower().ifPresent(flower -> generateFlowers(level, random, origin, flower));
         return true;
+    }
+
+    private static boolean hasNearbySilverwood(WorldGenLevel level, BlockPos origin, int height, Block log) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int dx = -WORLDGEN_CLEARANCE_RADIUS; dx <= WORLDGEN_CLEARANCE_RADIUS; dx++) {
+            for (int dz = -WORLDGEN_CLEARANCE_RADIUS; dz <= WORLDGEN_CLEARANCE_RADIUS; dz++) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                for (int dy = -WORLDGEN_CLEARANCE_BELOW; dy <= height + WORLDGEN_CLEARANCE_ABOVE; dy++) {
+                    if (level.getBlockState(cursor.setWithOffset(origin, dx, dy, dz)).is(log)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasTreeInCanopySpace(WorldGenLevel level, BlockPos origin, int height) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        int canopyStart = height - CANOPY_CHECK_BELOW_TOP;
+        int canopyEnd = height + CANOPY_CHECK_ABOVE_TOP;
+        for (int dx = -CANOPY_CHECK_RADIUS; dx <= CANOPY_CHECK_RADIUS; dx++) {
+            for (int dz = -CANOPY_CHECK_RADIUS; dz <= CANOPY_CHECK_RADIUS; dz++) {
+                for (int dy = -1; dy <= canopyEnd; dy++) {
+                    if (dy < canopyStart && dx * dx + dz * dz > TRUNK_CHECK_RADIUS_SQ) {
+                        continue;
+                    }
+                    BlockState state = level.getBlockState(cursor.setWithOffset(origin, dx, dy, dz));
+                    if (state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static void placeLog(WorldGenLevel level, int x, int y, int z, SilverwoodTreeConfig config, Set<BlockPos> placedLogs, Direction.Axis axis) {
