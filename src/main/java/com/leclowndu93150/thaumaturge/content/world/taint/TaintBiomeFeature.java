@@ -62,7 +62,7 @@ public final class TaintBiomeFeature extends Feature<TaintBiomeConfig> {
 
     private static boolean placeFibre(WorldGenLevel level, TaintBiomeConfig config, int x, int z, boolean onDirt) {
         BlockPos ground = ground(level, x, z, config.groundSearchDepth());
-        if (ground == null || onDirt && !level.getBlockState(ground).is(BlockTags.DIRT)) {
+        if (ground == null || onDirt && !level.getBlockState(ground).is(BlockTags.SUBSTRATE_OVERWORLD)) {
             return false;
         }
         BlockPos target = ground.above();

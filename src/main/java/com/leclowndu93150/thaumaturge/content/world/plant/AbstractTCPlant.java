@@ -64,6 +64,6 @@ public abstract class AbstractTCPlant extends VegetationBlock {
     }
 
     protected static boolean isGrassOrDirt(BlockState state) {
-        return state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(BlockTags.DIRT);
+        return state.is(BlockTags.SUBSTRATE_OVERWORLD);
     }
 }
