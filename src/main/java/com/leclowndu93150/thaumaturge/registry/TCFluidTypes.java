@@ -17,7 +17,7 @@ public final class TCFluidTypes {
     public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, TCIds.MODID);
 
     public static final DeferredHolder<FluidType, FluxGooFluidType> FLUX_GOO = FLUID_TYPES.register("flux_goo",
-            () -> new FluxGooFluidType(FluidType.Properties.create().descriptionId("fluid_type.thaumaturge.flux_goo").viscosity(6000).density(8).canSwim(false).canDrown(false).canPushEntity(true)
+            () -> new FluxGooFluidType(FluidType.Properties.create().descriptionId("fluid_type.thaumaturge.flux_goo").viscosity(6000).density(8).canSwim(false).canDrown(false).canPushEntity(false)
                     .canExtinguish(false).canConvertToSource(false).sound(SoundActions.BUCKET_FILL, TCSounds.GORE.get()).sound(SoundActions.BUCKET_EMPTY, TCSounds.GORE.get())
                     .sound(SoundActions.FLUID_VAPORIZE, SoundEvents.FIRE_EXTINGUISH).rarity(Rarity.UNCOMMON)));
 

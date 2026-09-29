@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -156,6 +157,9 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock {
         if (aboveState.getBlock() instanceof LiquidBlock && !PhysicalFlux.isPhysicalFlux(aboveState)) {
             level.setBlock(above, gasBlockState(amount), Block.UPDATE_ALL);
             level.setBlock(pos, aboveState, Block.UPDATE_ALL);
+            FluidState displaced = aboveState.getFluidState();
+            level.scheduleTick(pos, displaced.getType(), displaced.getType().getTickDelay(level));
+            level.scheduleTick(above, this, TICK_DELAY);
             return 0;
         }
         int aboveAmount = room(level, above);

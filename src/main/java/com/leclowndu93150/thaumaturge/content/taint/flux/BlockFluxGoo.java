@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock {
     public static final MapCodec<LiquidBlock> CODEC = simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
 
-    private static final int REPLACEABLE_AMOUNT_THRESHOLD = 5;
+    private static final int REPLACEABLE_AMOUNT_THRESHOLD = 2;
     private static final float AURA_FLOOR_PER_QUANTUM = 0.5F;
     private static final float TAINT_WEIGHT_PER_QUANTUM = 1.0F;
     private static final int OUTBREAK_COST = 0;
@@ -47,7 +47,7 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
     @Override
     protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
         FluidState fluidState = state.getFluidState();
-        return fluidState.getAmount() < REPLACEABLE_AMOUNT_THRESHOLD;
+        return fluidState.getAmount() <= REPLACEABLE_AMOUNT_THRESHOLD;
     }
 
     @Override
