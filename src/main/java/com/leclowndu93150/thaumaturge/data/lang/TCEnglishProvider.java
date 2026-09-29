@@ -875,6 +875,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.cloth_legs", "Apprentice's Leggings");
         add("item.thaumaturge.cloth_boots", "Apprentice's Boots");
 
+        add("block.thaumaturge.candle_holder_brass", "Brass Candle Holder");
+        add("block.thaumaturge.candle_holder_thaumium", "Thaumium Candle Holder");
+        add("block.thaumaturge.candle_holder_void", "Void Metal Candle Holder");
         add("block.thaumaturge.candle_white", "White Tallow Candle");
         add("block.thaumaturge.banner_white", "White Banner");
         add("block.thaumaturge.wall_banner_white", "White Banner");
