@@ -21,6 +21,7 @@ import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 public final class TCRenderPipelines {
     private static final BlendFunction TC_ADDITIVE = new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE);
     private static final Identifier FX_FRAGMENT = Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_fx");
+    private static final float FX_ALPHA_TEST_THRESHOLD = 1.0F / 255.0F;
     private static final DepthStencilState TEST_NO_WRITE = new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false);
     private static final DepthStencilState ALWAYS_NO_WRITE = new DepthStencilState(CompareOp.ALWAYS_PASS, false);
 
@@ -29,6 +30,10 @@ public final class TCRenderPipelines {
 
     public static final RenderPipeline FX_ADDITIVE = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_additive"))
             .withFragmentShader(FX_FRAGMENT).withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withDepthStencilState(TEST_NO_WRITE).withCull(false).build();
+
+    public static final RenderPipeline FX_ADDITIVE_ALPHA_TEST = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
+            .withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_additive_alpha_test")).withFragmentShader(FX_FRAGMENT).withShaderDefine("ALPHA_CUTOUT", FX_ALPHA_TEST_THRESHOLD)
+            .withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withDepthStencilState(TEST_NO_WRITE).withCull(false).build();
 
     public static final RenderPipeline FX_TRANSLUCENT = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/fx_translucent"))
             .withFragmentShader(FX_FRAGMENT).withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withDepthStencilState(TEST_NO_WRITE).withCull(false).build();
@@ -94,6 +99,7 @@ public final class TCRenderPipelines {
     @SubscribeEvent
     static void register(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(FX_ADDITIVE);
+        event.registerPipeline(FX_ADDITIVE_ALPHA_TEST);
         event.registerPipeline(RIFT_GLOW);
         event.registerPipeline(RIFT_GLOW_NO_DEPTH);
         event.registerPipeline(RIFT_SOLID);
