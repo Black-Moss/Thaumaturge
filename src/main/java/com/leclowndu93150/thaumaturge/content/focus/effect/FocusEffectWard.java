@@ -5,18 +5,18 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.casters.CastContext;
 import com.leclowndu93150.thaumaturge.api.casters.FocusEffect;
+import com.leclowndu93150.thaumaturge.api.casters.FocusEngine;
 import com.leclowndu93150.thaumaturge.api.casters.FocusSettings;
 import com.leclowndu93150.thaumaturge.api.casters.FocusPackage;
 import com.leclowndu93150.thaumaturge.api.casters.FocusUnit;
 import com.leclowndu93150.thaumaturge.api.casters.Trajectory;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.content.focus.FocusFX;
-import com.leclowndu93150.thaumaturge.content.focus.medium.FocusMediumTouch;
+import com.leclowndu93150.thaumaturge.content.focus.medium.FocusMediumRoot;
 import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.content.warding.WardHandler;
 import com.leclowndu93150.thaumaturge.content.warding.ClientWardHolder;
-import com.leclowndu93150.thaumaturge.registry.TCFocusElements;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +54,7 @@ public final class FocusEffectWard implements FocusEffect {
     private static final float SPARKLE_SCALE_JITTER = 0.4F;
     private static final float ZAP_VOLUME = 0.25F;
     private static final float ZAP_PITCH = 1.0F;
+    private static final ResourceKey<IAspect> ASPECT = TCAspects.ORDO;
 
     @Override
     public Identifier id() {
@@ -61,11 +62,10 @@ public final class FocusEffectWard implements FocusEffect {
     }
 
     public static boolean removesOwnedWard(Player player, FocusPackage focus) {
-        List<FocusUnit> units = focus.units();
-        if (units.size() != 2 || !units.get(0).element().equals(TCFocusElements.TOUCH.getId()) || !units.get(1).element().equals(ID) || units.stream().anyMatch(unit -> !unit.branches().isEmpty())) {
+        if (!FocusEngine.effectIds(focus).equals(List.of(ID))) {
             return false;
         }
-        if (!(FocusMediumTouch.target(player) instanceof BlockHitResult blockHit)) {
+        if (!(player.pick(player.blockInteractionRange(), 0.0F, false) instanceof BlockHitResult blockHit)) {
             return false;
         }
         BlockPos pos = blockHit.getBlockPos();
@@ -75,6 +75,19 @@ public final class FocusEffectWard implements FocusEffect {
         return WardHandler.isWarded(player.level(), pos) && ClientWardHolder.isOwned(pos);
     }
 
+    public static boolean castStandalone(Player player, FocusPackage focus) {
+        if (!isStandaloneWardFocus(focus) || !(player.level() instanceof ServerLevel level)) {
+            return false;
+        }
+        return player.pick(player.blockInteractionRange(), 0.0F, false) instanceof BlockHitResult blockHit && applyAt(level, player, blockHit.getBlockPos());
+    }
+
+    private static boolean isStandaloneWardFocus(FocusPackage focus) {
+        List<FocusUnit> units = focus.units();
+        int first = !units.isEmpty() && units.getFirst().element().equals(FocusMediumRoot.KEY) ? 1 : 0;
+        return units.size() - first == 1 && units.get(first).element().equals(ID) && units.get(first).branches().isEmpty();
+    }
+
     @Override
     public ResearchGate research() {
         return new ResearchGate(TCIds.rl("focus_ward"), Optional.empty(), false);
@@ -82,7 +95,7 @@ public final class FocusEffectWard implements FocusEffect {
 
     @Override
     public ResourceKey<IAspect> aspect() {
-        return TCAspects.ORDO;
+        return ASPECT;
     }
 
     @Override
@@ -98,7 +111,10 @@ public final class FocusEffectWard implements FocusEffect {
         if (!(ctx.caster() instanceof Player player)) {
             return false;
         }
-        BlockPos pos = blockHit.getBlockPos();
+        return applyAt(level, player, blockHit.getBlockPos());
+    }
+
+    private static boolean applyAt(ServerLevel level, Player player, BlockPos pos) {
         UUID owner = player.getUUID();
         BlockPos partner = WardHandler.partner(level.getBlockState(pos), pos);
         if (WardHandler.isWarded(level, pos)) {
@@ -108,7 +124,7 @@ public final class FocusEffectWard implements FocusEffect {
             if (partner != null) {
                 WardHandler.unward(level, partner, owner);
             }
-            FocusFX.impact(level, Vec3.atCenterOf(pos), id());
+            FocusFX.impact(level, Vec3.atCenterOf(pos), ID);
             level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH);
             return true;
         }
@@ -116,7 +132,7 @@ public final class FocusEffectWard implements FocusEffect {
             return false;
         }
         float visCost = partner == null ? VIS_COST_PER_BLOCK : VIS_COST_PER_BLOCK * 2.0F;
-        if (!WandVisHelper.consumeVisFromHotbar(player, visCost, aspect(), false)) {
+        if (!WandVisHelper.consumeVisFromHotbar(player, visCost, ASPECT, false)) {
             return false;
         }
         if (!WardHandler.ward(level, pos, owner)) {
@@ -126,8 +142,8 @@ public final class FocusEffectWard implements FocusEffect {
             WardHandler.unward(level, pos, owner);
             return false;
         }
-        WandVisHelper.consumeVisFromHotbar(player, visCost, aspect(), true);
-        FocusFX.impact(level, Vec3.atCenterOf(pos), id());
+        WandVisHelper.consumeVisFromHotbar(player, visCost, ASPECT, true);
+        FocusFX.impact(level, Vec3.atCenterOf(pos), ID);
         level.playSound(null, pos, TCSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH);
         return true;
     }
