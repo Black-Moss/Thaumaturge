@@ -63,6 +63,9 @@ public final class TCRenderPipelines {
             .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withCull(false).build();
 
+    public static final RenderPipeline HOLE_SURFACE = RenderPipeline.builder(RIFT_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/hole_surface"))
+            .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_ender")).withCull(false).build();
+
     public static final RenderPipeline PORTAL_SURFACE = RenderPipeline.builder(RenderPipelines.END_PORTAL_SNIPPET).withLocation(Identifier.fromNamespaceAndPath(TCIds.MODID, "pipeline/portal_surface"))
             .withVertexShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_portal")).withFragmentShader(Identifier.fromNamespaceAndPath(TCIds.MODID, "core/tc_portal"))
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS).withCull(false).build();
@@ -103,6 +106,7 @@ public final class TCRenderPipelines {
         event.registerPipeline(RIFT_GLOW);
         event.registerPipeline(RIFT_GLOW_NO_DEPTH);
         event.registerPipeline(RIFT_SOLID);
+        event.registerPipeline(HOLE_SURFACE);
         event.registerPipeline(PORTAL_SURFACE);
         event.registerPipeline(FX_TRANSLUCENT);
         event.registerPipeline(FX_ADDITIVE_NO_DEPTH);
