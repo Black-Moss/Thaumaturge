@@ -384,7 +384,7 @@ public final class BigTreeFeature extends Feature<BigTreeConfig> {
             }
             BlockPos soilPos = trunkPos.below();
             BlockState soil = level.getBlockState(soilPos);
-            if (!soil.is(BlockTags.DIRT) && !soil.is(Blocks.FARMLAND)) {
+            if (!soil.is(BlockTags.SUBSTRATE_OVERWORLD) && !soil.is(Blocks.FARMLAND)) {
                 return false;
             }
             int clearance = checkBlockLine(from, to);

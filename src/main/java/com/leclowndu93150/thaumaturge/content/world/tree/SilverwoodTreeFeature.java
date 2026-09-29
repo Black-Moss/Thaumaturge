@@ -66,7 +66,7 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
             return false;
         }
         BlockState soil = level.getBlockState(origin.below());
-        if (!soil.is(BlockTags.DIRT) && !soil.is(Blocks.FARMLAND)) {
+        if (!soil.is(BlockTags.SUBSTRATE_OVERWORLD) && !soil.is(Blocks.FARMLAND)) {
             return false;
         }
 
