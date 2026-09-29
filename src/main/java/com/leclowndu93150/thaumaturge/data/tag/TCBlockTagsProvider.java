@@ -93,6 +93,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.OBSIDIAN_PLACEHOLDER.get()).add(TCBlocks.NETHER_BRICKS_PLACEHOLDER.get()).add(TCBlocks.INFERNAL_FURNACE.get()).add(TCBlocks.ARCANE_BORE.get());
 
         tag(BlockTags.NEEDS_IRON_TOOL).add(TCBlocks.METAL_THAUMIUM_BLOCK.get()).add(TCBlocks.METAL_BRASS_BLOCK.get()).add(TCBlocks.METAL_VOID_BLOCK.get());
+        tag(BlockTags.NEEDS_DIAMOND_TOOL).add(TCBlocks.OBSIDIAN_TILE.get()).add(TCBlocks.OBSIDIAN_TOTEM.get()).add(TCBlocks.OBSIDIAN_TOTEM_CHARGED.get());
 
         tag(BlockTags.LOGS).add(TCBlocks.TAINT_LOG.get());
 

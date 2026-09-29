@@ -720,13 +720,13 @@ public final class TCBlocks {
             .replaceable().noCollision().noOcclusion().lightLevel(state -> 7).randomTicks().noLootTable().pushReaction(PushReaction.DESTROY));
 
     public static final DeferredBlock<Block> OBSIDIAN_TILE = BLOCKS.registerBlock("obsidian_tile", Block::new,
-            props -> props.mapColor(MapColor.COLOR_BLACK).strength(30.0F, 999.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 1200.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
     public static final DeferredBlock<BlockObsidianTotem> OBSIDIAN_TOTEM = BLOCKS.registerBlock("obsidian_totem", BlockObsidianTotem::new,
-            props -> props.mapColor(MapColor.COLOR_BLACK).strength(30.0F, 999.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 1200.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
     public static final DeferredBlock<BlockObsidianTotemCharged> OBSIDIAN_TOTEM_CHARGED = BLOCKS.registerBlock("obsidian_totem_charged", BlockObsidianTotemCharged::new,
-            props -> props.mapColor(MapColor.COLOR_BLACK).strength(30.0F, 999.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 1200.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
 
     public static final DeferredBlock<Block> ELDRITCH_STONE = BLOCKS.registerBlock("eldritch_stone", Block::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
