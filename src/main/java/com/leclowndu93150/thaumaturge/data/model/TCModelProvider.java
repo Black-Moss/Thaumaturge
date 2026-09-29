@@ -86,6 +86,9 @@ public final class TCModelProvider extends ModelProvider {
     private static final int FOLIAGE_DEFAULT_COLOR = 0x48B518;
     private static final int INSET_DEPTH = 2;
     private static final int INSET_ALL_EXPOSED = 63;
+    private static final float INSET_GUI_SCALE = 0.8F;
+    private static final float INSET_HELD_SCALE = 0.5F;
+    private static final float INSET_GROUND_SCALE = 0.35F;
     private static final float SPEAR_SWAP_ANIMATION_SCALE = 1.95F;
 
     public TCModelProvider(PackOutput output) {
@@ -445,8 +448,38 @@ public final class TCModelProvider extends ModelProvider {
             JsonArray elements = new JsonArray();
             elements.add(element);
             root.add("elements", elements);
+            if (mask == INSET_ALL_EXPOSED) {
+                root.add("display", insetItemDisplay());
+            }
             return root;
         };
+    }
+
+    private static JsonObject insetItemDisplay() {
+        JsonObject display = new JsonObject();
+        display.add("gui", displayTransform(30, -135, 0, 0, 0, 0, INSET_GUI_SCALE));
+        display.add("thirdperson_righthand", displayTransform(75, 45, 0, 0, 3, 0, INSET_HELD_SCALE));
+        display.add("thirdperson_lefthand", displayTransform(75, 45, 0, 0, 3, 0, INSET_HELD_SCALE));
+        display.add("firstperson_righthand", displayTransform(0, 45, 0, 0, 0, 0, INSET_HELD_SCALE));
+        display.add("firstperson_lefthand", displayTransform(0, -45, 0, 0, 0, 0, INSET_HELD_SCALE));
+        display.add("ground", displayTransform(0, 0, 0, 0, 2.5F, 0, INSET_GROUND_SCALE));
+        return display;
+    }
+
+    private static JsonObject displayTransform(float rotX, float rotY, float rotZ, float moveX, float moveY, float moveZ, float scale) {
+        JsonObject transform = new JsonObject();
+        transform.add("rotation", floatTriple(rotX, rotY, rotZ));
+        transform.add("translation", floatTriple(moveX, moveY, moveZ));
+        transform.add("scale", floatTriple(scale, scale, scale));
+        return transform;
+    }
+
+    private static JsonArray floatTriple(float x, float y, float z) {
+        JsonArray values = new JsonArray();
+        values.add(x);
+        values.add(y);
+        values.add(z);
+        return values;
     }
 
     private static JsonArray insetCoords(int x, int y, int z) {
