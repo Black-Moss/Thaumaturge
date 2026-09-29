@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.taint.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -35,5 +37,12 @@ public final class EntityTaintChicken extends Chicken implements ITaintedMob {
     @Override
     public boolean isFood(ItemStack stack) {
         return false;
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean hit = super.doHurtTarget(level, target);
+        TaintMobCombat.onHit(this, target, hit);
+        return hit;
     }
 }

@@ -1,8 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.taint.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -39,5 +41,12 @@ public final class EntityTaintCow extends Cow implements ITaintedMob {
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean hit = super.doHurtTarget(level, target);
+        TaintMobCombat.onHit(this, target, hit);
+        return hit;
     }
 }
