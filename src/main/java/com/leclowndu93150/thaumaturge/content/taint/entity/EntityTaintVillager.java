@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -45,5 +46,12 @@ public final class EntityTaintVillager extends Villager implements ITaintedMob, 
         if (source instanceof Villager villager) {
             setVillagerData(villager.getVillagerData());
         }
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
+        boolean hit = super.doHurtTarget(level, target);
+        TaintMobCombat.onHit(this, target, hit);
+        return hit;
     }
 }
