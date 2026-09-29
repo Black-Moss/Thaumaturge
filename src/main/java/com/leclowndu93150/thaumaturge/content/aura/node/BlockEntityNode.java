@@ -94,6 +94,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final float BRIGHTEN_FILL_FRACTION = 0.9F;
     private static final int BRIGHTEN_CHANCE = 50;
     private static final double HUNGRY_PULL_RANGE = 15.0;
+    private static final double HUNGRY_ITEM_PULL_MARGIN = 0.5;
     private static final double HUNGRY_EAT_RANGE_SQ = 2.0;
     private static final int DARK_SPAWN_PLAYER_RANGE = 24;
     private static final int DARK_SPAWN_CAP = 3;
@@ -1004,7 +1005,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return change;
         }
         Vec3 center = Vec3.atCenterOf(pos);
-        List<Entity> targets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(HUNGRY_PULL_RANGE));
+        double itemPullRange = hungryBlockEatRange() + HUNGRY_ITEM_PULL_MARGIN;
+        List<Entity> targets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(Math.max(itemPullRange, HUNGRY_PULL_RANGE)));
         for (Entity target : targets) {
             if (target instanceof Player player && (player.isCreative() || player.isSpectator())) {
                 continue;
@@ -1019,7 +1021,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
                     change = true;
                 }
             }
-            Vec3 delta = center.subtract(target.position()).scale(1.0 / HUNGRY_PULL_RANGE);
+            double pullRange = target instanceof ItemEntity ? itemPullRange : HUNGRY_PULL_RANGE;
+            Vec3 delta = center.subtract(target.position()).scale(1.0 / pullRange);
             double length = delta.length();
             double power = 1.0 - length;
             if (power > 0.0) {

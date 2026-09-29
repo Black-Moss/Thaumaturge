@@ -102,7 +102,7 @@ public final class ThaumaturgeCommonConfig {
         builder.pop(2);
         HUNGRY_NODE_BLOCK_EAT_RANGE = builder.comment("Maximum length in blocks of a hungry node's random block-eating ray.",
                 "Default: 16. Range: 1 to 64. A larger area gives each attempt more possible targets; it does not guarantee a distant block will be selected.",
-                "This setting does not change entity or dropped-item pulling range.").defineInRange("hungryNodeBlockEatRange", 16, 1, 64);
+                "Dropped items are pulled from this range plus half a block. The entity pulling range is not affected.").defineInRange("hungryNodeBlockEatRange", 16, 1, 64);
         SCALE_HUNGRY_NODE_RANGE_BY_MODIFIER = builder.comment("Whether a hungry node's block-eating range scales with its current modifier (quality).",
                 "False: hungryNodeBlockEatRange is always used. True: the minimum/maximum settings below override hungryNodeBlockEatRange.",
                 "Fading uses the minimum, pale and normal are evenly spaced between them, and bright uses the maximum.").define("scaleHungryNodeBlockEatRangeByModifier", false);
