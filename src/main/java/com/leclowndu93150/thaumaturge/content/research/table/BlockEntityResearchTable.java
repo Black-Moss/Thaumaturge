@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.items.IScribeTools;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
+import com.leclowndu93150.thaumaturge.api.research.IResearchTableAid;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
 import com.leclowndu93150.thaumaturge.content.research.note.HexGrid;
 import com.leclowndu93150.thaumaturge.content.research.note.NoteGenerator;
@@ -23,6 +24,7 @@ import com.leclowndu93150.thaumaturge.registry.TCDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -76,6 +78,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
     private static final float EXPERTISE_REFUND_CHANCE = 0.25F;
     private static final float MASTERY_REFUND_CHANCE = 0.5F;
     private static final float MASTERY_FREE_CHANCE = 0.1F;
+    private static final float MAX_AID_SAVE_CHANCE = 0.5F;
 
     private static final Component TITLE = Component.translatable("gui.thaumaturge.research_table.title");
 
@@ -244,6 +247,8 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
                     return;
                 }
                 bonusAspects = bonusAspects.remove(aspect, 1);
+            } else if (random.nextFloat() < aidSaveChance()) {
+                playOrb(level, random);
             } else {
                 AspectPools.spend(player, aspect, 1);
             }
@@ -297,7 +302,25 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
             bonusAspects = bonusAspects.remove(aspect, 1);
             return true;
         }
+        if (AspectPools.amount(player, aspect) > 0 && player.getRandom().nextFloat() < aidSaveChance()) {
+            return true;
+        }
         return AspectPools.spend(player, aspect, 1);
+    }
+
+    private float aidSaveChance() {
+        Level level = getLevel();
+        if (level == null) {
+            return 0.0F;
+        }
+        Direction facing = getBlockState().getValue(BlockResearchTable.FACING);
+        return Math.min(MAX_AID_SAVE_CHANCE, aidChanceAbove(level, worldPosition) + aidChanceAbove(level, worldPosition.relative(facing)));
+    }
+
+    private static float aidChanceAbove(Level level, BlockPos tablePos) {
+        BlockPos top = tablePos.above();
+        BlockState state = level.getBlockState(top);
+        return state.getBlock() instanceof IResearchTableAid aid ? aid.aspectSaveChance(level, top, state) : 0.0F;
     }
 
     private @Nullable Holder<IAspect> combinationResult(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second) {
