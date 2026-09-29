@@ -6,7 +6,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.aura.VisRelayHelper;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
 import java.util.EnumMap;
 import java.util.List;
@@ -119,7 +119,12 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
         if (stored >= MAX_POWER) {
             return 0;
         }
-        return VisRelayHelper.drainCentivis(level, worldPosition, primal, Math.min(POWER_REQUEST, MAX_POWER - stored), false);
+        int request = Math.min(POWER_REQUEST, MAX_POWER - stored);
+        int drained = VisRelayNetwork.drainEverySourceNear(level, worldPosition, primal, request);
+        if (drained < request) {
+            drained += VisRelayNetwork.drainNodesNear(level, worldPosition, primal, request - drained);
+        }
+        return drained;
     }
 
     private boolean processInput() {
