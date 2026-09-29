@@ -14,9 +14,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class TaintEnvironmentClientEvents {
-    private static final float FOG_THRESHOLD = 0.3F;
-    private static final float FOG_RANGE = 0.7F;
-    private static final float MAX_FOG_INTENSITY = 0.75F;
+    private static final float FOG_FULL_PRESSURE = 0.4F;
+    private static final float MAX_FOG_INTENSITY = 0.95F;
     private static final float FOG_NEAR_PLANE = 2.0F;
     private static final float FOG_FAR_PLANE = 28.0F;
 
@@ -34,8 +33,8 @@ public final class TaintEnvironmentClientEvents {
     @SubscribeEvent
     public static void onRenderFog(ViewportEvent.RenderFog event) {
         float pressure = TaintEnvironmentHolder.pressure();
-        if (pressure >= FOG_THRESHOLD) {
-            FogPlanes.pullToward(event.getFogData(), Mth.clamp((pressure - FOG_THRESHOLD) / FOG_RANGE, 0.0F, MAX_FOG_INTENSITY), FOG_NEAR_PLANE, FOG_FAR_PLANE);
+        if (pressure > 0.0F) {
+            FogPlanes.pullToward(event.getFogData(), Mth.clamp(pressure / FOG_FULL_PRESSURE, 0.0F, MAX_FOG_INTENSITY), FOG_NEAR_PLANE, FOG_FAR_PLANE);
         }
     }
 

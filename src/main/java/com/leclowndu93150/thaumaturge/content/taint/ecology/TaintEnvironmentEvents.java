@@ -21,7 +21,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = TCIds.MODID)
 public final class TaintEnvironmentEvents {
-    private static final int SYNC_INTERVAL = 20;
+    private static final int SYNC_INTERVAL = 10;
+    private static final int BIOME_BLEND_RADIUS = 12;
+    private static final int BIOME_CENTER_WEIGHT = 4;
+    private static final int[][] BIOME_SAMPLES = {{0, 0}, {-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
     private static final float NATURAL_TAINT_AMBIENCE = 0.35F;
     private static final float CHANGED_TAINT_AMBIENCE = 0.55F;
     private static final float FUME_THRESHOLD = 0.3F;
@@ -49,16 +52,31 @@ public final class TaintEnvironmentEvents {
         ServerLevel level = player.level();
         BlockPos pos = player.blockPosition();
         float pressure = TaintEcology.getSaturation(level, pos);
-        float ambience = pressure;
-        if (TaintBiomeManager.isTainted(level, pos)) {
-            ambience = Math.max(ambience, TaintBiomeManager.isChangedColumn(level, pos) ? CHANGED_TAINT_AMBIENCE : NATURAL_TAINT_AMBIENCE);
-        }
+        float ambience = Math.max(pressure, biomeAmbience(level, pos));
         PacketDistributor.sendToPlayer(player, new ClientboundTaintEnvironmentPayload(ambience));
         spawnFumes(level, player, ambience);
         if (pressure >= SEVERE_ECOLOGY && !ThaumaturgeCommonConfig.WUSS_MODE.get() && level.getDifficulty() != Difficulty.PEACEFUL && player.tickCount % CRAWLER_INTERVAL == 0
                 && player.getRandom().nextInt(CRAWLER_CHANCE) == 0) {
             trySpawnAmbientCrawler(level, player);
         }
+    }
+
+    private static float biomeAmbience(ServerLevel level, BlockPos center) {
+        BlockPos.MutableBlockPos sample = new BlockPos.MutableBlockPos();
+        float weightedAmbience = 0.0F;
+        int totalWeight = 0;
+        for (int[] offset : BIOME_SAMPLES) {
+            sample.set(center.getX() + offset[0] * BIOME_BLEND_RADIUS, center.getY(), center.getZ() + offset[1] * BIOME_BLEND_RADIUS);
+            if (!level.hasChunkAt(sample)) {
+                continue;
+            }
+            int weight = offset[0] == 0 && offset[1] == 0 ? BIOME_CENTER_WEIGHT : 1;
+            totalWeight += weight;
+            if (TaintBiomeManager.isTainted(level, sample)) {
+                weightedAmbience += weight * (TaintBiomeManager.isChangedColumn(level, sample) ? CHANGED_TAINT_AMBIENCE : NATURAL_TAINT_AMBIENCE);
+            }
+        }
+        return totalWeight == 0 ? 0.0F : weightedAmbience / totalWeight;
     }
 
     private static void spawnFumes(ServerLevel level, ServerPlayer player, float ambience) {
