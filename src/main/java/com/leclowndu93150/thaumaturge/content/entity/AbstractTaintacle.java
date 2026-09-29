@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
-import com.leclowndu93150.thaumaturge.content.taint.block.AbstractTaintBlock;
 import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
@@ -90,12 +89,8 @@ public abstract class AbstractTaintacle extends Monster implements ITaintedMob {
             }
             return;
         }
-        if (this.tickCount % SUBSTRATE_CHECK_INTERVAL == 0) {
-            BlockState below = server.getBlockState(this.blockPosition().below());
-            BlockState here = server.getBlockState(this.blockPosition());
-            if (!(below.getBlock() instanceof AbstractTaintBlock) && !(here.getBlock() instanceof AbstractTaintBlock)) {
-                this.hurtServer(server, server.damageSources().starve(), STARVE_DAMAGE);
-            }
+        if (this.tickCount % SUBSTRATE_CHECK_INTERVAL == 0 && !server.getBiome(this.blockPosition()).is(TCBiomeTags.IS_TAINTED)) {
+            this.hurtServer(server, server.damageSources().starve(), STARVE_DAMAGE);
         }
     }
 
