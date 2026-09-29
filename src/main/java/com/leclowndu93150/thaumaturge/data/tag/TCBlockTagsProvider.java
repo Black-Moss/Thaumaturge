@@ -35,7 +35,7 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                         Blocks.PIGLIN_WALL_HEAD)
                 .add(Blocks.PISTON, Blocks.STICKY_PISTON, Blocks.PISTON_HEAD, Blocks.MOVING_PISTON);
         tag(TCBlockTags.TAINT_CONVERTIBLE_LOG).addTag(BlockTags.LOGS);
-        tag(TCBlockTags.TAINT_CONVERTIBLE_SOIL).addTag(BlockTags.SAND).addTag(BlockTags.DIRT).add(Blocks.CLAY);
+        tag(TCBlockTags.TAINT_CONVERTIBLE_SOIL).addTag(BlockTags.SAND).addTag(BlockTags.SUBSTRATE_OVERWORLD).add(Blocks.CLAY);
         tag(TCBlockTags.TAINT_CONVERTIBLE_ROCK).addTag(BlockTags.BASE_STONE_OVERWORLD).addTag(BlockTags.STONE_ORE_REPLACEABLES).addTag(BlockTags.STONE_BRICKS).addTag(Tags.Blocks.STONES)
                 .addTag(Tags.Blocks.COBBLESTONES).addTag(Tags.Blocks.ORES);
         tag(TCBlockTags.TAINT_CONVERTIBLE_CRUST).add(Blocks.RED_MUSHROOM_BLOCK).add(Blocks.BROWN_MUSHROOM_BLOCK).add(Blocks.MUSHROOM_STEM).add(Blocks.PUMPKIN).add(Blocks.CARVED_PUMPKIN)

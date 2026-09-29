@@ -139,7 +139,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
         BlockState below = level.getBlockState(task.getPos().below());
         Direction replantFace = null;
         boolean cocoa = state.getBlock() instanceof CocoaBlock;
-        if (!cocoa && below.is(BlockTags.DIRT) || below.getBlock() instanceof FarmlandBlock) {
+        if (!cocoa && below.is(BlockTags.SUBSTRATE_OVERWORLD) || below.getBlock() instanceof FarmlandBlock) {
             replantFace = Direction.DOWN;
         } else if (cocoa) {
             replantFace = state.getValue(CocoaBlock.FACING);
@@ -160,7 +160,7 @@ public class SealHarvest implements ISeal, ISealGui, ISealConfigArea, ISealConfi
         }
         FakePlayer player = TCFakePlayer.GOLEM.at(level, golem.getGolemEntity());
         BlockState below = level.getBlockState(task.getPos().below());
-        if (info.farmland && below.is(BlockTags.DIRT) && !(below.getBlock() instanceof FarmlandBlock)) {
+        if (info.farmland && below.is(BlockTags.SUBSTRATE_OVERWORLD) && !(below.getBlock() instanceof FarmlandBlock)) {
             ItemStack hoe = new ItemStack(Items.DIAMOND_HOE);
             player.setItemInHand(InteractionHand.MAIN_HAND, hoe);
             hoe.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(task.getPos().below()), Direction.UP, task.getPos().below(), false)));

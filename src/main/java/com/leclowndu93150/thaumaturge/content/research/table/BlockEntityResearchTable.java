@@ -164,7 +164,7 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
             return TCAspects.ORDO;
         if (state.is(TCBlocks.CRYSTAL_PERDITIO.get()) && random.nextInt(10) == 0)
             return TCAspects.PERDITIO;
-        if (state.is(BlockTags.DIRT) && random.nextInt(20) == 0)
+        if (state.is(BlockTags.SUBSTRATE_OVERWORLD) && random.nextInt(20) == 0)
             return TCAspects.TERRA;
         if (state.getFluidState().is(FluidTags.WATER) && random.nextInt(15) == 0)
             return TCAspects.AQUA;
