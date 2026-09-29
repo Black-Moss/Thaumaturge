@@ -829,8 +829,8 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .define('A', TCItems.TUBE_VALVE).define('V', TCItems.TUBE).define('I', TCItemTags.PLATES_IRON).define('P', TCItemTags.PLANKS_GREATWOOD).gate(gate("tubes"))
                 .unlockedBy("has", has(TCItemTags.PLATES_IRON)).save(output);
 
-        arcaneShaped(new ItemStackTemplate(TCItems.ADVANCED_ALCHEMICAL_CONSTRUCT), 200).aspect(TCAspects.TERRA).aspect(TCAspects.IGNIS).pattern(" A ").pattern("VPV").pattern(" A ")
-                .define('A', TCItems.ALCHEMICAL_CONSTRUCT).define('V', TCItemTags.PLATES_VOID_METAL).define('P', TCItems.PRIMORDIAL_PEARL).gate(gate("essentia_smelter_void", 0))
+        arcaneShaped(new ItemStackTemplate(TCItems.ADVANCED_ALCHEMICAL_CONSTRUCT, 4), 50).aspect(TCAspects.AQUA, 10).aspect(TCAspects.ORDO, 30).aspect(TCAspects.TERRA, 10).pattern("VAV")
+                .pattern("APA").pattern("VAV").define('A', TCItems.ALCHEMICAL_CONSTRUCT).define('V', TCItems.INGOT_VOID).define('P', TCItems.PRIMORDIAL_PEARL).gate(gate("essentia_smelter_void", 0))
                 .unlockedBy("has", has(TCItems.ALCHEMICAL_CONSTRUCT)).save(output);
 
         arcaneShaped(new ItemStackTemplate(TCItems.BELLOWS), 25).aspect(TCAspects.AER).pattern("PP ").pattern("LLI").pattern("PP ").define('P', ItemTags.PLANKS).define('L', Tags.Items.LEATHERS)
