@@ -1,5 +1,11 @@
 package com.leclowndu93150.thaumaturge.registry;
 
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantHammer;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantCrescent;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantSigil;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantNova;
+import com.leclowndu93150.thaumaturge.content.focus.eldritch.FocusEffectEldritch;
+import com.leclowndu93150.thaumaturge.content.focus.eldritch.FocusMediumHierophant;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.casters.FocusElement;
 import com.leclowndu93150.thaumaturge.api.casters.FocusElementType;
@@ -66,6 +72,22 @@ public final class TCFocusElements {
     public static final DeferredHolder<FocusElementType, FocusElementType> SCATTER = element("scatter", new FocusModScatter(), 10066329);
     public static final DeferredHolder<FocusElementType, FocusElementType> SPLIT_TARGET = element("split_target", new FocusModSplitTarget(), 10066329);
     public static final DeferredHolder<FocusElementType, FocusElementType> SPLIT_TRAJECTORY = element("split_trajectory", new FocusModSplitTrajectory(), 10066329);
+
+    public static final DeferredHolder<FocusElementType, FocusElementType> ELDRITCH_CRESCENT = ELEMENTS.register("eldritch_crescent",
+            () -> new FocusElementType(new FocusMediumHierophant(TCIds.ELDRITCH_CRESCENT, level -> new EntityHierophantCrescent(TCEntities.HIEROPHANT_CRESCENT.get(), level)),
+                    TCIds.rl("textures/foci/flux.png"), 0xAC80D0));
+    public static final DeferredHolder<FocusElementType, FocusElementType> ELDRITCH_SIGIL = ELEMENTS.register("eldritch_sigil",
+            () -> new FocusElementType(new FocusMediumHierophant(TCIds.ELDRITCH_SIGIL, level -> new EntityHierophantSigil(TCEntities.HIEROPHANT_SIGIL.get(), level)),
+                    TCIds.rl("textures/foci/flux.png"), 0xAC80D0));
+    public static final DeferredHolder<FocusElementType, FocusElementType> ELDRITCH_NOVA = ELEMENTS.register("eldritch_nova",
+            () -> new FocusElementType(new FocusMediumHierophant(TCIds.ELDRITCH_NOVA, level -> new EntityHierophantNova(TCEntities.HIEROPHANT_NOVA.get(), level)), TCIds.rl("textures/foci/flux.png"),
+                    0xAC80D0));
+    public static final DeferredHolder<FocusElementType, FocusElementType> ELDRITCH_REND = ELEMENTS.register("eldritch_rend",
+            () -> new FocusElementType(new FocusEffectEldritch(), TCIds.rl("textures/foci/flux.png"), 0xAC80D0));
+
+    public static final DeferredHolder<FocusElementType, FocusElementType> ELDRITCH_HAMMER = ELEMENTS.register("eldritch_hammer",
+            () -> new FocusElementType(new FocusMediumHierophant(TCIds.ELDRITCH_HAMMER, level -> new EntityHierophantHammer(TCEntities.HIEROPHANT_HAMMER.get(), level)),
+                    TCIds.rl("textures/foci/earth.png"), 0x70517F));
 
     private TCFocusElements() {}
 

@@ -1,5 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
+import com.leclowndu93150.thaumaturge.client.entity.hierophant.HierophantHammerRenderer;
+import com.leclowndu93150.thaumaturge.client.entity.hierophant.HierophantRenderer;
+import com.leclowndu93150.thaumaturge.client.entity.hierophant.HierophantGeometry;
+import com.leclowndu93150.thaumaturge.client.entity.hierophant.HierophantSpellRenderer;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.entity.taint.TaintSporeRenderer;
 import com.leclowndu93150.thaumaturge.client.entity.taint.TaintSporeSwarmerRenderer;
@@ -60,6 +64,7 @@ public final class TCEntityRenderers {
     @SubscribeEvent
     public static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(TCModelLayers.CULTIST, () -> LayerDefinition.create(HumanoidModel.createMesh(CubeDeformation.NONE, 0.0F), 64, 32));
+        event.registerLayerDefinition(TCModelLayers.ELDRITCH_HIEROPHANT, HierophantGeometry::createBodyLayer);
         event.registerLayerDefinition(TCModelLayers.TAINTACLE, () -> TaintacleModel.createLayer(TaintacleModel.TAINTACLE_LENGTH));
         event.registerLayerDefinition(TCModelLayers.TAINTACLE_GIANT, () -> TaintacleModel.createLayer(TAINTACLE_GIANT_LENGTH));
         event.registerLayerDefinition(TCModelLayers.ELDRITCH_GOLEM, EldritchGolemModel::createLayer);
@@ -99,6 +104,11 @@ public final class TCEntityRenderers {
 
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(TCEntities.HIEROPHANT_HAMMER.get(), HierophantHammerRenderer::new);
+        event.registerEntityRenderer(TCEntities.ELDRITCH_HIEROPHANT.get(), HierophantRenderer::new);
+        event.registerEntityRenderer(TCEntities.HIEROPHANT_CRESCENT.get(), context -> new HierophantSpellRenderer<>(context, HierophantSpellRenderer.Shape.CRESCENT));
+        event.registerEntityRenderer(TCEntities.HIEROPHANT_SIGIL.get(), context -> new HierophantSpellRenderer<>(context, HierophantSpellRenderer.Shape.SIGIL));
+        event.registerEntityRenderer(TCEntities.HIEROPHANT_NOVA.get(), context -> new HierophantSpellRenderer<>(context, HierophantSpellRenderer.Shape.NOVA));
         event.registerEntityRenderer(TCEntities.WISP.get(), WispRenderer::new);
         event.registerEntityRenderer(TCEntities.FLUX_RIFT.get(), FluxRiftRenderer::new);
         event.registerEntityRenderer(TCEntities.CAUSALITY_COLLAPSER.get(), NoModelRenderer::new);
