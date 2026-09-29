@@ -23,6 +23,7 @@ import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 
 public final class SalisMundusRecipe extends CustomRecipe {
     public static final SalisMundusRecipe INSTANCE = new SalisMundusRecipe();
@@ -54,7 +55,7 @@ public final class SalisMundusRecipe extends CustomRecipe {
                     return false;
                 }
                 flint = true;
-            } else if (stack.is(Items.REDSTONE)) {
+            } else if (stack.is(Tags.Items.DUSTS_REDSTONE)) {
                 if (redstone) {
                     return false;
                 }
@@ -102,7 +103,7 @@ public final class SalisMundusRecipe extends CustomRecipe {
         SlotDisplay crystal = new SlotDisplay.ItemSlotDisplay(TCItems.ESSENTIA_CRYSTAL.get().builtInRegistryHolder());
         return List.of(new ShapelessCraftingRecipeDisplay(
                 List.of(new SlotDisplay.ItemSlotDisplay(Items.FLINT.builtInRegistryHolder()), new SlotDisplay.ItemSlotDisplay(Items.BOWL.builtInRegistryHolder()),
-                        new SlotDisplay.ItemSlotDisplay(Items.REDSTONE.builtInRegistryHolder()), crystal, crystal, crystal),
+                        new SlotDisplay.TagSlotDisplay(Tags.Items.DUSTS_REDSTONE), crystal, crystal, crystal),
                 new SlotDisplay.ItemSlotDisplay(TCItems.SALIS_MUNDUS.get().builtInRegistryHolder()), new SlotDisplay.ItemSlotDisplay(Blocks.CRAFTING_TABLE.asItem().builtInRegistryHolder())));
     }
 
