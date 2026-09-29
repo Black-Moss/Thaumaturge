@@ -10,6 +10,7 @@ import com.leclowndu93150.thaumaturge.api.casters.FocusPackage;
 import com.leclowndu93150.thaumaturge.content.entity.ai.PechItemGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.PechTradeGoal;
 import com.leclowndu93150.thaumaturge.content.pech.MenuPech;
+import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.List;
@@ -118,7 +119,7 @@ public class EntityPech extends Monster implements RangedAttackMob {
 
     public static boolean checkPechSpawnRules(EntityType<EntityPech> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
         int count = level.getEntitiesOfClass(EntityPech.class, new AABB(pos).inflate(16.0, 16.0, 16.0)).size();
-        return count < MAX_NEARBY_PECHS && Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
+        return !level.getBiome(pos).is(TCBiomeTags.IS_TAINTED) && count < MAX_NEARBY_PECHS && Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
     }
 
     @Override

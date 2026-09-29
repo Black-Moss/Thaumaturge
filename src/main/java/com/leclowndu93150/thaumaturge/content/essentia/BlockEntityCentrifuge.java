@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.essentia;
 
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
@@ -18,6 +19,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.Level;
@@ -208,6 +210,15 @@ public final class BlockEntityCentrifuge extends BlockEntity implements IEssenti
         super.loadAdditional(input);
         aspectIn = input.read("AspectIn", ASPECT_KEY_CODEC).orElse(null);
         aspectOut = input.read("AspectOut", ASPECT_KEY_CODEC).orElse(null);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        int spill = getEssentiaAmount(Direction.UP);
+        if (level instanceof ServerLevel && spill > 0) {
+            AuraHelper.polluteAura(level, pos, spill, true);
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.world.crystal;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.BiomeAspects;
+import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
 import com.leclowndu93150.thaumaturge.registry.TCDataMaps;
 import com.mojang.serialization.Codec;
 import java.util.List;
@@ -83,6 +84,9 @@ public final class CrystalClusterFeature extends Feature<CrystalClusterConfig> {
 
     private static CrystalClusterConfig.@Nullable Entry biomeEntry(WorldGenLevel level, BlockPos pos, RandomSource random, List<CrystalClusterConfig.Entry> entries) {
         Holder<Biome> biome = level.getBiome(pos);
+        if (biome.is(TCBiomes.TAINTED_LANDS) && random.nextBoolean()) {
+            return null;
+        }
         BiomeAspects aspects = biome.getData(TCDataMaps.BIOME_ASPECTS);
         if (aspects == null || aspects.aspects().isEmpty()) {
             return null;
