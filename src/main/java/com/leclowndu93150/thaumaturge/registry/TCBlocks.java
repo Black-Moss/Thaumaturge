@@ -395,7 +395,7 @@ public final class TCBlocks {
     //
 
     public static final DeferredBlock<BlockInfusionMatrix> INFUSION_MATRIX = BLOCKS.registerBlock("infusion_matrix", BlockInfusionMatrix::new,
-            props -> props.mapColor(MapColor.STONE).strength(1.5F, 1.2F).sound(SoundType.STONE).noOcclusion().lightLevel(s -> 15));
+            props -> props.mapColor(MapColor.STONE).strength(1.5F, 1.2F).sound(SoundType.STONE).noOcclusion());
 
     public static final DeferredBlock<BlockPedestal> PEDESTAL_ARCANE = BLOCKS.registerBlock("pedestal_arcane", props -> new BlockPedestal(BlockPedestal.Variant.ARCANE, props),
             TCBlocks::pedestalProps);
