@@ -20,7 +20,7 @@ public final class TCEntityTypeTagsProvider extends KeyTagProvider<EntityType<?>
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
         tag(EntityTypeTags.CAN_BREATHE_UNDER_WATER).add(key(TCEntities.CULTIST_LEADER.get())).add(key(TCEntities.CULTIST_PORTAL_GREATER.get())).add(key(TCEntities.ELDRITCH_GOLEM.get()))
-                .add(key(TCEntities.ELDRITCH_WARDEN.get())).add(key(TCEntities.TAINTACLE_GIANT.get()));
+                .add(key(TCEntities.ELDRITCH_WARDEN.get())).add(key(TCEntities.ELDRITCH_HIEROPHANT.get())).add(key(TCEntities.TAINTACLE_GIANT.get()));
         tag(EntityTypeTags.SENSITIVE_TO_BANE_OF_ARTHROPODS).add(key(TCEntities.ELDRITCH_CRAB.get())).add(key(TCEntities.TAINT_SPIDER.get()));
         tag(EntityTypeTags.UNDEAD).add(key(TCEntities.ELDRITCH_GUARDIAN.get())).add(key(TCEntities.INHABITED_ZOMBIE.get())).add(key(TCEntities.BRAINY_ZOMBIE.get()))
                 .add(key(TCEntities.GIANT_BRAINY_ZOMBIE.get())).add(key(TCEntities.BRAINY_DROWNED.get())).add(key(TCEntities.BRAINY_HUSK.get()));

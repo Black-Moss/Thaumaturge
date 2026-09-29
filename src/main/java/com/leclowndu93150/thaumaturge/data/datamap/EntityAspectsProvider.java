@@ -152,6 +152,7 @@ public final class EntityAspectsProvider extends DataMapProvider {
         add(b, TCEntities.CULTIST_CLERIC.get(), list(TCAspects.ALIENIS, 5, TCAspects.HUMANUS, 15, TCAspects.AVERSIO, 5));
         add(b, TCEntities.ELDRITCH_CRAB.get(), list(TCAspects.ALIENIS, 10, TCAspects.BESTIA, 10, TCAspects.VINCULUM, 10));
         add(b, TCEntities.CULTIST_LEADER.get(), list(TCAspects.ALIENIS, 15, TCAspects.HUMANUS, 25, TCAspects.AVERSIO, 10, TCAspects.PRAECANTATIO, 15, TCAspects.COGNITIO, 10));
+        add(b, TCEntities.ELDRITCH_HIEROPHANT.get(), list(TCAspects.ALIENIS, 40, TCAspects.PRAECANTATIO, 30, TCAspects.MORTUUS, 20));
         add(b, TCEntities.ELDRITCH_GOLEM.get(), list(TCAspects.ALIENIS, 25, TCAspects.METALLUM, 20, TCAspects.MOTUS, 15));
         add(b, TCEntities.INHABITED_ZOMBIE.get(), list(TCAspects.EXANIMIS, 20, TCAspects.HUMANUS, 10, TCAspects.ALIENIS, 10, TCAspects.BESTIA, 10));
         add(b, TCEntities.TAINTACLE_GIANT.get(), list(TCAspects.VITIUM, 30, TCAspects.BESTIA, 20));

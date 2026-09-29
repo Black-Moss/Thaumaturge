@@ -24,6 +24,8 @@ public final class TCDamageTypes {
     public static final ResourceKey<DamageType> DISSOLVE = key("dissolve");
     public static final ResourceKey<DamageType> FOCUS_FIRE = key("focus_fire");
 
+    public static final ResourceKey<DamageType> ELDRITCH_SPELL = key("eldritch_spell");
+
     private TCDamageTypes() {}
 
     private static ResourceKey<DamageType> key(String path) {
