@@ -12,4 +12,8 @@ public final class LegacyItemLift {
         AABB box = state.getModelBoundingBox();
         return LEGACY_CENTER_Y - (float) ((box.minY + box.maxY) / 2.0);
     }
+
+    public static float bottomLift(ItemStackRenderState state) {
+        return (float) -state.getModelBoundingBox().minY;
+    }
 }
