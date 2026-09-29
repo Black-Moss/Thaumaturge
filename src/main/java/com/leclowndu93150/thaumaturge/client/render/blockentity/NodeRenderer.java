@@ -50,9 +50,13 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     private static final double VIEW_DISTANCE = 64.0;
     private static final double THAUMOMETER_VIEW_DISTANCE = 48.0;
     private static final float BASE_LAYER_SCALE = 0.25F;
-    private static final float FAINT_ALPHA = 0.1F;
+    private static final int MAX_RENDERED_ASPECT_AMOUNT = 50;
+    private static final float FAINT_ALPHA = 0.0066F;
     private static final float FAINT_SCALE = 0.5F;
-    private static final int FAINT_SHADER_PACK_COLOR = ARGB.gray(FAINT_ALPHA);
+    private static final float SHADER_PACK_FAINT_LEVEL = 0.4F;
+    private static final int FAINT_SHADER_PACK_COLOR = ARGB.gray(SHADER_PACK_FAINT_LEVEL);
+    private static final float HIDDEN_BRIGHTNESS_MULTIPLIER = 0.10F;
+    private static final float REVEALED_BRIGHTNESS_MULTIPLIER = 0.5F;
     private static final float JARRED_SIZE = 0.7F;
     private static final float JARRED_HEIGHT = 0.4F;
     private static final int STRIP_ASPECT = 0;
@@ -201,7 +205,9 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     }
 
     public static void submitLayers(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, int orderBase) {
-        forEachLayer(state, (index, type, angle, scale, alpha, color, strip, frame) -> {
+        float brightness = brightness(state);
+        forEachLayer(state, (index, type, angle, scale, alpha, layerColor, strip, frame) -> {
+            int color = ARGB.scaleRGB(layerColor, brightness);
             poseStack.pushPose();
             if (angle != 0.0F) {
                 poseStack.mulPose(Axis.ZP.rotation(angle));
@@ -236,6 +242,13 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         return copy;
     }
 
+    private static float brightness(NodeRenderState state) {
+        if (!state.visible) {
+            return HIDDEN_BRIGHTNESS_MULTIPLIER;
+        }
+        return state.depthIgnore ? REVEALED_BRIGHTNESS_MULTIPLIER : 1.0F;
+    }
+
     public interface LayerSink {
         void layer(int index, RenderType type, float angle, float scale, float alpha, int color, int strip, int frame);
     }
@@ -259,9 +272,10 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         float layerContraction = state.energized ? ENERGIZED_LAYER_CONTRACTION : 1.0F;
         float angle = 0.0F;
         for (NodeRenderState.AspectLayer layer : state.layers) {
-            average += layer.amount;
+            int displayAmount = Math.min(layer.amount, MAX_RENDERED_ASPECT_AMOUNT);
+            average += displayAmount;
             float scale = Mth.sin(state.ticks / (14.0F - count)) * BASE_LAYER_SCALE + BASE_LAYER_SCALE * 2.0F;
-            scale = (0.2F + scale * (layer.amount / 50.0F)) * state.size * layerContraction;
+            scale = (0.2F + scale * (displayAmount / (float) MAX_RENDERED_ASPECT_AMOUNT)) * state.size * layerContraction;
             float period = LAYER_PERIOD_BASE + LAYER_PERIOD_STEP * count;
             angle = (clock % period) / period * Mth.TWO_PI;
             boolean translucent = layer.blend == TRANSLUCENT_BLEND;
@@ -300,7 +314,8 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
         }
         poseStack.pushPose();
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
-        forEachLayer(state, (index, type, angle, scale, alpha, color, strip, frame) -> drawLayer(poseStack, buffers, type, angle, scale, alpha, color, strip, frame));
+        float brightness = brightness(state);
+        forEachLayer(state, (index, type, angle, scale, alpha, color, strip, frame) -> drawLayer(poseStack, buffers, type, angle, scale, alpha, ARGB.scaleRGB(color, brightness), strip, frame));
         poseStack.popPose();
     }
 

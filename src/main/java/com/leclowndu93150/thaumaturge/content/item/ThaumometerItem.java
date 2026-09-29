@@ -53,6 +53,9 @@ public final class ThaumometerItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
+        }
         return beginScan(level, player, hand);
     }
 
