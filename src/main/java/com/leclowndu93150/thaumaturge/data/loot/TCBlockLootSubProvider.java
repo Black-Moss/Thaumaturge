@@ -49,10 +49,13 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
 
     private LootTable.Builder taintRockTable(Block block) {
         Holder<IAspect> aspect = lookupProvider.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(TCAspects.VITIUM);
-        return createSilkTouchDispatchTable(block,
-                applyExplosionCondition(block,
-                        LootItem.lootTableItem(TCItems.ESSENTIA_CRYSTAL.get()).apply(SetComponentsFunction.setComponent(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1))).when(
-                                BonusLevelTableCondition.bonusLevelFlatChance(lookupProvider.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), TAINT_ROCK_CRYSTAL_CHANCES))));
+        LootItem.Builder<?> crystal = LootItem.lootTableItem(TCItems.ESSENTIA_CRYSTAL.get())
+                .apply(SetComponentsFunction.setComponent(TCDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1)));
+        return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(block))))
+                .withPool(applyExplosionCondition(block,
+                        LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).when(doesNotHaveSilkTouch())
+                                .when(BonusLevelTableCondition.bonusLevelFlatChance(lookupProvider.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), TAINT_ROCK_CRYSTAL_CHANCES))
+                                .add(crystal)));
     }
 
     private LootTable.Builder crystalTable(BlockCrystal block) {
