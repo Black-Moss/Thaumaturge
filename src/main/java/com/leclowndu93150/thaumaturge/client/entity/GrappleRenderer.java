@@ -42,13 +42,14 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
     private static final RenderType ROPE_TYPE = RenderType.create("tc_grapple_rope",
             RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", ROPE).useLightmap().createRenderSetup());
     private static final RenderType GLOW_TYPE = RenderType.create("tc_grapple_glow",
-            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.PARTICLES).useLightmap().createRenderSetup());
+            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_BLUE).useLightmap().createRenderSetup());
 
     private static final double ROPE_RADIUS = 0.025;
     private static final int ROPE_SIDES = 4;
     private static final int EMISSIVE_LIGHT = 0x00F000DC;
     private static final float GLOW_ALPHA = 0.21F;
     private static final float GLOW_HALF = 0.5F;
+    private static final int GLOW_FRAMES = 6;
 
     private final GrapplerModel model;
 
@@ -85,10 +86,11 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
         poseStack.mulPose(camera.orientation);
         float bob = Mth.sin(state.ticks / 5.0F) * 0.2F + 0.2F;
         float glowScale = 1.0F + bob;
-        float u0 = (1 + state.ticks % 6) / 32.0F;
-        float u1 = u0 + 0.03125F;
-        float v0 = 0.21875F;
-        float v1 = v0 + 0.03125F;
+        int frame = state.ticks % GLOW_FRAMES;
+        float u0 = frame / (float) GLOW_FRAMES;
+        float u1 = (frame + 1) / (float) GLOW_FRAMES;
+        float v0 = 0.0F;
+        float v1 = 1.0F;
         int glowTint = ARGB.colorFromFloat(GLOW_ALPHA, 1.0F, 1.0F, 1.0F);
         collector.submitCustomGeometry(poseStack, GLOW_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();
