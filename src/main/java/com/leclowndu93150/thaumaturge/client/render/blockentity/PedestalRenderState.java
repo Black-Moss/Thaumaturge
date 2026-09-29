@@ -8,4 +8,5 @@ public class PedestalRenderState extends BlockEntityRenderState {
     public @Nullable ItemStackRenderState item;
     public float spin;
     public float groundLift;
+    public float height;
 }

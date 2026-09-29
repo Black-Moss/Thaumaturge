@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.content.infusion.BlockEntityPedestal;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import it.unimi.dsi.fastutil.HashCommon;
@@ -20,7 +21,8 @@ import org.jspecify.annotations.Nullable;
 
 public final class PedestalRenderer<T extends BlockEntityPedestal> implements BlockEntityRenderer<T, PedestalRenderState> {
     private static final float ITEM_SCALE = 1.25F;
-    private static final float ITEM_HEIGHT = 0.75F;
+    private static final float FULL_HEIGHT = 1.0F;
+    private static final float ANCIENT_AND_ELDRITCH_HEIGHT = 0.75F;
     private static final float SPIN_DEGREES_PER_TICK = 1.0F;
     private static final float VOXEL = 1.0F / 16.0F;
 
@@ -52,7 +54,8 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
         ItemStackRenderState itemState = new ItemStackRenderState();
         itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.GROUND, pedestal.getLevel(), null, HashCommon.long2int(pedestal.getBlockPos().asLong()));
         state.item = itemState;
-        state.groundLift = LegacyItemLift.centerLift(itemState) + VOXEL;
+        state.groundLift = LegacyItemLift.bottomLift(itemState) + VOXEL;
+        state.height = pedestal.getBlockState().is(TCBlocks.PEDESTAL_ANCIENT.get()) || pedestal.getBlockState().is(TCBlocks.PEDESTAL_ELDRITCH.get()) ? ANCIENT_AND_ELDRITCH_HEIGHT : FULL_HEIGHT;
         var viewEntity = Minecraft.getInstance().getCameraEntity();
         float ticks = viewEntity == null ? partialTicks : viewEntity.tickCount + partialTicks;
         state.spin = ticks % 360.0F * SPIN_DEGREES_PER_TICK;
@@ -64,7 +67,7 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
             return;
         }
         poseStack.pushPose();
-        poseStack.translate(0.5F, ITEM_HEIGHT, 0.5F);
+        poseStack.translate(0.5F, state.height, 0.5F);
         poseStack.scale(itemScale, itemScale, itemScale);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.spin));
         poseStack.translate(0.0F, state.groundLift, 0.0F);
