@@ -263,6 +263,15 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     }
 
     @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        int spill = getEssentiaAmount(Direction.DOWN);
+        if (level instanceof ServerLevel && spill > 0) {
+            AuraHelper.polluteAura(level, pos, spill, true);
+        }
+    }
+
+    @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         essentia = input.getIntOr("essentia", 0);

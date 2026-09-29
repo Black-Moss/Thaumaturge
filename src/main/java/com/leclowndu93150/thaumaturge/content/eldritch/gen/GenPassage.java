@@ -1,14 +1,20 @@
 package com.leclowndu93150.thaumaturge.content.eldritch.gen;
 
+import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.eldritch.maze.MazeCell;
+import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 
 public final class GenPassage extends GenCommonPieces {
+    private static final float TAINT_PASSAGE_MIN_AURA = 100.0F;
+    private static final float TAINT_PASSAGE_POLLUTION = 5.0F;
+
     private GenPassage() {}
 
     static void generateDefaultPassage(GenContext ctx, int cx, int cz, int y, MazeCell cell) {
@@ -215,9 +221,13 @@ public final class GenPassage extends GenCommonPieces {
             }
         }
         if (cell.feature == 13) {
+            ServerLevel serverLevel = ctx.level.getLevel();
+            BlockPos contaminatedCenter = new BlockPos(x + 8, y + 4, z + 8);
+            AuraHelper.polluteAura(serverLevel, contaminatedCenter, Math.max(TAINT_PASSAGE_MIN_AURA, AuraHelper.getAuraBase(serverLevel, contaminatedCenter)) * TAINT_PASSAGE_POLLUTION, true);
             for (int w = -4; w <= 4; w++) {
-                for (int h = -3; h <= 3; h++) {
-                    for (int j = -4; j <= 4; j++) {
+                for (int j = -4; j <= 4; j++) {
+                    TaintBiomeManager.taintColumn(serverLevel, new BlockPos(x + 8 + w, y + 4, z + 8 + j));
+                    for (int h = -3; h <= 3; h++) {
                         BlockPos target = new BlockPos(x + 8 + w, y + 4 + h, z + 8 + j);
                         if (ctx.level.isEmptyBlock(target) && isAdjacentToSolid(ctx, target) && ctx.random.nextInt(3) != 0) {
                             ctx.level.setBlock(target, TCBlocks.TAINT_FIBRE.get().defaultBlockState(), 3);
