@@ -1,0 +1,9 @@
+{
+  "match": {
+    "items": "#thaumaturge:nitors"
+  },
+  "luminance": {
+    "type": "block_self"
+  },
+  "water_sensitive": false
+}

@@ -31,6 +31,8 @@ public class TCModelsHandlers {
 
     public static final Identifier NODE_STABILIZER_MODEL_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "node_stabilizer");
 
+    public static final Identifier NITOR_MODEL_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "nitor");
+
     public static final Identifier WAND_IS_STAFF_PROPERTY_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "wand_is_staff");
 
     public static final Identifier MESH_LOADER_ID = Identifier.fromNamespaceAndPath(TCIds.MODID, "mesh");
@@ -46,6 +48,7 @@ public class TCModelsHandlers {
         event.register(DECON_TABLE_MODEL_ID, DeconTableItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(WAND_MODEL_ID, WandItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(NODE_STABILIZER_MODEL_ID, NodeStabilizerItemSpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(NITOR_MODEL_ID, NitorItemSpecialRenderer.Unbaked.MAP_CODEC);
     }
 
     @SubscribeEvent
