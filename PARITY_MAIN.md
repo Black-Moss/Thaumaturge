@@ -6,4 +6,3 @@ This file tracks remaining tasks only. Remove each task after its fix is verifie
 
 ## Port from 1.21.1
 
-- [ ] **Thaumometer under Iris shaders** (the Iris part of `085881bc`). Ported on 2026-09-27, not yet checked with shaders: `mixin/iris/pathways/HandRendererMixin` makes Iris treat the thaumometer as translucent, and `ThaumometerHandRenderer` skips Iris's solid hand pass, so the thaumometer draws once, in the translucent pass. The mixin only applies when Iris is loaded (`TCMixinPlugin`), and its target was checked against the Iris 1.11.3 jar. To verify, run with Sodium, Iris and a shader pack, hold the thaumometer and check it draws once and nodes show through the lens. Remove this entry once that is done.
