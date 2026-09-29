@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
+import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchPortal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -20,11 +21,14 @@ import org.jspecify.annotations.Nullable;
 
 public final class EldritchPortalRenderer implements BlockEntityRenderer<BlockEntityEldritchPortal, EldritchPortalRenderState> {
     private static final Identifier TEXTURE = TCIds.rl("textures/misc/eldritch_portal.png");
+    private static final Identifier OVERWORLD_TEXTURE = TCIds.rl("textures/misc/eldritch_portal_overworld.png");
     private static final RenderType PORTAL_TYPE = RenderType.create("tc_eldritch_portal",
             RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", TEXTURE).useLightmap().createRenderSetup());
+    private static final RenderType OVERWORLD_PORTAL_TYPE = RenderType.create("tc_eldritch_portal_overworld",
+            RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", OVERWORLD_TEXTURE).useLightmap().createRenderSetup());
 
-    private static final int FRAMES = 16;
-    private static final float FRAME_WIDTH = 0.0625F;
+    private static final int FRAMES = 32;
+    private static final float FRAME_WIDTH = 1.0F / FRAMES;
     private static final float GROW_TICKS_WIDTH = 5.0F;
     private static final float GROW_TICKS_HEIGHT = 30.0F;
     private static final int LIGHT = 0x00F000DC;
@@ -42,6 +46,7 @@ public final class EldritchPortalRenderer implements BlockEntityRenderer<BlockEn
         state.openCount = portal.opencount + partialTicks;
         var viewEntity = Minecraft.getInstance().getCameraEntity();
         state.animationTime = viewEntity == null ? partialTicks : viewEntity.tickCount + partialTicks;
+        state.towardOverworld = portal.getLevel() != null && portal.getLevel().dimension() == OuterLands.DIMENSION;
     }
 
     @Override
@@ -57,7 +62,7 @@ public final class EldritchPortalRenderer implements BlockEntityRenderer<BlockEn
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
         poseStack.mulPose(camera.orientation);
-        collector.submitCustomGeometry(poseStack, PORTAL_TYPE, (pose, buffer) -> {
+        collector.submitCustomGeometry(poseStack, state.towardOverworld ? OVERWORLD_PORTAL_TYPE : PORTAL_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();
             buffer.addVertex(mat, -sx, -sy, 0.0F).setUv(u1, 0.0F).setColor(-1).setLight(LIGHT);
             buffer.addVertex(mat, -sx, sy, 0.0F).setUv(u1, 1.0F).setColor(-1).setLight(LIGHT);
