@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.client.entity;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
-import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.WispEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -16,31 +15,25 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 import org.joml.Matrix4fc;
 
 public final class WispRenderer extends EntityRenderer<WispEntity, WispRenderState> {
     private static final Identifier NODES = TCIds.rl("textures/misc/auranodes.png");
 
-    private static final RenderType PARTICLES_TYPE = RenderType.create("tc_wisp_particles",
-            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.PARTICLES).useLightmap().createRenderSetup());
-
     private static final RenderType NODES_TYPE = RenderType.create("tc_wisp_nodes",
-            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", NODES).useLightmap().createRenderSetup());
+            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE_ALPHA_TEST).withTexture("Sampler0", NODES).useLightmap().createRenderSetup());
 
-    private static final int PARTICLE_GRID = 64;
     private static final int NODE_GRID = 32;
-    private static final int CORE_FRAME_START = 512;
-    private static final int HALO_FRAME_START = 320;
     private static final int NODE_FRAME_START = 800;
     private static final int FRAME_SPREAD = 16;
     private static final float CORE_SCALE = 0.4F;
-    private static final float HALO_SCALE = 0.75F;
-    private static final float NODE_SCALE = 0.75F;
-    private static final float HALO_ALPHA = 0.25F;
-    private static final float NODE_ALPHA = 0.5F;
+    private static final float AURA_SCALE = 0.7F;
+    private static final float CORE_ALPHA = 0.9F;
+    private static final float AURA_ALPHA = 0.4F;
     private static final float QUAD_HALF_FACTOR = 0.5F;
     private static final float CENTER_Y = 0.45F;
-    private static final int EMISSIVE_LIGHT = 0x00F000F0;
+    private static final int LEGACY_LIGHT = LightCoordsUtil.pack(14, 0);
 
     public WispRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -70,10 +63,9 @@ public final class WispRenderer extends EntityRenderer<WispEntity, WispRenderSta
         poseStack.pushPose();
         poseStack.translate(0.0F, CENTER_Y, 0.0F);
         poseStack.mulPose(camera.orientation);
-        int frame = state.tick % FRAME_SPREAD;
-        submitQuad(collector, poseStack, PARTICLES_TYPE, PARTICLE_GRID, CORE_FRAME_START + frame, CORE_SCALE, 0xFFFFFF, 1.0F);
-        submitQuad(collector, poseStack, PARTICLES_TYPE, PARTICLE_GRID, HALO_FRAME_START + frame, HALO_SCALE, 0xFFFFFF, HALO_ALPHA);
-        submitQuad(collector, poseStack, NODES_TYPE, NODE_GRID, NODE_FRAME_START + frame, NODE_SCALE, state.color, NODE_ALPHA);
+        int nodeFrame = NODE_FRAME_START + state.tick % FRAME_SPREAD;
+        submitQuad(collector, poseStack, NODES_TYPE, NODE_GRID, nodeFrame, AURA_SCALE, state.color, AURA_ALPHA);
+        submitQuad(collector, poseStack, NODES_TYPE, NODE_GRID, nodeFrame, CORE_SCALE, 0xFFFFFF, CORE_ALPHA);
         poseStack.popPose();
     }
 
@@ -89,9 +81,9 @@ public final class WispRenderer extends EntityRenderer<WispEntity, WispRenderSta
     }
 
     private static void addQuad(VertexConsumer buffer, Matrix4fc mat, float half, float u0, float v0, float u1, float v1, int tint) {
-        buffer.addVertex(mat, -half, -half, 0.0F).setUv(u1, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
-        buffer.addVertex(mat, -half, half, 0.0F).setUv(u1, v0).setColor(tint).setLight(EMISSIVE_LIGHT);
-        buffer.addVertex(mat, half, half, 0.0F).setUv(u0, v0).setColor(tint).setLight(EMISSIVE_LIGHT);
-        buffer.addVertex(mat, half, -half, 0.0F).setUv(u0, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
+        buffer.addVertex(mat, -half, -half, 0.0F).setUv(u1, v1).setColor(tint).setLight(LEGACY_LIGHT);
+        buffer.addVertex(mat, -half, half, 0.0F).setUv(u1, v0).setColor(tint).setLight(LEGACY_LIGHT);
+        buffer.addVertex(mat, half, half, 0.0F).setUv(u0, v0).setColor(tint).setLight(LEGACY_LIGHT);
+        buffer.addVertex(mat, half, -half, 0.0F).setUv(u0, v1).setColor(tint).setLight(LEGACY_LIGHT);
     }
 }
