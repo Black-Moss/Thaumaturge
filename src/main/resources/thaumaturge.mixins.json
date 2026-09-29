@@ -20,6 +20,7 @@
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",
     "client.multiplayer.ClientLevelMixin",
+    "client.lighting.BlockLightEngineMixin",
     "client.renderer.GameRendererInvoker",
     "client.renderer.entity.LivingEntityRenderStateMixin",
     "client.renderer.entity.LivingEntityRendererMixin",
