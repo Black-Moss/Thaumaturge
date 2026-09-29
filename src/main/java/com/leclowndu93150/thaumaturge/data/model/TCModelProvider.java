@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.color.*;
 import com.leclowndu93150.thaumaturge.client.model.*;
+import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
+import com.leclowndu93150.thaumaturge.content.decor.CandleHolderMaterial;
 import com.leclowndu93150.thaumaturge.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
@@ -864,6 +866,15 @@ public final class TCModelProvider extends ModelProvider {
             blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(candle, variant));
             int tint = 0xFF000000 | dye.getMapColor().col;
             itemModels.itemModelOutput.accept(candle.asItem(), ItemModelUtils.tintedModel(model, new Constant(tint)));
+        }
+        for (CandleHolderMaterial material : CandleHolderMaterial.values()) {
+            String name = "block/candle_holder_" + material.getSerializedName();
+            Identifier emptyHolder = Identifier.fromNamespaceAndPath(TCIds.MODID, name);
+            MultiVariant empty = new MultiVariant(WeightedList.of(new Variant(emptyHolder)));
+            MultiVariant filled = new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, name + "_filled"))));
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.CANDLE_HOLDERS.get(material).get())
+                    .with(PropertyDispatch.initial(BlockCandleHolder.CANDLE).generate(held -> held.isPresent() ? filled : empty)));
+            itemModels.itemModelOutput.accept(TCItems.CANDLE_HOLDERS.get(material).get(), ItemModelUtils.plainModel(emptyHolder));
         }
     }
 
