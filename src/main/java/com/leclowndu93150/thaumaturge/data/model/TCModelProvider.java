@@ -148,7 +148,11 @@ public final class TCModelProvider extends ModelProvider {
         var item = TCItems.NITORS.get(dye).get();
         Identifier itemModelId = Identifier.fromNamespaceAndPath(TCIds.MODID, "item/nitor");
         int rgb = dye.getTextureDiffuseColor() & 0xFFFFFF;
-        itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Constant(rgb)));
+        ItemModel.Unbaked flat = ItemModelUtils.tintedModel(itemModelId, new Constant(rgb));
+        ItemModel.Unbaked inHand = new SpecialModelWrapper.Unbaked(Identifier.withDefaultNamespace("block/block"), Optional.empty(), new NitorItemSpecialRenderer.Unbaked(block.dyeColor()));
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.select(new DisplayContext(), flat, ItemModelUtils.when(
+                List.of(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, ItemDisplayContext.THIRD_PERSON_LEFT_HAND, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
+                inHand)));
     }
 
     private static void registerInfusionAltar(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
