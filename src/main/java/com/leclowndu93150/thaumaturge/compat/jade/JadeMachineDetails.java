@@ -36,7 +36,7 @@ final class JadeMachineDetails {
     static void transducer(BlockEntityNodeTransducer machine, JadeDetailBuilder data) {
         data.summary("jade.thaumaturge.transducer.status." + machine.getStatus());
         if (machine.getStatus() != 0)
-            data.detail("jade.thaumaturge.transducer.charge", machine.getCount() * 100 / BlockEntityNodeTransducer.CHARGE_TARGET);
+            data.summary("jade.thaumaturge.transducer.charge", machine.getCount() * 100 / BlockEntityNodeTransducer.CHARGE_TARGET);
     }
     static void smelter(BlockEntitySmelter machine, JadeDetailBuilder data) {
         int progress = machine.getCookProgressScaled(100);
