@@ -150,6 +150,12 @@ dependencies {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+tasks.named('processResources') {
+    filesMatching(['assets/thaumaturge/models/item/log_greatwood.json', 'assets/thaumaturge/models/item/log_silverwood.json']) {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+}
+
 tasks.register('generateData', Exec) {
     workingDir projectDir
     if (System.getProperty('os.name').toLowerCase().contains('windows')) {
@@ -172,7 +178,7 @@ jar {
 
 
 dependencies {
-    implementation "curse.maven:terrablender-neoforge-940057:8046313"
+    implementation "maven.modrinth:XaDC71GB:84kuUpr4"
 
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
