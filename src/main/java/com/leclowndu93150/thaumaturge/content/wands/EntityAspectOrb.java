@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.wands;
 
+import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
 import com.leclowndu93150.thaumaturge.registry.TCEntities;
@@ -54,15 +55,17 @@ public class EntityAspectOrb extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        entityData.define(DATA_ASPECT, TCAspects.AER.identifier().getPath());
+        entityData.define(DATA_ASPECT, TCAspects.AER.identifier().toString());
     }
 
     public ResourceKey<IAspect> getAspect() {
-        return ResourceKey.create(IAspect.REGISTRY_KEY, Identifier.fromNamespaceAndPath("thaumaturge", entityData.get(DATA_ASPECT)));
+        String stored = entityData.get(DATA_ASPECT);
+        Identifier id = stored.indexOf(':') >= 0 ? Identifier.tryParse(stored) : Identifier.tryBuild(TCIds.MODID, stored);
+        return id == null ? TCAspects.AER : ResourceKey.create(IAspect.REGISTRY_KEY, id);
     }
 
     public void setAspect(ResourceKey<IAspect> aspect) {
-        entityData.set(DATA_ASPECT, aspect.identifier().getPath());
+        entityData.set(DATA_ASPECT, aspect.identifier().toString());
     }
 
     public int getAge() {
@@ -186,7 +189,7 @@ public class EntityAspectOrb extends Entity {
         health = input.getShortOr("Health", (short) DEFAULT_HEALTH);
         age = input.getShortOr("Age", (short) 0);
         aspectValue = input.getShortOr("Value", (short) 1);
-        entityData.set(DATA_ASPECT, input.getStringOr("Aspect", TCAspects.AER.identifier().getPath()));
+        entityData.set(DATA_ASPECT, input.getStringOr("Aspect", TCAspects.AER.identifier().toString()));
     }
 
     @Override
