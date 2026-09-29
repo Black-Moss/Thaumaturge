@@ -37,6 +37,11 @@ public final class TravellerBootsItem extends Item implements IRechargable {
     }
 
     @Override
+    public boolean canWalkOnPowderedSnow(ItemStack stack, LivingEntity wearer) {
+        return true;
+    }
+
+    @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
         super.inventoryTick(stack, level, entity, slot);
         if (slot != EquipmentSlot.FEET || !(entity instanceof ServerPlayer player)) {
