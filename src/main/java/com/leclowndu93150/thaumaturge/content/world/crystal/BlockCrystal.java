@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.world.crystal;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,6 +27,8 @@ public final class BlockCrystal extends Block {
     public static final IntegerProperty GENERATION = IntegerProperty.create("gen", 1, 4);
 
     private static final int VIS_THRESHOLD = 10;
+    private static final float DECAY_FLUX = 1.0F;
+    private static final float FLUX_DRAIN_TOLERANCE = 0.001F;
 
     private static final VoxelShape SHAPE_FULL = Shapes.block();
     private static final VoxelShape SHAPE_UP = box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
@@ -160,6 +163,7 @@ public final class BlockCrystal extends Block {
                 } else if (touchingSameCrystal(level, pos)) {
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
                     AuraHelper.addVis(level, pos, VIS_THRESHOLD);
+                    AuraHelper.addFlux(level, pos, DECAY_FLUX);
                 }
             } else if (vis > AuraHelper.getAuraBase(level, pos) + VIS_THRESHOLD) {
                 if (growth < 3 && growth < 5 - generation + Math.floorMod(pos.asLong(), 3L)) {
@@ -175,6 +179,12 @@ public final class BlockCrystal extends Block {
                         }
                         level.setBlockAndUpdate(spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
                     }
+                }
+            } else {
+                float ambientFlux = AuraHelper.getFlux(level, pos);
+                int conversionCost = growth + 1;
+                if (ambientFlux > vis && ambientFlux > AuraHelper.getAuraBase(level, pos) / 2.0F && AuraHelper.drainFlux(level, pos, conversionCost, false) >= conversionCost - FLUX_DRAIN_TOLERANCE) {
+                    level.setBlockAndUpdate(pos, TCBlocks.CRYSTAL_VITIUM.get().defaultBlockState().setValue(SIZE, growth).setValue(GENERATION, generation));
                 }
             }
         } else {
