@@ -2,9 +2,13 @@ package com.leclowndu93150.thaumaturge.content.world.plant;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderSet;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,6 +22,8 @@ public final class MagicForestFloraFeature extends Feature<MagicForestFloraConfi
     private static final int GRASS_MIN_Y = 30;
     private static final int VISHROOM_MIN_Y = 50;
     private static final int PLACE_FLAGS = 19;
+    private static final double FLOWER_NOISE_SCALE = 48.0;
+    private static final double MAX_FLOWER_SAMPLE = 0.9999;
 
     public MagicForestFloraFeature(Codec<MagicForestFloraConfig> codec) {
         super(codec);
@@ -46,7 +52,7 @@ public final class MagicForestFloraFeature extends Feature<MagicForestFloraConfi
         for (int attempt = 0; attempt < config.flowerAttempts() && config.flowers().size() > 0; attempt++) {
             BlockPos grass = randomGrass(level, random, chunkOrigin);
             if (grass != null) {
-                any |= placePlant(level, grass.above(), config.flowers().get(random.nextInt(config.flowers().size())).value().defaultBlockState());
+                any |= placePlant(level, grass.above(), flowerAt(config.flowers(), grass.above()));
             }
         }
         for (MagicForestFloraConfig.PlantPatch patch : config.plants()) {
@@ -64,7 +70,6 @@ public final class MagicForestFloraFeature extends Feature<MagicForestFloraConfi
             BlockPos grass = findGrass(level, chunkOrigin.getX() + 4 + random.nextInt(8), chunkOrigin.getZ() + 4 + random.nextInt(8), GRASS_MIN_Y);
             if (grass != null) {
                 any |= level.setBlock(grass, config.ambientGrass().defaultBlockState(), PLACE_FLAGS);
-                break;
             }
         }
         for (int attempt = 0; attempt < config.vishroomAttempts(); attempt++) {
@@ -91,6 +96,12 @@ public final class MagicForestFloraFeature extends Feature<MagicForestFloraConfi
             return true;
         }
         return level.setBlock(pos, state, PLACE_FLAGS);
+    }
+
+    @SuppressWarnings("removal")
+    private static BlockState flowerAt(HolderSet<Block> flowers, BlockPos pos) {
+        double sample = Mth.clamp((1.0 + Biome.BIOME_INFO_NOISE.getValue(pos.getX() / FLOWER_NOISE_SCALE, pos.getZ() / FLOWER_NOISE_SCALE, false)) / 2.0, 0.0, MAX_FLOWER_SAMPLE);
+        return flowers.get((int) (sample * flowers.size())).value().defaultBlockState();
     }
 
     private static @Nullable BlockPos randomGrass(WorldGenLevel level, RandomSource random, BlockPos origin) {
