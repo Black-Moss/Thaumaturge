@@ -216,8 +216,8 @@ public final class TCRecipeProvider extends RecipeProvider {
 
         shaped(RecipeCategory.DECORATIONS, TCBlocks.CANDLES.get(DyeColor.WHITE).get(), 3).pattern(" S ").pattern(" T ").pattern(" T ").define('S', Tags.Items.STRINGS).define('T', TCItems.TALLOW.get())
                 .unlockedBy("has_tallow", has(TCItems.TALLOW.get())).save(output);
-        arcaneShaped(new ItemStackTemplate(TCItems.CANDLE_HOLDERS.get(CandleHolderMaterial.BRASS)), 10).aspect(TCAspects.IGNIS, 1).pattern(" N ").pattern("NPN")
-                .define('N', TCItemTags.NUGGETS_BRASS).define('P', TCItemTags.PLATES_BRASS).gate(gate("candle_holders", 1)).unlockedBy("has", has(TCItemTags.PLATES_BRASS)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.CANDLE_HOLDERS.get(CandleHolderMaterial.BRASS)), 10).aspect(TCAspects.IGNIS, 1).pattern(" N ").pattern("NPN").define('N', TCItemTags.NUGGETS_BRASS)
+                .define('P', TCItemTags.PLATES_BRASS).gate(gate("candle_holders", 1)).unlockedBy("has", has(TCItemTags.PLATES_BRASS)).save(output);
         arcaneShaped(new ItemStackTemplate(TCItems.CANDLE_HOLDERS.get(CandleHolderMaterial.THAUMIUM)), 25).aspect(TCAspects.IGNIS, 1).aspect(TCAspects.ORDO, 1).pattern(" N ").pattern("NPN")
                 .define('N', TCItemTags.NUGGETS_THAUMIUM).define('P', TCItemTags.PLATES_THAUMIUM).gate(gate("candle_holders", 2)).unlockedBy("has", has(TCItemTags.PLATES_THAUMIUM)).save(output);
         arcaneShaped(new ItemStackTemplate(TCItems.CANDLE_HOLDERS.get(CandleHolderMaterial.VOID)), 50).aspect(TCAspects.IGNIS, 1).aspect(TCAspects.PERDITIO, 1).pattern(" N ").pattern("NPN")

@@ -87,8 +87,8 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
     private static final int LEVEL_ORB_H = 9;
     private static final int STAT_ICON_UNTINTED = 0xFFFFFFFF;
     private static final StatIcon ICON_COMPLEXITY = StatIcon.whole(TCIds.rl("textures/gui/complex.png"), STAT_ICON_UNTINTED);
-    private static final StatIcon ICON_COST_XP = new StatIcon(Identifier.withDefaultNamespace("textures/gui/sprites/container/enchanting_table/level_1.png"),
-            LEVEL_ORB_U, LEVEL_ORB_V, LEVEL_ORB_W, LEVEL_ORB_H, true, STAT_ICON_UNTINTED);
+    private static final StatIcon ICON_COST_XP = new StatIcon(Identifier.withDefaultNamespace("textures/gui/sprites/container/enchanting_table/level_1.png"), LEVEL_ORB_U, LEVEL_ORB_V, LEVEL_ORB_W,
+            LEVEL_ORB_H, true, STAT_ICON_UNTINTED);
     private static final StatIcon ICON_COST_VIS = StatIcon.whole(TCIds.rl("textures/item/essentia_crystal.png"), ARGB.opaque(ChatFormatting.AQUA.getColor()));
     private static final int STAT_TEXT_X = 252;
     private static final int STAT_TEXT_Y_NUDGE = 4;
@@ -355,8 +355,8 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
     }
 
     private static void blitStatColumns(GuiGraphicsExtractor graphics, StatIcon icon, int x, int y, int uFrom, int uTo) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, icon.texture(), x, y, uFrom, icon.v(), Math.abs(uTo - uFrom), icon.height(), uTo - uFrom, icon.height(),
-                STAT_TEXTURE_SIZE, STAT_TEXTURE_SIZE, icon.tint());
+        graphics.blit(RenderPipelines.GUI_TEXTURED, icon.texture(), x, y, uFrom, icon.v(), Math.abs(uTo - uFrom), icon.height(), uTo - uFrom, icon.height(), STAT_TEXTURE_SIZE, STAT_TEXTURE_SIZE,
+                icon.tint());
     }
 
     private void drawNamePlate(GuiGraphicsExtractor graphics) {
