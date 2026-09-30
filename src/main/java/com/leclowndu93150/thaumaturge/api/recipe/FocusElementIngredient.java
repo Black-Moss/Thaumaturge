@@ -31,15 +31,9 @@ import java.util.stream.Stream;
  */
 public record FocusElementIngredient(Set<Identifier> elements) implements ICustomIngredient {
 
-    public static final MapCodec<FocusElementIngredient> CODEC = RecordCodecBuilder.mapCodec(
-            instance -> instance.group(
-                    Codec.withAlternative(Identifier.CODEC.listOf(), Identifier.CODEC, List::of)
-                            .validate(list -> list.isEmpty()
-                                    ? DataResult.error(() -> "Focus ingredient needs at least one element")
-                                    : DataResult.success(list))
-                            .fieldOf("elements")
-                            .forGetter(ingredient -> List.copyOf(ingredient.elements()))
-            ).apply(instance, list -> new FocusElementIngredient(Set.copyOf(list))));
+    public static final MapCodec<FocusElementIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(Codec.withAlternative(Identifier.CODEC.listOf(), Identifier.CODEC, List::of)
+            .validate(list -> list.isEmpty() ? DataResult.error(() -> "Focus ingredient needs at least one element") : DataResult.success(list)).fieldOf("elements")
+            .forGetter(ingredient -> List.copyOf(ingredient.elements()))).apply(instance, list -> new FocusElementIngredient(Set.copyOf(list))));
 
     private static final List<Holder<Item>> FOCUS_ITEMS = List.of(TCItems.FOCUS_1, TCItems.FOCUS_2, TCItems.FOCUS_3);
 
