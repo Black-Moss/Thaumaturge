@@ -1,5 +1,10 @@
 package com.leclowndu93150.thaumaturge.registry;
 
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantHammer;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityEldritchHierophant;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantCrescent;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantSigil;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantNova;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.entity.*;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistLeader;
@@ -172,6 +177,18 @@ public final class TCEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchWarden>> ELDRITCH_WARDEN = register("eldritch_warden",
             () -> EntityType.Builder.of(EntityEldritchWarden::new, MobCategory.MONSTER).sized(1.5F, 3.5F).eyeHeight(3.1F).notInPeaceful().clientTrackingRange(10).updateInterval(3));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityEldritchHierophant>> ELDRITCH_HIEROPHANT = register("eldritch_hierophant",
+            () -> EntityType.Builder.of(EntityEldritchHierophant::new, MobCategory.MONSTER).sized(1.9F, 4.2F).eyeHeight(3.55F).notInPeaceful().clientTrackingRange(12).updateInterval(2));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityHierophantCrescent>> HIEROPHANT_CRESCENT = register("hierophant_crescent",
+            () -> EntityType.Builder.<EntityHierophantCrescent>of(EntityHierophantCrescent::new, MobCategory.MISC).sized(0.1F, 0.1F).noSave().noLootTable().clientTrackingRange(12).updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityHierophantSigil>> HIEROPHANT_SIGIL = register("hierophant_sigil",
+            () -> EntityType.Builder.<EntityHierophantSigil>of(EntityHierophantSigil::new, MobCategory.MISC).sized(0.1F, 0.1F).noSave().noLootTable().clientTrackingRange(12).updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityHierophantNova>> HIEROPHANT_NOVA = register("hierophant_nova",
+            () -> EntityType.Builder.<EntityHierophantNova>of(EntityHierophantNova::new, MobCategory.MISC).sized(0.1F, 0.1F).noSave().noLootTable().clientTrackingRange(12).updateInterval(20));
+
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintacleGiant>> TAINTACLE_GIANT = register("taintacle_giant",
             () -> EntityType.Builder.of(EntityTaintacleGiant::new, MobCategory.MONSTER).sized(1.1F, 6.0F).notInPeaceful().clientTrackingRange(10).updateInterval(3));
 
@@ -201,6 +218,9 @@ public final class TCEntities {
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityGrapple>> GRAPPLE = register("grapple",
             () -> EntityType.Builder.<EntityGrapple>of(EntityGrapple::new, MobCategory.MISC).sized(0.1F, 0.1F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityHierophantHammer>> HIEROPHANT_HAMMER = register("hierophant_hammer",
+            () -> EntityType.Builder.<EntityHierophantHammer>of(EntityHierophantHammer::new, MobCategory.MISC).sized(0.1F, 0.1F).noSave().noLootTable().clientTrackingRange(12).updateInterval(20));
 
     private TCEntities() {}
 

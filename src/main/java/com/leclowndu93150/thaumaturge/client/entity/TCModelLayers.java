@@ -5,6 +5,7 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 
 public final class TCModelLayers {
     public static final ModelLayerLocation CULTIST = new ModelLayerLocation(TCIds.rl("cultist"), "main");
+    public static final ModelLayerLocation ELDRITCH_HIEROPHANT = new ModelLayerLocation(TCIds.rl("eldritch_hierophant"), "main");
     public static final ModelLayerLocation TAINTACLE = new ModelLayerLocation(TCIds.rl("taintacle"), "main");
     public static final ModelLayerLocation TAINTACLE_SMALL = new ModelLayerLocation(TCIds.rl("taintacle_small"), "main");
     public static final ModelLayerLocation TAINT_SEED = new ModelLayerLocation(TCIds.rl("taint_seed"), "main");

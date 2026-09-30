@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.color.*;
 import com.leclowndu93150.thaumaturge.client.model.*;
+import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
+import com.leclowndu93150.thaumaturge.content.decor.CandleHolderMaterial;
 import com.leclowndu93150.thaumaturge.content.decor.BlockObsidianTotem;
 import com.leclowndu93150.thaumaturge.content.device.BlockInlay;
 import com.leclowndu93150.thaumaturge.content.device.BlockVisBattery;
@@ -83,6 +85,7 @@ public final class TCModelProvider extends ModelProvider {
     private static final ModelTemplate BLOCK_PARTICLE = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("block/block")), Optional.empty(), TextureSlot.PARTICLE);
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("item/generated")), Optional.empty(), TextureSlot.LAYER0, TextureSlot.LAYER1,
             TextureSlot.LAYER2);
+    private static final ModelTemplate CONDENSER_RETEXTURED = new ModelTemplate(Optional.of(TCIds.rl("block/condenser")), Optional.empty(), TextureSlot.SIDE, TextureSlot.PARTICLE);
     private static final int FOLIAGE_DEFAULT_COLOR = 0x48B518;
     private static final int INSET_DEPTH = 2;
     private static final int INSET_ALL_EXPOSED = 63;
@@ -865,6 +868,15 @@ public final class TCModelProvider extends ModelProvider {
             int tint = 0xFF000000 | dye.getMapColor().col;
             itemModels.itemModelOutput.accept(candle.asItem(), ItemModelUtils.tintedModel(model, new Constant(tint)));
         }
+        for (CandleHolderMaterial material : CandleHolderMaterial.values()) {
+            String name = "block/candle_holder_" + material.getSerializedName();
+            Identifier emptyHolder = Identifier.fromNamespaceAndPath(TCIds.MODID, name);
+            MultiVariant empty = new MultiVariant(WeightedList.of(new Variant(emptyHolder)));
+            MultiVariant filled = new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TCIds.MODID, name + "_filled"))));
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.CANDLE_HOLDERS.get(material).get())
+                    .with(PropertyDispatch.initial(BlockCandleHolder.CANDLE).generate(held -> held.isPresent() ? filled : empty)));
+            itemModels.itemModelOutput.accept(TCItems.CANDLE_HOLDERS.get(material).get(), ItemModelUtils.plainModel(emptyHolder));
+        }
     }
 
     private void registerBaubleItems(ItemModelGenerators itemModels) {
@@ -1144,8 +1156,7 @@ public final class TCModelProvider extends ModelProvider {
         registerFacingDevice(blockModels, itemModels, TCBlocks.ESSENTIA_INPUT.get(), "essentia_input", deviceMount);
         registerFacingDevice(blockModels, itemModels, TCBlocks.ESSENTIA_OUTPUT.get(), "essentia_output", deviceMount);
 
-        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.CONDENSER.get(), BlockModelGenerators.plainVariant(TCIds.rl("block/condenser"))));
-        itemModels.itemModelOutput.accept(TCItems.CONDENSER.get(), ItemModelUtils.plainModel(TCIds.rl("block/condenser")));
+        registerCondenser(blockModels, itemModels);
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.STABILIZER.get(), BlockModelGenerators.plainVariant(TCIds.rl("block/stabilizer"))));
         itemModels.itemModelOutput.accept(TCItems.STABILIZER.get(), ItemModelUtils.plainModel(TCIds.rl("block/stabilizer")));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TCBlocks.VOID_SIPHON.get(), BlockModelGenerators.plainVariant(TCIds.rl("block/void_siphon"))));
@@ -1176,6 +1187,16 @@ public final class TCModelProvider extends ModelProvider {
         registerInvisibleBlock(blockModels, TCBlocks.HUNGRY_CHEST.get());
         itemModels.itemModelOutput.accept(TCItems.HUNGRY_CHEST.get(),
                 new SpecialModelWrapper.Unbaked(Identifier.withDefaultNamespace("item/chest"), Optional.empty(), new ChestSpecialRenderer.Unbaked(TCIds.rl("hungry"))));
+    }
+
+    private void registerCondenser(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Identifier on = TCIds.rl("block/condenser");
+        Material offTexture = new Material(TCIds.rl("block/condenser_off"));
+        Identifier off = CONDENSER_RETEXTURED.create(TCIds.rl("block/condenser_off"), new TextureMapping().put(TextureSlot.SIDE, offTexture).put(TextureSlot.PARTICLE, offTexture),
+                blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TCBlocks.CONDENSER.get()).with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
+                .select(true, new MultiVariant(WeightedList.of(new Variant(on)))).select(false, new MultiVariant(WeightedList.of(new Variant(off))))));
+        itemModels.itemModelOutput.accept(TCItems.CONDENSER.get(), ItemModelUtils.plainModel(on));
     }
 
     private void registerLattice(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String coreModel) {

@@ -72,7 +72,7 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
 
     @Override
     public void submit(EldritchCapRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        RenderType type = RenderTypes.entityTranslucent(state.outerLands ? textureOuter : texture);
+        RenderType type = RenderTypes.entityCutout(state.outerLands ? textureOuter : texture);
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));

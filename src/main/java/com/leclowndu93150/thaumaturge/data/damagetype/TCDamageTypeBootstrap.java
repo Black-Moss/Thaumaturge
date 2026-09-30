@@ -10,6 +10,7 @@ public final class TCDamageTypeBootstrap {
     private TCDamageTypeBootstrap() {}
 
     public static void bootstrap(BootstrapContext<DamageType> context) {
+        context.register(TCDamageTypes.ELDRITCH_SPELL, new DamageType("thaumaturge.eldritch_spell", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F, DamageEffects.HURT));
         context.register(TCDamageTypes.TAINT, new DamageType("thaumaturge.taint", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.0F, DamageEffects.HURT));
         context.register(TCDamageTypes.TENTACLE, new DamageType("thaumaturge.tentacle", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F, DamageEffects.HURT));
         context.register(TCDamageTypes.SWARM, new DamageType("thaumaturge.swarm", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F, DamageEffects.HURT));

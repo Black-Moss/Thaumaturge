@@ -30,8 +30,8 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
     private static final RenderType PORTAL_TYPE = RenderType.create("tc_cultist_portal",
             RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", TEXTURE).useLightmap().createRenderSetup());
 
-    private static final int FRAMES = 16;
-    private static final float FRAME_WIDTH = 0.0625F;
+    private static final int FRAMES = 32;
+    private static final float FRAME_WIDTH = 1.0F / FRAMES;
     private static final float BASE_SCALE_Y = 1.4F;
     private static final float SCALE_FACTOR = 1.25F;
     private static final float GROW_TICKS = 50.0F;

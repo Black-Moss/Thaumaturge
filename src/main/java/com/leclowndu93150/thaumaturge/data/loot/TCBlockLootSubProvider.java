@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumaturge.data.loot;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
+import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
+import com.leclowndu93150.thaumaturge.content.decor.HeldCandle;
 import com.leclowndu93150.thaumaturge.content.manabean.BlockEntityManaPod;
 import com.leclowndu93150.thaumaturge.content.manabean.BlockManaPod;
 import com.leclowndu93150.thaumaturge.content.world.crystal.BlockCrystal;
@@ -17,6 +19,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ItemLike;
@@ -36,6 +39,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePrope
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import net.neoforged.neoforge.registries.DeferredBlock;
 
 public final class TCBlockLootSubProvider extends BlockLootSubProvider {
     private static final float[] TAINT_ROCK_CRYSTAL_CHANCES = {1 / 15.0F, 2 / 15.0F, 3 / 15.0F, 4 / 15.0F, 5 / 15.0F, 6 / 15.0F, 7 / 15.0F, 8 / 15.0F, 9 / 15.0F, 10 / 15.0F, 11 / 15.0F, 12 / 15.0F,
@@ -56,6 +60,19 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
                         LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).when(doesNotHaveSilkTouch())
                                 .when(BonusLevelTableCondition.bonusLevelFlatChance(lookupProvider.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), TAINT_ROCK_CRYSTAL_CHANCES))
                                 .add(crystal)));
+    }
+
+    private LootTable.Builder candleHolderTable(Block holder) {
+        LootTable.Builder table = LootTable.lootTable().withPool(this.applyExplosionCondition(holder, LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(holder))));
+        for (HeldCandle held : HeldCandle.values()) {
+            if (!held.isPresent()) {
+                continue;
+            }
+            Item candle = TCItems.CANDLES.get(held.dye().orElseThrow()).get();
+            table.withPool(this.applyExplosionCondition(holder, LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(candle))
+                    .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(holder).setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(BlockCandleHolder.CANDLE, held)))));
+        }
+        return table;
     }
 
     private LootTable.Builder crystalTable(BlockCrystal block) {
@@ -131,6 +148,9 @@ public final class TCBlockLootSubProvider extends BlockLootSubProvider {
         add(TCBlocks.JAR_NODE.get(), LootTable.lootTable().withPool(this.applyExplosionCondition(TCBlocks.JAR_NODE.get(), LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(LootItem
                 .lootTableItem(TCBlocks.JAR_NODE.get()).apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY).include(TCDataComponents.NODE_DATA.get()))))));
 
+        for (DeferredBlock<BlockCandleHolder> holder : TCBlocks.CANDLE_HOLDERS.values()) {
+            add(holder.get(), candleHolderTable(holder.get()));
+        }
         for (DyeColor dye : DyeColor.values()) {
             dropSelf(TCBlocks.CANDLES.get(dye).get());
             add(TCBlocks.BANNERS.get(dye).get(), bannerTable(TCItems.BANNERS.get(dye).get()));

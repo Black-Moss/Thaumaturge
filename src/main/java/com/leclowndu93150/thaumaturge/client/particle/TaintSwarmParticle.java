@@ -10,6 +10,10 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.entity.Entity;
 
 public final class TaintSwarmParticle extends TCParticle {
+    private static final int GLOW_FRAMES = 16;
+    private static final int SWARM_FRAMES = 8;
+    private static final int SWARM_FRAME_STEP = 2;
+
     private static final float SPEED = 0.22F;
     private static final float TURN_STRENGTH = 0.08F;
 
@@ -68,7 +72,7 @@ public final class TaintSwarmParticle extends TCParticle {
 
     @Override
     public Layer getLayer() {
-        return TCParticleLayers.LEGACY_TRANSLUCENT;
+        return TCParticleLayers.ORB_GLOW_TRANSLUCENT;
     }
 
     public static final class Provider implements ParticleProvider<TaintSwarmParticleOptions> {
@@ -80,22 +84,22 @@ public final class TaintSwarmParticle extends TCParticle {
 
     @Override
     protected float getU0() {
-        return (7 + this.age % 8) / 64.0F;
+        return (this.age % SWARM_FRAMES) * SWARM_FRAME_STEP / (float) GLOW_FRAMES;
     }
 
     @Override
     protected float getU1() {
-        return getU0() + 1.0F / 64.0F;
+        return getU0() + 1.0F / GLOW_FRAMES;
     }
 
     @Override
     protected float getV0() {
-        return 4.0F / 64.0F;
+        return 0.0F;
     }
 
     @Override
     protected float getV1() {
-        return 5.0F / 64.0F;
+        return 1.0F;
     }
 
     @Override
