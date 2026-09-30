@@ -18,6 +18,7 @@ public final class TCGameTestRegistration {
         ResearchTests.register(r);
         GolemSealTests.register(r);
         GolemPressTests.register(r);
+        InfernalFurnaceTests.register(r);
         RunicShieldingTests.register(r);
         ManaBeanTests.register(r);
         WandTests.register(r);
