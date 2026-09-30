@@ -84,6 +84,7 @@ public final class Thaumaturge {
         TCWandParts.register(modBus);
         TCSeals.register(modBus);
         TCEntityDataSerializers.register(modBus);
+        TCIngredientTypes.register(modBus);
         TCGolemAccessories.register();
 
         LegacyRegistryAliases.register(modBus);
