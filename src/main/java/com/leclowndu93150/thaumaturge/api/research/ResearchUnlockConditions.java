@@ -51,7 +51,8 @@ public final class ResearchUnlockConditions {
         }
     }
 
-    private record Registered(Condition condition, @Nullable Component lockedMessage) {}
+    private record Registered(Condition condition, @Nullable Component lockedMessage) {
+    }
 
     private static final Map<Identifier, List<Registered>> CONDITIONS = new ConcurrentHashMap<>();
 
@@ -60,8 +61,7 @@ public final class ResearchUnlockConditions {
     public static void register(Identifier entry, Condition condition, @Nullable Component lockedMessage) {
         Objects.requireNonNull(entry);
         Objects.requireNonNull(condition);
-        CONDITIONS.computeIfAbsent(entry, id -> new CopyOnWriteArrayList<>())
-                .add(new Registered(condition, lockedMessage));
+        CONDITIONS.computeIfAbsent(entry, id -> new CopyOnWriteArrayList<>()).add(new Registered(condition, lockedMessage));
     }
 
     // True if the entry has no conditions or all of them pass
