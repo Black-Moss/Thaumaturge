@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
+import com.leclowndu93150.thaumaturge.api.infusion.InfusionCraftedEvent;
 import com.leclowndu93150.thaumaturge.api.items.IGogglesDisplayExtended;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
@@ -47,6 +48,7 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityInfusionMatrix extends BlockEntity implements IGogglesDisplayExtended, IInteractWithCaster, ReadOnlyAspectContainer {
@@ -403,11 +405,15 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
             syncToClient();
             return;
         }
-        ItemStack result = withCatalystWear(job.result(), pedestal.getItem());
+        ItemStack catalyst = pedestal.getItem();
+        ServerPlayer crafter = job.player().map(uuid -> level.getServer().getPlayerList().getPlayer(uuid)).orElse(null);
+        InfusionCraftedEvent event = NeoForge.EVENT_BUS.post(new InfusionCraftedEvent(level, worldPosition, crafter, catalyst.copy(), withCatalystWear(job.result(), catalyst)));
+        ItemStack result = event.getResult();
         pedestal.setItem(result);
-        Optional<InfusionCraftJob> finished = Optional.ofNullable(job);
         job = null;
-        finished.flatMap(InfusionCraftJob::player).map(uuid -> level.getServer().getPlayerList().getPlayer(uuid)).ifPresent(player -> awardCraft(player, result));
+        if (crafter != null && !result.isEmpty()) {
+            awardCraft(crafter, result);
+        }
         InfusionFx.pedestalBamf(level, centralPedestal());
         level.playSound(null, worldPosition, TCSounds.WAND.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
         setChanged();

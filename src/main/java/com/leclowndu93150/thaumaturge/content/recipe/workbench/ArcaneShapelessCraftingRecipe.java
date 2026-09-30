@@ -85,7 +85,7 @@ public class ArcaneShapelessCraftingRecipe extends ArcaneCraftingRecipe {
     }
 
     public ItemStack assemble(IArcaneCraftingInput input) {
-        return this.result.create();
+        return assembleResult(this.result, input);
     }
 
     public List<RecipeDisplay> display() {
