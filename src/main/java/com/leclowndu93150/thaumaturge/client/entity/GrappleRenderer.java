@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.model.entity.GrapplerModel;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.projectile.EntityGrapple;
+import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -49,7 +50,6 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
     private static final int EMISSIVE_LIGHT = 0x00F000DC;
     private static final float GLOW_ALPHA = 0.21F;
     private static final float GLOW_HALF = 0.5F;
-    private static final int GLOW_FRAMES = 6;
 
     private final GrapplerModel model;
 
@@ -86,11 +86,11 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
         poseStack.mulPose(camera.orientation);
         float bob = Mth.sin(state.ticks / 5.0F) * 0.2F + 0.2F;
         float glowScale = 1.0F + bob;
-        int frame = state.ticks % GLOW_FRAMES;
-        float u0 = frame / (float) GLOW_FRAMES;
-        float u1 = (frame + 1) / (float) GLOW_FRAMES;
-        float v0 = 0.0F;
-        float v1 = 1.0F;
+        int frame = state.ticks % ParticleTextures.GOLEM_ORB_FRAMES;
+        float u0 = StripUv.u0(frame, ParticleTextures.GOLEM_ORB_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.GOLEM_ORB_FRAMES);
+        float v0 = StripUv.V0;
+        float v1 = StripUv.V1;
         int glowTint = ARGB.colorFromFloat(GLOW_ALPHA, 1.0F, 1.0F, 1.0F);
         collector.submitCustomGeometry(poseStack, GLOW_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();

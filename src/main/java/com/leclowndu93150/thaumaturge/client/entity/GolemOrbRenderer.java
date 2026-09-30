@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.client.entity;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
+import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -26,7 +27,6 @@ public final class GolemOrbRenderer extends EntityRenderer<EntityGolemOrb, Golem
     private static final RenderType RED_ORB_TYPE = RenderType.create("tc_golem_orb_red",
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_RED).useLightmap().createRenderSetup());
 
-    private static final int FRAME_COUNT = 6;
     private static final float ALPHA = 0.8F;
     private static final float HALF = 0.5F;
     private static final int EMISSIVE_LIGHT = 0x00F000F0;
@@ -55,11 +55,11 @@ public final class GolemOrbRenderer extends EntityRenderer<EntityGolemOrb, Golem
         poseStack.mulPose(camera.orientation);
         float bob = Mth.sin(state.tick / 5.0F) * 0.2F + 0.2F;
         poseStack.scale(1.0F + bob, 1.0F + bob, 1.0F + bob);
-        int frame = state.tick % FRAME_COUNT;
-        float u0 = frame / (float) FRAME_COUNT;
-        float u1 = (frame + 1) / (float) FRAME_COUNT;
-        float v0 = 0.0F;
-        float v1 = 1.0F;
+        int frame = state.tick % ParticleTextures.GOLEM_ORB_FRAMES;
+        float u0 = StripUv.u0(frame, ParticleTextures.GOLEM_ORB_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.GOLEM_ORB_FRAMES);
+        float v0 = StripUv.V0;
+        float v1 = StripUv.V1;
         int tint = ARGB.colorFromFloat(ALPHA, 1.0F, 1.0F, 1.0F);
         collector.submitCustomGeometry(poseStack, state.red ? RED_ORB_TYPE : BLUE_ORB_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();

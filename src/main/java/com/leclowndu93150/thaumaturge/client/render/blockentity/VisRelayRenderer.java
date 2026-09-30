@@ -4,6 +4,8 @@ import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.client.effect.LateWorldRenderQueue;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.VisRelayBeamRenderTypes;
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
+import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
+import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -38,7 +40,6 @@ public final class VisRelayRenderer implements BlockEntityRenderer<BlockEntityVi
     private static final float FLARE_ALPHA = 0.2F;
     private static final float REVEALED_ALPHA = 1.0F;
     private static final float FLARE_SIZE = 0.66F;
-    private static final int FLARE_FRAMES = 16;
     private static final float FLARE_TEXEL_NUDGE = 0.0001F;
 
     public VisRelayRenderer(BlockEntityRendererProvider.Context context) {}
@@ -81,7 +82,7 @@ public final class VisRelayRenderer implements BlockEntityRenderer<BlockEntityVi
         float slide = player.tickCount + partialTicks;
         state.scroll = -slide * SCROLL_FAST - Mth.floor(-slide * SCROLL_SLOW);
         state.revealing = GogglesAccess.revealsNodes(player);
-        state.flareFrame = (int) (now % FLARE_FRAMES);
+        state.flareFrame = (int) (now % ParticleTextures.STAR_GLINT_FRAMES);
     }
 
     @Override
@@ -133,10 +134,10 @@ public final class VisRelayRenderer implements BlockEntityRenderer<BlockEntityVi
     }
 
     private static void drawFlare(PoseStack poseStack, MultiBufferSource buffers, float half, int frame, int color) {
-        float u0 = frame / (float) FLARE_FRAMES;
-        float u1 = (frame + 1) / (float) FLARE_FRAMES - FLARE_TEXEL_NUDGE;
-        float v0 = 0.0F;
-        float v1 = 1.0F - FLARE_TEXEL_NUDGE;
+        float u0 = StripUv.u0(frame, ParticleTextures.STAR_GLINT_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.STAR_GLINT_FRAMES) - FLARE_TEXEL_NUDGE;
+        float v0 = StripUv.V0;
+        float v1 = StripUv.V1 - FLARE_TEXEL_NUDGE;
         poseStack.pushPose();
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
         PoseStack.Pose pose = poseStack.last();
