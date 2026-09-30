@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumaturge.client.color;
 import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
 import java.util.Set;
 import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
@@ -13,6 +15,11 @@ public final class CandleHolderTint implements BlockTintSource {
     @Override
     public int color(BlockState state) {
         return state.getValue(BlockCandleHolder.CANDLE).dye().map(dye -> OPAQUE | dye.getMapColor().col).orElse(UNTINTED);
+    }
+
+    @Override
+    public int colorAsTerrainParticle(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+        return UNTINTED;
     }
 
     @Override

@@ -1,24 +1,17 @@
 package com.leclowndu93150.thaumaturge.content.decor;
 
-import com.leclowndu93150.thaumaturge.api.infusion.IInfusionStabiliser;
 import com.leclowndu93150.thaumaturge.api.research.IResearchTableAid;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
@@ -28,7 +21,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public final class BlockCandleHolder extends Block implements IInfusionStabiliser, IResearchTableAid {
+public final class BlockCandleHolder extends AbstractCandleBlock implements IResearchTableAid {
     public static final EnumProperty<HeldCandle> CANDLE = EnumProperty.create("candle", HeldCandle.class);
 
     private static final int LIT_LIGHT = 14;
@@ -44,7 +37,7 @@ public final class BlockCandleHolder extends Block implements IInfusionStabilise
     private final CandleHolderMaterial material;
 
     public BlockCandleHolder(CandleHolderMaterial material, Properties properties) {
-        super(properties);
+        super(FLAME_Y_OFFSET, properties);
         this.material = material;
         registerDefaultState(stateDefinition.any().setValue(CANDLE, HeldCandle.NONE));
     }
@@ -73,23 +66,15 @@ public final class BlockCandleHolder extends Block implements IInfusionStabilise
     }
 
     @Override
-    protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return canSupportCenter(level, pos.below(), Direction.UP);
-    }
-
-    @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
-        if (direction == Direction.DOWN && !canSurvive(state, level, pos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
-        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
+    protected boolean isBurning(BlockState state) {
+        return state.getValue(CANDLE).isPresent();
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         Optional<HeldCandle> candle = HeldCandle.of(stack);
         if (state.getValue(CANDLE).isPresent() || candle.isEmpty()) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+            return stack.isEmpty() ? InteractionResult.TRY_WITH_EMPTY_HAND : InteractionResult.PASS;
         }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
@@ -121,18 +106,6 @@ public final class BlockCandleHolder extends Block implements IInfusionStabilise
     }
 
     @Override
-    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (!state.getValue(CANDLE).isPresent()) {
-            return;
-        }
-        double x = pos.getX() + 0.5;
-        double y = pos.getY() + FLAME_Y_OFFSET;
-        double z = pos.getZ() + 0.5;
-        level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0, 0.0, 0.0);
-        level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0, 0.0, 0.0);
-    }
-
-    @Override
     public boolean canStabiliseInfusion(Level level, BlockPos pos) {
         return level.getBlockState(pos).getValue(CANDLE).isPresent();
     }
@@ -144,6 +117,16 @@ public final class BlockCandleHolder extends Block implements IInfusionStabilise
 
     @Override
     public float getStabilizationAmount(Level level, BlockPos pos) {
+        return material.stabilization();
+    }
+
+    @Override
+    public boolean hasSymmetryPenalty(Level level, BlockPos pos, BlockPos mirrored) {
+        return level.getBlockState(mirrored).getBlock() != this;
+    }
+
+    @Override
+    public float getSymmetryPenalty(Level level, BlockPos pos) {
         return material.stabilization();
     }
 
