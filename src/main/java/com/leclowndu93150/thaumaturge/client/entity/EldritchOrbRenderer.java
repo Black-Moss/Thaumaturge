@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.client.entity;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.EntityEldritchOrb;
+import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -28,7 +29,6 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
 
     private static final long RAY_SEED = 187L;
     private static final int RAY_COUNT = 12;
-    private static final int BILLBOARD_FRAMES = 13;
     private static final float BILLBOARD_SCALE = 0.75F;
     private static final float HALF = 0.5F;
     private static final float EDGE_GRAY = 0.75F;
@@ -74,11 +74,11 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
         poseStack.pushPose();
         poseStack.mulPose(camera.orientation);
         poseStack.scale(BILLBOARD_SCALE, BILLBOARD_SCALE, BILLBOARD_SCALE);
-        int frame = (int) state.ticks % BILLBOARD_FRAMES;
-        float u0 = frame / (float) BILLBOARD_FRAMES;
-        float u1 = (frame + 1) / (float) BILLBOARD_FRAMES;
-        float v0 = 0.0F;
-        float v1 = 1.0F;
+        int frame = (int) state.ticks % ParticleTextures.ELDRITCH_ORB_FRAMES;
+        float u0 = StripUv.u0(frame, ParticleTextures.ELDRITCH_ORB_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.ELDRITCH_ORB_FRAMES);
+        float v0 = StripUv.V0;
+        float v1 = StripUv.V1;
         int tint = ARGB.colorFromFloat(1.0F, 1.0F, 1.0F, 1.0F);
         collector.submitCustomGeometry(poseStack, BILLBOARD_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();

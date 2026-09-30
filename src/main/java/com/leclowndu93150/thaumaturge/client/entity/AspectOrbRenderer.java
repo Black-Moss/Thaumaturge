@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.client.entity;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
+import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -24,7 +25,6 @@ public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, Asp
     private static final RenderType ORB_TYPE = RenderType.create("tc_aspect_orb",
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.ORB_GLOW).useLightmap().createRenderSetup());
 
-    private static final int FRAME_COUNT = 16;
     private static final int FRAMES_PER_TICK = 2;
     private static final float BASE_SCALE = 0.1F;
     private static final float AGE_SCALE = 0.3F;
@@ -58,16 +58,16 @@ public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, Asp
         poseStack.mulPose(camera.orientation);
         float scale = BASE_SCALE + AGE_SCALE * ((float) (EntityAspectOrb.MAX_AGE - state.age) / EntityAspectOrb.MAX_AGE);
         poseStack.scale(scale, scale, scale);
-        int frame = state.tick * FRAMES_PER_TICK % FRAME_COUNT;
-        float u0 = frame / (float) FRAME_COUNT;
-        float u1 = (frame + 1) / (float) FRAME_COUNT;
+        int frame = state.tick * FRAMES_PER_TICK % ParticleTextures.ORB_GLOW_FRAMES;
+        float u0 = StripUv.u0(frame, ParticleTextures.ORB_GLOW_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.ORB_GLOW_FRAMES);
         int tint = ARGB.color((int) (ALPHA * 255.0F), state.color);
         collector.submitCustomGeometry(poseStack, ORB_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();
-            buffer.addVertex(mat, -HALF, -Y_OFFSET, 0.0F).setUv(u0, 1.0F).setColor(tint).setLight(EMISSIVE_LIGHT);
-            buffer.addVertex(mat, HALF, -Y_OFFSET, 0.0F).setUv(u1, 1.0F).setColor(tint).setLight(EMISSIVE_LIGHT);
-            buffer.addVertex(mat, HALF, 1.0F - Y_OFFSET, 0.0F).setUv(u1, 0.0F).setColor(tint).setLight(EMISSIVE_LIGHT);
-            buffer.addVertex(mat, -HALF, 1.0F - Y_OFFSET, 0.0F).setUv(u0, 0.0F).setColor(tint).setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, -HALF, -Y_OFFSET, 0.0F).setUv(u0, StripUv.V1).setColor(tint).setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, HALF, -Y_OFFSET, 0.0F).setUv(u1, StripUv.V1).setColor(tint).setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, HALF, 1.0F - Y_OFFSET, 0.0F).setUv(u1, StripUv.V0).setColor(tint).setLight(EMISSIVE_LIGHT);
+            buffer.addVertex(mat, -HALF, 1.0F - Y_OFFSET, 0.0F).setUv(u0, StripUv.V0).setColor(tint).setLight(EMISSIVE_LIGHT);
         });
         poseStack.popPose();
     }
