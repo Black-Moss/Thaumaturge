@@ -299,6 +299,7 @@ public final class TCEnglishProvider extends LanguageProvider {
 
         ResearchTextEn.addAll(this::add);
         CommandTextEn.addAll(this::add);
+        LoreBookTextEn.addAll(this::add);
 
         add("key.thaumaturge.thaumonomicon", "Open Thaumonomicon");
         add("gui.thaumaturge.entry.advance", "Mark As Read");
@@ -875,6 +876,9 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("item.thaumaturge.cloth_legs", "Apprentice's Leggings");
         add("item.thaumaturge.cloth_boots", "Apprentice's Boots");
 
+        add("block.thaumaturge.candle_holder_brass", "Brass Candle Holder");
+        add("block.thaumaturge.candle_holder_thaumium", "Thaumium Candle Holder");
+        add("block.thaumaturge.candle_holder_void", "Void Metal Candle Holder");
         add("block.thaumaturge.candle_white", "White Tallow Candle");
         add("block.thaumaturge.banner_white", "White Banner");
         add("block.thaumaturge.wall_banner_white", "White Banner");
@@ -1334,6 +1338,28 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("entity.thaumaturge.cultist_portal_greater", "Greater Crimson Portal");
         add("entity.thaumaturge.eldritch_golem", "Eldritch Golem");
         add("entity.thaumaturge.eldritch_golem.name.custom", "%1$s Eldritch Construct");
+        add("entity.thaumaturge.hierophant_hammer", "Hierophant's Hammer");
+        add("focus.thaumaturge.eldritch_hammer.name", "Halo Hammer");
+        add("focus.thaumaturge.eldritch_hammer.text", "A relic torn from the halo and hurled at the target.");
+        add("entity.thaumaturge.eldritch_hierophant", "The Eldritch Hierophant");
+        add("entity.thaumaturge.hierophant_crescent", "Eldritch Crescent");
+        add("entity.thaumaturge.hierophant_sigil", "Seal of Unmaking");
+        add("entity.thaumaturge.hierophant_nova", "Hollow Nova");
+        add("entity.thaumaturge.eldritch_hierophant.summon", "The stones begin to hum. Beyond the seal, something opens its eye.");
+        add("entity.thaumaturge.eldritch_hierophant.awaken", "The eye burns crimson. YOUR LIGHT ENDS HERE.");
+        add("entity.thaumaturge.eldritch_hierophant.defeat", "The voice breaks. At last, the halls fall silent.");
+        add("death.attack.thaumaturge.eldritch_spell", "%1$s was unmade by an eldritch spell");
+        add("death.attack.thaumaturge.eldritch_spell.player", "%1$s was unmade by %2$s");
+        add("death.attack.thaumaturge.eldritch_spell.item", "%1$s was unmade by %2$s using %3$s");
+        add("focus.thaumaturge.eldritch_crescent.name", "Eldritch Crescent");
+        add("focus.thaumaturge.eldritch_crescent.text", "A sweeping blade of eldritch force.");
+        add("focus.thaumaturge.eldritch_crescent.left", "Left claw");
+        add("focus.thaumaturge.eldritch_sigil.name", "Seal of Unmaking");
+        add("focus.thaumaturge.eldritch_sigil.text", "A marked seal erupts after a warning.");
+        add("focus.thaumaturge.eldritch_nova.name", "Hollow Nova");
+        add("focus.thaumaturge.eldritch_nova.text", "A low ring of eldritch force expands from the caster.");
+        add("focus.thaumaturge.eldritch_rend.name", "Unmaking");
+        add("focus.thaumaturge.eldritch_rend.text", "Eldritch force rends the target.");
         add("entity.thaumaturge.eldritch_warden", "Eldritch Warden");
         add("entity.thaumaturge.eldritch_warden.name.custom", "%1$s the %2$s");
         add("entity.thaumaturge.taintacle_giant", "Giant Taintacle");

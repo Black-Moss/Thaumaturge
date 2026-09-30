@@ -41,6 +41,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -52,9 +53,6 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
     private static final Identifier TEX2 = TCIds.rl("textures/gui/gui_wandtable2.png");
     private static final Identifier TEX3 = TCIds.rl("textures/gui/gui_wandtable3.png");
     private static final Identifier TEX_BASE = TCIds.rl("textures/gui/gui_base.png");
-    private static final Identifier TEX_COMPLEXITY = TCIds.rl("textures/gui/complex.png");
-    private static final Identifier TEX_COST_XP = TCIds.rl("textures/gui/costxp.png");
-    private static final Identifier TEX_COST_VIS = TCIds.rl("textures/gui/costvis.png");
     private static final Identifier ICON_MEDIUM = TCIds.rl("textures/foci/_medium.png");
     private static final Identifier ICON_EFFECT = TCIds.rl("textures/foci/_effect.png");
     private static final Identifier ROOT_KEY = Identifier.fromNamespaceAndPath(TCIds.MODID, "root");
@@ -82,6 +80,16 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
     private static final int INFO_COMPLEXITY_Y = 39;
     private static final int INFO_XP_Y = 53;
     private static final int INFO_VIS_Y = 67;
+    private static final int STAT_TEXTURE_SIZE = 16;
+    private static final int LEVEL_ORB_U = 3;
+    private static final int LEVEL_ORB_V = 3;
+    private static final int LEVEL_ORB_W = 9;
+    private static final int LEVEL_ORB_H = 9;
+    private static final int STAT_ICON_UNTINTED = 0xFFFFFFFF;
+    private static final StatIcon ICON_COMPLEXITY = StatIcon.whole(TCIds.rl("textures/gui/complex.png"), STAT_ICON_UNTINTED);
+    private static final StatIcon ICON_COST_XP = new StatIcon(Identifier.withDefaultNamespace("textures/gui/sprites/container/enchanting_table/level_1.png"),
+            LEVEL_ORB_U, LEVEL_ORB_V, LEVEL_ORB_W, LEVEL_ORB_H, true, STAT_ICON_UNTINTED);
+    private static final StatIcon ICON_COST_VIS = StatIcon.whole(TCIds.rl("textures/item/essentia_crystal.png"), ARGB.opaque(ChatFormatting.AQUA.getColor()));
     private static final int STAT_TEXT_X = 252;
     private static final int STAT_TEXT_Y_NUDGE = 4;
     private static final int STAT_COMPLEXITY_Y = 36;
@@ -294,9 +302,9 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
     }
 
     private void drawStats(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        drawStatIcon(graphics, TEX_COMPLEXITY, INFO_COMPLEXITY_Y, "gui.thaumaturge.wandtable.complexity", mouseX, mouseY);
-        drawStatIcon(graphics, TEX_COST_XP, INFO_XP_Y, "gui.thaumaturge.wandtable.xp_cost", mouseX, mouseY);
-        drawStatIcon(graphics, TEX_COST_VIS, INFO_VIS_Y, "gui.thaumaturge.wandtable.vis_cost", mouseX, mouseY);
+        drawStatIcon(graphics, ICON_COMPLEXITY, INFO_COMPLEXITY_Y, "gui.thaumaturge.wandtable.complexity", mouseX, mouseY);
+        drawStatIcon(graphics, ICON_COST_XP, INFO_XP_Y, "gui.thaumaturge.wandtable.xp_cost", mouseX, mouseY);
+        drawStatIcon(graphics, ICON_COST_VIS, INFO_VIS_Y, "gui.thaumaturge.wandtable.vis_cost", mouseX, mouseY);
         if (maxComplexity > 0) {
             graphics.text(font, Component.literal(totalComplexity + "/" + maxComplexity), leftPos + STAT_TEXT_X, topPos + INFO_COMPLEXITY_Y + STAT_TEXT_Y_NUDGE,
                     totalComplexity > maxComplexity ? COLOR_STAT_BAD : COLOR_STAT_GOOD, true);
@@ -331,11 +339,24 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
         }
     }
 
-    private void drawStatIcon(GuiGraphicsExtractor graphics, Identifier texture, int y, String tooltipKey, int mouseX, int mouseY) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, leftPos + INFO_X, topPos + y, 0, 0, INFO_W, INFO_H, INFO_W, INFO_H);
+    private void drawStatIcon(GuiGraphicsExtractor graphics, StatIcon icon, int y, String tooltipKey, int mouseX, int mouseY) {
+        int x = leftPos + INFO_X + (INFO_W - icon.width()) / 2;
+        int top = topPos + y + (INFO_H - icon.height()) / 2;
+        if (icon.mirrored()) {
+            int half = (icon.width() + 1) / 2;
+            blitStatColumns(graphics, icon, x, top, icon.u(), icon.u() + half);
+            blitStatColumns(graphics, icon, x + half, top, icon.u() + half - 1, icon.u());
+        } else {
+            blitStatColumns(graphics, icon, x, top, icon.u(), icon.u() + icon.width());
+        }
         if (mouseX >= leftPos + INFO_X && mouseX < leftPos + INFO_X + INFO_W && mouseY >= topPos + y && mouseY < topPos + y + INFO_H) {
             graphics.setComponentTooltipForNextFrame(font, List.of(Component.translatable(tooltipKey)), mouseX, mouseY);
         }
+    }
+
+    private static void blitStatColumns(GuiGraphicsExtractor graphics, StatIcon icon, int x, int y, int uFrom, int uTo) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, icon.texture(), x, y, uFrom, icon.v(), Math.abs(uTo - uFrom), icon.height(), uTo - uFrom, icon.height(),
+                STAT_TEXTURE_SIZE, STAT_TEXTURE_SIZE, icon.tint());
     }
 
     private void drawNamePlate(GuiGraphicsExtractor graphics) {
@@ -1115,5 +1136,11 @@ public final class FocalManipulatorScreen extends AbstractTCContainerScreen<Menu
             }
         }
         return false;
+    }
+
+    private record StatIcon(Identifier texture, int u, int v, int width, int height, boolean mirrored, int tint) {
+        static StatIcon whole(Identifier texture, int tint) {
+            return new StatIcon(texture, 0, 0, INFO_W, INFO_H, false, tint);
+        }
     }
 }

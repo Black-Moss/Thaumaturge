@@ -14,7 +14,7 @@ public final class VisRelayBeamRenderTypes {
             RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", BEAM_TEXTURE).useLightmap().createRenderSetup());
 
     public static final RenderType FLARE = RenderType.create("thaumaturge_vis_relay_flare",
-            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.PARTICLES).useLightmap().createRenderSetup());
+            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.STAR_GLINT).useLightmap().createRenderSetup());
 
     private VisRelayBeamRenderTypes() {}
 }

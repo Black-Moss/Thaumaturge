@@ -26,7 +26,7 @@ public final class CategoryBootstrap {
         register(ctx, TCResearchCategories.BASICS, Optional.empty(),
                 AspectList.ofEntries(List.of(e(aspects, TCAspects.HERBA, 5), e(aspects, TCAspects.ORDO, 5), e(aspects, TCAspects.PERDITIO, 5), e(aspects, TCAspects.AER, 5),
                         e(aspects, TCAspects.IGNIS, 5), e(aspects, TCAspects.TERRA, 3), e(aspects, TCAspects.AQUA, 5))),
-                tex("textures/research/thaumonomicon_cheat.png"), tex("textures/gui/gui_research_back_1.png"), 0);
+                tex("textures/item/thaumonomicon_cheat.png"), tex("textures/gui/gui_research_back_1.png"), 0);
 
         register(
                 ctx, TCResearchCategories.AUROMANCY, Optional.of(unlock("auromancy")), AspectList.ofEntries(List.of(e(aspects, TCAspects.AURAM, 20), e(aspects, TCAspects.PRAECANTATIO, 20),

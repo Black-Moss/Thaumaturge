@@ -65,7 +65,7 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
             EldritchPortalSurface.quad(pose, buffer, state.blockPos, PLANE_INSET, base, 0.0F, PLANE_INSET, top, 0.0F, PLANE_INSET, top, 1.0F, PLANE_INSET, base, 1.0F);
             EldritchPortalSurface.quad(pose, buffer, state.blockPos, 1.0F - PLANE_INSET, base, 0.0F, 1.0F - PLANE_INSET, top, 0.0F, 1.0F - PLANE_INSET, top, 1.0F, 1.0F - PLANE_INSET, base, 1.0F);
         });
-        RenderType sideType = RenderTypes.entityTranslucent(state.outerLands ? SIDE_TEXTURE_OUTER : SIDE_TEXTURE);
+        RenderType sideType = RenderTypes.entityCutout(state.outerLands ? SIDE_TEXTURE_OUTER : SIDE_TEXTURE);
         for (int a = 0; a < 4; a++) {
             poseStack.pushPose();
             poseStack.translate(0.5F, base, 0.5F);
@@ -74,7 +74,7 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
             collector.submitCustomGeometry(poseStack, sideType, (pose, buffer) -> sideQuad(pose, buffer, state.lightCoords));
             poseStack.popPose();
         }
-        RenderType capType = RenderTypes.entityTranslucent(state.outerLands ? CAP_TEXTURE_OUTER : CAP_TEXTURE);
+        RenderType capType = RenderTypes.entityCutout(state.outerLands ? CAP_TEXTURE_OUTER : CAP_TEXTURE);
         poseStack.pushPose();
         poseStack.translate(0.5F, base, 0.5F);
         poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));

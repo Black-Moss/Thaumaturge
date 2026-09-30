@@ -142,7 +142,7 @@ public class EntityThaumaturgeBoss extends Monster {
         }
         if (!this.level().isClientSide()) {
             if (this.tickCount % HEAL_INTERVAL == 0) {
-                this.heal(1.0F);
+                this.heal(passiveHealing());
             }
             if (this.getTarget() != null && this.tickCount % RETARGET_INTERVAL == 0) {
                 this.retargetAndBuff();
@@ -202,7 +202,7 @@ public class EntityThaumaturgeBoss extends Monster {
         if (source.getEntity() instanceof LivingEntity attacker) {
             this.aggro.merge(attacker.getId(), (int) damage, Integer::sum);
         }
-        if (damage > ENRAGE_THRESHOLD && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+        if (usesLegacyEnrage() && damage > ENRAGE_THRESHOLD && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             if (this.getAnger() == 0) {
                 this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, ENRAGE_TICKS, (int) (damage / ENRAGE_REGEN_DIVISOR)));
                 this.addEffect(new MobEffectInstance(MobEffects.STRENGTH, ENRAGE_TICKS, (int) (damage / ENRAGE_STRENGTH_DIVISOR)));
@@ -254,6 +254,14 @@ public class EntityThaumaturgeBoss extends Monster {
         super.dropCustomDeathLoot(level, source, recentlyHit);
         level.addFreshEntity(new EntitySpecialItem(level, this.getX(), this.getY() + this.getBbHeight() / 2.0F, this.getZ(), new ItemStack(TCItems.PRIMORDIAL_PEARL.get())));
         this.spawnAtLocation(level, new ItemStack(TCItems.LOOT_BAG_RARE.get()), PEARL_DROP_LIFT);
+    }
+
+    protected boolean usesLegacyEnrage() {
+        return true;
+    }
+
+    protected float passiveHealing() {
+        return 1.0F;
     }
 
     public void generateName() {}

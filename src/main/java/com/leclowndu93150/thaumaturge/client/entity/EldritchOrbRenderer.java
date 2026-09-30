@@ -24,12 +24,10 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
 
     private static final RenderType RAY_TYPE = RenderType.create("tc_eldritch_orb_ray", RenderSetup.builder(TCRenderPipelines.SPARKLE_CULLED).createRenderSetup());
     private static final RenderType BILLBOARD_TYPE = RenderType.create("tc_eldritch_orb",
-            RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", ParticleTextures.PARTICLES).useLightmap().createRenderSetup());
+            RenderSetup.builder(TCRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", ParticleTextures.ELDRITCH_ORB).useLightmap().createRenderSetup());
 
     private static final long RAY_SEED = 187L;
     private static final int RAY_COUNT = 12;
-    private static final int GRID = 64;
-    private static final int BILLBOARD_ROW = 3;
     private static final int BILLBOARD_FRAMES = 13;
     private static final float BILLBOARD_SCALE = 0.75F;
     private static final float HALF = 0.5F;
@@ -76,11 +74,11 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
         poseStack.pushPose();
         poseStack.mulPose(camera.orientation);
         poseStack.scale(BILLBOARD_SCALE, BILLBOARD_SCALE, BILLBOARD_SCALE);
-        float texFrame = 1.0F / GRID;
-        float u0 = ((int) state.ticks % BILLBOARD_FRAMES) * texFrame;
-        float v0 = BILLBOARD_ROW * texFrame;
-        float u1 = u0 + texFrame;
-        float v1 = v0 + texFrame;
+        int frame = (int) state.ticks % BILLBOARD_FRAMES;
+        float u0 = frame / (float) BILLBOARD_FRAMES;
+        float u1 = (frame + 1) / (float) BILLBOARD_FRAMES;
+        float v0 = 0.0F;
+        float v1 = 1.0F;
         int tint = ARGB.colorFromFloat(1.0F, 1.0F, 1.0F, 1.0F);
         collector.submitCustomGeometry(poseStack, BILLBOARD_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();

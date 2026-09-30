@@ -21,12 +21,11 @@ public final class GolemOrbRenderer extends EntityRenderer<EntityGolemOrb, Golem
         public boolean red;
     }
 
-    private static final RenderType ORB_TYPE = RenderType.create("tc_golem_orb",
-            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.PARTICLES).useLightmap().createRenderSetup());
+    private static final RenderType BLUE_ORB_TYPE = RenderType.create("tc_golem_orb",
+            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_BLUE).useLightmap().createRenderSetup());
+    private static final RenderType RED_ORB_TYPE = RenderType.create("tc_golem_orb_red",
+            RenderSetup.builder(TCRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_RED).useLightmap().createRenderSetup());
 
-    private static final int GRID = 32;
-    private static final int WHITE_ROW = 7;
-    private static final int RED_ROW = 6;
     private static final int FRAME_COUNT = 6;
     private static final float ALPHA = 0.8F;
     private static final float HALF = 0.5F;
@@ -56,15 +55,13 @@ public final class GolemOrbRenderer extends EntityRenderer<EntityGolemOrb, Golem
         poseStack.mulPose(camera.orientation);
         float bob = Mth.sin(state.tick / 5.0F) * 0.2F + 0.2F;
         poseStack.scale(1.0F + bob, 1.0F + bob, 1.0F + bob);
-        int row = state.red ? RED_ROW : WHITE_ROW;
-        int col = 1 + state.tick % FRAME_COUNT;
-        float texFrame = 1.0F / GRID;
-        float u0 = col * texFrame;
-        float v0 = row * texFrame;
-        float u1 = u0 + texFrame;
-        float v1 = v0 + texFrame;
+        int frame = state.tick % FRAME_COUNT;
+        float u0 = frame / (float) FRAME_COUNT;
+        float u1 = (frame + 1) / (float) FRAME_COUNT;
+        float v0 = 0.0F;
+        float v1 = 1.0F;
         int tint = ARGB.colorFromFloat(ALPHA, 1.0F, 1.0F, 1.0F);
-        collector.submitCustomGeometry(poseStack, ORB_TYPE, (pose, buffer) -> {
+        collector.submitCustomGeometry(poseStack, state.red ? RED_ORB_TYPE : BLUE_ORB_TYPE, (pose, buffer) -> {
             Matrix4fc mat = pose.pose();
             buffer.addVertex(mat, -HALF, -HALF, 0.0F).setUv(u1, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
             buffer.addVertex(mat, -HALF, HALF, 0.0F).setUv(u1, v0).setColor(tint).setLight(EMISSIVE_LIGHT);

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityEldritchHierophant;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistLeader;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistPortalGreater;
@@ -68,6 +69,7 @@ public final class TCEntityEvents {
         event.put(TCEntities.CULTIST_LEADER.get(), EntityCultistLeader.createAttributes().build());
         event.put(TCEntities.CULTIST_PORTAL_GREATER.get(), EntityCultistPortalGreater.createAttributes().build());
         event.put(TCEntities.ELDRITCH_GOLEM.get(), EntityEldritchGolem.createAttributes().build());
+        event.put(TCEntities.ELDRITCH_HIEROPHANT.get(), EntityEldritchHierophant.createAttributes().build());
         event.put(TCEntities.ELDRITCH_WARDEN.get(), EntityEldritchWarden.createAttributes().build());
         event.put(TCEntities.TAINTACLE_GIANT.get(), EntityTaintacleGiant.createAttributes().build());
         event.put(TCEntities.BRAINY_ZOMBIE.get(), EntityBrainyZombie.createAttributes().build());

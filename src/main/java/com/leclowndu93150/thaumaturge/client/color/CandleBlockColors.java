@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.color;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import java.util.List;
 import net.minecraft.client.color.block.BlockTintSources;
@@ -9,6 +10,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.registries.DeferredBlock;
 
 @EventBusSubscriber(modid = TCIds.MODID, value = Dist.CLIENT)
 public final class CandleBlockColors {
@@ -19,6 +21,9 @@ public final class CandleBlockColors {
         for (DyeColor dye : DyeColor.values()) {
             int color = 0xFF000000 | dye.getMapColor().col;
             event.register(List.of(BlockTintSources.constant(color)), TCBlocks.CANDLES.get(dye).get());
+        }
+        for (DeferredBlock<BlockCandleHolder> holder : TCBlocks.CANDLE_HOLDERS.values()) {
+            event.register(List.of(new CandleHolderTint()), holder.get());
         }
     }
 
