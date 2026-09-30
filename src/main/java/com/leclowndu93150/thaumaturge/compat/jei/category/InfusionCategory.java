@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.compat.jei.category;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.recipe.FocusElementIngredient;
 import com.leclowndu93150.thaumaturge.api.recipe.IInfusionRecipe;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.compat.jei.drawables.AlphaDrawable;
@@ -17,6 +18,7 @@ import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.leclowndu93150.thaumaturge.registry.TCRecipeTypes;
 import java.util.Optional;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -100,14 +102,24 @@ public final class InfusionCategory<R extends Recipe<?> & IInfusionRecipe> imple
         return this.icon;
     }
 
+    private static void addIngredient(IRecipeSlotBuilder slot, Ingredient ingredient) {
+        if (ingredient.getCustomIngredient() instanceof FocusElementIngredient focus) {
+            slot.addItemStacks(focus.displayStacks());
+        } else {
+            slot.add(ingredient);
+        }
+    }
+
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<R> holder, IFocusGroup focuses) {
         R recipe = holder.value();
         builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).add(recipe.resultItem());
-        builder.addInputSlot(CATALYST_X, CATALYST_Y).add(recipe.catalyst());
+        addIngredient(builder.addInputSlot(CATALYST_X, CATALYST_Y), recipe.catalyst());
         float currentRotation = -90.0F;
         for (Ingredient ingredient : holder.value().components()) {
-            builder.addInputSlot(30 + (int) (Mth.cos((float) (currentRotation / 180.0F * Math.PI)) * 40.0F) + 35, (int) (Mth.sin(currentRotation / 180.0F * 3.1415927F) * 40.0F) + 75).add(ingredient);
+            int x = 30 + (int) (Mth.cos((float) (currentRotation / 180.0F * Math.PI)) * 40.0F) + 35;
+            int y = (int) (Mth.sin(currentRotation / 180.0F * 3.1415927F) * 40.0F) + 75;
+            addIngredient(builder.addInputSlot(x, y), ingredient);
             currentRotation += (360f / holder.value().components().size());
         }
 
