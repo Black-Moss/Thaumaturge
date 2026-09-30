@@ -65,7 +65,7 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe {
     }
 
     public ItemStack assemble(IArcaneCraftingInput input) {
-        return this.result.create();
+        return assembleResult(this.result, input);
     }
 
     public int getWidth() {

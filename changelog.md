@@ -17,6 +17,9 @@ Additions
 - scan items by hovering them with the thaumometer
 - smoke resin clumps into amber
 - show tooltips on buttons
+- api: let wand rods store their vis somewhere other than the wand_vis component through IWandVisStorage
+- api: let wand rods copy data onto the assembled wand through an IWandRodOnAssemble callback
+- api: fire InfusionCraftedEvent when an infusion finishes so listeners can change the result
 
 Changes
 - make the arcane bore a placeable block, keeping the entity for rails
