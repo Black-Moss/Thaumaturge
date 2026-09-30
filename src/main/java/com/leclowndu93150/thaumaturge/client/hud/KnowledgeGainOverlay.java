@@ -154,8 +154,8 @@ public final class KnowledgeGainOverlay implements GuiLayer {
             graphics.pose().pushMatrix();
             graphics.pose().translate(x - size / 2.0F, y - size / 2.0F);
             graphics.pose().scale(size / GLOW_FRAME_SIZE, size / GLOW_FRAME_SIZE);
-            graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, spark.texture, 0, 0, frame * GLOW_FRAME_SIZE, 0.0F, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE,
-                    GLOW_FRAME_SIZE, GLOW_STRIP_WIDTH, GLOW_FRAME_SIZE, tint);
+            graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, spark.texture, 0, 0, frame * GLOW_FRAME_SIZE, 0.0F, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE,
+                    GLOW_STRIP_WIDTH, GLOW_FRAME_SIZE, tint);
             graphics.pose().popMatrix();
         }
     }
@@ -178,8 +178,8 @@ public final class KnowledgeGainOverlay implements GuiLayer {
         graphics.pose().pushMatrix();
         graphics.pose().translate(-size / 2.0F, -size / 2.0F);
         graphics.pose().scale(size / GLOW_FRAME_SIZE, size / GLOW_FRAME_SIZE);
-        graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, ParticleTextures.STAR_GLINT, 0, 0, frame * GLOW_FRAME_SIZE, 0.0F, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE,
-                GLOW_FRAME_SIZE, GLOW_STRIP_WIDTH, GLOW_FRAME_SIZE, tint);
+        graphics.blit(TCRenderPipelines.GUI_TEXTURED_ADDITIVE, ParticleTextures.STAR_GLINT, 0, 0, frame * GLOW_FRAME_SIZE, 0.0F, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE,
+                GLOW_STRIP_WIDTH, GLOW_FRAME_SIZE, tint);
         graphics.pose().popMatrix();
     }
 

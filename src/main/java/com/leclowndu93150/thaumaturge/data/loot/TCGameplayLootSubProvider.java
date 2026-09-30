@@ -74,22 +74,23 @@ public final class TCGameplayLootSubProvider implements LootTableSubProvider {
                                 .add(entry(TCItems.RING_APPRENTICE, 1)).add(entry(TCItems.AMULET_VIS, 1)).add(entry(TCItems.CURIO_ANCIENT, 2)))
                         .withPool(lorePool()));
 
-        output.accept(TCLootTables.TREASURE_LIBRARY, LootTable.lootTable()
-                .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(EmptyLootItem.emptyItem().setWeight(LIBRARY_EMPTY_WEIGHT)).add(entry(TCItems.CURIO_KNOWLEDGE, 3, 1.0F, 2.0F)))
-                .withPool(lorePool()));
+        output.accept(TCLootTables.TREASURE_LIBRARY,
+                LootTable.lootTable().withPool(
+                        LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(EmptyLootItem.emptyItem().setWeight(LIBRARY_EMPTY_WEIGHT)).add(entry(TCItems.CURIO_KNOWLEDGE, 3, 1.0F, 2.0F)))
+                        .withPool(lorePool()));
 
         output.accept(TCLootTables.TREASURE_SMITH, LootTable.lootTable()
                 .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(EmptyLootItem.emptyItem().setWeight(SMITH_EMPTY_WEIGHT)).add(entry(TCItems.QUICKSILVER, 2, 1.0F, 3.0F))));
 
-        output.accept(TCLootTables.LORE_BOOK, LootTable.lootTable()
-                .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
-                        .add(LootItem.lootTableItem(Items.WRITTEN_BOOK).apply(() -> new SetWrittenBookPagesFunction(List.of(), messagePages(), ListOperation.ReplaceAll.INSTANCE))
-                                .apply(() -> new SetBookCoverFunction(List.of(), Optional.of(Filterable.passThrough(LORE_TITLE)), Optional.of(LORE_AUTHOR), Optional.empty())))));
+        output.accept(TCLootTables.LORE_BOOK,
+                LootTable.lootTable()
+                        .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
+                                .add(LootItem.lootTableItem(Items.WRITTEN_BOOK).apply(() -> new SetWrittenBookPagesFunction(List.of(), messagePages(), ListOperation.ReplaceAll.INSTANCE))
+                                        .apply(() -> new SetBookCoverFunction(List.of(), Optional.of(Filterable.passThrough(LORE_TITLE)), Optional.of(LORE_AUTHOR), Optional.empty())))));
     }
 
     private static LootPool.Builder lorePool() {
-        return LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).when(LootItemRandomChanceCondition.randomChance(LORE_CHANCE))
-                .add(NestedLootTable.lootTableReference(TCLootTables.LORE_BOOK));
+        return LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).when(LootItemRandomChanceCondition.randomChance(LORE_CHANCE)).add(NestedLootTable.lootTableReference(TCLootTables.LORE_BOOK));
     }
 
     private static List<Filterable<Component>> messagePages() {

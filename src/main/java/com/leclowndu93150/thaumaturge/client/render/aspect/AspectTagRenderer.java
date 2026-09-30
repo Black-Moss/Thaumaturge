@@ -128,8 +128,8 @@ public final class AspectTagRenderer {
         int ticks = mc.player != null ? mc.player.tickCount : mc.gui.getGuiTicks();
         int frame = ticks % BONUS_BADGE_CYCLE;
         int u = frame * BONUS_BADGE_STRIDE;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, ParticleTextures.BONUS_GLINT, (int) x + BONUS_OFFSET, (int) y + BONUS_OFFSET, (float) u, 0.0F, BONUS_BADGE_SIZE, BONUS_BADGE_SIZE,
-                BONUS_BADGE_SIZE, BONUS_BADGE_SIZE, BONUS_BADGE_TEXTURE_WIDTH, BONUS_BADGE_SIZE, 0xFFFFFFFF);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, ParticleTextures.BONUS_GLINT, (int) x + BONUS_OFFSET, (int) y + BONUS_OFFSET, (float) u, 0.0F, BONUS_BADGE_SIZE, BONUS_BADGE_SIZE, BONUS_BADGE_SIZE,
+                BONUS_BADGE_SIZE, BONUS_BADGE_TEXTURE_WIDTH, BONUS_BADGE_SIZE, 0xFFFFFFFF);
         if (bonus > 1) {
             String text = Integer.toString(bonus);
             int half = font.width(text) / 2;
