@@ -177,12 +177,12 @@ public final class CasterHudOverlay implements GuiLayer {
             if (sneak) {
                 graphics.pose().pushMatrix();
                 graphics.pose().rotate((float) Math.toRadians(-90.0));
-                graphics.text(mc.font, AMOUNT_FORMAT.format(amt / (float) WandEconomy.CENTIVIS_PER_VIS), AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
+                graphics.text(mc.font, AMOUNT_FORMAT.format(amt / (float) WandEconomy.CENTIVIS_PER_VIS), AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, true);
                 graphics.pose().popMatrix();
                 if (primalCost > 0.0F) {
                     graphics.pose().pushMatrix();
                     graphics.pose().rotate((float) Math.toRadians(-90.0));
-                    graphics.text(mc.font, AMOUNT_FORMAT.format(primalCost), COST_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
+                    graphics.text(mc.font, AMOUNT_FORMAT.format(primalCost), COST_TEXT_X, AMOUNT_TEXT_Y, WHITE, true);
                     graphics.pose().popMatrix();
                 }
             }
