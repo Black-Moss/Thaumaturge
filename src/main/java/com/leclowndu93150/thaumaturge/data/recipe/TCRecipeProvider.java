@@ -708,7 +708,7 @@ public final class TCRecipeProvider extends RecipeProvider {
                 .aspect(TCAspects.TERRA, 5).gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY)).save(output, TCIds.MODID + ":crucible/lava_bucket");
 
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.MOSSY_COBBLESTONE), Ingredient.of(Items.COBBLESTONE)).aspect(TCAspects.HERBA, 2)
-                .aspect(TCAspects.PRAECANTATIO, 1).gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.COBBLESTONE)).save(output, TCIds.MODID + ":crucible/mossy_cobblestone");
+                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.COBBLESTONE)).save(output, TCIds.MODID + ":crucible/mossy_cobblestone");
 
         new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.ICE), Ingredient.of(Items.SNOW_BLOCK)).aspect(TCAspects.ORDO, 1).aspect(TCAspects.GELUM, 1)
                 .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.SNOW_BLOCK)).save(output, TCIds.MODID + ":crucible/ice");
