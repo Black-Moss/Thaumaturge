@@ -745,6 +745,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             ItemStack stack = pickRotatingItem(req, i);
             if (!stack.isEmpty()) {
                 graphics.item(stack, slotX, y);
+                graphics.itemDecorations(font, stack, slotX, y);
             }
             boolean met = completedStage || (obtain ? countMatching(player, req) >= req.amount() : ResearchManager.isCraftSatisfied(player, KnowledgeAccess.of(player), req));
             satisfied[i] = met;
