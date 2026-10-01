@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
+import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.client.screen.TCTooltips;
 import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
@@ -82,18 +83,17 @@ public final class InventoryScanHandler {
             graphics.text(minecraft.font, progress, event.getMouseX() - minecraft.font.width(progress) / 2, top, PROGRESS_COLOR, true);
             return;
         }
-        if (slot == null) {
-            return;
+        if (slot != null) {
+            renderKnownAspects(graphics, minecraft, player, slot.getItem(), event.getMouseX(), event.getMouseY() + TAG_TOP_OFFSET);
         }
-        renderKnownAspects(graphics, minecraft, player, slot.getItem(), event.getMouseX(), event.getMouseY() + TAG_TOP_OFFSET);
-        Component hint = studyHint(player, slot.getItem());
+        Component hint = studyHint(player, targetAspects(player));
         if (hint != null) {
             graphics.text(minecraft.font, hint, event.getMouseX() - minecraft.font.width(hint) / 2, top, HINT_COLOR, true);
         }
     }
 
-    private static @Nullable Component studyHint(LocalPlayer player, ItemStack stack) {
-        for (AspectInstance entry : AspectIndexAccess.index().of(stack).entries()) {
+    private static @Nullable Component studyHint(LocalPlayer player, AspectList aspects) {
+        for (AspectInstance entry : aspects.entries()) {
             if (!AspectPools.hasDiscoveredComponents(player, entry.aspect())) {
                 return AspectPools.missingComponentHint(player, entry.aspect());
             }
@@ -126,7 +126,7 @@ public final class InventoryScanHandler {
             return;
         }
         Object scanned = resolveTarget(player);
-        if (scanned == null || !ScanningManager.isThingStillScannable(player, scanned) || scanned instanceof ItemStack stack && studyHint(player, stack) != null) {
+        if (scanned == null || !ScanningManager.isThingStillScannable(player, scanned) || studyHint(player, targetAspects(player)) != null) {
             ticks = 0;
             return;
         }
@@ -170,6 +170,14 @@ public final class InventoryScanHandler {
         }
         Slot slot = player.containerMenu.getSlot(target);
         return slot.hasItem() ? slot : null;
+    }
+
+    private static AspectList targetAspects(LocalPlayer player) {
+        if (target == ServerboundScanSlotPayload.SELF) {
+            return EntityAspects.of(player);
+        }
+        Slot slot = hoveredSlot(player);
+        return slot == null ? AspectList.EMPTY : AspectIndexAccess.index().of(slot.getItem());
     }
 
     private static @Nullable Object resolveTarget(LocalPlayer player) {
