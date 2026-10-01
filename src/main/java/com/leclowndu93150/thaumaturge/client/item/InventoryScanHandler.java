@@ -94,7 +94,7 @@ public final class InventoryScanHandler {
 
     private static @Nullable Component studyHint(LocalPlayer player, ItemStack stack) {
         for (AspectInstance entry : AspectIndexAccess.index().of(stack).entries()) {
-            if (!AspectPools.isDiscovered(player, entry.aspect())) {
+            if (!AspectPools.hasDiscoveredComponents(player, entry.aspect())) {
                 return AspectPools.missingComponentHint(player, entry.aspect());
             }
         }
@@ -126,7 +126,7 @@ public final class InventoryScanHandler {
             return;
         }
         Object scanned = resolveTarget(player);
-        if (scanned == null || !ScanningManager.isThingStillScannable(player, scanned)) {
+        if (scanned == null || !ScanningManager.isThingStillScannable(player, scanned) || scanned instanceof ItemStack stack && studyHint(player, stack) != null) {
             ticks = 0;
             return;
         }
