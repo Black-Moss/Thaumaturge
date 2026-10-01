@@ -15,8 +15,10 @@ import com.leclowndu93150.thaumaturge.network.ServerboundUnlockResearchPayload;
 import com.leclowndu93150.thaumaturge.registry.TCSounds;
 import java.util.*;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -24,6 +26,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -146,6 +149,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
     private static @Nullable Identifier persistedCategoryId = null;
     private static int persistedCatScrollPos = 0;
     private static boolean persistedSearching = false;
+    private static @Nullable Identifier persistedEntryId = null;
 
     private final List<Holder.Reference<IResearchCategory>> categoriesTC = new ArrayList<>();
     private final List<Holder.Reference<IResearchCategory>> categoriesOther = new ArrayList<>();
@@ -184,6 +188,21 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
         super(Component.empty());
         this.curMouseX = this.guiMapX = this.tempMapX = persistedX;
         this.curMouseY = this.guiMapY = this.tempMapY = persistedY;
+    }
+
+    public static Screen reopen() {
+        ThaumonomiconBrowserScreen browser = new ThaumonomiconBrowserScreen();
+        Minecraft minecraft = Minecraft.getInstance();
+        if (persistedEntryId == null || minecraft.player == null) {
+            return browser;
+        }
+        Identifier entryId = persistedEntryId;
+        return minecraft.player.registryAccess().lookup(IResearchEntry.REGISTRY_KEY).flatMap(lookup -> lookup.get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, entryId)))
+                .<Screen>map(holder -> new EntryDetailScreen(holder, entryId, browser)).orElse(browser);
+    }
+
+    public static void rememberEntry(@Nullable Identifier entryId) {
+        persistedEntryId = entryId;
     }
 
     @Override
