@@ -82,6 +82,9 @@ public final class TCModelProvider extends ModelProvider {
     private static final TextureSlot RESERVOIR_TANK_SLOT = TextureSlot.create("tank");
     private static final float RESERVOIR_TANK_MIN = 2.0F;
     private static final float RESERVOIR_TANK_MAX = 14.0F;
+    private static final TextureSlot GRATE_HATCH_SLOT = TextureSlot.create("hatch");
+    private static final float GRATE_MIN_Y = 14.0F;
+    private static final float GRATE_SIDE_V_MIN = 15.0F;
     private static final ModelTemplate BLOCK_PARTICLE = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("block/block")), Optional.empty(), TextureSlot.PARTICLE);
     private static final ModelTemplate THREE_LAYERED_ITEM = new ModelTemplate(Optional.of(Identifier.withDefaultNamespace("item/generated")), Optional.empty(), TextureSlot.LAYER0, TextureSlot.LAYER1,
             TextureSlot.LAYER2);
@@ -369,11 +372,30 @@ public final class TCModelProvider extends ModelProvider {
 
     private static void registerItemGrate(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         Block grate = TCBlocks.ITEM_GRATE.get();
-        Identifier open = ModelTemplates.CUBE_ALL.create(grate, TextureMapping.cube(grate), blockModels.modelOutput);
-        Identifier closed = ModelTemplates.CUBE_ALL.createWithSuffix(grate, "_closed", TextureMapping.cube(TextureMapping.getBlockTexture(grate, "_closed")), blockModels.modelOutput);
+        TextureMapping textures = new TextureMapping().put(TextureSlot.ALL, TextureMapping.getBlockTexture(grate)).put(TextureSlot.PARTICLE, TextureMapping.getBlockTexture(grate))
+                .put(GRATE_HATCH_SLOT, TextureMapping.getBlockTexture(grate, "_closed"));
+        Identifier open = itemGrateTemplate(false).create(grate, textures, blockModels.modelOutput);
+        Identifier closed = itemGrateTemplate(true).create(grate, textures, blockModels.modelOutput);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(grate)
                 .with(PropertyDispatch.initial(BlockItemGrate.OPEN).select(true, BlockModelGenerators.plainVariant(open)).select(false, BlockModelGenerators.plainVariant(closed))));
         itemModels.itemModelOutput.accept(TCItems.ITEM_GRATE.get(), ItemModelUtils.plainModel(open));
+    }
+
+    private static ModelTemplate itemGrateTemplate(boolean closed) {
+        ExtendedModelTemplateBuilder builder = ExtendedModelTemplateBuilder.builder().parent(Identifier.withDefaultNamespace("block/block")).requiredTextureSlot(TextureSlot.ALL)
+                .requiredTextureSlot(TextureSlot.PARTICLE).element(element -> element.from(0.0F, GRATE_MIN_Y, 0.0F).to(16.0F, 16.0F, 16.0F).allFaces((direction, face) -> {
+                    face.texture(TextureSlot.ALL);
+                    if (direction == Direction.UP) {
+                        face.cullface(Direction.UP);
+                    } else if (direction != Direction.DOWN) {
+                        face.cullface(direction).uvs(0.0F, GRATE_SIDE_V_MIN, 16.0F, 16.0F);
+                    }
+                }));
+        if (closed) {
+            builder.suffix("_closed").requiredTextureSlot(GRATE_HATCH_SLOT).element(element -> element.from(0.0F, GRATE_MIN_Y, 0.0F).to(16.0F, 16.0F, 16.0F)
+                    .face(Direction.UP, face -> face.texture(GRATE_HATCH_SLOT).cullface(Direction.UP)).face(Direction.DOWN, face -> face.texture(GRATE_HATCH_SLOT)));
+        }
+        return builder.build();
     }
 
     private static void registerArcaneLocks(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {

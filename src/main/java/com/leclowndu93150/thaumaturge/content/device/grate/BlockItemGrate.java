@@ -27,6 +27,7 @@ public final class BlockItemGrate extends BaseEntityBlock {
     public static final MapCodec<BlockItemGrate> CODEC = simpleCodec(BlockItemGrate::new);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    private static final VoxelShape SHAPE = Block.box(0.0, 14.0, 0.0, 16.0, 16.0, 16.0);
 
     public BlockItemGrate(Properties properties) {
         super(properties);
@@ -76,11 +77,16 @@ public final class BlockItemGrate extends BaseEntityBlock {
     }
 
     @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
+    }
+
+    @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         if (state.getValue(OPEN) && context instanceof EntityCollisionContext entityContext && entityContext.getEntity() instanceof ItemEntity) {
             return Shapes.empty();
         }
-        return super.getCollisionShape(state, level, pos, context);
+        return SHAPE;
     }
 
     @Override
