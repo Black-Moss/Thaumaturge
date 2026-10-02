@@ -36,7 +36,7 @@ public final class ResearchManager {
     private ResearchManager() {}
 
     public static Identifier craftedKey(Identifier item) {
-        return Identifier.fromNamespaceAndPath("thaumaturge", CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
+        return TCIds.rl(CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
     }
 
     public static boolean unlock(ServerPlayer player, Identifier research) {

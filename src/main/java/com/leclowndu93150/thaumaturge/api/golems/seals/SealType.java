@@ -1,8 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.golems.seals;
 
 import java.util.function.Supplier;
+
+import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ItemLike;
 

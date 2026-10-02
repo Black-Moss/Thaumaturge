@@ -190,11 +190,11 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     private static Identifier hpBuffId(int slot) {
-        return Identifier.fromNamespaceAndPath("thaumaturge", "boss_hp_buff_" + slot);
+        return TCIds.rl("boss_hp_buff_" + slot);
     }
 
     private static Identifier dmgBuffId(int slot) {
-        return Identifier.fromNamespaceAndPath("thaumaturge", "boss_dmg_buff_" + slot);
+        return TCIds.rl("boss_dmg_buff_" + slot);
     }
 
     @Override

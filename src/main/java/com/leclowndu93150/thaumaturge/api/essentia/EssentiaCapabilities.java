@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.essentia;
 
+import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;

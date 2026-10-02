@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TCIds;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
 public record ClientboundStreamEffectPayload(StreamEffectKind kind, double sx, double sy, double sz, double tx, double ty, double tz, int color, int extraInt, int extraInt2, float extraFloat,
         float extraFloat2, int entityId, byte flags) implements CustomPacketPayload {

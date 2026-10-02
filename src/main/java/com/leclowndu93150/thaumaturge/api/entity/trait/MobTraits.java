@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.entity.trait;
 
+import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import java.util.List;
 import java.util.Optional;

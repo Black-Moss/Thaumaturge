@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
 public record ClientboundTubeCreakPayload(BlockPos pos) implements CustomPacketPayload {
     public static final Type<ClientboundTubeCreakPayload> TYPE = new Type<>(TCIds.rl("tube_creak"));
