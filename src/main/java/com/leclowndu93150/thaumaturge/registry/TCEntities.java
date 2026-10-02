@@ -1,10 +1,5 @@
 package com.leclowndu93150.thaumaturge.registry;
 
-import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantHammer;
-import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityEldritchHierophant;
-import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantCrescent;
-import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantSigil;
-import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantNova;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.entity.*;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistLeader;
@@ -12,21 +7,19 @@ import com.leclowndu93150.thaumaturge.content.entity.boss.EntityCultistPortalGre
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityEldritchGolem;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityEldritchWarden;
 import com.leclowndu93150.thaumaturge.content.entity.boss.EntityTaintacleGiant;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityEldritchHierophant;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantCrescent;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantHammer;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantNova;
+import com.leclowndu93150.thaumaturge.content.entity.boss.hierophant.EntityHierophantSigil;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityArcaneBore;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbow;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.leclowndu93150.thaumaturge.content.entity.projectile.EntityGrapple;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
 import com.leclowndu93150.thaumaturge.content.misc.alumentum.ThrownAlumentum;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintChicken;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintCow;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintCreeper;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintPig;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSheep;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSpider;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSpore;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSporeSwarmer;
-import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintVillager;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -75,32 +68,11 @@ public final class TCEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSeedPrime>> TAINT_SEED_PRIME = register("taint_seed_prime",
             () -> EntityType.Builder.of(EntityTaintSeedPrime::new, MobCategory.MONSTER).sized(2.0F, 2.0F).notInPeaceful().clientTrackingRange(8));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSpider>> TAINT_SPIDER = register("taint_spider",
-            () -> EntityType.Builder.of(EntityTaintSpider::new, MobCategory.MONSTER).sized(1.4F, 0.9F).eyeHeight(0.65F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintCreeper>> TAINT_CREEPER = register("taint_creeper",
-            () -> EntityType.Builder.of(EntityTaintCreeper::new, MobCategory.MONSTER).sized(0.6F, 1.7F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSpore>> TAINT_SPORE = register("taint_spore",
             () -> EntityType.Builder.of(EntityTaintSpore::new, MobCategory.MONSTER).sized(0.7F, 0.7F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSporeSwarmer>> TAINT_SPORE_SWARMER = register("taint_spore_swarmer",
             () -> EntityType.Builder.of(EntityTaintSporeSwarmer::new, MobCategory.MONSTER).sized(0.9F, 0.9F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintCow>> TAINT_COW = register("taint_cow",
-            () -> EntityType.Builder.of(EntityTaintCow::new, MobCategory.MONSTER).sized(0.9F, 1.4F).eyeHeight(1.3F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintPig>> TAINT_PIG = register("taint_pig",
-            () -> EntityType.Builder.of(EntityTaintPig::new, MobCategory.MONSTER).sized(0.9F, 0.9F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintChicken>> TAINT_CHICKEN = register("taint_chicken",
-            () -> EntityType.Builder.of(EntityTaintChicken::new, MobCategory.MONSTER).sized(0.4F, 0.7F).eyeHeight(0.644F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSheep>> TAINT_SHEEP = register("taint_sheep",
-            () -> EntityType.Builder.of(EntityTaintSheep::new, MobCategory.MONSTER).sized(0.9F, 1.3F).eyeHeight(1.235F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
-
-    public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintVillager>> TAINT_VILLAGER = register("taint_villager",
-            () -> EntityType.Builder.of(EntityTaintVillager::new, MobCategory.MONSTER).sized(0.6F, 1.95F).eyeHeight(1.62F).notInPeaceful().clientTrackingRange(8).updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSwarm>> TAINT_SWARM = register("taint_swarm",
             () -> EntityType.Builder.of(EntityTaintSwarm::new, MobCategory.MONSTER).sized(2.0F, 2.0F).notInPeaceful().clientTrackingRange(8));

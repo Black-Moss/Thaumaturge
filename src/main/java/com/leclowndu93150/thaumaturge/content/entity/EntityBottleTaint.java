@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
-import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
@@ -91,7 +91,7 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
 
     private void applyAreaEffect(ServerLevel server) {
         AABB box = new AABB(this.position(), this.position()).inflate(SPLASH_RADIUS);
-        for (LivingEntity target : server.getEntitiesOfClass(LivingEntity.class, box, e -> !(e instanceof ITaintedMob) && !e.is(EntityTypeTags.UNDEAD))) {
+        for (LivingEntity target : server.getEntitiesOfClass(LivingEntity.class, box, e -> !MobTraits.isTainted(e) && !e.is(EntityTypeTags.UNDEAD))) {
             target.addEffect(new MobEffectInstance(TCMobEffects.FLUX_TAINT, FLUX_TAINT_TICKS, 0, false, true));
         }
     }

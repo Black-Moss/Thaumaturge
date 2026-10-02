@@ -1,8 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.taint.entity;
 
+import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
-import com.leclowndu93150.thaumaturge.registry.TCEntities;
+import com.leclowndu93150.thaumaturge.registry.TCMobTraits;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.spider.Spider;
 import net.minecraft.world.level.Level;
 
 public final class EntityTaintSpore extends AbstractTaintSpore {
@@ -46,9 +48,10 @@ public final class EntityTaintSpore extends AbstractTaintSpore {
         }
         int count = Math.min(MAX_SPIDERS, size / SPIDERS_PER_SIZE + random.nextInt(size / BONUS_SPIDER_DIVISOR + 1));
         for (int i = 0; i < count; i++) {
-            EntityTaintSpider spider = TCEntities.TAINT_SPIDER.get().create(level, EntitySpawnReason.MOB_SUMMONED);
+            Spider spider = EntityType.SPIDER.create(level, EntitySpawnReason.MOB_SUMMONED);
             if (spider != null) {
                 spider.snapTo(getX() + random.nextDouble() - 0.5, getY(), getZ() + random.nextDouble() - 0.5, random.nextFloat() * FULL_TURN, 0.0F);
+                MobTraits.add(spider, TCMobTraits.TAINT_BROOD);
                 level.addFreshEntity(spider);
             }
         }

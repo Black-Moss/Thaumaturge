@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.taint.flux;
 
-import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.content.particle.TaintFumeParticleOptions;
 import com.leclowndu93150.thaumaturge.content.taint.FluxImmunityHelper;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
@@ -267,7 +267,7 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
     }
 
     private static boolean resists(LivingEntity living) {
-        return living instanceof ITaintedMob || living.is(EntityTypeTags.UNDEAD) || FluxImmunityHelper.isImmune(living) || living.hasEffect(TCMobEffects.VIS_EXHAUST)
+        return MobTraits.isTainted(living) || living.is(EntityTypeTags.UNDEAD) || FluxImmunityHelper.isImmune(living) || living.hasEffect(TCMobEffects.VIS_EXHAUST)
                 || living.hasEffect(MobEffects.NAUSEA);
     }
 
