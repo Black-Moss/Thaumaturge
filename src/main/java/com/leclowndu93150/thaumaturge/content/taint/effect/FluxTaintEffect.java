@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.taint.effect;
 
 import com.leclowndu93150.thaumaturge.api.damagesource.TCDamageSources;
-import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
+import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.effect.MobEffect;
@@ -26,7 +26,7 @@ public final class FluxTaintEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(ServerLevel level, LivingEntity mob, int amplification) {
-        if (mob instanceof ITaintedMob) {
+        if (MobTraits.isTainted(mob)) {
             mob.heal(HEAL);
             return true;
         }

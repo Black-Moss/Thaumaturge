@@ -10,7 +10,7 @@ import com.leclowndu93150.thaumaturge.compat.curio.data.TCCurioProvider;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TCDamageTypeBootstrap;
 import com.leclowndu93150.thaumaturge.data.datamap.*;
-import com.leclowndu93150.thaumaturge.data.datamap.TaintConversionProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.TaintedProfileProvider;
 import com.leclowndu93150.thaumaturge.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TCBlockLootSubProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TCEntityLootSubProvider;
@@ -67,7 +67,7 @@ public final class TCDataGenerators {
         event.createProvider(AuraModifierProvider::new);
         event.createProvider(EntityAspectsProvider::new);
         event.createProvider(ChampionWhitelistProvider::new);
-        event.createProvider(TaintConversionProvider::new);
+        event.createProvider(TaintedProfileProvider::new);
         event.createProvider(InfernalBonusProvider::new);
         event.createProvider(GolemAccessoryItemProvider::new);
         event.createProvider(StrippingProvider::new);
