@@ -412,9 +412,17 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     private List<Identifier> displayRecipes(IResearchStage stage) {
         List<ResearchAddendum> addenda = unlockedAddenda();
-        if (addenda.isEmpty())
-            return stage.recipes();
         List<Identifier> all = new ArrayList<>(stage.recipes());
+        List<IResearchStage> stages = entry.value().stages();
+        int finalStageIndex = stages.size() - 1;
+        if (hasRedundantFinalStage(stages) && currentStageIndex() == finalStageIndex && stage == stages.get(finalStageIndex - 1)) {
+            for (Identifier recipe : stages.get(finalStageIndex).recipes()) {
+                if (!all.contains(recipe))
+                    all.add(recipe);
+            }
+        }
+        if (addenda.isEmpty())
+            return all;
         for (ResearchAddendum addendum : addenda) {
             for (Identifier rid : addendum.recipes()) {
                 if (!all.contains(rid))
@@ -474,7 +482,21 @@ public final class EntryDetailScreen extends AbstractTCScreen {
 
     private int displayedStageIndex() {
         int progressStage = currentStageIndex();
-        return selectedStageIndex < 0 ? progressStage : Math.min(selectedStageIndex, progressStage);
+        if (selectedStageIndex >= 0)
+            return Math.min(selectedStageIndex, progressStage);
+        if (progressStage == entry.value().stages().size() - 1 && hasRedundantFinalStage(entry.value().stages()))
+            return progressStage - 1;
+        return progressStage;
+    }
+
+    private static boolean hasRedundantFinalStage(List<IResearchStage> stages) {
+        if (stages.size() < 2)
+            return false;
+        IResearchStage previous = stages.get(stages.size() - 2);
+        IResearchStage last = stages.getLast();
+        return (!previous.requiredResearch().isEmpty() || !previous.obtain().isEmpty() || !previous.craft().isEmpty() || !previous.requiredKnowledge().isEmpty()) && last.requiredResearch().isEmpty()
+                && last.obtain().isEmpty() && last.craft().isEmpty() && last.requiredKnowledge().isEmpty() && previous.textKey().equals(last.textKey())
+                && last.recipes().containsAll(previous.recipes()) && previous.construct().equals(last.construct()) && previous.knowledge().equals(last.knowledge()) && previous.warp() == last.warp();
     }
 
     private boolean completedStageView() {
@@ -483,7 +505,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     }
 
     private boolean canNavigateStageHistory() {
-        return entry.value().stages().size() > 1 && currentStageIndex() > 0 && currentPage == 0 && !insertOpen() && history.isEmpty();
+        return entry.value().stages().size() > 1 && currentStageIndex() > 0 && !hasRedundantFinalStage(entry.value().stages()) && currentPage == 0 && !insertOpen() && history.isEmpty();
     }
 
     private void selectHistoryStage(int stageIndex) {
