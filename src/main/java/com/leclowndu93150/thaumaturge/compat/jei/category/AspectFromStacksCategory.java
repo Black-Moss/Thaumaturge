@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 
 public final class AspectFromStacksCategory implements IRecipeCategory<AspectFromStacksCategory.Wrapper> {
@@ -35,6 +36,7 @@ public final class AspectFromStacksCategory implements IRecipeCategory<AspectFro
     private static final int RIGHT_Y = 5;
     private static final int RESULT_X = 78;
     private static final int RESULT_Y = 5;
+    private static final float INNER_ALPHA = 0.5F;
 
     private final IDrawable icon;
 
@@ -85,7 +87,7 @@ public final class AspectFromStacksCategory implements IRecipeCategory<AspectFro
     @Override
     public void draw(Wrapper recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         resultSlot.draw(guiGraphics);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_inner.png"), 5, 30, 0, 0, 163, 74, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_inner.png"), 5, 30, 0, 0, 163, 74, 256, 256, ARGB.white(INNER_ALPHA));
     }
 
     public record Wrapper(Holder<IAspect> aspect, List<ItemStack> stacks) {
