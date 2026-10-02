@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.api.aura.VisRelayCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaContainerItem;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
-import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.AdvancedAlchemicalFurnaceStructure;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockSmelter;
 import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectItemStorage;
@@ -65,8 +64,7 @@ public final class TCCapabilities {
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.FLUX_SCRUBBER.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.POTION_SPRAYER.get(), (be, side) -> be);
         event.registerBlockEntity(Capabilities.Item.BLOCK, TCBlockEntities.HUNGRY_CHEST.get(), (be, side) -> VanillaContainerWrapper.of(be));
-        event.registerBlockEntity(Capabilities.Item.BLOCK, TCBlockEntities.ITEM_GRATE.get(),
-                (be, side) -> side == Direction.UP && be.getBlockState().getValue(BlockItemGrate.OPEN) ? be.inventory() : null);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, TCBlockEntities.ITEM_GRATE.get(), (be, side) -> side == Direction.UP ? be.inventory() : null);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, TCBlockEntities.EVERFULL_URN.get(), (be, side) -> be.getTank());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, TCBlockEntities.VIS_GENERATOR.get(), (be, side) -> side == be.outputFace() ? be : null);
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TCBlockEntities.ESSENTIA_PORT.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
