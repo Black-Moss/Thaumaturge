@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world.plant;
 
 import com.leclowndu93150.thaumaturge.content.particle.WispyMoteParticleOptions;
+import com.leclowndu93150.thaumaturge.data.worldgen.biome.TCBiomes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -18,6 +19,7 @@ public final class BlockGrassAmbient extends GrassBlock {
     private static final int MOTE_MIN_Y = 50;
     private static final int MOTE_AGE = 400;
     private static final float MOTE_GRAVITY = -0.01F;
+    private static final int CAVE_MOTE_CHANCE = 5;
 
     public BlockGrassAmbient(BlockBehaviour.Properties properties) {
         super(properties);
@@ -25,6 +27,12 @@ public final class BlockGrassAmbient extends GrassBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (level.getBiome(pos).is(TCBiomes.MAGICAL_FOREST_CAVES)) {
+            if (random.nextInt(CAVE_MOTE_CHANCE) == 0 && level.isEmptyBlock(pos.above())) {
+                spawnMote(level, pos.above(), random, true);
+            }
+            return;
+        }
         int skyLight = level.getBrightness(LightLayer.SKY, pos.above()) - level.getSkyDarken();
         float angle = level.environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, pos) * (float) (Math.PI / 180.0);
         float target = angle < (float) Math.PI ? 0.0F : (float) (Math.PI * 2);
@@ -39,14 +47,14 @@ public final class BlockGrassAmbient extends GrassBlock {
                 target2 = target2.below();
             }
             if (level.getBlockState(target2).is(Blocks.GRASS_BLOCK)) {
-                spawnMote(level, target2.above(), random);
+                spawnMote(level, target2.above(), random, false);
             }
         }
     }
 
-    private static void spawnMote(Level level, BlockPos pos, RandomSource random) {
+    private static void spawnMote(Level level, BlockPos pos, RandomSource random, boolean emissive) {
         WispyMoteParticleOptions data = new WispyMoteParticleOptions(ARGB.colorFromFloat(1.0F, 0.4F + random.nextFloat() * 0.6F, 0.6F + random.nextFloat() * 0.4F, 0.6F + random.nextFloat() * 0.4F),
-                MOTE_AGE, MOTE_GRAVITY, WispyMoteParticleOptions.NO_ENTITY);
+                MOTE_AGE, MOTE_GRAVITY, WispyMoteParticleOptions.NO_ENTITY, emissive);
         level.addParticle(data, pos.getX() + random.nextFloat(), pos.getY(), pos.getZ() + random.nextFloat(), 0.0, 0.0, 0.0);
     }
 }

@@ -9,7 +9,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 
-public record CrystalClusterConfig(List<Entry> crystals, int attempts, int maxTotal, int biomeAspectChance) implements FeatureConfiguration {
+public record CrystalClusterConfig(List<Entry> crystals, int attempts, int maxTotal, int biomeAspectChance, boolean atOrigin) implements FeatureConfiguration {
+
+    public CrystalClusterConfig(List<Entry> crystals, int attempts, int maxTotal, int biomeAspectChance) {
+        this(crystals, attempts, maxTotal, biomeAspectChance, false);
+    }
 
     public record Entry(ResourceKey<IAspect> aspect, Block block) {
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance
@@ -19,5 +23,6 @@ public record CrystalClusterConfig(List<Entry> crystals, int attempts, int maxTo
 
     public static final Codec<CrystalClusterConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(Entry.CODEC.listOf().fieldOf("crystals").forGetter(CrystalClusterConfig::crystals),
             Codec.intRange(1, 64).fieldOf("attempts").forGetter(CrystalClusterConfig::attempts), Codec.intRange(1, 4096).fieldOf("max_total").forGetter(CrystalClusterConfig::maxTotal),
-            Codec.intRange(1, 100).fieldOf("biome_aspect_chance").forGetter(CrystalClusterConfig::biomeAspectChance)).apply(instance, CrystalClusterConfig::new));
+            Codec.intRange(1, 100).fieldOf("biome_aspect_chance").forGetter(CrystalClusterConfig::biomeAspectChance),
+            Codec.BOOL.optionalFieldOf("at_origin", false).forGetter(CrystalClusterConfig::atOrigin)).apply(instance, CrystalClusterConfig::new));
 }

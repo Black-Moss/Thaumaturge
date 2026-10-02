@@ -40,6 +40,7 @@ public final class TCBlockTags {
     public static final TagKey<Block> WARDABLE_NON_SOLID = key("wardable_non_solid");
     public static final TagKey<Block> PHYSICAL_FLUX = key("physical_flux");
     public static final TagKey<Block> FLUX_SCRUBBABLE = key("flux_scrubbable");
+    public static final TagKey<Block> MAGICAL_CAVE_GROUND_REPLACEABLE = key("magical_cave_ground_replaceable");
     public static final TagKey<Block> CANDLES = key("candles");
     public static final TagKey<Block> RESEARCH_BONUS_ORDO = key("research_bonus/ordo");
     public static final TagKey<Block> TAINT_CONVERTIBLE_LOG = key("taint_convertible/log");
