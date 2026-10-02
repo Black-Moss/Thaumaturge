@@ -482,9 +482,14 @@ public final class ThaumonomiconBrowserScreen extends AbstractTCScreen {
             graphics.pose().pushMatrix();
             graphics.pose().scale(1.0F / screenZoom, 1.0F / screenZoom);
             renderBackgroundLayers(graphics, locX, locY);
+            graphics.pose().popMatrix();
+            graphics.enableScissor(START_X, START_Y, START_X + screenX, START_Y + screenY);
+            graphics.pose().pushMatrix();
+            graphics.pose().scale(1.0F / screenZoom, 1.0F / screenZoom);
             renderConnectors(graphics, locX, locY);
             renderEntries(graphics, mouseX, mouseY, locX, locY);
             graphics.pose().popMatrix();
+            graphics.disableScissor();
         } else if (searching) {
             renderSearchResults(graphics, mouseX, mouseY);
         }
