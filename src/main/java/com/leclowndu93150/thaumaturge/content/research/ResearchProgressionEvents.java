@@ -203,9 +203,11 @@ public final class ResearchProgressionEvents {
         }
         if (player.tickCount % MILESTONE_CHECK_INTERVAL != 0)
             return;
-        Holder<Biome> biome = player.level().getBiome(player.blockPosition());
-        milestone(player, knowledge, TCIds.rl("m_hellandback"), "got.hellandback", biome.is(BiomeTags.IS_NETHER));
-        milestone(player, knowledge, TCIds.rl("m_endoftheworld"), "got.endoftheworld", biome.is(BiomeTags.IS_END));
+        if (player.level().hasChunkAt(player.blockPosition())) {
+            Holder<Biome> biome = player.level().getBiome(player.blockPosition());
+            milestone(player, knowledge, TCIds.rl("m_hellandback"), "got.hellandback", biome.is(BiomeTags.IS_NETHER));
+            milestone(player, knowledge, TCIds.rl("m_endoftheworld"), "got.endoftheworld", biome.is(BiomeTags.IS_END));
+        }
         milestone(player, knowledge, TCIds.rl("m_walker"), null, player.getStats().getValue(Stats.CUSTOM.get(Stats.WALK_ONE_CM)) > WALK_MILESTONE_CM);
         milestone(player, knowledge, TCIds.rl("m_runner"), null, player.getStats().getValue(Stats.CUSTOM.get(Stats.SPRINT_ONE_CM)) > SPRINT_MILESTONE_CM);
         milestone(player, knowledge, TCIds.rl("m_jumper"), null, player.getStats().getValue(Stats.CUSTOM.get(Stats.JUMP)) > JUMP_MILESTONE);
