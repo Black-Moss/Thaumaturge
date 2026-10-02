@@ -1476,13 +1476,12 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             int rightX = sw + ARROW_RIGHT_OFFSET_X;
             drawTexturedRectScaled(graphics, rightX, arrowY, ARROW_RIGHT_U, ARROW_V, ARROW_W, ARROW_H, bob);
         }
-        if (!history.isEmpty()) {
-            int backX = sw + BACK_OFFSET_X;
-            drawTexturedRectScaled(graphics, backX, arrowY, BACK_U, BACK_V, BACK_W, BACK_H, bob);
-            if (mouseInside(backX, arrowY, BACK_W, BACK_H, mouseX, mouseY)) {
-                int textColor = 0xFFFFFFFF;
-                graphics.text(font, Component.translatable("recipe.return"), mouseX, mouseY, textColor, true);
-            }
+        int backX = sw + BACK_OFFSET_X;
+        boolean backToMap = history.isEmpty() && !insertOpen();
+        drawTexturedRectScaled(graphics, backX, arrowY, BACK_U, BACK_V, BACK_W, BACK_H, backToMap ? 0.0F : bob);
+        if (mouseInside(backX, arrowY, BACK_W, BACK_H, mouseX, mouseY)) {
+            int textColor = 0xFFFFFFFF;
+            graphics.text(font, Component.translatable(backToMap ? "tc.research.return_to_map" : "recipe.return"), mouseX, mouseY, textColor, true);
         }
         if (canNavigateStageHistory()) {
             int displayedStage = displayedStageIndex();
@@ -1579,7 +1578,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 return true;
             }
             if (mx >= backX && mx < backX + BACK_W && my >= backY && my < backY + BACK_H) {
-                goBack();
+                back();
                 return true;
             }
             if (canNavigateStageHistory()) {
@@ -1757,6 +1756,14 @@ public final class EntryDetailScreen extends AbstractTCScreen {
         if (currentPage >= 2) {
             currentPage -= 2;
             playSound(TCSounds.PAGE.get(), 0.66F, 1.0F);
+        }
+    }
+
+    private void back() {
+        if (showingConstruct || !history.isEmpty()) {
+            goBack();
+        } else {
+            returnToBrowser();
         }
     }
 
@@ -1959,7 +1966,7 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 return true;
             }
             case GLFW.GLFW_KEY_BACKSPACE -> {
-                goBack();
+                back();
                 return true;
             }
             default -> {
