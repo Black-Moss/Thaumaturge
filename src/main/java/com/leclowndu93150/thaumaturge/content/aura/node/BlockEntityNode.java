@@ -36,6 +36,7 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -700,13 +701,24 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         return lock;
     }
 
+    private static boolean isGenerated(ServerLevel level, BlockPos pos) {
+        return level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ())) != null;
+    }
+
+    private static boolean isNeighbourhoodGenerated(ServerLevel level, BlockPos pos) {
+        return isGenerated(level, pos) && isGenerated(level, pos.east()) && isGenerated(level, pos.west()) && isGenerated(level, pos.north()) && isGenerated(level, pos.south());
+    }
+
     private void checkLock(ServerLevel serverLevel, BlockPos pos) {
         if (count > 1 && count % BEHAVIOR_INTERVAL != 0) {
             return;
         }
+        BlockPos below = pos.below();
+        if (!isNeighbourhoodGenerated(serverLevel, below)) {
+            return;
+        }
         int oldLock = lock;
         lock = 0;
-        BlockPos below = pos.below();
         if (!serverLevel.hasNeighborSignal(below) && serverLevel.getBlockState(below).getBlock() instanceof BlockNodeStabilizer stabilizer) {
             lock = stabilizer.isAdvanced() ? LOCK_ADVANCED : LOCK_BASIC;
         }
@@ -743,6 +755,9 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             return change;
         }
         BlockPos otherPos = pos.offset(x, y, z);
+        if (!isGenerated(serverLevel, otherPos)) {
+            return change;
+        }
         if (!(serverLevel.getBlockEntity(otherPos) instanceof BlockEntityNode other) || !other.allowDischarge() || other.lock > 0) {
             return change;
         }
@@ -959,7 +974,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         RandomSource random = level.getRandom();
         for (int attempt = 0; attempt < NATURAL_TAINTED_FIBRE_ATTEMPTS; attempt++) {
             BlockPos target = pos.offset(bootstrapOffset(random), bootstrapOffset(random), bootstrapOffset(random));
-            if (!level.hasChunkAt(target)) {
+            if (!isNeighbourhoodGenerated(level, target)) {
                 continue;
             }
             BlockState targetState = level.getBlockState(target);
