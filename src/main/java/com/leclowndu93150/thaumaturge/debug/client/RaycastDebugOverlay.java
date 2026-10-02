@@ -45,7 +45,7 @@ public final class RaycastDebugOverlay implements GuiLayer {
     public static void clientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        if (player == null || mc.level == null) {
+        if (!enabled || player == null || mc.level == null) {
             return;
         }
         clientHitResult = ScanRaycastHelper.performRaycast(player);
