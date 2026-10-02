@@ -109,7 +109,6 @@ public final class TCBiomes {
     private static Biome magicalForestCaves(HolderGetter<PlacedFeature> placed, HolderGetter<ConfiguredWorldCarver<?>> carvers) {
         MobSpawnSettings.Builder mobs = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(mobs);
-        mobs.addSpawn(MobCategory.AXOLOTLS, 10, new MobSpawnSettings.SpawnerData(EntityType.AXOLOTL, 4, 6));
         mobs.addSpawn(MobCategory.MONSTER, 20, new MobSpawnSettings.SpawnerData(TCEntities.WISP.get(), 1, 2));
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(placed, carvers);
