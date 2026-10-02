@@ -125,6 +125,7 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("tc.type.theory", "Theory");
         add("tc.type.observation", "Observation");
         add("recipe.return", "Back");
+        add("tc.research.return_to_map", "Back to Research Map");
         add("recipe.clickthrough", "Click for recipe");
         add("recipe.unknown", "You cannot craft this yet");
         add("recipe.type.workbench", "Workbench");
