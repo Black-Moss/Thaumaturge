@@ -39,9 +39,13 @@ public class BellowsRenderer implements BlockEntityRenderer<BlockEntityBellows, 
             poseStack.pushPose();
             poseStack.translate(0.5, 0.5, 0.5);
             switch (state.facing) {
-                case DOWN -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
-                case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(270));
-                default -> poseStack.mulPose(Axis.YP.rotationDegrees(state.facing.toYRot()));
+                case DOWN -> {
+                }
+                case UP -> poseStack.mulPose(Axis.XP.rotationDegrees(180));
+                case NORTH -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
+                case EAST -> poseStack.mulPose(Axis.ZP.rotationDegrees(90));
+                case SOUTH -> poseStack.mulPose(Axis.XP.rotationDegrees(270));
+                case WEST -> poseStack.mulPose(Axis.ZP.rotationDegrees(270));
             }
             poseStack.translate(-0.5, -0.5, -0.5);
 
