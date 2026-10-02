@@ -126,6 +126,16 @@ By J. W. Bjerk (eleazzaar), licensed under [CC BY 3.0](https://creativecommons.o
 - `textures/research/r_researcher2.png` (https://opengameart.org/content/painterly-spell-icons-part-1)
 - `textures/research/r_runicupg.png` (https://opengameart.org/content/painterly-spell-icons-part-3)
 
+## Tainted mob textures
+
+Drawn by **.talonos** (Discord) and donated under the MIT license (text below). The files were adjusted to the 26.1 vanilla texture layouts; `horse/horse_gray.png`, `bee/bee_angry.png`, `bee/bee_nectar.png` and `bee/bee_angry_nectar.png` are derived from their other variants, and the `_glow` masks are cut from their art. The vein fill used by the generated taint overlay was extracted from their source files.
+
+- `textures/tainted/minecraft/entity/allay/` (2 files)
+- `textures/tainted/minecraft/entity/axolotl/` (10 files)
+- `textures/tainted/minecraft/entity/bee/` (8 files)
+- `textures/tainted/minecraft/entity/horse/` (14 files)
+- `textures/entity/taint/vein_fill.png`
+
 ## Sounds
 
 Thaumcraft built these sounds from third-party sound libraries and games. They are not Thaumcraft's own work. The sources come from the community "Classic Minecraft Mod Sound Sources" research sheet.
@@ -237,6 +247,32 @@ Thaumcraft built these sounds from third-party sound libraries and games. They a
 MIT License
 
 Copyright (c) 2022 SlimeKnights
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+### .talonos tainted mob textures (MIT)
+
+```
+MIT License
+
+Copyright (c) 2025 .talonos
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
