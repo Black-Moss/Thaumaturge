@@ -21,6 +21,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider lookupProvider) {
+        tag(BlockTags.DIRT).add(TCBlocks.GRASS_AMBIENT.get());
+        tag(TCBlockTags.MAGICAL_CAVE_GROUND_REPLACEABLE).addTag(BlockTags.BASE_STONE_OVERWORLD).addTag(BlockTags.DIRT).addTag(BlockTags.LUSH_GROUND_REPLACEABLE);
         tag(BlockTags.FLOWER_POTS).add(TCBlocks.POTTED_SAPLING_GREATWOOD.get()).add(TCBlocks.POTTED_SAPLING_SILVERWOOD.get()).add(TCBlocks.POTTED_SHIMMERLEAF.get())
                 .add(TCBlocks.POTTED_CINDERPEARL.get()).add(TCBlocks.POTTED_VISHROOM.get());
 

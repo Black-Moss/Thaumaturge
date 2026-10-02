@@ -10,17 +10,22 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record WispyMoteParticleOptions(int color, int age, float gravity, int targetEntityId) implements ParticleOptions {
+public record WispyMoteParticleOptions(int color, int age, float gravity, int targetEntityId, boolean emissive) implements ParticleOptions {
 
     public static final int NO_ENTITY = -1;
 
-    public static final MapCodec<WispyMoteParticleOptions> CODEC = RecordCodecBuilder.mapCodec(inst -> inst
-            .group(Codec.INT.fieldOf("color").forGetter(WispyMoteParticleOptions::color), Codec.INT.fieldOf("age").forGetter(WispyMoteParticleOptions::age),
-                    Codec.FLOAT.fieldOf("gravity").forGetter(WispyMoteParticleOptions::gravity), Codec.INT.optionalFieldOf("target", NO_ENTITY).forGetter(WispyMoteParticleOptions::targetEntityId))
-            .apply(inst, WispyMoteParticleOptions::new));
+    public WispyMoteParticleOptions(int color, int age, float gravity, int targetEntityId) {
+        this(color, age, gravity, targetEntityId, false);
+    }
+
+    public static final MapCodec<WispyMoteParticleOptions> CODEC = RecordCodecBuilder
+            .mapCodec(inst -> inst.group(Codec.INT.fieldOf("color").forGetter(WispyMoteParticleOptions::color), Codec.INT.fieldOf("age").forGetter(WispyMoteParticleOptions::age),
+                    Codec.FLOAT.fieldOf("gravity").forGetter(WispyMoteParticleOptions::gravity), Codec.INT.optionalFieldOf("target", NO_ENTITY).forGetter(WispyMoteParticleOptions::targetEntityId),
+                    Codec.BOOL.optionalFieldOf("emissive", false).forGetter(WispyMoteParticleOptions::emissive)).apply(inst, WispyMoteParticleOptions::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, WispyMoteParticleOptions> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.INT, WispyMoteParticleOptions::color, ByteBufCodecs.VAR_INT,
-            WispyMoteParticleOptions::age, ByteBufCodecs.FLOAT, WispyMoteParticleOptions::gravity, ByteBufCodecs.VAR_INT, WispyMoteParticleOptions::targetEntityId, WispyMoteParticleOptions::new);
+            WispyMoteParticleOptions::age, ByteBufCodecs.FLOAT, WispyMoteParticleOptions::gravity, ByteBufCodecs.VAR_INT, WispyMoteParticleOptions::targetEntityId, ByteBufCodecs.BOOL,
+            WispyMoteParticleOptions::emissive, WispyMoteParticleOptions::new);
 
     @Override
     public ParticleType<?> getType() {
