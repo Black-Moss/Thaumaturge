@@ -2,9 +2,9 @@ package com.leclowndu93150.thaumaturge.content.device.fluxscrubber;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TCAspects;
-import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
+import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TCBlockEntities;
@@ -29,8 +29,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityFluxScrubber extends BlockEntity implements IEssentiaTransport {
-    public static final float WORK_VIS = 0.05F;
-    private static final float VIS_REFILL_REQUEST = 0.10F;
+    public static final int WORK_POWER = 5;
+    private static final int POWER_REQUEST = 10;
+    private static final int DRAW_RETRY_TICKS = 20;
     private static final int RADIUS = 16;
     private static final int DIAMETER = RADIUS * 2 + 1;
     private static final int SCAN_VOLUME = DIAMETER * DIAMETER * DIAMETER;
@@ -40,7 +41,8 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
 
     private int essentia;
     private int charges;
-    private float power;
+    private int power;
+    private int drawCooldown;
     private int scanIndex;
     private int scanOffset;
     private int scanStep;
@@ -62,7 +64,7 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
         return charges;
     }
 
-    public float power() {
+    public int power() {
         return power;
     }
 
@@ -83,15 +85,28 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
                 setChanged();
             }
         }
-        if (power < WORK_VIS) {
-            float drained = AuraHelper.drainVis(level, pos, VIS_REFILL_REQUEST, false);
-            if (drained > 0.0F) {
-                power += drained;
-                setChanged();
-            }
+        if (power < WORK_POWER) {
+            drawPower(level, pos);
         }
-        if (power >= WORK_VIS) {
+        if (power >= WORK_POWER) {
             scanForFlux(level, pos);
+        }
+    }
+
+    private void drawPower(ServerLevel level, BlockPos pos) {
+        if (drawCooldown > 0) {
+            drawCooldown--;
+            return;
+        }
+        int drained = VisRelayNetwork.drainEverySourceNear(level, pos, TCAspects.AER, POWER_REQUEST);
+        if (drained < POWER_REQUEST) {
+            drained += VisRelayNetwork.drainNodesNear(level, pos, TCAspects.AER, POWER_REQUEST - drained);
+        }
+        if (drained > 0) {
+            power += drained;
+            setChanged();
+        } else {
+            drawCooldown = DRAW_RETRY_TICKS;
         }
     }
 
@@ -112,7 +127,7 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
                 if (PhysicalFlux.reduce(level, target, 1) != 1) {
                     continue;
                 }
-                power -= WORK_VIS;
+                power -= WORK_POWER;
                 charges++;
                 setChanged();
                 Effects.simpleSparkle(level, Vec3.atCenterOf(target)).color(SPARKLE_RED, 0.0F, 1.0F).scale(SPARKLE_SCALE).send();
@@ -220,7 +235,7 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
         super.loadAdditional(input);
         essentia = Math.clamp(input.getIntOr("Essentia", 0), 0, essentiaCapacity());
         charges = Math.max(0, input.getIntOr("Charges", 0));
-        power = Math.max(0.0F, input.getFloatOr("Power", 0.0F));
+        power = Math.max(0, input.getIntOr("Power", 0));
         scanIndex = 0;
         scanStep = 0;
     }
@@ -230,7 +245,7 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
         super.saveAdditional(output);
         output.putInt("Essentia", essentia);
         output.putInt("Charges", charges);
-        output.putFloat("Power", power);
+        output.putInt("Power", power);
     }
 
     @Override
