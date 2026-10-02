@@ -29,6 +29,6 @@ public final class TCDamageTypes {
     private TCDamageTypes() {}
 
     private static ResourceKey<DamageType> key(String path) {
-        return ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(TCIds.MODID, path));
+        return ResourceKey.create(Registries.DAMAGE_TYPE, TCIds.rl(path));
     }
 }

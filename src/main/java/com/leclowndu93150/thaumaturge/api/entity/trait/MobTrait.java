@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.entity.trait;
 
+import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -27,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  */
 public interface MobTrait {
     /** The registry key for mob traits. */
-    ResourceKey<Registry<MobTrait>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "mob_trait"));
+    ResourceKey<Registry<MobTrait>> REGISTRY_KEY = ResourceKey.createRegistryKey(TCIds.rl("mob_trait"));
 
     /**
      * Returns whether this trait is a champion modifier. Champion traits make the carrier count

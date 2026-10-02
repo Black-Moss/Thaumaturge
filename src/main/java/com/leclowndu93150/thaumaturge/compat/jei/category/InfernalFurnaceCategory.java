@@ -24,14 +24,14 @@ import net.minecraft.world.item.crafting.Ingredient;
 import java.util.List;
 
 public final class InfernalFurnaceCategory implements IRecipeCategory<InfernalBonusWrapper> {
-    public static final IRecipeType<InfernalBonusWrapper> RECIPE_TYPE = IRecipeType.create(Identifier.fromNamespaceAndPath(TCIds.MODID, "infernal_furnace"), InfernalBonusWrapper.class);
+    public static final IRecipeType<InfernalBonusWrapper> RECIPE_TYPE = IRecipeType.create(TCIds.rl("infernal_furnace"), InfernalBonusWrapper.class);
 
     private static final int WIDTH = 144;
     private static final int HEIGHT = 108;
 
-    private static final IDrawable resultIcon = new AlphaDrawable(Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"), 41, 7, 30, 30);
-    private static final IDrawable arrow = new AlphaDrawable(Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"), 199, 168, 26, 26);
-    private static final IDrawable furnace = new AlphaDrawable(Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"), 445, 452, 67, 60);
+    private static final IDrawable resultIcon = new AlphaDrawable(TCIds.rl("textures/gui/gui_researchbook_overlay.png"), 41, 7, 30, 30);
+    private static final IDrawable arrow = new AlphaDrawable(TCIds.rl("textures/gui/gui_researchbook_overlay.png"), 199, 168, 26, 26);
+    private static final IDrawable furnace = new AlphaDrawable(TCIds.rl("textures/gui/gui_researchbook_overlay.png"), 445, 452, 67, 60);
 
     private final IDrawable icon;
 

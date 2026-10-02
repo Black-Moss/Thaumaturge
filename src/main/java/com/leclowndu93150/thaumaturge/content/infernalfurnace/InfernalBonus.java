@@ -38,7 +38,7 @@ public record InfernalBonus(HolderSet<Item> items, IntProvider count, float chan
                     Codec.floatRange(0, 1).optionalFieldOf("chance", 1.0f).forGetter(InfernalBonus::chance)).apply(instance, InfernalBonus::new));
 
     public static final AdvancedDataMapType<Item, List<InfernalBonus>, Remover> DATA_MAP = AdvancedDataMapType
-            .builder(Identifier.fromNamespaceAndPath(TCIds.MODID, "infernal_bonus"), Registries.ITEM, CODEC.listOf(1, 64)).merger((_, _, fv, _, sv) -> Stream.concat(fv.stream(), sv.stream()).toList())
+            .builder(TCIds.rl("infernal_bonus"), Registries.ITEM, CODEC.listOf(1, 64)).merger((_, _, fv, _, sv) -> Stream.concat(fv.stream(), sv.stream()).toList())
             .remover(Remover.CODEC).synced(CODEC.listOf(1, 64), false).build();
 
     @SubscribeEvent

@@ -28,7 +28,7 @@ public final class MazeSavedData extends SavedData {
                     RETURNS_CODEC.optionalFieldOf("returns", Map.of()).forGetter(data -> data.returns), Codec.INT.optionalFieldOf("alloc_cursor", 0).forGetter(data -> data.allocCursor))
             .apply(builder, MazeSavedData::new));
 
-    public static final SavedDataType<MazeSavedData> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "labyrinth"), MazeSavedData::new, CODEC, DataFixTypes.LEVEL);
+    public static final SavedDataType<MazeSavedData> TYPE = new SavedDataType<>(TCIds.rl("labyrinth"), MazeSavedData::new, CODEC, DataFixTypes.LEVEL);
 
     private final Map<Long, Short> cells;
     private final Map<Long, BlockPos> returns;

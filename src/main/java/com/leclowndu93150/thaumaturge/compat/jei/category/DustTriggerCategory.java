@@ -54,7 +54,7 @@ public final class DustTriggerCategory implements IRecipeCategory<RecipeHolder<D
 
     private final IDrawable icon;
 
-    private final IDrawable resultIcon = new AlphaDrawable(Identifier.fromNamespaceAndPath(TCIds.MODID, "textures/gui/gui_researchbook_overlay.png"), 41, 7, 30, 30);
+    private final IDrawable resultIcon = new AlphaDrawable(TCIds.rl("textures/gui/gui_researchbook_overlay.png"), 41, 7, 30, 30);
 
     public DustTriggerCategory(IGuiHelper guiHelper) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(TCItems.SALIS_MUNDUS.get()));

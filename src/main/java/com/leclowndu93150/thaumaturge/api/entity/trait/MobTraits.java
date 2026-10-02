@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.api.entity.ITaintedMob;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -19,7 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
  */
 public final class MobTraits {
     /** The taint infection trait: hostile AI for passive mobs, taint immunity and the taint overlay. */
-    public static final ResourceKey<MobTrait> TAINTED = ResourceKey.create(MobTrait.REGISTRY_KEY, Identifier.fromNamespaceAndPath("thaumaturge", "tainted"));
+    public static final ResourceKey<MobTrait> TAINTED = ResourceKey.create(MobTrait.REGISTRY_KEY, TCIds.rl("tainted"));
 
     private static Bindings impl;
 

@@ -12,7 +12,7 @@ public record ClientboundStreamEffectPayload(StreamEffectKind kind, double sx, d
     public static final byte FLAG_REVERSE = 1;
     public static final byte FLAG_WITH_SOURCE = 2;
 
-    public static final Type<ClientboundStreamEffectPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TCIds.MODID, "fx_stream"));
+    public static final Type<ClientboundStreamEffectPayload> TYPE = new Type<>(TCIds.rl("fx_stream"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundStreamEffectPayload> STREAM_CODEC = StreamCodec.of((buf, data) -> {
         buf.writeByte(data.kind.ordinal());
