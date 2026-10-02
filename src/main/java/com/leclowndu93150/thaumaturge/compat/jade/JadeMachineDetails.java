@@ -83,7 +83,7 @@ final class JadeMachineDetails {
     }
     static void fluxScrubber(BlockEntityFluxScrubber machine, JadeDetailBuilder data) {
         data.summary("jade.thaumaturge.flux_scrubber.charges", machine.charges());
-        data.detail("jade.thaumaturge.flux_scrubber.power", Math.round(machine.power() / BlockEntityFluxScrubber.WORK_VIS * 100.0F));
+        data.detail("jade.thaumaturge.flux_scrubber.power", Math.min(100, machine.power() * 100 / BlockEntityFluxScrubber.WORK_POWER));
     }
     static void siphon(BlockEntityVoidSiphon machine, JadeDetailBuilder data) {
         progress(data, machine.progress(), BlockEntityVoidSiphon.PROGRESS_REQUIRED);
