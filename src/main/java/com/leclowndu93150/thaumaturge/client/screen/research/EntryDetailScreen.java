@@ -208,8 +208,6 @@ public final class EntryDetailScreen extends AbstractTCScreen {
     private static final int ASPECTS_INSERT_OFFSET_X = 60;
     private static final int ASPECTS_INSERT_OFFSET_Y = 24;
     private static final int ASPECT_PAGE_ROWS = 5;
-    private static final int ASPECT_PROGRESS_X = 84;
-    private static final int ASPECT_PROGRESS_Y = 152;
     private static final float ASPECT_COMBINE_YIELD = 1.0F;
     private static final Identifier UNKNOWN_ASPECT_TEXTURE = TCIds.rl("textures/aspects/_unknown.png");
     private static final int UNKNOWN_ASPECT_TINT = 0x80808080;
@@ -1296,8 +1294,6 @@ public final class EntryDetailScreen extends AbstractTCScreen {
                 graphics.text(font, Component.translatable("tc.aspect.primal"), x + ASPECT_PRIMAL_X, rowY + ASPECT_SEPARATOR_Y_OFFSET, ASPECT_PRIMAL_COLOR, false);
             }
         }
-        Component progress = aspectProgress();
-        graphics.text(font, progress, x + ASPECT_PROGRESS_X - font.width(progress) / 2, y + ASPECT_PROGRESS_Y, ASPECT_PRIMAL_COLOR, false);
         int totalKnown = known.size();
         int maxPages = totalKnown == 0 ? 0 : Mth.ceil(totalKnown / (float) ASPECT_PAGE_ROWS);
         float bob = bob();
@@ -1344,23 +1340,6 @@ public final class EntryDetailScreen extends AbstractTCScreen {
             }
         }
         return list;
-    }
-
-    private Component aspectProgress() {
-        if (minecraft == null || minecraft.player == null)
-            return Component.empty();
-        HolderLookup.Provider registries = minecraft.player.registryAccess();
-        Optional<? extends HolderLookup.RegistryLookup<IAspect>> lookupOpt = registries.lookup(IAspect.REGISTRY_KEY);
-        if (lookupOpt.isEmpty())
-            return Component.empty();
-        List<Holder.Reference<IAspect>> all = lookupOpt.get().listElements().toList();
-        int discovered = 0;
-        for (Holder.Reference<IAspect> ref : all) {
-            if (AspectKnowledgeAccess.isKnown(ref)) {
-                discovered++;
-            }
-        }
-        return Component.translatable("tc.aspect.progress", discovered, all.size());
     }
 
     private void renderKnowledgeInsert(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
