@@ -51,6 +51,8 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
         tag(BlockTags.PRESSURE_PLATES).add(TCBlocks.ARCANE_PRESSURE_PLATE.get());
         tag(TCBlockTags.MAGICAL_PLANTS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get()).add(TCBlocks.PLANT_VISHROOM.get());
         tag(BlockTags.FLOWERS).add(TCBlocks.PLANT_SHIMMERLEAF.get()).add(TCBlocks.PLANT_CINDERPEARL.get());
+        tag(TCBlockTags.MAGICAL_FOREST_FLOWERS).add(Blocks.DANDELION, Blocks.POPPY, Blocks.BLUE_ORCHID, Blocks.ALLIUM, Blocks.AZURE_BLUET, Blocks.RED_TULIP, Blocks.ORANGE_TULIP, Blocks.WHITE_TULIP,
+                Blocks.PINK_TULIP, Blocks.OXEYE_DAISY, Blocks.CORNFLOWER, Blocks.LILY_OF_THE_VALLEY);
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TCBlocks.TUBE.get()).add(TCBlocks.TUBE_VALVE.get()).add(TCBlocks.TUBE_RESTRICT.get()).add(TCBlocks.TUBE_FILTER.get()).add(TCBlocks.TUBE_ONEWAY.get())
                 .add(TCBlocks.TUBE_BUFFER.get()).add(TCBlocks.ESSENTIA_INPUT.get()).add(TCBlocks.ESSENTIA_OUTPUT.get()).add(TCBlocks.FOCAL_MANIPULATOR.get()).add(TCBlocks.ITEM_GRATE.get())
                 .add(TCBlocks.TALLOW_BLOCK.get()).add(TCBlocks.GOLEM_FETTER.get());
