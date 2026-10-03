@@ -212,7 +212,7 @@ public final class TCConfiguredFeatures {
         context.register(MAGIC_FOREST_FLORA,
                 new ConfiguredFeature<>(TCFeatures.MAGIC_FOREST_FLORA.get(),
                         new MagicForestFloraConfig(TCBlocks.GRASS_AMBIENT.get(), TCBlocks.PLANT_VISHROOM.get(), FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS,
-                                context.lookup(Registries.BLOCK).getOrThrow(BlockTags.SMALL_FLOWERS), 10,
+                                context.lookup(Registries.BLOCK).getOrThrow(TCBlockTags.MAGICAL_FOREST_FLOWERS), 10,
                                 List.of(new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.TALL_GRASS), 12, 1),
                                         new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.SHORT_GRASS), 10, 1),
                                         new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.FERN), 6, 1),
