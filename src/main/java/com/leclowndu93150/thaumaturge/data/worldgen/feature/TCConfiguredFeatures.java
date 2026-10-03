@@ -171,12 +171,12 @@ public final class TCConfiguredFeatures {
         context.register(GREATWOOD_TREE_GROWN, new ConfiguredFeature<>(TCFeatures.BIG_TREE.get(), greatwoodGrown));
         context.register(BIG_MAGIC_TREE, new ConfiguredFeature<>(TCFeatures.BIG_MAGIC_TREE.get(), new BigMagicTreeConfig(Blocks.OAK_LOG, Blocks.OAK_LEAVES)));
         context.register(SILVERWOOD_TREE, new ConfiguredFeature<>(TCFeatures.SILVERWOOD_TREE.get(), new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(),
-                SILVERWOOD_NATURAL_MIN_HEIGHT, SILVERWOOD_NATURAL_EXTRA_HEIGHT, Optional.of(TCBlocks.PLANT_SHIMMERLEAF.get()), true)));
+                SILVERWOOD_NATURAL_MIN_HEIGHT, SILVERWOOD_NATURAL_EXTRA_HEIGHT, Optional.of(TCBlocks.PLANT_SHIMMERLEAF.get()), true, true)));
         context.register(SILVERWOOD_TREE_GROWN, new ConfiguredFeature<>(TCFeatures.SILVERWOOD_TREE.get(),
-                new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(), SILVERWOOD_GROWN_MIN_HEIGHT, SILVERWOOD_GROWN_EXTRA_HEIGHT, Optional.empty(), false)));
+                new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(), SILVERWOOD_GROWN_MIN_HEIGHT, SILVERWOOD_GROWN_EXTRA_HEIGHT, Optional.empty(), true, false)));
 
         context.register(SILVERWOOD_TREE_CAVE, new ConfiguredFeature<>(TCFeatures.SILVERWOOD_TREE.get(), new SilverwoodTreeConfig(TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.LEAVES_SILVERWOOD.get(),
-                MAGICAL_CAVE_SILVERWOOD_BASE_HEIGHT, MAGICAL_CAVE_SILVERWOOD_EXTRA_HEIGHT, Optional.of(TCBlocks.PLANT_SHIMMERLEAF.get()), false)));
+                MAGICAL_CAVE_SILVERWOOD_BASE_HEIGHT, MAGICAL_CAVE_SILVERWOOD_EXTRA_HEIGHT, Optional.of(TCBlocks.PLANT_SHIMMERLEAF.get()), false, false)));
         context.register(MAGICAL_CAVE_GREATWOOD_TREE, new ConfiguredFeature<>(Feature.TREE,
                 new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(TCBlocks.LOG_GREATWOOD.get()),
                         new StraightTrunkPlacer(MAGICAL_CAVE_GREATWOOD_BASE_HEIGHT, MAGICAL_CAVE_GREATWOOD_EXTRA_HEIGHT, 0), BlockStateProvider.simple(TCBlocks.LEAVES_GREATWOOD.get()),

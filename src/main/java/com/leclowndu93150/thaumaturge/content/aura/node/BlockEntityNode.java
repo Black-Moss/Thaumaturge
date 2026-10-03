@@ -202,14 +202,27 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        if (level instanceof ServerLevel serverLevel && state.is(TCBlocks.NODE.get())) {
+        if (level instanceof ServerLevel serverLevel && isIndexedNodeBlock(state)) {
             NodeLocationIndex.get(serverLevel).remove(pos);
         }
     }
 
     private void updateLocationIndex() {
-        if (level instanceof ServerLevel serverLevel && getBlockState().is(TCBlocks.NODE.get())) {
+        if (level instanceof ServerLevel serverLevel && isIndexedNodeBlock(getBlockState())) {
             NodeLocationIndex.get(serverLevel).register(worldPosition, nodeType);
+        }
+    }
+
+    private static boolean isIndexedNodeBlock(BlockState state) {
+        return state.is(TCBlocks.NODE.get()) || state.is(TCBlocks.SILVERWOOD_NODE_LOG.get());
+    }
+
+    private static void removeDepletedNode(ServerLevel serverLevel, BlockPos pos) {
+        BlockState state = serverLevel.getBlockState(pos);
+        if (state.getBlock() instanceof NodeHostBlock host) {
+            serverLevel.setBlock(pos, host.depletedState(state), Block.UPDATE_ALL);
+        } else {
+            serverLevel.removeBlock(pos, false);
         }
     }
 
@@ -682,7 +695,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
             }
         }
         if (aspectsBase.isEmpty()) {
-            serverLevel.removeBlock(pos, false);
+            removeDepletedNode(serverLevel, pos);
         }
         return change;
     }
@@ -952,7 +965,7 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         }
         nodeChange();
         if (aspectsBase.isEmpty()) {
-            serverLevel.removeBlock(pos, false);
+            removeDepletedNode(serverLevel, pos);
         }
     }
 

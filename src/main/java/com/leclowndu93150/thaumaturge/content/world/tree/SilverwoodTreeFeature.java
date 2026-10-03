@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world.tree;
 
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
+import com.leclowndu93150.thaumaturge.registry.TCBlocks;
 import com.mojang.serialization.Codec;
 import java.util.HashSet;
 import java.util.Set;
@@ -76,10 +77,10 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
         if (!soil.is(BlockTags.SUBSTRATE_OVERWORLD) && !soil.is(Blocks.FARMLAND)) {
             return false;
         }
-        if (config.node() && hasNearbySilverwood(level, origin, height, config.log())) {
+        if (config.preventNaturalOverlap() && hasNearbySilverwood(level, origin, height, config.log())) {
             return false;
         }
-        if (config.node() && hasTreeInCanopySpace(level, origin, height)) {
+        if (config.preventNaturalOverlap() && hasTreeInCanopySpace(level, origin, height)) {
             return false;
         }
 
@@ -114,15 +115,23 @@ public final class SilverwoodTreeFeature extends Feature<SilverwoodTreeConfig> {
             }
         }
 
-        if (config.node()) {
-            NodeGenerator.createRandomNodeAt(level, new BlockPos(x, y + height - 1, z), random, true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
-        }
-
         int trunkY;
+        int nodeChance = Math.max(1, (int) (height * 1.5F));
+        boolean lastNode = false;
         for (trunkY = 0; trunkY < height; trunkY++) {
-            BlockState state = level.getBlockState(new BlockPos(x, y + trunkY, z));
+            BlockPos trunkPos = new BlockPos(x, y + trunkY, z);
+            BlockState state = level.getBlockState(trunkPos);
             if (state.isAir() || state.is(BlockTags.LEAVES) || state.canBeReplaced()) {
-                placeLog(level, x, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
+                boolean placeNode = config.node() && trunkY > 0 && !lastNode && random.nextInt(nodeChance) == 0;
+                if (placeNode) {
+                    level.setBlock(trunkPos, TCBlocks.SILVERWOOD_NODE_LOG.get().defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.Y), PLACE_FLAGS);
+                    placedLogs.add(trunkPos);
+                    NodeGenerator.createRandomNodeAt(level, trunkPos, random, true, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+                    nodeChance += height;
+                } else {
+                    placeLog(level, x, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
+                }
+                lastNode = placeNode;
                 placeLog(level, x - 1, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
                 placeLog(level, x + 1, y + trunkY, z, config, placedLogs, Direction.Axis.Y);
                 placeLog(level, x, y + trunkY, z - 1, config, placedLogs, Direction.Axis.Y);

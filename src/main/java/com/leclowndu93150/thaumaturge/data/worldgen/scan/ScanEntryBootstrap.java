@@ -34,9 +34,9 @@ public final class ScanEntryBootstrap {
 
         HolderSet<Block> crystals = blocks(blockReg, TCBlocks.CRYSTAL_AER.get(), TCBlocks.CRYSTAL_IGNIS.get(), TCBlocks.CRYSTAL_AQUA.get(), TCBlocks.CRYSTAL_TERRA.get(), TCBlocks.CRYSTAL_ORDO.get(),
                 TCBlocks.CRYSTAL_PERDITIO.get(), TCBlocks.CRYSTAL_VITIUM.get());
-        HolderSet<Block> woods = blocks(blockReg, TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.WOOD_GREATWOOD.get(), TCBlocks.WOOD_SILVERWOOD.get(),
-                TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_LOG_SILVERWOOD.get(), TCBlocks.STRIPPED_WOOD_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get(),
-                TCBlocks.SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get());
+        HolderSet<Block> woods = blocks(blockReg, TCBlocks.LOG_GREATWOOD.get(), TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.SILVERWOOD_NODE_LOG.get(), TCBlocks.WOOD_GREATWOOD.get(),
+                TCBlocks.WOOD_SILVERWOOD.get(), TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_LOG_SILVERWOOD.get(), TCBlocks.STRIPPED_WOOD_GREATWOOD.get(),
+                TCBlocks.STRIPPED_WOOD_SILVERWOOD.get(), TCBlocks.SAPLING_GREATWOOD.get(), TCBlocks.SAPLING_SILVERWOOD.get());
 
         register(ctx, "ore", "ore", blocks(blockReg, concat(List.of(TCBlocks.ORE_AMBER.get(), TCBlocks.ORE_CINNABAR.get()), List.of(TCBlocks.CRYSTAL_AER.get(), TCBlocks.CRYSTAL_IGNIS.get(),
                 TCBlocks.CRYSTAL_AQUA.get(), TCBlocks.CRYSTAL_TERRA.get(), TCBlocks.CRYSTAL_ORDO.get(), TCBlocks.CRYSTAL_PERDITIO.get(), TCBlocks.CRYSTAL_VITIUM.get()))), null, null);

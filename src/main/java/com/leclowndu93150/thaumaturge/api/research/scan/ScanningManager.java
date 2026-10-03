@@ -214,7 +214,7 @@ public final class ScanningManager {
         }
         if (target instanceof BlockPos pos) {
             BlockState state = player.level().getBlockState(pos);
-            if (state.is(TCBlocks.NODE.get())) {
+            if (state.is(TCBlocks.NODE.get()) || state.is(TCBlocks.SILVERWOOD_NODE_LOG.get())) {
                 return ItemStack.EMPTY;
             }
             ItemStack stack = state.getCloneItemStack(player.level(), pos, false);

@@ -122,6 +122,7 @@ import com.leclowndu93150.thaumaturge.content.world.plant.BlockPlantCinderpearl;
 import com.leclowndu93150.thaumaturge.content.world.plant.BlockPlantShimmerleaf;
 import com.leclowndu93150.thaumaturge.content.world.plant.BlockPlantVishroom;
 import com.leclowndu93150.thaumaturge.content.world.tree.BlockSaplingTC;
+import com.leclowndu93150.thaumaturge.content.world.tree.BlockSilverwoodNodeLog;
 import com.leclowndu93150.thaumaturge.content.world.tree.TCTreeGrowers;
 import java.util.EnumMap;
 import java.util.Map;
@@ -594,6 +595,9 @@ public final class TCBlocks {
             props -> props.mapColor(MapColor.WOOD).strength(2.0F, 5.0F).sound(SoundType.WOOD).ignitedByLava());
 
     public static final DeferredBlock<RotatedPillarBlock> LOG_SILVERWOOD = BLOCKS.registerBlock("log_silverwood", RotatedPillarBlock::new,
+            props -> props.mapColor(MapColor.WOOD).strength(2.0F, 5.0F).sound(SoundType.WOOD).lightLevel(state -> 5).ignitedByLava());
+
+    public static final DeferredBlock<BlockSilverwoodNodeLog> SILVERWOOD_NODE_LOG = BLOCKS.registerBlock("silverwood_node_log", BlockSilverwoodNodeLog::new,
             props -> props.mapColor(MapColor.WOOD).strength(2.0F, 5.0F).sound(SoundType.WOOD).lightLevel(state -> 5).ignitedByLava());
 
     public static final DeferredBlock<RotatedPillarBlock> WOOD_SILVERWOOD = BLOCKS.registerBlock("silverwood", RotatedPillarBlock::new,
