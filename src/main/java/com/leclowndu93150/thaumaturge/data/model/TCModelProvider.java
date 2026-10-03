@@ -661,6 +661,8 @@ public final class TCModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(TCItems.LABEL.get(),
                 new CompositeModel.Unbaked(List.of(ItemModelUtils.plainModel(labelModelId), ItemModelUtils.conditional(ItemModelUtils.hasComponent(TCDataComponents.ASPECT_FILTER.get()),
                         ItemModelUtils.tintedModel(labelOverlayModelId, new AspectFilterTint(0xffffff)), ItemModelUtils.plainModel(labelModelId))), Optional.empty()));
+        itemModels.generateFlatItem(TCItems.TAINTED_GOO.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(TCItems.TAINT_TENDRIL.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.BOTTLE_TAINT.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.VIS_RESONATOR.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TCItems.THAUMIC_SLIME_SPAWN_EGG.get(), ModelTemplates.FLAT_ITEM);

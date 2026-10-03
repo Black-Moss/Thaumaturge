@@ -606,6 +606,8 @@ public final class TCEnglishProvider extends LanguageProvider {
         add("entity.thaumaturge.falling_taint", "Falling Taint");
         add("entity.thaumaturge.bottle_taint", "Bottle of Tainted Goo");
         add("item.thaumaturge.bottle_taint", "Bottle of Taint");
+        add("item.thaumaturge.tainted_goo", "Tainted Goo");
+        add("item.thaumaturge.taint_tendril", "Taint Tendril");
         add("entity.thaumaturge.wisp", "Wisp");
         add("entity.thaumaturge.brainy_zombie", "Angry Zombie");
         add("entity.thaumaturge.brainy_drowned", "Angry Drowned");
