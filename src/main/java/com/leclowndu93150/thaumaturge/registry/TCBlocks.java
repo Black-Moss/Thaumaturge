@@ -616,7 +616,7 @@ public final class TCBlocks {
             props -> new UntintedParticleLeavesBlock(LEAF_PARTICLE_CHANCE, ColorParticleOption.create(ParticleTypes.TINTED_LEAVES, SILVERWOOD_LEAF_PARTICLE_COLOR), props),
             props -> leavesProps(props).mapColor(MapColor.COLOR_LIGHT_BLUE));
 
-    public static final DeferredBlock<PoweredRailBlock> ACTIVATOR_RAIL = BLOCKS.registerBlock("activator_rail", PoweredRailBlock::new,
+    public static final DeferredBlock<PoweredRailBlock> ACTIVATOR_RAIL = BLOCKS.registerBlock("activator_rail", props -> new PoweredRailBlock(props, true),
             props -> props.noCollision().strength(0.7F).sound(SoundType.METAL));
 
     public static final DeferredBlock<Block> PLANK_GREATWOOD = BLOCKS.registerBlock("plank_greatwood", Block::new,
