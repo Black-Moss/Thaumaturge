@@ -336,11 +336,13 @@ public final class TCRecipeProvider extends RecipeProvider {
         shaped(RecipeCategory.BUILDING_BLOCKS, TCItems.AMBER_BLOCK, 4).pattern("##").pattern("##").define('#', TCItems.AMBER_BRICK).unlockedBy("has", has(TCItems.AMBER_BRICK)).save(output,
                 TCIds.MODID + ":amber_block_from_brick");
 
-        arcaneShaped(new ItemStackTemplate(TCItems.PAVING_STONE_BARRIER.get(), 4), 50).aspect(TCAspects.IGNIS, 1).aspect(TCAspects.ORDO, 1).pattern("SS").pattern("SS")
-                .define('S', TCItems.STONE_ARCANE_BRICK).gate(artificeGate).unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.PAVING_STONE_BARRIER.get(), 4), 50).aspect(TCAspects.IGNIS, 1).aspect(TCAspects.ORDO, 1).pattern("SAS").pattern("SBS")
+                .define('S', TCItems.STONE_ARCANE_BRICK).define('A', TCItems.CRYSTAL_IGNIS).define('B', TCItems.CRYSTAL_ORDO).gate(artificeGate).unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
+                .save(output);
 
-        arcaneShaped(new ItemStackTemplate(TCItems.PAVING_STONE_TRAVEL.get(), 4), 50).aspect(TCAspects.AER, 1).aspect(TCAspects.TERRA, 1).pattern("SS").pattern("SS")
-                .define('S', TCItems.STONE_ARCANE_BRICK).gate(artificeGate).unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK)).save(output);
+        arcaneShaped(new ItemStackTemplate(TCItems.PAVING_STONE_TRAVEL.get(), 4), 50).aspect(TCAspects.AER, 1).aspect(TCAspects.TERRA, 1).pattern("SAS").pattern("SBS")
+                .define('S', TCItems.STONE_ARCANE_BRICK).define('A', TCItems.CRYSTAL_AER).define('B', TCItems.CRYSTAL_TERRA).gate(artificeGate).unlockedBy("has", has(TCItems.STONE_ARCANE_BRICK))
+                .save(output);
     }
 
     private void stairsRecipe(Block result, Block base) {
@@ -816,9 +818,11 @@ public final class TCRecipeProvider extends RecipeProvider {
         arcaneShaped(new ItemStackTemplate(TCItems.TUBE, 8), 10).pattern(" Q ").pattern("PGP").pattern(" B ").define('Q', TCItemTags.NUGGETS_QUICKSILVER).define('P', TCItemTags.PLATES_IRON)
                 .define('G', Tags.Items.GLASS_BLOCKS).define('B', TCItemTags.NUGGETS_BRASS).gate(gate("tubes")).unlockedBy("has", has(Tags.Items.GEMS_QUARTZ)).save(output);
 
-        arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_RESTRICT), 10).aspect(TCAspects.TERRA).requires(TCItems.TUBE).gate(gate("tubes")).unlockedBy("has", has(TCItems.TUBE)).save(output);
+        arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_RESTRICT), 10).aspect(TCAspects.TERRA).requires(TCItems.TUBE).requires(Tags.Items.STONES).gate(gate("tubes"))
+                .unlockedBy("has", has(TCItems.TUBE)).save(output);
 
-        arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_ONEWAY), 10).aspect(TCAspects.AQUA).requires(TCItems.TUBE).gate(gate("tubes")).unlockedBy("has", has(TCItems.TUBE)).save(output);
+        arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_ONEWAY), 10).aspect(TCAspects.AQUA).requires(TCItems.TUBE).requires(Tags.Items.DYES_BLUE).gate(gate("tubes"))
+                .unlockedBy("has", has(TCItems.TUBE)).save(output);
 
         arcaneShapeless(new ItemStackTemplate(TCItems.TUBE_FILTER), 10).requires(TCItems.TUBE).requires(TCItems.FILTER).gate(gate("tubes")).unlockedBy("has", has(TCItems.TUBE)).save(output);
 
