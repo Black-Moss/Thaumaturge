@@ -1369,6 +1369,9 @@ public final class TCModelProvider extends ModelProvider {
                 ItemModelUtils.tintedModel(Identifier.fromNamespaceAndPath(TCIds.MODID, "block/leaves_greatwood"), new Constant(FOLIAGE_DEFAULT_COLOR)));
         log(blockModels, TCBlocks.LOG_GREATWOOD.get(), TCBlocks.WOOD_GREATWOOD.get());
         log(blockModels, TCBlocks.LOG_SILVERWOOD.get(), TCBlocks.WOOD_SILVERWOOD.get());
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createRotatedPillarWithHorizontalVariant(TCBlocks.SILVERWOOD_NODE_LOG.get(),
+                BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOG_SILVERWOOD.get())),
+                BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TCBlocks.LOG_SILVERWOOD.get(), "_horizontal"))));
         log(blockModels, TCBlocks.STRIPPED_LOG_GREATWOOD.get(), TCBlocks.STRIPPED_WOOD_GREATWOOD.get());
         log(blockModels, TCBlocks.STRIPPED_LOG_SILVERWOOD.get(), TCBlocks.STRIPPED_WOOD_SILVERWOOD.get());
     }

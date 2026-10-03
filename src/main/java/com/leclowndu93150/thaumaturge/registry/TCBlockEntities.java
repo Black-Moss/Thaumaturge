@@ -101,7 +101,7 @@ public final class TCBlockEntities {
     }
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityNode>> NODE = BLOCK_ENTITIES.register("node",
-            () -> new BlockEntityType<>(BlockEntityNode::new, Set.of(TCBlocks.NODE.get(), TCBlocks.OBSIDIAN_TOTEM_CHARGED.get())));
+            () -> new BlockEntityType<>(BlockEntityNode::new, Set.of(TCBlocks.NODE.get(), TCBlocks.OBSIDIAN_TOTEM_CHARGED.get(), TCBlocks.SILVERWOOD_NODE_LOG.get())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BlockEntityVisRelay>> VIS_RELAY = BLOCK_ENTITIES.register("vis_relay",
             () -> new BlockEntityType<>(BlockEntityVisRelay::new, Set.of(TCBlocks.VIS_RELAY.get())));
