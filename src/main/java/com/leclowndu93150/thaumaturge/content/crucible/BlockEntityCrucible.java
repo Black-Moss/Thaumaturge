@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.crucible.CrucibleEvent;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
@@ -322,13 +323,13 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
                     ctx.commit();
                 }
                 ejectItem(out.copy());
-                NeoForge.EVENT_BUS.post(new CrucibleEvent.CrucibleCraftedEvent(owner, getBlockPos(), getBlockState(), this, out.copy(), recipe.aspects()));
+                NeoForge.EVENT_BUS.post(new CrucibleEvent.Crafted(owner, getBlockPos(), getBlockState(), this, out.copy(), recipe.aspects()));
                 craftDone = true;
                 count--;
                 this.counter = -250L;
             } else {
                 AspectList aspects = AspectIndexAccess.index().of(stack);
-                CrucibleEvent.CrucibleDecomposeItemEvent event = new CrucibleEvent.CrucibleDecomposeItemEvent(owner, getBlockPos(), getBlockState(), this, stack, aspects);
+                CrucibleEvent.Dissolve event = new CrucibleEvent.Dissolve(owner, getBlockPos(), getBlockState(), this, stack, aspects);
                 NeoForge.EVENT_BUS.post(event);
                 aspects = event.getAspects();
                 if (!aspects.isEmpty() && !event.isCanceled()) {
