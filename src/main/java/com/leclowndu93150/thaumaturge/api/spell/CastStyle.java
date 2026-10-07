@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ByIdMap;
 import net.minecraft.util.StringRepresentable;
 
 /**
@@ -23,7 +24,7 @@ public enum CastStyle implements StringRepresentable {
     public static final Codec<CastStyle> CODEC = StringRepresentable.fromEnum(CastStyle::values);
 
     /** Network encoding by ordinal. */
-    public static final StreamCodec<ByteBuf, CastStyle> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], CastStyle::ordinal);
+    public static final StreamCodec<ByteBuf, CastStyle> STREAM_CODEC = ByteBufCodecs.idMapper(ByIdMap.continuous(CastStyle::ordinal, values(), ByIdMap.OutOfBoundsStrategy.ZERO), CastStyle::ordinal);
 
     private final String name;
 

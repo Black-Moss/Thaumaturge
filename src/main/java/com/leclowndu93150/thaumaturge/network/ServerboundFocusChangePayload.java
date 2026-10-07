@@ -15,8 +15,10 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public record ServerboundFocusChangePayload(String focusKey) implements CustomPacketPayload {
     public static final Type<ServerboundFocusChangePayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TTIds.MODID, "focus_change"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFocusChangePayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, ServerboundFocusChangePayload::focusKey,
-            ServerboundFocusChangePayload::new);
+    private static final int MAX_KEY_LENGTH = 256;
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFocusChangePayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.stringUtf8(MAX_KEY_LENGTH),
+            ServerboundFocusChangePayload::focusKey, ServerboundFocusChangePayload::new);
 
     public static void handle(ServerboundFocusChangePayload payload, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {

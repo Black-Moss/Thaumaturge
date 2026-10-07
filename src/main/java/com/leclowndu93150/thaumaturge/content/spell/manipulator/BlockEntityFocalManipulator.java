@@ -18,6 +18,7 @@ import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.Optional;
 import com.leclowndu93150.thaumaturge.api.spell.event.SpellInscribeEvent;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.StringUtil;
 import net.neoforged.neoforge.common.NeoForge;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -113,7 +114,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
             return;
         }
         draft = spell;
-        name = newName;
+        name = StringUtil.filterText(newName).strip();
         changed();
     }
 

@@ -17,7 +17,7 @@ public record ServerboundClearResearchFlagsPayload(Identifier research, List<Res
     public static final Type<ServerboundClearResearchFlagsPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TTIds.MODID, "clear_research_flags"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundClearResearchFlagsPayload> STREAM_CODEC = StreamCodec.composite(Identifier.STREAM_CODEC,
-            ServerboundClearResearchFlagsPayload::research, ResearchFlag.STREAM_CODEC.apply(ByteBufCodecs.list()), ServerboundClearResearchFlagsPayload::flags,
+            ServerboundClearResearchFlagsPayload::research, ResearchFlag.STREAM_CODEC.apply(ByteBufCodecs.list(ResearchFlag.values().length)), ServerboundClearResearchFlagsPayload::flags,
             ServerboundClearResearchFlagsPayload::new);
 
     public static void handle(ServerboundClearResearchFlagsPayload payload, IPayloadContext context) {

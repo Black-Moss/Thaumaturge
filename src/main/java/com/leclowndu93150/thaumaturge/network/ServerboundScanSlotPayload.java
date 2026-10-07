@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.network;
 
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
 import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -16,6 +17,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundScanSlotPayload(int slot) implements CustomPacketPayload {
     public static final int SELF = -1;
+    public static final int CHANNEL_TICKS = 25;
+    private static final int LATENCY_ALLOWANCE_TICKS = 5;
 
     public static final Type<ServerboundScanSlotPayload> TYPE = new Type<>(TTIds.rl("scan_slot"));
 
@@ -28,9 +31,11 @@ public record ServerboundScanSlotPayload(int slot) implements CustomPacketPayloa
                 return;
             }
             AbstractContainerMenu menu = player.containerMenu;
-            if (!(menu.getCarried().getItem() instanceof ThaumometerItem)) {
+            long now = player.level().getGameTime();
+            if (!(menu.getCarried().getItem() instanceof ThaumometerItem) || now - player.getData(TTAttachments.SLOT_SCAN_TIME) < CHANNEL_TICKS - LATENCY_ALLOWANCE_TICKS) {
                 return;
             }
+            player.setData(TTAttachments.SLOT_SCAN_TIME, now);
             if (payload.slot() == SELF) {
                 ScanningManager.scan(player, ScanTarget.entity(player));
                 return;

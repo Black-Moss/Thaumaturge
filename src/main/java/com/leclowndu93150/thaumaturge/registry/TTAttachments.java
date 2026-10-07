@@ -75,6 +75,8 @@ public final class TTAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CASTER_COOLDOWN = register("caster_cooldown", () -> AttachmentType.builder(() -> 0L).build());
 
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> SLOT_SCAN_TIME = register("slot_scan_time", () -> AttachmentType.builder(() -> 0L).build());
+
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CLOUD_JUMP_TIME = register("cloud_jump_time", () -> AttachmentType.builder(() -> 0L).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<RunicShieldState>> RUNIC_SHIELD = register("runic_shield", () -> AttachmentType.builder(RunicShieldState::new).build());

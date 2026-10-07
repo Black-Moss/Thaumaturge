@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 public final class MenuPech extends AbstractContainerMenu {
+    private static final double REACH_BUFFER = 4.0;
+
     public static final int TRADE_BUTTON_ID = 0;
 
     private static final int OFFER_SLOT = 0;
@@ -95,7 +97,7 @@ public final class MenuPech extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return pech != null && pech.isAlive() && pech.isTamed();
+        return pech != null && pech.isAlive() && pech.isTamed() && player.isWithinEntityInteractionRange(pech, REACH_BUFFER);
     }
 
     @Override

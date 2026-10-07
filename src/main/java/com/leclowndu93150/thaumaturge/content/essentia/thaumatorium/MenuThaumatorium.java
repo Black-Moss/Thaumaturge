@@ -19,6 +19,8 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
 public final class MenuThaumatorium extends AbstractContainerMenu {
+    private static final double REACH_BUFFER = 4.0;
+
     public static final int CATALYST_X = 56;
     public static final int CATALYST_Y = 24;
     private static final int PLAYER_GRID_Y = 135;
@@ -104,6 +106,6 @@ public final class MenuThaumatorium extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return blockEntity == null || blockEntity.getBlockPos().distToCenterSqr(player.getX(), player.getY(), player.getZ()) <= 64.0;
+        return blockEntity != null && !blockEntity.isRemoved() && player.isWithinBlockInteractionRange(blockEntity.getBlockPos(), REACH_BUFFER);
     }
 }

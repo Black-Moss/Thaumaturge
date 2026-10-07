@@ -37,7 +37,6 @@ import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class InventoryScanHandler {
-    private static final int SCAN_TICKS = 25;
     private static final int SOUND_INTERVAL = 2;
     private static final float SOUND_VOLUME = 0.2F;
     private static final float SOUND_PITCH = 0.45F;
@@ -80,7 +79,7 @@ public final class InventoryScanHandler {
         }
         int top = event.getMouseY() + CURSOR_TOP_OFFSET;
         if (ticks > 0) {
-            Component progress = TTTooltips.scanning(ticks / (float) SCAN_TICKS);
+            Component progress = TTTooltips.scanning(ticks / (float) ServerboundScanSlotPayload.CHANNEL_TICKS);
             graphics.text(minecraft.font, progress, event.getMouseX() - minecraft.font.width(progress) / 2, top, PROGRESS_COLOR, true);
             return;
         }
@@ -135,7 +134,7 @@ public final class InventoryScanHandler {
         if (ticks % SOUND_INTERVAL == 0) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(TTSounds.CAMERA_TICKS.get(), SOUND_PITCH + player.getRandom().nextFloat() * SOUND_PITCH_SPREAD, SOUND_VOLUME));
         }
-        if (ticks >= SCAN_TICKS) {
+        if (ticks >= ServerboundScanSlotPayload.CHANNEL_TICKS) {
             ClientPacketDistributor.sendToServer(new ServerboundScanSlotPayload(target));
             ticks = 0;
         }
