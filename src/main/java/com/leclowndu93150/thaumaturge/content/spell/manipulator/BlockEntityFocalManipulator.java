@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.spell.manipulator;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
@@ -8,6 +7,7 @@ import com.leclowndu93150.thaumaturge.api.spell.FocusTier;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellSummary;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
@@ -20,18 +20,12 @@ import com.leclowndu93150.thaumaturge.api.spell.event.SpellInscribeEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.StringUtil;
 import net.neoforged.neoforge.common.NeoForge;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
@@ -40,10 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -51,7 +42,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityFocalManipulator extends BlockEntity implements MenuProvider {
+public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity implements MenuProvider {
     public static final int SLOT_FOCUS = 0;
     public static final int MAX_NAME_LENGTH = 50;
     private static final int DRAIN_INTERVAL = 20;
@@ -115,7 +106,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
         }
         draft = spell;
         name = StringUtil.filterText(newName).strip();
-        changed();
+        setChangedAndSync();
     }
 
     public boolean startInscribing(Player player) {
@@ -142,7 +133,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
         crystals = cost;
         visTotal = summary.complexity() * VIS_PER_COMPLEXITY + (float) tier.get().complexity() / VIS_PER_BUDGET_DIVISOR;
         vis = visTotal;
-        changed();
+        setChangedAndSync();
         level.playSound(null, worldPosition, TTSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         return true;
     }
@@ -174,7 +165,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
                     worldPosition.getZ() + random.nextInt(SPARKLE_SPREAD) - random.nextInt(SPARKLE_SPREAD));
             EffectDispatch.spawnVisSparkle(server, from, Vec3.atBottomCenterOf(worldPosition.above()));
             vis -= drained;
-            changed();
+            setChangedAndSync();
         }
         if (vis <= 0.0F) {
             finish(server);
@@ -210,7 +201,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
             drawer.place(focus);
             server.playSound(null, worldPosition, TTSounds.WAND.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         }
-        changed();
+        setChangedAndSync();
     }
 
     private void abort(ServerLevel server) {
@@ -218,7 +209,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
         visTotal = 0.0F;
         crystals = AspectList.EMPTY;
         server.playSound(null, worldPosition, TTSounds.WANDFAIL.get(), SoundSource.BLOCKS, 0.33F, 1.0F);
-        changed();
+        setChangedAndSync();
     }
 
     private void shimmer(Level clientLevel) {
@@ -293,29 +284,6 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
         crystals = input.read("Crystals", AspectList.CODEC).orElse(AspectList.EMPTY);
     }
 
-    private void changed() {
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-        }
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
-            saveAdditional(output);
-            tag.merge(output.buildResult());
-        }
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
     private final class Drawer extends ItemStacksResourceHandler {
         Drawer() {
             super(NonNullList.withSize(1, ItemStack.EMPTY));
@@ -337,7 +305,7 @@ public final class BlockEntityFocalManipulator extends BlockEntity implements Me
                     loadFocusDesign();
                 }
             }
-            changed();
+            setChangedAndSync();
         }
 
         @Override

@@ -1,29 +1,20 @@
 package com.leclowndu93150.thaumaturge.content.eldritch.altar;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.labyrinth.MazeId;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public final class BlockEntityEldritchAltar extends BlockEntity {
+public final class BlockEntityEldritchAltar extends AbstractSyncedBlockEntity {
     static final int MAX_EYES = 4;
     private static final int SITE_INTERVAL = 20;
     private static final String EYES = "eyes";
@@ -68,7 +59,7 @@ public final class BlockEntityEldritchAltar extends BlockEntity {
 
     void setEyes(int eyes) {
         this.eyes = eyes;
-        changed();
+        setChangedAndSync();
     }
 
     public ResourceKey<ObeliskSite> site() {
@@ -100,7 +91,7 @@ public final class BlockEntityEldritchAltar extends BlockEntity {
 
     void setRitual(Optional<AltarRitual> ritual) {
         this.ritual = ritual;
-        changed();
+        setChangedAndSync();
     }
 
     Optional<MazeId> link() {
@@ -109,7 +100,7 @@ public final class BlockEntityEldritchAltar extends BlockEntity {
 
     void setLink(Optional<MazeId> link) {
         this.link = link;
-        changed();
+        setChangedAndSync();
     }
 
     long awakenedAt() {
@@ -119,13 +110,6 @@ public final class BlockEntityEldritchAltar extends BlockEntity {
     void setAwakenedAt(long awakenedAt) {
         this.awakenedAt = awakenedAt;
         setChanged();
-    }
-
-    private void changed() {
-        setChanged();
-        if (level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-        }
     }
 
     @Override
@@ -158,19 +142,4 @@ public final class BlockEntityEldritchAltar extends BlockEntity {
         output.putLong(AWAKENED_AT, awakenedAt);
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
-            saveAdditional(output);
-            tag.merge(output.buildResult());
-        }
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

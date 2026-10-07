@@ -1,11 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.BellowsHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
@@ -16,15 +16,9 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -32,12 +26,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 
-public final class BlockEntityTubeBuffer extends BlockEntity implements IEssentiaTransport, IInteractWithCaster {
+public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity implements IEssentiaTransport, IInteractWithCaster {
     public static final int MAX_AMOUNT = 10;
     private static final Codec<List<Integer>> CHOKED_CODEC = Codec.INT.listOf();
     private static final Codec<List<Boolean>> OPEN_CODEC = Codec.BOOL.listOf();
@@ -68,7 +61,7 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
             chokedSides[i] = 0;
         }
         setChanged();
-        sync();
+        syncToClient();
     }
 
     public boolean[] openSides() {
@@ -82,7 +75,7 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
     public void setOpenSide(Direction face, boolean open) {
         openSides[face.ordinal()] = open;
         setChanged();
-        sync();
+        syncToClient();
     }
 
     public boolean toggleOpenSide(Direction face) {
@@ -99,11 +92,11 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
             } else if (tile instanceof BlockEntityTubeBuffer buffer) {
                 buffer.openSides[face.getOpposite().ordinal()] = openSides[i];
                 buffer.setChanged();
-                buffer.sync();
+                buffer.syncToClient();
             }
         }
         setChanged();
-        sync();
+        syncToClient();
         return openSides[i];
     }
 
@@ -118,7 +111,7 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
             this.facing = Direction.orderedByNearest(placer)[0].getOpposite();
         }
         setChanged();
-        sync();
+        syncToClient();
     }
 
     @Override
@@ -165,7 +158,7 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
                 return amount;
             contents = contents.add(new AspectInstance(holder, amount));
             setChanged();
-            sync();
+            syncToClient();
             return 0;
         }
         return amount;
@@ -175,16 +168,10 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
         if (contents.amountOf(aspect) >= amount) {
             contents = contents.remove(aspect, amount);
             setChanged();
-            sync();
+            syncToClient();
             return true;
         }
         return false;
-    }
-
-    void sync() {
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-        }
     }
 
     @Override
@@ -353,19 +340,4 @@ public final class BlockEntityTubeBuffer extends BlockEntity implements IEssenti
         output.putInt("Facing", facing.ordinal());
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
-            saveAdditional(output);
-            nbt.merge(output.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

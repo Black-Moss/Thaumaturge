@@ -1,31 +1,24 @@
 package com.leclowndu93150.thaumaturge.content.device.mirror;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public abstract class BlockEntityMirrorBase extends BlockEntity {
+public abstract class BlockEntityMirrorBase extends AbstractSyncedBlockEntity {
     private static final int RETRY_BASE_INTERVAL = 40;
     private static final int RETRY_MAX_INTERVAL = 600;
     private static final int RETRY_BACKOFF = 20;
@@ -77,12 +70,12 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
         target.linked = true;
         target.link = GlobalPos.of(level.dimension(), worldPosition);
         target.onLinkRestored(this);
-        target.sync();
+        target.syncToClient();
         this.linked = true;
         onLinkRestored(target);
         setChanged();
         target.setChanged();
-        sync();
+        syncToClient();
     }
 
     protected void onLinkRestored(BlockEntityMirrorBase other) {}
@@ -97,7 +90,7 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
             target.linked = false;
             setChanged();
             target.setChanged();
-            target.sync();
+            target.syncToClient();
         }
     }
 
@@ -138,7 +131,7 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
         if (target == null) {
             linked = false;
             setChanged();
-            sync();
+            syncToClient();
             return false;
         }
         return !target.isLinkValid();
@@ -147,7 +140,7 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
     private void breakLink() {
         linked = false;
         setChanged();
-        sync();
+        syncToClient();
     }
 
     protected void addInstability(int amount) {
@@ -180,12 +173,6 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
         }
         if (instability > 0 && count % INSTABILITY_DECAY_INTERVAL == 0) {
             instability--;
-        }
-    }
-
-    protected void sync() {
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
     }
 
@@ -241,19 +228,4 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
         }
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
-            saveAdditional(output);
-            nbt.merge(output.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }
