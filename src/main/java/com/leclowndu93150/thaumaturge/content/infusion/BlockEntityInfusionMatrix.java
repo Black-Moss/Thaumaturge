@@ -319,15 +319,12 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     @Override
     public List<Component> readout() {
         Component tier = Component.translatable(STABILITY_LANG_PREFIX + stabilityTierKey()).withStyle(ChatFormatting.BOLD);
-        Component gain = Component.literal(STABILITY_FORMAT.format(stabilityReplenish) + " ").append(Component.translatable(STABILITY_LANG_PREFIX + "gain")).withStyle(ChatFormatting.GOLD,
-                ChatFormatting.ITALIC);
+        Component gain = Component.translatable(STABILITY_LANG_PREFIX + "gain_amount", STABILITY_FORMAT.format(stabilityReplenish)).withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC);
         float lpc = lossPerCycle();
         if (lpc == 0.0F) {
             return List.of(tier, gain);
         }
-        Component loss = Component.translatable(STABILITY_LANG_PREFIX + "range")
-                .append(Component.literal(STABILITY_FORMAT.format(lpc) + " ").append(Component.translatable(STABILITY_LANG_PREFIX + "loss")).withStyle(ChatFormatting.ITALIC))
-                .withStyle(ChatFormatting.RED);
+        Component loss = Component.translatable(STABILITY_LANG_PREFIX + "loss_range", STABILITY_FORMAT.format(lpc)).withStyle(ChatFormatting.RED, ChatFormatting.ITALIC);
         return List.of(tier, gain, loss);
     }
 

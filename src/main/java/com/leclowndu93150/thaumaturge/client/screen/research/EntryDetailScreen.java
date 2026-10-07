@@ -733,9 +733,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         int hx = x + FORBIDDEN_HOVER_OFFSET_X;
         int hy = y + FORBIDDEN_HOVER_OFFSET_Y;
         if (mouseInside(hx, hy, FORBIDDEN_HOVER_W, FORBIDDEN_HOVER_H, mouseX, mouseY)) {
-            Component warn = Component.translatable("tc.warp.warn");
-            String warnStr = warn.getString().replace("%n", label.getString());
-            graphics.setTooltipForNextFrame(font, Component.literal(warnStr), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable("tc.warp.warn", label), mouseX, mouseY);
         }
     }
 
@@ -925,7 +923,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                         if (mouseInside(chipX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                             List<Component> lines = new ArrayList<>();
                             lines.add(Component.translatable("tc.aspectcost"));
-                            lines.add(AspectComponents.name(instance.aspect()).copy().append(Component.literal(" " + have + "/" + instance.amount()))
+                            lines.add(Component.translatable("tooltip.thaumaturge.amount_needed", AspectComponents.name(instance.aspect()), have, instance.amount())
                                     .withStyle(have >= instance.amount() ? ChatFormatting.GREEN : ChatFormatting.RED));
                             graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
                         }

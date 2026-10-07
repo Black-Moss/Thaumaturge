@@ -213,7 +213,7 @@ public class EntityThaumaturgeBoss extends Monster {
                 this.addEffect(new MobEffectInstance(MobEffects.HASTE, ENRAGE_TICKS, (int) (damage / ENRAGE_HASTE_DIVISOR)));
                 this.setAnger(ENRAGE_TICKS);
                 if (source.getEntity() instanceof ServerPlayer player) {
-                    player.connection.send(new ClientboundSetActionBarTextPacket(Component.empty().append(this.getDisplayName()).append(" ").append(Component.translatable("tc.boss.enrage"))));
+                    player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("message.thaumaturge.boss.enraged", this.getDisplayName())));
                 }
             }
             damage = ENRAGE_THRESHOLD;

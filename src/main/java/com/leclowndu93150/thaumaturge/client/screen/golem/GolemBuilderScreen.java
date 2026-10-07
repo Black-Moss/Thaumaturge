@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.screen.golem;
 
 import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
@@ -376,10 +377,9 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
         if (!components.isEmpty()) {
             Holder<IAspect> machina = machinaHolder();
             if (machina != null) {
-                TTHoverButton aspectButton = TTHoverButton.centered(leftPos + 152, topPos + 24, 16, new TTButtonIcon.AspectIcon(machina),
-                        Component.translatable("aspect.thaumaturge." + machina.value().tag()), () -> {
-                        });
-                aspectButton.setDescription(Component.translatable("aspect.thaumaturge." + machina.value().tag() + ".desc"));
+                TTHoverButton aspectButton = TTHoverButton.centered(leftPos + 152, topPos + 24, 16, new TTButtonIcon.AspectIcon(machina), AspectComponents.name(machina), () -> {
+                });
+                aspectButton.setDescription(AspectComponents.description(machina));
                 addRenderableWidget(aspectButton);
             }
             int row = 1;

@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -35,13 +36,14 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
             return;
         }
         if (props.hasTrait(TTGolemTraits.SMART.get())) {
+            MutableComponent rank = Component.translatable("tooltip.thaumaturge.golem.rank", Component.translatable("golem.rank"), props.rank()).withStyle(ChatFormatting.GOLD);
             if (props.rank() >= EntityThaumaturgeGolem.MAX_RANK) {
-                tooltip.accept(Component.translatable("golem.rank").append(" " + props.rank()).withStyle(ChatFormatting.GOLD));
+                tooltip.accept(rank);
             } else {
                 int xp = stack.getOrDefault(TTDataComponents.GOLEM_XP.get(), 0);
                 int needed = EntityThaumaturgeGolem.xpForNextRank(props.rank());
-                tooltip.accept(Component.translatable("golem.rank").append(" " + props.rank()).withStyle(ChatFormatting.GOLD)
-                        .append(Component.literal(" (" + xp + "/" + needed + ")").withStyle(ChatFormatting.DARK_GREEN)));
+                tooltip.accept(Component.translatable("tooltip.thaumaturge.golem.rank_progress", rank,
+                        Component.translatable("tooltip.thaumaturge.golem.xp", xp, needed).withStyle(ChatFormatting.DARK_GREEN)));
             }
         }
         Identifier materialKey = TTGolemParts.materials().getKey(props.material());
@@ -49,7 +51,8 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
             tooltip.accept(Component.translatable(GolemMaterial.nameKey(materialKey)).withStyle(ChatFormatting.GREEN));
         }
         for (GolemTrait trait : props.traits()) {
-            tooltip.accept(Component.literal("-").append(Component.translatable(GolemTrait.nameKey(TTGolemTraits.registry().getKey(trait)))).withStyle(ChatFormatting.BLUE));
+            tooltip.accept(
+                    Component.translatable("tooltip.thaumaturge.golem.trait", Component.translatable(GolemTrait.nameKey(TTGolemTraits.registry().getKey(trait)))).withStyle(ChatFormatting.BLUE));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.spell.item;
 
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.SpellProblem;
@@ -14,6 +15,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -57,24 +59,24 @@ public class FocusItem extends Item {
 
     private static void line(SpellNode node, HolderLookup.Provider registries, Consumer<Component> builder, int depth) {
         Optional<SpellPart> part = Spells.part(registries, node.part());
-        MutableComponent text = Component.literal(INDENT.repeat(depth)).append(SpellText.partName(node.part()).withStyle(ChatFormatting.DARK_PURPLE));
+        MutableComponent text = SpellText.partName(node.part()).withStyle(ChatFormatting.DARK_PURPLE);
         if (part.isPresent()) {
             if (part.get().aspect().selectable()) {
-                part.get().aspect().resolve(node.aspect(), registries)
-                        .ifPresent(aspect -> text.append(Component.literal(" (").append(SpellText.aspectName(aspect)).append(")").withStyle(ChatFormatting.GOLD)));
+                Optional<ResourceKey<IAspect>> aspect = part.get().aspect().resolve(node.aspect(), registries);
+                if (aspect.isPresent()) {
+                    text = Component.translatable("tooltip.thaumaturge.focus.with_aspect", text, SpellText.aspectName(aspect.get()).withStyle(ChatFormatting.GOLD));
+                }
             }
-            MutableComponent values = Component.empty();
-            boolean first = true;
+            MutableComponent values = null;
             for (SettingSpec spec : part.get().settings()) {
-                values.append(first ? Component.literal(" [") : Component.literal(", "));
-                values.append(SpellText.setting(spec)).append(" ").append(spec.label(node.settings().getOrDefault(spec.key(), spec.defaultValue())));
-                first = false;
+                Component value = Component.translatable("tooltip.thaumaturge.focus.setting", SpellText.setting(spec), spec.label(node.settings().getOrDefault(spec.key(), spec.defaultValue())));
+                values = values == null ? value.copy() : Component.translatable("tooltip.thaumaturge.list", values, value);
             }
-            if (!first) {
-                text.append(values.append("]").withStyle(ChatFormatting.DARK_AQUA));
+            if (values != null) {
+                text = Component.translatable("tooltip.thaumaturge.focus.with_settings", text, values.withStyle(ChatFormatting.DARK_AQUA));
             }
         }
-        builder.accept(text);
+        builder.accept(Component.literal(INDENT.repeat(depth)).append(text));
         for (SpellNode child : node.children()) {
             line(child, registries, builder, depth + 1);
         }

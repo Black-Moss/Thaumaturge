@@ -111,7 +111,7 @@ public final class SpellSummaryPanel {
         if (fill > 0) {
             FocalDraw.sprite(graphics, over ? FocalSprites.BAR_FILL_OVER : FocalSprites.BAR_FILL, x + BAR_X + FILL_INSET, y + BAR_Y + FILL_INSET, fill, FocalSprites.BAR_FILL_H);
         }
-        Component text = summary.budget() > 0 ? Component.literal(summary.complexity() + "/" + summary.budget()) : Component.literal(Integer.toString(summary.complexity()));
+        Component text = summary.budget() > 0 ? Component.translatable("gui.thaumaturge.fraction", summary.complexity(), summary.budget()) : Component.literal(Integer.toString(summary.complexity()));
         FocalDraw.textRight(graphics, host.font(), text, right, y + BAR_Y, over ? FocalColors.ERROR : FocalColors.WHITE);
         if (FocalDraw.over(mouseX, mouseY, x, y - 1, FocalLayout.RIGHT_W, ICON)) {
             graphics.setTooltipForNextFrame(host.font(), SpellText.complexityLine(summary.complexity(), summary.budget()), mouseX, mouseY);
