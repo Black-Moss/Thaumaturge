@@ -6,19 +6,19 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.datamaps.DataMapsUpdatedEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class AspectIndexEvents {
     private static volatile boolean datamapsReady = false;
-    private static volatile MinecraftServer pendingServer = null;
+    private static volatile boolean buildRequested = false;
     private static volatile MinecraftServer runningServer = null;
 
     private AspectIndexEvents() {}
@@ -32,27 +32,29 @@ public final class AspectIndexEvents {
             return;
         }
         datamapsReady = true;
-        MinecraftServer server = runningServer != null ? runningServer : pendingServer;
-        if (server != null) {
-            buildAndBroadcast(server);
-        }
+        buildRequested = true;
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
-        MinecraftServer server = event.getServer();
-        runningServer = server;
-        if (datamapsReady) {
-            buildAndBroadcast(server);
-        } else {
-            pendingServer = server;
+        runningServer = event.getServer();
+        buildRequested = true;
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(ServerTickEvent.Pre event) {
+        MinecraftServer server = runningServer;
+        if (!buildRequested || !datamapsReady || server != event.getServer()) {
+            return;
         }
+        buildRequested = false;
+        buildAndBroadcast(server);
     }
 
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         datamapsReady = false;
-        pendingServer = null;
+        buildRequested = false;
         runningServer = null;
         AspectIndexHolder.set(AspectIndex.EMPTY);
     }
@@ -77,6 +79,5 @@ public final class AspectIndexEvents {
         if (!server.getPlayerList().getPlayers().isEmpty()) {
             PacketDistributor.sendToAllPlayers(new ClientboundAspectIndexPayload(index));
         }
-        pendingServer = null;
     }
 }
