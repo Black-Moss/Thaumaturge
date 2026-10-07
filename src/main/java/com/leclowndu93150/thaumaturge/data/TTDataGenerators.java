@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.data;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthEncounter;
 import com.leclowndu93150.thaumaturge.api.recipe.Blueprint;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanEntry;
@@ -9,10 +10,21 @@ import com.leclowndu93150.thaumaturge.api.spell.affinity.AspectAffinity;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.leclowndu93150.thaumaturge.compat.apothicenchanting.data.EnchantingStatsProvider;
 import com.leclowndu93150.thaumaturge.compat.curio.data.TTCurioProvider;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.LabyrinthDefinition;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.RoomType;
+import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TTDamageTypeBootstrap;
 import com.leclowndu93150.thaumaturge.data.datamap.*;
 import com.leclowndu93150.thaumaturge.data.datamap.TaintedProfileProvider;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthDefinitionBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthEncounterBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthProcessorBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthRoomBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthRoomProvider;
+import com.leclowndu93150.thaumaturge.data.labyrinth.ObeliskSiteBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.SparseTemplateProvider;
+import com.leclowndu93150.thaumaturge.data.labyrinth.TTLabyrinthRoomTagsProvider;
 import com.leclowndu93150.thaumaturge.data.lang.TTEnglishProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TTBlockLootSubProvider;
 import com.leclowndu93150.thaumaturge.data.spell.AffinityBootstrap;
@@ -63,7 +75,10 @@ public final class TTDataGenerators {
                 .add(Registries.PLACED_FEATURE, TTPlacedFeatures::bootstrap).add(Registries.BIOME, TTBiomes::bootstrap).add(Registries.DIMENSION_TYPE, OuterLandsBootstrap::bootstrapTypes)
                 .add(Registries.LEVEL_STEM, OuterLandsBootstrap::bootstrapStems).add(Registries.STRUCTURE, TTStructureBootstrap::bootstrapStructures)
                 .add(Registries.STRUCTURE_SET, TTStructureBootstrap::bootstrapSets).add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, TTBiomeModifiers::bootstrap)
-                .add(SpellPart.REGISTRY_KEY, SpellPartBootstrap::bootstrap).add(AspectAffinity.REGISTRY_KEY, AffinityBootstrap::bootstrap);
+                .add(SpellPart.REGISTRY_KEY, SpellPartBootstrap::bootstrap).add(AspectAffinity.REGISTRY_KEY, AffinityBootstrap::bootstrap)
+                .add(Registries.PROCESSOR_LIST, LabyrinthProcessorBootstrap::bootstrap).add(RoomType.REGISTRY_KEY, LabyrinthRoomBootstrap::bootstrap)
+                .add(LabyrinthEncounter.REGISTRY_KEY, LabyrinthEncounterBootstrap::bootstrap).add(LabyrinthDefinition.REGISTRY_KEY, LabyrinthDefinitionBootstrap::bootstrap)
+                .add(ObeliskSite.REGISTRY_KEY, ObeliskSiteBootstrap::bootstrap);
         event.createDatapackRegistryObjects(registries);
 
         event.createProvider(TTEnglishProvider::new);
@@ -81,12 +96,15 @@ public final class TTDataGenerators {
         event.createProvider(TTCurioProvider::new);
         event.createProvider(EnchantingStatsProvider::new);
         event.createProvider(FocusTierProvider::new);
+        event.createProvider(LabyrinthRoomProvider::new);
+        event.createProvider(SparseTemplateProvider::new);
 
         event.createBlockAndItemTags(TTBlockTagsProvider::new, TTItemTagsProvider::new);
         event.createProvider(TTDamageTypeTagsProvider::new);
         event.createProvider(TTBiomeTagsProvider::new);
         event.createProvider(TTMobEffectTagsProvider::new);
         event.createProvider(TTEntityTypeTagsProvider::new);
+        event.createProvider(TTLabyrinthRoomTagsProvider::new);
 
         event.createProvider((output, lookupProvider) -> new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(TTBlockLootSubProvider::new, LootContextParamSets.BLOCK),

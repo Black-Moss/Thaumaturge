@@ -4,11 +4,15 @@ import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.AspectAffinity;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthEncounter;
 import com.leclowndu93150.thaumaturge.api.recipe.Blueprint;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanEntry;
 import com.leclowndu93150.thaumaturge.content.aspect.Aspect;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.LabyrinthDefinition;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.RoomType;
+import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.content.research.ResearchCategory;
 import com.leclowndu93150.thaumaturge.content.research.ResearchEntry;
@@ -30,5 +34,9 @@ public final class TTDatapackRegistries {
         event.dataPackRegistry(PechTradeTable.REGISTRY_KEY, PechTradeTable.CODEC);
         event.dataPackRegistry(SpellPart.REGISTRY_KEY, SpellPart.CODEC, SpellPart.CODEC);
         event.dataPackRegistry(AspectAffinity.REGISTRY_KEY, AspectAffinity.CODEC, AspectAffinity.CODEC);
+        event.dataPackRegistry(LabyrinthEncounter.REGISTRY_KEY, LabyrinthEncounter.DIRECT_CODEC);
+        event.dataPackRegistry(RoomType.REGISTRY_KEY, RoomType.CODEC);
+        event.dataPackRegistry(LabyrinthDefinition.REGISTRY_KEY, LabyrinthDefinition.CODEC);
+        event.dataPackRegistry(ObeliskSite.REGISTRY_KEY, ObeliskSite.CODEC);
     }
 }
