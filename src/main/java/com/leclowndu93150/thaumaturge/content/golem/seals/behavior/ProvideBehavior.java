@@ -13,194 +13,236 @@ import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealAccess;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskBoard;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import org.jspecify.annotations.Nullable;
 
 public final class ProvideBehavior implements ISealBehavior {
     public static final SealSetting SINGLE_ITEM = new SealSetting("psing", "golem.prop.single", false);
     public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "golem.prop.leave", false);
 
-    private static final int STAGGER = 88;
+    private static final int CLOCK_SPREAD = 88;
     private static final int SCAN_PERIOD = 20;
     private static final int TIDY_PERIOD = 100;
-    private static final double SERVICE_RANGE_SQR = 4096.0;
-    private static final byte UNSEALED_PRIORITY = 5;
-    private static final short SEAL_ERRAND_LIFESPAN = 10;
-    private static final short DELIVERY_LIFESPAN = 31000;
-    private static final int COLLECT = 0;
-    private static final int DELIVER_TO_ENTITY = 1;
-    private static final int DELIVER_TO_BLOCK = 2;
+    private static final double SERVICE_RANGE = 64.0;
+    private static final byte OPEN_REQUEST_PRIORITY = 5;
+    private static final int SEAL_COLLECTION_LIFE = 10;
+    private static final int CARRY_LIFE = 31000;
+    private static final int LEG_COLLECT = 0;
+    private static final int LEG_TO_ENTITY = 1;
+    private static final int LEG_TO_BLOCK = 2;
+    private static final double DROP_PUSH = 0.3;
+    private static final double HALF = 0.5;
 
-    private final SealClock clock = new SealClock(STAGGER);
+    private final SealClock clock = new SealClock(CLOCK_SPREAD);
 
     public static boolean supplies(ISealEntity seal, ItemStack stack) {
-        ISealFilter filter = seal.filter().orElseThrow();
-        return InvHelper.matchesFilters(filter.stacks(), filter.isBlacklist(), stack, ItemMatchSettings.of(seal));
+        Optional<ISealFilter> filter = seal.filter();
+        if (filter.isEmpty()) {
+            return true;
+        }
+        InvHelper.InvFilter matching = ItemMatchSettings.of(seal);
+        boolean listed = filter.get().stacks().stream().anyMatch(slot -> !slot.isEmpty() && InvHelper.areItemStacksEqual(slot, stack, matching));
+        return filter.get().isBlacklist() != listed;
     }
 
     @Override
     public void tick(ServerLevel level, ISealEntity seal) {
+        int now = clock.advance();
+        if (now % TIDY_PERIOD == 0) {
+            tidy(level);
+        }
+        if (now % SCAN_PERIOD == 0) {
+            scan(level, seal);
+        }
+    }
+
+    private static void tidy(ServerLevel level) {
+        long time = level.getGameTime();
+        GolemHelper.getProvisionRequests(level).removeIf(request -> request.isSpent() || time > request.expiresAt() || isServedOut(request.getLinkedTask()) || sealGone(level, request));
+    }
+
+    private static boolean isServedOut(@Nullable Task task) {
+        return task != null && (task.isEnded() || task.isCompleted());
+    }
+
+    private static boolean sealGone(ServerLevel level, ProvisionRequest request) {
+        ISealEntity requester = request.getSeal();
+        return requester != null && GolemHelper.getSealEntity(level, requester.pos()) == null;
+    }
+
+    private static void scan(ServerLevel level, ISealEntity seal) {
+        SealPos at = seal.pos();
+        ResourceHandler<ItemResource> store = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
+        if (store == null) {
+            return;
+        }
         List<ProvisionRequest> queue = GolemHelper.getProvisionRequests(level);
-        if (clock.at(TIDY_PERIOD)) {
-            queue.removeIf(request -> isStale(level, request));
-        }
-        if (clock.advance() % SCAN_PERIOD != 0) {
-            return;
-        }
-        ResourceHandler<ItemResource> stock = InvHelper.getItemHandlerAt(level, seal.pos().pos(), seal.pos().face());
-        if (stock == null) {
-            return;
-        }
-        queue.removeIf(ProvisionRequest::isInvalid);
-        int reserve = seal.setting(LEAVE_ONE) ? 1 : 0;
+        queue.removeIf(ProvisionRequest::isSpent);
+        int minimumStock = seal.setting(LEAVE_ONE) ? 2 : 1;
         for (ProvisionRequest request : queue) {
-            if (request.isInvalid() || request.getLinkedTask() != null || !inServiceRange(seal, request) || !offers(seal, request.getStack())
-                    || InvHelper.countTotalItemsIn(stock, request.getStack(), InvHelper.InvFilter.STRICT) <= reserve) {
+            if (request.isSpent() || request.getLinkedTask() != null) {
                 continue;
             }
-            Task errand = Task.atBlock(seal.pos(), seal.pos().pos());
-            errand.setPriority(request.getSeal() != null ? request.getSeal().priority() : UNSEALED_PRIORITY);
-            errand.setLifespan(request.getSeal() != null ? SEAL_ERRAND_LIFESPAN : DELIVERY_LIFESPAN);
-            link(level, errand, request);
+            BlockPos destination = destination(request);
+            if (destination == null || destination.distSqr(at.pos()) >= SERVICE_RANGE * SERVICE_RANGE || !supplies(seal, request.getStack())
+                    || InvHelper.countTotalItemsIn(store, request.getStack(), InvHelper.InvFilter.STRICT) < minimumStock) {
+                continue;
+            }
+            ISealEntity requester = request.getSeal();
+            Task collection = Task.atBlock(at, at.pos());
+            collection.setPriority(requester != null ? requester.priority() : OPEN_REQUEST_PRIORITY);
+            collection.setLife(requester != null ? SEAL_COLLECTION_LIFE : CARRY_LIFE);
+            collection.setData(LEG_COLLECT);
+            post(level, collection, request);
             return;
         }
     }
 
-    private static boolean isStale(Level level, ProvisionRequest request) {
-        Task linked = request.getLinkedTask();
-        return request.isInvalid() || request.getTimeout() < level.getGameTime() || linked != null && (linked.isSuspended() || linked.isCompleted());
-    }
-
-    private static boolean offers(ISealEntity seal, ItemStack stack) {
-        ISealFilter filter = seal.filter().orElseThrow();
-        return !InvHelper.findFirstMatchFromFilter(filter.stacks(), filter.limits(), filter.isBlacklist(), List.of(stack), ItemMatchSettings.of(seal)).isEmpty();
-    }
-
-    private static void link(ServerLevel level, Task task, ProvisionRequest request) {
+    private static void post(ServerLevel level, Task task, ProvisionRequest request) {
         TaskBoard.of(level).post(task);
-        request.setLinkedTask(task);
-        task.linkProvision(request);
+        request.link(task);
     }
 
-    private static boolean inServiceRange(ISealEntity seal, ProvisionRequest request) {
-        BlockPos here = seal.pos().pos();
+    private static @Nullable BlockPos destination(ProvisionRequest request) {
         if (request.getSeal() != null) {
-            return request.getSeal().pos().pos().distSqr(here) < SERVICE_RANGE_SQR;
+            return request.getSeal().pos().pos();
         }
         if (request.getEntity() != null) {
-            return here.distToCenterSqr(request.getEntity().position()) < SERVICE_RANGE_SQR;
+            return request.getEntity().blockPosition();
         }
-        return request.getPos() != null && request.getPos().distSqr(here) < SERVICE_RANGE_SQR;
+        return request.getPos();
+    }
+
+    @Override
+    public boolean canPerform(ISealEntity seal, IGolemAPI golem, Task task) {
+        ProvisionRequest request = task.linkedProvision();
+        if (request == null) {
+            return false;
+        }
+        BlockPos destination = destination(request);
+        if (destination == null || !(golem.asEntity() instanceof Mob body) || !body.isWithinHome(destination)) {
+            return false;
+        }
+        ItemStack wanted = request.getStack();
+        if (task.data() != LEG_COLLECT) {
+            return golem.hands().holds(wanted);
+        }
+        return SealAccess.allows(request.getSeal(), golem) && !golem.hands().holds(wanted) && golem.hands().room(wanted) > 0;
     }
 
     @Override
     public boolean completeTask(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task) {
         ProvisionRequest request = task.linkedProvision();
         if (request != null) {
-            if (task.data() == COLLECT) {
+            if (task.data() == LEG_COLLECT) {
                 collect(level, seal, golem, task, request);
             } else {
-                deliver(level, golem, task, request);
+                deliver(level, golem, request);
             }
         }
-        task.suspend();
+        task.end();
         return true;
     }
 
-    private void collect(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task, ProvisionRequest request) {
+    private static void collect(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task, ProvisionRequest request) {
         SealPos at = seal.pos();
-        ResourceHandler<ItemResource> stock = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
-        if (stock == null) {
+        ResourceHandler<ItemResource> store = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
+        if (store == null) {
             return;
         }
-        ItemStack order = request.getStack().copyWithCount(seal.setting(SINGLE_ITEM) ? 1 : request.getStack().getCount());
-        if (!order.isEmpty() && seal.setting(LEAVE_ONE)) {
-            int stored = InvHelper.countTotalItemsIn(stock, order, InvHelper.InvFilter.STRICT);
-            if (stored <= order.getCount()) {
-                order.setCount(stored - 1);
+        ItemStack wanted = request.getStack();
+        int amount = seal.setting(SINGLE_ITEM) ? 1 : wanted.getCount();
+        if (seal.setting(LEAVE_ONE)) {
+            int stocked = InvHelper.countTotalItemsIn(store, wanted, InvHelper.InvFilter.STRICT);
+            if (stocked <= amount) {
+                amount = stocked - 1;
             }
         }
-        int room = order.isEmpty() ? 0 : golem.hands().room(order);
-        if (room <= 0) {
+        amount = Math.min(amount, golem.hands().room(wanted));
+        if (amount <= 0) {
             return;
         }
-        ItemStack spill = golem.hands().hold(InvHelper.removeStackFrom(stock, InvHelper.copyLimitedStack(order, room), InvHelper.InvFilter.STRICT, false));
+        ItemStack taken = InvHelper.removeStackFrom(store, wanted.copyWithCount(amount), InvHelper.InvFilter.STRICT, false);
+        if (taken.isEmpty()) {
+            return;
+        }
+        ItemStack spill = InvHelper.insertStack(store, golem.hands().hold(taken), false);
         if (!spill.isEmpty()) {
-            InvHelper.ejectStackAt(level, at.pos().relative(at.face()), at.face().getOpposite(), spill);
+            dropToward(level, at.pos(), at.face(), spill);
         }
         HandlingSound.play(golem, HandlingSound.HIGH);
         golem.addRankXp(1);
         golem.swingArm();
-        dispatchDelivery(level, task, request);
-    }
-
-    private static void dispatchDelivery(ServerLevel level, Task errand, ProvisionRequest request) {
-        Entity receiver = request.getEntity();
-        BlockPos dock = request.getPos();
-        if (receiver == null && dock == null) {
+        if (request.getSeal() != null) {
             return;
         }
-        Task delivery = receiver != null ? Task.onEntity(errand.origin(), receiver) : Task.atBlock(errand.origin(), dock);
-        delivery.setPriority(errand.priority());
-        delivery.setData(receiver != null ? DELIVER_TO_ENTITY : DELIVER_TO_BLOCK);
-        delivery.setLifespan(DELIVERY_LIFESPAN);
-        link(level, delivery, request);
+        Entity receiver = request.getEntity();
+        Task delivery = receiver != null ? Task.onEntity(at, receiver) : Task.atBlock(at, request.getPos());
+        delivery.setPriority(task.priority());
+        delivery.setLife(CARRY_LIFE);
+        delivery.setData(receiver != null ? LEG_TO_ENTITY : LEG_TO_BLOCK);
+        post(level, delivery, request);
     }
 
-    private static void deliver(ServerLevel level, IGolemAPI golem, Task task, ProvisionRequest request) {
-        ItemStack ordered = request.getStack();
-        ItemStack brought = golem.hands().release(ordered);
-        boolean toEntity = task.data() == DELIVER_TO_ENTITY;
-        if (brought.getCount() < ordered.getCount()) {
-            ItemStack shortfall = ordered.copyWithCount(ordered.getCount() - brought.getCount());
-            if (toEntity) {
-                GolemHelper.requestProvisioning(level, request.getEntity(), shortfall);
-            } else {
-                GolemHelper.requestProvisioning(level, request.getPos(), request.getSide(), shortfall);
+    private static void deliver(ServerLevel level, IGolemAPI golem, ProvisionRequest request) {
+        ItemStack wanted = request.getStack();
+        ItemStack given = golem.hands().release(wanted);
+        int shortfall = wanted.getCount() - given.getCount();
+        Entity receiver = request.getEntity();
+        if (shortfall > 0) {
+            if (receiver != null) {
+                GolemHelper.requestProvisioning(level, receiver, wanted.copyWithCount(shortfall));
+            } else if (request.getPos() != null && request.getSide() != null) {
+                GolemHelper.requestProvisioning(level, request.getPos(), request.getSide(), wanted.copyWithCount(shortfall));
             }
         }
-        if (toEntity) {
-            InvHelper.dropItemAtEntity(level, brought, request.getEntity());
-        } else {
-            ItemStack refused = InvHelper.ejectStackAt(level, request.getPos().relative(request.getSide()), request.getSide().getOpposite(), brought, true);
-            if (!refused.isEmpty()) {
-                golem.hands().hold(refused);
+        if (!given.isEmpty()) {
+            if (receiver != null) {
+                level.addFreshEntity(new ItemEntity(level, receiver.getX(), receiver.getY() + receiver.getEyeHeight() * HALF, receiver.getZ(), given));
+            } else if (request.getPos() != null && request.getSide() != null) {
+                handOver(level, golem, request.getPos(), request.getSide(), given);
             }
         }
         HandlingSound.play(golem, HandlingSound.LOW);
         golem.swingArm();
-        request.setInvalid(true);
+        request.markSpent();
     }
 
-    @Override
-    public boolean canPerform(ISealEntity seal, IGolemAPI golem, Task task) {
-        ProvisionRequest request = task.linkedProvision();
-        if (request == null || !(golem.asEntity() instanceof Mob body) || !destinationInHome(body, request) || !SealAccess.allows(request.getSeal(), golem)) {
-            return false;
+    private static void handOver(ServerLevel level, IGolemAPI golem, BlockPos pos, Direction side, ItemStack stack) {
+        ResourceHandler<ItemResource> inventory = InvHelper.getItemHandlerAt(level, pos, side);
+        if (inventory == null) {
+            dropToward(level, pos, side, stack);
+            return;
         }
-        if (task.data() == COLLECT) {
-            return !golem.hands().holds(request.getStack()) && golem.hands().canTake(request.getStack(), true);
+        ItemStack refused = golem.hands().hold(InvHelper.insertStack(inventory, stack, false));
+        if (!refused.isEmpty()) {
+            dropToward(level, pos, side, refused);
         }
-        return golem.hands().holds(request.getStack());
     }
 
-    private static boolean destinationInHome(Mob body, ProvisionRequest request) {
-        return request.getSeal() != null && body.isWithinHome(request.getSeal().pos().pos()) || request.getEntity() != null && body.isWithinHome(request.getEntity().blockPosition())
-                || request.getPos() != null && body.isWithinHome(request.getPos());
+    private static void dropToward(ServerLevel level, BlockPos pos, Direction face, ItemStack stack) {
+        BlockPos spot = level.getBlockState(pos).isCollisionShapeFullBlock(level, pos) ? pos.relative(face) : pos;
+        Vec3 centre = Vec3.atCenterOf(spot);
+        ItemEntity item = new ItemEntity(level, centre.x, centre.y, centre.z, stack);
+        item.setDeltaMovement(face.getOpposite().getUnitVec3().scale(DROP_PUSH));
+        level.addFreshEntity(item);
     }
 
     @Override
     public void onTaskSuspended(ServerLevel level, ISealEntity seal, Task task) {
         ProvisionRequest request = task.linkedProvision();
-        if (request != null) {
-            request.setLinkedTask(null);
+        if (request != null && task.equals(request.getLinkedTask())) {
+            request.unlink();
         }
-        task.linkProvision(null);
     }
 }

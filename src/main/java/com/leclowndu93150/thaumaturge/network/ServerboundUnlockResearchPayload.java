@@ -18,7 +18,7 @@ public record ServerboundUnlockResearchPayload(Identifier research) implements C
     public static void handle(ServerboundUnlockResearchPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                ResearchManager.unlock(player, payload.research());
+                ResearchManager.unlockRequested(player, payload.research());
             }
         });
     }

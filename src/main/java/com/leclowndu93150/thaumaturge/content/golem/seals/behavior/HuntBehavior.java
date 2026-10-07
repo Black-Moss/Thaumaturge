@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
 abstract class HuntBehavior implements ISealBehavior {
-    private static final short MARK_LIFESPAN = 10;
+    private static final int MARK_LIFESPAN = 10;
 
     protected abstract boolean isQuarry(ServerLevel level, ISealEntity seal, LivingEntity target);
 
@@ -19,7 +19,7 @@ abstract class HuntBehavior implements ISealBehavior {
     protected static void mark(ServerLevel level, ISealEntity seal, LivingEntity target) {
         Task task = Task.onEntity(seal.pos(), target);
         task.setPriority(seal.priority());
-        task.setLifespan(MARK_LIFESPAN);
+        task.setLife(MARK_LIFESPAN);
         TaskBoard.of(level).post(task);
     }
 
@@ -29,13 +29,13 @@ abstract class HuntBehavior implements ISealBehavior {
             hunter.setTarget(target);
             golem.addRankXp(1);
         }
-        task.suspend();
+        task.end();
         onHuntOver();
     }
 
     @Override
     public boolean completeTask(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task) {
-        task.suspend();
+        task.end();
         onHuntOver();
         return true;
     }

@@ -127,7 +127,7 @@ public final class GolemHelper {
      */
     public static void requestProvisioning(Level level, BlockPos pos, Direction side, ItemStack stack, int ui) {
         ProvisionRequest request = new ProvisionRequest(level, pos, side, stack);
-        request.setUI(ui);
+        request.setBatch(ui);
         queue(level, request);
     }
 
@@ -142,7 +142,7 @@ public final class GolemHelper {
      */
     public static void requestProvisioning(Level level, Entity entity, ItemStack stack, int ui) {
         ProvisionRequest request = new ProvisionRequest(level, entity, stack);
-        request.setUI(ui);
+        request.setBatch(ui);
         queue(level, request);
     }
 

@@ -99,7 +99,7 @@ public final class SealHandler {
             Vec3 spot = Vec3.atCenterOf(pos.pos()).relative(pos.face(), 1.0 / DROP_OFFSET);
             level.addFreshEntity(new ItemEntity(level, spot.x, spot.y, spot.z, new ItemStack(seal.type().placer())));
         }
-        TaskBoard.of(level).suspendAllFrom(pos);
+        TaskBoard.of(level).endAllFrom(pos);
         PacketDistributor.sendToPlayersInDimension(level, ClientboundSealPayload.remove(pos));
     }
 

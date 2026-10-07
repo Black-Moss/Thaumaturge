@@ -54,8 +54,8 @@ public final class TaskBoard {
         return pinned.containsKey(id);
     }
 
-    public void suspendAllFrom(SealPos origin) {
-        pinned.values().stream().filter(task -> origin.equals(task.origin())).forEach(Task::suspend);
+    public void endAllFrom(SealPos origin) {
+        pinned.values().stream().filter(task -> origin.equals(task.origin())).forEach(Task::end);
     }
 
     public List<Task> openBlockTasks(@Nullable UUID golemId, Entity golem) {
@@ -72,19 +72,19 @@ public final class TaskBoard {
         }
         Entity entity = task.entity();
         if (entity == null || !entity.isAlive()) {
-            task.suspend();
+            task.end();
             return false;
         }
         return true;
     }
 
     private List<Task> open(@Nullable UUID golemId, Entity golem, Predicate<Task> kind) {
-        return pinned.values().stream().filter(task -> !task.isReserved() && (golemId == null || task.claimant() == null || golemId.equals(task.claimant()))).filter(kind)
+        return pinned.values().stream().filter(task -> !task.isClaimed() && (golemId == null || task.assignedGolem() == null || golemId.equals(task.assignedGolem()))).filter(kind)
                 .sorted(Comparator.comparingDouble(task -> task.pos().distToCenterSqr(golem.position()) - task.priority() * PRIORITY_WEIGHT)).toList();
     }
 
     public static void attempt(ServerLevel level, Task task, IGolemAPI golem) {
-        if (task.isCompleted() || task.isSuspended()) {
+        if (task.isCompleted() || task.isEnded()) {
             return;
         }
         ISealEntity seal = SealHandler.getSealEntity(level, task.origin());
@@ -92,18 +92,19 @@ public final class TaskBoard {
     }
 
     public void sweep(ServerLevel level) {
-        Map<Integer, Task> survivors = new ConcurrentHashMap<>();
-        for (Task task : pinned.values()) {
-            if (!task.isSuspended() && task.lifespan() > 0) {
-                task.setLifespan((short) (task.lifespan() - 1));
-                survivors.put(task.id(), task);
+        Iterator<Task> tasks = pinned.values().iterator();
+        while (tasks.hasNext()) {
+            Task task = tasks.next();
+            if (!task.isEnded() && task.life() > 0) {
+                task.setLife(task.life() - 1);
                 continue;
             }
-            ISealEntity seal = SealHandler.getSealEntity(level, task.origin());
+            tasks.remove();
+            ISealEntity seal = task.origin() == null ? null : SealHandler.getSealEntity(level, task.origin());
             if (seal != null) {
                 seal.behavior().onTaskSuspended(level, seal, task);
             }
+            task.end();
         }
-        pinned = survivors;
     }
 }

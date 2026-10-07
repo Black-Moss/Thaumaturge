@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 
 abstract class CellWorkBehavior implements ISealBehavior {
     private static final int TIDY_PERIOD = 100;
-    protected static final short STEP_GRACE = 10;
+    protected static final int STEP_GRACE = 10;
 
     private final SealClock clock;
     private final TaskLedger<Long> claimed = new TaskLedger<>();
@@ -50,7 +50,7 @@ abstract class CellWorkBehavior implements ISealBehavior {
     }
 
     protected static void keepAlive(Task task) {
-        task.setLifespan((short) Math.max(task.lifespan(), STEP_GRACE));
+        task.setLife(Math.max(task.life(), STEP_GRACE));
     }
 
     @Override
@@ -58,7 +58,7 @@ abstract class CellWorkBehavior implements ISealBehavior {
         if (stillMine(golem.level(), seal, task)) {
             return true;
         }
-        task.suspend();
+        task.end();
         return false;
     }
 

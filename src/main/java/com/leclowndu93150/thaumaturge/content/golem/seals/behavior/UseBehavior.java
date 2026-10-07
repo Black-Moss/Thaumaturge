@@ -33,7 +33,7 @@ public final class UseBehavior implements ISealBehavior {
             return;
         }
         Task pending = TaskBoard.of(level).find(pendingTask);
-        if (pending != null && !pending.isSuspended() && !pending.isCompleted() || !targetReady(level, seal)) {
+        if (pending != null && !pending.isEnded() && !pending.isCompleted() || !targetReady(level, seal)) {
             return;
         }
         Task task = Task.atBlock(seal.pos(), seal.pos().pos());
@@ -59,7 +59,7 @@ public final class UseBehavior implements ISealBehavior {
                 GolemInteractionHelper.golemClick(level, golem, task.pos(), seal.pos().face(), bareHanded ? ItemStack.EMPTY : used, seal.setting(SNEAKING), !seal.setting(LEFT_CLICK));
             }
         }
-        task.suspend();
+        task.end();
         return true;
     }
 

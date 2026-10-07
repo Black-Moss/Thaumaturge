@@ -280,18 +280,27 @@ public final class BlockEntityResearchTable extends BlockEntity implements MenuP
 
     public void combineAspects(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second, boolean bonusFirst, boolean bonusSecond) {
         Holder<IAspect> result = combinationResult(player, first, second);
-        if (!consumeCombinationInput(player, first, bonusFirst)) {
+        if (result == null || !canPayCombination(player, first, bonusFirst, second, bonusSecond)) {
             return;
         }
-        if (!consumeCombinationInput(player, second, bonusSecond)) {
+        if (!consumeCombinationInput(player, first, bonusFirst) || !consumeCombinationInput(player, second, bonusSecond)) {
             return;
         }
         setChanged();
         syncToClient();
-        if (result != null && getLevel() != null) {
+        if (getLevel() != null) {
             AspectPools.grant(player, result, 1);
             getLevel().playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.3F, 1.0F);
         }
+    }
+
+    private boolean canPayCombination(ServerPlayer player, Holder<IAspect> first, boolean bonusFirst, Holder<IAspect> second, boolean bonusSecond) {
+        int needFirst = first.equals(second) && bonusFirst == bonusSecond ? 2 : 1;
+        return available(player, first, bonusFirst) >= needFirst && available(player, second, bonusSecond) >= 1;
+    }
+
+    private int available(ServerPlayer player, Holder<IAspect> aspect, boolean fromBonus) {
+        return fromBonus ? bonusAspects.amountOf(aspect) : AspectPools.amount(player, aspect);
     }
 
     private boolean consumeCombinationInput(ServerPlayer player, Holder<IAspect> aspect, boolean fromBonus) {

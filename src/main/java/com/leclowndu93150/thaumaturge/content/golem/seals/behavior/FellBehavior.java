@@ -33,7 +33,7 @@ public final class FellBehavior extends CellWorkBehavior {
             }
             release(task);
         }
-        task.suspend();
+        task.end();
         return true;
     }
 }

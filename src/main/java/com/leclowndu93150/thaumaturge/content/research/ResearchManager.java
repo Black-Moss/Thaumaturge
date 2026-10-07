@@ -39,6 +39,20 @@ public final class ResearchManager {
         return Identifier.fromNamespaceAndPath("thaumaturge", CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
     }
 
+    public static boolean unlockRequested(ServerPlayer player, Identifier research) {
+        IResearchEntry entry = entry(player, research).orElse(null);
+        if (entry == null || !isCategoryOpen(KnowledgeAccess.of(player), entry))
+            return false;
+        if (entry.hasMeta(ResearchEntryMeta.HIDDEN) && entry.parents().isEmpty())
+            return false;
+        return unlock(player, research);
+    }
+
+    private static boolean isCategoryOpen(IPlayerKnowledge knowledge, IResearchEntry entry) {
+        Optional<Identifier> gate = entry.category().value().requiredResearch();
+        return gate.isEmpty() || knowledge.isResearchComplete(gate.get());
+    }
+
     public static boolean unlock(ServerPlayer player, Identifier research) {
         if (research == null)
             return false;

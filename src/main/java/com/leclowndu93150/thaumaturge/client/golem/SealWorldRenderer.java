@@ -3,20 +3,17 @@ package com.leclowndu93150.thaumaturge.client.golem;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealArea;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTFXPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.SealRenderTypes;
 import com.leclowndu93150.thaumaturge.content.golem.seals.ClientSealHolder;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealEntity;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +21,7 @@ import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -31,161 +29,166 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import org.joml.Quaternionf;
+import org.joml.Matrix4f;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class SealWorldRenderer {
-    private static final String SEAL_ICON_PREFIX = "textures/item/seal_";
-    private static final String SEAL_ICON_SUFFIX = ".png";
-    private static final Identifier AREA_RING = TTIds.rl("textures/misc/seal_area.png");
-    private static final Identifier CORNER_FRAME = TTIds.rl("textures/misc/frame_corner.png");
-    private static final double MAX_DIST_SQR = 256.0;
-    private static final float RING_SCALE = 0.9F;
-    private static final float ICON_SCALE = 0.5F;
-    private static final float RING_ALPHA = 0.8F;
-    private static final float CORNER_ALPHA = 0.7F;
-
-    private static final RenderPipeline PIPELINE = TTFXPipelines.translucentTextured(TTIds.rl("pipeline/seal_overlay"));
-    private static final Map<Identifier, RenderType> TYPES = new ConcurrentHashMap<>();
-    private static final RenderType ICON_TYPE = RenderType.create("tc_seal_icon", RenderSetup.builder(PIPELINE).withTexture("Sampler0", TextureAtlas.LOCATION_ITEMS).createRenderSetup());
-
-    private static final Direction[][] ROT_FACES = {{Direction.DOWN, Direction.NORTH, Direction.WEST}, {Direction.UP, Direction.NORTH, Direction.WEST},
-            {Direction.DOWN, Direction.NORTH, Direction.EAST}, {Direction.UP, Direction.NORTH, Direction.EAST}, {Direction.DOWN, Direction.SOUTH, Direction.EAST},
-            {Direction.UP, Direction.SOUTH, Direction.EAST}, {Direction.DOWN, Direction.SOUTH, Direction.WEST}, {Direction.UP, Direction.SOUTH, Direction.WEST}};
-    private static final int[][] ROT_MAT = {{0, 270, 0}, {270, 180, 270}, {90, 0, 90}, {180, 90, 180}, {180, 180, 0}, {90, 270, 270}, {270, 90, 90}, {0, 0, 180}};
+    private static final double MAX_DISTANCE_SQR = 256.0;
+    private static final double ICON_OUT = 0.55;
+    private static final double RING_OUT = 0.51;
+    private static final double CORNER_IN = 0.49;
+    private static final double SPARK_OUT = 0.66;
+    private static final double ICON_HALF = 0.25;
+    private static final double RING_HALF = 0.45;
+    private static final double FACE_HALF = 0.5;
+    private static final float RING_OPACITY = 0.8F;
+    private static final float CORNER_OPACITY = 0.7F;
+    private static final float STOPPED_SHADE = 0.5F;
+    private static final float SPARK_CHANCE = 1.0F / 12.0F;
+    private static final float SPARK_RED_MIN = 0.6F;
+    private static final float SPARK_RED_SPREAD = 0.2F;
+    private static final float SPARK_SCALE = 2.0F;
+    private static final float SHIMMER_BASE = 0.7F;
+    private static final float SHIMMER_SWING = 0.1F;
+    private static final float SHIMMER_RED_PERIOD = 4.0F;
+    private static final float SHIMMER_GREEN_PERIOD = 5.0F;
+    private static final float SHIMMER_BLUE_PERIOD = 6.0F;
+    private static final int FULL_TURN = 360;
+    private static final int DYE_COUNT = 16;
+    private static final String ICON_PREFIX = "textures/";
+    private static final String ICON_SUFFIX = ".png";
+    private static final String DEFAULT_ICON = "item/seal_";
 
     private SealWorldRenderer() {}
 
-    private static RenderType typeFor(Identifier texture) {
-        return TYPES.computeIfAbsent(texture, tex -> RenderType.create("tc_seal_overlay_" + tex.getPath().hashCode(), RenderSetup.builder(PIPELINE).withTexture("Sampler0", tex).createRenderSetup()));
-    }
-
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent.AfterWeather event) {
-        Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc.player;
-        if (mc.level == null || player == null || mc.options.hideGui) {
+        Minecraft minecraft = Minecraft.getInstance();
+        LocalPlayer player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (level == null || player == null || minecraft.options.hideGui || !holdsDisplayer(player)) {
             return;
         }
-        if (!(player.getMainHandItem().getItem() instanceof ISealDisplayer) && !(player.getOffhandItem().getItem() instanceof ISealDisplayer)) {
+        Collection<SealEntity> seals = ClientSealHolder.all().values();
+        if (seals.isEmpty()) {
             return;
         }
-        if (ClientSealHolder.all().isEmpty()) {
-            return;
-        }
-        PoseStack poseStack = event.getPoseStack();
-        Vec3 cam = mc.gameRenderer.getMainCamera().position();
-        MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        float partialTicks = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-        float time = player.tickCount % 360 + partialTicks;
-        for (SealEntity seal : ClientSealHolder.all().values()) {
-            BlockPos pos = seal.pos().pos();
-            double distSqr = player.distanceToSqr(Vec3.atCenterOf(pos));
-            if (distSqr > MAX_DIST_SQR) {
+        boolean seeThrough = player.isShiftKeyDown();
+        float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        float time = player.tickCount + partial;
+        double spin = Math.toRadians(player.tickCount % FULL_TURN + partial);
+        Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
+        Matrix4f pose = event.getPoseStack().last().pose();
+        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
+        RenderType ringType = seeThrough ? SealRenderTypes.RING_SEE_THROUGH : SealRenderTypes.RING;
+        RenderType iconType = seeThrough ? SealRenderTypes.ICON_SEE_THROUGH : SealRenderTypes.ICON;
+        RenderType cornerType = seeThrough ? SealRenderTypes.CORNER_SEE_THROUGH : SealRenderTypes.CORNER;
+        RandomSource random = level.getRandom();
+        for (SealEntity seal : seals) {
+            BlockPos block = seal.pos().pos();
+            Vec3 centre = Vec3.atCenterOf(block);
+            double distanceSqr = player.position().distanceToSqr(centre);
+            if (distanceSqr > MAX_DISTANCE_SQR) {
                 continue;
             }
-            float alpha = 1.0F - (float) (distSqr / MAX_DIST_SQR);
-            boolean inactive = seal.isStoppedByRedstone(mc.level);
-            drawSealIcon(poseStack, buffers, seal, cam, alpha, inactive);
-            drawSealRing(poseStack, buffers, seal, cam, alpha, time);
+            float fade = (float) (1.0 - distanceSqr / MAX_DISTANCE_SQR);
+            Direction face = seal.pos().face();
+            Vec3 normal = Vec3.atLowerCornerOf(face.getUnitVec3i());
+            Vec3 up = iconUp(face);
+            Vec3 right = normal.cross(up);
+            int tint = tint(seal, block, time);
+            Vec3 spunRight = right.scale(Math.cos(spin)).add(normal.cross(right).scale(Math.sin(spin)));
+            Vec3 spunUp = up.scale(Math.cos(spin)).add(normal.cross(up).scale(Math.sin(spin)));
+            quad(buffers.getBuffer(ringType), pose, centre.add(normal.scale(RING_OUT)).subtract(camera), spunRight.scale(RING_HALF), spunUp.scale(RING_HALF), 0.0F, 1.0F, 0.0F, 1.0F,
+                    ARGB.color(ARGB.as8BitChannel(RING_OPACITY * fade), tint));
+            float shade = 1.0F;
+            if (seal.isStoppedByRedstone(level)) {
+                if (random.nextFloat() < SPARK_CHANCE * partial) {
+                    Vec3 at = centre.add(normal.scale(SPARK_OUT));
+                    level.addParticle(new SparkParticleOptions(ARGB.colorFromFloat(1.0F, SPARK_RED_MIN + random.nextFloat() * SPARK_RED_SPREAD, 0.0F, 0.0F), 1.0F, SPARK_SCALE), at.x, at.y, at.z, 0.0,
+                            0.0, 0.0);
+                } else {
+                    shade = STOPPED_SHADE;
+                }
+            }
+            TextureAtlasSprite sprite = minecraft.getAtlasManager().getAtlasOrThrow(AtlasIds.ITEMS).getSprite(iconSprite(seal));
+            quad(buffers.getBuffer(iconType), pose, centre.add(normal.scale(ICON_OUT)).subtract(camera), right.scale(ICON_HALF), up.scale(ICON_HALF), sprite.getU0(), sprite.getU1(), sprite.getV0(),
+                    sprite.getV1(), ARGB.colorFromFloat(fade, shade, shade, shade));
             if (seal.type().hasArea()) {
-                drawAreaCorners(poseStack, buffers, seal, cam, alpha, time);
+                drawCorners(buffers.getBuffer(cornerType), pose, SealArea.bounds(seal), camera, ARGB.color(ARGB.as8BitChannel(CORNER_OPACITY * fade), tint));
             }
         }
-        buffers.endBatch();
+        buffers.endBatch(ringType);
+        buffers.endBatch(iconType);
+        buffers.endBatch(cornerType);
     }
 
-    private static void drawSealIcon(PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam, float alpha, boolean inactive) {
-        BlockPos pos = seal.pos().pos();
-        Direction face = seal.pos().face();
-        poseStack.pushPose();
-        poseStack.translate(pos.getX() + 0.5 - cam.x, pos.getY() + 0.5 - cam.y, pos.getZ() + 0.5 - cam.z);
-        poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0), -face.getStepY(), face.getStepX(), -face.getStepZ()));
-        poseStack.translate(0.0, 0.0, face.getStepZ() < 0 ? -0.55 : 0.55);
-        float shade = inactive ? 0.5F : 1.0F;
-        int color = ARGB.colorFromFloat(alpha, shade, shade, shade);
-        TextureAtlasSprite sprite = iconSprite(seal.type().icon().orElseGet(() -> defaultIcon(seal.typeId())));
-        drawQuad(poseStack, buffers.getBuffer(ICON_TYPE), ICON_SCALE / 2.0F, color, sprite.getU0(), sprite.getV0(), sprite.getU1(), sprite.getV1());
-        poseStack.popPose();
+    private static boolean holdsDisplayer(LocalPlayer player) {
+        return player.getMainHandItem().getItem() instanceof ISealDisplayer || player.getOffhandItem().getItem() instanceof ISealDisplayer;
     }
 
-    private static Identifier defaultIcon(Identifier typeId) {
-        return typeId.withPath(path -> SEAL_ICON_PREFIX + path + SEAL_ICON_SUFFIX);
+    private static Vec3 iconUp(Direction face) {
+        return switch (face) {
+            case UP -> Vec3.atLowerCornerOf(Direction.NORTH.getUnitVec3i());
+            case DOWN -> Vec3.atLowerCornerOf(Direction.SOUTH.getUnitVec3i());
+            default -> Vec3.atLowerCornerOf(Direction.UP.getUnitVec3i());
+        };
     }
 
-    private static TextureAtlasSprite iconSprite(Identifier icon) {
-        String path = icon.getPath();
-        if (path.startsWith("textures/")) {
-            path = path.substring("textures/".length());
+    private static int tint(SealEntity seal, BlockPos block, float time) {
+        if (seal.color() >= 1 && seal.color() <= DYE_COUNT) {
+            return DyeColor.byId(seal.color() - 1).getTextureDiffuseColor();
         }
-        if (path.endsWith(".png")) {
-            path = path.substring(0, path.length() - ".png".length());
-        }
-        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.ITEMS).getSprite(Identifier.fromNamespaceAndPath(icon.getNamespace(), path));
+        return ARGB.colorFromFloat(1.0F, SHIMMER_BASE + SHIMMER_SWING * Mth.sin((time + block.getX()) / SHIMMER_RED_PERIOD),
+                SHIMMER_BASE + SHIMMER_SWING * Mth.sin((time + block.getY()) / SHIMMER_GREEN_PERIOD), SHIMMER_BASE + SHIMMER_SWING * Mth.sin((time + block.getZ()) / SHIMMER_BLUE_PERIOD));
     }
 
-    private static void drawSealRing(PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam, float alpha, float time) {
-        BlockPos pos = seal.pos().pos();
-        Direction face = seal.pos().face();
-        float r;
-        float g;
-        float b;
-        if (seal.color() > 0) {
-            int dye = DyeColor.byId(seal.color() - 1).getTextureDiffuseColor();
-            r = ARGB.red(dye) / 255.0F;
-            g = ARGB.green(dye) / 255.0F;
-            b = ARGB.blue(dye) / 255.0F;
-        } else {
-            r = 0.7F + Mth.sin((time + pos.getX()) / 4.0F) * 0.1F;
-            g = 0.7F + Mth.sin((time + pos.getY()) / 5.0F) * 0.1F;
-            b = 0.7F + Mth.sin((time + pos.getZ()) / 6.0F) * 0.1F;
-        }
-        poseStack.pushPose();
-        poseStack.translate(pos.getX() + 0.5 - cam.x, pos.getY() + 0.5 - cam.y, pos.getZ() + 0.5 - cam.z);
-        poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0), -face.getStepY(), face.getStepX(), -face.getStepZ()));
-        poseStack.translate(0.0, 0.0, face.getStepZ() < 0 ? -0.51 : 0.51);
-        poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(time), 0.0F, 0.0F, 1.0F));
-        drawQuad(poseStack, buffers.getBuffer(typeFor(AREA_RING)), RING_SCALE / 2.0F, ARGB.colorFromFloat(alpha * RING_ALPHA, r, g, b));
-        poseStack.popPose();
+    private static Identifier iconSprite(SealEntity seal) {
+        Identifier type = seal.typeId();
+        return seal.type().icon().map(texture -> Identifier.fromNamespaceAndPath(texture.getNamespace(), stripTexturePath(texture.getPath())))
+                .orElse(Identifier.fromNamespaceAndPath(type.getNamespace(), DEFAULT_ICON + type.getPath()));
     }
 
-    private static void drawAreaCorners(PoseStack poseStack, MultiBufferSource buffers, SealEntity seal, Vec3 cam, float alpha, float time) {
-        BlockPos pos = seal.pos().pos();
-        float r = 0.7F + Mth.sin((time + pos.getX()) / 4.0F) * 0.1F;
-        float g = 0.7F + Mth.sin((time + pos.getY()) / 5.0F) * 0.1F;
-        float b = 0.7F + Mth.sin((time + pos.getZ()) / 6.0F) * 0.1F;
-        AABB area = SealArea.bounds(seal);
-        double[][] corners = {{area.minX, area.minY, area.minZ}, {area.minX, area.maxY - 1.0, area.minZ}, {area.maxX - 1.0, area.minY, area.minZ}, {area.maxX - 1.0, area.maxY - 1.0, area.minZ},
-                {area.maxX - 1.0, area.minY, area.maxZ - 1.0}, {area.maxX - 1.0, area.maxY - 1.0, area.maxZ - 1.0}, {area.minX, area.minY, area.maxZ - 1.0},
-                {area.minX, area.maxY - 1.0, area.maxZ - 1.0}};
-        int color = ARGB.colorFromFloat(alpha * CORNER_ALPHA, r, g, b);
-        VertexConsumer buffer = buffers.getBuffer(typeFor(CORNER_FRAME));
-        for (int q = 0; q < corners.length; q++) {
-            poseStack.pushPose();
-            poseStack.translate(corners[q][0] + 0.5 - cam.x, corners[q][1] + 0.5 - cam.y, corners[q][2] + 0.5 - cam.z);
-            for (int w = 0; w < ROT_FACES[q].length; w++) {
-                Direction cornerFace = ROT_FACES[q][w];
-                poseStack.pushPose();
-                poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0), -cornerFace.getStepY(), cornerFace.getStepX(), -cornerFace.getStepZ()));
-                poseStack.translate(0.0, 0.0, cornerFace.getStepZ() < 0 ? -0.49 : 0.49);
-                poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90.0), 0.0F, 0.0F, -1.0F));
-                poseStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(ROT_MAT[q][w]), 0.0F, 0.0F, 1.0F));
-                drawQuad(poseStack, buffer, 0.5F, color);
-                poseStack.popPose();
+    private static String stripTexturePath(String path) {
+        String trimmed = path.startsWith(ICON_PREFIX) ? path.substring(ICON_PREFIX.length()) : path;
+        return trimmed.endsWith(ICON_SUFFIX) ? trimmed.substring(0, trimmed.length() - ICON_SUFFIX.length()) : trimmed;
+    }
+
+    private static void drawCorners(VertexConsumer buffer, Matrix4f pose, AABB box, Vec3 camera, int color) {
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sy = -1; sy <= 1; sy += 2) {
+                for (int sz = -1; sz <= 1; sz += 2) {
+                    Vec3 cornerBlock = new Vec3(sx < 0 ? box.minX + FACE_HALF : box.maxX - FACE_HALF, sy < 0 ? box.minY + FACE_HALF : box.maxY - FACE_HALF,
+                            sz < 0 ? box.minZ + FACE_HALF : box.maxZ - FACE_HALF).subtract(camera);
+                    Vec3 x = new Vec3(sx, 0.0, 0.0);
+                    Vec3 y = new Vec3(0.0, sy, 0.0);
+                    Vec3 z = new Vec3(0.0, 0.0, sz);
+                    bracket(buffer, pose, cornerBlock, x, y, z, color);
+                    bracket(buffer, pose, cornerBlock, y, x, z, color);
+                    bracket(buffer, pose, cornerBlock, z, x, y, color);
+                }
             }
-            poseStack.popPose();
         }
     }
 
-    private static void drawQuad(PoseStack poseStack, VertexConsumer buffer, float half, int color) {
-        drawQuad(poseStack, buffer, half, color, 0.0F, 0.0F, 1.0F, 1.0F);
+    private static void bracket(VertexConsumer buffer, Matrix4f pose, Vec3 blockCentre, Vec3 outward, Vec3 firstEdge, Vec3 secondEdge, int color) {
+        Vec3 a = firstEdge.scale(FACE_HALF);
+        Vec3 b = secondEdge.scale(FACE_HALF);
+        Vec3 centre = blockCentre.add(outward.scale(CORNER_IN));
+        vertex(buffer, pose, centre.add(a).add(b), 0.0F, 0.0F, color);
+        vertex(buffer, pose, centre.subtract(a).add(b), 1.0F, 0.0F, color);
+        vertex(buffer, pose, centre.subtract(a).subtract(b), 1.0F, 1.0F, color);
+        vertex(buffer, pose, centre.add(a).subtract(b), 0.0F, 1.0F, color);
     }
 
-    private static void drawQuad(PoseStack poseStack, VertexConsumer buffer, float half, int color, float u0, float v0, float u1, float v1) {
-        PoseStack.Pose pose = poseStack.last();
-        buffer.addVertex(pose, -half, half, 0.0F).setUv(u1, v1).setColor(color);
-        buffer.addVertex(pose, half, half, 0.0F).setUv(u1, v0).setColor(color);
-        buffer.addVertex(pose, half, -half, 0.0F).setUv(u0, v0).setColor(color);
-        buffer.addVertex(pose, -half, -half, 0.0F).setUv(u0, v1).setColor(color);
+    private static void quad(VertexConsumer buffer, Matrix4f pose, Vec3 centre, Vec3 right, Vec3 up, float u0, float u1, float v0, float v1, int color) {
+        vertex(buffer, pose, centre.subtract(right).add(up), u0, v0, color);
+        vertex(buffer, pose, centre.add(right).add(up), u1, v0, color);
+        vertex(buffer, pose, centre.add(right).subtract(up), u1, v1, color);
+        vertex(buffer, pose, centre.subtract(right).subtract(up), u0, v1, color);
+    }
+
+    private static void vertex(VertexConsumer buffer, Matrix4f pose, Vec3 at, float u, float v, int color) {
+        buffer.addVertex(pose, (float) at.x, (float) at.y, (float) at.z).setUv(u, v).setColor(color);
     }
 }

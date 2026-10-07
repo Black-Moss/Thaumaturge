@@ -6,10 +6,12 @@ import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
+import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import it.unimi.dsi.fastutil.HashCommon;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.LinkedBlockingQueue;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -17,6 +19,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -30,165 +33,172 @@ import org.jspecify.annotations.Nullable;
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class KnowledgeGainOverlay implements GuiLayer {
     private static final Identifier BOOK = TTIds.rl("textures/item/thaumonomicon.png");
-    private static final Identifier KNOW_OBSERVATION = TTIds.rl("textures/research/knowledge_observation.png");
-    private static final Identifier KNOW_THEORY = TTIds.rl("textures/research/knowledge_theory.png");
+    private static final Identifier OBSERVATION = TTIds.rl("textures/research/knowledge_observation.png");
+    private static final Identifier THEORY = TTIds.rl("textures/research/knowledge_theory.png");
+    private static final int ICON = 16;
+    private static final float HALF_ICON = ICON / 2.0F;
+    private static final int STRIP_WIDTH = ICON * ParticleTextures.STAR_GLINT_FRAMES;
+    private static final int BOOK_INSET = 17;
+    private static final float BOOK_FADE_FULL = 40.0F;
+    private static final float BOOK_FADE_RISE = 10.0F;
+    private static final int THEORY_BONUS_TICKS = 10;
+    private static final int TILT_CHOICES = 12;
+    private static final int TILT_CENTRE = 6;
+    private static final int START_SPREAD = 32;
+    private static final int END_SPREAD = 8;
+    private static final int CORNER_OFFSET = 12;
+    private static final int WIDTH_DIVISOR = 4;
+    private static final int HEIGHT_DIVISOR = 3;
+    private static final float POP_SHARE = 0.33F;
+    private static final float FLIGHT_SHARE = 0.66F;
+    private static final float BURST_SHARE = 0.1F;
+    private static final float POP_BASE = 1.5F;
+    private static final float POP_SWING = 0.5F;
+    private static final float CATEGORY_SCALE = 0.75F;
+    private static final float APPEAR_BURST = 16.0F;
+    private static final float ARRIVAL_BURST = 8.0F;
+    private static final int FULL_TURN_DEGREES = 360;
+    private static final int GREEN_MIN = 189;
+    private static final int BLUE_MIN = 64;
+    private static final int CHANNEL_MAX = 255;
+    private static final int MAX_SPARKS = 200;
+    private static final float SPARK_CHANCE_RANGE = 10.0F;
+    private static final double SPARK_SCATTER = 5.0;
+    private static final double SPARK_KICK = 1.0;
+    private static final int SPARK_DELAY_CHOICES = 5;
+    private static final int SPARK_LIFE_MIN = 32;
+    private static final int SPARK_LIFE_CHOICES = 8;
+    private static final float STAR_SPARK_CHANCE = 0.2F;
+    private static final double SPARK_DRAG = 0.9;
+    private static final double SPARK_FALL = 0.04;
+    private static final double SPARK_WOBBLE = 0.025;
+    private static final float SPARK_SIZE_START = 4.8F;
+    private static final float SPARK_SIZE_END = 9.6F;
+    private static final float SPARK_FADE_SHARE = 1.0F / 6.0F;
 
-    private static final LinkedBlockingQueue<Tracker> TRACKERS = new LinkedBlockingQueue<>();
+    private static final List<Entry> ENTRIES = new ArrayList<>();
+    private static final List<Spark> SPARKS = new ArrayList<>();
     private static float bookFade;
 
-    private static final float BOOK_FADE_MAX = 40.0F;
-    private static final float BOOK_FADE_GAIN = 10.0F;
-    private static final int BOOK_SIZE = 16;
-    private static final int BOOK_CORNER_OFFSET = 17;
-    private static final int ICON_TEX_SIZE = 16;
-    private static final int ICON_ALPHA = 200;
-    private static final int THEORY_EXTRA_TICKS = 10;
-    private static final int GLOW_FRAME_SIZE = 16;
-    private static final int BURST_FRAME_SPREAD = 16;
-    private static final int GLOW_STRIP_WIDTH = GLOW_FRAME_SIZE * BURST_FRAME_SPREAD;
-    private static final float STAR_SPARK_CHANCE = 0.2F;
-    private static final int QUAD_INTRINSIC_ROTATION = 90;
-    private static final int MAX_SPARKS = 200;
-    private static final float SPARK_SCALE = 24.0F;
-    private static final float[] SPARK_ALPHA_KEYS = {0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F};
+    public static void addTracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category, int duration, long seed) {
+        ENTRIES.add(new Entry(type, category, null, duration + (type == KnowledgeType.THEORY ? THEORY_BONUS_TICKS : 0), seed));
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null && mc.level != null) {
+            mc.level.playLocalSound(mc.player.getX(), mc.player.getY(), mc.player.getZ(), TTSounds.LEARN.get(), SoundSource.AMBIENT, 1.0F, 1.0F, false);
+        }
+    }
 
-    private static final List<GuiSpark> SPARKS = new ArrayList<>();
+    public static void addAspectTracker(Holder<IAspect> aspect, int duration, long seed) {
+        ENTRIES.add(new Entry(null, null, aspect, duration, seed));
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) {
+            ENTRIES.clear();
+            SPARKS.clear();
+            bookFade = 0.0F;
+            return;
+        }
+        ENTRIES.removeIf(Entry::age);
+        bookFade = ENTRIES.isEmpty() ? Math.max(0.0F, bookFade - 1.0F) : Math.min(BOOK_FADE_FULL, bookFade + BOOK_FADE_RISE);
+        RandomSource random = mc.level.getRandom();
+        Iterator<Spark> sparks = SPARKS.iterator();
+        while (sparks.hasNext()) {
+            if (sparks.next().tick(random)) {
+                sparks.remove();
+            }
+        }
+    }
 
     @Override
     public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.options.hideGui || (bookFade <= 0.0F && SPARKS.isEmpty())) {
+        if (mc.level == null || bookFade <= 0.0F && ENTRIES.isEmpty() && SPARKS.isEmpty()) {
             return;
         }
+        int width = graphics.guiWidth();
+        int height = graphics.guiHeight();
         float partial = deltaTracker.getGameTimeDeltaPartialTick(false);
-        int ww = graphics.guiWidth();
-        int hh = graphics.guiHeight();
-
-        int bookTint = ARGB.color(Math.round(bookFade / BOOK_FADE_MAX * 255.0F), 255, 255, 255);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, BOOK, ww - BOOK_CORNER_OFFSET, hh - BOOK_CORNER_OFFSET, 0.0F, 0.0F, BOOK_SIZE, BOOK_SIZE, BOOK_SIZE, BOOK_SIZE, BOOK_SIZE, BOOK_SIZE, bookTint);
-
-        for (Tracker current : TRACKERS) {
-            Random rand = new Random(current.seed);
-            float s = 16.0F;
-            float x = ww / 4.0F + rand.nextInt(32);
-            float y = hh / 3.0F + rand.nextInt(32);
-            float wot = 0.0F;
-            if (current.progress < current.max * 0.66F) {
-                float q = (current.progress - partial) / (current.max * 0.66F);
-                s *= q;
-                float m = (float) Math.sin(q * Math.PI - (Math.PI / 2)) * 0.5F + 0.5F;
-                y *= m;
-                float d = (float) Math.sin(m * Math.PI * 0.5);
-                x *= d;
-            } else {
-                wot = current.max - current.progress + partial;
-                float wot2 = wot / (current.max * 0.33F);
-                float m = (float) Math.sin(wot2 * Math.PI * 2.0 - (Math.PI / 2)) * 0.5F + 1.5F;
-                if (wot2 < 0.5F) {
-                    s *= wot2 * 2.0F;
-                }
-                s *= m;
-            }
-
-            float xx = ww - 12 + rand.nextInt(8) - x;
-            float yy = hh - 12 + rand.nextInt(8) - y;
-
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(xx, yy);
-            graphics.pose().rotate((float) Math.toRadians(84 + rand.nextInt(12) - QUAD_INTRINSIC_ROTATION));
-
-            if (current.aspect != null) {
-                drawCentered(graphics, current.aspect.value().texture(), s, ARGB.color(ICON_ALPHA, current.aspect.value().color()), false);
-            } else {
-                Identifier typeIcon = current.type == KnowledgeType.THEORY ? KNOW_THEORY : KNOW_OBSERVATION;
-                drawCentered(graphics, typeIcon, s, ARGB.color(ICON_ALPHA, 255, 255, 255), false);
-                Identifier categoryIcon = categoryIcon(mc, current.category);
-                if (categoryIcon != null) {
-                    drawCentered(graphics, categoryIcon, s * 0.75F, ARGB.color(ICON_ALPHA, 255, 255, 255), false);
-                }
-            }
-
-            if (current.progress > current.max * 0.9F) {
-                float wot3 = (current.max - current.progress + partial) / (current.max * 0.1F);
-                drawBurst(graphics, mc, rand, wot3, 64.0F);
-            }
-            if (current.progress < current.max * 0.1F) {
-                float wot3 = 1.0F - (current.progress - partial) / (current.max * 0.1F);
-                drawBurst(graphics, mc, rand, wot3, 32.0F);
-            }
-
-            graphics.pose().popMatrix();
-
-            if (mc.level != null && mc.level.getRandom().nextInt((int) (1.0F + (float) current.progress / current.max * 10.0F)) == 0) {
-                spawnSpark(mc, xx, yy);
-            }
+        if (bookFade > 0.0F) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, BOOK, width - BOOK_INSET, height - BOOK_INSET, 0.0F, 0.0F, ICON, ICON, ICON, ICON, ARGB.white(bookFade / BOOK_FADE_FULL));
         }
-        renderSparks(graphics, partial);
+        for (Entry entry : ENTRIES) {
+            drawEntry(graphics, mc, entry, width, height, partial);
+        }
+        for (Spark spark : SPARKS) {
+            spark.draw(graphics, partial);
+        }
     }
 
-    private static void spawnSpark(Minecraft mc, float x, float y) {
-        if (SPARKS.size() >= MAX_SPARKS) {
+    private static void drawEntry(GuiGraphicsExtractor graphics, Minecraft mc, Entry entry, int width, int height, float partial) {
+        float life = entry.life;
+        float remaining = Math.max(0.0F, entry.remaining - partial);
+        float size;
+        float across;
+        float down;
+        if (remaining >= FLIGHT_SHARE * life) {
+            float pop = (life - remaining) / (POP_SHARE * life);
+            float pulse = POP_BASE - POP_SWING * Mth.cos(Mth.TWO_PI * pop);
+            size = ICON * (pop < 0.5F ? 2.0F * pop * pulse : pulse);
+            across = 1.0F;
+            down = 1.0F;
+        } else {
+            float flight = remaining / (FLIGHT_SHARE * life);
+            size = ICON * flight;
+            down = 0.5F - 0.5F * Mth.cos(Mth.PI * flight);
+            across = Mth.sin(down * Mth.HALF_PI);
+        }
+        float x = width - CORNER_OFFSET + entry.endX - (width / WIDTH_DIVISOR + entry.startX) * across;
+        float y = height - CORNER_OFFSET + entry.endY - (height / HEIGHT_DIVISOR + entry.startY) * down;
+        if (remaining > (1.0F - BURST_SHARE) * life) {
+            float wave = (life - remaining) / (BURST_SHARE * life);
+            drawBurst(graphics, x, y, APPEAR_BURST * (1.0F - Mth.cos(Mth.TWO_PI * wave)), entry.tilt + entry.appearSpin, entry.appearFrame, entry.appearColor);
+        } else if (remaining < BURST_SHARE * life) {
+            float wave = 1.0F - remaining / (BURST_SHARE * life);
+            drawBurst(graphics, x, y, ARRIVAL_BURST * (1.0F - Mth.cos(Mth.TWO_PI * wave)), entry.tilt + entry.arrivalSpin, entry.arrivalFrame, entry.arrivalColor);
+        }
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(x, y);
+        graphics.pose().rotate((float) Math.toRadians(entry.tilt));
+        graphics.pose().scale(size / ICON, size / ICON);
+        if (entry.aspect != null) {
+            drawIcon(graphics, entry.aspect.value().texture(), ARGB.opaque(entry.aspect.value().color()));
+        } else {
+            drawIcon(graphics, entry.type == KnowledgeType.THEORY ? THEORY : OBSERVATION, ARGB.white(1.0F));
+            Identifier categoryIcon = categoryIcon(mc, entry.category);
+            if (categoryIcon != null) {
+                graphics.pose().scale(CATEGORY_SCALE, CATEGORY_SCALE);
+                drawIcon(graphics, categoryIcon, ARGB.white(1.0F));
+            }
+        }
+        graphics.pose().popMatrix();
+        if (SPARKS.size() < MAX_SPARKS) {
+            RandomSource random = mc.level.getRandom();
+            if (random.nextInt(Mth.floor(1.0F + SPARK_CHANCE_RANGE * remaining / life)) == 0) {
+                SPARKS.add(new Spark(x, y, random));
+            }
+        }
+    }
+
+    private static void drawIcon(GuiGraphicsExtractor graphics, Identifier texture, int color) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, (int) -HALF_ICON, (int) -HALF_ICON, 0.0F, 0.0F, ICON, ICON, ICON, ICON, color);
+    }
+
+    private static void drawBurst(GuiGraphicsExtractor graphics, float x, float y, float size, float degrees, int frame, int color) {
+        drawFrame(graphics, TTRenderPipelines.GUI_TEXTURED_ADDITIVE, ParticleTextures.STAR_GLINT, x, y, size, degrees, frame, color);
+    }
+
+    private static void drawFrame(GuiGraphicsExtractor graphics, RenderPipeline pipeline, Identifier strip, float x, float y, float size, float degrees, int frame, int color) {
+        if (size <= 0.0F) {
             return;
         }
-        RandomSource rand = mc.level.getRandom();
-        SPARKS.add(new GuiSpark(x + (float) rand.nextGaussian() * 5.0F, y + (float) rand.nextGaussian() * 5.0F, (float) rand.nextGaussian(), (float) rand.nextGaussian(), 32 + rand.nextInt(8),
-                rand.nextInt(5), rand.nextFloat() < STAR_SPARK_CHANCE ? ParticleTextures.STAR_GLINT : ParticleTextures.ORB_GLOW, Mth.nextInt(rand, 189, 255) / 255.0F,
-                Mth.nextInt(rand, 64, 255) / 255.0F));
-    }
-
-    private static void renderSparks(GuiGraphicsExtractor graphics, float partial) {
-        for (GuiSpark spark : SPARKS) {
-            if (spark.delay > 0) {
-                continue;
-            }
-            float life = (spark.age + partial) / spark.maxAge;
-            float alpha = sampleKeys(SPARK_ALPHA_KEYS, life);
-            if (alpha <= 0.0F) {
-                continue;
-            }
-            float size = 0.2F * SPARK_SCALE * (1.0F + life);
-            int frame = spark.age % BURST_FRAME_SPREAD;
-            int tint = ARGB.colorFromFloat(alpha, 1.0F, spark.g, spark.b);
-            float x = spark.xo + (spark.x - spark.xo) * partial;
-            float y = spark.yo + (spark.y - spark.yo) * partial;
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(x - size / 2.0F, y - size / 2.0F);
-            graphics.pose().scale(size / GLOW_FRAME_SIZE, size / GLOW_FRAME_SIZE);
-            graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, spark.texture, 0, 0, frame * GLOW_FRAME_SIZE, 0.0F, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE,
-                    GLOW_STRIP_WIDTH, GLOW_FRAME_SIZE, tint);
-            graphics.pose().popMatrix();
-        }
-    }
-
-    private static float sampleKeys(float[] keys, float life) {
-        float position = Mth.clamp(life, 0.0F, 1.0F) * (keys.length - 1);
-        int index = Math.min((int) position, keys.length - 2);
-        float t = position - index;
-        return keys[index] + (keys[index + 1] - keys[index]) * t;
-    }
-
-    private static void drawBurst(GuiGraphicsExtractor graphics, Minecraft mc, Random rand, float phase, float baseSize) {
-        float m = (float) Math.sin(phase * Math.PI * 2.0 - (Math.PI / 2)) * 0.25F + 0.25F;
-        float size = baseSize * m;
-        graphics.pose().rotate((float) Math.toRadians(-rand.nextInt(360)));
-        float g = Mth.nextInt(mc.level.getRandom(), 189, 255) / 255.0F;
-        float b = Mth.nextInt(mc.level.getRandom(), 64, 255) / 255.0F;
-        int tint = ARGB.colorFromFloat(ICON_ALPHA / 255.0F, 1.0F, g, b);
-        int frame = rand.nextInt(BURST_FRAME_SPREAD);
         graphics.pose().pushMatrix();
-        graphics.pose().translate(-size / 2.0F, -size / 2.0F);
-        graphics.pose().scale(size / GLOW_FRAME_SIZE, size / GLOW_FRAME_SIZE);
-        graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, ParticleTextures.STAR_GLINT, 0, 0, frame * GLOW_FRAME_SIZE, 0.0F, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE, GLOW_FRAME_SIZE,
-                GLOW_STRIP_WIDTH, GLOW_FRAME_SIZE, tint);
-        graphics.pose().popMatrix();
-    }
-
-    private static void drawCentered(GuiGraphicsExtractor graphics, Identifier texture, float size, int tint, boolean additive) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(-size / 2.0F, -size / 2.0F);
-        graphics.pose().scale(size / ICON_TEX_SIZE, size / ICON_TEX_SIZE);
-        graphics.blit(additive ? TTRenderPipelines.GUI_TEXTURED_ADDITIVE : RenderPipelines.GUI_TEXTURED, texture, 0, 0, 0.0F, 0.0F, ICON_TEX_SIZE, ICON_TEX_SIZE, ICON_TEX_SIZE, ICON_TEX_SIZE,
-                ICON_TEX_SIZE, ICON_TEX_SIZE, tint);
+        graphics.pose().translate(x, y);
+        graphics.pose().rotate((float) Math.toRadians(degrees));
+        graphics.pose().scale(size / ICON, size / ICON);
+        graphics.blit(pipeline, strip, (int) -HALF_ICON, (int) -HALF_ICON, frame * ICON, 0.0F, ICON, ICON, ICON, ICON, STRIP_WIDTH, ICON, color);
         graphics.pose().popMatrix();
     }
 
@@ -199,102 +209,107 @@ public final class KnowledgeGainOverlay implements GuiLayer {
         return mc.level.registryAccess().lookupOrThrow(IResearchCategory.REGISTRY_KEY).get(category).map(holder -> holder.value().icon()).orElse(null);
     }
 
-    public static void addAspectTracker(Holder<IAspect> aspect, int duration, long seed) {
-        TRACKERS.add(new Tracker(KnowledgeType.OBSERVATION, null, aspect, duration, seed));
+    private static int roll(long seed, int salt, int bound) {
+        return (int) Math.floorMod(HashCommon.mix(seed + salt), (long) bound);
     }
 
-    public static void addTracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category, int duration, long seed) {
-        int total = type == KnowledgeType.THEORY ? duration + THEORY_EXTRA_TICKS : duration;
-        TRACKERS.add(new Tracker(type, category, total, seed));
+    private static int glintColor(long seed, int salt) {
+        return ARGB.color(CHANNEL_MAX, CHANNEL_MAX, GREEN_MIN + roll(seed, salt, CHANNEL_MAX - GREEN_MIN + 1), BLUE_MIN + roll(seed, salt + 1, CHANNEL_MAX - BLUE_MIN + 1));
     }
 
-    @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
-        if (TRACKERS.isEmpty()) {
-            if (bookFade > 0.0F) {
-                bookFade--;
-            }
-        } else {
-            bookFade = Math.min(BOOK_FADE_MAX, bookFade + BOOK_FADE_GAIN);
-            for (Tracker tracker : TRACKERS) {
-                tracker.progress--;
-            }
-            TRACKERS.removeIf(tracker -> tracker.progress <= 0);
-        }
-        tickSparks();
-    }
+    private static final class Entry {
+        private final @Nullable KnowledgeType type;
+        private final @Nullable ResourceKey<IResearchCategory> category;
+        private final @Nullable Holder<IAspect> aspect;
+        private final int life;
+        private final int tilt;
+        private final int startX;
+        private final int startY;
+        private final int endX;
+        private final int endY;
+        private final int appearFrame;
+        private final int appearSpin;
+        private final int appearColor;
+        private final int arrivalFrame;
+        private final int arrivalSpin;
+        private final int arrivalColor;
+        private int remaining;
 
-    private static void tickSparks() {
-        Minecraft mc = Minecraft.getInstance();
-        for (GuiSpark spark : SPARKS) {
-            if (spark.delay > 0) {
-                spark.delay--;
-                continue;
-            }
-            spark.age++;
-            spark.xo = spark.x;
-            spark.yo = spark.y;
-            spark.x += spark.vx;
-            spark.y += spark.vy;
-            spark.vx *= 0.9F;
-            spark.vy *= 0.9F;
-            spark.vy += 0.04F;
-            if (mc.level != null) {
-                spark.vx += (float) mc.level.getRandom().nextGaussian() * 0.025F;
-                spark.vy += (float) mc.level.getRandom().nextGaussian() * 0.025F;
-            }
-        }
-        SPARKS.removeIf(spark -> spark.age >= spark.maxAge);
-    }
-
-    private static final class GuiSpark {
-        float x;
-        float y;
-        float xo;
-        float yo;
-        float vx;
-        float vy;
-        int age;
-        final int maxAge;
-        int delay;
-        final Identifier texture;
-        final float g;
-        final float b;
-
-        GuiSpark(float x, float y, float vx, float vy, int maxAge, int delay, Identifier texture, float g, float b) {
-            this.x = x;
-            this.y = y;
-            this.xo = x;
-            this.yo = y;
-            this.vx = vx;
-            this.vy = vy;
-            this.maxAge = maxAge;
-            this.delay = delay;
-            this.texture = texture;
-            this.g = g;
-            this.b = b;
-        }
-    }
-
-    private static final class Tracker {
-        final KnowledgeType type;
-        final @Nullable ResourceKey<IResearchCategory> category;
-        final @Nullable Holder<IAspect> aspect;
-        int progress;
-        final int max;
-        final long seed;
-
-        Tracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category, int duration, long seed) {
-            this(type, category, null, duration, seed);
-        }
-
-        Tracker(KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category, @Nullable Holder<IAspect> aspect, int duration, long seed) {
+        private Entry(@Nullable KnowledgeType type, @Nullable ResourceKey<IResearchCategory> category, @Nullable Holder<IAspect> aspect, int life, long seed) {
             this.type = type;
             this.category = category;
             this.aspect = aspect;
-            this.progress = duration;
-            this.max = duration;
-            this.seed = seed;
+            this.life = life;
+            this.remaining = life;
+            this.tilt = TILT_CENTRE - roll(seed, 0, TILT_CHOICES);
+            this.startX = roll(seed, 1, START_SPREAD);
+            this.startY = roll(seed, 2, START_SPREAD);
+            this.endX = roll(seed, 3, END_SPREAD);
+            this.endY = roll(seed, 4, END_SPREAD);
+            this.appearFrame = roll(seed, 5, ParticleTextures.STAR_GLINT_FRAMES);
+            this.appearSpin = roll(seed, 6, FULL_TURN_DEGREES);
+            this.appearColor = glintColor(seed, 7);
+            this.arrivalFrame = roll(seed, 9, ParticleTextures.STAR_GLINT_FRAMES);
+            this.arrivalSpin = roll(seed, 10, FULL_TURN_DEGREES);
+            this.arrivalColor = glintColor(seed, 11);
+        }
+
+        private boolean age() {
+            return --remaining <= 0;
+        }
+    }
+
+    private static final class Spark {
+        private final boolean star;
+        private final int greenBlue;
+        private final int life;
+        private int delay;
+        private int age;
+        private double x;
+        private double y;
+        private double lastX;
+        private double lastY;
+        private double motionX;
+        private double motionY;
+
+        private Spark(double centreX, double centreY, RandomSource random) {
+            this.x = centreX + random.nextGaussian() * SPARK_SCATTER;
+            this.y = centreY + random.nextGaussian() * SPARK_SCATTER;
+            this.lastX = x;
+            this.lastY = y;
+            this.motionX = random.nextGaussian() * SPARK_KICK;
+            this.motionY = random.nextGaussian() * SPARK_KICK;
+            this.delay = random.nextInt(SPARK_DELAY_CHOICES);
+            this.life = SPARK_LIFE_MIN + random.nextInt(SPARK_LIFE_CHOICES);
+            this.star = random.nextFloat() < STAR_SPARK_CHANCE;
+            this.greenBlue = ARGB.color(0, 0, GREEN_MIN + random.nextInt(CHANNEL_MAX - GREEN_MIN + 1), BLUE_MIN + random.nextInt(CHANNEL_MAX - BLUE_MIN + 1));
+        }
+
+        private boolean tick(RandomSource random) {
+            if (delay > 0) {
+                delay--;
+                return false;
+            }
+            lastX = x;
+            lastY = y;
+            x += motionX;
+            y += motionY;
+            motionX = motionX * SPARK_DRAG + random.nextGaussian() * SPARK_WOBBLE;
+            motionY = motionY * SPARK_DRAG + SPARK_FALL + random.nextGaussian() * SPARK_WOBBLE;
+            return ++age >= life;
+        }
+
+        private void draw(GuiGraphicsExtractor graphics, float partial) {
+            if (delay > 0) {
+                return;
+            }
+            float progress = (age + partial) / life;
+            float alpha = progress < SPARK_FADE_SHARE ? progress / SPARK_FADE_SHARE : progress > 1.0F - SPARK_FADE_SHARE ? (1.0F - progress) / SPARK_FADE_SHARE : 1.0F;
+            int color = ARGB.color(Mth.clamp((int) (alpha * CHANNEL_MAX), 0, CHANNEL_MAX), CHANNEL_MAX, ARGB.green(greenBlue), ARGB.blue(greenBlue));
+            float size = Mth.lerp(Mth.clamp(progress, 0.0F, 1.0F), SPARK_SIZE_START, SPARK_SIZE_END);
+            int frames = star ? ParticleTextures.STAR_GLINT_FRAMES : ParticleTextures.ORB_GLOW_FRAMES;
+            drawFrame(graphics, TTRenderPipelines.GUI_TEXTURED_ADDITIVE, star ? ParticleTextures.STAR_GLINT : ParticleTextures.ORB_GLOW, (float) Mth.lerp(partial, lastX, x),
+                    (float) Mth.lerp(partial, lastY, y), size, 0.0F, age % frames, color);
         }
     }
 }

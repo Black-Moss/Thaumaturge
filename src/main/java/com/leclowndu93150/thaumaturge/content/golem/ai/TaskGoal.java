@@ -58,7 +58,7 @@ public abstract class TaskGoal extends Goal {
         }
         cooldown = CLAIM_COOLDOWN;
         Task current = golem.getTask();
-        if (current != null && !current.isSuspended() || !(golem.level() instanceof ServerLevel level)) {
+        if (current != null && !current.isEnded() || !(golem.level() instanceof ServerLevel level)) {
             return false;
         }
         if (!claim(level)) {
@@ -92,7 +92,7 @@ public abstract class TaskGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         Task task = golem.getTask();
-        return steps >= 0 && steps <= GIVE_UP_AFTER && task != null && !task.isSuspended();
+        return steps >= 0 && steps <= GIVE_UP_AFTER && task != null && !task.isEnded();
     }
 
     @Override
@@ -147,12 +147,12 @@ public abstract class TaskGoal extends Goal {
         if (task == null) {
             return;
         }
-        if (!task.isCompleted() && task.isReserved() && ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
+        if (!task.isCompleted() && task.isClaimed() && ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
             golem.level().broadcastEntityEvent(golem, GIVE_UP_EMOTE);
         }
-        if (task.isCompleted() && !task.isSuspended()) {
-            task.suspend();
+        if (task.isCompleted() && !task.isEnded()) {
+            task.end();
         }
-        task.setReserved(false);
+        task.release();
     }
 }

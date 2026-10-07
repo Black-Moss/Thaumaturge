@@ -11,31 +11,30 @@ import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A unit of golem work, posted by a seal or by the provisioning system with {@link GolemHelper#addGolemTask}.
+ * One unit of golem work on a level's task board: a block or an entity that a golem walks to so the posting seal can act on it.
  *
- * <p>A task lives on its level's task board until it is suspended or its lifespan runs out. The board sweeps once per second and
- * takes one point of lifespan per sweep. A golem claims a task by reserving it, walks to its target and asks the posting seal to
- * complete it; a seal that needs several steps answers "not done" and the golem retries.
- *
- * <p>Tasks are server-side, live objects. They are not saved: the board starts empty after a restart and seals post fresh work.
+ * <p>
+ * Tasks are server side only and are never saved. A task lives on the board until it ends or its life counter runs out; the board removes it at its next once-a-second sweep and tells
+ * the posting seal.
  *
  * @since 1.0.0
  */
 public final class Task {
-    private static final short DEFAULT_LIFESPAN = 300;
-    private static final short RESERVATION_GRACE = 120;
+    private static final int DEFAULT_LIFE = 300;
+    private static final int CLAIM_LIFE_BONUS = 120;
+    private static final int ATTEMPT_LIFE_BONUS = 1;
 
     private final @Nullable SealPos origin;
     private final TaskTarget target;
     private int id;
-    private @Nullable UUID claimant;
+    private @Nullable UUID assignee;
     private byte priority;
-    private short lifespan = DEFAULT_LIFESPAN;
-    private int data;
-    private boolean reserved;
-    private boolean suspended;
-    private boolean completed;
-    private @Nullable ProvisionRequest linkedProvision;
+    private int life = DEFAULT_LIFE;
+    private int sealData;
+    private boolean claimed;
+    private boolean ended;
+    private boolean finished;
+    private @Nullable ProvisionRequest provision;
 
     private Task(@Nullable SealPos origin, TaskTarget target) {
         this.origin = origin;
@@ -43,223 +42,354 @@ public final class Task {
     }
 
     /**
-     * @param origin the seal posting the task, or null for free-standing work
-     * @param pos    the block to work on
-     * @return a new block task with the default lifespan of 300 sweeps
+     * Creates a task aimed at a block.
+     *
+     * @param origin the posting seal, or {@code null} for free-standing work that any golem may take and that finishes as soon as a golem reaches it
+     * @param pos    the block to work
+     * @return a new, unposted task
+     * @since 1.0.0
      */
     public static Task atBlock(@Nullable SealPos origin, BlockPos pos) {
-        return new Task(origin, new BlockTarget(pos));
+        return new Task(origin, new BlockTarget(pos.immutable()));
     }
 
     /**
-     * @param origin the seal posting the task, or null for free-standing work
-     * @param entity the entity to work on
-     * @return a new entity task with the default lifespan of 300 sweeps
+     * Creates a task aimed at an entity. Its position follows the entity.
+     *
+     * @param origin the posting seal, or {@code null} for free-standing work
+     * @param entity the entity to work
+     * @return a new, unposted task
+     * @since 1.0.0
      */
     public static Task onEntity(@Nullable SealPos origin, Entity entity) {
         return new Task(origin, new EntityTarget(entity));
     }
 
     /**
-     * @return the seal that posted the task, or null
+     * @return the posting seal's position, or {@code null} for free-standing work
+     * @since 1.0.0
      */
     public @Nullable SealPos origin() {
         return origin;
     }
 
     /**
-     * @return the target
+     * @return what the task points a golem at
+     * @since 1.0.0
      */
     public TaskTarget target() {
         return target;
     }
 
     /**
-     * @return the target block; for an entity task, the block the entity stands in now
+     * @return the target block, or the block the target entity currently stands in
+     * @since 1.0.0
      */
     public BlockPos pos() {
         return target.pos();
     }
 
     /**
-     * @return the target entity, or null for a block task
+     * @return the target entity, or {@code null} for a block task
+     * @since 1.0.0
      */
     public @Nullable Entity entity() {
-        return target instanceof EntityTarget entityTarget ? entityTarget.entity() : null;
+        return target instanceof EntityTarget onEntity ? onEntity.entity() : null;
     }
 
     /**
      * @return whether the task targets an entity
+     * @since 1.0.0
      */
     public boolean isEntityTask() {
         return target instanceof EntityTarget;
     }
 
     /**
-     * @return the id the task board assigned, or 0 before the task is posted
+     * @return the identifier the board gave the task when it was posted; two tasks are equal exactly when their identifiers are
+     * @since 1.0.0
      */
     public int id() {
         return id;
     }
 
     /**
-     * Assigns the board id. Called once by the task board when the task is posted.
+     * Sets the identifier. Called by the board when the task is posted.
      *
-     * @param id the id
+     * @param id the identifier, unique within the board
+     * @since 1.0.0
      */
     public void assignId(int id) {
         this.id = id;
     }
 
     /**
-     * @return the golem the task is reserved for, or null when any golem may take it
+     * @return the only golem allowed to claim the task, or {@code null} when any golem may
+     * @since 1.1.0
      */
+    public @Nullable UUID assignedGolem() {
+        return assignee;
+    }
+
+    /**
+     * Restricts the task to one golem.
+     *
+     * @param golem the golem's UUID, or {@code null} to let any golem claim it
+     * @since 1.1.0
+     */
+    public void assignTo(@Nullable UUID golem) {
+        this.assignee = golem;
+    }
+
+    /**
+     * @return the only golem allowed to claim the task, or {@code null} when any golem may
+     * @since 1.0.0
+     * @deprecated use {@link #assignedGolem()}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public @Nullable UUID claimant() {
-        return claimant;
+        return assignedGolem();
     }
 
     /**
-     * @param claimant the only golem allowed to take the task, or null for any golem
+     * @param claimant the golem's UUID, or {@code null} to let any golem claim it
+     * @since 1.0.0
+     * @deprecated use {@link #assignTo(UUID)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void setClaimant(@Nullable UUID claimant) {
-        this.claimant = claimant;
+        assignTo(claimant);
     }
 
     /**
-     * @return the priority; each point takes 256 off the squared distance golems use to rank work
+     * @return the priority; each point is worth 256 square blocks of distance when golems rank open tasks
+     * @since 1.0.0
      */
     public byte priority() {
         return priority;
     }
 
     /**
-     * @param priority the priority, usually the posting seal's
+     * @param priority the new priority, normally copied from the posting seal (-5 to 5)
+     * @since 1.0.0
      */
     public void setPriority(byte priority) {
         this.priority = priority;
     }
 
     /**
-     * @return the remaining lifespan in board sweeps
+     * @return the remaining life in board sweeps (one per second); the task is removed at the sweep after this reaches 0
+     * @since 1.1.0
      */
+    public int life() {
+        return life;
+    }
+
+    /**
+     * @param life the remaining life in board sweeps; a new task starts with 300
+     * @since 1.1.0
+     */
+    public void setLife(int life) {
+        this.life = life;
+    }
+
+    /**
+     * @return the remaining life in board sweeps, capped at {@link Short#MAX_VALUE}
+     * @since 1.0.0
+     * @deprecated use {@link #life()}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public short lifespan() {
-        return lifespan;
+        return (short) Math.min(Short.MAX_VALUE, life);
     }
 
     /**
-     * @param lifespan the remaining lifespan in board sweeps
+     * @param lifespan the remaining life in board sweeps
+     * @since 1.0.0
+     * @deprecated use {@link #setLife(int)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void setLifespan(short lifespan) {
-        this.lifespan = lifespan;
+        setLife(lifespan);
     }
 
     /**
-     * @return free-form data owned by the posting seal
+     * @return a number owned by the posting seal for its own per-task state
+     * @since 1.0.0
      */
     public int data() {
-        return data;
+        return sealData;
     }
 
     /**
-     * @param data free-form data owned by the posting seal
+     * @param data the posting seal's per-task state
+     * @since 1.0.0
      */
     public void setData(int data) {
-        this.data = data;
+        this.sealData = data;
     }
 
     /**
      * @return whether a golem has claimed the task
+     * @since 1.1.0
      */
-    public boolean isReserved() {
-        return reserved;
+    public boolean isClaimed() {
+        return claimed;
     }
 
     /**
-     * Claims or releases the task. Every call extends the lifespan by 120 sweeps so claimed work does not expire under a golem.
+     * Marks the task as claimed by a golem and adds 120 sweeps of life, so work a golem is doing does not expire under it.
      *
-     * @param reserved whether a golem holds the task
+     * @since 1.1.0
      */
+    public void claim() {
+        setClaimed(true);
+    }
+
+    /**
+     * Releases the golem's claim so the task is open again, adding 120 sweeps of life.
+     *
+     * @since 1.1.0
+     */
+    public void release() {
+        setClaimed(false);
+    }
+
+    /**
+     * @return whether a golem has claimed the task
+     * @since 1.0.0
+     * @deprecated use {@link #isClaimed()}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    public boolean isReserved() {
+        return isClaimed();
+    }
+
+    /**
+     * @param reserved {@code true} to claim, {@code false} to release
+     * @since 1.0.0
+     * @deprecated use {@link #claim()} or {@link #release()}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void setReserved(boolean reserved) {
-        this.reserved = reserved;
-        lifespan += RESERVATION_GRACE;
+        setClaimed(reserved);
+    }
+
+    private void setClaimed(boolean claimed) {
+        this.claimed = claimed;
+        extendLife(CLAIM_LIFE_BONUS);
     }
 
     /**
-     * @return whether the task is finished or abandoned; the next sweep removes it
+     * @return whether the task has ended (finished or cancelled); an ended task is removed at the next sweep
+     * @since 1.1.0
      */
+    public boolean isEnded() {
+        return ended;
+    }
+
+    /**
+     * Ends the task and drops its link to any provisioning request. Ending is one-way.
+     *
+     * @since 1.1.0
+     */
+    public void end() {
+        this.ended = true;
+        this.provision = null;
+    }
+
+    /**
+     * @return whether the task has ended
+     * @since 1.0.0
+     * @deprecated use {@link #isEnded()}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public boolean isSuspended() {
-        return suspended;
+        return isEnded();
     }
 
     /**
-     * Ends the task. Unlinks any provision request; the next sweep removes the task and notifies the posting seal.
+     * Ends the task.
+     *
+     * @since 1.0.0
+     * @deprecated use {@link #end()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void suspend() {
-        linkProvision(null);
-        suspended = true;
+        end();
     }
 
     /**
-     * @return whether the last completion attempt finished the work
+     * @return whether the most recent completion attempt finished the work
+     * @since 1.0.0
      */
     public boolean isCompleted() {
-        return completed;
+        return finished;
     }
 
     /**
-     * Records the outcome of a completion attempt and adds one sweep of lifespan.
+     * Records a completion attempt, or a tick spent walking to the task when {@code completed} is {@code false}. Adds one sweep of life.
      *
-     * @param finished whether the attempt finished the work
+     * @param completed whether the posting seal finished the work
+     * @since 1.0.0
      */
-    public void recordAttempt(boolean finished) {
-        completed = finished;
-        lifespan++;
+    public void recordAttempt(boolean completed) {
+        this.finished = completed;
+        extendLife(ATTEMPT_LIFE_BONUS);
     }
 
     /**
-     * @return the provision request this task serves, or null
+     * @return the provisioning request this task is serving, or {@code null}
+     * @since 1.0.0
      */
     public @Nullable ProvisionRequest linkedProvision() {
-        return linkedProvision;
+        return provision;
     }
 
     /**
-     * Links the task to a provision request and extends the request's timeout.
+     * Sets the task's side of a request link only.
      *
-     * @param request the request, or null to unlink
+     * @param request the provisioning request this task serves, or {@code null} to unlink
+     * @since 1.0.0
+     * @deprecated use {@link ProvisionRequest#link(Task)} and {@link ProvisionRequest#unlink()}, which keep both sides of the link in step
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void linkProvision(@Nullable ProvisionRequest request) {
-        linkedProvision = request;
-        if (request != null) {
-            request.extendTimeout();
-        }
+        this.provision = request;
     }
 
     /**
-     * Asks the posting seal whether a golem may do this task. A golem with a colour may only serve seals of the same colour or with
-     * no colour. Tasks without a living seal can be done by anyone.
+     * Checks the posting seal's colour and its own rules for this golem. Lock and trait rules are checked separately by the golem before this. A task whose seal no longer exists passes.
      *
      * @param golem the golem asking
-     * @return whether the golem may take the task now
+     * @return whether the golem may take the task
+     * @since 1.0.0
      */
     public boolean canBePerformedBy(IGolemAPI golem) {
-        ISealEntity seal = GolemHelper.getSealEntity(golem.level(), origin);
+        if (origin == null) {
+            return true;
+        }
+        ISealEntity seal = GolemHelper.getSealEntity(golem.asEntity().level(), origin);
         if (seal == null) {
             return true;
         }
-        if (golem.color() > 0 && seal.color() > 0 && golem.color() != seal.color()) {
+        if (golem.color() != 0 && seal.color() != 0 && golem.color() != seal.color()) {
             return false;
         }
         return seal.behavior().canPerform(seal, golem, this);
     }
 
+    private void extendLife(int amount) {
+        life = (int) Math.min(Integer.MAX_VALUE, (long) life + amount);
+    }
+
     @Override
-    public boolean equals(Object other) {
-        return other instanceof Task task && task.id == id;
+    public boolean equals(Object obj) {
+        return obj instanceof Task other && other.id == id;
     }
 
     @Override
     public int hashCode() {
-        return id;
+        return Integer.hashCode(id);
     }
 }

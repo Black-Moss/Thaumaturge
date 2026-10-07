@@ -15,7 +15,7 @@ public final class TaskHandoff {
 
     public static void assign(EntityThaumaturgeGolem golem, Task task) {
         golem.setTask(task);
-        task.setReserved(true);
+        task.claim();
         if (ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
             golem.level().broadcastEntityEvent(golem, CLAIM_EMOTE);
         }

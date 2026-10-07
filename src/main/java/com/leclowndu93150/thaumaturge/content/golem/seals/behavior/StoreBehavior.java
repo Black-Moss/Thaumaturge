@@ -36,7 +36,7 @@ public final class StoreBehavior implements ISealBehavior {
             return;
         }
         Task pending = TaskBoard.of(level).find(pendingTask);
-        if (pending == null || pending.isReserved() || pending.isSuspended() || pending.isCompleted()) {
+        if (pending == null || pending.isClaimed() || pending.isEnded() || pending.isCompleted()) {
             offerWork(level, seal);
         }
     }
@@ -75,7 +75,7 @@ public final class StoreBehavior implements ISealBehavior {
                 golem.swingArm();
             }
         }
-        task.suspend();
+        task.end();
         return true;
     }
 

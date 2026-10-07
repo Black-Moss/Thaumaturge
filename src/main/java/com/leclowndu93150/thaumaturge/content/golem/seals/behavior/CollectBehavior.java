@@ -66,7 +66,7 @@ public final class CollectBehavior implements ISealBehavior {
             HandlingSound.play(golem, HandlingSound.HIGH);
             golem.swingArm();
         }
-        task.suspend();
+        task.end();
         claimedItems.forget(task);
         TaskHandoff.continueWith(level, golem, claimedItems::has);
         return true;
@@ -84,7 +84,7 @@ public final class CollectBehavior implements ISealBehavior {
             return false;
         }
         if (!item.isAlive()) {
-            task.suspend();
+            task.end();
             return false;
         }
         return golem.hands().canTake(item.getItem(), true);

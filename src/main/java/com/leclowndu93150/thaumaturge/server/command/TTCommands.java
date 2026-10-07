@@ -125,9 +125,10 @@ public final class TTCommands {
 
     @SubscribeEvent
     public static void onRegister(RegisterCommandsEvent event) {
-        LiteralArgumentBuilder<CommandSourceStack> tc = TTCommandRoot.root().then(Commands.literal("table").executes(TTCommands::giveResearchTable))
-                .then(Commands.literal("book").executes(TTCommands::giveThaumonomicon))
-                .then(Commands.literal("particle").then(Commands.literal("list").executes(TTCommands::listParticles))
+        LiteralArgumentBuilder<CommandSourceStack> tc = TTCommandRoot.root()
+                .then(Commands.literal("table").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(TTCommands::giveResearchTable))
+                .then(Commands.literal("book").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(TTCommands::giveThaumonomicon))
+                .then(Commands.literal("particle").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(Commands.literal("list").executes(TTCommands::listParticles))
                         .then(Commands.argument("name", StringArgumentType.word()).suggests(PARTICLE_NAMES).executes(TTCommands::runParticle)))
                 .then(Commands.literal("flux_goo").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("set").then(Commands.argument("level", IntegerArgumentType.integer(1, 8)).executes(TTCommands::setFluxGoo))))
@@ -165,7 +166,8 @@ public final class TTCommands {
                         .then(Commands.argument("from", Vec3Argument.vec3()).then(Commands.argument("to", Vec3Argument.vec3()).executes(TTCommands::traceStreamPath))))
                 .then(Commands.literal("rift").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> spawnRift(ctx, DEFAULT_RIFT_SIZE))
                         .then(Commands.argument("size", IntegerArgumentType.integer(1, COMMAND_MAX_RIFT_SIZE)).executes(ctx -> spawnRift(ctx, IntegerArgumentType.getInteger(ctx, "size")))))
-                .then(Commands.literal("crystal").then(Commands.argument("aspect", StringArgumentType.word()).executes(TTCommands::giveCrystal)))
+                .then(Commands.literal("crystal").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.argument("aspect", StringArgumentType.word()).executes(TTCommands::giveCrystal)))
                 .then(Commands.literal("node").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> spawnNode(ctx, "random", "random", ""))
                         .then(Commands.argument("type", StringArgumentType.word()).suggests(NODE_TYPES).executes(ctx -> spawnNode(ctx, StringArgumentType.getString(ctx, "type"), "none", ""))
                                 .then(Commands.argument("modifier", StringArgumentType.word()).suggests(NODE_MODIFIERS)

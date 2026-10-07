@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.compat.jade;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
+import com.leclowndu93150.thaumaturge.registry.TTGolemTraits;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import snownee.jade.api.EntityAccessor;
@@ -19,10 +20,10 @@ public enum GolemDataProvider implements IServerDataProvider<EntityAccessor> {
 
     @Override
     public void appendServerData(CompoundTag tag, EntityAccessor accessor) {
-        if (accessor.getEntity() instanceof EntityThaumaturgeGolem golem) {
+        if (accessor.getEntity() instanceof EntityThaumaturgeGolem golem && golem.properties().hasTrait(TTGolemTraits.SMART.get())) {
             tag.putInt("RankXp", golem.getRankXp());
             int rank = golem.properties().rank();
-            tag.putInt("RankXpRequired", (rank + 1) * (rank + 1) * EntityThaumaturgeGolem.XP_PER_RANK_UNIT);
+            tag.putInt("RankXpRequired", EntityThaumaturgeGolem.xpForNextRank(rank));
         }
     }
 }

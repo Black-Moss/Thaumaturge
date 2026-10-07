@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.compat.jade;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
+import com.leclowndu93150.thaumaturge.registry.TTGolemTraits;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import snownee.jade.api.EntityAccessor;
@@ -28,7 +29,7 @@ public enum GolemComponentProvider implements IEntityComponentProvider {
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
         if (!JadeConfig.shouldShow(config, JadeConfig.GOLEMS, accessor))
             return;
-        if (!(accessor.getEntity() instanceof EntityThaumaturgeGolem golem)) {
+        if (!(accessor.getEntity() instanceof EntityThaumaturgeGolem golem) || !golem.properties().hasTrait(TTGolemTraits.SMART.get())) {
             return;
         }
         int rank = golem.properties().rank();

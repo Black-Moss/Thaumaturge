@@ -69,7 +69,7 @@ public final class BreakBehavior extends CellWorkBehavior {
             golem.addRankXp(1);
             release(task);
         }
-        task.suspend();
+        task.end();
         return true;
     }
 

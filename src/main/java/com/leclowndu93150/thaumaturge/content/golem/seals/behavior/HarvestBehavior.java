@@ -44,7 +44,7 @@ public final class HarvestBehavior implements ISealBehavior {
     private static final int SCAN_PERIOD = 5;
     private static final int TIDY_PERIOD = 100;
     private static final int BREAK_EFFECT = 2001;
-    private static final short REPLANT_LIFESPAN = 300;
+    private static final int REPLANT_LIFESPAN = 300;
 
     private final SealClock clock = new SealClock(STAGGER);
     private final Map<Long, ReplantSite> sites = new HashMap<>();
@@ -82,7 +82,7 @@ public final class HarvestBehavior implements ISealBehavior {
             }
             Task replant = TaskBoard.of(level).find(site.taskId());
             if (replant != null) {
-                replant.suspend();
+                replant.end();
             }
             return true;
         });
@@ -102,7 +102,7 @@ public final class HarvestBehavior implements ISealBehavior {
         } else {
             replant(level, golem, task);
         }
-        task.suspend();
+        task.end();
         return true;
     }
 
@@ -132,7 +132,7 @@ public final class HarvestBehavior implements ISealBehavior {
         if (plantFace != null) {
             Task replant = Task.atBlock(seal.pos(), pos);
             replant.setPriority(task.priority());
-            replant.setLifespan(REPLANT_LIFESPAN);
+            replant.setLife(REPLANT_LIFESPAN);
             TaskBoard.of(level).post(replant);
             ReplantSite site = new ReplantSite(pos, plantFace, seed.copy(), level.getBlockState(pos.below()).getBlock() instanceof FarmlandBlock);
             site.assign(replant.id());

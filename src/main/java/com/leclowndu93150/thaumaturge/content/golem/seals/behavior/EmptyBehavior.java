@@ -22,7 +22,7 @@ public final class EmptyBehavior implements ISealBehavior {
     private static final int STAGGER = 30;
     private static final int SCAN_PERIOD = 20;
     private static final int TIDY_PERIOD = 100;
-    private static final short TASK_LIFESPAN = 5;
+    private static final int TASK_LIFESPAN = 5;
 
     private final SealClock clock = new SealClock(STAGGER);
     private final TaskLedger<ItemStack> takings = new TaskLedger<>();
@@ -45,7 +45,7 @@ public final class EmptyBehavior implements ISealBehavior {
         if (!found.isEmpty()) {
             Task task = Task.atBlock(seal.pos(), seal.pos().pos());
             task.setPriority(seal.priority());
-            task.setLifespan(TASK_LIFESPAN);
+            task.setLife(TASK_LIFESPAN);
             TaskBoard.of(level).post(task);
             takings.record(task, found);
         }
@@ -84,7 +84,7 @@ public final class EmptyBehavior implements ISealBehavior {
         }
         takings.forget(task);
         turn++;
-        task.suspend();
+        task.end();
         return true;
     }
 

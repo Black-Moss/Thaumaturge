@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
+import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
@@ -39,6 +40,17 @@ public final class ResearchNotes {
             count += theoryRows(entry.stages().get(i));
         }
         return count;
+    }
+
+    private static boolean isReachableTheoryRow(IPlayerKnowledge knowledge, Identifier entryId, IResearchEntry entry, int ordinal) {
+        if (!knowledge.isResearchKnown(entryId) || knowledge.isResearchComplete(entryId)) {
+            return false;
+        }
+        int stage = Math.max(0, knowledge.researchStage(entryId));
+        if (stage >= entry.stages().size()) {
+            return false;
+        }
+        return ordinal >= 0 && ordinal < theoryRowsBefore(entry, stage + 1);
     }
 
     public static int theoryRows(IResearchStage stage) {
@@ -105,11 +117,11 @@ public final class ResearchNotes {
     public static boolean obtainNote(ServerPlayer player, Identifier entryId, int ordinal) {
         ResourceKey<IResearchEntry> key = ResourceKey.create(IResearchEntry.REGISTRY_KEY, entryId);
         IResearchEntry entry = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).get(key).map(holder -> holder.value()).orElse(null);
-        if (entry == null) {
+        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+        if (entry == null || !isReachableTheoryRow(knowledge, entryId, entry, ordinal)) {
             return false;
         }
         Identifier learnKey = ResearchNoteData.learnKey(entryId, ordinal);
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
         if (knowledge.isResearchKnown(learnKey) || hasNoteFor(player, learnKey)) {
             return false;
         }

@@ -1240,8 +1240,8 @@ public final class TTEnglishProvider extends LanguageProvider {
         add("golem.prop.replant", "Replant crops");
         add("golem.prop.cycle", "Cycle whitelist");
         add("golem.prop.meta", "Use metadata");
-        add("golem.prop.nbt", "Use NBT data");
-        add("golem.prop.ore", "Use Ore Dictionary");
+        add("golem.prop.nbt", "Use component data");
+        add("golem.prop.ore", "Use tags");
         add("golem.prop.mod", "Use from same mod");
         add("golem.prop.mob", "Target Mobs ");
         add("golem.prop.animal", "Target Animals");

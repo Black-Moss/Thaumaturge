@@ -10,7 +10,6 @@ import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.client.screen.widget.TTButton;
 import com.leclowndu93150.thaumaturge.client.screen.widget.TTButtonIcon;
 import com.leclowndu93150.thaumaturge.client.screen.widget.TTHoverButton;
-import com.leclowndu93150.thaumaturge.client.screen.widget.TTImageButton;
 import com.leclowndu93150.thaumaturge.client.screen.widget.TTPlusMinusButton;
 import com.leclowndu93150.thaumaturge.content.golem.seals.MenuSealBase;
 import com.leclowndu93150.thaumaturge.registry.TTGolemTraits;
@@ -59,6 +58,33 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
     private static final int LABEL_GREY = 0xDDDDDD;
     private static final int ATLAS = 256;
     private static final String[] AXIS_NAMES = {"X", "Y", "Z"};
+    private static final int ICON = 16;
+    private static final int HALF_ICON = ICON / 2;
+    private static final double TAB_RADIUS = 86.0;
+    private static final double TAB_SPREAD = 60.0;
+    private static final double TAB_STEP_MIN = 12.0;
+    private static final double TAB_STEP_MAX = 24.0;
+    private static final double TAB_LEFT_ANGLE = -180.0;
+    private static final double TAB_CENTRING = 30.0;
+    private static final double LONE_TOGGLE_ANGLE = -204.0;
+    private static final int STEP_BACK_X = 19;
+    private static final int STEP_FORWARD_X = 9;
+    private static final int PRIORITY_BUTTON_Y = -17;
+    private static final int COLOR_DOWN_X = 6;
+    private static final int COLOR_UP_X = 29;
+    private static final int COLOR_BUTTON_Y = 4;
+    private static final int LOCK_X = -32;
+    private static final int FILTER_COLUMNS = 3;
+    private static final int FILTER_ROW_STEP = 12;
+    private static final int BLACKLIST_Y = 11;
+    private static final int[] AREA_BUTTON_Y = {-25, 0, 25};
+    private static final int[] AREA_ROW_AXIS = {1, 0, 2};
+    private static final int CHECK_ROW_BASE = 5;
+    private static final int CHECK_SIZE = 12;
+    private static final int LABEL_LIMIT = 100;
+    private static final int REQUIRED_ROW_Y = -8;
+    private static final int FORBIDDEN_ROW_Y = 24;
+    private static final int TRAIT_PITCH = 18;
 
     private final int middleX;
     private final int middleY;
@@ -81,96 +107,111 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
         if (seal == null) {
             return;
         }
-        List<SealPanel> panels = menu.panels();
-        float slice = Mth.clamp(60.0F / panels.size(), 12.0F, 24.0F);
-        float start = -180.0F + (panels.size() - 1) * slice / 2.0F;
-        int c = 0;
-        for (SealPanel panel : panels) {
-            if (panels.size() > 1) {
-                int xx = (int) (Mth.cos((start - c * slice) / 180.0F * (float) Math.PI) * 86.0F);
-                int yy = (int) (Mth.sin((start - c * slice) / 180.0F * (float) Math.PI) * 86.0F);
-                int index = c;
-                CategoryButton button = new CategoryButton(leftPos + middleX + xx - 8, topPos + middleY + yy - 8, panel.ordinal(), menu.panel() == panel,
-                        Component.translatable("button.category." + panel.ordinal()), () -> selectCategory(index));
-                addRenderableWidget(button);
-            }
-            c++;
-        }
-        int xx = (int) (Mth.cos((start - c * slice) / 180.0F * (float) Math.PI) * 86.0F);
-        int yy = (int) (Mth.sin((start - c * slice) / 180.0F * (float) Math.PI) * 86.0F);
-        addRenderableWidget(new StateButton(leftPos + middleX + xx - 8, topPos + middleY + yy - 8, () -> seal.isRedstoneControlled() ? REDSTONE_U_ON : REDSTONE_U_OFF,
-                () -> Component.translatable(seal.isRedstoneControlled() ? "golem.prop.redon" : "golem.prop.redoff"), () -> {
-                    seal.setRedstoneControlled(!seal.isRedstoneControlled());
-                    sendButton(seal.isRedstoneControlled() ? MenuSealBase.BUTTON_REDSTONE_ON : MenuSealBase.BUTTON_REDSTONE_OFF);
-                }));
+        addTabs(seal);
         switch (menu.panel()) {
-            case PRIORITY -> {
-                addRenderableWidget(TTPlusMinusButton.minus(leftPos + middleX - 5 - 14, topPos + middleY - 17, Component.translatable("gui.thaumaturge.seal.priority_down"),
-                        () -> sendButton(MenuSealBase.BUTTON_PRIORITY_DOWN)));
-                addRenderableWidget(TTPlusMinusButton.plus(leftPos + middleX - 5 + 14, topPos + middleY - 17, Component.translatable("gui.thaumaturge.seal.priority_up"),
-                        () -> sendButton(MenuSealBase.BUTTON_PRIORITY_UP)));
-                addRenderableWidget(TTPlusMinusButton.minus(leftPos + middleX + 18 - 12, topPos + middleY + 4, Component.translatable("gui.thaumaturge.seal.color_previous"),
-                        () -> sendButton(MenuSealBase.BUTTON_COLOR_DOWN)));
-                addRenderableWidget(TTPlusMinusButton.plus(leftPos + middleX + 18 + 11, topPos + middleY + 4, Component.translatable("gui.thaumaturge.seal.color_next"),
-                        () -> sendButton(MenuSealBase.BUTTON_COLOR_UP)));
-                if (minecraft != null && minecraft.player != null && minecraft.player.getUUID().equals(seal.owner())) {
-                    addRenderableWidget(new StateButton(leftPos + middleX - 32, topPos + middleY, () -> seal.isLocked() ? LOCK_U_LOCKED : LOCK_U_UNLOCKED,
-                            () -> Component.translatable(seal.isLocked() ? "golem.prop.lock" : "golem.prop.unlock"), () -> {
-                                seal.setLocked(!seal.isLocked());
-                                sendButton(seal.isLocked() ? MenuSealBase.BUTTON_LOCK : MenuSealBase.BUTTON_UNLOCK);
-                            }));
-                }
-            }
-            case FILTER -> {
-                ISealFilter filter = seal.filter().orElse(null);
-                if (filter != null) {
-                    int size = filter.spec().slots();
-                    int offsetY = 16 + (size - 1) / 3 * 12;
-                    addRenderableWidget(new StateButton(leftPos + middleX - 8, topPos + middleY + (size - 1) / 3 * 24 - offsetY + 27, () -> filter.isBlacklist() ? BLACKLIST_U : WHITELIST_U,
-                            () -> Component.translatable(filter.isBlacklist() ? "golem.prop.blacklist" : "golem.prop.whitelist"), () -> {
-                                filter.setBlacklist(!filter.isBlacklist());
-                                sendButton(filter.isBlacklist() ? MenuSealBase.BUTTON_BLACKLIST_ON : MenuSealBase.BUTTON_BLACKLIST_OFF);
-                            }));
-                }
-            }
-            case AREA -> {
-                for (int axis = 0; axis < AXIS_NAMES.length; axis++) {
-                    int y = topPos + middleY - 25 + axis * 25;
-                    int down = MenuSealBase.BUTTON_AREA_BASE + axis * 2;
-                    int up = down + 1;
-                    String axisName = AXIS_NAMES[axis];
-                    addRenderableWidget(TTPlusMinusButton.minus(leftPos + middleX - 5 - 14, y, Component.translatable("gui.thaumaturge.seal.area_shrink", axisName), () -> sendButton(down)));
-                    addRenderableWidget(TTPlusMinusButton.plus(leftPos + middleX - 5 + 14, y, Component.translatable("gui.thaumaturge.seal.area_grow", axisName), () -> sendButton(up)));
-                }
-            }
-            case TOGGLES -> {
-                List<SealSetting> settings = seal.type().settings();
-                int spacing = settings.size() < 4 ? 8 : settings.size() < 6 ? 7 : settings.size() < 9 ? 6 : 5;
-                int height = (settings.size() - 1) * spacing;
-                int width = 12;
-                for (SealSetting setting : settings) {
-                    int textWidth = 12 + Math.min(100, font.width(Component.translatable(setting.nameKey())));
-                    width = Math.max(width, textWidth / 2);
-                }
-                for (int p = 0; p < settings.size(); p++) {
-                    SealSetting setting = settings.get(p);
-                    int index = p;
-                    addRenderableWidget(new PropButton(leftPos + middleX - width, topPos + middleY - 5 - height + p * spacing * 2, setting, () -> seal.setting(setting),
-                            () -> sendButton((seal.setting(setting) ? MenuSealBase.BUTTON_TOGGLE_OFF_BASE : MenuSealBase.BUTTON_TOGGLE_ON_BASE) + index)));
-                }
-            }
+            case PRIORITY -> addPriorityControls(seal);
+            case FILTER -> seal.filter().ifPresent(this::addFilterControls);
+            case AREA -> addAreaControls();
+            case TOGGLES -> addSettingControls(seal);
             case TAGS -> {
-                addTagButtons(seal.type().requiredTraits(), -8);
-                addTagButtons(seal.type().forbiddenTraits(), 24);
+                addTagButtons(seal.type().requiredTraits(), REQUIRED_ROW_Y);
+                addTagButtons(seal.type().forbiddenTraits(), FORBIDDEN_ROW_Y);
             }
         }
     }
 
-    private void addTagButtons(List<Holder<GolemTrait>> tags, int yOffset) {
+    private void addTabs(ISealEntity seal) {
+        List<SealPanel> panels = menu.panels();
+        int count = panels.size();
+        double toggleAngle = LONE_TOGGLE_ANGLE;
+        if (count > 1) {
+            double step = Mth.clamp(TAB_SPREAD / count, TAB_STEP_MIN, TAB_STEP_MAX);
+            double first = TAB_LEFT_ANGLE + TAB_CENTRING * (count - 1) / count;
+            for (int k = 0; k < count; k++) {
+                SealPanel panel = panels.get(k);
+                int index = k;
+                boolean selected = panel == menu.panel();
+                addRenderableWidget(new CategoryButton(tabX(first - k * step) - HALF_ICON, tabY(first - k * step) - HALF_ICON, panel.ordinal(), selected, () -> {
+                    if (!selected) {
+                        selectCategory(index);
+                    }
+                }));
+            }
+            toggleAngle = first - count * step;
+        }
+        addRenderableWidget(new StateButton(tabX(toggleAngle) - HALF_ICON, tabY(toggleAngle) - HALF_ICON, () -> seal.isRedstoneControlled() ? REDSTONE_U_ON : REDSTONE_U_OFF,
+                () -> Component.translatable(seal.isRedstoneControlled() ? "golem.prop.redon" : "golem.prop.redoff"),
+                () -> sendButton(seal.isRedstoneControlled() ? MenuSealBase.BUTTON_REDSTONE_OFF : MenuSealBase.BUTTON_REDSTONE_ON)));
+    }
+
+    private int tabX(double degrees) {
+        return leftPos + middleX + (int) (TAB_RADIUS * Math.cos(Math.toRadians(degrees)));
+    }
+
+    private int tabY(double degrees) {
+        return topPos + middleY + (int) (TAB_RADIUS * Math.sin(Math.toRadians(degrees)));
+    }
+
+    private void addPriorityControls(ISealEntity seal) {
+        int x = leftPos + middleX;
+        int y = topPos + middleY;
+        addRenderableWidget(
+                TTPlusMinusButton.minus(x - STEP_BACK_X, y + PRIORITY_BUTTON_Y, Component.translatable("gui.thaumaturge.seal.priority_down"), () -> sendButton(MenuSealBase.BUTTON_PRIORITY_DOWN)));
+        addRenderableWidget(
+                TTPlusMinusButton.plus(x + STEP_FORWARD_X, y + PRIORITY_BUTTON_Y, Component.translatable("gui.thaumaturge.seal.priority_up"), () -> sendButton(MenuSealBase.BUTTON_PRIORITY_UP)));
+        addRenderableWidget(
+                TTPlusMinusButton.minus(x + COLOR_DOWN_X, y + COLOR_BUTTON_Y, Component.translatable("gui.thaumaturge.seal.color_previous"), () -> sendButton(MenuSealBase.BUTTON_COLOR_DOWN)));
+        addRenderableWidget(TTPlusMinusButton.plus(x + COLOR_UP_X, y + COLOR_BUTTON_Y, Component.translatable("gui.thaumaturge.seal.color_next"), () -> sendButton(MenuSealBase.BUTTON_COLOR_UP)));
+        if (minecraft != null && minecraft.player != null && minecraft.player.getUUID().equals(seal.owner())) {
+            addRenderableWidget(
+                    new StateButton(x + LOCK_X, y, () -> seal.isLocked() ? LOCK_U_LOCKED : LOCK_U_UNLOCKED, () -> Component.translatable(seal.isLocked() ? "golem.prop.lock" : "golem.prop.unlock"),
+                            () -> sendButton(seal.isLocked() ? MenuSealBase.BUTTON_UNLOCK : MenuSealBase.BUTTON_LOCK)));
+        }
+    }
+
+    private void addFilterControls(ISealFilter filter) {
+        int lastRow = (filter.spec().slots() - 1) / FILTER_COLUMNS;
+        addRenderableWidget(new StateButton(leftPos + middleX - HALF_ICON, topPos + middleY + FILTER_ROW_STEP * lastRow + BLACKLIST_Y, () -> filter.isBlacklist() ? BLACKLIST_U : WHITELIST_U,
+                () -> Component.translatable(filter.isBlacklist() ? "golem.prop.blacklist" : "golem.prop.whitelist"),
+                () -> sendButton(filter.isBlacklist() ? MenuSealBase.BUTTON_BLACKLIST_OFF : MenuSealBase.BUTTON_BLACKLIST_ON)));
+    }
+
+    private void addAreaControls() {
+        for (int row = 0; row < AREA_BUTTON_Y.length; row++) {
+            int axis = AREA_ROW_AXIS[row];
+            int shrink = MenuSealBase.BUTTON_AREA_BASE + 2 * row;
+            int y = topPos + middleY + AREA_BUTTON_Y[row];
+            addRenderableWidget(TTPlusMinusButton.minus(leftPos + middleX - STEP_BACK_X, y, Component.translatable("gui.thaumaturge.seal.area_shrink", AXIS_NAMES[axis]), () -> sendButton(shrink)));
+            addRenderableWidget(
+                    TTPlusMinusButton.plus(leftPos + middleX + STEP_FORWARD_X, y, Component.translatable("gui.thaumaturge.seal.area_grow", AXIS_NAMES[axis]), () -> sendButton(shrink + 1)));
+        }
+    }
+
+    private void addSettingControls(ISealEntity seal) {
+        List<SealSetting> settings = seal.type().settings();
+        int count = settings.size();
+        if (count == 0) {
+            return;
+        }
+        int halfSpacing = count <= 3 ? 8 : count <= 5 ? 7 : count <= 8 ? 6 : 5;
+        int span = (count - 1) * halfSpacing;
+        int indent = CHECK_SIZE;
+        for (SealSetting setting : settings) {
+            indent = Math.max(indent, (CHECK_SIZE + Math.min(LABEL_LIMIT, font.width(Component.translatable(setting.nameKey())))) / 2);
+        }
+        for (int i = 0; i < count; i++) {
+            SealSetting setting = settings.get(i);
+            int index = i;
+            addRenderableWidget(new PropButton(leftPos + middleX - indent, topPos + middleY - CHECK_ROW_BASE - span + 2 * halfSpacing * i, setting, () -> seal.setting(setting),
+                    () -> sendButton((seal.setting(setting) ? MenuSealBase.BUTTON_TOGGLE_OFF_BASE : MenuSealBase.BUTTON_TOGGLE_ON_BASE) + index)));
+        }
+    }
+
+    private void addTagButtons(List<Holder<GolemTrait>> tags, int centreY) {
         for (int p = 0; p < tags.size(); p++) {
             GolemTrait tag = tags.get(p).value();
-            TTHoverButton button = new TTHoverButton(leftPos + middleX + p * 18 - (tags.size() - 1) * 9, topPos + middleY + yOffset, 16, 16, new TTButtonIcon.TextureIcon(tag.icon()),
-                    Component.translatable(GolemTrait.nameKey(TTGolemTraits.registry().getKey(tag))), () -> {
+            TTHoverButton button = TTHoverButton.centered(leftPos + middleX + p * TRAIT_PITCH - (tags.size() - 1) * TRAIT_PITCH / 2, topPos + middleY + centreY, ICON,
+                    new TTButtonIcon.TextureIcon(tag.icon()), Component.translatable(GolemTrait.nameKey(TTGolemTraits.registry().getKey(tag))), () -> {
                     });
             button.setDescription(Component.translatable(GolemTrait.descriptionKey(TTGolemTraits.registry().getKey(tag))));
             addRenderableWidget(button);
@@ -287,16 +328,25 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
         Component get();
     }
 
-    static final class CategoryButton extends TTImageButton {
-        private final boolean active;
+    static final class CategoryButton extends TTButton {
+        private static final float IDLE_SHADE = 0.7F;
+        private static final float HOVER_SHADE = 0.9F;
 
-        CategoryButton(int x, int y, int categoryIcon, boolean active, Component message, Runnable onPress) {
-            super(x, y, 16, 16, TTScreenTextures.GUI_BASE, categoryIcon * 16, CATEGORY_ICON_V, 16, 16, ATLAS, ATLAS, message, onPress);
-            this.active = active;
-            if (active) {
-                setTintColor(0xFFFFFFFF);
-            }
-            setDescription(Component.translatable("button.category." + categoryIcon + ".desc"));
+        private final int page;
+        private final boolean selected;
+
+        CategoryButton(int x, int y, int page, boolean selected, Runnable onPress) {
+            super(x, y, ICON, ICON, Component.translatable("button.category." + page), onPress);
+            this.page = page;
+            this.selected = selected;
+            setDescription(Component.translatable("button.category." + page + ".desc"));
+        }
+
+        @Override
+        protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+            float shade = selected ? 1.0F : isHovered() ? HOVER_SHADE : IDLE_SHADE;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.GUI_BASE, getX(), getY(), page * ICON, CATEGORY_ICON_V, ICON, ICON, ATLAS, ATLAS,
+                    ARGB.colorFromFloat(shade, shade, shade, shade));
         }
     }
 

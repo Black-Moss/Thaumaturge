@@ -39,7 +39,7 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
                 tooltip.accept(Component.translatable("golem.rank").append(" " + props.rank()).withStyle(ChatFormatting.GOLD));
             } else {
                 int xp = stack.getOrDefault(TTDataComponents.GOLEM_XP.get(), 0);
-                int needed = (props.rank() + 1) * (props.rank() + 1) * EntityThaumaturgeGolem.XP_PER_RANK_UNIT;
+                int needed = EntityThaumaturgeGolem.xpForNextRank(props.rank());
                 tooltip.accept(Component.translatable("golem.rank").append(" " + props.rank()).withStyle(ChatFormatting.GOLD)
                         .append(Component.literal(" (" + xp + "/" + needed + ")").withStyle(ChatFormatting.DARK_GREEN)));
             }
