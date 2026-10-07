@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TCRenderPipelines;
 import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
-import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchPortal;
+import com.leclowndu93150.thaumaturge.content.eldritch.portal.BlockEntityEldritchPortal;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -43,7 +43,7 @@ public final class EldritchPortalRenderer implements BlockEntityRenderer<BlockEn
     @Override
     public void extractRenderState(BlockEntityEldritchPortal portal, EldritchPortalRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(portal, state, partialTicks, cameraPosition, breakProgress);
-        state.openCount = portal.opencount + partialTicks;
+        state.openCount = portal.openTicks() + partialTicks;
         var viewEntity = Minecraft.getInstance().getCameraEntity();
         state.animationTime = viewEntity == null ? partialTicks : viewEntity.tickCount + partialTicks;
         state.towardOverworld = portal.getLevel() != null && portal.getLevel().dimension() == OuterLands.DIMENSION;

@@ -2,15 +2,27 @@ package com.leclowndu93150.thaumaturge.data;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthEncounter;
 import com.leclowndu93150.thaumaturge.api.recipe.Blueprint;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanEntry;
 import com.leclowndu93150.thaumaturge.compat.apothicenchanting.data.EnchantingStatsProvider;
 import com.leclowndu93150.thaumaturge.compat.curio.data.TCCurioProvider;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.LabyrinthDefinition;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.RoomType;
+import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TCDamageTypeBootstrap;
 import com.leclowndu93150.thaumaturge.data.datamap.*;
 import com.leclowndu93150.thaumaturge.data.datamap.TaintedProfileProvider;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthDefinitionBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthEncounterBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthProcessorBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthRoomBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthRoomProvider;
+import com.leclowndu93150.thaumaturge.data.labyrinth.ObeliskSiteBootstrap;
+import com.leclowndu93150.thaumaturge.data.labyrinth.SparseTemplateProvider;
+import com.leclowndu93150.thaumaturge.data.labyrinth.TCLabyrinthRoomTagsProvider;
 import com.leclowndu93150.thaumaturge.data.lang.TCEnglishProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TCBlockLootSubProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TCEntityLootSubProvider;
@@ -58,7 +70,10 @@ public final class TCDataGenerators {
                 .add(Registries.DAMAGE_TYPE, TCDamageTypeBootstrap::bootstrap).add(Registries.CONFIGURED_FEATURE, TCConfiguredFeatures::bootstrap)
                 .add(Registries.PLACED_FEATURE, TCPlacedFeatures::bootstrap).add(Registries.BIOME, TCBiomes::bootstrap).add(Registries.DIMENSION_TYPE, OuterLandsBootstrap::bootstrapTypes)
                 .add(Registries.LEVEL_STEM, OuterLandsBootstrap::bootstrapStems).add(Registries.STRUCTURE, TCStructureBootstrap::bootstrapStructures)
-                .add(Registries.STRUCTURE_SET, TCStructureBootstrap::bootstrapSets).add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, TCBiomeModifiers::bootstrap);
+                .add(Registries.STRUCTURE_SET, TCStructureBootstrap::bootstrapSets).add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, TCBiomeModifiers::bootstrap)
+                .add(Registries.PROCESSOR_LIST, LabyrinthProcessorBootstrap::bootstrap).add(RoomType.REGISTRY_KEY, LabyrinthRoomBootstrap::bootstrap)
+                .add(LabyrinthEncounter.REGISTRY_KEY, LabyrinthEncounterBootstrap::bootstrap).add(LabyrinthDefinition.REGISTRY_KEY, LabyrinthDefinitionBootstrap::bootstrap)
+                .add(ObeliskSite.REGISTRY_KEY, ObeliskSiteBootstrap::bootstrap);
         event.createDatapackRegistryObjects(registries);
 
         event.createProvider(TCEnglishProvider::new);
@@ -75,12 +90,15 @@ public final class TCDataGenerators {
         event.createProvider(FuelValuesProvider::new);
         event.createProvider(TCCurioProvider::new);
         event.createProvider(EnchantingStatsProvider::new);
+        event.createProvider(LabyrinthRoomProvider::new);
+        event.createProvider(SparseTemplateProvider::new);
 
         event.createBlockAndItemTags(TCBlockTagsProvider::new, TCItemTagsProvider::new);
         event.createProvider(TCDamageTypeTagsProvider::new);
         event.createProvider(TCBiomeTagsProvider::new);
         event.createProvider(TCMobEffectTagsProvider::new);
         event.createProvider(TCEntityTypeTagsProvider::new);
+        event.createProvider(TCLabyrinthRoomTagsProvider::new);
 
         event.createProvider((output, lookupProvider) -> new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(TCBlockLootSubProvider::new, LootContextParamSets.BLOCK),

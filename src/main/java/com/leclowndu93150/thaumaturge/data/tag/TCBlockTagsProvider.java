@@ -2,12 +2,16 @@ package com.leclowndu93150.thaumaturge.data.tag;
 
 import com.leclowndu93150.thaumaturge.TCIds;
 import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
+import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthBlocks;
 import com.leclowndu93150.thaumaturge.registry.TCBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TCBlocks;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
@@ -27,8 +31,12 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.POTTED_CINDERPEARL.get()).add(TCBlocks.POTTED_VISHROOM.get());
 
         tag(TCBlockTags.LAMP_GROWTH_BLACKLIST);
-        tag(BlockTags.WITHER_IMMUNE).add(TCBlocks.STONE_ANCIENT_ROCK.get()).add(TCBlocks.STONE_ANCIENT_DOORWAY.get());
-        tag(BlockTags.DRAGON_IMMUNE).add(TCBlocks.STONE_ANCIENT_ROCK.get()).add(TCBlocks.STONE_ANCIENT_DOORWAY.get());
+        for (TagKey<Block> immune : List.of(BlockTags.WITHER_IMMUNE, BlockTags.DRAGON_IMMUNE)) {
+            tag(immune).add(TCBlocks.STONE_ANCIENT_ROCK.get()).add(TCBlocks.STONE_ANCIENT_DOORWAY.get());
+        }
+        for (TagKey<Block> voidTag : List.of(BlockTags.WITHER_IMMUNE, BlockTags.DRAGON_IMMUNE, BlockTags.FEATURES_CANNOT_REPLACE, TCBlockTags.UNSAFE_LANDING)) {
+            tag(voidTag).add(TCBlocks.ELDRITCH_NOTHING_DORMANT.get()).add(TCBlocks.ELDRITCH_NOTHING.get());
+        }
         tag(TCBlockTags.ARCANE_WORKBENCH_CHARGER_HOSTS).add(TCBlocks.ARCANE_WORKBENCH.get()).add(TCBlocks.FOCAL_MANIPULATOR.get());
         tag(TCBlockTags.PHYSICAL_FLUX).add(TCBlocks.FLUX_GOO.get()).add(TCBlocks.FLUX_GAS.get());
         tag(TCBlockTags.FLUX_SCRUBBABLE).addTag(TCBlockTags.PHYSICAL_FLUX);
@@ -110,6 +118,12 @@ public final class TCBlockTagsProvider extends BlockTagsProvider {
                 .add(TCBlocks.FENCE_SILVERWOOD.get()).add(TCBlocks.FENCE_GATE_SILVERWOOD.get()).add(TCBlocks.BUTTON_SILVERWOOD.get()).add(TCBlocks.PRESSURE_PLATE_SILVERWOOD.get());
 
         tag(TCBlockTags.ELDRITCH_OBELISK_PARTS).add(TCBlocks.ELDRITCH_ALTAR.get()).add(TCBlocks.ELDRITCH_OBELISK.get()).add(TCBlocks.ELDRITCH_PILLAR.get()).add(TCBlocks.ELDRITCH_CAPSTONE.get());
+        tag(TCBlockTags.LABYRINTH_BARRIER).add(TCBlocks.ELDRITCH_DOOR.get());
+        for (Block passable : LabyrinthBlocks.passableBlocks()) {
+            tag(TCBlockTags.LABYRINTH_PASSABLE).add(passable);
+        }
+        tag(TCBlockTags.UNSAFE_LANDING).add(TCBlocks.ELDRITCH_PORTAL.get()).add(TCBlocks.ELDRITCH_TRAP.get()).add(Blocks.MAGMA_BLOCK).add(Blocks.CACTUS).add(Blocks.SWEET_BERRY_BUSH)
+                .add(Blocks.POWDER_SNOW).addTag(BlockTags.FIRE).addTag(BlockTags.CAMPFIRES);
 
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TCBlocks.OBSIDIAN_TILE.get()).add(TCBlocks.OBSIDIAN_TOTEM.get()).add(TCBlocks.OBSIDIAN_TOTEM_CHARGED.get()).add(TCBlocks.ELDRITCH_STONE.get())
                 .add(TCBlocks.ELDRITCH_STONE_INERT.get()).add(TCBlocks.ELDRITCH_ROCK.get()).add(TCBlocks.ELDRITCH_CRUST.get()).add(TCBlocks.ELDRITCH_CRUST_GLOWING.get())

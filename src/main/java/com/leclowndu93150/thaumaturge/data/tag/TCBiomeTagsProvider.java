@@ -25,6 +25,7 @@ public final class TCBiomeTagsProvider extends KeyTagProvider<Biome> {
                 .add(Biomes.SUNFLOWER_PLAINS).add(Biomes.SWAMP).add(Biomes.MANGROVE_SWAMP);
         tag(TCBiomeTags.HAS_SILVERWOOD).add(Biomes.FOREST).add(Biomes.BIRCH_FOREST).addTag(TCBiomeTags.IS_MAGICAL).addOptionalTag(Tags.Biomes.IS_MAGICAL).remove(TCBiomes.MAGICAL_FOREST)
                 .remove(TCBiomes.TAINTED_LANDS).remove(TCBiomes.ELDRITCH);
+        tag(TCBiomeTags.HAS_PECH).addTag(TCBiomeTags.IS_MAGICAL).remove(TCBiomes.ELDRITCH);
         tag(TCBiomeTags.HAS_CINDERPEARL).add(Biomes.DESERT).add(Biomes.BADLANDS).add(Biomes.ERODED_BADLANDS).add(Biomes.WOODED_BADLANDS);
         tag(BiomeTags.IS_OVERWORLD).add(TCBiomes.MAGICAL_FOREST).add(TCBiomes.MAGICAL_FOREST_CAVES).add(TCBiomes.EERIE).add(TCBiomes.TAINTED_LANDS);
         tag(BiomeTags.IS_FOREST).add(TCBiomes.MAGICAL_FOREST);

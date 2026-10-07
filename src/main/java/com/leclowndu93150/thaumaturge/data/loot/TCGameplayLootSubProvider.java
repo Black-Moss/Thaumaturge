@@ -26,6 +26,7 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.functions.SetWrittenBookPagesFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 public final class TCGameplayLootSubProvider implements LootTableSubProvider {
@@ -39,6 +40,14 @@ public final class TCGameplayLootSubProvider implements LootTableSubProvider {
     private static final int SMITH_EMPTY_WEIGHT = 1;
 
     private static final float LORE_CHANCE = 0.0005F;
+    private static final float KEY_ROOM_POOL_MIN = 2.0F;
+    private static final float KEY_ROOM_POOL_MAX = 4.0F;
+    private static final float KEY_ROOM_CHEST_ROLLS = 2.0F;
+    private static final float BOSS_BAGS_MIN = 1.0F;
+    private static final float BOSS_BAGS_MAX = 2.0F;
+    private static final float BOSS_POOL_MIN = 4.0F;
+    private static final float BOSS_POOL_MAX = 6.0F;
+    private static final float BOSS_CHEST_ROLLS = 4.0F;
     private static final String LORE_TITLE = "A Message to the World";
     private static final String LORE_AUTHOR = "A Thaumaturge";
 
@@ -82,11 +91,27 @@ public final class TCGameplayLootSubProvider implements LootTableSubProvider {
         output.accept(TCLootTables.TREASURE_SMITH, LootTable.lootTable()
                 .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(EmptyLootItem.emptyItem().setWeight(SMITH_EMPTY_WEIGHT)).add(entry(TCItems.QUICKSILVER, 2, 1.0F, 3.0F))));
 
+        output.accept(TCLootTables.LABYRINTH_KEY_ROOM, labyrinthReward(TCItems.LOOT_BAG_UNCOMMON, ConstantValue.exactly(1.0F), TreasureLootPools.UNCOMMON,
+                UniformGenerator.between(KEY_ROOM_POOL_MIN, KEY_ROOM_POOL_MAX), KEY_ROOM_CHEST_ROLLS, TCLootTables.TREASURE_UNCOMMON));
+        for (ResourceKey<LootTable> boss : List.of(TCLootTables.LABYRINTH_WARDEN, TCLootTables.LABYRINTH_GOLEM, TCLootTables.LABYRINTH_CRIMSON_PORTAL, TCLootTables.LABYRINTH_TAINT_SWARM,
+                TCLootTables.LABYRINTH_HIEROPHANT)) {
+            output.accept(boss, labyrinthReward(TCItems.LOOT_BAG_RARE, UniformGenerator.between(BOSS_BAGS_MIN, BOSS_BAGS_MAX), TreasureLootPools.RARE,
+                    UniformGenerator.between(BOSS_POOL_MIN, BOSS_POOL_MAX), BOSS_CHEST_ROLLS, TCLootTables.TREASURE_RARE));
+        }
+        output.accept(TCLootTables.LABYRINTH_PRIMORDIAL_PEARL,
+                LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(TCItems.PRIMORDIAL_PEARL.get()))));
+
         output.accept(TCLootTables.LORE_BOOK,
                 LootTable.lootTable()
                         .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
                                 .add(LootItem.lootTableItem(Items.WRITTEN_BOOK).apply(() -> new SetWrittenBookPagesFunction(List.of(), messagePages(), ListOperation.ReplaceAll.INSTANCE))
                                         .apply(() -> new SetBookCoverFunction(List.of(), Optional.of(Filterable.passThrough(LORE_TITLE)), Optional.of(LORE_AUTHOR), Optional.empty())))));
+    }
+
+    private LootTable.Builder labyrinthReward(ItemLike bag, NumberProvider bags, int rarity, NumberProvider treasureRolls, float chestRolls, ResourceKey<LootTable> chest) {
+        return LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(bag).apply(SetItemCountFunction.setCount(bags))))
+                .withPool(TreasureLootPools.treasurePool(registries, rarity, treasureRolls))
+                .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(chestRolls)).add(NestedLootTable.lootTableReference(chest)));
     }
 
     private static LootPool.Builder lorePool() {

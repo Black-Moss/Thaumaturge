@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.equipment.hover;
 
 import com.leclowndu93150.thaumaturge.TCIds;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
 import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -27,7 +28,7 @@ public final class HoverEvents {
             HoverManager.setHovering(player, false);
             return;
         }
-        if (player.level().dimension() == OuterLands.DIMENSION && !player.isCreative() && player.tickCount % DISRUPTION_CHECK_TICKS == 0) {
+        if (player.level().dimension() == OuterLands.DIMENSION && !player.isCreative() && player.tickCount % DISRUPTION_CHECK_TICKS == 0 && ThaumaturgeServerConfig.LABYRINTH.disruptFlight.get()) {
             HoverManager.setHovering(player, false);
             player.sendSystemMessage(Component.translatable("message.thaumaturge.hover_disrupted").withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
         }

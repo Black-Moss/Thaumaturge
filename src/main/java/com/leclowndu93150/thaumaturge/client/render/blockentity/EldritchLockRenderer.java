@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchLock;
-import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchLock;
+import com.leclowndu93150.thaumaturge.content.eldritch.lock.BlockEldritchLock;
+import com.leclowndu93150.thaumaturge.content.eldritch.lock.BlockEntityEldritchLock;
 import com.leclowndu93150.thaumaturge.registry.TCItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

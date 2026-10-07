@@ -1,16 +1,24 @@
 package com.leclowndu93150.thaumaturge.data.worldgen.feature;
 
 import com.leclowndu93150.thaumaturge.TCIds;
-import com.leclowndu93150.thaumaturge.content.eldritch.gen.ObeliskStructure;
+import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
+import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSiteStructure;
 import com.leclowndu93150.thaumaturge.content.world.mound.MoundStructure;
+import com.leclowndu93150.thaumaturge.data.labyrinth.ObeliskSiteBootstrap;
 import com.leclowndu93150.thaumaturge.registry.TCBiomeTags;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
+import net.minecraft.world.level.levelgen.structure.TerrainAdjustment;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType;
 
@@ -23,16 +31,22 @@ public final class TCStructureBootstrap {
     private static final int MOUND_SPACING = 20;
     private static final int MOUND_SEPARATION = 10;
     private static final int MOUND_SALT = 41626157;
-    private static final int OBELISK_SPACING = 32;
-    private static final int OBELISK_SEPARATION = 12;
+    private static final int OBELISK_SPACING = 20;
+    private static final int OBELISK_SEPARATION = 7;
     private static final int OBELISK_SALT = 46186246;
+    private static final int CULT_WEIGHT = 4;
+    private static final int GUARDIAN_WEIGHT = 2;
+    private static final int DORMANT_WEIGHT = 4;
 
     private TCStructureBootstrap() {}
 
     public static void bootstrapStructures(BootstrapContext<Structure> context) {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
         context.register(MOUND, new MoundStructure(new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_MOUND))));
-        context.register(ELDRITCH_OBELISK, new ObeliskStructure(new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_ELDRITCH_OBELISK))));
+        WeightedList<ResourceKey<ObeliskSite>> sites = WeightedList.of(List.of(new Weighted<>(ObeliskSiteBootstrap.CULT_RITUAL, CULT_WEIGHT),
+                new Weighted<>(ObeliskSiteBootstrap.GUARDIAN_WATCH, GUARDIAN_WEIGHT), new Weighted<>(ObeliskSite.DORMANT, DORMANT_WEIGHT)));
+        context.register(ELDRITCH_OBELISK, new ObeliskSiteStructure(
+                new Structure.StructureSettings(biomes.getOrThrow(TCBiomeTags.HAS_ELDRITCH_OBELISK), Map.of(), GenerationStep.Decoration.SURFACE_STRUCTURES, TerrainAdjustment.BEARD_THIN), sites));
     }
 
     public static void bootstrapSets(BootstrapContext<StructureSet> context) {

@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.casters.FocusPackage;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
+import com.leclowndu93150.thaumaturge.api.labyrinth.MazeId;
 import com.leclowndu93150.thaumaturge.api.wands.WandVis;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeData;
 import com.leclowndu93150.thaumaturge.content.casters.CasterArea;
@@ -61,6 +62,9 @@ public final class TCDataComponents {
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CasterArea>> CASTER_AREA = DATA_COMPONENTS.registerComponentType("caster_area",
             builder -> builder.persistent(CasterArea.CODEC).networkSynchronized(CasterArea.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<MazeId>> LABYRINTH_KEY = DATA_COMPONENTS.registerComponentType("labyrinth_key",
+            builder -> builder.persistent(MazeId.CODEC).networkSynchronized(MazeId.STREAM_CODEC));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockState>> PICKED_BLOCK = DATA_COMPONENTS.registerComponentType("picked_block",
             builder -> builder.persistent(BlockState.CODEC).networkSynchronized(ByteBufCodecs.fromCodec(BlockState.CODEC)));

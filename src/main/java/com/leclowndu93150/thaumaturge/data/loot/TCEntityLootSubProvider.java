@@ -19,6 +19,8 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 public final class TCEntityLootSubProvider extends EntityLootSubProvider {
+    private static final float GUARDIAN_EYE_CHANCE = 0.05F;
+    private static final float GUARDIAN_EYE_LOOTING_BONUS = 0.02F;
     private static final float BRAIN_CHANCE = 0.5F;
     private static final float BRAIN_LOOTING_BONUS = 0.1F;
     private static final int GIANT_FLESH_ROLLS = 12;
@@ -49,18 +51,19 @@ public final class TCEntityLootSubProvider extends EntityLootSubProvider {
         add(TCEntities.PECH.get(), LootTable.lootTable().withPool(goldNuggetPool()).withPool(curioPool(TCItems.CURIO_KNOWLEDGE.get())));
         add(TCEntities.CULTIST_KNIGHT.get(), LootTable.lootTable().withPool(goldNuggetPool()).withPool(curioPool(TCItems.CURIO_RITES.get())));
         add(TCEntities.CULTIST_CLERIC.get(), LootTable.lootTable().withPool(goldNuggetPool()).withPool(curioPool(TCItems.CURIO_RITES.get())));
-        add(TCEntities.ELDRITCH_CRAB.get(),
-                LootTable.lootTable()
-                        .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(LootItem.lootTableItem(Items.ENDER_PEARL)).when(LootItemKilledByPlayerCondition.killedByPlayer())
-                                .when(LootItemRandomChanceWithEnchantedBonusCondition.randomChanceAndLootingBoost(this.registries, CRAB_PEARL_CHANCE, CRAB_PEARL_LOOTING_BONUS))));
+        add(TCEntities.ELDRITCH_CRAB.get(), LootTable.lootTable().withPool(playerKillPool(Items.ENDER_PEARL, CRAB_PEARL_CHANCE, CRAB_PEARL_LOOTING_BONUS)));
         add(TCEntities.INHABITED_ZOMBIE.get(), LootTable.lootTable());
-        add(TCEntities.ELDRITCH_GUARDIAN.get(), LootTable.lootTable());
+        add(TCEntities.ELDRITCH_GUARDIAN.get(), LootTable.lootTable().withPool(playerKillPool(TCItems.ELDRITCH_EYE.get(), GUARDIAN_EYE_CHANCE, GUARDIAN_EYE_LOOTING_BONUS)));
         add(TCEntities.CULTIST_PORTAL_LESSER.get(), LootTable.lootTable());
     }
 
     private LootPool.Builder curioPool(ItemLike curio) {
-        return LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(LootItem.lootTableItem(curio)).when(LootItemKilledByPlayerCondition.killedByPlayer())
-                .when(LootItemRandomChanceWithEnchantedBonusCondition.randomChanceAndLootingBoost(this.registries, CURIO_CHANCE, CURIO_LOOTING_BONUS));
+        return playerKillPool(curio, CURIO_CHANCE, CURIO_LOOTING_BONUS);
+    }
+
+    private LootPool.Builder playerKillPool(ItemLike item, float chance, float lootingBonus) {
+        return LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(LootItem.lootTableItem(item)).when(LootItemKilledByPlayerCondition.killedByPlayer())
+                .when(LootItemRandomChanceWithEnchantedBonusCondition.randomChanceAndLootingBoost(this.registries, chance, lootingBonus));
     }
 
     private LootPool.Builder goldNuggetPool() {

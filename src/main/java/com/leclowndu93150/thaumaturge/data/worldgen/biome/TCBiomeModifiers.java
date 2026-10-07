@@ -112,7 +112,7 @@ public final class TCBiomeModifiers {
         context.register(ADD_DESERT_BRAINY_HUSKS, new BiomeModifiers.AddSpawnsBiomeModifier(biomes.getOrThrow(TCBiomeTags.HAS_BRAINY_HUSK),
                 WeightedList.<MobSpawnSettings.SpawnerData>builder().add(new MobSpawnSettings.SpawnerData(TCEntities.BRAINY_HUSK.get(), 1, 1), DESERT_BRAINY_HUSK_WEIGHT).build()));
 
-        context.register(ADD_PECHS, new BiomeModifiers.AddSpawnsBiomeModifier(biomes.getOrThrow(TCBiomeTags.IS_MAGICAL),
+        context.register(ADD_PECHS, new BiomeModifiers.AddSpawnsBiomeModifier(biomes.getOrThrow(TCBiomeTags.HAS_PECH),
                 WeightedList.<MobSpawnSettings.SpawnerData>builder().add(new MobSpawnSettings.SpawnerData(TCEntities.PECH.get(), 1, 1), PECH_WEIGHT).build()));
     }
 }
