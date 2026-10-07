@@ -7,20 +7,17 @@ import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitNames;
-import com.leclowndu93150.thaumaturge.registry.TTItems;
+import com.leclowndu93150.thaumaturge.registry.TTLootTables;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -34,8 +31,6 @@ import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.providers.VanillaEnchantmentProviders;
 import net.minecraft.world.level.Level;
@@ -48,8 +43,6 @@ import org.jspecify.annotations.Nullable;
 public class EntityCultistLeader extends EntityThaumaturgeBoss implements RangedAttackMob {
     private static final BossTitles TITLES = new BossTitles("entity.thaumaturge.cultist_leader.name.custom",
             List.of("Alberic", "Anselm", "Bastian", "Beturian", "Chabier", "Chorache", "Chuse", "Dodorol", "Ebardo", "Ferrando", "Fertus", "Guillen", "Larpe", "Obano", "Zelipe"));
-    private static final Map<EquipmentSlot, Supplier<? extends Item>> PRAETOR_KIT = Map.of(EquipmentSlot.HEAD, TTItems.CRIMSON_PRAETOR_HELM, EquipmentSlot.CHEST, TTItems.CRIMSON_PRAETOR_CHEST,
-            EquipmentSlot.LEGS, TTItems.CRIMSON_PRAETOR_LEGS, EquipmentSlot.FEET, TTItems.CRIMSON_BOOTS);
     private static final int EXPERIENCE = 40;
     private static final double SPEED = 0.32;
     private static final double HEALTH = 150.0;
@@ -97,8 +90,7 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
 
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData data) {
-        PRAETOR_KIT.forEach((slot, item) -> setItemSlot(slot, new ItemStack(item.get())));
-        setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(level.getDifficulty() == Difficulty.EASY ? TTItems.VOID_SWORD.get() : TTItems.CRIMSON_BLADE.get()));
+        equip(TTLootTables.EQUIPMENT_CULTIST_LEADER, Map.of());
         if (random.nextFloat() < BLADE_ENCHANT_CHANCE * difficulty.getSpecialMultiplier()) {
             EnchantmentHelper.enchantItemFromProvider(getMainHandItem(), level.registryAccess(), VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT, difficulty, random);
         }

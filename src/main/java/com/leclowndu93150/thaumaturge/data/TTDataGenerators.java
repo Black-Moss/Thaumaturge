@@ -35,6 +35,7 @@ import com.leclowndu93150.thaumaturge.data.labyrinth.TTLabyrinthRoomTagsProvider
 import com.leclowndu93150.thaumaturge.data.lang.TTEnglishProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TTBlockLootSubProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TTEntityRewardLootSubProvider;
+import com.leclowndu93150.thaumaturge.data.loot.TTEquipmentLootSubProvider;
 import com.leclowndu93150.thaumaturge.data.model.TTEquipmentAssetProvider;
 import com.leclowndu93150.thaumaturge.data.sound.TTSoundDefinitionsProvider;
 import com.leclowndu93150.thaumaturge.data.spell.AffinityBootstrap;
@@ -123,6 +124,7 @@ public final class TTDataGenerators {
                         new LootTableProvider.SubProviderEntry(TTEntityLootSubProvider::new, LootContextParamSets.ENTITY),
                         new LootTableProvider.SubProviderEntry(TTTaintedLootSubProvider::new, LootContextParamSets.ENTITY),
                         new LootTableProvider.SubProviderEntry(TTEntityRewardLootSubProvider::new, LootContextParamSets.ENTITY),
+                        new LootTableProvider.SubProviderEntry(TTEquipmentLootSubProvider::new, LootContextParamSets.EQUIPMENT),
                         new LootTableProvider.SubProviderEntry(TTGameplayLootSubProvider::new, LootContextParamSets.CHEST)),
                 lookupProvider));
 

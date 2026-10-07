@@ -12,6 +12,11 @@ public final class TTLootTables {
     public static final ResourceKey<LootTable> LORE_BOOK = key("gameplay/lore_book");
     public static final ResourceKey<LootTable> CHAMPION_BAG = key("gameplay/champion_bag");
 
+    public static final ResourceKey<LootTable> EQUIPMENT_CULTIST_CLERIC = key("equipment/cultist_cleric");
+    public static final ResourceKey<LootTable> EQUIPMENT_CULTIST_KNIGHT = key("equipment/cultist_knight");
+    public static final ResourceKey<LootTable> EQUIPMENT_CULTIST_LEADER = key("equipment/cultist_leader");
+    public static final ResourceKey<LootTable> EQUIPMENT_INHABITED_ZOMBIE = key("equipment/inhabited_zombie");
+
     public static final ResourceKey<LootTable> TAINTED_COW = key("entities/tainted/cow");
     public static final ResourceKey<LootTable> TAINTED_PIG = key("entities/tainted/pig");
     public static final ResourceKey<LootTable> TAINTED_CHICKEN = key("entities/tainted/chicken");
