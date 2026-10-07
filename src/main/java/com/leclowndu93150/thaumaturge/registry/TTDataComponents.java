@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
+import com.leclowndu93150.thaumaturge.content.legacy.LegacyFocusPackage;
 import com.leclowndu93150.thaumaturge.api.items.ChargeProfile;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
@@ -56,6 +57,9 @@ public final class TTDataComponents {
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Spell>> SPELL = DATA_COMPONENTS.registerComponentType("spell",
             builder -> builder.persistent(Spell.CODEC).networkSynchronized(Spell.STREAM_CODEC));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Spell>> LEGACY_FOCUS_PACKAGE = DATA_COMPONENTS.registerComponentType("focus_package",
+            builder -> builder.persistent(LegacyFocusPackage.CODEC).networkSynchronized(Spell.STREAM_CODEC));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemStackTemplate>> SOCKETED_FOCUS = DATA_COMPONENTS.registerComponentType("socketed_focus",
             builder -> builder.persistent(ItemStackTemplate.CODEC).networkSynchronized(ItemStackTemplate.STREAM_CODEC));

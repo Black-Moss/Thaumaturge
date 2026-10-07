@@ -19,11 +19,16 @@ import org.jspecify.annotations.Nullable;
 public final class SpellBindings implements Spells.Bindings {
     @Override
     public @Nullable Spell spellOf(ItemStack focus) {
-        return focus.isEmpty() ? null : focus.get(TTDataComponents.SPELL.get());
+        if (focus.isEmpty()) {
+            return null;
+        }
+        Spell spell = focus.get(TTDataComponents.SPELL.get());
+        return spell != null ? spell : focus.get(TTDataComponents.LEGACY_FOCUS_PACKAGE.get());
     }
 
     @Override
     public void setSpell(ItemStack focus, @Nullable Spell spell) {
+        focus.remove(TTDataComponents.LEGACY_FOCUS_PACKAGE.get());
         if (spell == null) {
             focus.remove(TTDataComponents.SPELL.get());
         } else {
