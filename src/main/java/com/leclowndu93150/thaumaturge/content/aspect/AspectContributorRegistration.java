@@ -16,7 +16,7 @@ public final class AspectContributorRegistration {
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            TTAspectContributors.register(List.of(new CrucibleAspectContributor(), new InfusionAspectContributor(), new CraftingAspectContributor()));
+            TTAspectContributors.register(List.of(new CrucibleAspectContributor(), new InfusionAspectContributor(), new CraftingAspectContributor(), new CookingAspectContributor()));
             RegisterAspectContributorsEvent contributors = new RegisterAspectContributorsEvent();
             ModLoader.postEvent(contributors);
             TTAspectContributors.register(contributors.contributors());
