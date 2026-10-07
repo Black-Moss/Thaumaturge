@@ -32,7 +32,7 @@ public final class MenuPotionSprayer extends AbstractContainerMenu {
     }
 
     public MenuPotionSprayer(int containerId, Inventory playerInventory, BlockEntityPotionSprayer sprayer) {
-        this(containerId, playerInventory, new SprayerContainer(sprayer), ContainerLevelAccess.create(sprayer.getLevel(), sprayer.getBlockPos()), sprayer.getBlockPos());
+        this(containerId, playerInventory, new PotionSprayerContainer(sprayer), ContainerLevelAccess.create(sprayer.getLevel(), sprayer.getBlockPos()), sprayer.getBlockPos());
     }
 
     private MenuPotionSprayer(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access, BlockPos pos) {
@@ -95,19 +95,4 @@ public final class MenuPotionSprayer extends AbstractContainerMenu {
         return copy;
     }
 
-    private static final class SprayerContainer extends SimpleContainer {
-        private final BlockEntityPotionSprayer sprayer;
-
-        SprayerContainer(BlockEntityPotionSprayer sprayer) {
-            super(1);
-            this.sprayer = sprayer;
-            setItem(0, sprayer.getPotion().copy());
-        }
-
-        @Override
-        public void setChanged() {
-            super.setChanged();
-            sprayer.setPotion(getItem(0).copy());
-        }
-    }
 }
