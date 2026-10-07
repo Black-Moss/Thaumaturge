@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
@@ -26,6 +27,7 @@ public final class MenuDeconstructionTable extends AbstractTTMenu implements Blo
     private final @Nullable BlockEntityDeconstructionTable blockEntity;
     private final ContainerLevelAccess access;
     private final BlockPos pos;
+    private final DataSlot breakTime = DataSlot.standalone();
 
     public MenuDeconstructionTable(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInventory, clientBlockEntity(playerInventory, buf.readBlockPos()));
@@ -46,6 +48,20 @@ public final class MenuDeconstructionTable extends AbstractTTMenu implements Blo
 
         addInventoryExtendedSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y);
         addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, HOTBAR_Y);
+        breakTime.set(BlockEntityDeconstructionTable.BREAK_TIME_TICKS);
+        addDataSlot(breakTime);
+    }
+
+    @Override
+    public void broadcastChanges() {
+        if (blockEntity != null && blockEntity.getLevel() != null && !blockEntity.getLevel().isClientSide()) {
+            breakTime.set(blockEntity.breakTime());
+        }
+        super.broadcastChanges();
+    }
+
+    public int breakTime() {
+        return breakTime.get();
     }
 
     @Override

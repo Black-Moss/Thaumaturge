@@ -162,7 +162,7 @@ public final class HarvestBehavior implements ISealBehavior {
         ItemStack seed = site.seed().copyWithCount(1);
         BlockPos support = pos.relative(site.face());
         if (useOn(hand, seed.copy(), new BlockHitResult(Vec3.atCenterOf(support), site.face().getOpposite(), support, false)) instanceof InteractionResult.Success) {
-            level.globalLevelEvent(BREAK_EFFECT, pos, Block.getId(level.getBlockState(pos)));
+            level.levelEvent(BREAK_EFFECT, pos, Block.getId(level.getBlockState(pos)));
             golem.hands().release(seed);
             golem.addRankXp(1);
             golem.swingArm();

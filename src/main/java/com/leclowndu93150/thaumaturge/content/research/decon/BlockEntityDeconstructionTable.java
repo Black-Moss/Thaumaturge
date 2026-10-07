@@ -75,16 +75,12 @@ public final class BlockEntityDeconstructionTable extends AbstractSyncedBlockEnt
             if (table.breakTime != BREAK_TIME_TICKS) {
                 table.breakTime = BREAK_TIME_TICKS;
                 table.setChanged();
-                table.syncToClient();
             }
             return;
         }
         if (--table.breakTime <= 0) {
             table.breakTime = BREAK_TIME_TICKS;
             table.breakItem(level, pos);
-        }
-        if (table.breakTime % 10 == 0) {
-            table.syncToClient();
         }
     }
 
