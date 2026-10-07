@@ -44,9 +44,9 @@ public final class ThaumometerItem extends Item {
     }
 
     @Override
-    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+    public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
-        if (player == null || player.isShiftKeyDown()) {
+        if (player == null) {
             return InteractionResult.PASS;
         }
         return beginScan(context.getLevel(), player, context.getHand());
@@ -54,9 +54,6 @@ public final class ThaumometerItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (player.isShiftKeyDown()) {
-            return InteractionResult.PASS;
-        }
         return beginScan(level, player, hand);
     }
 
