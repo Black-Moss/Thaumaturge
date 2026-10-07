@@ -17,6 +17,7 @@ import com.leclowndu93150.thaumaturge.registry.TTGolemAccessories;
 import com.leclowndu93150.thaumaturge.registry.TTGolemParts;
 import com.leclowndu93150.thaumaturge.registry.TTGolemTraits;
 import com.leclowndu93150.thaumaturge.registry.TTIngredientTypes;
+import com.leclowndu93150.thaumaturge.registry.TTInstabilityEffects;
 import com.leclowndu93150.thaumaturge.registry.TTLabyrinthEncounterTypes;
 import com.leclowndu93150.thaumaturge.registry.TTLabyrinthMarkers;
 import com.leclowndu93150.thaumaturge.registry.TTLootTypes;
@@ -140,6 +141,7 @@ public final class Thaumaturge {
         TTObeliskSiteBehaviors.register(modBus);
         TTStructureProcessors.register(modBus);
         TTLootTypes.register(modBus);
+        TTInstabilityEffects.register(modBus);
         TTTicketTypes.register(modBus);
         TTGolemAccessories.register();
 
