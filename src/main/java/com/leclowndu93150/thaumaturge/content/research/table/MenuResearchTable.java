@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.table;
 
 import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
+import com.leclowndu93150.thaumaturge.content.menu.BlockMenu;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.core.BlockPos;
@@ -15,7 +16,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
-public final class MenuResearchTable extends AbstractTTMenu {
+public final class MenuResearchTable extends AbstractTTMenu implements BlockMenu<BlockEntityResearchTable> {
     public static final int SCRIBE_TOOLS_X = 14;
     public static final int SCRIBE_TOOLS_Y = 5;
     public static final int NOTE_X = 70;
@@ -79,6 +80,7 @@ public final class MenuResearchTable extends AbstractTTMenu {
         return pos;
     }
 
+    @Override
     public @Nullable BlockEntityResearchTable blockEntity() {
         return blockEntity;
     }

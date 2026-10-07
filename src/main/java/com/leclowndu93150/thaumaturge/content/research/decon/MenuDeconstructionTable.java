@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.decon;
 
 import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
+import com.leclowndu93150.thaumaturge.content.menu.BlockMenu;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.core.BlockPos;
@@ -14,7 +15,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
-public final class MenuDeconstructionTable extends AbstractTTMenu {
+public final class MenuDeconstructionTable extends AbstractTTMenu implements BlockMenu<BlockEntityDeconstructionTable> {
     public static final int INPUT_X = 63;
     public static final int INPUT_Y = 15;
     private static final int PLAYER_GRID_X = 8;
@@ -47,6 +48,7 @@ public final class MenuDeconstructionTable extends AbstractTTMenu {
         addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, HOTBAR_Y);
     }
 
+    @Override
     public @Nullable BlockEntityDeconstructionTable blockEntity() {
         return blockEntity;
     }

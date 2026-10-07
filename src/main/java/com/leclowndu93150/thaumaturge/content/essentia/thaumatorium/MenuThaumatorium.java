@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.thaumatorium;
 
 import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
+import com.leclowndu93150.thaumaturge.content.menu.BlockMenu;
 import com.leclowndu93150.thaumaturge.network.ClientboundThaumatoriumRecipesPayload;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
-public final class MenuThaumatorium extends AbstractTTMenu {
+public final class MenuThaumatorium extends AbstractTTMenu implements BlockMenu<BlockEntityThaumatorium> {
     private static final int MACHINE_SLOTS = 1;
     private static final double REACH_BUFFER = 4.0;
 
@@ -34,6 +35,11 @@ public final class MenuThaumatorium extends AbstractTTMenu {
 
     public MenuThaumatorium(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(containerId, playerInventory, clientBlockEntity(playerInventory, buf));
+    }
+
+    @Override
+    public @Nullable BlockEntityThaumatorium blockEntity() {
+        return blockEntity;
     }
 
     private static @Nullable BlockEntityThaumatorium clientBlockEntity(Inventory playerInventory, RegistryFriendlyByteBuf buf) {

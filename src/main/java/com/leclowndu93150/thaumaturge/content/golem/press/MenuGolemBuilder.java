@@ -2,9 +2,9 @@ package com.leclowndu93150.thaumaturge.content.golem.press;
 
 import com.leclowndu93150.thaumaturge.content.golem.ItemGolemPlacer;
 import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
+import com.leclowndu93150.thaumaturge.content.menu.BlockMenu;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -17,7 +17,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
-public final class MenuGolemBuilder extends AbstractTTMenu {
+public final class MenuGolemBuilder extends AbstractTTMenu implements BlockMenu<BlockEntityGolemBuilder> {
     public static final int OUTPUT_X = 160;
     public static final int OUTPUT_Y = 104;
     public static final int PLAYER_GRID_X = 24;
@@ -74,10 +74,7 @@ public final class MenuGolemBuilder extends AbstractTTMenu {
         return maxCost.get();
     }
 
-    public boolean isFor(BlockPos pos) {
-        return access.evaluate((level, at) -> at.equals(pos), false);
-    }
-
+    @Override
     public @Nullable BlockEntityGolemBuilder blockEntity() {
         return (BlockEntityGolemBuilder) access.evaluate(Level::getBlockEntity).filter(be -> be instanceof BlockEntityGolemBuilder).orElse(null);
     }
