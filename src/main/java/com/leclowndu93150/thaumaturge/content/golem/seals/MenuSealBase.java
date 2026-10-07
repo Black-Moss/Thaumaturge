@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealFilter;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPanel;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealSetting;
+import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
 import java.util.List;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.core.BlockPos;
@@ -13,14 +14,13 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-public final class MenuSealBase extends AbstractContainerMenu {
+public final class MenuSealBase extends AbstractTTMenu {
     public static final int BUTTON_BLACKLIST_ON = 20;
     public static final int BUTTON_BLACKLIST_OFF = 21;
     public static final int BUTTON_LOCK = 25;
@@ -77,14 +77,8 @@ public final class MenuSealBase extends AbstractContainerMenu {
         } else {
             filterSlotCount = 0;
         }
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInventory, col, PLAYER_GRID_X + col * 18, HOTBAR_Y));
-        }
+        addInventoryExtendedSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y);
+        addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, HOTBAR_Y);
         addDataSlot(priority);
         addDataSlot(areaX);
         addDataSlot(areaY);
