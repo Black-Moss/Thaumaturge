@@ -57,6 +57,15 @@ public final class EncounterState {
         return bound;
     }
 
+    public boolean binds(UUID uuid) {
+        for (BoundEntity entry : bound) {
+            if (entry.uuid().equals(uuid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int scaledFor() {
         return scaledFor;
     }
