@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.spell.carrier;
 
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellStats;
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
-import com.leclowndu93150.thaumaturge.content.spell.delivery.SpellLook;
 import com.leclowndu93150.thaumaturge.content.spell.world.SpellTargeting;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import java.util.ArrayList;
@@ -42,8 +41,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
     private static final double TRAIL_JITTER = 0.02;
     private static final double BOUNCE_LIFT = 0.05;
 
-    private @Nullable CarrierPayload payload;
-    private SpellLook look = SpellLook.DEFAULT;
+    private final CarrierCharge charge = new CarrierCharge();
     private double gravity;
     private float splash;
     private boolean homing;
@@ -58,8 +56,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
 
     public static void launch(ServerLevel level, LivingEntity owner, CarrierPayload payload, SpellTarget origin, float speed, double gravity, float splash) {
         SpellProjectile projectile = new SpellProjectile(TTEntities.FOCUS_PROJECTILE.get(), level);
-        projectile.payload = payload;
-        projectile.look = payload.look();
+        projectile.charge.arm(payload);
         projectile.gravity = gravity;
         projectile.splash = splash;
         projectile.homing = payload.continuation().state().has(SpellStats.HOMING);
@@ -82,7 +79,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
-        SpellLook.STREAM_CODEC.encode(buffer, look);
+        charge.writeLook(buffer);
         buffer.writeDouble(gravity);
         buffer.writeBoolean(homing);
         buffer.writeVarInt(bounces);
@@ -90,7 +87,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buffer) {
-        look = SpellLook.STREAM_CODEC.decode(buffer);
+        charge.readLook(buffer);
         gravity = buffer.readDouble();
         homing = buffer.readBoolean();
         bounces = buffer.readVarInt();
@@ -99,7 +96,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
-        CarrierPayload.save(output, payload);
+        charge.save(output);
         output.putDouble("gravity", gravity);
         output.putFloat("splash", splash);
         output.putBoolean("homing", homing);
@@ -110,8 +107,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        payload = CarrierPayload.load(input);
-        look = payload != null ? payload.look() : SpellLook.DEFAULT;
+        charge.load(input);
         gravity = input.getDoubleOr("gravity", 0.0);
         splash = input.getFloatOr("splash", 0.0F);
         homing = input.getBooleanOr("homing", false);
@@ -126,7 +122,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
             trail();
             return;
         }
-        if (tickCount > LIFESPAN || getOwner() == null || payload == null) {
+        if (tickCount > LIFESPAN || getOwner() == null || charge.isSpent()) {
             discard();
             return;
         }
@@ -146,17 +142,17 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
             bounce(blockHit);
             return;
         }
-        if (!(level() instanceof ServerLevel level) || payload == null) {
+        if (!(level() instanceof ServerLevel level) || charge.isSpent()) {
             return;
         }
         Vec3 heading = getDeltaMovement().normalize();
         if (hit instanceof EntityHitResult entityHit && pierce > 0) {
             pierce--;
             pierced.add(entityHit.getEntity().getId());
-            payload.resume(level, List.of(SpellTarget.entity(entityHit.getEntity(), heading)));
+            charge.resume(level, List.of(SpellTarget.entity(entityHit.getEntity(), heading)));
             return;
         }
-        payload.resume(level, impact(level, hit, heading));
+        charge.resume(level, impact(level, hit, heading));
         discard();
     }
 
@@ -164,6 +160,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
         List<SpellTarget> targets = new ArrayList<>();
         Entity struck = hit instanceof EntityHitResult entityHit ? entityHit.getEntity() : null;
         targets.add(struck != null ? SpellTarget.entity(struck, heading) : SpellTarget.of(hit, heading));
+        CarrierPayload payload = charge.payload();
         float radius = splash > 0.0F && payload != null ? splash + payload.continuation().state().get(SpellStats.RADIUS) : 0.0F;
         if (radius > 0.0F) {
             Vec3 centre = hit.getLocation();
@@ -215,6 +212,6 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
     private void trail() {
         Vec3 at = position();
         Vec3 jitter = new Vec3(random.nextGaussian() * TRAIL_JITTER, random.nextGaussian() * TRAIL_JITTER, random.nextGaussian() * TRAIL_JITTER);
-        CarrierPayload.particle(level(), look, at, jitter);
+        CarrierPayload.particle(level(), charge.look(), at, jitter);
     }
 }
