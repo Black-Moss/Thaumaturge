@@ -18,6 +18,10 @@ public final class EssentiaSourceEffectTracker {
 
     private EssentiaSourceEffectTracker() {}
 
+    public static void resetSession() {
+        PENDING.clear();
+    }
+
     public static void dispatch(ServerLevel level, Vec3 from, Vec3 to, int color, int typeTag, int count, float scale, int extend, double my) {
         BlockPos bpFrom = BlockPos.containing(from);
         BlockPos bpTo = BlockPos.containing(to);

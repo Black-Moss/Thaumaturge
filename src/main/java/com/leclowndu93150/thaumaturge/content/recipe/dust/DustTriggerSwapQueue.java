@@ -31,6 +31,11 @@ public final class DustTriggerSwapQueue {
 
     public DustTriggerSwapQueue() {}
 
+    public static void resetSession() {
+        ACTIVE.clear();
+        BLOCKED.clear();
+    }
+
     private static DustTriggerSwapQueue fromCodec(List<PendingSwap> entries) {
         DustTriggerSwapQueue queue = new DustTriggerSwapQueue();
         queue.pending.addAll(entries);

@@ -18,6 +18,7 @@ import net.neoforged.neoforge.registries.datamaps.DataMapsUpdatedEvent;
 public final class AspectIndexEvents {
     private static volatile boolean datamapsReady = false;
     private static volatile MinecraftServer pendingServer = null;
+    private static volatile MinecraftServer runningServer = null;
 
     private AspectIndexEvents() {}
 
@@ -30,7 +31,7 @@ public final class AspectIndexEvents {
             return;
         }
         datamapsReady = true;
-        MinecraftServer server = pendingServer;
+        MinecraftServer server = runningServer != null ? runningServer : pendingServer;
         if (server != null) {
             buildAndBroadcast(server);
         }
@@ -39,6 +40,7 @@ public final class AspectIndexEvents {
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
         MinecraftServer server = event.getServer();
+        runningServer = server;
         if (datamapsReady) {
             buildAndBroadcast(server);
         } else {
@@ -50,6 +52,7 @@ public final class AspectIndexEvents {
     public static void onServerStopped(ServerStoppedEvent event) {
         datamapsReady = false;
         pendingServer = null;
+        runningServer = null;
         AspectIndexHolder.set(AspectIndex.EMPTY);
     }
 

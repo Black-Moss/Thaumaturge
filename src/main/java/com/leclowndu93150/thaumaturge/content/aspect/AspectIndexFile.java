@@ -29,6 +29,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.fml.loading.FMLPaths;
 
@@ -61,8 +62,10 @@ public final class AspectIndexFile {
             Collections.sort(parts);
             lines.add("base:" + BuiltInRegistries.ITEM.getKey(item) + ":" + String.join(",", parts));
         }
+        RegistryOps<JsonElement> ops = server.registryAccess().createSerializationContext(JsonOps.INSTANCE);
         for (RecipeHolder<?> holder : server.getRecipeManager().getRecipes()) {
-            lines.add("recipe:" + holder.id().identifier());
+            String contents = Recipe.CODEC.encodeStart(ops, holder.value()).result().map(JsonElement::toString).orElse("");
+            lines.add("recipe:" + holder.id().identifier() + ":" + contents);
         }
         Collections.sort(lines);
         MessageDigest digest;

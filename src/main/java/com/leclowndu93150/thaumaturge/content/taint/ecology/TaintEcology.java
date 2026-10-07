@@ -27,7 +27,7 @@ public final class TaintEcology {
         if (pressure == null) {
             return 0.0F;
         }
-        float saturation = pressure.saturationAt(level.getGameTime(), DECAY_PER_TICK * (1.0F - fluxSaturation(level, pos) * FLUX_DECAY_DAMPING));
+        float saturation = pressure.saturationAt(level.getGameTime(), decayRate(level, pos));
         return saturation < MINIMUM_SATURATION ? 0.0F : saturation;
     }
 
@@ -69,7 +69,7 @@ public final class TaintEcology {
         }
         long now = level.getGameTime();
         TaintPressure existing = chunk.getExistingDataOrNull(TTAttachments.TAINT_PRESSURE.get());
-        float current = existing == null ? 0.0F : existing.saturationAt(now, DECAY_PER_TICK);
+        float current = existing == null ? 0.0F : existing.saturationAt(now, decayRate(level, pos));
         return store(chunk, now, Mth.clamp(current + delta, 0.0F, 1.0F), activeSeed);
     }
 
@@ -88,6 +88,10 @@ public final class TaintEcology {
         }
         chunk.markUnsaved();
         return saturation;
+    }
+
+    private static float decayRate(ServerLevel level, BlockPos pos) {
+        return DECAY_PER_TICK * (1.0F - fluxSaturation(level, pos) * FLUX_DECAY_DAMPING);
     }
 
     private static float fluxSaturation(ServerLevel level, BlockPos pos) {

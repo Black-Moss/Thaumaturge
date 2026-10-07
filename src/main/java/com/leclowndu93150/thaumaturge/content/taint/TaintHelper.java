@@ -144,6 +144,13 @@ public final class TaintHelper {
         return count;
     }
 
+    public static boolean placeFibreFromFlux(ServerLevel level, BlockPos pos) {
+        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !ThaumaturgeCommonConfig.TAINT_FROM_FLUX.get() || TaintBlooms.isProtected(level, pos)) {
+            return false;
+        }
+        return level.setBlock(pos, BlockTaintFibre.stateForWorld(level, pos), Block.UPDATE_ALL);
+    }
+
     public static void spreadFibres(ServerLevel level, BlockPos pos, boolean force) {
         if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !level.hasChunkAt(pos) || TaintBlooms.isProtected(level, pos)) {
             return;

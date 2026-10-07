@@ -38,6 +38,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockFluxGas extends Block implements PhysicalFluxBlock, LiquidBlockContainer {
+    private static final int MIN_SPREAD_DIFFERENCE = 2;
+
     public static final MapCodec<BlockFluxGas> CODEC = simpleCodec(BlockFluxGas::new);
     public static final IntegerProperty AMOUNT = IntegerProperty.create("amount", 1, PhysicalFlux.MAX_QUANTA);
 
@@ -195,7 +197,7 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos target = pos.relative(direction);
             int neighbour = room(level, target);
-            if (neighbour >= 0 && neighbour < amount) {
+            if (neighbour >= 0 && amount - neighbour >= MIN_SPREAD_DIFFERENCE) {
                 targets[count++] = target;
                 total += neighbour;
             }
