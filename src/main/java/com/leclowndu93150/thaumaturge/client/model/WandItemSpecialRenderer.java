@@ -14,7 +14,9 @@ import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -60,6 +62,17 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
     private static final float CAP_PIVOT_BOTTOM_PX = 20.0F;
     private static final float CAP_STAFF_SCALE_Y = 1.1F;
     private static final float SCEPTRE_CAP_SCALE = 1.3F;
+    private static final float EXTENT_HALF_WIDTH = 0.15F;
+    private static final float WAND_EXTENT_MIN_Y = -0.8125F;
+    private static final float WAND_EXTENT_MAX_Y = 0.6875F;
+    private static final float STAFF_EXTENT_MIN_Y = -2.1063F;
+    private static final float STAFF_EXTENT_MAX_Y = 0.5547F;
+
+    private final boolean staff;
+
+    public WandItemSpecialRenderer(boolean staff) {
+        this.staff = staff;
+    }
 
     @Override
     public void submit(@Nullable WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, int overlay, boolean glint, int seed) {
@@ -250,8 +263,8 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
 
     @Override
     public void getExtents(Consumer<Vector3fc> consumer) {
-        consumer.accept(new Vector3f(-0.3F, -0.2F, -0.3F));
-        consumer.accept(new Vector3f(0.3F, 1.6F, 0.3F));
+        consumer.accept(new Vector3f(MODEL_LIFT - EXTENT_HALF_WIDTH, staff ? STAFF_EXTENT_MIN_Y : WAND_EXTENT_MIN_Y, MODEL_LIFT - EXTENT_HALF_WIDTH));
+        consumer.accept(new Vector3f(MODEL_LIFT + EXTENT_HALF_WIDTH, staff ? STAFF_EXTENT_MAX_Y : WAND_EXTENT_MAX_Y, MODEL_LIFT + EXTENT_HALF_WIDTH));
     }
 
     @Override
@@ -271,12 +284,13 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         return new WandArg(parts.cap(), parts.rod(), parts.sceptre(), hasFocus, color);
     }
 
-    public record Unbaked() implements SpecialModelRenderer.Unbaked<WandArg> {
-        public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(Unbaked::new);
+    public record Unbaked(boolean staff) implements SpecialModelRenderer.Unbaked<WandArg> {
+        public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder
+                .mapCodec(instance -> instance.group(Codec.BOOL.optionalFieldOf("staff", false).forGetter(Unbaked::staff)).apply(instance, Unbaked::new));
 
         @Override
         public @Nullable SpecialModelRenderer<WandArg> bake(BakingContext context) {
-            return new WandItemSpecialRenderer();
+            return new WandItemSpecialRenderer(staff);
         }
 
         @Override

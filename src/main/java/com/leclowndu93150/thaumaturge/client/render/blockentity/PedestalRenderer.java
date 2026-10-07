@@ -28,14 +28,16 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
 
     private final ItemModelResolver itemModelResolver;
     private final float itemScale;
+    private final float floatHeight;
 
     public PedestalRenderer(BlockEntityRendererProvider.Context context) {
-        this(context, ITEM_SCALE);
+        this(context, ITEM_SCALE, 0.0F);
     }
 
-    public PedestalRenderer(BlockEntityRendererProvider.Context context, float itemScale) {
+    public PedestalRenderer(BlockEntityRendererProvider.Context context, float itemScale, float floatHeight) {
         this.itemModelResolver = context.itemModelResolver();
         this.itemScale = itemScale;
+        this.floatHeight = floatHeight;
     }
 
     @Override
@@ -67,7 +69,7 @@ public final class PedestalRenderer<T extends BlockEntityPedestal> implements Bl
             return;
         }
         poseStack.pushPose();
-        poseStack.translate(0.5F, state.height, 0.5F);
+        poseStack.translate(0.5F, state.height + floatHeight, 0.5F);
         poseStack.scale(itemScale, itemScale, itemScale);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.spin));
         poseStack.translate(0.0F, state.groundLift, 0.0F);

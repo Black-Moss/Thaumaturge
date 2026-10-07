@@ -696,8 +696,8 @@ public final class TTModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TTItems.CREATIVE_NODE_PLACER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.SALIS_MUNDUS.get(), ModelTemplates.FLAT_ITEM);
         itemModels.itemModelOutput.accept(TTItems.WAND.get(),
-                ItemModelUtils.conditional(new WandIsStaffProperty(), new SpecialModelWrapper.Unbaked(TTIds.rl("item/wand_staff_base"), Optional.empty(), new WandItemSpecialRenderer.Unbaked()),
-                        new SpecialModelWrapper.Unbaked(TTIds.rl("item/wand_base"), Optional.empty(), new WandItemSpecialRenderer.Unbaked())));
+                ItemModelUtils.conditional(new WandIsStaffProperty(), new SpecialModelWrapper.Unbaked(TTIds.rl("item/wand_staff_base"), Optional.empty(), new WandItemSpecialRenderer.Unbaked(true)),
+                        new SpecialModelWrapper.Unbaked(TTIds.rl("item/wand_base"), Optional.empty(), new WandItemSpecialRenderer.Unbaked(false))));
         itemModels.generateFlatItem(TTItems.WAND_CAP_IRON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.WAND_CAP_COPPER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.WAND_CAP_GOLD.get(), ModelTemplates.FLAT_ITEM);
