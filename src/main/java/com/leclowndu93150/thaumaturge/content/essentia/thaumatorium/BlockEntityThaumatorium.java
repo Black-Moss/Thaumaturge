@@ -12,17 +12,20 @@ import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInpu
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
+import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -121,21 +124,14 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
     }
 
     private @Nullable RecipeHolder<?> findRecipe(ServerLevel server, Identifier recipeId) {
-        for (RecipeHolder<?> holder : server.recipeAccess().getRecipes()) {
-            if (holder.id().identifier().equals(recipeId)) {
-                return holder;
-            }
-        }
-        return null;
+        return server.recipeAccess().byKey(ResourceKey.create(Registries.RECIPE, recipeId)).orElse(null);
     }
 
     public List<CrucibleRecipe> candidateRecipes(ServerLevel server, Player player, List<Identifier> idsOut) {
         List<CrucibleRecipe> found = new ArrayList<>();
         ItemStack stack = catalystStack();
-        for (RecipeHolder<?> holder : server.recipeAccess().getRecipes()) {
-            if (!(holder.value() instanceof CrucibleRecipe recipe)) {
-                continue;
-            }
+        for (RecipeHolder<CrucibleRecipe> holder : server.recipeAccess().recipeMap().byType(TTRecipeTypes.CRUCIBLE.get())) {
+            CrucibleRecipe recipe = holder.value();
             Identifier id = holder.id().identifier();
             boolean queued = queue.contains(id);
             boolean matches = !stack.isEmpty() && recipe.catalyst().test(stack) && recipe.doesPassGate(player);

@@ -54,6 +54,11 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
         return be instanceof BlockEntityMirrorBase mirror && isSameKind(mirror) ? mirror : null;
     }
 
+    private boolean isTargetLoaded() {
+        ServerLevel targetLevel = targetLevel();
+        return targetLevel != null && link != null && targetLevel.isLoaded(link.pos());
+    }
+
     protected @Nullable ServerLevel targetLevel() {
         if (level == null || level.isClientSide() || link == null || level.getServer() == null) {
             return null;
@@ -152,7 +157,7 @@ public abstract class BlockEntityMirrorBase extends BlockEntity {
 
     protected void tickLink() {
         checkInstability();
-        if (count++ % inc == 0) {
+        if (count++ % inc == 0 && isTargetLoaded()) {
             if (!isLinkValidSimple()) {
                 if (inc < RETRY_MAX_INTERVAL) {
                     inc += RETRY_BACKOFF;

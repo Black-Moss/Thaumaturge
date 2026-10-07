@@ -80,6 +80,7 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public class BlockEntityNode extends BlockEntity implements IAspectContainer {
+    private static final int HUNGRY_SCAN_INTERVAL = 10;
     private static final int REGEN_INTERVAL_NORMAL = 600;
     private static final int REGEN_INTERVAL_BRIGHT = 400;
     private static final int REGEN_INTERVAL_PALE = 900;
@@ -139,6 +140,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final int PEARL_NEW_PRIMAL_MAX_RESEARCHED = 4;
     private static final int PEARL_BRIGHT_CHANCE = 5;
 
+    private List<Entity> hungryTargets = List.of();
+    private long hungryScanAt;
     private NodeType nodeType = NodeType.NORMAL;
     private @Nullable NodeModifier nodeModifier;
     protected AspectList aspects = AspectList.EMPTY;
@@ -1035,8 +1038,11 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         }
         Vec3 center = Vec3.atCenterOf(pos);
         double itemPullRange = hungryBlockEatRange() + HUNGRY_ITEM_PULL_MARGIN;
-        List<Entity> targets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(Math.max(itemPullRange, HUNGRY_PULL_RANGE)));
-        for (Entity target : targets) {
+        if (serverLevel.getGameTime() >= hungryScanAt) {
+            hungryScanAt = serverLevel.getGameTime() + HUNGRY_SCAN_INTERVAL;
+            hungryTargets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(Math.max(itemPullRange, HUNGRY_PULL_RANGE)));
+        }
+        for (Entity target : hungryTargets) {
             if (target instanceof Player player && (player.isCreative() || player.isSpectator())) {
                 continue;
             }

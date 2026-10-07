@@ -56,6 +56,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
     private static final float STABILITY_FLOOR = -100.0F;
     private static final int IDLE_VALIDATE_INTERVAL = 100;
     private static final int CRAFT_VALIDATE_INTERVAL = 20;
+    private static final int CRAFT_RESURVEY_INTERVAL = 100;
     private static final int ITEM_PULL_TICKS = 5;
     private static final int FINISH_GRACE_CYCLES = 2;
     private static final int INSTABILITY_ROLL_BOUND = 1500;
@@ -121,7 +122,6 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         if (environment == null || checkSurroundings) {
             checkSurroundings = false;
             environment = MatrixEnvironment.survey(level, worldPosition);
-            essentiaSources.invalidate();
             if (stabilityReplenish != environment.stabilityReplenish()) {
                 stabilityReplenish = environment.stabilityReplenish();
                 setChanged();
@@ -133,6 +133,9 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
 
     private void tickServer(ServerLevel level) {
         count++;
+        if (isCrafting() && count % CRAFT_RESURVEY_INTERVAL == 0) {
+            checkSurroundings = true;
+        }
         MatrixEnvironment env = environment(level);
         int interval = isCrafting() ? CRAFT_VALIDATE_INTERVAL : IDLE_VALIDATE_INTERVAL;
         if (count % interval == 0 && !MatrixEnvironment.validLocation(level, worldPosition)) {
@@ -186,6 +189,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
 
     public boolean tryStartCraft(ServerLevel level, Player player) {
         checkSurroundings = true;
+        essentiaSources.invalidate();
         if (!MatrixEnvironment.validLocation(level, worldPosition)) {
             active = false;
             setChanged();
@@ -354,9 +358,8 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
                 return;
             }
             stability -= ESSENTIA_STARVE_PENALTY;
-            syncToClient();
         }
-        checkSurroundings = true;
+        syncToClient();
     }
 
     private void pullIngredientCycle(ServerLevel level, MatrixEnvironment env) {

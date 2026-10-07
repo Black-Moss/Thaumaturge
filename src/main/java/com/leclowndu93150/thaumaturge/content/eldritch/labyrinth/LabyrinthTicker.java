@@ -118,8 +118,9 @@ public final class LabyrinthTicker {
                 continue;
             }
             MazeState state = record.get().state();
-            state.visit(level.getGameTime());
-            data.setDirty();
+            if (state.visit(level.getGameTime())) {
+                data.setDirty();
+            }
             Iterator<PendingTrigger> pending = state.triggers().iterator();
             while (pending.hasNext()) {
                 PendingTrigger trigger = pending.next();
@@ -132,6 +133,7 @@ public final class LabyrinthTicker {
                     continue;
                 }
                 pending.remove();
+                data.setDirty();
                 trigger.marker().trigger(context, trigger.pos());
             }
         }
