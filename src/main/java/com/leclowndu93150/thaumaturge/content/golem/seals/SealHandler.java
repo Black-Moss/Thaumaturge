@@ -54,14 +54,8 @@ public final class SealHandler {
         return out;
     }
 
-    public static List<SealEntity> getSealsInChunk(ServerLevel level, ChunkPos chunk) {
-        List<SealEntity> out = new ArrayList<>();
-        for (SealEntity seal : index(level).seals().values()) {
-            if (new ChunkPos(seal.pos().pos().getX() >> 4, seal.pos().pos().getZ() >> 4).equals(chunk)) {
-                out.add(seal);
-            }
-        }
-        return out;
+    public static List<SealEntity> getSealsInChunk(LevelChunk chunk) {
+        return chunk.getData(TTAttachments.SEALS).seals();
     }
 
     public static boolean place(ServerLevel level, SealPos pos, Identifier typeId, SealType type, Player player) {
@@ -100,7 +94,7 @@ public final class SealHandler {
             level.addFreshEntity(new ItemEntity(level, spot.x, spot.y, spot.z, new ItemStack(seal.type().placer())));
         }
         TaskBoard.of(level).endAllFrom(pos);
-        PacketDistributor.sendToPlayersInDimension(level, ClientboundSealPayload.remove(pos));
+        PacketDistributor.sendToPlayersTrackingChunk(level, ChunkPos.containing(pos.pos()), ClientboundSealPayload.remove(pos));
     }
 
     public static void loadChunkSeals(ServerLevel level, LevelChunk chunk) {
@@ -111,8 +105,10 @@ public final class SealHandler {
     }
 
     public static void unloadChunkSeals(ServerLevel level, LevelChunk chunk) {
-        ChunkPos chunkPos = chunk.getPos();
-        index(level).seals().values().removeIf(seal -> new ChunkPos(seal.pos().pos().getX() >> 4, seal.pos().pos().getZ() >> 4).equals(chunkPos));
+        SealWorldIndex index = index(level);
+        for (SealEntity seal : chunk.getData(TTAttachments.SEALS).seals()) {
+            index.seals().remove(seal.pos(), seal);
+        }
     }
 
     public static void tickSealEntities(ServerLevel level) {

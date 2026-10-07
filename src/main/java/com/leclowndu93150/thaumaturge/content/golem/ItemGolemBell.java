@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.content.golem.logistics.LogisticsGuiOpener;
 import com.leclowndu93150.thaumaturge.content.golem.logistics.LogisticsTarget;
+import com.leclowndu93150.thaumaturge.content.golem.seals.SealAccess;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.core.BlockPos;
@@ -39,12 +40,7 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
         }
         ISealEntity seal = getAimedSeal(player);
         if (seal != null) {
-            if (player.isShiftKeyDown()) {
-                SealHandler.removeSealEntity((ServerLevel) level, seal.pos(), false);
-                level.playSound(null, seal.pos().pos(), TTSounds.ZAP.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-            } else {
-                SealGuiOpener.open(player, seal);
-            }
+            useOnSeal((ServerLevel) level, player, seal);
             return InteractionResult.FAIL;
         }
         if (LogisticsGuiOpener.canOpen(player)) {
@@ -77,13 +73,17 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (player.isShiftKeyDown()) {
-            SealHandler.removeSealEntity((ServerLevel) level, seal.pos(), false);
-            level.playSound(null, context.getClickedPos(), TTSounds.ZAP.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-        } else {
-            SealGuiOpener.open(player, seal);
-        }
+        useOnSeal((ServerLevel) level, player, seal);
         return InteractionResult.SUCCESS_SERVER;
+    }
+
+    private static void useOnSeal(ServerLevel level, Player player, ISealEntity seal) {
+        if (!player.isShiftKeyDown()) {
+            SealGuiOpener.open(player, seal);
+        } else if (SealAccess.mayEdit(player, seal)) {
+            SealHandler.removeSealEntity(level, seal.pos(), false);
+            level.playSound(null, seal.pos().pos(), TTSounds.ZAP.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+        }
     }
 
     public static @Nullable ISealEntity getAimedSeal(Player player) {
@@ -99,6 +99,9 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
                 ISealEntity seal = sealOnEntryFace(player, cell, delta);
                 if (seal != null) {
                     return seal;
+                }
+                if (!player.level().getBlockState(cell).getCollisionShape(player.level(), cell).isEmpty()) {
+                    return null;
                 }
                 previous = cell;
             }

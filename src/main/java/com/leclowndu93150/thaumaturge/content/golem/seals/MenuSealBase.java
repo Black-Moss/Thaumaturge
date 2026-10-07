@@ -149,6 +149,13 @@ public final class MenuSealBase extends AbstractContainerMenu {
             panel = panels.get(id);
             return true;
         }
+        if (id == BUTTON_REDSTONE_ON || id == BUTTON_REDSTONE_OFF) {
+            seal.setRedstoneControlled(id == BUTTON_REDSTONE_ON);
+            return true;
+        }
+        if (!SealAccess.mayEdit(player, seal)) {
+            return false;
+        }
         if (seal.type().showsSettings()) {
             List<SealSetting> settings = seal.type().settings();
             if (id >= BUTTON_TOGGLE_ON_BASE && id < BUTTON_TOGGLE_ON_BASE + settings.size()) {
@@ -166,10 +173,6 @@ public final class MenuSealBase extends AbstractContainerMenu {
                 return true;
             }
             return false;
-        }
-        if (id == BUTTON_REDSTONE_ON || id == BUTTON_REDSTONE_OFF) {
-            seal.setRedstoneControlled(id == BUTTON_REDSTONE_ON);
-            return true;
         }
         if ((id == BUTTON_BLACKLIST_ON || id == BUTTON_BLACKLIST_OFF) && seal.filter().isPresent()) {
             seal.filter().get().setBlacklist(id == BUTTON_BLACKLIST_ON);
@@ -240,6 +243,9 @@ public final class MenuSealBase extends AbstractContainerMenu {
     @Override
     public void clicked(int slotId, int button, ContainerInput clickType, Player player) {
         if (slotId >= 0 && slotId < slots.size() && slots.get(slotId) instanceof GhostSlot ghost && seal != null && seal.filter().isPresent()) {
+            if (!SealAccess.mayEdit(player, seal)) {
+                return;
+            }
             ghostClick(ghost, button, clickType, seal.filter().get());
             seal.markChanged(player.level());
             return;
@@ -293,7 +299,7 @@ public final class MenuSealBase extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return seal != null;
+        return seal != null && SealAccess.isLive(player, seal);
     }
 
     @Override

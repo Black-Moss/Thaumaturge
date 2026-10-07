@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.network;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockEntityGolemBuilder;
+import com.leclowndu93150.thaumaturge.content.golem.press.MenuGolemBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -24,7 +25,11 @@ public record ServerboundGolemPressPayload(BlockPos pos, GolemProperties props, 
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            if (!(player.level().getBlockEntity(payload.pos()) instanceof BlockEntityGolemBuilder builder)) {
+            if (!(player.containerMenu instanceof MenuGolemBuilder menu) || !menu.isFor(payload.pos()) || !menu.stillValid(player)) {
+                return;
+            }
+            BlockEntityGolemBuilder builder = menu.blockEntity();
+            if (builder == null) {
                 return;
             }
             if (payload.craft()) {

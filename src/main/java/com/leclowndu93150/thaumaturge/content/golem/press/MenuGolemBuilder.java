@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.golem.press;
 import com.leclowndu93150.thaumaturge.content.golem.ItemGolemPlacer;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -80,6 +81,10 @@ public final class MenuGolemBuilder extends AbstractContainerMenu {
 
     public int maxCost() {
         return maxCost.get();
+    }
+
+    public boolean isFor(BlockPos pos) {
+        return access.evaluate((level, at) -> at.equals(pos), false);
     }
 
     public @Nullable BlockEntityGolemBuilder blockEntity() {

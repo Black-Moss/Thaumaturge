@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.golem.press;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
+import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
@@ -188,7 +189,11 @@ public final class BlockEntityGolemBuilder extends BlockEntity implements IEssen
         return result;
     }
 
-    public boolean startCraft(GolemProperties props, Player player) {
+    public boolean startCraft(GolemProperties requested, Player player) {
+        if (cost > 0 || !requested.isKnownBy(KnowledgeAccess.of(player))) {
+            return false;
+        }
+        GolemProperties props = requested.withRank(0);
         ItemStack placer = new ItemStack(TTItems.GOLEM_PLACER.get());
         placer.set(TTDataComponents.GOLEM_PROPERTIES.get(), props);
         ItemStack current = output.getResource(SLOT_OUTPUT).toStack(output.getAmountAsInt(SLOT_OUTPUT));

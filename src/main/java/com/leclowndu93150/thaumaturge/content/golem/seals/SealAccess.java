@@ -6,10 +6,21 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealType;
 import java.util.Set;
 import net.minecraft.core.Holder;
+import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 public final class SealAccess {
+    private static final double REACH_BUFFER = 1.0;
+
     private SealAccess() {}
+
+    public static boolean mayEdit(Player player, ISealEntity seal) {
+        return !seal.isLocked() || player.getUUID().equals(seal.owner()) || player.hasInfiniteMaterials();
+    }
+
+    public static boolean isLive(Player player, ISealEntity seal) {
+        return SealHandler.getSealEntity(player.level(), seal.pos()) == seal && player.isWithinBlockInteractionRange(seal.pos().pos(), REACH_BUFFER);
+    }
 
     public static boolean allows(@Nullable ISealEntity seal, IGolemAPI golem) {
         if (seal == null) {

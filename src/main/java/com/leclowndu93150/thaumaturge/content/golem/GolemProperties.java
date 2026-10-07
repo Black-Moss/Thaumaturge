@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
+import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemProperties;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemAddon;
@@ -14,6 +15,7 @@ import com.leclowndu93150.thaumaturge.registry.TTGolemTraits;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.DecoderException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -27,6 +29,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -41,7 +44,7 @@ public final class GolemProperties implements IGolemProperties {
             .apply(instance, GolemProperties::new));
     public static final StreamCodec<ByteBuf, GolemProperties> STREAM_CODEC = StreamCodec.composite(byId(TTGolemParts::materials), GolemProperties::material, byId(TTGolemParts::heads),
             GolemProperties::head, byId(TTGolemParts::arms), GolemProperties::arms, byId(TTGolemParts::legs), GolemProperties::legs, byId(TTGolemParts::addons), GolemProperties::addon,
-            ByteBufCodecs.VAR_INT, GolemProperties::rank, GolemProperties::new);
+            ByteBufCodecs.VAR_INT.map(rank -> Mth.clamp(rank, 0, MAX_RANK), rank -> rank), GolemProperties::rank, GolemProperties::new);
 
     private final GolemMaterial material;
     private final GolemHead head;
@@ -69,7 +72,17 @@ public final class GolemProperties implements IGolemProperties {
     }
 
     private static <T> StreamCodec<ByteBuf, T> byId(Supplier<Registry<T>> registry) {
-        return Identifier.STREAM_CODEC.map(id -> registry.get().getValue(id), value -> registry.get().getKey(value));
+        return Identifier.STREAM_CODEC.map(id -> {
+            T value = registry.get().getValue(id);
+            if (value == null) {
+                throw new DecoderException("Unknown golem part " + id);
+            }
+            return value;
+        }, value -> registry.get().getKey(value));
+    }
+
+    public boolean isKnownBy(IPlayerKnowledge knowledge) {
+        return Stream.of(material.research(), head.research(), arms.research(), legs.research(), addon.research()).flatMap(List::stream).allMatch(knowledge::isResearchComplete);
     }
 
     @Override
