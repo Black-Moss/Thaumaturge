@@ -18,7 +18,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 public final class RelayTests {
     private static final BlockPos NODE_POS = new BlockPos(1, 2, 1);
     private static final BlockPos RELAY_POS = new BlockPos(1, 2, 4);
-    private static final BlockPos RELAY_CHAIN_POS = new BlockPos(3, 2, 6);
+    private static final BlockPos RELAY_CHAIN_POS = new BlockPos(4, 2, 4);
     private static final BlockPos CONSUMER_POS = new BlockPos(4, 2, 6);
     private static final int IGNIS_AMOUNT = 30;
     private static final int ACCRUE_WAIT_TICKS = 80;
