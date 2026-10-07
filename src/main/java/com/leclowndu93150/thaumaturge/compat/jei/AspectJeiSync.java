@@ -33,15 +33,8 @@ public final class AspectJeiSync {
         runtime = jeiRuntime;
         rebuildAspectStackPages();
         discoveredAspects.clear();
-        Player player = Minecraft.getInstance().player;
-        if (player != null) {
-            player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(ref -> {
-                if (AspectPools.isDiscovered(player, ref)) {
-                    discoveredAspects.add(AspectPools.idOf(ref));
-                }
-            });
-            updateCompositionVisibility(jeiRuntime);
-        }
+        syncDiscovered();
+        updateCompositionVisibility(jeiRuntime);
     }
 
     private static boolean isAffected(Object ingredient, Set<Identifier> changedIds) {
