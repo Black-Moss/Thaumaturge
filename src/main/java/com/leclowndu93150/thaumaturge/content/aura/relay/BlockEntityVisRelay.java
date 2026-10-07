@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.aura.IVisRelaySource;
 import com.leclowndu93150.thaumaturge.api.aura.VisRelayCapabilities;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
@@ -107,7 +108,7 @@ public final class BlockEntityVisRelay extends AbstractSyncedBlockEntity {
             depth = 0;
             relink(level);
         }
-        if (!java.util.Objects.equals(previousParent, parentPos) || previousDepth != depth) {
+        if (!Objects.equals(previousParent, parentPos) || previousDepth != depth) {
             setChanged();
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }

@@ -1,15 +1,26 @@
 package com.leclowndu93150.thaumaturge.compat.jei;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.client.screen.casters.focal.FocalManipulatorScreen;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
-import com.leclowndu93150.thaumaturge.api.aspect.*;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.client.recipes.TTClientRecipes;
-import com.leclowndu93150.thaumaturge.compat.jei.category.*;
+import com.leclowndu93150.thaumaturge.compat.jei.category.ArcaneWorkbenchCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.AspectCompositionCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.AspectFromStacksCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.CrucibleCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.DustTriggerCategory;
 import com.leclowndu93150.thaumaturge.compat.jei.category.InfernalFurnaceCategory.InfernalBonusWrapper;
+import com.leclowndu93150.thaumaturge.compat.jei.category.InfernalFurnaceCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.InfusionCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.MultiblockCategory;
+import com.leclowndu93150.thaumaturge.compat.jei.category.SalisMundusCraftingExtension;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientHelper;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientType;
@@ -22,11 +33,20 @@ import com.leclowndu93150.thaumaturge.content.research.note.NoteGenerator;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
 import com.leclowndu93150.thaumaturge.content.workbench.MenuArcaneWorkbench;
-import com.leclowndu93150.thaumaturge.registry.*;
 
-import java.util.*;
+import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
+import com.leclowndu93150.thaumaturge.registry.TTFluids;
+import com.leclowndu93150.thaumaturge.registry.TTItems;
+import com.leclowndu93150.thaumaturge.registry.TTMenus;
+import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -38,9 +58,15 @@ import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
-import mezz.jei.api.registration.*;
 import mezz.jei.api.registration.IExtraIngredientRegistration;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
+import mezz.jei.api.registration.IModIngredientRegistration;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeCategoryRegistration;
+import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.registration.ISubtypeRegistration;
+import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -50,7 +76,14 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeMap;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -59,9 +92,6 @@ import org.jspecify.annotations.Nullable;
 @JeiPlugin
 public final class ThaumaturgeJEIPlugin implements IModPlugin {
     private static final Identifier PLUGIN_UID = Identifier.fromNamespaceAndPath(TTIds.MODID, "jei_plugin");
-
-    /*public static Map<IRecipeType<?>,List<RecipeHolder<?>>> searchAffectedRecipes;
-    public static IJeiRuntime runtime;*/
 
     public ThaumaturgeJEIPlugin() {}
 
@@ -216,25 +246,6 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         AspectJeiSync.onRuntimeAvailable(jeiRuntime);
     }
-
-    /*  @Override
-    public  void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
-        runtime = jeiRuntime;
-        if (ThaumaturgeClientConfig.hideRecipesIfMissingResearch()) hideUnresearchedRecipes(jeiRuntime);
-    }
-
-    private <I extends RecipeInput, R extends Recipe<I> & ResearchGated> void hideUnresearchedRecipes(IJeiRuntime runtime){
-        searchAffectedRecipes = new HashMap<>();
-        for (RecipeType<@NonNull R> type : new RecipeType[]{TTRecipeTypes.DUST_TRIGGER.get(),TTRecipeTypes.CRUCIBLE.get()}) {
-            RecipeMap recipes = TTClientRecipes.getRecipeMapForType(Minecraft.getInstance().level, type);
-            List<RecipeHolder<@NonNull R>> holders = List.copyOf(recipes.byType(type));
-            Identifier uid = BuiltInRegistries.RECIPE_TYPE.getKey(type);
-            List<RecipeHolder<@NonNull R>> hided = holders.stream().filter(r->!r.value().doesPassGate(Minecraft.getInstance().player)).toList();
-            IRecipeHolderType<@NonNull R> jeiType = (IRecipeHolderType<R>) runtime.getRecipeManager().getRecipeType(uid).get();
-            runtime.getRecipeManager().hideRecipes(jeiType,hided);
-            searchAffectedRecipes.put(jeiType,List.copyOf(holders));
-        }
-    }*/
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {

@@ -1,6 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.*;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.NORTH;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.EAST;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.SOUTH;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.WEST;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.propertyFor;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.recomputeConnections;
+import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.canConnectTo;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;

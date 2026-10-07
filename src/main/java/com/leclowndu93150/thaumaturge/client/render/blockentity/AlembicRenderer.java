@@ -26,7 +26,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic, AlembicRenderState> {
-
     private static final Identifier LABEL_TEXTURE = Identifier.fromNamespaceAndPath("thaumaturge", "textures/entity/label.png");
 
     public AlembicRenderer(BlockEntityRendererProvider.Context context) {}
@@ -73,9 +72,7 @@ public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic, 
     }
 
     public static void addVertex(VertexConsumer buffer, PoseStack.Pose pose, float x, float y, float z, float u, float v, int color, int light, float nx, float ny, float nz) {
-        buffer.addVertex(pose, x, y, z).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz)
-                // Let the .setColor at the end otherwise the vertex consumer is not the good one
-                .setColor(color);
+        buffer.addVertex(pose, x, y, z).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz).setColor(color);
     }
 
     private void submitFilterLabel(AlembicRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {

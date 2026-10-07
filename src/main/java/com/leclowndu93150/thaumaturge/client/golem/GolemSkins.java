@@ -24,7 +24,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 
-/** Material variants are made from the active resource pack's copper golem at runtime. */
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class GolemSkins {
     public static final Identifier COPPER = Identifier.withDefaultNamespace("textures/entity/copper_golem/copper_golem.png");
@@ -67,7 +66,6 @@ public final class GolemSkins {
                     int pixel = source.getPixel(x, y);
                     float shade = Mth.clamp((luminance(pixel) - low) / (float) Math.max(1, high - low), 0.0F, 1.0F);
                     int mapped = palette.get(Math.round(shade * (palette.size() - 1)));
-                    // Preserve the source's recesses even in pale materials such as iron.
                     float detail = 0.35F + shade * 0.65F;
                     skin.setPixel(x, y, ARGB.color(ARGB.alpha(pixel), Math.round(ARGB.red(mapped) * detail), Math.round(ARGB.green(mapped) * detail), Math.round(ARGB.blue(mapped) * detail)));
                 }

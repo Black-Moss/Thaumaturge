@@ -66,7 +66,6 @@ public final class ThaumometerClientHandler {
             return;
         }
         HitResult hitResult = ScanRaycastHelper.performRaycast(player, ClipContext.Fluid.SOURCE_ONLY);
-        // Here we use the Type instead of an instanceof because, a miss is an instance of BlockHitResult
         if (hitResult.getType() == HitResult.Type.BLOCK && ScanningManager.isStillScannable(player, ScanTarget.block(((BlockHitResult) hitResult).getBlockPos()))) {
             ClientEffects.scanHighlight(mc.level, ((BlockHitResult) hitResult).getBlockPos());
         }

@@ -10,7 +10,6 @@ public final class ThaumaturgeClientConfig {
     private static final ModConfigSpec.BooleanValue LARGE_TAG_TEXT;
     private static final ModConfigSpec.BooleanValue DIAL_BOTTOM;
     private static final ModConfigSpec.BooleanValue DONATOR_CAPE;
-    // private static final ModConfigSpec.BooleanValue HIDE_RECIPES_IF_MISSING_RESEARCH;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -24,10 +23,6 @@ public final class ThaumaturgeClientConfig {
         DIAL_BOTTOM = builder.comment("When true, the caster vis dial renders at the bottom left of the screen instead of the top left.").define("hud.dial_bottom", false);
 
         DONATOR_CAPE = builder.comment("Donators only: shows your Thaumaturge cape. While it is on, every player on the server sees it.").define(DONATOR_CAPE_KEY, true);
-
-        /*HIDE_RECIPES_IF_MISSING_RESEARCH = builder
-        .comment("Hide recipes from JEI if you don't have the research for it")
-        .define("jei.hide_recipes_without_research", false);*/
 
         SPEC = builder.build();
     }
@@ -50,7 +45,4 @@ public final class ThaumaturgeClientConfig {
         return DONATOR_CAPE.get();
     }
 
-    /*public static boolean hideRecipesIfMissingResearch(){
-        return HIDE_RECIPES_IF_MISSING_RESEARCH.get();
-    }*/
 }

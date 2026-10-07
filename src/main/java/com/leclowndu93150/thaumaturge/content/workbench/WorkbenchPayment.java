@@ -1,7 +1,17 @@
 package com.leclowndu93150.thaumaturge.content.workbench;
 
-import com.leclowndu93150.thaumaturge.api.aspect.*;
-import com.leclowndu93150.thaumaturge.api.recipe.*;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
+import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftCost;
+import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftCostEvent;
+import com.leclowndu93150.thaumaturge.api.recipe.ArcaneWorkbenchContext;
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneWorkbench;
+import com.leclowndu93150.thaumaturge.api.recipe.IWorkbenchAuraSource;
+import com.leclowndu93150.thaumaturge.api.recipe.IWorkbenchVisSource;
 import com.leclowndu93150.thaumaturge.content.casters.CasterManager;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
@@ -21,7 +31,6 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public final class WorkbenchPayment {
-
     private WorkbenchPayment() {}
 
     public static Plan plan(IArcaneRecipe recipe, IArcaneWorkbench inventory, Player player) {
@@ -32,27 +41,21 @@ public final class WorkbenchPayment {
         ItemStack wand = inventory.wandStack();
         boolean hasWand = wand.getItem() instanceof ItemWand;
 
-        // Primal vis cost calculation
         Map<ResourceKey<IAspect>, Integer> wandCentivis = new LinkedHashMap<>();
         Map<ResourceKey<IAspect>, Integer> sourceCentivis = new LinkedHashMap<>();
         AspectList crystalNeeds = calculateCrystalNeeds(recipe, inventory, player, context, outer, hasWand, wand, wandCentivis, sourceCentivis);
 
-        // Vis cost calculation
         boolean fullWand = hasWand && crystalNeeds.isEmpty() && sourceCentivis.isEmpty();
         float modifier;
         if (fullWand) {
-            // Wand-only craft: discount comes from the wand's caps (averaged across primals).
             modifier = averageCraftModifier(wand, player);
         } else if (!crystalNeeds.isEmpty()) {
-            // Crystal fallback in play: apply the aura surcharge on top of gear discounts.
             modifier = WandEconomy.CRAFT_AURA_SURCHARGE * gearModifier(player);
         } else {
-            // Source-paid (no wand, no crystals): only gear discounts apply.
             modifier = gearModifier(player);
         }
         int auraVis = recipe.visCost() <= 0 ? 0 : Math.max(1, Mth.ceil(recipe.visCost() * modifier));
 
-        // Plan making
         Plan plan = new Plan(fullWand, wandCentivis, sourceCentivis, crystalNeeds, auraVis, hasCrystals(inventory, crystalNeeds));
         return applyCostEvent(recipe, inventory, player, plan);
     }
@@ -64,12 +67,12 @@ public final class WorkbenchPayment {
             int centivis = entry.amount() * WandEconomy.CRYSTAL_SUBSTITUTE_VIS * WandEconomy.CENTIVIS_PER_VIS;
             Map<ResourceKey<IAspect>, Integer> single = new LinkedHashMap<>();
             single.put(primal, centivis);
-            if (hasWand && WandVisHelper.consumeAllVisRaw(wand, single, true)) { // Pay from the wand
+            if (hasWand && WandVisHelper.consumeAllVisRaw(wand, single, true)) {
                 wandCentivis.put(primal, centivis);
-            } else if (canSupplyFromSources(context, player, inventory, entry.aspect(), centivis, outer)) { // Pay from external sources
+            } else if (canSupplyFromSources(context, player, inventory, entry.aspect(), centivis, outer)) {
                 sourceCentivis.put(primal, centivis);
             } else {
-                crystalNeeds = crystalNeeds.add(entry.aspect(), entry.amount()); // Pay from the inventory
+                crystalNeeds = crystalNeeds.add(entry.aspect(), entry.amount());
             }
         }
         return crystalNeeds;
@@ -189,7 +192,6 @@ public final class WorkbenchPayment {
 
     public record Plan(boolean fullWand, Map<ResourceKey<IAspect>, Integer> wandCentivis, Map<ResourceKey<IAspect>, Integer> sourceCentivis, AspectList crystalsToConsume, int auraVis,
             boolean crystalsSatisfied) {
-
         public ArcaneCraftCost cost() {
             return new ArcaneCraftCost(fullWand, wandCentivis, crystalsToConsume, auraVis, crystalsSatisfied);
         }

@@ -1,6 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.item;
 
-import com.leclowndu93150.thaumaturge.api.aspect.*;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.essentia.item.ComponentEssentia;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
@@ -71,7 +74,6 @@ public final class PhialItem extends Item {
 
     private InteractionResult interactWith(ItemStack stack, Player player, InteractionHand hand, Level level, BlockPos pos, IEssentiaTransport container, boolean canDeposit) {
         AspectList aspects = ComponentEssentia.phial(stack).getAspects();
-        // We use Direction.UP to allow insertion/extraction from all faces with fials
         if (aspects.isEmpty()) {
             if (container.getEssentiaAmount(Direction.UP) >= BASE_AMOUNT) {
                 if (level.isClientSide()) {

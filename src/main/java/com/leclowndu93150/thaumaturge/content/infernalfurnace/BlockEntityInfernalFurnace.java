@@ -35,7 +35,6 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
-
     private final ItemStacksResourceHandler inventory = new ItemStacksResourceHandler(32) {
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
@@ -137,12 +136,10 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
                         if (level.getRandom().nextInt(20) == 0)
                             AuraHelper.polluteAura(level, getBlockPos().relative(getBlockState().getValue(BlockInfernalFurnace.FACING).getOpposite()), 1.0F, true);
 
-                        // Remove after smelting
                         inventory.set(slot, ItemResource.of(inputStack), inventory.getAmountAsInt(slot) - 1);
                         break;
                     }
 
-                    // Destroy item if no recipe
                     inventory.set(slot, ItemResource.of(inputStack), inventory.getAmountAsInt(slot) - 1);
                 }
             }

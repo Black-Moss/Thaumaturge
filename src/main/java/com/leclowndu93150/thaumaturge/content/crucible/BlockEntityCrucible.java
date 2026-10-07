@@ -17,7 +17,7 @@ import com.leclowndu93150.thaumaturge.mixin.world.entity.item.ItemEntityAccessor
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.awt.*;
+import java.awt.Color;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -41,7 +41,6 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements ReadOnlyAspectContainer {
-
     public static final int TANK_CAPACITY = 1000;
     public static final int MAX_ASPECT = 100;
     private static final long OVERFLOW_INTERVAL = 5L;
@@ -61,7 +60,6 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
     private short heat = 0;
     private long counter = -100;
 
-    // FX Infos
     int prevcolor = 0;
     int prevx = 0;
     int prevy = 0;

@@ -1,13 +1,39 @@
 package com.leclowndu93150.thaumaturge.data.model;
 
+import com.leclowndu93150.thaumaturge.client.color.AspectColorTint;
+import com.leclowndu93150.thaumaturge.client.color.AspectFilterTint;
+import com.leclowndu93150.thaumaturge.client.color.CrystalAspectTint;
+import com.leclowndu93150.thaumaturge.client.color.FocusColorTint;
+import com.leclowndu93150.thaumaturge.client.color.NoteColorTint;
+import com.leclowndu93150.thaumaturge.client.model.AdvancedAlchemicalFurnaceItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.DeconTableItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.GolemBuilderItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.GolemItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.JarBrainItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.JarItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.JarNodeItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.NitorItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.NodeStabilizerItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.WandIsStaffProperty;
+import com.leclowndu93150.thaumaturge.client.model.WandItemSpecialRenderer;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelInstance;
+import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.client.data.models.model.ModelTemplate;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TextureSlot;
+import net.minecraft.client.renderer.item.ClientItem;
+import net.minecraft.client.renderer.item.CompositeModel;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.SelectItemModel;
+import net.minecraft.client.renderer.item.SpecialModelWrapper;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.client.data.models.model.TextureMapping;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.client.color.*;
-import com.leclowndu93150.thaumaturge.client.model.*;
 import com.leclowndu93150.thaumaturge.content.decor.BlockCandleHolder;
 import com.leclowndu93150.thaumaturge.content.decor.CandleHolderMaterial;
 import com.leclowndu93150.thaumaturge.content.decor.BlockObsidianTotem;
@@ -52,10 +78,8 @@ import net.minecraft.client.data.models.blockstates.ConditionBuilder;
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
-import net.minecraft.client.data.models.model.*;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
-import net.minecraft.client.renderer.item.*;
 import net.minecraft.client.renderer.item.properties.conditional.HasComponent;
 import net.minecraft.client.renderer.item.properties.numeric.Damage;
 import net.minecraft.client.renderer.item.properties.select.ComponentContents;
@@ -73,7 +97,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DirectionalBlock;
-import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
 import net.neoforged.neoforge.client.model.generators.template.RootTransformsBuilder;
 import org.joml.Matrix4f;
@@ -763,7 +790,6 @@ public final class TTModelProvider extends ModelProvider {
         registerCelestialNotes(itemModels);
         registerBaubleItems(itemModels);
 
-        // Nitor Models
         Identifier itemModelId = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/nitor");
         Material baseTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/nitor"));
         Material coreTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/nitor_core"));
@@ -773,7 +799,6 @@ public final class TTModelProvider extends ModelProvider {
             registerNitor(blockModels, itemModels, dye);
         }
 
-        // Resources
         blockModels.createTrivialCube(TTBlocks.ORE_AMBER.get());
         blockModels.createTrivialCube(TTBlocks.ORE_CINNABAR.get());
         blockModels.createTrivialCube(TTBlocks.ORE_QUARTZ.get());

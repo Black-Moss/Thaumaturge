@@ -15,7 +15,14 @@ import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.Room
 import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TTDamageTypeBootstrap;
-import com.leclowndu93150.thaumaturge.data.datamap.*;
+import com.leclowndu93150.thaumaturge.data.datamap.AuraModifierProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.ChampionWhitelistProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.EntityAspectsProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.FocusTierProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.FuelValuesProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.GolemAccessoryItemProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.InfernalBonusProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.StrippingProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.TaintedProfileProvider;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthDefinitionBootstrap;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthEncounterBootstrap;

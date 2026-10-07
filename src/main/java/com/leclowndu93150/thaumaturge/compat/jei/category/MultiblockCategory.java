@@ -1,7 +1,12 @@
 package com.leclowndu93150.thaumaturge.compat.jei.category;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.recipe.*;
+import com.leclowndu93150.thaumaturge.api.recipe.Blueprint;
+import com.leclowndu93150.thaumaturge.api.recipe.BlueprintPart;
+import com.leclowndu93150.thaumaturge.api.recipe.BlueprintSource;
+import com.leclowndu93150.thaumaturge.api.recipe.BlueprintTarget;
+import com.leclowndu93150.thaumaturge.api.recipe.DustTrigger;
+import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.client.screen.pip.BlockPreviewRenderState;
 import com.leclowndu93150.thaumaturge.compat.jei.ThaumaturgeJEIPlugin;
 import com.leclowndu93150.thaumaturge.compat.jei.drawables.AlphaDrawable;
@@ -11,7 +16,11 @@ import com.leclowndu93150.thaumaturge.mixin.client.gui.GuiGraphicsExtractorAcces
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;

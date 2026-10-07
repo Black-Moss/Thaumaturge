@@ -7,6 +7,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.renderer.state.level.QuadParticleRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -25,7 +26,7 @@ public final class WispParticle extends SingleQuadParticle {
     private Entity target;
 
     private WispParticle(ClientLevel level, double x, double y, double z, WispParticleOptions data, ParticleSheet sheet) {
-        super(level, x, y, z, 0.0, 0.0, 0.0, (net.minecraft.client.renderer.texture.TextureAtlasSprite) null);
+        super(level, x, y, z, 0.0, 0.0, 0.0, (TextureAtlasSprite) null);
         this.sheet = sheet;
         this.targetEntityId = data.entityId();
         this.xd = level.getRandom().nextGaussian() * 0.03;
