@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.SharedConstants;
+import net.minecraft.server.level.ChunkLevel;
+import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.ChunkTicketLevelUpdatedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID)
@@ -40,6 +43,21 @@ public final class LabyrinthTicker {
         LabyrinthService.runtime(level).ifPresent(runtime -> {
             MazePlan plan = runtime.index().planAt(pos.x(), pos.z(), 0);
             if (plan != null && !RoomStamper.isStamped(chunk, plan)) {
+                runtime.queueRepair(pos.x(), pos.z());
+            }
+        });
+    }
+
+    @SubscribeEvent
+    public static void onChunkLevelChange(ChunkTicketLevelUpdatedEvent event) {
+        ServerLevel level = event.getLevel();
+        if (level.dimension() != OuterLands.DIMENSION || ChunkLevel.fullStatus(event.getOldTicketLevel()).isOrAfter(FullChunkStatus.FULL)
+                || !ChunkLevel.fullStatus(event.getNewTicketLevel()).isOrAfter(FullChunkStatus.FULL)) {
+            return;
+        }
+        ChunkPos pos = ChunkPos.unpack(event.getChunkPos());
+        LabyrinthService.runtime(level).ifPresent(runtime -> {
+            if (runtime.index().planAt(pos.x(), pos.z(), 0) != null) {
                 runtime.queueRepair(pos.x(), pos.z());
             }
         });
@@ -93,18 +111,25 @@ public final class LabyrinthTicker {
 
     private static void repair(ServerLevel level, LabyrinthRuntime runtime) {
         int budget = ThaumaturgeServerConfig.LABYRINTH.repairChunksPerTick.get();
+        List<Long> notReady = new ArrayList<>();
         for (int i = 0; i < budget; i++) {
             Long key = runtime.nextRepair();
             if (key == null) {
-                return;
+                break;
             }
             ChunkPos pos = ChunkPos.unpack(key);
             MazePlan plan = runtime.index().planAt(pos.x(), pos.z(), 0);
             LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
-            if (plan != null && chunk != null) {
+            if (plan != null && chunk == null) {
+                notReady.add(key);
+                continue;
+            }
+            if (plan != null) {
                 RoomStamper.ensureStamped(level, chunk, plan, runtime);
             }
+            runtime.repairDone(key);
         }
+        notReady.forEach(runtime::retryRepair);
     }
 
     private static void fireTriggers(ServerLevel level) {
