@@ -257,7 +257,7 @@ public final class TTItems {
     public static final DeferredItem<VoidGearItem> VOID_BOOTS = ITEMS.registerItem("void_boots", VoidGearItem::new, props -> props.humanoidArmor(TTMaterials.ARMOR_VOID, ArmorType.BOOTS));
 
     public static final DeferredItem<ElementalSwordItem> ELEMENTAL_SWORD = ITEMS.registerItem("elemental_sword", ElementalSwordItem::new,
-            props -> props.sword(TTMaterials.TOOL_ELEMENTAL, 3.0F, -2.4F).rarity(Rarity.RARE));
+            props -> props.sword(TTMaterials.TOOL_ELEMENTAL, 3.0F, -2.4F).rarity(Rarity.RARE).component(DataComponents.USE_EFFECTS, ElementalSwordItem.USE_EFFECTS));
     public static final DeferredItem<ElementalPickaxeItem> ELEMENTAL_PICKAXE = ITEMS.registerItem("elemental_pickaxe", ElementalPickaxeItem::new,
             props -> props.pickaxe(TTMaterials.TOOL_ELEMENTAL, 1.0F, -2.8F).rarity(Rarity.RARE));
     public static final DeferredItem<ElementalAxeItem> ELEMENTAL_AXE = ITEMS.registerItem("elemental_axe", ElementalAxeItem::new,

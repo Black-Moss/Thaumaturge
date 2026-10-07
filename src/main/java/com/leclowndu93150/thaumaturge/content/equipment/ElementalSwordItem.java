@@ -25,7 +25,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.component.UseEffects;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
 public final class ElementalSwordItem extends Item implements IChanneledItem {
@@ -33,6 +35,7 @@ public final class ElementalSwordItem extends Item implements IChanneledItem {
     private static final double PULL_RANGE = 2.5;
     private static final int SMOKE_COLOR = 14540253;
     private static final int PULSE_INTERVAL_TICKS = 20;
+    public static final UseEffects USE_EFFECTS = new UseEffects(UseEffects.DEFAULT.canSprint(), false, UseEffects.DEFAULT.speedMultiplier());
 
     public ElementalSwordItem(Properties properties) {
         super(properties);
@@ -119,6 +122,7 @@ public final class ElementalSwordItem extends Item implements IChanneledItem {
             }
         } else if (ticks == 0 || ticks % PULSE_INTERVAL_TICKS == 0) {
             level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.WIND.get(), SoundSource.PLAYERS, 0.5F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+            player.gameEvent(GameEvent.ELYTRA_GLIDE);
         }
 
         if (ticks % PULSE_INTERVAL_TICKS == 0) {
