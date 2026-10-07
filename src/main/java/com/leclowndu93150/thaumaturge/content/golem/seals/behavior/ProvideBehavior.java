@@ -27,8 +27,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 public final class ProvideBehavior implements ISealBehavior {
-    public static final SealSetting SINGLE_ITEM = new SealSetting("psing", "golem.prop.single", false);
-    public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "golem.prop.leave", false);
+    public static final SealSetting SINGLE_ITEM = new SealSetting("psing", "gui.thaumaturge.seal.setting.single", false);
+    public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "gui.thaumaturge.seal.setting.leave", false);
 
     private static final int CLOCK_SPREAD = 88;
     private static final int SCAN_PERIOD = 20;

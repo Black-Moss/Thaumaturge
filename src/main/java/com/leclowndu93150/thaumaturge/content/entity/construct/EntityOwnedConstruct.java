@@ -101,7 +101,7 @@ public abstract class EntityOwnedConstruct extends PathfinderMob implements Owna
         if (level().isClientSide() || isOwner(player)) {
             return super.mobInteract(player, hand);
         }
-        TTActionBar.sendPurple(player, "tc.notowned");
+        TTActionBar.sendPurple(player, "message.thaumaturge.construct.not_owned");
         return InteractionResult.SUCCESS;
     }
 

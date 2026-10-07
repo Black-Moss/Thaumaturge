@@ -65,7 +65,7 @@ public final class ItemCurio extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("item.curio.text"));
+        tooltip.accept(Component.translatable("tooltip.thaumaturge.curio.read"));
     }
 
     @Override
@@ -73,7 +73,7 @@ public final class ItemCurio extends Item {
         if (player instanceof ServerPlayer serverPlayer) {
             level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.LEARN.get(), SoundSource.NEUTRAL, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
             if (variant.rites && WarpHelper.getActualWarp(player) <= RITES_WARP_THRESHOLD) {
-                player.sendSystemMessage(Component.translatable("fail.crimsonrites").withStyle(ChatFormatting.DARK_PURPLE));
+                player.sendSystemMessage(Component.translatable("message.thaumaturge.curio.crimson_rites").withStyle(ChatFormatting.DARK_PURPLE));
                 return InteractionResult.SUCCESS;
             }
             if (variant.rites && !KnowledgeAccess.of(player).isResearchKnown(CRIMSON_RITES_RESEARCH)) {
@@ -90,7 +90,7 @@ public final class ItemCurio extends Item {
             if (!player.getAbilities().instabuild) {
                 player.getItemInHand(hand).shrink(1);
             }
-            player.sendSystemMessage(Component.translatable("tc.knowledge.gained").withStyle(ChatFormatting.DARK_PURPLE));
+            player.sendSystemMessage(Component.translatable("message.thaumaturge.curio.knowledge_gained").withStyle(ChatFormatting.DARK_PURPLE));
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return InteractionResult.SUCCESS;

@@ -684,12 +684,12 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         playSound(TTSounds.SCAN.get(), 1.0F, 1.0F);
         setFollowingOwner(!isFollowingOwner());
         if (isFollowingOwner()) {
-            sendActionBar(player, "golem.follow");
+            sendActionBar(player, "message.thaumaturge.golem.follow");
             if (ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
                 level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_TASK);
             }
         } else {
-            sendActionBar(player, "golem.stay");
+            sendActionBar(player, "message.thaumaturge.golem.stay");
             if (ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
                 level().broadcastEntityEvent(this, (byte) EVENT_EMOTE_STAY);
             }

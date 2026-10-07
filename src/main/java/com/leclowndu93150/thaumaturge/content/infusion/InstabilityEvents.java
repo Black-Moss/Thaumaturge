@@ -29,7 +29,7 @@ public final class InstabilityEvents {
     private static void grantInstabilityResearch(ServerLevel level, BlockPos matrixPos) {
         for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(matrixPos).inflate(RESEARCH_RANGE))) {
             if (!KnowledgeAccess.of(player).isResearchKnown(INSTABILITY_RESEARCH) && ResearchManager.complete(player, INSTABILITY_RESEARCH)) {
-                player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("got.instability").withStyle(ChatFormatting.DARK_PURPLE)));
+                player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("message.thaumaturge.discovery.instability").withStyle(ChatFormatting.DARK_PURPLE)));
             }
         }
     }

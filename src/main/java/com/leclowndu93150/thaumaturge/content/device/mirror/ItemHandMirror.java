@@ -46,7 +46,7 @@ public final class ItemHandMirror extends Item {
         if (level.getBlockEntity(pos) instanceof BlockEntityMirror) {
             stack.set(TTDataComponents.MIRROR_LINK.get(), GlobalPos.of(level.dimension(), pos));
             level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, 1.0F, 2.0F);
-            player.sendSystemMessage(Component.translatable("tc.handmirrorlinked"));
+            player.sendSystemMessage(Component.translatable("message.thaumaturge.hand_mirror.linked"));
         }
         return InteractionResult.SUCCESS;
     }
@@ -66,7 +66,7 @@ public final class ItemHandMirror extends Item {
         if (!(target instanceof BlockEntityMirror)) {
             stack.remove(TTDataComponents.MIRROR_LINK.get());
             serverPlayer.level().playSound(null, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), TTSounds.ZAP.get(), SoundSource.PLAYERS, 1.0F, 0.8F);
-            serverPlayer.sendSystemMessage(Component.translatable("tc.handmirrorerror"));
+            serverPlayer.sendSystemMessage(Component.translatable("message.thaumaturge.hand_mirror.missing"));
             return InteractionResult.SUCCESS;
         }
         serverPlayer.openMenu(new MenuProvider() {
@@ -98,7 +98,7 @@ public final class ItemHandMirror extends Item {
         }
         mirror.remove(TTDataComponents.MIRROR_LINK.get());
         player.level().playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.ZAP.get(), SoundSource.PLAYERS, 1.0F, 0.8F);
-        player.sendSystemMessage(Component.translatable("tc.handmirrorerror"));
+        player.sendSystemMessage(Component.translatable("message.thaumaturge.hand_mirror.missing"));
         return false;
     }
 
@@ -112,7 +112,7 @@ public final class ItemHandMirror extends Item {
         super.appendHoverText(stack, context, display, tooltip, flag);
         GlobalPos link = stack.get(TTDataComponents.MIRROR_LINK.get());
         if (link != null) {
-            tooltip.accept(Component.translatable("tc.handmirrorlinkedto.full", link.pos().getX(), link.pos().getY(), link.pos().getZ(), link.dimension().identifier().toString()));
+            tooltip.accept(Component.translatable("tooltip.thaumaturge.mirror.linked_to", link.pos().getX(), link.pos().getY(), link.pos().getZ(), link.dimension().identifier().toString()));
         }
     }
 }

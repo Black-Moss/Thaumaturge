@@ -140,7 +140,7 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
             toggleAngle = first - count * step;
         }
         addRenderableWidget(new StateButton(tabX(toggleAngle) - HALF_ICON, tabY(toggleAngle) - HALF_ICON, () -> seal.isRedstoneControlled() ? REDSTONE_U_ON : REDSTONE_U_OFF,
-                () -> Component.translatable(seal.isRedstoneControlled() ? "golem.prop.redon" : "golem.prop.redoff"),
+                () -> Component.translatable(seal.isRedstoneControlled() ? "gui.thaumaturge.seal.setting.redon" : "gui.thaumaturge.seal.setting.redoff"),
                 () -> sendButton(seal.isRedstoneControlled() ? MenuSealBase.BUTTON_REDSTONE_OFF : MenuSealBase.BUTTON_REDSTONE_ON)));
     }
 
@@ -163,16 +163,16 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
                 TTPlusMinusButton.minus(x + COLOR_DOWN_X, y + COLOR_BUTTON_Y, Component.translatable("gui.thaumaturge.seal.color_previous"), () -> sendButton(MenuSealBase.BUTTON_COLOR_DOWN)));
         addRenderableWidget(TTPlusMinusButton.plus(x + COLOR_UP_X, y + COLOR_BUTTON_Y, Component.translatable("gui.thaumaturge.seal.color_next"), () -> sendButton(MenuSealBase.BUTTON_COLOR_UP)));
         if (minecraft != null && minecraft.player != null && minecraft.player.getUUID().equals(seal.owner())) {
-            addRenderableWidget(
-                    new StateButton(x + LOCK_X, y, () -> seal.isLocked() ? LOCK_U_LOCKED : LOCK_U_UNLOCKED, () -> Component.translatable(seal.isLocked() ? "golem.prop.lock" : "golem.prop.unlock"),
-                            () -> sendButton(seal.isLocked() ? MenuSealBase.BUTTON_UNLOCK : MenuSealBase.BUTTON_LOCK)));
+            addRenderableWidget(new StateButton(x + LOCK_X, y, () -> seal.isLocked() ? LOCK_U_LOCKED : LOCK_U_UNLOCKED,
+                    () -> Component.translatable(seal.isLocked() ? "gui.thaumaturge.seal.setting.lock" : "gui.thaumaturge.seal.setting.unlock"),
+                    () -> sendButton(seal.isLocked() ? MenuSealBase.BUTTON_UNLOCK : MenuSealBase.BUTTON_LOCK)));
         }
     }
 
     private void addFilterControls(ISealFilter filter) {
         int lastRow = (filter.spec().slots() - 1) / FILTER_COLUMNS;
         addRenderableWidget(new StateButton(leftPos + middleX - HALF_ICON, topPos + middleY + FILTER_ROW_STEP * lastRow + BLACKLIST_Y, () -> filter.isBlacklist() ? BLACKLIST_U : WHITELIST_U,
-                () -> Component.translatable(filter.isBlacklist() ? "golem.prop.blacklist" : "golem.prop.whitelist"),
+                () -> Component.translatable(filter.isBlacklist() ? "gui.thaumaturge.seal.setting.blacklist" : "gui.thaumaturge.seal.setting.whitelist"),
                 () -> sendButton(filter.isBlacklist() ? MenuSealBase.BUTTON_BLACKLIST_OFF : MenuSealBase.BUTTON_BLACKLIST_ON)));
     }
 
@@ -249,7 +249,7 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
         if (seal == null) {
             return;
         }
-        drawCentered(graphics, Component.translatable("button.category." + menu.panel().ordinal()).getString(), leftPos + middleX, topPos + middleY - 64, WHITE);
+        drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.category." + menu.panel().ordinal()).getString(), leftPos + middleX, topPos + middleY - 64, WHITE);
         switch (menu.panel()) {
             case PRIORITY -> {
                 graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.GUI_BASE, leftPos + middleX + 17, topPos + middleY + 3, COLOR_DIAL_U, COLOR_DIAL_V, 12, 12, ATLAS, ATLAS);
@@ -262,14 +262,14 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
                 int my = mouseY - topPos;
                 if (mx >= middleX + 5 && mx <= middleX + 41 && my >= middleY + 3 && my <= middleY + 15) {
                     String label = menu.color() >= 1 && menu.color() <= 16
-                            ? Component.translatable("golem.prop.color", Component.translatable("color.minecraft." + DyeColor.byId(menu.color() - 1).getName())).getString()
-                            : Component.translatable("golem.prop.colorall").getString();
+                            ? Component.translatable("gui.thaumaturge.seal.setting.color", Component.translatable("color.minecraft." + DyeColor.byId(menu.color() - 1).getName())).getString()
+                            : Component.translatable("gui.thaumaturge.seal.setting.colorall").getString();
                     drawCentered(graphics, label, leftPos + middleX + 23, topPos + middleY + 17, WHITE);
                 }
-                drawCentered(graphics, Component.translatable("golem.prop.priority").getString(), leftPos + middleX, topPos + middleY - 28, LABEL_BLUE);
+                drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.setting.priority").getString(), leftPos + middleX, topPos + middleY - 28, LABEL_BLUE);
                 drawCentered(graphics, String.valueOf(menu.priority()), leftPos + middleX, topPos + middleY - 16, WHITE);
                 if (minecraft != null && minecraft.player != null && minecraft.player.getUUID().equals(seal.owner())) {
-                    drawCentered(graphics, Component.translatable("golem.prop.owner").getString(), leftPos + middleX, topPos + middleY + 32, LABEL_BLUE);
+                    drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.setting.owner").getString(), leftPos + middleX, topPos + middleY + 32, LABEL_BLUE);
                 }
             }
             case FILTER -> {
@@ -297,16 +297,16 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
                 }
             }
             case AREA -> {
-                drawCentered(graphics, Component.translatable("button.caption.y").getString(), leftPos + middleX, topPos + middleY - 33, LABEL_GREY);
-                drawCentered(graphics, Component.translatable("button.caption.x").getString(), leftPos + middleX, topPos + middleY - 9, LABEL_GREY);
-                drawCentered(graphics, Component.translatable("button.caption.z").getString(), leftPos + middleX, topPos + middleY + 15, LABEL_GREY);
+                drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.caption.y").getString(), leftPos + middleX, topPos + middleY - 33, LABEL_GREY);
+                drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.caption.x").getString(), leftPos + middleX, topPos + middleY - 9, LABEL_GREY);
+                drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.caption.z").getString(), leftPos + middleX, topPos + middleY + 15, LABEL_GREY);
                 drawCentered(graphics, String.valueOf(menu.area().getY()), leftPos + middleX, topPos + middleY - 24, WHITE);
                 drawCentered(graphics, String.valueOf(menu.area().getX()), leftPos + middleX, topPos + middleY, WHITE);
                 drawCentered(graphics, String.valueOf(menu.area().getZ()), leftPos + middleX, topPos + middleY + 24, WHITE);
             }
             case TAGS -> {
-                drawCentered(graphics, Component.translatable("button.caption.required").getString(), leftPos + middleX, topPos + middleY - 26, LABEL_GREY);
-                drawCentered(graphics, Component.translatable("button.caption.forbidden").getString(), leftPos + middleX, topPos + middleY + 6, LABEL_GREY);
+                drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.caption.required").getString(), leftPos + middleX, topPos + middleY - 26, LABEL_GREY);
+                drawCentered(graphics, Component.translatable("gui.thaumaturge.seal.caption.forbidden").getString(), leftPos + middleX, topPos + middleY + 6, LABEL_GREY);
             }
             case TOGGLES -> {
             }
@@ -336,10 +336,10 @@ public final class SealScreen extends AbstractTTContainerScreen<MenuSealBase> {
         private final boolean selected;
 
         CategoryButton(int x, int y, int page, boolean selected, Runnable onPress) {
-            super(x, y, ICON, ICON, Component.translatable("button.category." + page), onPress);
+            super(x, y, ICON, ICON, Component.translatable("gui.thaumaturge.seal.category." + page), onPress);
             this.page = page;
             this.selected = selected;
-            setDescription(Component.translatable("button.category." + page + ".desc"));
+            setDescription(Component.translatable("gui.thaumaturge.seal.category." + page + ".desc"));
         }
 
         @Override

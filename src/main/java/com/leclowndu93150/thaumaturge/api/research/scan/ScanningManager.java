@@ -96,8 +96,8 @@ public final class ScanningManager {
             player.sendOverlayMessage(refusal.copy().withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
         } else if (!silent) {
             player.sendOverlayMessage(found
-                    ? Component.translatable("tc.knownobject").withStyle(ChatFormatting.GREEN, ChatFormatting.ITALIC)
-                    : Component.translatable("tc.unknownobject").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+                    ? Component.translatable("message.thaumaturge.scan.learned").withStyle(ChatFormatting.GREEN, ChatFormatting.ITALIC)
+                    : Component.translatable("message.thaumaturge.scan.nothing_new").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
         }
     }
 
@@ -113,7 +113,7 @@ public final class ScanningManager {
                 scanned++;
             }
             if (scanned >= CONTAINER_SCAN_LIMIT) {
-                player.sendOverlayMessage(Component.translatable("tc.invtoolarge").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+                player.sendOverlayMessage(Component.translatable("message.thaumaturge.scan.inventory_too_large").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
                 return;
             }
         }

@@ -41,7 +41,8 @@ public final class JarNodeItem extends BlockItem {
             return;
         }
         Component type = Component.translatable("nodetype.thaumaturge." + data.type().getSerializedName());
-        Component line = data.modifier().<Component>map(modifier -> Component.translatable("tc.node.typemod", type, Component.translatable("nodemod.thaumaturge." + modifier.getSerializedName())))
+        Component line = data.modifier()
+                .<Component>map(modifier -> Component.translatable("tooltip.thaumaturge.node.type_modifier", type, Component.translatable("nodemod.thaumaturge." + modifier.getSerializedName())))
                 .orElse(type);
         builder.accept(line.copy().withStyle(ChatFormatting.DARK_PURPLE));
         MutableComponent aspects = null;

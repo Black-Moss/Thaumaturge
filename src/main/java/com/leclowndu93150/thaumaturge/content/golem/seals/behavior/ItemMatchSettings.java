@@ -5,10 +5,10 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.SealSetting;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 
 public final class ItemMatchSettings {
-    public static final SealSetting MATCH_DAMAGE = new SealSetting("pmeta", "golem.prop.meta", true);
-    public static final SealSetting MATCH_COMPONENTS = new SealSetting("pnbt", "golem.prop.nbt", true);
-    public static final SealSetting MATCH_TAGS = new SealSetting("pore", "golem.prop.ore", false);
-    public static final SealSetting MATCH_MOD = new SealSetting("pmod", "golem.prop.mod", false);
+    public static final SealSetting MATCH_DAMAGE = new SealSetting("pmeta", "gui.thaumaturge.seal.setting.meta", true);
+    public static final SealSetting MATCH_COMPONENTS = new SealSetting("pnbt", "gui.thaumaturge.seal.setting.nbt", true);
+    public static final SealSetting MATCH_TAGS = new SealSetting("pore", "gui.thaumaturge.seal.setting.ore", false);
+    public static final SealSetting MATCH_MOD = new SealSetting("pmod", "gui.thaumaturge.seal.setting.mod", false);
     public static final SealSetting[] ALL = {MATCH_DAMAGE, MATCH_COMPONENTS, MATCH_TAGS, MATCH_MOD};
 
     private ItemMatchSettings() {}

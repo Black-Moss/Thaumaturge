@@ -352,8 +352,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 RecipeDisplayCache.ensureRequested(recipeId);
             }
         }
-        previousLayer = addRenderableWidget(TTPlusMinusButton.minus(0, 0, Component.translatable("thaumonomicon.preview.previous_layer"), () -> changePreviewLayer(-1)));
-        nextLayer = addRenderableWidget(TTPlusMinusButton.plus(0, 0, Component.translatable("thaumonomicon.preview.next_layer"), () -> changePreviewLayer(1)));
+        previousLayer = addRenderableWidget(TTPlusMinusButton.minus(0, 0, Component.translatable("gui.thaumaturge.thaumonomicon.preview.previous_layer"), () -> changePreviewLayer(-1)));
+        nextLayer = addRenderableWidget(TTPlusMinusButton.plus(0, 0, Component.translatable("gui.thaumaturge.thaumonomicon.preview.next_layer"), () -> changePreviewLayer(1)));
         previousLayer.visible = nextLayer.visible = false;
         rebuildPages();
         if (!flagsCleared) {
@@ -682,11 +682,11 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 int hrx = x + COMPLETE_BUTTON_OFFSET_X;
                 int hry = reqY + COMPLETE_BUTTON_Y_OFFSET;
                 if (completedStage) {
-                    Component label = Component.translatable("tc.stage.completed");
+                    Component label = Component.translatable("gui.thaumaturge.thaumonomicon.stage_completed");
                     int lblWidth = font.width(label);
                     graphics.text(font, label, x + 52 - lblWidth / 2, reqY - 4, COMPLETE_LABEL_COLOR, true);
                 } else if (hold) {
-                    Component holdLabel = Component.translatable("tc.stage.hold");
+                    Component holdLabel = Component.translatable("gui.thaumaturge.thaumonomicon.stage_hold");
                     int lblWidth = font.width(holdLabel);
                     graphics.text(font, holdLabel, x + 52 - lblWidth / 2, reqY - 4, COMPLETE_LABEL_COLOR, true);
                 } else {
@@ -694,7 +694,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                     int tint = hover ? COMPLETE_BUTTON_TINT_NORMAL : COMPLETE_BUTTON_TINT_HOVER;
                     graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, hrx, hry, (float) COMPLETE_BUTTON_U, (float) COMPLETE_BUTTON_V, COMPLETE_BUTTON_W, COMPLETE_BUTTON_H,
                             COMPLETE_BUTTON_W, COMPLETE_BUTTON_H, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE, tint);
-                    Component label = Component.translatable("tc.stage.complete");
+                    Component label = Component.translatable("gui.thaumaturge.thaumonomicon.stage_complete");
                     int lblWidth = font.width(label);
                     graphics.text(font, label, x + 52 - lblWidth / 2, reqY - 4, COMPLETE_LABEL_COLOR, true);
                 }
@@ -732,13 +732,13 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (warp > 5)
             warp = 5;
         drawForbiddenNode(graphics, x + FORBIDDEN_OFFSET_X, y + FORBIDDEN_Y_OFFSET);
-        Component label = Component.translatable("tc.forbidden.level." + warp);
+        Component label = Component.translatable("gui.thaumaturge.thaumonomicon.warp_level." + warp);
         int labelW = font.width(label);
         graphics.text(font, label, x + FORBIDDEN_LABEL_OFFSET_X - labelW / 2, y + FORBIDDEN_LABEL_Y_OFFSET, FORBIDDEN_COLOR, false);
         int hx = x + FORBIDDEN_HOVER_OFFSET_X;
         int hy = y + FORBIDDEN_HOVER_OFFSET_Y;
         if (mouseInside(hx, hy, FORBIDDEN_HOVER_W, FORBIDDEN_HOVER_H, mouseX, mouseY)) {
-            graphics.setTooltipForNextFrame(font, Component.translatable("tc.warp.warn", label), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.thaumaturge.thaumonomicon.warp_warning", label), mouseX, mouseY);
         }
     }
 
@@ -760,10 +760,10 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 LABEL_HEIGHT, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE, LABEL_TINT);
         if (mouseInside(x + LABEL_OFFSET_X, y, LABEL_WIDTH / 4, LABEL_HEIGHT, mouseX, mouseY)) {
             switch (v) {
-                case LABEL_KNOW_V -> graphics.setTooltipForNextFrame(Component.translatable("tc.need.know"), mouseX, mouseY);
-                case LABEL_CRAFT_V -> graphics.setTooltipForNextFrame(Component.translatable("tc.need.craft"), mouseX, mouseY);
-                case LABEL_OBTAIN_V -> graphics.setTooltipForNextFrame(Component.translatable("tc.need.obtain"), mouseX, mouseY);
-                case LABEL_RESEARCH_V -> graphics.setTooltipForNextFrame(Component.translatable("tc.need.research"), mouseX, mouseY);
+                case LABEL_KNOW_V -> graphics.setTooltipForNextFrame(Component.translatable("gui.thaumaturge.thaumonomicon.need.know"), mouseX, mouseY);
+                case LABEL_CRAFT_V -> graphics.setTooltipForNextFrame(Component.translatable("gui.thaumaturge.thaumonomicon.need.craft"), mouseX, mouseY);
+                case LABEL_OBTAIN_V -> graphics.setTooltipForNextFrame(Component.translatable("gui.thaumaturge.thaumonomicon.need.obtain"), mouseX, mouseY);
+                case LABEL_RESEARCH_V -> graphics.setTooltipForNextFrame(Component.translatable("gui.thaumaturge.thaumonomicon.need.research"), mouseX, mouseY);
             }
         }
     }
@@ -895,9 +895,10 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 graphics.item(new ItemStack(TTItems.RESEARCH_NOTE.get()), slotX, y);
                 if (mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                     List<Component> lines = new ArrayList<>();
-                    lines.add(Component.translatable("tc.researchtheory", Component.translatable(entry.value().nameKey())));
+                    lines.add(Component.translatable("tooltip.thaumaturge.research_note.theory", Component.translatable(entry.value().nameKey())));
                     if (!met) {
-                        lines.add(Component.translatable(ResearchNotes.hasNoteFor(minecraft.player, learnKey) ? "tc.researchnote.table" : "tc.researchnote.click").withStyle(ChatFormatting.GRAY));
+                        lines.add(Component.translatable(ResearchNotes.hasNoteFor(minecraft.player, learnKey) ? "tooltip.thaumaturge.research_note.table" : "gui.thaumaturge.thaumonomicon.note_click")
+                                .withStyle(ChatFormatting.GRAY));
                     }
                     graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
                 }
@@ -927,7 +928,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                         AspectTagRenderer.render(graphics, font, chipX, y, instance.aspect(), instance.amount(), 0, alpha, false);
                         if (mouseInside(chipX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                             List<Component> lines = new ArrayList<>();
-                            lines.add(Component.translatable("tc.aspectcost"));
+                            lines.add(Component.translatable("gui.thaumaturge.thaumonomicon.research_cost"));
                             lines.add(Component.translatable("tooltip.thaumaturge.amount_needed", AspectComponents.name(instance.aspect()), have, instance.amount())
                                     .withStyle(have >= instance.amount() ? ChatFormatting.GREEN : ChatFormatting.RED));
                             graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
@@ -936,8 +937,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                         graphics.blit(RenderPipelines.GUI_TEXTURED, UNKNOWN_ASPECT_TEXTURE, chipX, y, 0.0F, 0.0F, 16, 16, 32, 32, 32, 32, UNKNOWN_ASPECT_TINT);
                         if (mouseInside(chipX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                             List<Component> lines = new ArrayList<>();
-                            lines.add(Component.translatable("tc.aspect.unknown"));
-                            lines.add(Component.translatable("tc.discoveryerror", AspectComponents.help(instance.aspect())).withStyle(ChatFormatting.GRAY));
+                            lines.add(Component.translatable("tooltip.thaumaturge.aspect.unknown"));
+                            lines.add(Component.translatable("message.thaumaturge.research.discovery_error", AspectComponents.help(instance.aspect())).withStyle(ChatFormatting.GRAY));
                             graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
                         }
                     }
@@ -967,7 +968,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, aspectX + 20, aspectY, (float) BOOKMARK_TIP_U, (float) BOOKMARK_V, BOOKMARK_TIP_W, BOOKMARK_H, BOOKMARK_TIP_W,
                     BOOKMARK_H, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
             if (aspectHover) {
-                graphics.setTooltipForNextFrame(font, Component.translatable("tc.aspect.name"), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, Component.translatable("gui.thaumaturge.thaumonomicon.aspects_title"), mouseX, mouseY);
             }
         }
 
@@ -982,7 +983,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, knowX + 19, knowY, (float) BOOKMARK_TIP_U, (float) BOOKMARK_V, BOOKMARK_TIP_W, BOOKMARK_H, BOOKMARK_TIP_W,
                     BOOKMARK_H, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
             if (knowHover) {
-                graphics.setTooltipForNextFrame(font, Component.translatable("tc.knowledge.name"), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, Component.translatable("gui.thaumaturge.thaumonomicon.knowledge_title"), mouseX, mouseY);
             }
         }
     }
@@ -1037,7 +1038,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             BlockPreviews.render(graphics, x + shJitter + RECIPE_BOOKMARK_ICON_OFFSET - le + 8, slotY + 7, constructBlocks(stage.construct().orElseThrow(), minecraft.player.level().getGameTime()), 16,
                     16, 16, -35, -1);
             if (hoverState) {
-                graphics.setTooltipForNextFrame(font, Component.translatable("recipe.type.construct"), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, Component.translatable("gui.thaumaturge.recipe_type.construct"), mouseX, mouseY);
             }
         }
     }
@@ -1096,7 +1097,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         long gameTime = minecraft.player.level().getGameTime();
         int centerX = paperX + INSERT_PAPER_SIZE / 2;
         int pageY = paperY + CONSTRUCT_PAGE_Y;
-        Component title = Component.translatable("recipe.type.construct");
+        Component title = Component.translatable("gui.thaumaturge.recipe_type.construct");
         graphics.text(font, title, centerX - font.width(title) / 2, pageY, CONSTRUCT_TITLE_COLOR, false);
         BlockPreviews.render(graphics, centerX, paperY + 118, constructBlocks(construct, gameTime), 96, 100, 16, currentConstructRotation(), visibleConstructLayer);
         configurePreviewControls(graphics, centerX, paperY + 130, construct.ySize());
@@ -1145,8 +1146,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (visibleConstructLayer >= layers)
             visibleConstructLayer = -1;
         Component label = visibleConstructLayer < 0
-                ? Component.translatable("thaumonomicon.preview.all_layers")
-                : Component.translatable("thaumonomicon.preview.layers", visibleConstructLayer + 1, layers);
+                ? Component.translatable("gui.thaumaturge.thaumonomicon.preview.all_layers")
+                : Component.translatable("gui.thaumaturge.thaumonomicon.preview.layers", visibleConstructLayer + 1, layers);
         int halfWidth = font.width(label) / 2;
         previousLayer.setPosition(cx - halfWidth - 16, cy + 48);
         nextLayer.setPosition(cx + halfWidth + 6, cy + 48);
@@ -1305,7 +1306,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 graphics.text(font, Component.literal("="), x + ASPECT_EQUALS_X, rowY + ASPECT_SEPARATOR_Y_OFFSET, ASPECT_SEPARATOR_COLOR, false);
                 graphics.text(font, Component.literal("+"), x + ASPECT_PLUS_X, rowY + ASPECT_SEPARATOR_Y_OFFSET, ASPECT_SEPARATOR_COLOR, false);
             } else {
-                graphics.text(font, Component.translatable("tc.aspect.primal"), x + ASPECT_PRIMAL_X, rowY + ASPECT_SEPARATOR_Y_OFFSET, ASPECT_PRIMAL_COLOR, false);
+                graphics.text(font, Component.translatable("tooltip.thaumaturge.aspect.primal"), x + ASPECT_PRIMAL_X, rowY + ASPECT_SEPARATOR_Y_OFFSET, ASPECT_PRIMAL_COLOR, false);
             }
         }
         int totalKnown = known.size();
@@ -1363,7 +1364,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
         drawKnowledges(graphics, paperX + ASPECTS_INSERT_OFFSET_X, sh + KNOW_INPAGE_INSERT_Y_OFFSET, mouseX, mouseY, false);
         if (!hasAnyKnowledge()) {
-            Component hint = Component.translatable("tc.knowledge.none");
+            Component hint = Component.translatable("gui.thaumaturge.thaumonomicon.knowledge_none");
             graphics.text(font, hint, (width - font.width(hint)) / 2, sh + KNOW_INPAGE_INSERT_Y_OFFSET, KNOW_GRID_AMT_COLOR, false);
         }
     }
@@ -1474,7 +1475,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         drawTexturedRectScaled(graphics, backX, arrowY, BACK_U, BACK_V, BACK_W, BACK_H, backToMap ? 0.0F : bob);
         if (mouseInside(backX, arrowY, BACK_W, BACK_H, mouseX, mouseY)) {
             int textColor = 0xFFFFFFFF;
-            graphics.text(font, Component.translatable(backToMap ? "tc.research.return_to_map" : "recipe.return"), mouseX, mouseY, textColor, true);
+            graphics.text(font, Component.translatable(backToMap ? "gui.thaumaturge.thaumonomicon.return_to_map" : "gui.thaumaturge.thaumonomicon.back"), mouseX, mouseY, textColor, true);
         }
         if (canNavigateStageHistory()) {
             int displayedStage = displayedStageIndex();
@@ -1483,17 +1484,17 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 int leftX = sw + STAGE_HISTORY_LEFT_X;
                 drawTexturedRectScaled(graphics, leftX, sh + STAGE_HISTORY_DRAW_Y_OFFSET, ARROW_LEFT_U, ARROW_V, ARROW_W, ARROW_H, bob);
                 if (mouseInside(leftX - 1, sh + STAGE_HISTORY_HIT_Y, STAGE_HISTORY_HIT_SIZE, STAGE_HISTORY_HIT_SIZE, mouseX, mouseY)) {
-                    graphics.setTooltipForNextFrame(Component.translatable("tc.research.previous_stage"), mouseX, mouseY);
+                    graphics.setTooltipForNextFrame(Component.translatable("gui.thaumaturge.thaumonomicon.previous_stage"), mouseX, mouseY);
                 }
             }
             if (displayedStage < progressStage) {
                 int rightX = sw + STAGE_HISTORY_RIGHT_X;
                 drawTexturedRectScaled(graphics, rightX, sh + STAGE_HISTORY_DRAW_Y_OFFSET, ARROW_RIGHT_U, ARROW_V, ARROW_W, ARROW_H, bob);
                 if (mouseInside(rightX - 1, sh + STAGE_HISTORY_HIT_Y, STAGE_HISTORY_HIT_SIZE, STAGE_HISTORY_HIT_SIZE, mouseX, mouseY)) {
-                    graphics.setTooltipForNextFrame(Component.translatable("tc.research.next_stage"), mouseX, mouseY);
+                    graphics.setTooltipForNextFrame(Component.translatable("gui.thaumaturge.thaumonomicon.next_stage"), mouseX, mouseY);
                 }
             }
-            Component label = Component.translatable("tc.research.stage.history", displayedStage + 1, entry.value().stages().size());
+            Component label = Component.translatable("gui.thaumaturge.thaumonomicon.stage_history", displayedStage + 1, entry.value().stages().size());
             int labelWidth = font.width(label);
             graphics.text(font, label, sw + STAGE_HISTORY_CENTER_X - labelWidth / 2, sh + STAGE_HISTORY_DRAW_Y_OFFSET + 2, TEXT_LINE_COLOR, false);
         }

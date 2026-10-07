@@ -46,7 +46,7 @@ public final class ScanNode implements IScannable {
             }
             for (Holder<IAspect> component : instance.aspect().value().components()) {
                 if (!AspectPools.isDiscovered(player, component)) {
-                    return Component.translatable("tc.discoveryerror", AspectComponents.help(component));
+                    return Component.translatable("message.thaumaturge.research.discovery_error", AspectComponents.help(component));
                 }
             }
         }

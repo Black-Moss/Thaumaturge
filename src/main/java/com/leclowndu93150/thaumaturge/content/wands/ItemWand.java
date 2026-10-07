@@ -316,7 +316,7 @@ public class ItemWand extends Item implements ICaster, IArchitect, IChanneledIte
             WandVisHelper.addRealVis(stack, target, gained, true);
             sendRefineSparkle((ServerLevel) level, player, target);
         } else if (ticksRemaining % NO_AURA_MESSAGE_INTERVAL_TICKS == 0 && player instanceof ServerPlayer serverPlayer) {
-            sendWandActionBar(serverPlayer, "tc.wand.noaura");
+            sendWandActionBar(serverPlayer, "message.thaumaturge.wand.no_aura");
         }
     }
 

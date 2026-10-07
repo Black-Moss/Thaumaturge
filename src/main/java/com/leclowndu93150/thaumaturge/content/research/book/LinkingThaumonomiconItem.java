@@ -34,21 +34,21 @@ public final class LinkingThaumonomiconItem extends Item {
         if (binding == null) {
             stack.set(TTDataComponents.LINK_BINDING.get(), new LinkBinding(player.getUUID(), player.getGameProfile().name()));
             player.playSound(TTSounds.WRITE.get(), 1.0F, 1.0F);
-            TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.bound");
+            TTActionBar.sendPurple(player, "message.thaumaturge.thaumonomicon.sharing_bound");
             return InteractionResult.SUCCESS_SERVER;
         }
         if (binding.player().equals(player.getUUID())) {
-            TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.self");
+            TTActionBar.sendPurple(player, "message.thaumaturge.thaumonomicon.sharing_self");
             return InteractionResult.SUCCESS_SERVER;
         }
         ResearchLinkData data = ResearchLinkData.get(serverPlayer.level().getServer());
         ResearchLinkData.Link link = data.link(binding.player(), player.getUUID());
         ResearchLinkEvents.syncLink(serverPlayer.level().getServer(), data, link);
         player.playSound(TTSounds.WRITE.get(), 1.0F, 1.0F);
-        TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.linked", binding.name());
+        TTActionBar.sendPurple(player, "message.thaumaturge.thaumonomicon.sharing_linked", binding.name());
         ServerPlayer partner = serverPlayer.level().getServer().getPlayerList().getPlayer(binding.player());
         if (partner != null) {
-            TTActionBar.sendPurple(partner, "tc.thaumonomicon.sharing.linked", player.getGameProfile().name());
+            TTActionBar.sendPurple(partner, "message.thaumaturge.thaumonomicon.sharing_linked", player.getGameProfile().name());
         }
         stack.shrink(1);
         return InteractionResult.SUCCESS_SERVER;

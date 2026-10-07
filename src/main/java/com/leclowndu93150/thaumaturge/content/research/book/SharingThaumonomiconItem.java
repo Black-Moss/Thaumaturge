@@ -42,11 +42,11 @@ public final class SharingThaumonomiconItem extends Item {
             stack.set(TTDataComponents.SHARE_BINDING.get(),
                     new ShareBinding(player.getUUID(), player.getGameProfile().name(), AspectPoolData.snapshotOf(discoveredAspects), PlayerKnowledge.snapshotOf(knowledge)));
             player.playSound(TTSounds.WRITE.get(), 1.0F, 1.0F);
-            TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.bound");
+            TTActionBar.sendPurple(player, "message.thaumaturge.thaumonomicon.sharing_bound");
             return InteractionResult.SUCCESS_SERVER;
         }
         if (binding.player().equals(player.getUUID())) {
-            TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.self");
+            TTActionBar.sendPurple(player, "message.thaumaturge.thaumonomicon.sharing_self");
             return InteractionResult.SUCCESS_SERVER;
         }
         knowledge.mergeResearchFrom(binding.knowledge());
@@ -56,7 +56,7 @@ public final class SharingThaumonomiconItem extends Item {
         AspectPools.sync(serverPlayer);
 
         player.playSound(TTSounds.WRITE.get(), 1.0F, 1.0F);
-        TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.used", binding.name());
+        TTActionBar.sendPurple(player, "message.thaumaturge.thaumonomicon.sharing_used", binding.name());
         stack.shrink(1);
         return InteractionResult.SUCCESS_SERVER;
     }
