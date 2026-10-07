@@ -86,7 +86,9 @@ prism {
                 compileOnly("maven.modrinth:distanthorizons:${prop("distant_horizons_version")}")
                 compileOnly("maven.modrinth:vdjF5PL5:${prop("dynamic_trees_version")}")
                 compileOnly("maven.modrinth:iris:${prop("iris_version")}")
+                runtimeOnly("maven.modrinth:iris:${prop("iris_version")}")
                 runtimeOnly("maven.modrinth:sodium:${prop("sodium_version")}")
+                runtimeOnly("maven.modrinth:spark:${prop("spark_version")}")
             }
 
             rawProject {
