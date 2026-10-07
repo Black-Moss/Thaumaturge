@@ -18,6 +18,7 @@ import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TTDamageTypeBootstrap;
 import com.leclowndu93150.thaumaturge.data.datamap.AuraModifierProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.ChampionWhitelistProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.SmelterStatsProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.EntityAspectsProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.FocusTierProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.FuelValuesProvider;
@@ -103,6 +104,7 @@ public final class TTDataGenerators {
         event.createProvider(AuraModifierProvider::new);
         event.createProvider(EntityAspectsProvider::new);
         event.createProvider(ChampionWhitelistProvider::new);
+        event.createProvider(SmelterStatsProvider::new);
         event.createProvider(TaintedProfileProvider::new);
         event.createProvider(InfernalBonusProvider::new);
         event.createProvider(GolemAccessoryItemProvider::new);

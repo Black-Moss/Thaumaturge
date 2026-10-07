@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
 import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
-import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,6 +23,7 @@ public final class MenuSmelter extends AbstractTTMenu {
     public static final int PLAYER_GRID_Y = 84;
 
     public static final int SLOT_COUNT = 2;
+    private static final double INTERACTION_RANGE = 4.0;
 
     private final ItemStacksResourceHandler items;
     private final ContainerLevelAccess access;
@@ -65,8 +65,7 @@ public final class MenuSmelter extends AbstractTTMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return AbstractContainerMenu.stillValid(access, player, TTBlocks.SMELTER_BASIC.get()) || AbstractContainerMenu.stillValid(access, player, TTBlocks.SMELTER_THAUMIUM.get())
-                || AbstractContainerMenu.stillValid(access, player, TTBlocks.SMELTER_VOID.get());
+        return access.evaluate((level, pos) -> level.getBlockState(pos).getBlock() instanceof BlockSmelter && player.isWithinBlockInteractionRange(pos, INTERACTION_RANGE), true);
     }
 
     @Override
