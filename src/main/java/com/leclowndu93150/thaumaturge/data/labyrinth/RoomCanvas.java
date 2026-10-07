@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 final class RoomCanvas extends AbstractTemplateCanvas implements RoomVoxels {
@@ -146,6 +147,6 @@ final class RoomCanvas extends AbstractTemplateCanvas implements RoomVoxels {
         if (state.is(Blocks.STRUCTURE_BLOCK)) {
             return Kind.MARKER;
         }
-        return passable.test(state) ? Kind.PASSABLE : Kind.SOLID;
+        return passable.test(state) || state.getBlock() instanceof StairBlock ? Kind.PASSABLE : Kind.SOLID;
     }
 }

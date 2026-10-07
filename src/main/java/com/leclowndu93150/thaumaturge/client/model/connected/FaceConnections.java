@@ -60,7 +60,7 @@ public final class FaceConnections {
         return !state.isAir() && other.is(state.getBlock());
     }
 
-    private static Direction textureUp(Direction face) {
+    static Direction textureUp(Direction face) {
         return switch (face) {
             case UP -> Direction.NORTH;
             case DOWN -> Direction.SOUTH;
@@ -68,7 +68,7 @@ public final class FaceConnections {
         };
     }
 
-    private static Direction textureRight(Direction face) {
+    static Direction textureRight(Direction face) {
         return switch (face) {
             case UP, DOWN, SOUTH -> Direction.EAST;
             case NORTH -> Direction.WEST;

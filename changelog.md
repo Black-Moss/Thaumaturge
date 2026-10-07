@@ -3,3 +3,4 @@ fixed iris shader crash
 added connected textures to the blocks that deserve it
 added proper block set for decoration
 fixed taint not spreading correctly
+added stairs on the corridors in the eldrich

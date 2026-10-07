@@ -56,7 +56,7 @@ final class FeatureRooms {
     static void guardians(RoomCanvas canvas) {
         RoomKit.entrance(canvas, 5);
         canvas.carve(RoomShape.box(3, F + 1, 5, 12, F + 6, 13));
-        RoomKit.pillars(canvas, GUARDIAN_PILLARS, F + 1, F + 6, LabyrinthBlocks.tile());
+        RoomKit.columns(canvas, GUARDIAN_PILLARS, F + 1, F + 6);
         canvas.marker(7, F + 1, 9, new GuardianPostMarker(Optional.empty(), Optional.empty()));
         canvas.marker(4, F + 1, 12, RoomKit.crates(NEST_LOOT));
         canvas.marker(11, F + 1, 12, RoomKit.crates(NEST_LOOT));

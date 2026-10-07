@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.labyrinth;
 
+import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraft.world.level.block.state.properties.Half;
 import static com.leclowndu93150.thaumaturge.data.labyrinth.RoomCanvas.F;
 
 import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.marker.SpawnerMarker;
@@ -58,9 +60,11 @@ final class PassageRooms {
     static void ribbed(RoomCanvas canvas) {
         Junction.STRAIGHT.carve(canvas);
         for (int z : RIBS) {
-            RoomKit.pillar(canvas, SocketProfile.MIN_U, z, F + 1, F + 5, LabyrinthBlocks.tile());
-            RoomKit.pillar(canvas, SocketProfile.MAX_U, z, F + 1, F + 5, LabyrinthBlocks.tile());
-            canvas.fill(RoomShape.box(SocketProfile.CROWN_MIN_U, F + 5, z, SocketProfile.CROWN_MAX_U, F + 6, z), LabyrinthBlocks.tile());
+            RoomKit.column(canvas, SocketProfile.MIN_U, z, F + 1, F + 5);
+            RoomKit.column(canvas, SocketProfile.MAX_U, z, F + 1, F + 5);
+            canvas.fill(RoomShape.box(SocketProfile.CROWN_MIN_U, F + 6, z, SocketProfile.CROWN_MAX_U, F + 6, z), LabyrinthBlocks.column(Direction.Axis.X));
+            canvas.set(SocketProfile.CROWN_MIN_U, F + 5, z, LabyrinthBlocks.tileStairs(Direction.WEST, Half.TOP, StairsShape.STRAIGHT));
+            canvas.set(SocketProfile.CROWN_MAX_U, F + 5, z, LabyrinthBlocks.tileStairs(Direction.EAST, Half.TOP, StairsShape.STRAIGHT));
         }
     }
 
@@ -77,8 +81,8 @@ final class PassageRooms {
         Junction.STRAIGHT.carve(canvas);
         canvas.carve(RoomShape.box(3, F + 1, 2, 12, F + 6, 13));
         for (int z : RIBS) {
-            RoomKit.pillar(canvas, 4, z, F + 1, F + 6, LabyrinthBlocks.tile());
-            RoomKit.pillar(canvas, 11, z, F + 1, F + 6, LabyrinthBlocks.tile());
+            RoomKit.column(canvas, 4, z, F + 1, F + 6);
+            RoomKit.column(canvas, 11, z, F + 1, F + 6);
         }
     }
 
@@ -121,7 +125,7 @@ final class PassageRooms {
     static void pillarBend(RoomCanvas canvas) {
         Junction.BEND.carve(canvas);
         canvas.carve(RoomShape.box(4, F + 1, 4, 11, F + 6, 11));
-        canvas.fill(RoomShape.box(7, F + 1, 7, 8, F + 6, 8), LabyrinthBlocks.tile());
+        RoomKit.flaredColumn(canvas, 7, 7, 8, 8, F + 1, F + 6);
     }
 
     static void shrineBend(RoomCanvas canvas) {

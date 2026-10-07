@@ -132,7 +132,7 @@ public final class TTBlockTagsProvider extends BlockTagsProvider {
 
         tag(TTBlockTags.ELDRITCH_OBELISK_PARTS).add(TTBlocks.ELDRITCH_ALTAR.get()).add(TTBlocks.ELDRITCH_OBELISK.get()).add(TTBlocks.ELDRITCH_PILLAR.get()).add(TTBlocks.ELDRITCH_CAPSTONE.get());
         tag(TTBlockTags.LABYRINTH_BARRIER).add(TTBlocks.ELDRITCH_DOOR.get());
-        tag(TTBlockTags.CONNECTED_ELDRITCH_STONE).add(TTBlocks.ELDRITCH_STONE.get()).add(TTBlocks.ELDRITCH_STONE_INERT.get());
+        tag(TTBlockTags.CONNECTED_ELDRITCH_STONE).add(TTBlocks.ELDRITCH_STONE.get()).add(TTBlocks.ELDRITCH_STONE_INERT.get()).add(TTBlocks.STAIRS_ELDRITCH.get());
         for (Block passable : LabyrinthBlocks.passableBlocks()) {
             tag(TTBlockTags.LABYRINTH_PASSABLE).add(passable);
         }

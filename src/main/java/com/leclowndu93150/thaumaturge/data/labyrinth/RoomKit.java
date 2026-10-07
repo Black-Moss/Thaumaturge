@@ -11,6 +11,8 @@ import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.level.block.Block;
@@ -58,13 +60,40 @@ final class RoomKit {
         canvas.socket(new RoomSocket(0, 0, Direction.NORTH), depth);
     }
 
-    static void pillar(RoomCanvas canvas, int x, int z, int y0, int y1, BlockState state) {
-        canvas.fill(RoomShape.box(x, y0, z, x, y1, z), state);
+    static void column(RoomCanvas canvas, int x, int z, int y0, int y1) {
+        column(canvas, x, z, x, z, y0, y1);
     }
 
-    static void pillars(RoomCanvas canvas, int[][] spots, int y0, int y1, BlockState state) {
+    static void column(RoomCanvas canvas, int x0, int z0, int x1, int z1, int y0, int y1) {
+        canvas.fill(RoomShape.box(x0, y0, z0, x1, y0, z1), LabyrinthBlocks.tile());
+        canvas.fill(RoomShape.box(x0, y0 + 1, z0, x1, y1 - 1, z1), LabyrinthBlocks.column(Direction.Axis.Y));
+        canvas.fill(RoomShape.box(x0, y1, z0, x1, y1, z1), LabyrinthBlocks.tile());
+    }
+
+    static void columns(RoomCanvas canvas, int[][] spots, int y0, int y1) {
         for (int[] spot : spots) {
-            pillar(canvas, spot[0], spot[1], y0, y1, state);
+            column(canvas, spot[0], spot[1], y0, y1);
         }
+    }
+
+    static void flare(RoomCanvas canvas, int x0, int z0, int x1, int z1, int y, Half half) {
+        canvas.fill(RoomShape.box(x0, y, z0 - 1, x1, y, z0 - 1), LabyrinthBlocks.tileStairs(Direction.SOUTH, half, StairsShape.STRAIGHT));
+        canvas.fill(RoomShape.box(x0, y, z1 + 1, x1, y, z1 + 1), LabyrinthBlocks.tileStairs(Direction.NORTH, half, StairsShape.STRAIGHT));
+        canvas.fill(RoomShape.box(x0 - 1, y, z0, x0 - 1, y, z1), LabyrinthBlocks.tileStairs(Direction.EAST, half, StairsShape.STRAIGHT));
+        canvas.fill(RoomShape.box(x1 + 1, y, z0, x1 + 1, y, z1), LabyrinthBlocks.tileStairs(Direction.WEST, half, StairsShape.STRAIGHT));
+        canvas.set(x0 - 1, y, z0 - 1, LabyrinthBlocks.tileStairs(Direction.SOUTH, half, StairsShape.OUTER_LEFT));
+        canvas.set(x1 + 1, y, z0 - 1, LabyrinthBlocks.tileStairs(Direction.SOUTH, half, StairsShape.OUTER_RIGHT));
+        canvas.set(x0 - 1, y, z1 + 1, LabyrinthBlocks.tileStairs(Direction.NORTH, half, StairsShape.OUTER_RIGHT));
+        canvas.set(x1 + 1, y, z1 + 1, LabyrinthBlocks.tileStairs(Direction.NORTH, half, StairsShape.OUTER_LEFT));
+    }
+
+    static void flaredColumn(RoomCanvas canvas, int x0, int z0, int x1, int z1, int y0, int y1) {
+        column(canvas, x0, z0, x1, z1, y0, y1);
+        flare(canvas, x0, z0, x1, z1, y0, Half.BOTTOM);
+        flare(canvas, x0, z0, x1, z1, y1, Half.TOP);
+    }
+
+    static void steps(RoomCanvas canvas, int x0, int x1, int y, int z, Direction up) {
+        canvas.fill(RoomShape.box(x0, y, z, x1, y, z), LabyrinthBlocks.tileStairs(up, Half.BOTTOM, StairsShape.STRAIGHT));
     }
 }

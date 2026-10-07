@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.data.labyrinth;
 
+import net.minecraft.world.level.block.state.properties.Half;
 import static com.leclowndu93150.thaumaturge.data.labyrinth.RoomCanvas.F;
 
 import com.leclowndu93150.thaumaturge.registry.TTLabyrinthRoomTags;
@@ -42,7 +43,7 @@ final class HubRooms {
     static void teePillared(RoomCanvas canvas) {
         Junction.TEE.carve(canvas);
         canvas.carve(RoomShape.box(3, F + 1, 3, 12, F + 6, 12));
-        RoomKit.pillars(canvas, CORNER_PILLARS, F + 1, F + 6, LabyrinthBlocks.tile());
+        RoomKit.columns(canvas, CORNER_PILLARS, F + 1, F + 6);
     }
 
     static void teeShrine(RoomCanvas canvas) {
@@ -57,7 +58,8 @@ final class HubRooms {
         Junction.CROSS.carve(canvas);
         canvas.carve(RoomShape.cylinder(RoomKit.MID, RoomKit.MID, 6.0, F + 1, F + 7));
         canvas.carve(RoomShape.dome(RoomKit.MID, F + 7, RoomKit.MID, 6.0, 4.0, 6.0));
-        canvas.fill(RoomShape.box(7, F + 1, 7, 8, F + 12, 8), LabyrinthBlocks.tile());
+        RoomKit.column(canvas, 7, 7, 8, 8, F + 1, F + 12);
+        RoomKit.flare(canvas, 7, 7, 8, 8, F + 1, Half.BOTTOM);
         canvas.fill(RoomShape.annulus(RoomKit.MID, RoomKit.MID, 6.0, 5.0, F, F), LabyrinthBlocks.obsidianTile());
     }
 
@@ -73,7 +75,7 @@ final class HubRooms {
     static void gallery(RoomCanvas canvas) {
         Junction.CROSS.carve(canvas);
         canvas.carve(RoomShape.box(2, F + 1, 2, 13, F + 6, 13));
-        RoomKit.pillars(canvas, CORNER_PILLARS, F + 1, F + 6, LabyrinthBlocks.tile());
+        RoomKit.columns(canvas, CORNER_PILLARS, F + 1, F + 6);
         canvas.fill(RoomShape.box(5, F, 5, 10, F, 10), LabyrinthBlocks.tile());
         RoomKit.glyph(canvas, 1, F + 3, 3, Direction.EAST);
         RoomKit.glyph(canvas, 14, F + 3, 12, Direction.WEST);
@@ -100,9 +102,11 @@ final class HubRooms {
     static void collapsed(RoomCanvas canvas) {
         RoomKit.entrance(canvas, DEAD_END_DEPTH);
         canvas.carve(RoomShape.box(4, F + 1, 5, 11, F + 6, 13));
-        canvas.fill(RoomShape.box(4, F + 1, 9, 11, F + 1, 13), LabyrinthBlocks.rock());
-        canvas.fill(RoomShape.box(4, F + 2, 11, 11, F + 2, 13), LabyrinthBlocks.rock());
-        canvas.fill(RoomShape.box(5, F + 3, 13, 10, F + 3, 13), LabyrinthBlocks.rock());
+        canvas.fill(RoomShape.box(4, F + 1, 10, 11, F + 1, 13), LabyrinthBlocks.rock());
+        canvas.fill(RoomShape.box(4, F + 1, 9, 11, F + 1, 9), LabyrinthBlocks.rockStairs(Direction.SOUTH));
+        canvas.fill(RoomShape.box(4, F + 2, 12, 11, F + 2, 13), LabyrinthBlocks.rock());
+        canvas.fill(RoomShape.box(4, F + 2, 11, 11, F + 2, 11), LabyrinthBlocks.rockStairs(Direction.SOUTH));
+        canvas.fill(RoomShape.box(5, F + 3, 13, 10, F + 3, 13), LabyrinthBlocks.rockStairs(Direction.SOUTH));
         canvas.marker(7, F + 3, 12, RoomKit.urns(URN_LOOT));
     }
 }

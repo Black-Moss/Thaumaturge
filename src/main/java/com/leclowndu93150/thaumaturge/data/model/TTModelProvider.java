@@ -17,6 +17,8 @@ import com.leclowndu93150.thaumaturge.client.model.NodeStabilizerItemSpecialRend
 import com.leclowndu93150.thaumaturge.client.model.WandIsStaffProperty;
 import com.leclowndu93150.thaumaturge.client.model.WandItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.connected.ConnectedSheetModel;
+import com.leclowndu93150.thaumaturge.client.model.connected.ConnectedStairsModel;
+import com.leclowndu93150.thaumaturge.client.model.connected.FrameKit;
 import com.leclowndu93150.thaumaturge.client.model.connected.ConnectedTexture;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelInstance;
@@ -118,6 +120,8 @@ public final class TTModelProvider extends ModelProvider {
     private static final Identifier BLOCK_PARENT = Identifier.withDefaultNamespace("block/block");
     private static final String CONNECTED_SHEET_SUFFIX = "_ctm";
     private static final String CONNECTED_FRAMED_SUFFIX = "_framed";
+    private static final int TILE_STAIR_FRAME = 3;
+    private static final int STONE_STAIR_FRAME = 1;
     private static final TextureSlot GRINDSTONE_PIVOT_SLOT = TextureSlot.create("pivot");
     private static final TextureSlot GRINDSTONE_ROUND_SLOT = TextureSlot.create("round");
     private static final TextureSlot GRINDSTONE_LEG_SLOT = TextureSlot.create("leg");
@@ -1396,7 +1400,9 @@ public final class TTModelProvider extends ModelProvider {
         stairsFromModels(blockModels, TTBlocks.STAIRS_ANCIENT.get(), "ancient_stairs", "ancient_inner_stairs", "ancient_outer_stairs");
         stairs(blockModels, TTBlocks.STAIRS_ANCIENT_TILE.get(), texture("ancient_tile"), texture("ancient_tile"), texture("ancient_tile"));
         stairs(blockModels, TTBlocks.STAIRS_ANCIENT_ROCK.get(), texture("ancient_rock_stone_2"), texture("ancient_rock_stone_2"), texture("ancient_rock_stone_2"));
-        stairs(blockModels, TTBlocks.STAIRS_ELDRITCH_TILE.get(), texture("eldritch_stone_1"), texture("eldritch_stone_1"), texture("eldritch_stone_3"));
+        connectedStairs(blockModels, TTBlocks.STAIRS_ELDRITCH_TILE.get(), texture("eldritch_stone_1"), texture("eldritch_stone_1"), texture("eldritch_stone_3"),
+                new ConnectedStairsModel(frameKit("eldritch_tile_side_kit", TILE_STAIR_FRAME), frameKit("eldritch_tile_top_kit", TILE_STAIR_FRAME), frameKit("eldritch_tile_top_kit", TILE_STAIR_FRAME),
+                        TTIds.rl("block/eldritch_stone_3"), Optional.empty()));
         stairs(blockModels, TTBlocks.STAIRS_ELDRITCH_ROCK.get(), texture("eldritch_rock"), texture("eldritch_rock"), texture("eldritch_rock"));
 
         wall(blockModels, TTBlocks.WALL_ARCANE_STONE.get(), texture("arcane_stone_3"));
@@ -1433,6 +1439,17 @@ public final class TTModelProvider extends ModelProvider {
 
     private void connectedCube(BlockModelGenerators blockModels, Block block, String textureName) {
         blockModels.blockStateOutput.accept(new SingleModelDefinition(block, ConnectedSheetModel.cube(connectedTexture(textureName, false), Optional.empty())));
+    }
+
+    private void connectedStairs(BlockModelGenerators blockModels, Block block, Material bottom, Material top, Material side, ConnectedStairsModel model) {
+        TextureMapping mapping = new TextureMapping().put(TextureSlot.BOTTOM, bottom).put(TextureSlot.TOP, top).put(TextureSlot.SIDE, side);
+        ModelTemplates.STAIRS_STRAIGHT.create(block, mapping, blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(new SingleModelDefinition(block, model));
+        blockModels.registerSimpleItemModel(block.asItem(), ModelLocationUtils.getModelLocation(block));
+    }
+
+    private static FrameKit frameKit(String textureName, int width) {
+        return FrameKit.uniform(TTIds.rl("block/" + textureName), width);
     }
 
     private void connectedArcaneStone(BlockModelGenerators blockModels) {
@@ -1841,7 +1858,9 @@ public final class TTModelProvider extends ModelProvider {
         invisible(blockModels, TTBlocks.ELDRITCH_NOTHING.get());
         cube(blockModels, TTBlocks.ELDRITCH_NOTHING_DORMANT.get(), "eldritch_rock", false);
         invisible(blockModels, TTBlocks.ELDRITCH_PORTAL.get());
-        stairsFromTexture(blockModels, TTBlocks.STAIRS_ELDRITCH.get(), texture("eldritch_stone"));
+        connectedStairs(blockModels, TTBlocks.STAIRS_ELDRITCH.get(), texture("eldritch_stone"), texture("eldritch_stone"), texture("eldritch_stone"),
+                new ConnectedStairsModel(frameKit("eldritch_stone_kit", STONE_STAIR_FRAME), frameKit("eldritch_stone_kit", STONE_STAIR_FRAME), frameKit("eldritch_stone_kit", STONE_STAIR_FRAME),
+                        TTIds.rl("block/eldritch_stone"), Optional.of(TTBlockTags.CONNECTED_ELDRITCH_STONE)));
     }
 
     private void insetBlock(BlockModelGenerators blockModels, Block block, String textureName) {

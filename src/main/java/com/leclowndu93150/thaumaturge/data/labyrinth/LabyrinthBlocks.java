@@ -5,6 +5,11 @@ import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import java.util.List;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class LabyrinthBlocks {
@@ -76,6 +81,30 @@ public final class LabyrinthBlocks {
 
     static BlockState pillar() {
         return TTBlocks.ELDRITCH_PILLAR.get().defaultBlockState();
+    }
+
+    static BlockState column(Direction.Axis axis) {
+        return TTBlocks.STONE_ELDRITCH_PILLAR.get().defaultBlockState().setValue(RotatedPillarBlock.AXIS, axis);
+    }
+
+    static BlockState tileStairs(Direction facing, Half half, StairsShape shape) {
+        return stairs(TTBlocks.STAIRS_ELDRITCH_TILE.get().defaultBlockState(), facing, half, shape);
+    }
+
+    static BlockState stoneStairs(Direction facing, Half half, StairsShape shape) {
+        return stairs(TTBlocks.STAIRS_ELDRITCH.get().defaultBlockState(), facing, half, shape);
+    }
+
+    static boolean roundingHost(BlockState state) {
+        return state.is(TTBlocks.ELDRITCH_STONE.get()) || state.is(TTBlocks.ELDRITCH_STONE_INERT.get()) || state.is(TTBlocks.ELDRITCH_ROCK.get());
+    }
+
+    static BlockState rockStairs(Direction facing) {
+        return stairs(TTBlocks.STAIRS_ELDRITCH_ROCK.get().defaultBlockState(), facing, Half.BOTTOM, StairsShape.STRAIGHT);
+    }
+
+    private static BlockState stairs(BlockState stairs, Direction facing, Half half, StairsShape shape) {
+        return stairs.setValue(StairBlock.FACING, facing).setValue(StairBlock.HALF, half).setValue(StairBlock.SHAPE, shape);
     }
 
     static BlockState starfield() {

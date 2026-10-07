@@ -56,8 +56,7 @@ final class HallRooms {
         canvas.fill(RoomShape.cylinder(HALL_CENTER_X, HALL_CENTER_Z, 2.0, F, F), LabyrinthBlocks.tile());
         for (int x : NAVE_PILLAR_X) {
             for (int z : NAVE_PILLAR_Z) {
-                canvas.fill(RoomShape.box(x, F + 1, z, x + 1, HALL_TOP, z + 1), LabyrinthBlocks.stone());
-                canvas.fill(RoomShape.box(x, F + 1, z, x + 1, F + 1, z + 1), LabyrinthBlocks.tile());
+                RoomKit.flaredColumn(canvas, x, z, x + 1, z + 1, F + 1, HALL_TOP);
             }
         }
         landmarks(canvas, NAVE_SPAWNS);
