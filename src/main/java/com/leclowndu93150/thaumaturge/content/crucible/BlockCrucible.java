@@ -35,7 +35,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 public class BlockCrucible extends BaseEntityBlock {
-    private int delay = 0;
+    private static final int LAVA_HURT_INTERVAL = 10;
 
     public static final MapCodec<BlockCrucible> CODEC = simpleCodec(BlockCrucible::new);
 
@@ -81,11 +81,11 @@ public class BlockCrucible extends BaseEntityBlock {
                     return InteractionResult.SUCCESS;
                 }
             }
-        } else if (!player.isCrouching() /*&& (!(player.getItemInHand(hand).getItem() instanceof ICaster))*/
-                && hitResult.getDirection() == Direction.UP) {
+        } else if (!player.isCrouching() && hitResult.getDirection() == Direction.UP) {
             ItemStack input = itemStack.copyWithCount(1);
             if (crucible.getHeat() > 150 && crucible.getTank().getAmountAsInt(0) > 0 && crucible.attemptSmelt(input, player) == null) {
                 itemStack.shrink(1);
+                return InteractionResult.SUCCESS_SERVER;
             }
         }
         return super.useItemOn(itemStack, state, level, pos, player, hand, hitResult);
@@ -133,10 +133,8 @@ public class BlockCrucible extends BaseEntityBlock {
         if (entity instanceof ItemEntity it && !(it instanceof EntitySpecialItem)) {
             crucible.attemptSmelt(it);
         } else {
-            this.delay++;
-            if (this.delay < 10)
+            if (entity.tickCount % LAVA_HURT_INTERVAL != 0)
                 return;
-            delay = 0;
             if (entity instanceof LivingEntity e && !e.isInvulnerableTo((ServerLevel) level, level.damageSources().lava())) {
                 entity.lavaHurt();
                 effectApplier.apply(InsideBlockEffectType.EXTINGUISH);

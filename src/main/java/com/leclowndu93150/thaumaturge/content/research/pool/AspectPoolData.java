@@ -84,6 +84,18 @@ public final class AspectPoolData {
         completedNotes++;
     }
 
+    public static AspectPoolData snapshotOf(AspectPoolData source) {
+        AspectPoolData snapshot = new AspectPoolData();
+        snapshot.copyFrom(source);
+        return snapshot;
+    }
+
+    public void mergeDiscoveriesFrom(AspectPoolData other) {
+        for (Identifier aspect : other.pool.keySet()) {
+            discover(aspect);
+        }
+    }
+
     public void copyFrom(AspectPoolData other) {
         this.pool.clear();
         this.pool.putAll(other.pool);

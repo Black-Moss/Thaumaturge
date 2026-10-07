@@ -75,24 +75,29 @@ public final class MenuPech extends AbstractContainerMenu {
             return super.clickMenuButton(player, id);
         }
         if (!player.level().isClientSide() && pech != null && canTrade()) {
-            PechBarter.haggle(pech, table.getItem(OFFER_SLOT), player.level().getRandom(), player.level().registryAccess()).forEach(this::shelve);
+            for (ItemStack payout : PechBarter.haggle(pech, table.getItem(OFFER_SLOT), player.level().getRandom(), player.level().registryAccess())) {
+                if (!shelve(payout)) {
+                    player.getInventory().placeItemBackInInventory(payout);
+                }
+            }
             table.removeItem(OFFER_SLOT, 1);
         }
         return true;
     }
 
-    private void shelve(ItemStack stack) {
+    private boolean shelve(ItemStack stack) {
         for (int index = 1; index <= PAYOUT_SLOTS; index++) {
             ItemStack shelved = table.getItem(index);
             if (shelved.isEmpty()) {
                 table.setItem(index, stack);
-                return;
+                return true;
             }
-            if (ItemStack.isSameItemSameComponents(shelved, stack) && shelved.getCount() + stack.getCount() < shelved.getMaxStackSize()) {
+            if (ItemStack.isSameItemSameComponents(shelved, stack) && shelved.getCount() + stack.getCount() <= shelved.getMaxStackSize()) {
                 shelved.grow(stack.getCount());
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     @Override

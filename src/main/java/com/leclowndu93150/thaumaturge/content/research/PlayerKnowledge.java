@@ -242,6 +242,20 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
         return pending;
     }
 
+    public static PlayerKnowledge snapshotOf(PlayerKnowledge source) {
+        PlayerKnowledge snapshot = new PlayerKnowledge();
+        snapshot.copyFrom(source);
+        return snapshot;
+    }
+
+    public void mergeResearchFrom(PlayerKnowledge other) {
+        research.addAll(other.research);
+        completed.addAll(other.completed);
+        for (Map.Entry<Identifier, Integer> entry : other.stages.entrySet()) {
+            stages.merge(entry.getKey(), entry.getValue(), Math::max);
+        }
+    }
+
     public void copyFrom(PlayerKnowledge other) {
         clear();
         research.addAll(other.research);
