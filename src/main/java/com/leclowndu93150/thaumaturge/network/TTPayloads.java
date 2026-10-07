@@ -85,7 +85,6 @@ public final class TTPayloads {
         registrar.playToClient(ClientboundSpellFxPayload.TYPE, ClientboundSpellFxPayload.STREAM_CODEC, (payload, context) -> SpellFxClientHandler.handle(payload, context));
         registrar.playToServer(ServerboundFocusChangePayload.TYPE, ServerboundFocusChangePayload.STREAM_CODEC, ServerboundFocusChangePayload::handle);
         registrar.playToServer(ServerboundCasterKeyPayload.TYPE, ServerboundCasterKeyPayload.STREAM_CODEC, ServerboundCasterKeyPayload::handle);
-        registrar.playToServer(ServerboundRequestSyncAspectPoolPayload.TYPE, ServerboundRequestSyncAspectPoolPayload.STREAM_CODEC, ServerboundRequestSyncAspectPoolPayload::handle);
         registrar.playToClient(ClientboundWardChunkPayload.TYPE, ClientboundWardChunkPayload.STREAM_CODEC, (payload, context) -> WardClientHandler.handleChunk(payload, context));
         registrar.playToClient(ClientboundWardUpdatePayload.TYPE, ClientboundWardUpdatePayload.STREAM_CODEC, (payload, context) -> WardClientHandler.handleUpdate(payload, context));
     }

@@ -22,6 +22,7 @@ public final class AspectPoolData {
     private final LinkedHashMap<Identifier, Integer> pool;
     private int completedNotes;
     private long lastGrantSoundTime = Long.MIN_VALUE;
+    private boolean syncPending;
 
     public AspectPoolData() {
         this.pool = new LinkedHashMap<>();
@@ -87,5 +88,15 @@ public final class AspectPoolData {
         this.pool.clear();
         this.pool.putAll(other.pool);
         this.completedNotes = other.completedNotes;
+    }
+
+    public void markSyncPending() {
+        syncPending = true;
+    }
+
+    public boolean takeSyncPending() {
+        boolean pending = syncPending;
+        syncPending = false;
+        return pending;
     }
 }

@@ -40,8 +40,14 @@ public final class AspectPools {
     }
 
     public static void sync(ServerPlayer player) {
-        player.syncData(TTAttachments.ASPECT_POOL);
-        PacketDistributor.sendToPlayer(player, ClientboundUpdateJEIAspectListPayload.INSTANCE);
+        data(player).markSyncPending();
+    }
+
+    public static void flush(ServerPlayer player) {
+        if (data(player).takeSyncPending()) {
+            player.syncData(TTAttachments.ASPECT_POOL);
+            PacketDistributor.sendToPlayer(player, ClientboundUpdateJEIAspectListPayload.INSTANCE);
+        }
     }
 
     public static void seedIfNew(ServerPlayer player) {

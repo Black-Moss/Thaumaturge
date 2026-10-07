@@ -29,7 +29,6 @@ public final class AspectGainClientHandler {
                     KnowledgeGainOverlay.addAspectTracker(holder, BASE_DURATION_TICKS + mc.level.getRandom().nextInt(EXTRA_DURATION_SPREAD), mc.level.getRandom().nextLong());
                 }
             });
-            handleJEISync(ClientboundUpdateJEIAspectListPayload.INSTANCE, ctx);
         });
     }
 

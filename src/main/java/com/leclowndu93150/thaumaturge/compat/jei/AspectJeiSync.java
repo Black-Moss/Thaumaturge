@@ -8,7 +8,6 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.compat.jei.category.AspectCompositionCategory;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
-import com.leclowndu93150.thaumaturge.network.ServerboundRequestSyncAspectPoolPayload;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 public final class AspectJeiSync {
@@ -44,7 +42,6 @@ public final class AspectJeiSync {
             });
             updateCompositionVisibility(jeiRuntime);
         }
-        ClientPacketDistributor.sendToServer(ServerboundRequestSyncAspectPoolPayload.INSTANCE);
     }
 
     private static boolean isAffected(Object ingredient, Set<Identifier> changedIds) {

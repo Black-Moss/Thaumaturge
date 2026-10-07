@@ -40,12 +40,12 @@ public final class TTAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, TTIds.MODID);
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PlayerKnowledge>> KNOWLEDGE = register("knowledge",
-            () -> AttachmentType.builder(PlayerKnowledge::new).serialize(PlayerKnowledge.CODEC).sync(PlayerKnowledge.STREAM_CODEC).copyOnDeath().build());
+            () -> AttachmentType.builder(PlayerKnowledge::new).serialize(PlayerKnowledge.CODEC).sync((holder, to) -> holder == to, PlayerKnowledge.STREAM_CODEC).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AuraData>> AURA = register("aura", () -> AttachmentType.builder(AuraData::new).serialize(AuraData.CODEC).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AspectPoolData>> ASPECT_POOL = register("aspect_pool",
-            () -> AttachmentType.builder(AspectPoolData::new).serialize(AspectPoolData.CODEC).sync(AspectPoolData.STREAM_CODEC).copyOnDeath().build());
+            () -> AttachmentType.builder(AspectPoolData::new).serialize(AspectPoolData.CODEC).sync((holder, to) -> holder == to, AspectPoolData.STREAM_CODEC).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<WarpData>> WARP = register("warp",
             () -> AttachmentType.builder(WarpData::new).serialize(WarpData.CODEC).sync((holder, to) -> holder == to, WarpData.STREAM_CODEC).copyOnDeath().build());

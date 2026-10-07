@@ -41,6 +41,7 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     private final Map<Identifier, Integer> stages = new HashMap<>();
     private final Map<Identifier, EnumSet<ResearchFlag>> flags = new HashMap<>();
     private final Map<KnowledgeKey, Integer> knowledge = new HashMap<>();
+    private boolean syncPending;
 
     public PlayerKnowledge() {}
 
@@ -232,7 +233,13 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
 
     @Override
     public void sync(ServerPlayer player) {
-        player.syncData(TTAttachments.KNOWLEDGE);
+        syncPending = true;
+    }
+
+    public boolean takeSyncPending() {
+        boolean pending = syncPending;
+        syncPending = false;
+        return pending;
     }
 
     public void copyFrom(PlayerKnowledge other) {

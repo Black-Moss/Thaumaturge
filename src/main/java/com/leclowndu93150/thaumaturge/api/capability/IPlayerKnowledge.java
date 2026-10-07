@@ -166,6 +166,9 @@ public interface IPlayerKnowledge {
      * Publishes this record to the given player. Call after any mutation that must be reflected
      * in the client's mirror.
      *
+     * @implNote Since 1.1.0 the update is sent once, to that player only, at the end of the player's
+     *           tick, so several calls in one tick produce a single packet.
+     *
      * @param player the player to sync; must not be null
      */
     void sync(ServerPlayer player);
