@@ -36,7 +36,8 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
             return;
         }
         if (props.hasTrait(TTGolemTraits.SMART.get())) {
-            MutableComponent rank = Component.translatable("tooltip.thaumaturge.golem.rank", Component.translatable("golem.rank"), props.rank()).withStyle(ChatFormatting.GOLD);
+            MutableComponent rank = Component.translatable("tooltip.thaumaturge.golem.rank", Component.translatable("tooltip.thaumaturge.golem.rank_label"), props.rank())
+                    .withStyle(ChatFormatting.GOLD);
             if (props.rank() >= EntityThaumaturgeGolem.MAX_RANK) {
                 tooltip.accept(rank);
             } else {

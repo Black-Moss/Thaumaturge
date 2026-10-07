@@ -46,10 +46,10 @@ public final class ItemCreativeFluxSponge extends Item {
         if (level instanceof ServerLevel server) {
             server.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.CRAFTSTART.get(), SoundSource.PLAYERS, SQUELCH_VOLUME, 1.0F);
             int absorbed = (int) soakFlux(server, player);
-            player.sendSystemMessage(Component.translatable("tc.flux_sponge.drained", absorbed).withStyle(ChatFormatting.GREEN));
+            player.sendSystemMessage(Component.translatable("message.thaumaturge.flux_sponge.drained", absorbed).withStyle(ChatFormatting.GREEN));
             if (player.isShiftKeyDown()) {
                 int closed = closeRifts(server, player);
-                player.sendSystemMessage(Component.translatable("tc.flux_sponge.rifts", closed).withStyle(ChatFormatting.DARK_AQUA));
+                player.sendSystemMessage(Component.translatable("message.thaumaturge.flux_sponge.rifts", closed).withStyle(ChatFormatting.DARK_AQUA));
             }
         }
         return InteractionResult.SUCCESS;

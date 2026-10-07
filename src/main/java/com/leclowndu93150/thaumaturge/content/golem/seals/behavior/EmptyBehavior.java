@@ -16,8 +16,8 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public final class EmptyBehavior implements ISealBehavior {
-    public static final SealSetting CYCLE = new SealSetting("pcycle", "golem.prop.cycle", false);
-    public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "golem.prop.leave", false);
+    public static final SealSetting CYCLE = new SealSetting("pcycle", "gui.thaumaturge.seal.setting.cycle", false);
+    public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "gui.thaumaturge.seal.setting.leave", false);
 
     private static final int STAGGER = 30;
     private static final int SCAN_PERIOD = 20;

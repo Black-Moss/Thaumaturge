@@ -225,7 +225,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         if (minecraft == null || minecraft.player == null)
             return;
         loadRegistryData();
-        searchField = new EditBox(font, SEARCH_BOX_X, SEARCH_BOX_Y, SEARCH_BOX_WIDTH, SEARCH_BOX_HEIGHT, Component.translatable("tc.search"));
+        searchField = new EditBox(font, SEARCH_BOX_X, SEARCH_BOX_Y, SEARCH_BOX_WIDTH, SEARCH_BOX_HEIGHT, Component.translatable("gui.thaumaturge.thaumonomicon.search"));
         searchField.setBordered(true);
         searchField.setMaxLength(15);
         searchField.setTextColor(0xFFFFFFFF);
@@ -714,8 +714,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             graphics.text(font, sr.displayName(), SEARCH_RESULT_TEXT_X, textY, color, false);
             q++;
             if (SEARCH_RESULT_TEXT_Y_START + (q + 1) * SEARCH_RESULT_ROW_HEIGHT > screenY) {
-                graphics.text(font, Component.translatable("tc.search.more"), SEARCH_RESULT_HIT_LEFT_X, SEARCH_RESULT_TEXT_Y_START + q * SEARCH_RESULT_ROW_HEIGHT + SEARCH_RESULT_OVERFLOW_Y_OFFSET,
-                        SEARCH_OVERFLOW_COLOR, false);
+                graphics.text(font, Component.translatable("gui.thaumaturge.thaumonomicon.search_more"), SEARCH_RESULT_HIT_LEFT_X,
+                        SEARCH_RESULT_TEXT_Y_START + q * SEARCH_RESULT_ROW_HEIGHT + SEARCH_RESULT_OVERFLOW_Y_OFFSET, SEARCH_OVERFLOW_COLOR, false);
                 break;
             }
         }
@@ -810,13 +810,13 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             graphics.text(font, full, labelX, labelY, HOVER_LABEL_COLOR, false);
             int t = CATEGORY_LABEL_LINE_HEIGHT;
             if (hasNewResearch) {
-                String s = Component.translatable("tc.research.newresearch").getString();
+                String s = Component.translatable("tooltip.thaumaturge.research.new_research").getString();
                 int sx = !flip ? x + CATEGORY_LABEL_GAP_X : screenX + CATEGORY_LABEL_FROM_RIGHT_OFFSET - font.width(s);
                 graphics.text(font, s, sx, labelY + t, HOVER_LABEL_COLOR, false);
                 t += CATEGORY_LABEL_LINE_HEIGHT;
             }
             if (hasNewPage) {
-                String s = Component.translatable("tc.research.newpage").getString();
+                String s = Component.translatable("tooltip.thaumaturge.research.new_page").getString();
                 int sx = !flip ? x + CATEGORY_LABEL_GAP_X : screenX + CATEGORY_LABEL_FROM_RIGHT_OFFSET - font.width(s);
                 graphics.text(font, s, sx, labelY + t, HOVER_LABEL_COLOR, false);
             }
@@ -856,7 +856,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BROWSER, x, y, (float) SEARCH_BUTTON_U, (float) SEARCH_BUTTON_V, SEARCH_BUTTON_SIZE, SEARCH_BUTTON_SIZE,
                 SEARCH_BUTTON_SIZE, SEARCH_BUTTON_SIZE, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE, tint);
         if (hover) {
-            graphics.text(font, Component.translatable("tc.search").getString(), x + SEARCH_BUTTON_LABEL_X_OFFSET, y + SEARCH_BUTTON_LABEL_Y_OFFSET, HOVER_LABEL_COLOR, false);
+            graphics.text(font, Component.translatable("gui.thaumaturge.thaumonomicon.search").getString(), x + SEARCH_BUTTON_LABEL_X_OFFSET, y + SEARCH_BUTTON_LABEL_Y_OFFSET, HOVER_LABEL_COLOR,
+                    false);
         }
     }
 
@@ -884,16 +885,17 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             if (!knowledge.isResearchComplete(node.id) && !node.entry.stages().isEmpty()) {
                 int stage = knowledge.researchStage(node.id);
                 if (stage >= 0) {
-                    MutableComponent stageLine = Component.literal("@@").append(Component
-                            .literal(ChatFormatting.AQUA + Component.translatable("tc.research.stage").getString() + " " + (stage + 1) + "/" + node.entry.stages().size() + ChatFormatting.RESET));
+                    MutableComponent stageLine = Component.literal("@@").append(Component.literal(ChatFormatting.AQUA + Component.translatable("tooltip.thaumaturge.research.stage").getString() + " "
+                            + (stage + 1) + "/" + node.entry.stages().size() + ChatFormatting.RESET));
                     lines.add(stageLine);
                 } else {
-                    MutableComponent begin = Component.literal("@@").append(Component.literal(ChatFormatting.GREEN + Component.translatable("tc.research.begin").getString() + ChatFormatting.RESET));
+                    MutableComponent begin = Component.literal("@@")
+                            .append(Component.literal(ChatFormatting.GREEN + Component.translatable("tooltip.thaumaturge.research.not_begun").getString() + ChatFormatting.RESET));
                     lines.add(begin);
                 }
             }
         } else {
-            lines.add(Component.literal("@@" + ChatFormatting.RED + Component.translatable("tc.researchmissing").getString()));
+            lines.add(Component.literal("@@" + ChatFormatting.RED + Component.translatable("tooltip.thaumaturge.research.missing").getString()));
             for (ResearchParent parent : node.entry.parents()) {
                 if (parent.isSatisfiedBy(knowledge))
                     continue;
@@ -909,10 +911,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             }
         }
         if (knowledge.hasResearchFlag(node.id, ResearchFlag.RESEARCH)) {
-            lines.add(Component.literal("@@").append(Component.translatable("tc.research.newresearch")));
+            lines.add(Component.literal("@@").append(Component.translatable("tooltip.thaumaturge.research.new_research")));
         }
         if (knowledge.hasResearchFlag(node.id, ResearchFlag.PAGE)) {
-            lines.add(Component.literal("@@").append(Component.translatable("tc.research.newpage")));
+            lines.add(Component.literal("@@").append(Component.translatable("tooltip.thaumaturge.research.new_page")));
         }
         if (minecraft.options.advancedItemTooltips) {
             lines.add(Component.literal(ChatFormatting.DARK_GRAY + node.id().toString()));

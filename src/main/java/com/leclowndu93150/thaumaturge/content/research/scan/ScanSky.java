@@ -68,7 +68,7 @@ public final class ScanSky implements IScannable {
     private static void observe(ServerPlayer player, int worldDay, String body, CelestialBody note) {
         Identifier key = ScanKeys.celestial(worldDay, body);
         if (KnowledgeAccess.of(player).isResearchKnown(key)) {
-            player.sendOverlayMessage(Component.translatable("tc.celestial.fail.1"));
+            player.sendOverlayMessage(Component.translatable("message.thaumaturge.celestial.already_studied"));
             return;
         }
         if (isCarrying(player, TTItems.SCRIBING_TOOLS.get()) && consume(player, Items.PAPER)) {
@@ -78,7 +78,7 @@ public final class ScanSky implements IScannable {
             }
             ScanningManager.progressResearch(player, key);
         } else {
-            player.sendOverlayMessage(Component.translatable("tc.celestial.fail.2"));
+            player.sendOverlayMessage(Component.translatable("message.thaumaturge.celestial.cannot_note"));
         }
         cleanResearch(player, worldDay);
     }

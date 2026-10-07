@@ -60,7 +60,7 @@ public final class ElementalSwordItem extends Item implements IChanneledItem {
             boolean disabled = !stack.getOrDefault(TTDataComponents.WHIRLWIND_DISABLED.get(), false);
             stack.set(TTDataComponents.WHIRLWIND_DISABLED.get(), disabled);
             if (!level.isClientSide()) {
-                TTActionBar.sendPurple(player, disabled ? "tc.elemental_sword.whirlwind_off" : "tc.elemental_sword.whirlwind_on");
+                TTActionBar.sendPurple(player, disabled ? "message.thaumaturge.elemental_sword.whirlwind_off" : "message.thaumaturge.elemental_sword.whirlwind_on");
                 level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.KEY.get(), SoundSource.PLAYERS, 0.5F, disabled ? 0.8F : 1.2F);
             }
             return InteractionResult.SUCCESS;

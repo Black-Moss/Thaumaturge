@@ -13,10 +13,13 @@ import com.leclowndu93150.thaumaturge.compat.curio.data.TTCurioProvider;
 import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.LabyrinthDefinition;
 import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.RoomType;
 import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
+import com.leclowndu93150.thaumaturge.content.infusion.instability.InstabilityOutcome;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TTDamageTypeBootstrap;
 import com.leclowndu93150.thaumaturge.data.datamap.AuraModifierProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.ChampionWhitelistProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.InfusionModifierProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.SmelterStatsProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.EntityAspectsProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.FocusTierProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.FuelValuesProvider;
@@ -24,6 +27,7 @@ import com.leclowndu93150.thaumaturge.data.datamap.GolemAccessoryItemProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.InfernalBonusProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.StrippingProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.TaintedProfileProvider;
+import com.leclowndu93150.thaumaturge.data.infusion.InstabilityOutcomeBootstrap;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthDefinitionBootstrap;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthEncounterBootstrap;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthProcessorBootstrap;
@@ -89,7 +93,7 @@ public final class TTDataGenerators {
                 .add(SpellPart.REGISTRY_KEY, SpellPartBootstrap::bootstrap).add(AspectAffinity.REGISTRY_KEY, AffinityBootstrap::bootstrap)
                 .add(Registries.PROCESSOR_LIST, LabyrinthProcessorBootstrap::bootstrap).add(RoomType.REGISTRY_KEY, LabyrinthRoomBootstrap::bootstrap)
                 .add(LabyrinthEncounter.REGISTRY_KEY, LabyrinthEncounterBootstrap::bootstrap).add(LabyrinthDefinition.REGISTRY_KEY, LabyrinthDefinitionBootstrap::bootstrap)
-                .add(ObeliskSite.REGISTRY_KEY, ObeliskSiteBootstrap::bootstrap);
+                .add(ObeliskSite.REGISTRY_KEY, ObeliskSiteBootstrap::bootstrap).add(InstabilityOutcome.REGISTRY_KEY, InstabilityOutcomeBootstrap::bootstrap);
         event.createDatapackRegistryObjects(registries);
 
         event.createProvider(TTEnglishProvider::new);
@@ -101,6 +105,8 @@ public final class TTDataGenerators {
         event.createProvider(AuraModifierProvider::new);
         event.createProvider(EntityAspectsProvider::new);
         event.createProvider(ChampionWhitelistProvider::new);
+        event.createProvider(SmelterStatsProvider::new);
+        event.createProvider(InfusionModifierProvider::new);
         event.createProvider(TaintedProfileProvider::new);
         event.createProvider(InfernalBonusProvider::new);
         event.createProvider(GolemAccessoryItemProvider::new);

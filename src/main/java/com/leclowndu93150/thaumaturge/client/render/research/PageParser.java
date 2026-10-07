@@ -25,7 +25,7 @@ public final class PageParser {
     private static final int IMAGE_GAP = 2;
 
     private static final Identifier KNOWLEDGETYPES_ID = Identifier.fromNamespaceAndPath("thaumaturge", "knowledge_types");
-    private static final String ADDENDUM_TEXT_KEY = "tc.addendumtext";
+    private static final String ADDENDUM_TEXT_KEY = "gui.thaumaturge.thaumonomicon.addendum";
 
     private PageParser() {}
 

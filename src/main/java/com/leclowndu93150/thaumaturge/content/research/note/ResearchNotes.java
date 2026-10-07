@@ -126,7 +126,7 @@ public final class ResearchNotes {
             return false;
         }
         if ((!consumeInk(player, true) || !hasItem(player, Items.PAPER)) && !player.getAbilities().instabuild) {
-            player.sendSystemMessage(Component.translatable("tc.researchnote.missing").withStyle(ChatFormatting.DARK_PURPLE));
+            player.sendSystemMessage(Component.translatable("message.thaumaturge.research_note.missing_tools").withStyle(ChatFormatting.DARK_PURPLE));
             return false;
         }
         consumeInk(player, false);

@@ -14,9 +14,9 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 
 public final class GuardBehavior extends HuntBehavior {
-    public static final SealSetting MONSTERS = new SealSetting("pmob", "golem.prop.mob", true);
-    public static final SealSetting ANIMALS = new SealSetting("panimal", "golem.prop.animal", false);
-    public static final SealSetting PLAYERS = new SealSetting("pplayer", "golem.prop.player", false);
+    public static final SealSetting MONSTERS = new SealSetting("pmob", "gui.thaumaturge.seal.setting.mob", true);
+    public static final SealSetting ANIMALS = new SealSetting("panimal", "gui.thaumaturge.seal.setting.animal", false);
+    public static final SealSetting PLAYERS = new SealSetting("pplayer", "gui.thaumaturge.seal.setting.player", false);
 
     private static final int STAGGER = 22;
     private static final int SCAN_PERIOD = 20;

@@ -36,8 +36,8 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jspecify.annotations.Nullable;
 
 public final class HarvestBehavior implements ISealBehavior {
-    public static final SealSetting REPLANT = new SealSetting("prep", "golem.prop.replant", true);
-    public static final SealSetting REQUEST_SEEDS = new SealSetting("ppro", "golem.prop.provision", false);
+    public static final SealSetting REPLANT = new SealSetting("prep", "gui.thaumaturge.seal.setting.replant", true);
+    public static final SealSetting REQUEST_SEEDS = new SealSetting("ppro", "gui.thaumaturge.seal.setting.provision", false);
     public static final MapCodec<HarvestBehavior> CODEC = ReplantSite.CODEC.listOf().optionalFieldOf("replant", List.of()).xmap(HarvestBehavior::new, behavior -> List.copyOf(behavior.sites.values()));
 
     private static final int STAGGER = 33;

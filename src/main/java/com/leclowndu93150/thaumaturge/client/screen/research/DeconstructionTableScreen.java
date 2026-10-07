@@ -58,7 +58,7 @@ public final class DeconstructionTableScreen extends AbstractTTContainerScreen<M
         if (result != null) {
             AspectTagRenderer.render(graphics, font, leftPos + RESULT_X, topPos + RESULT_Y, result, 1);
             if (mouseX >= leftPos + RESULT_X && mouseX < leftPos + RESULT_X + RESULT_SIZE && mouseY >= topPos + RESULT_Y && mouseY < topPos + RESULT_Y + RESULT_SIZE) {
-                graphics.setTooltipForNextFrame(font, List.of(AspectComponents.name(result), Component.translatable("tc.decon.collect")), Optional.empty(), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, List.of(AspectComponents.name(result), Component.translatable("gui.thaumaturge.deconstruction_table.collect")), Optional.empty(), mouseX, mouseY);
             }
         }
     }

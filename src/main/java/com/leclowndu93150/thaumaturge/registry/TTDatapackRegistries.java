@@ -13,6 +13,7 @@ import com.leclowndu93150.thaumaturge.content.aspect.Aspect;
 import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.LabyrinthDefinition;
 import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.RoomType;
 import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
+import com.leclowndu93150.thaumaturge.content.infusion.instability.InstabilityOutcome;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.content.research.ResearchCategory;
 import com.leclowndu93150.thaumaturge.content.research.ResearchEntry;
@@ -38,5 +39,6 @@ public final class TTDatapackRegistries {
         event.dataPackRegistry(RoomType.REGISTRY_KEY, RoomType.CODEC);
         event.dataPackRegistry(LabyrinthDefinition.REGISTRY_KEY, LabyrinthDefinition.CODEC);
         event.dataPackRegistry(ObeliskSite.REGISTRY_KEY, ObeliskSite.CODEC);
+        event.dataPackRegistry(InstabilityOutcome.REGISTRY_KEY, InstabilityOutcome.CODEC);
     }
 }

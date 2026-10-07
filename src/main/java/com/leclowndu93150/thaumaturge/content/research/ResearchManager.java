@@ -322,7 +322,7 @@ public final class ResearchManager {
                 return;
             for (ResearchAddendum addendum : other.addenda()) {
                 if (addendum.requiredResearch().contains(completed)) {
-                    player.sendSystemMessage(Component.translatable("tc.addaddendum", Component.translatable(other.nameKey())).withStyle(ChatFormatting.DARK_PURPLE));
+                    player.sendSystemMessage(Component.translatable("message.thaumaturge.research.addendum_added", Component.translatable(other.nameKey())).withStyle(ChatFormatting.DARK_PURPLE));
                     knowledge.setResearchFlag(otherId, ResearchFlag.PAGE);
                     break;
                 }

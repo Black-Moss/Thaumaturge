@@ -270,7 +270,7 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
     @Override
     public void clicked(int slotId, int button, ContainerInput containerInput, Player player) {
         if (slotId == WAND_SLOT && getCarried().getItem() instanceof ItemWand wand && wand.isStaff(getCarried())) {
-            TTActionBar.sendPurple(player, "tc.workbench.staff");
+            TTActionBar.sendPurple(player, "message.thaumaturge.arcane_workbench.staff");
         }
         if (slotId == RESULT_SLOT && containerInput == ContainerInput.SWAP && craftsOnServer()) {
             swapCraft(button);

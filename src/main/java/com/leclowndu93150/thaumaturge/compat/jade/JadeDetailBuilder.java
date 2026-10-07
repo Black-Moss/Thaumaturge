@@ -27,7 +27,7 @@ final class JadeDetailBuilder {
     }
 
     Component aspectName(Holder<IAspect> aspect) {
-        return AspectPools.isDiscovered(player, aspect) ? AspectComponents.trueName(aspect) : Component.translatable("tc.aspect.unknown");
+        return AspectPools.isDiscovered(player, aspect) ? AspectComponents.trueName(aspect) : Component.translatable("tooltip.thaumaturge.aspect.unknown");
     }
 
     void summary(String key, Object... args) {

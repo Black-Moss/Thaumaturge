@@ -36,7 +36,7 @@ public final class PechWandItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        tooltip.accept(Component.translatable("item.curio.text"));
+        tooltip.accept(Component.translatable("tooltip.thaumaturge.curio.read"));
         super.appendHoverText(stack, context, display, tooltip, flag);
     }
 
@@ -44,7 +44,7 @@ public final class PechWandItem extends Item {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (!KnowledgeAccess.of(player).isResearchKnown(PREREQUISITE)) {
             if (player instanceof ServerPlayer) {
-                player.sendSystemMessage(Component.translatable("not.pechwand").withStyle(ChatFormatting.RED));
+                player.sendSystemMessage(Component.translatable("message.thaumaturge.pech_wand.unfathomable").withStyle(ChatFormatting.RED));
             }
             return InteractionResult.PASS;
         }
@@ -58,7 +58,7 @@ public final class PechWandItem extends Item {
     private static void study(ServerPlayer scholar) {
         scholar.level().playSound(null, scholar.getX(), scholar.getY(), scholar.getZ(), TTSounds.LEARN.get(), SoundSource.NEUTRAL, STUDY_VOLUME,
                 STUDY_PITCH + scholar.getRandom().triangle(0.0F, STUDY_PITCH_SPREAD));
-        scholar.sendSystemMessage(Component.translatable("got.pechwand").withStyle(ChatFormatting.DARK_PURPLE));
+        scholar.sendSystemMessage(Component.translatable("message.thaumaturge.discovery.pech_wand").withStyle(ChatFormatting.DARK_PURPLE));
         if (!KnowledgeAccess.of(scholar).isResearchKnown(REVEALED_RESEARCH)) {
             ResearchManager.complete(scholar, REVEALED_RESEARCH);
         }

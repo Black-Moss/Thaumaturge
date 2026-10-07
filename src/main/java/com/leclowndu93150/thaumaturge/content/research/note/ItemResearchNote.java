@@ -45,8 +45,8 @@ public final class ItemResearchNote extends Item {
             AspectPools.sync(serverPlayer);
             stack.shrink(1);
             level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.LEARN.get(), SoundSource.PLAYERS, 0.66F, 1.0F);
-            serverPlayer
-                    .sendSystemMessage(Component.translatable("tc.researchnote.learned", ResearchNotes.entryName(serverPlayer.registryAccess(), data.entry())).withStyle(ChatFormatting.DARK_PURPLE));
+            serverPlayer.sendSystemMessage(
+                    Component.translatable("message.thaumaturge.research_note.learned", ResearchNotes.entryName(serverPlayer.registryAccess(), data.entry())).withStyle(ChatFormatting.DARK_PURPLE));
             ResearchManager.advanceStage(serverPlayer, data.entry());
         }
         return InteractionResult.SUCCESS;
@@ -68,12 +68,12 @@ public final class ItemResearchNote extends Item {
             return;
         }
         if (context.registries() != null) {
-            tooltip.accept(Component.translatable("tc.researchtheory", ResearchNotes.entryName(context.registries(), data.entry())).withStyle(ChatFormatting.DARK_PURPLE));
+            tooltip.accept(Component.translatable("tooltip.thaumaturge.research_note.theory", ResearchNotes.entryName(context.registries(), data.entry())).withStyle(ChatFormatting.DARK_PURPLE));
         }
         if (data.complete()) {
-            tooltip.accept(Component.translatable("tc.researchnote.use").withStyle(ChatFormatting.GOLD));
+            tooltip.accept(Component.translatable("tooltip.thaumaturge.research_note.use").withStyle(ChatFormatting.GOLD));
         } else {
-            tooltip.accept(Component.translatable("tc.researchnote.table").withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable("tooltip.thaumaturge.research_note.table").withStyle(ChatFormatting.GRAY));
         }
     }
 

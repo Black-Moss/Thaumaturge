@@ -81,7 +81,8 @@ public final class BlockGolemBuilder extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (player instanceof ServerPlayer serverPlayer && !KnowledgeAccess.of(serverPlayer).isResearchComplete(MIND_CLOCKWORK_RESEARCH)) {
-            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("tc.device.unknown").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
+            serverPlayer.connection
+                    .send(new ClientboundSetActionBarTextPacket(Component.translatable("message.thaumaturge.device.not_understood").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
             return InteractionResult.SUCCESS_SERVER;
         }
         if (level.getBlockEntity(pos) instanceof BlockEntityGolemBuilder builder) {

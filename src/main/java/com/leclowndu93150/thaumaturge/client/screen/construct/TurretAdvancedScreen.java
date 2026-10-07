@@ -24,7 +24,7 @@ public final class TurretAdvancedScreen extends TurretBasicScreen<MenuTurretAdva
     private static final int LABEL_OFFSET_X = 12;
     private static final int LABEL_COLOR = 0xFFFFFFFF;
     private static final float CLICK_VOLUME = 0.4F;
-    private static final String[] BUTTON_LABELS = {"button.turretfocus.1", "button.turretfocus.2", "button.turretfocus.3", "button.turretfocus.4"};
+    private static final String[] BUTTON_LABELS = {"gui.thaumaturge.turret.target.1", "gui.thaumaturge.turret.target.2", "gui.thaumaturge.turret.target.3", "gui.thaumaturge.turret.target.4"};
 
     public TurretAdvancedScreen(MenuTurretAdvanced menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TEXTURE);

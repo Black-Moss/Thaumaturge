@@ -15,11 +15,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public final class UseBehavior implements ISealBehavior {
-    public static final SealSetting LEFT_CLICK = new SealSetting("pleft", "golem.prop.left", false);
-    public static final SealSetting INTO_AIR = new SealSetting("pempty", "golem.prop.empty", false);
-    public static final SealSetting BARE_HANDED = new SealSetting("pemptyhand", "golem.prop.emptyhand", false);
-    public static final SealSetting SNEAKING = new SealSetting("psneak", "golem.prop.sneak", false);
-    public static final SealSetting REQUEST_ITEMS = new SealSetting("ppro", "golem.prop.provision.wl", false);
+    public static final SealSetting LEFT_CLICK = new SealSetting("pleft", "gui.thaumaturge.seal.setting.left", false);
+    public static final SealSetting INTO_AIR = new SealSetting("pempty", "gui.thaumaturge.seal.setting.empty", false);
+    public static final SealSetting BARE_HANDED = new SealSetting("pemptyhand", "gui.thaumaturge.seal.setting.emptyhand", false);
+    public static final SealSetting SNEAKING = new SealSetting("psneak", "gui.thaumaturge.seal.setting.sneak", false);
+    public static final SealSetting REQUEST_ITEMS = new SealSetting("ppro", "gui.thaumaturge.seal.setting.provision_whitelist", false);
 
     private static final int STAGGER = 49;
     private static final int SCAN_PERIOD = 5;
