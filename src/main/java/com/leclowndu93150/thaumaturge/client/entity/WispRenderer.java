@@ -2,14 +2,13 @@ package com.leclowndu93150.thaumaturge.client.entity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.content.entity.WispEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Holder;
@@ -21,8 +20,7 @@ import org.joml.Matrix4fc;
 public final class WispRenderer extends EntityRenderer<WispEntity, WispRenderState> {
     private static final Identifier NODES = TTIds.rl("textures/misc/auranodes.png");
 
-    private static final RenderType NODES_TYPE = RenderType.create("tc_wisp_nodes",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE_ALPHA_TEST).withTexture("Sampler0", NODES).useLightmap().createRenderSetup());
+    private static final RenderType NODES_TYPE = TTFXRenderTypes.additiveAlphaTest(NODES);
 
     private static final int NODE_GRID = 32;
     private static final int NODE_FRAME_START = 800;

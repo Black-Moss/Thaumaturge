@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
@@ -28,8 +27,7 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
     }
 
     private static final Identifier TEXTURE = TTIds.rl("textures/misc/cultist_portal.png");
-    private static final RenderType PORTAL_TYPE = RenderType.create("tc_cultist_portal",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", TEXTURE).useLightmap().createRenderSetup());
+    private static final RenderType PORTAL_TYPE = TTFXRenderTypes.translucent(TEXTURE);
 
     private static final int FRAMES = 32;
     private static final float FRAME_WIDTH = 1.0F / FRAMES;

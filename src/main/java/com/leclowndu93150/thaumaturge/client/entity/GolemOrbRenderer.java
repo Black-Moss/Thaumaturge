@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
 import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.ARGB;
@@ -22,10 +21,8 @@ public final class GolemOrbRenderer extends EntityRenderer<EntityGolemOrb, Golem
         public boolean red;
     }
 
-    private static final RenderType BLUE_ORB_TYPE = RenderType.create("tc_golem_orb",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_BLUE).useLightmap().createRenderSetup());
-    private static final RenderType RED_ORB_TYPE = RenderType.create("tc_golem_orb_red",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_RED).useLightmap().createRenderSetup());
+    private static final RenderType BLUE_ORB_TYPE = TTFXRenderTypes.additive(ParticleTextures.GOLEM_ORB_BLUE);
+    private static final RenderType RED_ORB_TYPE = TTFXRenderTypes.additive(ParticleTextures.GOLEM_ORB_RED);
 
     private static final float ALPHA = 0.8F;
     private static final float HALF = 0.5F;

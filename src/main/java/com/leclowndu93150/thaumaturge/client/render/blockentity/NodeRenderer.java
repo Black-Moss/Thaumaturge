@@ -7,7 +7,7 @@ import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.client.casters.WandTipTracker;
 import com.leclowndu93150.thaumaturge.client.effect.FloatyLineRenderer;
 import com.leclowndu93150.thaumaturge.client.effect.LateWorldRenderQueue;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.compat.iris.IrisCompat;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
@@ -22,7 +22,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
@@ -37,14 +36,10 @@ import org.jspecify.annotations.Nullable;
 public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, NodeRenderState> {
     private static final Identifier NODES_TEXTURE = TTIds.rl("textures/misc/auranodes.png");
 
-    private static final RenderType NODE_ADDITIVE = RenderType.create("tc_node_additive",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", NODES_TEXTURE).useLightmap().createRenderSetup());
-    private static final RenderType NODE_ADDITIVE_NO_DEPTH = RenderType.create("tc_node_additive_no_depth",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE_NO_DEPTH).withTexture("Sampler0", NODES_TEXTURE).useLightmap().createRenderSetup());
-    private static final RenderType NODE_TRANSLUCENT = RenderType.create("tc_node_translucent",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", NODES_TEXTURE).useLightmap().createRenderSetup());
-    private static final RenderType NODE_TRANSLUCENT_NO_DEPTH = RenderType.create("tc_node_translucent_no_depth",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT_NO_DEPTH).withTexture("Sampler0", NODES_TEXTURE).useLightmap().createRenderSetup());
+    private static final RenderType NODE_ADDITIVE = TTFXRenderTypes.additive(NODES_TEXTURE);
+    private static final RenderType NODE_ADDITIVE_NO_DEPTH = TTFXRenderTypes.additiveNoDepth(NODES_TEXTURE);
+    private static final RenderType NODE_TRANSLUCENT = TTFXRenderTypes.translucent(NODES_TEXTURE);
+    private static final RenderType NODE_TRANSLUCENT_NO_DEPTH = TTFXRenderTypes.translucentNoDepth(NODES_TEXTURE);
 
     private static final int GRID = 32;
     private static final double VIEW_DISTANCE = 64.0;

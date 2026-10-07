@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.model.entity.GrapplerModel;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.projectile.EntityGrapple;
@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -40,10 +39,8 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
 
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/grappler.png");
     private static final Identifier ROPE = TTIds.rl("textures/misc/rope.png");
-    private static final RenderType ROPE_TYPE = RenderType.create("tc_grapple_rope",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", ROPE).useLightmap().createRenderSetup());
-    private static final RenderType GLOW_TYPE = RenderType.create("tc_grapple_glow",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.GOLEM_ORB_BLUE).useLightmap().createRenderSetup());
+    private static final RenderType ROPE_TYPE = TTFXRenderTypes.translucent(ROPE);
+    private static final RenderType GLOW_TYPE = TTFXRenderTypes.additive(ParticleTextures.GOLEM_ORB_BLUE);
 
     private static final double ROPE_RADIUS = 0.025;
     private static final int ROPE_SIDES = 4;

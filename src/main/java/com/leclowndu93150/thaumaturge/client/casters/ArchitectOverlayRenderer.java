@@ -2,8 +2,7 @@ package com.leclowndu93150.thaumaturge.client.casters;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.items.IArchitect;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTFXPipelines;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,7 +28,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;
-import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Quaternionf;
 
@@ -40,10 +37,9 @@ public final class ArchitectOverlayRenderer {
     private static final Identifier FRAME_SIDE = TTIds.rl("textures/misc/frame_side.png");
     private static final Identifier ARROWS = TTIds.rl("textures/misc/architect_arrows.png");
 
-    private static final RenderPipeline PIPELINE = TTFXPipelines.additiveTexturedNoDepth(TTIds.rl("pipeline/architect_overlay"));
-    private static final RenderType SIDE_TYPE = makeType("thaumaturge_architect_side", FRAME_SIDE);
-    private static final RenderType CORNER_TYPE = makeType("thaumaturge_architect_corner", FRAME_CORNER);
-    private static final RenderType ARROWS_TYPE = makeType("thaumaturge_architect_arrows", ARROWS);
+    private static final RenderType SIDE_TYPE = TTFXRenderTypes.architect(FRAME_SIDE);
+    private static final RenderType CORNER_TYPE = TTFXRenderTypes.architect(FRAME_CORNER);
+    private static final RenderType ARROWS_TYPE = TTFXRenderTypes.architect(ARROWS);
 
     private static final int[][] MOS = {{4, 5, 6, 7}, {0, 1, 2, 3}, {0, 1, 4, 5}, {2, 3, 6, 7}, {0, 2, 4, 6}, {1, 3, 5, 7}};
     private static final int[][] ROTMAT = {{0, 90, 270, 180}, {270, 180, 0, 90}, {180, 90, 270, 0}, {0, 270, 90, 180}, {270, 180, 0, 90}, {180, 270, 90, 0}};
@@ -66,15 +62,6 @@ public final class ArchitectOverlayRenderer {
     private static final Map<BlockPos, boolean[]> bmCache = new HashMap<>();
 
     private ArchitectOverlayRenderer() {}
-
-    private static RenderType makeType(String name, Identifier texture) {
-        return RenderType.create(name, RenderSetup.builder(PIPELINE).withTexture("Sampler0", texture).createRenderSetup());
-    }
-
-    @SubscribeEvent
-    static void registerPipelines(RegisterRenderPipelinesEvent event) {
-        event.registerPipeline(PIPELINE);
-    }
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent.AfterWeather event) {

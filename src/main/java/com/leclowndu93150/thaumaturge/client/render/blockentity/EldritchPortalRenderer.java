@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumaturge.content.eldritch.portal.BlockEntityEldritchPortal;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
@@ -22,10 +21,8 @@ import org.jspecify.annotations.Nullable;
 public final class EldritchPortalRenderer implements BlockEntityRenderer<BlockEntityEldritchPortal, EldritchPortalRenderState> {
     private static final Identifier TEXTURE = TTIds.rl("textures/misc/eldritch_portal.png");
     private static final Identifier OVERWORLD_TEXTURE = TTIds.rl("textures/misc/eldritch_portal_overworld.png");
-    private static final RenderType PORTAL_TYPE = RenderType.create("tc_eldritch_portal",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", TEXTURE).useLightmap().createRenderSetup());
-    private static final RenderType OVERWORLD_PORTAL_TYPE = RenderType.create("tc_eldritch_portal_overworld",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", OVERWORLD_TEXTURE).useLightmap().createRenderSetup());
+    private static final RenderType PORTAL_TYPE = TTFXRenderTypes.translucent(TEXTURE);
+    private static final RenderType OVERWORLD_PORTAL_TYPE = TTFXRenderTypes.translucent(OVERWORLD_TEXTURE);
 
     private static final int FRAMES = 32;
     private static final float FRAME_WIDTH = 1.0F / FRAMES;

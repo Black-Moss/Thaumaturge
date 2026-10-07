@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.entity.EntityEldritchOrb;
 import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.ARGB;
@@ -23,9 +22,8 @@ public final class EldritchOrbRenderer extends EntityRenderer<EntityEldritchOrb,
         public float ticks;
     }
 
-    private static final RenderType RAY_TYPE = RenderType.create("tc_eldritch_orb_ray", RenderSetup.builder(TTRenderPipelines.SPARKLE_CULLED).createRenderSetup());
-    private static final RenderType BILLBOARD_TYPE = RenderType.create("tc_eldritch_orb",
-            RenderSetup.builder(TTRenderPipelines.FX_TRANSLUCENT).withTexture("Sampler0", ParticleTextures.ELDRITCH_ORB).useLightmap().createRenderSetup());
+    private static final RenderType RAY_TYPE = TTFXRenderTypes.SPARKLE;
+    private static final RenderType BILLBOARD_TYPE = TTFXRenderTypes.translucent(ParticleTextures.ELDRITCH_ORB);
 
     private static final long RAY_SEED = 187L;
     private static final int RAY_COUNT = 12;

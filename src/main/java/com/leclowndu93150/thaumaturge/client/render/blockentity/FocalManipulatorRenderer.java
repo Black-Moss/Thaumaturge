@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.spell.manipulator.BlockEntityFocalManipulator;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -46,9 +45,8 @@ public final class FocalManipulatorRenderer implements BlockEntityRenderer<Block
     private static final long RAY_SEED = 187L;
     private static final float RAY_ALPHA = 0.66F;
 
-    private static final RenderType RAY_TYPE = RenderType.create("tc_manipulator_ray", RenderSetup.builder(TTRenderPipelines.SPARKLE_CULLED).createRenderSetup());
-    private static final RenderType GLOW_TYPE = RenderType.create("tc_manipulator_glow",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.STAR_GLINT).useLightmap().createRenderSetup());
+    private static final RenderType RAY_TYPE = TTFXRenderTypes.SPARKLE;
+    private static final RenderType GLOW_TYPE = TTFXRenderTypes.additive(ParticleTextures.STAR_GLINT);
 
     private final ItemModelResolver itemModelResolver;
     private final RandomSource rayRandom = RandomSource.create();

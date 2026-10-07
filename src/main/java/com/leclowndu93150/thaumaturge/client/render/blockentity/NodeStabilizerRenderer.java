@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.effect.LateWorldRenderQueue;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.golem.GolemMeshes;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMesh;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMeshPart;
@@ -18,7 +18,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -49,8 +48,7 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
     private static final int TRANSDUCER_STATUS_ENERGIZED = 2;
     private static final float TRANSDUCER_GLOW_GAIN = 2.5F;
     private static final Identifier BUBBLE_TEXTURE = TTIds.rl("textures/misc/node_bubble.png");
-    private static final RenderType BUBBLE = RenderType.create("tc_node_bubble",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", BUBBLE_TEXTURE).useLightmap().sortOnUpload().createRenderSetup());
+    private static final RenderType BUBBLE = TTFXRenderTypes.additiveSorted(BUBBLE_TEXTURE);
 
     private static final String PART_LOCK = "lock";
     private static final String PART_PISTON = "piston";
