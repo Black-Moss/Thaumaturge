@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -149,11 +148,6 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
         orb.shoot(aim.x, aim.y + ORB_LOFT, aim.z, ORB_SPEED, ORB_SPREAD);
         playSound(TTSounds.EGATTACK.get(), 1.0F, 1.0F + random.nextFloat() * 0.1F);
         level().addFreshEntity(orb);
-    }
-
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        spawnAtLocation(level, new ItemStack(TTItems.LOOT_BAG_RARE.get()), 1.5F);
     }
 
     @Override

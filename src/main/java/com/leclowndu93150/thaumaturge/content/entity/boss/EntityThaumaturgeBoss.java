@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.entity.boss;
 
 import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
-import com.leclowndu93150.thaumaturge.registry.TTItems;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,7 +26,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
@@ -48,7 +46,6 @@ public class EntityThaumaturgeBoss extends Monster {
     private static final int MAX_PLAYER_BUFFS = 5;
     private static final double PLAYER_HP_BUFF = 50.0;
     private static final double PLAYER_DMG_BUFF = 0.5;
-    private static final float PEARL_DROP_LIFT = 1.5F;
 
     protected final BossBar bossBar = new BossBar(this);
     private final BossRage rage = new BossRage(this, DATA_AGGRO);
@@ -227,16 +224,6 @@ public class EntityThaumaturgeBoss extends Monster {
     @Override
     public boolean considersEntityAsAlly(Entity other) {
         return other.is(ThaumaturgeEntityTypeTags.ELDRITCH) || super.considersEntityAsAlly(other);
-    }
-
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        super.dropCustomDeathLoot(level, source, recentlyHit);
-        if (LabyrinthHelper.isLabyrinthBound(this)) {
-            return;
-        }
-        BossHooks.dropPearl(level, this);
-        this.spawnAtLocation(level, new ItemStack(TTItems.LOOT_BAG_RARE.get()), PEARL_DROP_LIFT);
     }
 
     protected boolean usesLegacyEnrage() {

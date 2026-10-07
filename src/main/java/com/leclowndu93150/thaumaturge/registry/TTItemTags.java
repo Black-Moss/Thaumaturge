@@ -78,6 +78,7 @@ public final class TTItemTags {
 
     public static final TagKey<Item> CANDLES = key("candles");
     public static final TagKey<Item> SCRIBING_TOOLS = key("scribing_tools");
+    public static final TagKey<Item> FLOATING_DROPS = key("floating_drops");
 
     private TTItemTags() {}
 

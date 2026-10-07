@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
+import com.leclowndu93150.thaumaturge.content.entity.loot.FloatingDrops;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -387,7 +388,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
         if (level() instanceof ServerLevel server) {
             if (deathTime >= DEATH_BURST_TICK && rewardPending) {
                 rewardPending = false;
-                super.dropCustomDeathLoot(server, damageSources().generic(), true);
+                getLootTable().ifPresent(table -> dropFromLootTable(server, damageSources().generic(), true, table, stack -> FloatingDrops.spawn(server, this, stack)));
             }
             if (deathTime == DEATH_BURST_TICK) {
                 Effects.bamf(server, position().add(0, 1, 0)).color(0.65F, 0.4F, 0.8F).withSound().fancy().send();
@@ -401,7 +402,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
     }
 
     @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
+    protected void dropFromLootTable(ServerLevel level, DamageSource source, boolean playerKilled) {
         rewardPending = true;
     }
 

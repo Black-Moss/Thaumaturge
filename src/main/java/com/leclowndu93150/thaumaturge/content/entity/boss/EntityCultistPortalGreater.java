@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
-import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultist;
 import com.leclowndu93150.thaumaturge.content.entity.portal.CultistPortals;
@@ -223,14 +222,6 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     @Override
     protected SoundEvent getDeathSound() {
         return TTSounds.SHOCK.get();
-    }
-
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        if (LabyrinthHelper.isLabyrinthBound(this)) {
-            return;
-        }
-        BossHooks.dropPearl(level, this);
     }
 
     @Override
