@@ -32,7 +32,7 @@ public final class TaintBiomeManager {
     private TaintBiomeManager() {}
 
     public static boolean isTainted(ServerLevel level, BlockPos pos) {
-        return level.hasChunkAt(pos) && level.getBiome(pos).is(TTBiomeTags.IS_TAINTED);
+        return level.hasChunkAt(pos) && level.getNoiseBiome(QuartPos.fromBlock(pos.getX()), QuartPos.fromBlock(pos.getY()), QuartPos.fromBlock(pos.getZ())).is(TTBiomeTags.IS_TAINTED);
     }
 
     public static boolean isChangedColumn(ServerLevel level, BlockPos pos) {
