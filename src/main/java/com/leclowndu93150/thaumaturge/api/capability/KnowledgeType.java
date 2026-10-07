@@ -1,17 +1,19 @@
 package com.leclowndu93150.thaumaturge.api.capability;
 
+import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.StringRepresentable;
 
 /**
  * Kind of category knowledge a player may accumulate in addition to specific research entries.
  *
- * <p>Each entry advances a player's raw counter for a {@link com.leclowndu93150.thaumaturge.api.research.IResearchCategory category}.
+ * <p>Each entry advances a player's raw counter for a {@link IResearchCategory category}.
  * The raw counter is divided by {@link #progression()} to yield the visible level reported by
- * {@link IPlayerKnowledge#knowledge(KnowledgeType, net.minecraft.resources.ResourceKey)}; for
+ * {@link IPlayerKnowledge#knowledge(KnowledgeType, ResourceKey)}; for
  * example, every thirty-second theory yields one level.
  *
  * @since 1.0.0

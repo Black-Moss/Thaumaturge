@@ -66,7 +66,6 @@ public final class NitorDynamicLights {
                 }
             }
         }
-        // Recheck active sources too: incoming server light data can replace the client's light sections.
         for (long position : positions.keySet()) {
             engine.checkBlock(BlockPos.of(position));
         }

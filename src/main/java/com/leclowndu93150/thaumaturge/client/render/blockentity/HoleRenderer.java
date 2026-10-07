@@ -1,16 +1,14 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.content.spell.block.BlockEntityHole;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.blockentity.AbstractEndPortalRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
@@ -22,8 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class HoleRenderer implements BlockEntityRenderer<BlockEntityHole, HoleRenderState> {
     private static final float SURFACE_INSET = 0.001F;
-    private static final RenderType SURFACE = RenderType.create("tc_hole_surface",
-            RenderSetup.builder(TTRenderPipelines.HOLE_SURFACE).withTexture("Sampler0", AbstractEndPortalRenderer.END_PORTAL_LOCATION).createRenderSetup());
+    private static final RenderType SURFACE = TTFXRenderTypes.HOLE_SURFACE;
 
     public HoleRenderer(BlockEntityRendererProvider.Context context) {}
 

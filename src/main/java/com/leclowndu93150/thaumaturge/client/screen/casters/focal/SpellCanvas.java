@@ -133,8 +133,8 @@ public final class SpellCanvas {
                 FocalDraw.over(mouseX, mouseY, minus, y, FocalLayout.ZOOM_BUTTON, FocalLayout.ZOOM_BUTTON), false);
         FocalDraw.button(graphics, plus, y, FocalLayout.ZOOM_BUTTON, FocalLayout.ZOOM_BUTTON, FocalSprites.GLYPH_PLUS, FocalSprites.GLYPH_SIZE,
                 FocalDraw.over(mouseX, mouseY, plus, y, FocalLayout.ZOOM_BUTTON, FocalLayout.ZOOM_BUTTON), false);
-        FocalDraw.textRight(graphics, host.font(), Component.literal(Math.round(scale() * PERCENT) + "%"), layout.canvasX1() - FocalLayout.ZOOM_TEXT_RIGHT, layout.bodyY0() + FocalLayout.ZOOM_TEXT_Y,
-                FocalColors.GREY);
+        FocalDraw.textRight(graphics, host.font(), Component.translatable("gui.thaumaturge.percent", Math.round(scale() * PERCENT)), layout.canvasX1() - FocalLayout.ZOOM_TEXT_RIGHT,
+                layout.bodyY0() + FocalLayout.ZOOM_TEXT_Y, FocalColors.GREY);
     }
 
     private boolean selected(SpellTreeLayout.Placed node) {

@@ -1,21 +1,15 @@
 package com.leclowndu93150.thaumaturge.content.eldritch.lock;
 
 import com.leclowndu93150.thaumaturge.api.labyrinth.MazeId;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public final class BlockEntityEldritchLock extends BlockEntity {
+public final class BlockEntityEldritchLock extends AbstractSyncedBlockEntity {
     private static final String MAZE = "maze";
     private static final String CHARGED_AT = "charged_at";
 
@@ -37,12 +31,12 @@ public final class BlockEntityEldritchLock extends BlockEntity {
 
     public void showCharge(long gameTime) {
         chargedAt = gameTime;
-        sync();
+        setChangedAndSync();
     }
 
     public void showSealed() {
         chargedAt = -1L;
-        sync();
+        setChangedAndSync();
     }
 
     public boolean isIdle() {
@@ -54,13 +48,6 @@ public final class BlockEntityEldritchLock extends BlockEntity {
             return -1;
         }
         return (int) Math.min(Integer.MAX_VALUE, Math.max(0L, level.getGameTime() - chargedAt));
-    }
-
-    private void sync() {
-        setChanged();
-        if (level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-        }
     }
 
     @Override
@@ -77,13 +64,4 @@ public final class BlockEntityEldritchLock extends BlockEntity {
         output.putLong(CHARGED_AT, chargedAt);
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveCustomOnly(registries);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

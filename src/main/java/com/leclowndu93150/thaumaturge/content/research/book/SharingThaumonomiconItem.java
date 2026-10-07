@@ -39,7 +39,8 @@ public final class SharingThaumonomiconItem extends Item {
             return InteractionResult.SUCCESS_SERVER;
         AspectPoolData discoveredAspects = AspectPools.data(player);
         if (binding == null) {
-            stack.set(TTDataComponents.SHARE_BINDING.get(), new ShareBinding(player.getUUID(), player.getGameProfile().name(), discoveredAspects, knowledge));
+            stack.set(TTDataComponents.SHARE_BINDING.get(),
+                    new ShareBinding(player.getUUID(), player.getGameProfile().name(), AspectPoolData.snapshotOf(discoveredAspects), PlayerKnowledge.snapshotOf(knowledge)));
             player.playSound(TTSounds.WRITE.get(), 1.0F, 1.0F);
             TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.bound");
             return InteractionResult.SUCCESS_SERVER;
@@ -48,8 +49,8 @@ public final class SharingThaumonomiconItem extends Item {
             TTActionBar.sendPurple(player, "tc.thaumonomicon.sharing.self");
             return InteractionResult.SUCCESS_SERVER;
         }
-        knowledge.copyFrom(binding.knowledge());
-        discoveredAspects.copyFrom(binding.discoveredAspects());
+        knowledge.mergeResearchFrom(binding.knowledge());
+        discoveredAspects.mergeDiscoveriesFrom(binding.discoveredAspects());
 
         knowledge.sync(serverPlayer);
         AspectPools.sync(serverPlayer);

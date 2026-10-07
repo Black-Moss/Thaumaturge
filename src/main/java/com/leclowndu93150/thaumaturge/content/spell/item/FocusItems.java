@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
@@ -47,7 +50,15 @@ public final class FocusItems {
 
     public static @Nullable String sortKey(ItemStack focus) {
         Spell spell = Spells.spellOf(focus);
-        return spell == null ? null : focus.getHoverName().getString() + spell.hashCode();
+        if (spell == null) {
+            return null;
+        }
+        String label = focus.has(DataComponents.CUSTOM_NAME) ? focus.getHoverName().getString() : focus.getItem().getDescriptionId();
+        return label + stableHash(spell);
+    }
+
+    private static int stableHash(Spell spell) {
+        return Spell.CODEC.encodeStart(NbtOps.INSTANCE, spell).result().map(Tag::hashCode).orElse(0);
     }
 
     public static AspectList aspects(SpellSummary summary, HolderLookup.Provider registries) {

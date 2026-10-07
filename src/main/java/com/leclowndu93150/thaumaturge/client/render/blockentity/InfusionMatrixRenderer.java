@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.MatrixCubeModel;
 import com.leclowndu93150.thaumaturge.content.infusion.BlockEntityInfusionMatrix;
@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -57,17 +56,13 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
     private static final float HALO_FADE_TICKS = 500.0F;
     private static final float HALO_RAMP_TICKS = 50.0F;
 
-    private static final RenderType GLOW_NORMAL = glowType("tc_matrix_glow_normal", TEX_NORMAL);
-    private static final RenderType GLOW_ANCIENT = glowType("tc_matrix_glow_ancient", TEX_ANCIENT);
-    private static final RenderType GLOW_ELDRITCH = glowType("tc_matrix_glow_eldritch", TEX_ELDRITCH);
-    private static final RenderType HALO_TYPE = RenderType.create("tc_matrix_halo", RenderSetup.builder(TTRenderPipelines.SPARKLE_CULLED).createRenderSetup());
+    private static final RenderType GLOW_NORMAL = TTFXRenderTypes.entityAdditiveUnlit(TEX_NORMAL);
+    private static final RenderType GLOW_ANCIENT = TTFXRenderTypes.entityAdditiveUnlit(TEX_ANCIENT);
+    private static final RenderType GLOW_ELDRITCH = TTFXRenderTypes.entityAdditiveUnlit(TEX_ELDRITCH);
+    private static final RenderType HALO_TYPE = TTFXRenderTypes.SPARKLE;
 
     private final MatrixCubeModel model;
     private final RandomSource haloRandom = RandomSource.create();
-
-    private static RenderType glowType(String name, Identifier texture) {
-        return RenderType.create(name, RenderSetup.builder(TTRenderPipelines.ENTITY_ADDITIVE_EMISSIVE).withTexture("Sampler0", texture).createRenderSetup());
-    }
 
     public InfusionMatrixRenderer(BlockEntityRendererProvider.Context context) {
         this.model = new MatrixCubeModel(context.bakeLayer(TTModelLayers.MATRIX_CUBE));

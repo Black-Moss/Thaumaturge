@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.warding;
 
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import net.minecraft.core.RegistryAccess;
 import java.util.Optional;
 import com.leclowndu93150.thaumaturge.content.spell.effect.WardEffect;
@@ -9,17 +10,13 @@ import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.casters.ICaster;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTFXPipelines;
 import com.leclowndu93150.thaumaturge.content.warding.ClientWardHolder;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.function.Predicate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,7 +28,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
@@ -62,15 +58,9 @@ public final class WardOverlayRenderer {
     private static final float[] CORNER_U = {0.0F, HALF, 0.0F, HALF};
     private static final float[] CORNER_V = {0.0F, 0.0F, HALF, HALF};
 
-    private static final RenderPipeline PIPELINE = TTFXPipelines.additiveTextured(TTIds.rl("pipeline/ward_runes"), TTIds.rl("core/ward_add"));
-    private static final RenderType RUNES = RenderType.create("thaumaturge_ward_runes", RenderSetup.builder(PIPELINE).withTexture("Sampler0", TextureAtlas.LOCATION_BLOCKS).createRenderSetup());
+    private static final RenderType RUNES = TTFXRenderTypes.WARD_RUNES;
 
     private WardOverlayRenderer() {}
-
-    @SubscribeEvent
-    static void registerPipelines(RegisterRenderPipelinesEvent event) {
-        event.registerPipeline(PIPELINE);
-    }
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent.AfterTranslucentBlocks event) {

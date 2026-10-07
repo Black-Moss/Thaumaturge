@@ -98,7 +98,7 @@ public class SpaScreen extends AbstractTTContainerScreen<MenuSpa> {
         if (tankX >= 0 && tankY >= 0 && tankX < TANK_HOVER_WIDTH && tankY < TANK_HOVER_HEIGHT && amount > 0 && !resource.isEmpty()) {
             List<Component> lines = new ArrayList<>();
             lines.add(resource.getFluid().getFluidType().getDescription());
-            lines.add(Component.literal(amount + " mb"));
+            lines.add(Component.translatable("gui.thaumaturge.fluid_amount", amount));
             graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
         }
 

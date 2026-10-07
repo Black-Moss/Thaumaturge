@@ -12,13 +12,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 
 public final class HitResultStreamCodecs {
-
-    // Must not be used on the server side, as it relies on client-side entity lookups to decode entity hit results.
     @ApiStatus.Internal
     public static final StreamCodec<FriendlyByteBuf, HitResult> HIT_RESULT = StreamCodec.of(HitResultStreamCodecs::encode, HitResultStreamCodecs::decode);
 
     private static void encode(FriendlyByteBuf buf, HitResult hit) {
-
         buf.writeEnum(hit.getType());
 
         switch (hit.getType()) {
@@ -55,7 +52,7 @@ public final class HitResultStreamCodecs {
                 Vec3 location = new Vec3(buf.readVector3f());
                 BlockPos pos = buf.readBlockPos();
 
-                yield new BlockHitResult(location, buf.readEnum(net.minecraft.core.Direction.class), pos, buf.readBoolean(), buf.readBoolean());
+                yield new BlockHitResult(location, buf.readEnum(Direction.class), pos, buf.readBoolean(), buf.readBoolean());
             }
 
             case ENTITY -> {

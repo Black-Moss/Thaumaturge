@@ -19,10 +19,13 @@ public final class MazeState {
                     ClaimState.CODEC.optionalFieldOf("claims").forGetter(state -> Optional.of(state.claims)), PostLedger.CODEC.optionalFieldOf("posts").forGetter(state -> Optional.of(state.posts)))
             .apply(instance, MazeState::new));
 
+    private static final long VISIT_SAVE_INTERVAL_TICKS = 1200L;
+
     private LabyrinthPhase phase;
     private long phaseSince;
     private final long createdAt;
     private long lastVisited;
+    private long lastSavedVisit = Long.MIN_VALUE;
     private final List<PendingTrigger> triggers;
     private final EncounterState encounter;
     private final ClaimState claims;
@@ -80,7 +83,12 @@ public final class MazeState {
         this.phaseSince = gameTime;
     }
 
-    public void visit(long gameTime) {
+    public boolean visit(long gameTime) {
         this.lastVisited = gameTime;
+        if (gameTime - lastSavedVisit < VISIT_SAVE_INTERVAL_TICKS) {
+            return false;
+        }
+        lastSavedVisit = gameTime;
+        return true;
     }
 }

@@ -8,13 +8,11 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class TTDebugPayloads {
-
     private TTDebugPayloads() {}
 
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(TTIds.MODID + "_debug");
-        // Debug Packets
         registrar.playToClient(ClientboundToggleRaycastDebugPayload.TYPE, ClientboundToggleRaycastDebugPayload.STREAM_CODEC, (payload, context) -> ToggleRaycastDebugHandler.handle(payload, context));
         registrar.playToClient(ClientboundRaycastDebugPayload.TYPE, ClientboundRaycastDebugPayload.STREAM_CODEC, (payload, context) -> ToggleRaycastDebugHandler.handleServerRaycast(payload, context));
     }

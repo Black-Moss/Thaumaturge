@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.registry;
 
+import com.leclowndu93150.thaumaturge.content.spell.casting.ChannelSummaryCache;
 import com.leclowndu93150.thaumaturge.content.spell.engine.DelayedSpells;
 import com.leclowndu93150.thaumaturge.content.spell.engine.CastBudgets;
 import com.leclowndu93150.thaumaturge.TTIds;
@@ -74,6 +75,9 @@ public final class TTAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> WAYFINDING_PULSE = register("wayfinding_pulse", () -> AttachmentType.builder(() -> 0L).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CASTER_COOLDOWN = register("caster_cooldown", () -> AttachmentType.builder(() -> 0L).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<ChannelSummaryCache>> CHANNEL_SUMMARY = register("channel_summary",
+            () -> AttachmentType.builder(ChannelSummaryCache::new).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> SLOT_SCAN_TIME = register("slot_scan_time", () -> AttachmentType.builder(() -> 0L).build());
 

@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.aura.node;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
@@ -16,6 +15,7 @@ import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.api.taint.TaintApi;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntityBrainyZombie;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
@@ -27,7 +27,12 @@ import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TTBiomes;
-import com.leclowndu93150.thaumaturge.registry.*;
+import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
+import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
+import com.leclowndu93150.thaumaturge.registry.TTBlocks;
+import com.leclowndu93150.thaumaturge.registry.TTEntities;
+import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import com.leclowndu93150.thaumaturge.registry.TTWandParts;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,10 +46,6 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -52,7 +53,6 @@ import net.minecraft.server.commands.FillBiomeCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -64,11 +64,9 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
@@ -79,7 +77,8 @@ import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityNode extends BlockEntity implements IAspectContainer {
+public class BlockEntityNode extends AbstractSyncedBlockEntity implements IAspectContainer {
+    private static final int HUNGRY_SCAN_INTERVAL = 10;
     private static final int REGEN_INTERVAL_NORMAL = 600;
     private static final int REGEN_INTERVAL_BRIGHT = 400;
     private static final int REGEN_INTERVAL_PALE = 900;
@@ -139,6 +138,8 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
     private static final int PEARL_NEW_PRIMAL_MAX_RESEARCHED = 4;
     private static final int PEARL_BRIGHT_CHANCE = 5;
 
+    private List<Entity> hungryTargets = List.of();
+    private long hungryScanAt;
     private NodeType nodeType = NodeType.NORMAL;
     private @Nullable NodeModifier nodeModifier;
     protected AspectList aspects = AspectList.EMPTY;
@@ -1035,8 +1036,11 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         }
         Vec3 center = Vec3.atCenterOf(pos);
         double itemPullRange = hungryBlockEatRange() + HUNGRY_ITEM_PULL_MARGIN;
-        List<Entity> targets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(Math.max(itemPullRange, HUNGRY_PULL_RANGE)));
-        for (Entity target : targets) {
+        if (serverLevel.getGameTime() >= hungryScanAt) {
+            hungryScanAt = serverLevel.getGameTime() + HUNGRY_SCAN_INTERVAL;
+            hungryTargets = serverLevel.getEntitiesOfClass(Entity.class, new AABB(pos).inflate(Math.max(itemPullRange, HUNGRY_PULL_RANGE)));
+        }
+        for (Entity target : hungryTargets) {
             if (target instanceof Player player && (player.isCreative() || player.isSpectator())) {
                 continue;
             }
@@ -1283,19 +1287,4 @@ public class BlockEntityNode extends BlockEntity implements IAspectContainer {
         updateLocationIndex();
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
-            saveAdditional(output);
-            nbt.merge(output.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

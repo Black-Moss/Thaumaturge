@@ -20,7 +20,7 @@ public final class JarBrainItem extends BlockItem {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         Integer xp = stack.get(TTDataComponents.STORED_XP.get());
         if (xp != null && xp > 0) {
-            tooltip.accept(Component.literal(xp + " xp").withStyle(ChatFormatting.GREEN));
+            tooltip.accept(Component.translatable("tooltip.thaumaturge.jar_brain.xp", xp).withStyle(ChatFormatting.GREEN));
         }
         super.appendHoverText(stack, context, display, tooltip, flag);
     }

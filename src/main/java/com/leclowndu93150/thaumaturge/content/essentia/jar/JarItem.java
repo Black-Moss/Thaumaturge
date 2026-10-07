@@ -22,7 +22,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class JarItem extends BlockItem {
-
     public JarItem(Block block, Properties properties) {
         super(block, properties);
     }
@@ -67,7 +66,6 @@ public class JarItem extends BlockItem {
             return super.useOn(context);
         if (level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic) {
             AspectList aspects = ComponentEssentia.jar(stack).getAspects();
-            // We use Direction.UP to allow insertion/extraction from all faces with fials
             if (alembic.aspectKey() != null) {
                 Holder<IAspect> aspect = EssentiaTransportHelper.resolve(level, alembic.aspectKey());
                 if (aspect != null && (aspects.isEmpty() || aspect == aspects.entries().getFirst().aspect())) {

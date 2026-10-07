@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.items;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import java.util.function.Predicate;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -23,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  * @since 1.0.0
  */
 public final class GogglesAccess {
-    private static @Nullable Bindings bindings;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("GogglesAccess");
     private static @Nullable Curios curios;
 
     private GogglesAccess() {}
@@ -35,10 +36,7 @@ public final class GogglesAccess {
      * @throws IllegalStateException when already bound
      */
     public static void bind(Bindings impl) {
-        if (bindings != null) {
-            throw new IllegalStateException("GogglesAccess already bound");
-        }
-        bindings = impl;
+        BINDING.bind(impl);
     }
 
     /**
@@ -51,19 +49,12 @@ public final class GogglesAccess {
         curios = impl;
     }
 
-    private static Bindings impl() {
-        if (bindings == null) {
-            throw new IllegalStateException("GogglesAccess accessed before binding");
-        }
-        return bindings;
-    }
-
     /**
      * @param stack the stack to test
      * @return whether the stack is revealing gear; false for an empty stack
      */
     public static boolean isRevealing(ItemStack stack) {
-        return !stack.isEmpty() && impl().isRevealing(stack);
+        return !stack.isEmpty() && BINDING.get().isRevealing(stack);
     }
 
     /**
@@ -88,7 +79,7 @@ public final class GogglesAccess {
         if (player == null) {
             return 0;
         }
-        AttributeInstance attribute = player.getAttribute(impl().visDiscount());
+        AttributeInstance attribute = player.getAttribute(BINDING.get().visDiscount());
         return attribute == null ? 0 : (int) (attribute.getValue() * 100);
     }
 

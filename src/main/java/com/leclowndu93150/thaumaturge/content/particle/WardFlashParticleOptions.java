@@ -25,15 +25,6 @@ public record WardFlashParticleOptions(Direction face, float hitX, float hitY, f
     public static final StreamCodec<RegistryFriendlyByteBuf, WardFlashParticleOptions> STREAM_CODEC = StreamCodec.composite(Direction.STREAM_CODEC, WardFlashParticleOptions::face, ByteBufCodecs.FLOAT,
             WardFlashParticleOptions::hitX, ByteBufCodecs.FLOAT, WardFlashParticleOptions::hitY, ByteBufCodecs.FLOAT, WardFlashParticleOptions::hitZ, WardFlashParticleOptions::new);
 
-    /**
-     * Builds options for a flash on one face of a block, taking the impact point from the hit
-     * location when one is known and the block centre otherwise.
-     *
-     * @param pos  the warded block
-     * @param face the struck face
-     * @param hit  the exact impact point, or null when unknown
-     * @return the particle options
-     */
     public static WardFlashParticleOptions at(BlockPos pos, Direction face, @Nullable Vec3 hit) {
         if (hit == null) {
             return new WardFlashParticleOptions(face, CENTRE + CENTRE * face.getStepX(), CENTRE + CENTRE * face.getStepY(), CENTRE + CENTRE * face.getStepZ());

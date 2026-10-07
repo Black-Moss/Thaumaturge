@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -98,7 +99,7 @@ public final class RechargeHudOverlay implements GuiLayer {
         if (showAmount) {
             graphics.pose().pushMatrix();
             graphics.pose().rotate((float) Math.toRadians(-90.0));
-            graphics.text(mc.font, charge + " / " + max, AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
+            graphics.text(mc.font, Component.translatable("gui.thaumaturge.fraction", charge, max), AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, false);
             graphics.pose().popMatrix();
         }
         graphics.pose().popMatrix();

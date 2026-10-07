@@ -164,7 +164,6 @@ public final class EssentiaSources {
         return found;
     }
 
-    /** Re-evaluate cached positions so a changed source priority applies immediately. */
     private void sortSourcesByPriority(ServerLevel level) {
         Map<BlockPos, Integer> priorities = new HashMap<>();
         for (BlockPos pos : sources) {

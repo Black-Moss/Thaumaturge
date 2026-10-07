@@ -1,12 +1,11 @@
 package com.leclowndu93150.thaumaturge.client.effect;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
@@ -17,8 +16,7 @@ import net.minecraft.world.phys.Vec3;
 public final class FloatyLineRenderer {
     private static final Identifier WISPY_TEXTURE = TTIds.rl("textures/misc/wispy.png");
 
-    private static final RenderType WISPY_LINE = RenderType.create("tc_wispy_line",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", WISPY_TEXTURE).useLightmap().createRenderSetup());
+    private static final RenderType WISPY_LINE = TTFXRenderTypes.additive(WISPY_TEXTURE);
 
     private static final float SEGMENTS_PER_BLOCK = 2.0F;
     private static final float TIME_UNITS_PER_TICK = 50.0F / 30.0F;

@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.eldritch.labyrinth;
 import com.leclowndu93150.thaumaturge.content.eldritch.encounter.EncounterSessions;
 import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.world.BandSettings;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,10 +11,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.minecraft.world.level.ChunkPos;
 
 public final class LabyrinthRuntime {
+    private static final int MAX_REPAIR_RETRIES = 200;
+
     private final BandSettings band;
     private final RoomTemplates templates = new RoomTemplates();
     private final Queue<Long> repairs = new ConcurrentLinkedQueue<>();
     private final Set<Long> queued = ConcurrentHashMap.newKeySet();
+    private final Map<Long, Integer> retries = new ConcurrentHashMap<>();
     private final EncounterSessions encounters = new EncounterSessions();
     private volatile LabyrinthIndex index = LabyrinthIndex.EMPTY;
 
@@ -45,6 +49,7 @@ public final class LabyrinthRuntime {
         index = LabyrinthIndex.EMPTY;
         repairs.clear();
         queued.clear();
+        retries.clear();
         encounters.clear();
     }
 
@@ -53,6 +58,20 @@ public final class LabyrinthRuntime {
         if (queued.add(key)) {
             repairs.add(key);
         }
+    }
+
+    public void retryRepair(long key) {
+        if (retries.merge(key, 1, Integer::sum) > MAX_REPAIR_RETRIES) {
+            retries.remove(key);
+            return;
+        }
+        if (queued.add(key)) {
+            repairs.add(key);
+        }
+    }
+
+    public void repairDone(long key) {
+        retries.remove(key);
     }
 
     public Long nextRepair() {

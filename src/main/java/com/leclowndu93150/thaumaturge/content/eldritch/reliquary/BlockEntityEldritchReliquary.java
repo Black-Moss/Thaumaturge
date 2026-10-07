@@ -1,28 +1,22 @@
 package com.leclowndu93150.thaumaturge.content.eldritch.reliquary;
 
 import com.leclowndu93150.thaumaturge.api.labyrinth.MazeId;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.loot.LootTable;
 
-public final class BlockEntityEldritchReliquary extends BlockEntity {
+public final class BlockEntityEldritchReliquary extends AbstractSyncedBlockEntity {
     private static final String MAZE = "maze";
     private static final String ROLE = "role";
     private static final String LOOT = "loot";
@@ -48,7 +42,7 @@ public final class BlockEntityEldritchReliquary extends BlockEntity {
         this.maze = Optional.of(maze);
         this.role = role;
         this.loot = loot;
-        sync();
+        setChangedAndSync();
     }
 
     public Optional<MazeId> maze() {
@@ -87,20 +81,4 @@ public final class BlockEntityEldritchReliquary extends BlockEntity {
         output.storeNullable(LOOT, LootTable.KEY_CODEC, loot.orElse(null));
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveCustomOnly(registries);
-    }
-
-    private void sync() {
-        setChanged();
-        if (level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-        }
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

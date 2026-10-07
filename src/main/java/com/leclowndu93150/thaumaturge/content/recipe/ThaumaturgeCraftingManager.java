@@ -7,7 +7,6 @@ import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInpu
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingRecipe;
 import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
-import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,11 +28,10 @@ public final class ThaumaturgeCraftingManager {
         int highest = 0;
         CrucibleRecipe out = null;
 
-        List<CrucibleRecipe> recipes = level.recipeAccess().getRecipes().stream().filter(r -> r.value() instanceof CrucibleRecipe).map(RecipeHolder::value).map(CrucibleRecipe.class::cast)
-                .filter(r -> r.matches(new CrucibleRecipeInput(lastDrop, aspects), level)).toList();
-
-        for (CrucibleRecipe recipe : recipes) {
-            if (player != null && recipe.doesPassGate(player)) {
+        CrucibleRecipeInput input = new CrucibleRecipeInput(lastDrop, aspects);
+        for (RecipeHolder<CrucibleRecipe> holder : level.recipeAccess().recipeMap().byType(TTRecipeTypes.CRUCIBLE.get())) {
+            CrucibleRecipe recipe = holder.value();
+            if (player != null && recipe.matches(input, level) && recipe.doesPassGate(player)) {
                 int result = recipe.aspects().totalAmount();
                 if (result > highest) {
                     highest = result;

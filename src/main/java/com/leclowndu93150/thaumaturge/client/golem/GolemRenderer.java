@@ -72,7 +72,6 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         state.pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
         state.yRot = state.headYawDelta;
         state.xRot = state.pitch;
-        // Render states are recreated every frame; keep the animation epoch fixed across ticks.
         state.idleAnimationState.start(0);
         state.walkPos = state.walkAnimationPos = entity.walkAnimation.position(partialTicks);
         state.walkSpeed = state.walkAnimationSpeed = Math.min(1.0F, entity.walkAnimation.speed(partialTicks));

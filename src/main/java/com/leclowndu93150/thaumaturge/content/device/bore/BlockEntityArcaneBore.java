@@ -1,33 +1,25 @@
 package com.leclowndu93150.thaumaturge.content.device.bore;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.server.TTFakePlayer;
 import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -35,7 +27,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityArcaneBore extends BlockEntity implements ArcaneBoreHost {
+public final class BlockEntityArcaneBore extends AbstractSyncedBlockEntity implements ArcaneBoreHost {
     public static final float EYE_HEIGHT = 0.8125F;
 
     private static final float MAX_HEAD_PITCH = 90.0F;
@@ -236,10 +228,11 @@ public final class BlockEntityArcaneBore extends BlockEntity implements ArcaneBo
         super.saveAdditional(output);
         output.store("Tool", ItemStack.OPTIONAL_CODEC, tool);
         output.putFloat("Charge", core.charge());
-        writeSyncData(output);
+        writeClientData(output);
     }
 
-    private void writeSyncData(ValueOutput output) {
+    @Override
+    protected void writeClientData(ValueOutput output) {
         output.putBoolean("Digging", digging);
         if (digTarget != null) {
             output.store("DigTarget", BlockPos.CODEC, digTarget);
@@ -255,19 +248,4 @@ public final class BlockEntityArcaneBore extends BlockEntity implements ArcaneBo
         digTarget = input.read("DigTarget", BlockPos.CODEC).orElse(null);
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
-            writeSyncData(output);
-            nbt.merge(output.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

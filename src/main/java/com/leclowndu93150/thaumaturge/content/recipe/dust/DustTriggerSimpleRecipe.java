@@ -25,6 +25,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import org.jspecify.annotations.Nullable;
 
 public final class DustTriggerSimpleRecipe implements DustTrigger {
     public static final MapCodec<DustTriggerSimpleRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(BuiltInRegistries.BLOCK.byNameCodec().fieldOf("target").forGetter(r -> r.target),
@@ -69,7 +70,7 @@ public final class DustTriggerSimpleRecipe implements DustTrigger {
     }
 
     @Override
-    public void execute(DustTriggerInput input, Player player, @org.jspecify.annotations.Nullable DustTriggerPlacement placement, Direction useFace) {
+    public void execute(DustTriggerInput input, Player player, @Nullable DustTriggerPlacement placement, Direction useFace) {
         if (!(input.level() instanceof ServerLevel serverLevel)) {
             return;
         }

@@ -24,7 +24,8 @@ public final class SpellPartArguments {
             .suggest(ctx.getSource().registryAccess().lookupOrThrow(SpellPart.REGISTRY_KEY).listElementIds().map(key -> key.identifier().toString()), builder);
 
     private static final String ASPECT_SEPARATOR = "@";
-    private static final DynamicCommandExceptionType UNKNOWN_PART = new DynamicCommandExceptionType(value -> Component.literal("Unknown spell part: " + value));
+    private static final DynamicCommandExceptionType UNKNOWN_PART = new DynamicCommandExceptionType(
+            value -> Component.translatable("commands.thaumaturge.tools.unknown_spell_part", String.valueOf(value)));
 
     private SpellPartArguments() {}
 

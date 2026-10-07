@@ -1,11 +1,11 @@
 package com.leclowndu93150.thaumaturge.client.model;
 
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.client.casters.FocusColors;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.wands.WandCap;
 import com.leclowndu93150.thaumaturge.api.wands.WandRod;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.render.BoxGeometry;
 import com.leclowndu93150.thaumaturge.client.render.TTFlatRenderTypes;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -40,8 +39,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
     private static final Identifier WAND_TEXTURE = TTIds.rl("textures/models/wand.png");
     private static final Identifier SCRIPT_TEXTURE = TTIds.rl("textures/misc/script.png");
 
-    private static final RenderType RUNES = RenderType.create("tc_wand_runes",
-            RenderSetup.builder(TTRenderPipelines.ENTITY_ADDITIVE_EMISSIVE).withTexture("Sampler0", SCRIPT_TEXTURE).useLightmap().createRenderSetup());
+    private static final RenderType RUNES = TTFXRenderTypes.entityAdditive(SCRIPT_TEXTURE);
 
     private static final float PX = 0.0625F;
     private static final int TEX_W = 32;

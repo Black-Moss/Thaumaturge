@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftingTransaction;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneWorkbenchContext;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneCraftingStore;
-import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.content.misc.TTActionBar;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
@@ -32,6 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
@@ -225,10 +225,8 @@ public final class MenuArcaneWorkbench extends AbstractContainerMenu {
         return ArcaneWorkbenchContext.placed(serverPlayer, tile.getBlockPos(), tile.hostIdentity(), null);
     }
 
-    @SuppressWarnings("unchecked")
     private Optional<RecipeHolder<CraftingRecipe>> findVanillaRecipe(ServerLevel level, CraftingInput input) {
-        return level.recipeAccess().getRecipes().stream().filter(r -> r.value() instanceof CraftingRecipe && !(r.value() instanceof IArcaneRecipe)).map(r -> (RecipeHolder<CraftingRecipe>) r)
-                .filter(r -> r.value().matches(input, level)).findFirst();
+        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level);
     }
 
     @Override

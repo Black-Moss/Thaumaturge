@@ -1,12 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.infusion;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumaturge.api.infusion.InfusionCraftedEvent;
 import com.leclowndu93150.thaumaturge.api.items.IGogglesReadout;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.particle.BoreSparkleParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.InfusionCrumbsParticleOptions;
@@ -23,18 +23,12 @@ import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -42,20 +36,19 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityInfusionMatrix extends BlockEntity implements IGogglesReadout, IInteractWithCaster, ReadOnlyAspectContainer {
+public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity implements IGogglesReadout, IInteractWithCaster, ReadOnlyAspectContainer {
     public static final float STABILITY_CAP = 25.0F;
     private static final float STABILITY_FLOOR = -100.0F;
     private static final int IDLE_VALIDATE_INTERVAL = 100;
     private static final int CRAFT_VALIDATE_INTERVAL = 20;
+    private static final int CRAFT_RESURVEY_INTERVAL = 100;
     private static final int ITEM_PULL_TICKS = 5;
     private static final int FINISH_GRACE_CYCLES = 2;
     private static final int INSTABILITY_ROLL_BOUND = 1500;
@@ -121,7 +114,6 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         if (environment == null || checkSurroundings) {
             checkSurroundings = false;
             environment = MatrixEnvironment.survey(level, worldPosition);
-            essentiaSources.invalidate();
             if (stabilityReplenish != environment.stabilityReplenish()) {
                 stabilityReplenish = environment.stabilityReplenish();
                 setChanged();
@@ -133,6 +125,9 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
 
     private void tickServer(ServerLevel level) {
         count++;
+        if (isCrafting() && count % CRAFT_RESURVEY_INTERVAL == 0) {
+            checkSurroundings = true;
+        }
         MatrixEnvironment env = environment(level);
         int interval = isCrafting() ? CRAFT_VALIDATE_INTERVAL : IDLE_VALIDATE_INTERVAL;
         if (count % interval == 0 && !MatrixEnvironment.validLocation(level, worldPosition)) {
@@ -186,6 +181,7 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
 
     public boolean tryStartCraft(ServerLevel level, Player player) {
         checkSurroundings = true;
+        essentiaSources.invalidate();
         if (!MatrixEnvironment.validLocation(level, worldPosition)) {
             active = false;
             setChanged();
@@ -323,15 +319,12 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
     @Override
     public List<Component> readout() {
         Component tier = Component.translatable(STABILITY_LANG_PREFIX + stabilityTierKey()).withStyle(ChatFormatting.BOLD);
-        Component gain = Component.literal(STABILITY_FORMAT.format(stabilityReplenish) + " ").append(Component.translatable(STABILITY_LANG_PREFIX + "gain")).withStyle(ChatFormatting.GOLD,
-                ChatFormatting.ITALIC);
+        Component gain = Component.translatable(STABILITY_LANG_PREFIX + "gain_amount", STABILITY_FORMAT.format(stabilityReplenish)).withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC);
         float lpc = lossPerCycle();
         if (lpc == 0.0F) {
             return List.of(tier, gain);
         }
-        Component loss = Component.translatable(STABILITY_LANG_PREFIX + "range")
-                .append(Component.literal(STABILITY_FORMAT.format(lpc) + " ").append(Component.translatable(STABILITY_LANG_PREFIX + "loss")).withStyle(ChatFormatting.ITALIC))
-                .withStyle(ChatFormatting.RED);
+        Component loss = Component.translatable(STABILITY_LANG_PREFIX + "loss_range", STABILITY_FORMAT.format(lpc)).withStyle(ChatFormatting.RED, ChatFormatting.ITALIC);
         return List.of(tier, gain, loss);
     }
 
@@ -354,9 +347,8 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
                 return;
             }
             stability -= ESSENTIA_STARVE_PENALTY;
-            syncToClient();
         }
-        checkSurroundings = true;
+        syncToClient();
     }
 
     private void pullIngredientCycle(ServerLevel level, MatrixEnvironment env) {
@@ -529,27 +521,4 @@ public final class BlockEntityInfusionMatrix extends BlockEntity implements IGog
         job = input.read("Job", InfusionCraftJob.CODEC).orElse(null);
     }
 
-    private void syncToClient() {
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-        BlockState current = getBlockState();
-        level.sendBlockUpdated(getBlockPos(), current, current, 3);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
-            saveAdditional(output);
-            nbt.merge(output.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

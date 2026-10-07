@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
+import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.core.BlockPos;
@@ -8,13 +9,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
-public final class MenuSmelter extends AbstractContainerMenu {
+public final class MenuSmelter extends AbstractTTMenu {
     public static final int ITEM_X = 80;
     public static final int ITEM_Y = 7;
     public static final int FUEL_X = 80;
@@ -24,10 +24,6 @@ public final class MenuSmelter extends AbstractContainerMenu {
     public static final int PLAYER_GRID_Y = 84;
 
     public static final int SLOT_COUNT = 2;
-    public static final int PLAYER_ROW_SLOTS = 9;
-    public static final int PLAYER_ROWS = 3;
-    public static final int PLAYER_TOTAL_SLOTS = PLAYER_ROW_SLOTS * (PLAYER_ROWS + 1);
-    public static final int TOTAL_INVENTORY_SLOTS = SLOT_COUNT + PLAYER_TOTAL_SLOTS;
 
     private final ItemStacksResourceHandler items;
     private final ContainerLevelAccess access;
@@ -51,15 +47,8 @@ public final class MenuSmelter extends AbstractContainerMenu {
         addSlot(new ResourceHandlerSlot(items, items::set, 0, ITEM_X, ITEM_Y));
         addSlot(new ResourceHandlerSlot(items, items::set, 1, FUEL_X, FUEL_Y));
 
-        for (int row = 0; row < PLAYER_ROWS; row++) {
-            for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
-                addSlot(new Slot(playerInventory, col + row * PLAYER_ROW_SLOTS + PLAYER_ROW_SLOTS, PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
-            }
-        }
-
-        for (int col = 0; col < PLAYER_ROW_SLOTS; col++) {
-            addSlot(new Slot(playerInventory, col, PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + 3 * 18 + 4));
-        }
+        addInventoryExtendedSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y);
+        addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y + 3 * 18 + 4);
     }
 
     public BlockPos pos() {
@@ -82,24 +71,6 @@ public final class MenuSmelter extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
-        ItemStack returnStack = ItemStack.EMPTY;
-        Slot slot = slots.get(slotIndex);
-        if (slot != null && slot.hasItem()) {
-            ItemStack stackInSlot = slot.getItem();
-            returnStack = stackInSlot.copy();
-            if (slotIndex < SLOT_COUNT) {
-                if (!moveItemStackTo(stackInSlot, SLOT_COUNT, TOTAL_INVENTORY_SLOTS, true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!moveItemStackTo(stackInSlot, 0, SLOT_COUNT, false)) {
-                return ItemStack.EMPTY;
-            }
-            if (stackInSlot.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
-        }
-        return returnStack;
+        return quickMoveBetween(slotIndex, SLOT_COUNT, stack -> true);
     }
 }

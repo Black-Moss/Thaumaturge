@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.client.effect.instance.StreamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.VoidStreamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.EssentiaStreamRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.VoidStreamRenderType;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 
@@ -36,6 +36,12 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
     @Override
     protected Collection<IFXInstance> activeInstances() {
         throw new UnsupportedOperationException("BoreVoidStreamManager overrides tickAll directly");
+    }
+
+    @Override
+    public void clear() {
+        BORES.clear();
+        VOIDS.clear();
     }
 
     @Override
@@ -63,7 +69,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
         double cz = camera.position().z;
 
         if (!BORES.isEmpty()) {
-            MultiBufferSource.BufferSource buf = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
+            MultiBufferSource.BufferSource buf = Minecraft.getInstance().renderBuffers().bufferSource();
             VertexConsumer consumer = buf.getBuffer(EssentiaStreamRenderType.RENDER_TYPE);
             for (BoreStreamInstance inst : BORES) {
                 StreamInstance.Snapshot snap = inst.snapshot(partialTick);
@@ -83,7 +89,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
             float yawNorm = ((yawRad % (float) (2.0 * Math.PI)) + (float) (2.0 * Math.PI)) % (float) (2.0 * Math.PI) / (float) (2.0 * Math.PI);
             float pitchNorm = (pitchRad + (float) (Math.PI * 0.5)) / (float) Math.PI;
 
-            MultiBufferSource.BufferSource bufA = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
+            MultiBufferSource.BufferSource bufA = Minecraft.getInstance().renderBuffers().bufferSource();
             VertexConsumer addConsumer = bufA.getBuffer(VoidStreamRenderType.ADDITIVE);
             for (VoidStreamInstance inst : VOIDS) {
                 StreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 1.5F);
@@ -97,7 +103,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
             }
             bufA.endBatch(VoidStreamRenderType.ADDITIVE);
 
-            MultiBufferSource.BufferSource bufT = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
+            MultiBufferSource.BufferSource bufT = Minecraft.getInstance().renderBuffers().bufferSource();
             VertexConsumer trConsumer = bufT.getBuffer(VoidStreamRenderType.TRANSLUCENT);
             for (VoidStreamInstance inst : VOIDS) {
                 StreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 0.5F);

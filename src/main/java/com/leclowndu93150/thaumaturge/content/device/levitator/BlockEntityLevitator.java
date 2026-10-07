@@ -1,23 +1,17 @@
 package com.leclowndu93150.thaumaturge.content.device.levitator;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
@@ -25,7 +19,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-public final class BlockEntityLevitator extends BlockEntity {
+public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
     private static final String REACH_KEY = "reach";
     private static final String CHARGE_KEY = "charge";
     private static final int REFUEL_BELOW = 10;
@@ -66,7 +60,7 @@ public final class BlockEntityLevitator extends BlockEntity {
             return;
         }
         reach = reach.next();
-        publish();
+        setChangedAndSync();
         player.sendSystemMessage(Component.translatable("gui.thaumaturge.levitator", reach.blocks(), reach.visCost()));
     }
 
@@ -89,7 +83,7 @@ public final class BlockEntityLevitator extends BlockEntity {
         int gained = (int) (AuraHelper.drainVis(level, pos, VIS_DRAW, false) * CHARGE_PER_VIS);
         if (gained > 0) {
             charge += gained;
-            publish();
+            setChangedAndSync();
         }
     }
 
@@ -113,7 +107,7 @@ public final class BlockEntityLevitator extends BlockEntity {
         if (level.isClientSide()) {
             LevitatorMist.stream(level, pos, facing, IDLE_MIST_CHANCE);
         } else if (carrying && level.getGameTime() % RIDER_SYNC_INTERVAL == 0) {
-            publish();
+            setChangedAndSync();
         }
     }
 
@@ -137,13 +131,6 @@ public final class BlockEntityLevitator extends BlockEntity {
         rider.setDeltaMovement(Mth.clamp(boosted.x, -SPEED_LIMIT, SPEED_LIMIT), Mth.clamp(boosted.y, -SPEED_LIMIT, SPEED_LIMIT), Mth.clamp(boosted.z, -SPEED_LIMIT, SPEED_LIMIT));
     }
 
-    private void publish() {
-        setChanged();
-        if (level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-        }
-    }
-
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
@@ -158,13 +145,4 @@ public final class BlockEntityLevitator extends BlockEntity {
         charge = input.getIntOr(CHARGE_KEY, 0);
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveCustomOnly(registries);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

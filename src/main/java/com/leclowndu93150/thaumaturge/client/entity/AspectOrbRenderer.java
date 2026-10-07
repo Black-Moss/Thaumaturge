@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.content.wands.EntityAspectOrb;
 import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.ARGB;
@@ -22,8 +21,7 @@ public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, Asp
         public int color;
     }
 
-    private static final RenderType ORB_TYPE = RenderType.create("tc_aspect_orb",
-            RenderSetup.builder(TTRenderPipelines.FX_ADDITIVE).withTexture("Sampler0", ParticleTextures.ORB_GLOW).useLightmap().createRenderSetup());
+    private static final RenderType ORB_TYPE = TTFXRenderTypes.additive(ParticleTextures.ORB_GLOW);
 
     private static final int FRAMES_PER_TICK = 2;
     private static final float BASE_SCALE = 0.1F;

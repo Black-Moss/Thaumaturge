@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.research.scan;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
@@ -35,7 +36,7 @@ import org.jspecify.annotations.Nullable;
 public final class ScanningManager {
     private static final List<IScannable> SUBJECTS = new ArrayList<>();
     private static final int CONTAINER_SCAN_LIMIT = 100;
-    private static @Nullable Bindings bindings;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("ScanningManager");
 
     private ScanningManager() {}
 
@@ -87,7 +88,7 @@ public final class ScanningManager {
     }
 
     private static boolean advance(Player player, Identifier research) {
-        return impl().progressResearch(player, research);
+        return BINDING.get().progressResearch(player, research);
     }
 
     private static void report(Player player, @Nullable Component refusal, boolean found, boolean silent) {
@@ -159,7 +160,7 @@ public final class ScanningManager {
             return target.carriedStack();
         }
         BlockState state = player.level().getBlockState(pos);
-        if (impl().hidesItemForm(state)) {
+        if (BINDING.get().hidesItemForm(state)) {
             return ItemStack.EMPTY;
         }
         ItemStack stack = state.getCloneItemStack(player.level(), pos, false);
@@ -186,7 +187,7 @@ public final class ScanningManager {
      * @return the stack's aspects as the aspect index sees them
      */
     public static AspectList itemAspects(ItemStack stack) {
-        return impl().itemAspects(stack);
+        return BINDING.get().itemAspects(stack);
     }
 
     /**
@@ -194,7 +195,7 @@ public final class ScanningManager {
      * @return the entity's aspects as the aspect index sees them
      */
     public static AspectList entityAspects(Entity entity) {
-        return impl().entityAspects(entity);
+        return BINDING.get().entityAspects(entity);
     }
 
     /**
@@ -205,7 +206,7 @@ public final class ScanningManager {
      * @return whether the research advanced
      */
     public static boolean progressResearch(Player player, Identifier research) {
-        return impl().progressResearch(player, research);
+        return BINDING.get().progressResearch(player, research);
     }
 
     /**
@@ -218,7 +219,7 @@ public final class ScanningManager {
      * @return whether any knowledge was granted
      */
     public static boolean addKnowledge(Player player, KnowledgeType type, Identifier category, int amount) {
-        return impl().addKnowledge(player, type, category, amount);
+        return BINDING.get().addKnowledge(player, type, category, amount);
     }
 
     /**
@@ -228,17 +229,7 @@ public final class ScanningManager {
      * @throws IllegalStateException when already bound
      */
     public static void bind(Bindings impl) {
-        if (bindings != null) {
-            throw new IllegalStateException("ScanningManager already bound");
-        }
-        bindings = impl;
-    }
-
-    private static Bindings impl() {
-        if (bindings == null) {
-            throw new IllegalStateException("ScanningManager accessed before binding");
-        }
-        return bindings;
+        BINDING.bind(impl);
     }
 
     /**

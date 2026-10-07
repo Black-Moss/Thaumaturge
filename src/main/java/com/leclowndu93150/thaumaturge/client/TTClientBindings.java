@@ -21,8 +21,9 @@ public final class TTClientBindings {
     public static void onClientSetup(FMLClientSetupEvent event) {
         AspectRendering.bind(new AspectRenderingBindings());
         AspectKnowledgeAccess.bind(aspect -> {
-            Player player = Minecraft.getInstance().player;
-            if (player == null || AspectPools.isDiscovered(player, aspect)) {
+            Minecraft minecraft = Minecraft.getInstance();
+            Player player = minecraft.player;
+            if (player == null || !minecraft.isSameThread() || AspectPools.isDiscovered(player, aspect)) {
                 return AspectKnowledge.KNOWN;
             }
             boolean derivable = !aspect.value().isPrimal() && AspectPools.hasDiscoveredComponents(player, aspect);

@@ -9,17 +9,11 @@ import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 public class TTBlockFamilies {
-
     private static final Map<Block, BlockFamily> MAP = Maps.newHashMap();
 
-    public static final BlockFamily ARCANE_STONE = familyBuilder(TTBlocks.STONE_ARCANE.get())
-            // .wall(Blocks.ANDESITE_WALL)
-            .stairs(TTBlocks.STAIRS_ARCANE.get())
-            // .slab(TTBlocks.SLAB_ARCANE.get())
-            .polished(TTBlocks.STONE_ARCANE_BRICK.get()).generateStonecutterRecipe().getFamily();
-    public static final BlockFamily ARCANE_STONE_BRICKS = familyBuilder(TTBlocks.STONE_ARCANE_BRICK.get()).stairs(TTBlocks.STAIRS_ARCANE_BRICK.get())
-            // .slab(Blocks.POLISHED_ANDESITE_SLAB)
+    public static final BlockFamily ARCANE_STONE = familyBuilder(TTBlocks.STONE_ARCANE.get()).stairs(TTBlocks.STAIRS_ARCANE.get()).polished(TTBlocks.STONE_ARCANE_BRICK.get())
             .generateStonecutterRecipe().getFamily();
+    public static final BlockFamily ARCANE_STONE_BRICKS = familyBuilder(TTBlocks.STONE_ARCANE_BRICK.get()).stairs(TTBlocks.STAIRS_ARCANE_BRICK.get()).generateStonecutterRecipe().getFamily();
 
     private static BlockFamily.Builder familyBuilder(Block base) {
         BlockFamily.Builder builder = new BlockFamily.Builder(base);

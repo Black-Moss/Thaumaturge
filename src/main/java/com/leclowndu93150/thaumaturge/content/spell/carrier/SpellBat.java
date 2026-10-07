@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.spell.carrier;
 
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
-import com.leclowndu93150.thaumaturge.content.spell.delivery.SpellLook;
 import com.leclowndu93150.thaumaturge.content.spell.world.SpellTargeting;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import java.util.List;
@@ -61,8 +60,7 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
 
     public final AnimationState flyAnimationState = new AnimationState();
 
-    private @Nullable CarrierPayload payload;
-    private SpellLook look = SpellLook.DEFAULT;
+    private final CarrierCharge charge = new CarrierCharge();
     private @Nullable EntityReference<LivingEntity> owner;
     private boolean allies;
     private @Nullable BlockPos roost;
@@ -77,8 +75,7 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
         if (bat == null) {
             return;
         }
-        bat.payload = payload;
-        bat.look = payload.look();
+        bat.charge.arm(payload);
         bat.owner = EntityReference.of(owner);
         bat.allies = allies;
         bat.snapTo(origin.position().x, origin.position().y, origin.position().z, owner.getYRot(), 0.0F);
@@ -90,7 +87,7 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     }
 
     public int color() {
-        return look.color();
+        return charge.look().color();
     }
 
     @Override
@@ -100,18 +97,18 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
-        SpellLook.STREAM_CODEC.encode(buffer, look);
+        charge.writeLook(buffer);
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buffer) {
-        look = SpellLook.STREAM_CODEC.decode(buffer);
+        charge.readLook(buffer);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
-        CarrierPayload.save(output, payload);
+        charge.save(output);
         EntityReference.store(owner, output, "owner");
         output.putBoolean("allies", allies);
     }
@@ -119,8 +116,7 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        payload = CarrierPayload.load(input);
-        look = payload != null ? payload.look() : SpellLook.DEFAULT;
+        charge.load(input);
         owner = EntityReference.read(input, "owner");
         allies = input.getBooleanOr("allies", false);
     }
@@ -182,9 +178,9 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
         setDeltaMovement(motion.x, motion.y * LIFT_DRAG, motion.z);
         flyAnimationState.startIfStopped(tickCount);
         if (level().isClientSide()) {
-            CarrierPayload.particle(level(), look, position().add(random.nextGaussian() * AURA_SPREAD, getBbHeight() / 2.0 + random.nextGaussian() * AURA_SPREAD, random.nextGaussian() * AURA_SPREAD),
-                    Vec3.ZERO);
-        } else if (tickCount > LIFESPAN || getOwner() == null || payload == null) {
+            CarrierPayload.particle(level(), charge.look(),
+                    position().add(random.nextGaussian() * AURA_SPREAD, getBbHeight() / 2.0 + random.nextGaussian() * AURA_SPREAD, random.nextGaussian() * AURA_SPREAD), Vec3.ZERO);
+        } else if (tickCount > LIFESPAN || getOwner() == null || charge.isSpent()) {
             discard();
         }
     }
@@ -222,9 +218,7 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
 
     private void strike(ServerLevel level, LivingEntity prey, Vec3 aim) {
         recharge = STRIKE_COOLDOWN;
-        if (payload != null) {
-            payload.resume(level, List.of(SpellTarget.entity(prey, aim.subtract(position()))));
-        }
+        charge.resume(level, List.of(SpellTarget.entity(prey, aim.subtract(position()))));
         setHealth(getHealth() - STRIKE_COST);
         playSound(SoundEvents.BAT_HURT, HURT_VOLUME, HURT_PITCH + random.nextFloat() * HURT_PITCH_SPREAD);
     }

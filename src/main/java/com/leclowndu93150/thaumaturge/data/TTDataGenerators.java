@@ -15,7 +15,14 @@ import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.definition.Room
 import com.leclowndu93150.thaumaturge.content.eldritch.site.ObeliskSite;
 import com.leclowndu93150.thaumaturge.content.pech.PechTradeTable;
 import com.leclowndu93150.thaumaturge.data.damagetype.TTDamageTypeBootstrap;
-import com.leclowndu93150.thaumaturge.data.datamap.*;
+import com.leclowndu93150.thaumaturge.data.datamap.AuraModifierProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.ChampionWhitelistProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.EntityAspectsProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.FocusTierProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.FuelValuesProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.GolemAccessoryItemProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.InfernalBonusProvider;
+import com.leclowndu93150.thaumaturge.data.datamap.StrippingProvider;
 import com.leclowndu93150.thaumaturge.data.datamap.TaintedProfileProvider;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthDefinitionBootstrap;
 import com.leclowndu93150.thaumaturge.data.labyrinth.LabyrinthEncounterBootstrap;
@@ -27,6 +34,8 @@ import com.leclowndu93150.thaumaturge.data.labyrinth.SparseTemplateProvider;
 import com.leclowndu93150.thaumaturge.data.labyrinth.TTLabyrinthRoomTagsProvider;
 import com.leclowndu93150.thaumaturge.data.lang.TTEnglishProvider;
 import com.leclowndu93150.thaumaturge.data.loot.TTBlockLootSubProvider;
+import com.leclowndu93150.thaumaturge.data.model.TTEquipmentAssetProvider;
+import com.leclowndu93150.thaumaturge.data.sound.TTSoundDefinitionsProvider;
 import com.leclowndu93150.thaumaturge.data.spell.AffinityBootstrap;
 import com.leclowndu93150.thaumaturge.data.spell.SpellPartBootstrap;
 import com.leclowndu93150.thaumaturge.data.loot.TTEntityLootSubProvider;
@@ -82,6 +91,8 @@ public final class TTDataGenerators {
         event.createDatapackRegistryObjects(registries);
 
         event.createProvider(TTEnglishProvider::new);
+        event.createProvider(TTSoundDefinitionsProvider::new);
+        event.createProvider(TTEquipmentAssetProvider::new);
 
         event.createProvider(TTModelProvider::new);
         event.createProvider(TTRecipeProvider.Runner::new);

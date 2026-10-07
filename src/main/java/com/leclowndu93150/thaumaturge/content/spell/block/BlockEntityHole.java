@@ -1,29 +1,21 @@
 package com.leclowndu93150.thaumaturge.content.spell.block;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.particle.SparkleParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityHole extends BlockEntity {
+public final class BlockEntityHole extends AbstractSyncedBlockEntity {
     private static final int DEFAULT_COUNTDOWN_MAX = 120;
     private static final int DIRTY_INTERVAL_TICKS = 20;
     private static final int SPARKLE_ATTEMPTS_PER_TICK = 2;
@@ -55,22 +47,6 @@ public final class BlockEntityHole extends BlockEntity {
 
     public BlockState originalBlockState() {
         return oldblock;
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector collector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput output = TagValueOutput.createWithContext(collector, registries);
-            saveAdditional(output);
-            tag.merge(output.buildResult());
-        }
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityHole hole) {

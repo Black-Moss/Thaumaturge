@@ -66,6 +66,10 @@ public final class InfusionEnchantmentEvents {
     private static final ThreadLocal<Boolean> DESTRUCTIVE_RECURSION = ThreadLocal.withInitial(() -> false);
     private static final Map<UUID, DestructiveTarget> DESTRUCTIVE_TARGETS = new HashMap<>();
 
+    public static void resetSession() {
+        DESTRUCTIVE_TARGETS.clear();
+    }
+
     private record DestructiveTarget(ResourceKey<Level> dimension, BlockPos pos, Direction face) {
         private boolean matches(ServerLevel level, BlockPos pos) {
             return dimension.equals(level.dimension()) && this.pos.equals(pos);

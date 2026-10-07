@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumaturge.network;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatorium;
+import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.MenuThaumatorium;
+import com.leclowndu93150.thaumaturge.network.BlockMenuGuard;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,13 +21,8 @@ public record ServerboundThaumatoriumTogglePayload(BlockPos pos, Identifier reci
 
     public static void handle(ServerboundThaumatoriumTogglePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
-                return;
-            }
-            if (payload.pos().distToCenterSqr(player.getX(), player.getY(), player.getZ()) > 64.0) {
-                return;
-            }
-            if (level.getBlockEntity(payload.pos()) instanceof BlockEntityThaumatorium machine) {
+            BlockEntityThaumatorium machine = BlockMenuGuard.target(context, payload.pos(), MenuThaumatorium.class);
+            if (machine != null && context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
                 machine.toggleRecipe(level, player, payload.recipeId());
             }
         });

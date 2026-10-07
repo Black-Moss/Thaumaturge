@@ -25,10 +25,7 @@ public record ServerboundGolemPressPayload(BlockPos pos, GolemProperties props, 
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            if (!(player.containerMenu instanceof MenuGolemBuilder menu) || !menu.isFor(payload.pos()) || !menu.stillValid(player)) {
-                return;
-            }
-            BlockEntityGolemBuilder builder = menu.blockEntity();
+            BlockEntityGolemBuilder builder = BlockMenuGuard.target(context, payload.pos(), MenuGolemBuilder.class);
             if (builder == null) {
                 return;
             }

@@ -9,6 +9,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,7 +126,7 @@ public final class AspectIndex implements IAspectIndex {
     }
 
     private List<Entry> entries() {
-        List<Entry> list = new java.util.ArrayList<>(byItem.size());
+        List<Entry> list = new ArrayList<>(byItem.size());
         byItem.forEach((item, entry) -> list.add(new Entry(BuiltInRegistries.ITEM.getKey(item), entry)));
         return list;
     }

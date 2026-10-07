@@ -1,12 +1,13 @@
 package com.leclowndu93150.thaumaturge.content.crucible;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.crucible.CrucibleEvent;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumaturge.content.recipe.ThaumaturgeCraftingManager;
@@ -17,28 +18,20 @@ import com.leclowndu93150.thaumaturge.mixin.world.entity.item.ItemEntityAccessor
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.awt.*;
+import java.awt.Color;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -48,8 +41,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
-public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectContainer {
-
+public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements ReadOnlyAspectContainer {
     public static final int TANK_CAPACITY = 1000;
     public static final int MAX_ASPECT = 100;
     private static final long OVERFLOW_INTERVAL = 5L;
@@ -69,7 +61,6 @@ public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectCo
     private short heat = 0;
     private long counter = -100;
 
-    // FX Infos
     int prevcolor = 0;
     int prevx = 0;
     int prevy = 0;
@@ -186,29 +177,6 @@ public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectCo
         input.child("Tank").ifPresent(tank::deserialize);
         aspects = input.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
         heat = (short) input.getShortOr("Heat", (short) 0);
-    }
-
-    private void syncToClient() {
-        if (level == null || level.isClientSide())
-            return;
-        BlockState current = getBlockState();
-        level.sendBlockUpdated(getBlockPos(), current, current, 3);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector problemreporter$scopedcollector = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput tagvalueoutput = TagValueOutput.createWithContext(problemreporter$scopedcollector, registries);
-            saveAdditional(tagvalueoutput);
-            nbt.merge(tagvalueoutput.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public FluidStacksResourceHandler getTank() {
@@ -355,13 +323,13 @@ public class BlockEntityCrucible extends BlockEntity implements ReadOnlyAspectCo
                     ctx.commit();
                 }
                 ejectItem(out.copy());
-                NeoForge.EVENT_BUS.post(new CrucibleEvent.CrucibleCraftedEvent(owner, getBlockPos(), getBlockState(), this, out.copy(), recipe.aspects()));
+                NeoForge.EVENT_BUS.post(new CrucibleEvent.Crafted(owner, getBlockPos(), getBlockState(), this, out.copy(), recipe.aspects()));
                 craftDone = true;
                 count--;
                 this.counter = -250L;
             } else {
                 AspectList aspects = AspectIndexAccess.index().of(stack);
-                CrucibleEvent.CrucibleDecomposeItemEvent event = new CrucibleEvent.CrucibleDecomposeItemEvent(owner, getBlockPos(), getBlockState(), this, stack, aspects);
+                CrucibleEvent.Dissolve event = new CrucibleEvent.Dissolve(owner, getBlockPos(), getBlockState(), this, stack, aspects);
                 NeoForge.EVENT_BUS.post(event);
                 aspects = event.getAspects();
                 if (!aspects.isEmpty() && !event.isCanceled()) {

@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.spell.carrier;
 
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
-import com.leclowndu93150.thaumaturge.content.spell.delivery.SpellLook;
 import com.leclowndu93150.thaumaturge.content.spell.world.SpellTargeting;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.mojang.serialization.Codec;
@@ -22,7 +21,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
-import org.jspecify.annotations.Nullable;
 
 public final class SpellMine extends ThrowableProjectile implements IEntityWithComplexSpawn {
     private static final EntityDataAccessor<Boolean> ARMED = SynchedEntityData.defineId(SpellMine.class, EntityDataSerializers.BOOLEAN);
@@ -36,8 +34,7 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
     private static final double SPARK_SPREAD = 0.1;
     private static final String TRAP_KEY = "trap";
 
-    private @Nullable CarrierPayload payload;
-    private SpellLook look = SpellLook.DEFAULT;
+    private final CarrierCharge charge = new CarrierCharge();
     private boolean allies;
     private int armedTick;
     private List<LivingEntity> victims = List.of();
@@ -49,8 +46,7 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
 
     public static void place(ServerLevel level, LivingEntity owner, CarrierPayload payload, SpellTarget origin, boolean allies) {
         SpellMine mine = new SpellMine(TTEntities.FOCUS_MINE.get(), level);
-        mine.payload = payload;
-        mine.look = payload.look();
+        mine.charge.arm(payload);
         mine.allies = allies;
         mine.setOwner(owner);
         mine.setPos(origin.position().x, origin.position().y, origin.position().z);
@@ -68,7 +64,7 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
     }
 
     public int color() {
-        return look.color();
+        return charge.look().color();
     }
 
     @Override
@@ -78,26 +74,25 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
-        SpellLook.STREAM_CODEC.encode(buffer, look);
+        charge.writeLook(buffer);
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buffer) {
-        look = SpellLook.STREAM_CODEC.decode(buffer);
+        charge.readLook(buffer);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
-        CarrierPayload.save(output, payload);
+        charge.save(output);
         output.store(TRAP_KEY, Trap.CODEC, new Trap(armed(), allies));
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        payload = CarrierPayload.load(input);
-        look = payload != null ? payload.look() : SpellLook.DEFAULT;
+        charge.load(input);
         Trap trap = input.read(TRAP_KEY, Trap.CODEC).orElse(Trap.UNSET);
         entityData.set(ARMED, trap.armed());
         allies = trap.allies();
@@ -131,7 +126,7 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
 
     private void glow() {
         Vec3 jitter = new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).scale(SPARK_SPREAD);
-        CarrierPayload.particle(level(), look, position().add(jitter), Vec3.ZERO);
+        CarrierPayload.particle(level(), charge.look(), position().add(jitter), Vec3.ZERO);
     }
 
     private void unstick() {
@@ -143,7 +138,7 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
 
     private void serverTick(ServerLevel server) {
         Entity owner = getOwner();
-        if (tickCount > LIFESPAN || owner == null || payload == null) {
+        if (tickCount > LIFESPAN || owner == null || charge.isSpent()) {
             discard();
         } else if (!victims.isEmpty()) {
             release(server);
@@ -160,14 +155,14 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
     }
 
     private void release(ServerLevel server) {
-        if (released >= victims.size() || payload == null) {
+        if (released >= victims.size() || charge.isSpent()) {
             discard();
             return;
         }
         LivingEntity victim = victims.get(released++);
         if (victim.isAlive()) {
             Vec3 aim = victim.getBoundingBox().getCenter();
-            payload.resume(server, List.of(SpellTarget.entity(victim, aim.subtract(position()))));
+            charge.resume(server, List.of(SpellTarget.entity(victim, aim.subtract(position()))));
         }
     }
 }

@@ -158,8 +158,8 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
         if (tickCount % TARGET_INTERVAL == 0 || getTarget() == null || !validTarget(getTarget())) {
             setTarget(level.getNearestPlayer(getX(), getY(), getZ(), ENCOUNTER_RADIUS, this::validTarget));
         }
-        bossEvent.setName(getDisplayName());
-        bossEvent.setColor(awakened() ? BossEvent.BossBarColor.RED : BossEvent.BossBarColor.PURPLE);
+        bossBar.event().setName(getDisplayName());
+        bossBar.event().setColor(awakened() ? BossEvent.BossBarColor.RED : BossEvent.BossBarColor.PURPLE);
         final LivingEntity target = getTarget();
         if (target == null) {
             unattendedTicks++;
@@ -374,7 +374,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
         if (level() instanceof ServerLevel) {
             getNavigation().stop();
             setAction(HierophantAction.DEATH);
-            bossEvent.setProgress(0);
+            bossBar.event().setProgress(0);
             speak("entity.thaumaturge.eldritch_hierophant.defeat");
         }
         super.die(source);
@@ -394,7 +394,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
                 server.sendParticles(ParticleTypes.REVERSE_PORTAL, getX(), getY() + 1, getZ(), 60, 1, 1, 1, 0.05);
             }
             if (deathTime >= HierophantAction.DEATH.duration()) {
-                bossEvent.removeAllPlayers();
+                bossBar.event().removeAllPlayers();
                 remove(RemovalReason.KILLED);
             }
         }
@@ -406,7 +406,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
     }
 
     private void speak(String key) {
-        for (ServerPlayer player : bossEvent.getPlayers()) {
+        for (ServerPlayer player : bossBar.event().getPlayers()) {
             player.sendSystemMessage(Component.translatable(key));
         }
     }

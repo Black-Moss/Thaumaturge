@@ -25,6 +25,10 @@ public final class LateWorldRenderQueue {
 
     private LateWorldRenderQueue() {}
 
+    public static void clear() {
+        QUEUE.clear();
+    }
+
     public static void enqueue(Vec3 origin, LateDraw draw) {
         QUEUE.add(new Entry(origin, draw));
     }

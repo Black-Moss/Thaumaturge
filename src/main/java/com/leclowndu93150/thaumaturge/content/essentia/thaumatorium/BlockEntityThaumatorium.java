@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.essentia.thaumatorium;
 
-import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
+import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
@@ -12,30 +12,25 @@ import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInpu
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
+import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -43,7 +38,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityThaumatorium extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity implements IEssentiaTransport {
     private static final int CHECK_INTERVAL = 40;
     private static final int WORK_INTERVAL = 5;
     private static final int SUCTION = 128;
@@ -121,21 +116,14 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
     }
 
     private @Nullable RecipeHolder<?> findRecipe(ServerLevel server, Identifier recipeId) {
-        for (RecipeHolder<?> holder : server.recipeAccess().getRecipes()) {
-            if (holder.id().identifier().equals(recipeId)) {
-                return holder;
-            }
-        }
-        return null;
+        return server.recipeAccess().byKey(ResourceKey.create(Registries.RECIPE, recipeId)).orElse(null);
     }
 
     public List<CrucibleRecipe> candidateRecipes(ServerLevel server, Player player, List<Identifier> idsOut) {
         List<CrucibleRecipe> found = new ArrayList<>();
         ItemStack stack = catalystStack();
-        for (RecipeHolder<?> holder : server.recipeAccess().getRecipes()) {
-            if (!(holder.value() instanceof CrucibleRecipe recipe)) {
-                continue;
-            }
+        for (RecipeHolder<CrucibleRecipe> holder : server.recipeAccess().recipeMap().byType(TTRecipeTypes.CRUCIBLE.get())) {
+            CrucibleRecipe recipe = holder.value();
             Identifier id = holder.id().identifier();
             boolean queued = queue.contains(id);
             boolean matches = !stack.isEmpty() && recipe.catalyst().test(stack) && recipe.doesPassGate(player);
@@ -283,13 +271,6 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
         return added;
     }
 
-    void syncToClient() {
-        if (level != null && !level.isClientSide()) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(getBlockPos(), state, state, 3);
-        }
-    }
-
     @Override
     public boolean isConnectable(Direction face) {
         return face != facing();
@@ -366,19 +347,4 @@ public final class BlockEntityThaumatorium extends BlockEntity implements IEssen
         catalyst.serialize(output.child("Catalyst"));
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), Thaumaturge.LOGGER)) {
-            TagValueOutput out = TagValueOutput.createWithContext(reporter, registries);
-            saveAdditional(out);
-            nbt.merge(out.buildResult());
-        }
-        return nbt;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

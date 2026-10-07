@@ -5,6 +5,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -15,7 +16,7 @@ public final class NitorCoreParticle extends SingleQuadParticle {
     private final float midBoost;
 
     private NitorCoreParticle(ClientLevel level, double x, double y, double z, NitorCoreParticleOptions data, ParticleSheet sheet) {
-        super(level, x, y, z, 0.0, 0.0, 0.0, (net.minecraft.client.renderer.texture.TextureAtlasSprite) null);
+        super(level, x, y, z, 0.0, 0.0, 0.0, (TextureAtlasSprite) null);
         this.sheet = sheet;
         this.xd = 0.0;
         this.yd = 0.0;

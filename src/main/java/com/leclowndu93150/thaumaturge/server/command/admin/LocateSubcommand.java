@@ -57,15 +57,19 @@ final class LocateSubcommand implements AdminSubcommand {
             }
         }
         if (result.isEmpty()) {
-            source.sendFailure(Component.translatable("commands.thaumaturge.locate.node.not_found", type.getSerializedName()));
+            source.sendFailure(Component.translatable("commands.thaumaturge.locate.node.not_found", nodeTypeName(type)));
             return 0;
         }
         BlockPos pos = result.get();
         String coordinatesText = pos.getX() + " " + pos.getY() + " " + pos.getZ();
-        Component coordinates = Component.literal("[" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]").withStyle(style -> style.withColor(ChatFormatting.GREEN).withUnderlined(true)
+        Component coordinates = Component.translatable("chat.coordinates", pos.getX(), pos.getY(), pos.getZ()).withStyle(style -> style.withColor(ChatFormatting.GREEN).withUnderlined(true)
                 .withClickEvent(new ClickEvent.CopyToClipboard(coordinatesText)).withHoverEvent(new HoverEvent.ShowText(Component.translatable("commands.thaumaturge.locate.node.copy"))));
         int distance = (int) Math.round(Math.sqrt(pos.distSqr(origin)));
-        source.sendSuccess(() -> Component.translatable("commands.thaumaturge.locate.node.found", type.getSerializedName(), coordinates, distance), false);
+        source.sendSuccess(() -> Component.translatable("commands.thaumaturge.locate.node.found", nodeTypeName(type), coordinates, distance), false);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static Component nodeTypeName(NodeType type) {
+        return Component.translatable("nodetype.thaumaturge." + type.getSerializedName());
     }
 }

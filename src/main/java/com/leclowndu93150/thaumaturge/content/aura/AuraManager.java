@@ -29,6 +29,11 @@ public final class AuraManager {
 
     private AuraManager() {}
 
+    public static void resetSession() {
+        LOADED_CHUNKS.clear();
+        RIFT_TRIGGER.clear();
+    }
+
     public static @Nullable AuraData getAuraChunk(ServerLevel level, ChunkPos pos) {
         LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
         if (chunk == null) {

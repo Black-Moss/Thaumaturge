@@ -337,7 +337,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
             AspectList cost = table.duplicationCost(minecraft.player, data);
             if (cost != null) {
                 for (AspectInstance instance : cost.entries()) {
-                    lines.add(AspectComponents.name(instance.aspect()).copy().append(Component.literal(" x" + instance.amount())));
+                    lines.add(Component.translatable("tooltip.thaumaturge.amount", AspectComponents.name(instance.aspect()), instance.amount()));
                 }
             }
             graphics.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
@@ -385,7 +385,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
         int lastPage = Math.max(0, (compounds.size() - 1) / HELPER_ROWS);
         int center = leftPos + SHEET_X + SHEET_SIZE / 2;
         if (lastPage > 0) {
-            String label = (helperPage + 1) + "/" + (lastPage + 1);
+            Component label = Component.translatable("gui.thaumaturge.fraction", helperPage + 1, lastPage + 1);
             graphics.text(font, label, center - font.width(label) / 2, topPos + HELPER_ARROW_Y, 0xFF3A2A1A, false);
         }
         if (helperPage > 0) {

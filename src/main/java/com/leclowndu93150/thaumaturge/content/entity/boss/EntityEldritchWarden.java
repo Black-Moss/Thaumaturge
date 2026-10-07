@@ -157,7 +157,7 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     @Override
     protected void customServerAiStep(ServerLevel level) {
         if (frenzy.active()) {
-            bossEvent.setProgress(getHealth() / getMaxHealth());
+            bossBar.event().setProgress(getHealth() / getMaxHealth());
         } else {
             super.customServerAiStep(level);
         }

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.spell.casting;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.spell.CastStyle;
+import com.leclowndu93150.thaumaturge.api.spell.FocusTier;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellProblem;
 import com.leclowndu93150.thaumaturge.api.spell.SpellSummary;
@@ -15,6 +16,7 @@ import com.leclowndu93150.thaumaturge.content.spell.engine.SpellEngine;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
+import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.ChatFormatting;
@@ -70,7 +72,8 @@ public final class SpellCasting {
         if (spell == null || spell.style() != CastStyle.CHANNELED || usedTicks <= 0) {
             return;
         }
-        SpellSummary summary = Spells.analyze(spell, Spells.tierOf(focus).orElse(null), level.registryAccess(), player);
+        FocusTier tier = Spells.tierOf(focus).orElse(null);
+        SpellSummary summary = player.getData(TTAttachments.CHANNEL_SUMMARY).summaryFor(spell, tier, () -> Spells.analyze(spell, tier, level.registryAccess(), player));
         if (usedTicks % summary.pulseInterval() != 0) {
             return;
         }

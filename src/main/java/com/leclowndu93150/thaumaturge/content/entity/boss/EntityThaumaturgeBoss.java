@@ -6,23 +6,16 @@ import com.leclowndu93150.thaumaturge.registry.TTItems;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.util.Mth;
-import net.minecraft.world.BossEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -52,25 +45,19 @@ public class EntityThaumaturgeBoss extends Monster {
     private static final int RETARGET_FLAT_MARGIN = 25;
     private static final double RETARGET_RATIO = 1.1;
     private static final double AGGRO_RANGE_SQ = 16384.0;
-    private static final float ENRAGE_THRESHOLD = 35.0F;
-    private static final int ENRAGE_TICKS = 200;
-    private static final float ENRAGE_REGEN_DIVISOR = 15.0F;
-    private static final float ENRAGE_STRENGTH_DIVISOR = 10.0F;
-    private static final float ENRAGE_HASTE_DIVISOR = 40.0F;
-    private static final int ANGRY_PARTICLE_CHANCE = 15;
     private static final int MAX_PLAYER_BUFFS = 5;
     private static final double PLAYER_HP_BUFF = 50.0;
     private static final double PLAYER_DMG_BUFF = 0.5;
     private static final float PEARL_DROP_LIFT = 1.5F;
 
-    protected final ServerBossEvent bossEvent = new ServerBossEvent(Mth.createInsecureUUID(this.random), getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
+    protected final BossBar bossBar = new BossBar(this);
+    private final BossRage rage = new BossRage(this, DATA_AGGRO);
     private final Map<Integer, Integer> aggro = new HashMap<>();
     protected int spawnTimer;
 
     public EntityThaumaturgeBoss(EntityType<? extends EntityThaumaturgeBoss> type, Level level) {
         super(type, level);
         this.xpReward = BOSS_XP;
-        this.bossEvent.setDarkenScreen(true);
     }
 
     public static AttributeSupplier.Builder createBossAttributes() {
@@ -84,11 +71,11 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     public int getAnger() {
-        return this.entityData.get(DATA_AGGRO);
+        return this.rage.anger();
     }
 
     public void setAnger(int anger) {
-        this.entityData.set(DATA_AGGRO, anger);
+        this.rage.setAnger(anger);
     }
 
     public int getSpawnTimer() {
@@ -103,27 +90,32 @@ public class EntityThaumaturgeBoss extends Monster {
         if (this.getTarget() != null && !this.getTarget().isAlive()) {
             this.setTarget(null);
         }
-        this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
-        BossHooks.syncSharedBar(this, this.bossEvent);
+        this.bossBar.update();
     }
 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
-        BossHooks.showBar(this, this.bossEvent, player);
+        this.bossBar.show(player);
     }
 
     @Override
     public void stopSeenByPlayer(ServerPlayer player) {
         super.stopSeenByPlayer(player);
-        this.bossEvent.removePlayer(player);
+        this.bossBar.hide(player);
+    }
+
+    @Override
+    public void setCustomName(@Nullable Component name) {
+        super.setCustomName(name);
+        this.bossBar.rename();
     }
 
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData data) {
         this.setHomeTo(this.blockPosition(), HOME_RADIUS);
         this.generateName();
-        this.bossEvent.setName(this.getDisplayName());
+        this.bossBar.rename();
         return data;
     }
 
@@ -133,14 +125,7 @@ public class EntityThaumaturgeBoss extends Monster {
         if (this.getSpawnTimer() > 0) {
             this.spawnTimer--;
         }
-        if (this.getAnger() > 0 && !this.level().isClientSide()) {
-            this.setAnger(this.getAnger() - 1);
-        }
-        if (this.level().isClientSide() && this.getAnger() > 0 && this.random.nextInt(ANGRY_PARTICLE_CHANCE) == 0) {
-            this.level().addParticle(ParticleTypes.ANGRY_VILLAGER, this.getX() + this.random.nextFloat() * this.getBbWidth() - this.getBbWidth() / 2.0,
-                    this.getBoundingBox().minY + this.getBbHeight() + this.random.nextFloat() * 0.5, this.getZ() + this.random.nextFloat() * this.getBbWidth() - this.getBbWidth() / 2.0,
-                    this.random.nextGaussian() * 0.02, this.random.nextGaussian() * 0.02, this.random.nextGaussian() * 0.02);
-        }
+        this.rage.tick();
         if (!this.level().isClientSide()) {
             if (this.tickCount % HEAL_INTERVAL == 0) {
                 this.heal(passiveHealing());
@@ -206,17 +191,8 @@ public class EntityThaumaturgeBoss extends Monster {
         if (source.getEntity() instanceof LivingEntity attacker) {
             this.aggro.merge(attacker.getId(), (int) damage, Integer::sum);
         }
-        if (usesLegacyEnrage() && damage > ENRAGE_THRESHOLD && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            if (this.getAnger() == 0) {
-                this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, ENRAGE_TICKS, (int) (damage / ENRAGE_REGEN_DIVISOR)));
-                this.addEffect(new MobEffectInstance(MobEffects.STRENGTH, ENRAGE_TICKS, (int) (damage / ENRAGE_STRENGTH_DIVISOR)));
-                this.addEffect(new MobEffectInstance(MobEffects.HASTE, ENRAGE_TICKS, (int) (damage / ENRAGE_HASTE_DIVISOR)));
-                this.setAnger(ENRAGE_TICKS);
-                if (source.getEntity() instanceof ServerPlayer player) {
-                    player.connection.send(new ClientboundSetActionBarTextPacket(Component.empty().append(this.getDisplayName()).append(" ").append(Component.translatable("tc.boss.enrage"))));
-                }
-            }
-            damage = ENRAGE_THRESHOLD;
+        if (usesLegacyEnrage()) {
+            damage = this.rage.absorb(source, damage);
         }
         return super.hurtServer(level, source, damage);
     }

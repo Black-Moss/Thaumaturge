@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.labyrinth;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -8,7 +9,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Static facade for Outer Lands labyrinths. The mod binds it during construction through {@link #bind}; calls made before that throw {@link IllegalStateException}.
@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
  * @since 1.0.0
  */
 public final class LabyrinthHelper {
-    private static @Nullable Bindings bindings;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("LabyrinthHelper");
 
     private LabyrinthHelper() {}
 
@@ -26,37 +26,31 @@ public final class LabyrinthHelper {
      * Installs the implementation. Called once by the mod.
      *
      * @param impl the implementation
+     * @throws IllegalStateException when an implementation is already bound
      */
     public static void bind(Bindings impl) {
-        bindings = impl;
-    }
-
-    private static Bindings impl() {
-        if (bindings == null) {
-            throw new IllegalStateException("LabyrinthHelper used before Thaumaturge bound it");
-        }
-        return bindings;
+        BINDING.bind(impl);
     }
 
     /**
      * @return the marker type registry
      */
     public static Registry<LabyrinthMarkerType<?>> markerTypes() {
-        return impl().markerTypes();
+        return BINDING.get().markerTypes();
     }
 
     /**
      * @return the encounter type registry
      */
     public static Registry<LabyrinthEncounterType<?>> encounterTypes() {
-        return impl().encounterTypes();
+        return BINDING.get().encounterTypes();
     }
 
     /**
      * @return the obelisk site behavior type registry
      */
     public static Registry<ObeliskSiteBehaviorType<?>> siteBehaviorTypes() {
-        return impl().siteBehaviorTypes();
+        return BINDING.get().siteBehaviorTypes();
     }
 
     /**
@@ -67,7 +61,7 @@ public final class LabyrinthHelper {
      * @return the maze, or empty when {@code level} is not the Outer Lands or no maze covers {@code pos}
      */
     public static Optional<LabyrinthView> find(ServerLevel level, BlockPos pos) {
-        return impl().find(level, pos);
+        return BINDING.get().find(level, pos);
     }
 
     /**
@@ -76,7 +70,7 @@ public final class LabyrinthHelper {
      * @return the maze, or empty when the id is unknown or retired
      */
     public static Optional<LabyrinthView> byId(MinecraftServer server, MazeId id) {
-        return impl().byId(server, id);
+        return BINDING.get().byId(server, id);
     }
 
     /**
@@ -88,7 +82,7 @@ public final class LabyrinthHelper {
      * @return the new maze, or empty when the definition is unknown or the server is at its maze limit
      */
     public static Optional<LabyrinthView> open(MinecraftServer server, GlobalPos origin, Optional<Identifier> definition) {
-        return impl().open(server, origin, definition);
+        return BINDING.get().open(server, origin, definition);
     }
 
     /**
@@ -96,7 +90,7 @@ public final class LabyrinthHelper {
      * @return true when the entity was spawned by a labyrinth encounter or guardian post
      */
     public static boolean isLabyrinthBound(Entity entity) {
-        return impl().isLabyrinthBound(entity);
+        return BINDING.get().isLabyrinthBound(entity);
     }
 
     /**
@@ -107,7 +101,7 @@ public final class LabyrinthHelper {
      * @return true when the entity's health is shown on a shared encounter bar
      */
     public static boolean sharesBossBar(Entity entity) {
-        return impl().sharesBossBar(entity);
+        return BINDING.get().sharesBossBar(entity);
     }
 
     /**

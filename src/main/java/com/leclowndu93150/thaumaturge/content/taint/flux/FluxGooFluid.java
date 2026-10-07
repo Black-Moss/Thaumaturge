@@ -94,8 +94,8 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
                         AuraHelper.polluteAura(level, pos, POLLUTE_AMOUNT, true);
                     }
                     level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-                } else {
-                    level.setBlock(pos, TTBlocks.TAINT_FIBRE.get().defaultBlockState(), Block.UPDATE_ALL);
+                } else if (!TaintHelper.placeFibreFromFlux(level, pos)) {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
                 }
             } else {
                 setGoo(level, pos, meta, Block.UPDATE_CLIENTS);
