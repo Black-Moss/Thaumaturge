@@ -16,6 +16,8 @@ import com.leclowndu93150.thaumaturge.client.model.NitorItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.NodeStabilizerItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.WandIsStaffProperty;
 import com.leclowndu93150.thaumaturge.client.model.WandItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.connected.ConnectedSheetModel;
+import com.leclowndu93150.thaumaturge.client.model.connected.ConnectedTexture;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelInstance;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
@@ -57,6 +59,7 @@ import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalBlockstateGenera
 import com.leclowndu93150.thaumaturge.data.model.crystal.CrystalItemModelGenerator;
 import com.leclowndu93150.thaumaturge.data.model.crystal.EssentiaCrystalModelGenerator;
 import com.leclowndu93150.thaumaturge.data.model.warding.WardedGlassModelGenerator;
+import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
@@ -64,6 +67,7 @@ import com.mojang.math.Axis;
 import com.mojang.math.Transformation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -112,6 +116,8 @@ public final class TTModelProvider extends ModelProvider {
     private static final TextureSlot LEGACY_MESH_SLOT = TextureSlot.create("legacy");
     private static final Identifier DEEPSLATE_TEXTURE = Identifier.withDefaultNamespace("block/deepslate");
     private static final Identifier BLOCK_PARENT = Identifier.withDefaultNamespace("block/block");
+    private static final String CONNECTED_SHEET_SUFFIX = "_ctm";
+    private static final String CONNECTED_FRAMED_SUFFIX = "_framed";
     private static final TextureSlot GRINDSTONE_PIVOT_SLOT = TextureSlot.create("pivot");
     private static final TextureSlot GRINDSTONE_ROUND_SLOT = TextureSlot.create("round");
     private static final TextureSlot GRINDSTONE_LEG_SLOT = TextureSlot.create("leg");
@@ -1375,12 +1381,12 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void stoneAndStairModels(BlockModelGenerators blockModels) {
-        simpleCube(blockModels, TTBlocks.STONE_ARCANE.get(), "stone_arcane");
+        connectedArcaneStone(blockModels);
         simpleCube(blockModels, TTBlocks.STONE_ARCANE_BRICK.get(), "stone_arcane_brick");
         simpleCube(blockModels, TTBlocks.STONE_ANCIENT.get(), "stone_ancient");
-        simpleCube(blockModels, TTBlocks.STONE_ANCIENT_TILE.get(), "stone_ancient_tile");
+        connectedCube(blockModels, TTBlocks.STONE_ANCIENT_TILE.get(), "ancient_tile");
         simpleCube(blockModels, TTBlocks.STONE_ANCIENT_ROCK.get(), "stone_ancient_rock");
-        simpleCube(blockModels, TTBlocks.STONE_ANCIENT_GLYPHED.get(), "stone_ancient_glyphed");
+        connectedCube(blockModels, TTBlocks.STONE_ANCIENT_GLYPHED.get(), "ancient_glyph");
         simpleCube(blockModels, TTBlocks.STONE_ANCIENT_DOORWAY.get(), "stone_ancient_doorway");
         simpleCube(blockModels, TTBlocks.STONE_ELDRITCH_TILE.get(), "stone_eldritch_tile");
         simpleCube(blockModels, TTBlocks.STONE_POROUS.get(), "stone_porous");
@@ -1423,6 +1429,29 @@ public final class TTModelProvider extends ModelProvider {
     private void simpleCube(BlockModelGenerators blockModels, Block block, String modelName) {
         MultiVariant variant = variantOf(modelName);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
+    }
+
+    private void connectedCube(BlockModelGenerators blockModels, Block block, String textureName) {
+        blockModels.blockStateOutput.accept(new SingleModelDefinition(block, ConnectedSheetModel.cube(connectedTexture(textureName, false), Optional.empty())));
+    }
+
+    private void connectedArcaneStone(BlockModelGenerators blockModels) {
+        ConnectedTexture top = connectedTexture("arcane_stone_1", true);
+        ConnectedTexture side = connectedTexture("arcane_stone_2", true);
+        ConnectedTexture front = connectedTexture("arcane_stone_3", true);
+        Map<Direction, ConnectedTexture> faces = Map.of(Direction.UP, top, Direction.DOWN, top, Direction.EAST, side, Direction.WEST, side, Direction.NORTH, front, Direction.SOUTH, front);
+        blockModels.blockStateOutput.accept(new SingleModelDefinition(TTBlocks.STONE_ARCANE.get(), new ConnectedSheetModel(Optional.empty(), faces, Optional.empty())));
+    }
+
+    private void connectedEldritchStone(BlockModelGenerators blockModels, Block block) {
+        Identifier model = ModelTemplates.CUBE_ALL.create(block, new TextureMapping().put(TextureSlot.ALL, texture("eldritch_stone")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(new SingleModelDefinition(block, ConnectedSheetModel.cube(connectedTexture("eldritch_stone", false), Optional.of(TTBlockTags.CONNECTED_ELDRITCH_STONE))));
+        blockModels.registerSimpleItemModel(block.asItem(), model);
+    }
+
+    private static ConnectedTexture connectedTexture(String textureName, boolean framed) {
+        Identifier texture = TTIds.rl("block/" + textureName);
+        return new ConnectedTexture(texture, texture.withSuffix(CONNECTED_SHEET_SUFFIX), framed ? Optional.of(texture.withSuffix(CONNECTED_FRAMED_SUFFIX)) : Optional.empty());
     }
 
     private void stairsFromModels(BlockModelGenerators blockModels, Block block, String straightName, String innerName, String outerName) {
@@ -1479,7 +1508,7 @@ public final class TTModelProvider extends ModelProvider {
         flatItemFromBlock(itemModels, TTItems.SAPLING_GREATWOOD.get(), TTBlocks.SAPLING_GREATWOOD.get());
         flatItemFromBlock(itemModels, TTItems.SAPLING_SILVERWOOD.get(), TTBlocks.SAPLING_SILVERWOOD.get());
         simpleCube(blockModels, TTBlocks.PLANK_GREATWOOD.get(), "plank_greatwood");
-        simpleCube(blockModels, TTBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
+        connectedCube(blockModels, TTBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
         simpleCube(blockModels, TTBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
         simpleCube(blockModels, TTBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
         itemModels.itemModelOutput.accept(TTBlocks.LEAVES_GREATWOOD.get().asItem(),
@@ -1786,15 +1815,15 @@ public final class TTModelProvider extends ModelProvider {
     private void paving(BlockModelGenerators blockModels, Block block, String name) {
         TextureMapping mapping = new TextureMapping().put(TextureSlot.DIRT, texture("arcane_brick_stone")).put(TextureSlot.TOP, texture(name)).put(TextureSlot.PARTICLE, texture(name));
         Identifier model = ModelTemplates.FARMLAND.create(block, mapping, blockModels.modelOutput);
-        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)));
+        blockModels.blockStateOutput.accept(new SingleModelDefinition(block, new ConnectedSheetModel(Optional.of(model), Map.of(Direction.UP, connectedTexture(name, false)), Optional.empty())));
         blockModels.registerSimpleItemModel(block.asItem(), model);
     }
 
     private void eldritchModels(BlockModelGenerators blockModels) {
         cube(blockModels, TTBlocks.OBSIDIAN_TILE.get(), "obsidian_tile", true);
         obsidianTotem(blockModels);
-        cube(blockModels, TTBlocks.ELDRITCH_STONE.get(), "eldritch_stone", true);
-        cube(blockModels, TTBlocks.ELDRITCH_STONE_INERT.get(), "eldritch_stone", true);
+        connectedEldritchStone(blockModels, TTBlocks.ELDRITCH_STONE.get());
+        connectedEldritchStone(blockModels, TTBlocks.ELDRITCH_STONE_INERT.get());
         cube(blockModels, TTBlocks.ELDRITCH_ROCK.get(), "eldritch_rock", true);
         cube(blockModels, TTBlocks.ELDRITCH_CRUST.get(), "eldritch_crust", true);
         insetBlock(blockModels, TTBlocks.ELDRITCH_CRUST_GLOWING.get(), "eldritch_crust_glowing");

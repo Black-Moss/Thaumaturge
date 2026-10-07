@@ -38,6 +38,7 @@ public final class TTBlockTags {
     public static final TagKey<Block> ELDRITCH_OBELISK_PARTS = key("eldritch_obelisk_parts");
     public static final TagKey<Block> LABYRINTH_BARRIER = key("labyrinth/barrier");
     public static final TagKey<Block> LABYRINTH_PASSABLE = key("labyrinth/passable");
+    public static final TagKey<Block> CONNECTED_ELDRITCH_STONE = key("connected/eldritch_stone");
     public static final TagKey<Block> UNSAFE_LANDING = key("unsafe_landing");
 
     public static final TagKey<Block> LAMP_GROWTH_BLACKLIST = key("lamp_growth_blacklist");
