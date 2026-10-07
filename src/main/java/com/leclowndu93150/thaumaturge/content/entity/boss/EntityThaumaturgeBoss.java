@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
 import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
-import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
+import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,12 +104,13 @@ public class EntityThaumaturgeBoss extends Monster {
             this.setTarget(null);
         }
         this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
+        BossHooks.syncSharedBar(this, this.bossEvent);
     }
 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
-        this.bossEvent.addPlayer(player);
+        BossHooks.showBar(this, this.bossEvent, player);
     }
 
     @Override
@@ -174,6 +175,9 @@ public class EntityThaumaturgeBoss extends Monster {
         }
         if (newTarget != null && current != null && newTarget.getId() != current.getId()) {
             this.setTarget(newTarget);
+        }
+        if (LabyrinthHelper.isLabyrinthBound(this)) {
+            return;
         }
         float oldMax = this.getMaxHealth();
         AttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
@@ -252,7 +256,10 @@ public class EntityThaumaturgeBoss extends Monster {
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
-        level.addFreshEntity(new EntitySpecialItem(level, this.getX(), this.getY() + this.getBbHeight() / 2.0F, this.getZ(), new ItemStack(TTItems.PRIMORDIAL_PEARL.get())));
+        if (LabyrinthHelper.isLabyrinthBound(this)) {
+            return;
+        }
+        BossHooks.dropPearl(level, this);
         this.spawnAtLocation(level, new ItemStack(TTItems.LOOT_BAG_RARE.get()), PEARL_DROP_LIFT);
     }
 

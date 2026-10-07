@@ -18,6 +18,7 @@ import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.content.equipment.GogglesBindings;
 import com.leclowndu93150.thaumaturge.content.equipment.RechargeBindings;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
+import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftCost;
 import com.leclowndu93150.thaumaturge.api.recipe.ArcaneCraftingTransaction;
 import com.leclowndu93150.thaumaturge.api.recipe.InfusionCraftingTransaction;
@@ -35,6 +36,7 @@ import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectIndexHolder;
 import com.leclowndu93150.thaumaturge.content.aura.AuraHelperBindings;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
+import com.leclowndu93150.thaumaturge.content.eldritch.labyrinth.LabyrinthBindings;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitBindings;
 import com.leclowndu93150.thaumaturge.content.golem.GolemBindings;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionCraftingTransactions;
@@ -51,6 +53,7 @@ import com.leclowndu93150.thaumaturge.registry.*;
 import com.leclowndu93150.thaumaturge.registry.TTBiomeModifierSerializers;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTMobTraits;
+import com.leclowndu93150.thaumaturge.registry.TTTicketTypes;
 import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -100,6 +103,11 @@ public final class Thaumaturge {
         TTSeals.register(modBus);
         TTEntityDataSerializers.register(modBus);
         TTIngredientTypes.register(modBus);
+        TTLabyrinthMarkers.register(modBus);
+        TTLabyrinthEncounterTypes.register(modBus);
+        TTObeliskSiteBehaviors.register(modBus);
+        TTStructureProcessors.register(modBus);
+        TTTicketTypes.register(modBus);
         TTGolemAccessories.register();
 
         LegacyRegistryAliases.register(modBus);
@@ -131,6 +139,7 @@ public final class Thaumaturge {
         GogglesAccess.bind(new GogglesBindings());
         SpellRegistries.bind(TTSpellBehaviors.registry(), TTSpellActions.registry(), TTSpellFx.registry());
         Spells.bind(new SpellBindings());
+        LabyrinthHelper.bind(new LabyrinthBindings());
 
         if (ModList.get().isLoaded(TTIds.CURIOS))
             ThaumaturgeCuriosCompat.init(modBus);

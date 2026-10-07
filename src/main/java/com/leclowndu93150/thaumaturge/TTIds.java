@@ -8,6 +8,10 @@ public final class TTIds {
     public static final Identifier ELDRITCH_NOVA = rl("eldritch_nova");
     public static final Identifier ELDRITCH_HAMMER = rl("eldritch_hammer");
     public static final Identifier ELDRITCH_REND = rl("eldritch_rend");
+    public static final Identifier LABYRINTH_LAYOUT_RANDOM = rl("labyrinth_layout");
+    public static final Identifier RESEARCH_OCULUS = rl("oculus");
+    public static final Identifier LABYRINTH_STAMP_RANDOM = rl("labyrinth_stamp");
+    public static final Identifier LABYRINTH_SCALING = rl("labyrinth_scaling");
     public static final String MODID = "thaumaturge";
     public static final String CURIOS = "curios";
     public static final String DISTANT_HORIZONS = "distanthorizons";

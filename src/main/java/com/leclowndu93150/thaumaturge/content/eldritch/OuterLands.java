@@ -12,7 +12,5 @@ public final class OuterLands {
     public static final ResourceKey<DimensionType> DIMENSION_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, TTIds.rl("outer_lands"));
     public static final ResourceKey<LevelStem> STEM = ResourceKey.create(Registries.LEVEL_STEM, TTIds.rl("outer_lands"));
 
-    public static final int MAZE_Y = 50;
-
     private OuterLands() {}
 }

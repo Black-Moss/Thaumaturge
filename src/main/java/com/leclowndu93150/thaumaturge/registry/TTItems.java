@@ -12,6 +12,7 @@ import com.leclowndu93150.thaumaturge.content.decor.CandleHolderMaterial;
 import com.leclowndu93150.thaumaturge.content.device.bore.ArcaneBoreItem;
 import com.leclowndu93150.thaumaturge.content.device.mirror.ItemBlockMirror;
 import com.leclowndu93150.thaumaturge.content.device.mirror.ItemHandMirror;
+import com.leclowndu93150.thaumaturge.content.eldritch.lock.RunedTabletItem;
 import com.leclowndu93150.thaumaturge.content.entity.construct.ConstructDeployment;
 import com.leclowndu93150.thaumaturge.content.entity.construct.TurretPlacerItem;
 import com.leclowndu93150.thaumaturge.content.equipment.CrimsonBladeItem;
@@ -710,7 +711,7 @@ public final class TTItems {
     public static final DeferredItem<BlockItem> ELDRITCH_PILLAR = ITEMS.registerSimpleBlockItem(TTBlocks.ELDRITCH_PILLAR);
     public static final DeferredItem<BlockItem> ELDRITCH_CAPSTONE = ITEMS.registerSimpleBlockItem(TTBlocks.ELDRITCH_CAPSTONE);
     public static final DeferredItem<Item> ELDRITCH_EYE = ITEMS.registerItem("eldritch_eye", Item::new, props -> props.rarity(Rarity.UNCOMMON));
-    public static final DeferredItem<Item> RUNED_TABLET = ITEMS.registerItem("runed_tablet", Item::new, props -> props.rarity(Rarity.RARE));
+    public static final DeferredItem<RunedTabletItem> RUNED_TABLET = ITEMS.registerItem("runed_tablet", RunedTabletItem::new, props -> props.rarity(Rarity.RARE));
     public static final DeferredItem<BlockItem> SLAB_GREATWOOD = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_GREATWOOD);
     public static final DeferredItem<BlockItem> SLAB_SILVERWOOD = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_SILVERWOOD);
     public static final DeferredItem<BlockItem> SLAB_ARCANE_STONE = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_ARCANE_STONE);

@@ -56,16 +56,18 @@ import com.leclowndu93150.thaumaturge.content.device.grate.BlockItemGrate;
 import com.leclowndu93150.thaumaturge.content.device.mirror.BlockMirror;
 import com.leclowndu93150.thaumaturge.content.device.patterncrafter.BlockPatternCrafter;
 import com.leclowndu93150.thaumaturge.content.device.sprayer.BlockPotionSprayer;
-import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchAltar;
+import com.leclowndu93150.thaumaturge.content.eldritch.altar.BlockEldritchAltar;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchCap;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchCrabSpawner;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchInset;
-import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchLock;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchNothing;
+import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchNothingDormant;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchObelisk;
-import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchPortal;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchStructure;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEldritchTrap;
+import com.leclowndu93150.thaumaturge.content.eldritch.lock.BlockEldritchLock;
+import com.leclowndu93150.thaumaturge.content.eldritch.portal.BlockEldritchPortal;
+import com.leclowndu93150.thaumaturge.content.eldritch.reliquary.BlockEldritchReliquary;
 import com.leclowndu93150.thaumaturge.content.equipment.BlockEffectGlimmer;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockCentrifuge;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEssentiaPort;
@@ -827,6 +829,12 @@ public final class TTBlocks {
     public static final DeferredBlock<BlockEldritchNothing> ELDRITCH_NOTHING = BLOCKS.registerBlock("eldritch_nothing", BlockEldritchNothing::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 6000000.0F).sound(SoundType.WOOL).lightLevel(state -> 3).noOcclusion().noLootTable().dynamicShape());
 
+    public static final DeferredBlock<BlockEldritchNothingDormant> ELDRITCH_NOTHING_DORMANT = BLOCKS.registerBlock("eldritch_nothing_dormant", BlockEldritchNothingDormant::new, props -> props
+            .mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 6000000.0F).sound(SoundType.WOOL).noLootTable().pushReaction(PushReaction.BLOCK).isValidSpawn((state, level, pos, type) -> false));
+
+    public static final DeferredBlock<BlockEldritchReliquary> ELDRITCH_RELIQUARY = BLOCKS.registerBlock("eldritch_reliquary", BlockEldritchReliquary::new, props -> props.mapColor(MapColor.COLOR_BLACK)
+            .strength(-1.0F, 6000000.0F).sound(SoundType.STONE).noLootTable().noOcclusion().pushReaction(PushReaction.BLOCK).isValidSpawn((state, level, pos, type) -> false));
+
     public static final DeferredBlock<BlockEldritchLock> ELDRITCH_LOCK = BLOCKS.registerBlock("eldritch_lock", BlockEldritchLock::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, Float.MAX_VALUE).sound(SoundType.STONE).lightLevel(state -> 5).noLootTable());
 
@@ -849,7 +857,7 @@ public final class TTBlocks {
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(50.0F, 20000.0F).sound(SoundType.STONE).lightLevel(state -> 8).noOcclusion().noLootTable());
 
     public static final DeferredBlock<BlockEldritchPortal> ELDRITCH_PORTAL = BLOCKS.registerBlock("eldritch_portal", BlockEldritchPortal::new,
-            props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 200000.0F).lightLevel(state -> 15).noOcclusion().noLootTable().noCollision());
+            props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, 200000.0F).lightLevel(state -> 15).noOcclusion().noLootTable().noCollision().pushReaction(PushReaction.BLOCK));
 
     public static final DeferredBlock<BlockAmber> AMBER_BLOCK = BLOCKS.registerBlock("amber_block", BlockAmber::new, TTBlocks::amberProps);
 

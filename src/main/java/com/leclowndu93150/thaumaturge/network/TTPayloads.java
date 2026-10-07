@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.network;
 
 import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.client.eldritch.ReliquaryViewClientHandler;
 import com.leclowndu93150.thaumaturge.client.golem.GolemPressClientHandler;
 import com.leclowndu93150.thaumaturge.client.golem.SealClientHandler;
 import com.leclowndu93150.thaumaturge.client.network.AspectGainClientHandler;
@@ -45,6 +46,7 @@ public final class TTPayloads {
         registrar.playToClient(ClientboundTaintEnvironmentPayload.TYPE, ClientboundTaintEnvironmentPayload.STREAM_CODEC, (payload, context) -> TaintEnvironmentClientEvents.handle(payload, context));
         registrar.playToClient(ClientboundGolemPressStuffPayload.TYPE, ClientboundGolemPressStuffPayload.STREAM_CODEC, (payload, context) -> GolemPressClientHandler.handle(payload, context));
         registrar.playToClient(ClientboundThaumatoriumRecipesPayload.TYPE, ClientboundThaumatoriumRecipesPayload.STREAM_CODEC, ThaumatoriumClientHandler::handle);
+        registrar.playToClient(ClientboundReliquaryViewPayload.TYPE, ClientboundReliquaryViewPayload.STREAM_CODEC, ReliquaryViewClientHandler::handle);
         registrar.playToServer(ServerboundThaumatoriumTogglePayload.TYPE, ServerboundThaumatoriumTogglePayload.STREAM_CODEC, ServerboundThaumatoriumTogglePayload::handle);
         registrar.playToServer(ServerboundGolemPressPayload.TYPE, ServerboundGolemPressPayload.STREAM_CODEC, ServerboundGolemPressPayload::handle);
         registrar.playToServer(ServerboundLogisticsRequestPayload.TYPE, ServerboundLogisticsRequestPayload.STREAM_CODEC, ServerboundLogisticsRequestPayload::handle);

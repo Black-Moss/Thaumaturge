@@ -893,11 +893,15 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName, boolean oversizedInGui) {
+        horizontalBlockState(blockModels, block, modelName);
+        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName), Optional.empty(), List.of()),
+                new ClientItem.Properties(true, oversizedInGui, 1));
+    }
+
+    private void horizontalBlockState(BlockModelGenerators blockModels, Block block, String modelName) {
         PropertyDispatch<VariantMutator> rotations = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING).select(Direction.NORTH, BlockModelGenerators.NOP)
                 .select(Direction.EAST, BlockModelGenerators.Y_ROT_90).select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180).select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variantOf(modelName)).with(rotations));
-        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName), Optional.empty(), List.of()),
-                new ClientItem.Properties(true, oversizedInGui, 1));
     }
 
     private void translucentCube(BlockModelGenerators blockModels, Block block) {
@@ -1733,6 +1737,7 @@ public final class TTModelProvider extends ModelProvider {
         cube(blockModels, TTBlocks.ELDRITCH_DOOR.get(), "eldritch_door", true);
         insetBlock(blockModels, TTBlocks.ELDRITCH_STONE_CRYSTAL.get(), "eldritch_stone_crystal");
         eldritchLock(blockModels);
+        horizontalBlockState(blockModels, TTBlocks.ELDRITCH_RELIQUARY.get(), "eldritch_reliquary");
         crabSpawner(blockModels);
         column(blockModels, TTBlocks.ELDRITCH_PEDESTAL.get(), "eldritch_pedestal_side", "eldritch_stone");
         invisibleWithMeshItem(blockModels, TTBlocks.ELDRITCH_ALTAR.get(), "eldritch_altar", "eldritch_altar_item");
@@ -1741,6 +1746,7 @@ public final class TTModelProvider extends ModelProvider {
         invisibleWithCubeItem(blockModels, TTBlocks.ELDRITCH_CAPSTONE.get(), "eldritch_deco");
         trap(blockModels);
         invisible(blockModels, TTBlocks.ELDRITCH_NOTHING.get());
+        cube(blockModels, TTBlocks.ELDRITCH_NOTHING_DORMANT.get(), "eldritch_rock", false);
         invisible(blockModels, TTBlocks.ELDRITCH_PORTAL.get());
         stairsFromTexture(blockModels, TTBlocks.STAIRS_ELDRITCH.get(), texture("eldritch_stone"));
     }
