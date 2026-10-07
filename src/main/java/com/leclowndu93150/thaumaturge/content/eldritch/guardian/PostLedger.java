@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.eldritch.guardian;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public final class PostLedger {
     public static final Codec<PostLedger> CODEC = PostState.CODEC.listOf().xmap(PostLedger::new, ledger -> List.copyOf(ledger.posts));
@@ -27,6 +28,15 @@ public final class PostLedger {
 
     void set(int slot, PostState post) {
         posts.set(slot, post);
+    }
+
+    public boolean isGuard(UUID uuid) {
+        for (PostState post : posts) {
+            if (post.guards().contains(uuid)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     boolean cleared(String group) {
