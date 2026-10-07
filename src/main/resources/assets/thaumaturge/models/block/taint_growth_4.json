@@ -1,6 +1,0 @@
-{
-    "parent": "block/cross",
-    "textures": {
-        "cross": "thaumaturge:block/taint_growth_4"
-    }
-}

@@ -149,6 +149,7 @@ prism {
         dependencies {
             requires("curios")
             requires("lithostitched")
+            optional("jei")
         }
     }
 }

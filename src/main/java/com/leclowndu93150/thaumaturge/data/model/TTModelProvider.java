@@ -597,6 +597,7 @@ public final class TTModelProvider extends ModelProvider {
 
     @Override
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        PlainBlockModels.generate(blockModels.modelOutput);
         registerResearchTable(blockModels, itemModels);
         registerDeconstructionTable(blockModels, itemModels);
         registerResearchNote(itemModels);
