@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.client;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
@@ -36,7 +37,7 @@ public final class AspectRendering {
     /** The size of a GUI aspect icon in GUI pixels. */
     public static final int GUI_ICON_SIZE = 16;
 
-    private static Bindings impl;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("AspectRendering");
 
     private AspectRendering() {}
 
@@ -67,7 +68,7 @@ public final class AspectRendering {
      * @param knowledge how much of the aspect to reveal
      */
     public static void renderGui(GuiGraphicsExtractor graphics, Font font, int x, int y, Holder<IAspect> aspect, float amount, AspectKnowledge knowledge) {
-        bindingOrThrow().renderGui(graphics, font, x, y, aspect, amount, knowledge);
+        BINDING.get().renderGui(graphics, font, x, y, aspect, amount, knowledge);
     }
 
     /**
@@ -78,7 +79,7 @@ public final class AspectRendering {
      * @param y        the top edge
      */
     public static void renderMissingGui(GuiGraphicsExtractor graphics, int x, int y) {
-        bindingOrThrow().renderGui(graphics, Minecraft.getInstance().font, x, y, null, 0.0F, AspectKnowledge.UNKNOWN);
+        BINDING.get().renderGui(graphics, Minecraft.getInstance().font, x, y, null, 0.0F, AspectKnowledge.UNKNOWN);
     }
 
     /**
@@ -90,7 +91,7 @@ public final class AspectRendering {
      * @return the render type
      */
     public static RenderType renderType(Holder<IAspect> aspect, AspectKnowledge knowledge, BlendMode blend) {
-        return bindingOrThrow().renderType(aspect, knowledge, blend);
+        return BINDING.get().renderType(aspect, knowledge, blend);
     }
 
     /**
@@ -100,7 +101,7 @@ public final class AspectRendering {
      * @return the render type
      */
     public static RenderType missingRenderType(BlendMode blend) {
-        return bindingOrThrow().renderType(null, AspectKnowledge.UNKNOWN, blend);
+        return BINDING.get().renderType(null, AspectKnowledge.UNKNOWN, blend);
     }
 
     /**
@@ -116,7 +117,7 @@ public final class AspectRendering {
      * @param packedLight the packed light
      */
     public static void renderQuad(PoseStack.Pose pose, VertexConsumer buffer, Holder<IAspect> aspect, AspectKnowledge knowledge, float alpha, boolean monochrome, int packedLight) {
-        bindingOrThrow().renderQuad(pose, buffer, aspect, knowledge, alpha, monochrome, packedLight);
+        BINDING.get().renderQuad(pose, buffer, aspect, knowledge, alpha, monochrome, packedLight);
     }
 
     /**
@@ -128,7 +129,7 @@ public final class AspectRendering {
      * @param packedLight the packed light
      */
     public static void renderMissingQuad(PoseStack.Pose pose, VertexConsumer buffer, float alpha, int packedLight) {
-        bindingOrThrow().renderQuad(pose, buffer, null, AspectKnowledge.UNKNOWN, alpha, false, packedLight);
+        BINDING.get().renderQuad(pose, buffer, null, AspectKnowledge.UNKNOWN, alpha, false, packedLight);
     }
 
     /**
@@ -234,10 +235,7 @@ public final class AspectRendering {
      * @throws IllegalStateException when already bound
      */
     public static void bind(Bindings bindings) {
-        if (impl != null) {
-            throw new IllegalStateException("AspectRendering already bound");
-        }
-        impl = bindings;
+        BINDING.bind(bindings);
     }
 
     private static void submitFacingCamera(PoseStack poseStack, SubmitNodeCollector collector, float scale, RenderType renderType, SubmitNodeCollector.CustomGeometryRenderer quad) {
@@ -254,13 +252,6 @@ public final class AspectRendering {
         poseStack.scale(scale, scale, scale);
         quad.render(poseStack.last(), buffers.getBuffer(renderType));
         poseStack.popPose();
-    }
-
-    private static Bindings bindingOrThrow() {
-        if (impl == null) {
-            throw new IllegalStateException("AspectRendering accessed before binding");
-        }
-        return impl;
     }
 
     /**

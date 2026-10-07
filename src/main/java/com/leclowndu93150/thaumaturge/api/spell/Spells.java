@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.spell;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.AspectAffinity;
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellContinuation;
@@ -27,7 +28,7 @@ import org.jspecify.annotations.Nullable;
 public final class Spells {
     private static final int WHITE = 0xFFFFFF;
 
-    private static Bindings binding;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("Spells");
 
     private Spells() {}
 
@@ -38,10 +39,7 @@ public final class Spells {
      * @throws IllegalStateException when already bound
      */
     public static void bind(Bindings bindings) {
-        if (binding != null) {
-            throw new IllegalStateException("Spells already bound");
-        }
-        binding = bindings;
+        BINDING.bind(bindings);
     }
 
     /**
@@ -51,7 +49,7 @@ public final class Spells {
      * @return the spell, or null when the stack carries none
      */
     public static @Nullable Spell spellOf(ItemStack focus) {
-        return impl().spellOf(focus);
+        return BINDING.get().spellOf(focus);
     }
 
     /**
@@ -61,7 +59,7 @@ public final class Spells {
      * @param spell the spell, or null to clear
      */
     public static void setSpell(ItemStack focus, @Nullable Spell spell) {
-        impl().setSpell(focus, spell);
+        BINDING.get().setSpell(focus, spell);
     }
 
     /**
@@ -156,7 +154,7 @@ public final class Spells {
      * @return the summary
      */
     public static SpellSummary analyze(Spell spell, @Nullable FocusTier tier, HolderLookup.Provider registries, @Nullable Player player) {
-        return impl().analyze(spell, tier, registries, player);
+        return BINDING.get().analyze(spell, tier, registries, player);
     }
 
     /**
@@ -168,7 +166,7 @@ public final class Spells {
      * @param power  the starting power multiplier
      */
     public static void cast(LivingEntity caster, Spell spell, float power) {
-        impl().cast(caster, ItemStack.EMPTY, spell, List.of(SpellTarget.origin(caster)), power);
+        BINDING.get().cast(caster, ItemStack.EMPTY, spell, List.of(SpellTarget.origin(caster)), power);
     }
 
     /**
@@ -181,7 +179,7 @@ public final class Spells {
      * @param power  the starting power multiplier
      */
     public static void cast(LivingEntity caster, ItemStack focus, Spell spell, List<SpellTarget> origin, float power) {
-        impl().cast(caster, focus, spell, origin, power);
+        BINDING.get().cast(caster, focus, spell, origin, power);
     }
 
     /**
@@ -192,14 +190,7 @@ public final class Spells {
      * @param targets      the targets the carrier reached
      */
     public static void resume(ServerLevel level, SpellContinuation continuation, List<SpellTarget> targets) {
-        impl().resume(level, continuation, targets);
-    }
-
-    private static Bindings impl() {
-        if (binding == null) {
-            throw new IllegalStateException("Spells used before Thaumaturge bound it");
-        }
-        return binding;
+        BINDING.get().resume(level, continuation, targets);
     }
 
     /**

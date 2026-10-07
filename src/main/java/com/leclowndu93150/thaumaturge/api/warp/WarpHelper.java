@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.warp;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.items.IWarpingGear;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0
  */
 public final class WarpHelper {
-    private static Bindings bindings;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("WarpHelper");
 
     private WarpHelper() {}
 
@@ -21,9 +22,10 @@ public final class WarpHelper {
      * Binds the implementation. Called once by the mod during construction.
      *
      * @param impl the implementation to delegate to
+     * @throws IllegalStateException when an implementation is already bound
      */
     public static void bind(Bindings impl) {
-        bindings = impl;
+        BINDING.bind(impl);
     }
 
     /**
@@ -31,7 +33,7 @@ public final class WarpHelper {
      * @return the player's warp state; never null
      */
     public static IPlayerWarp getWarp(Player player) {
-        return impl().getWarp(player);
+        return BINDING.get().getWarp(player);
     }
 
     /**
@@ -45,7 +47,7 @@ public final class WarpHelper {
      * @param type the pool to modify
      */
     public static void addWarp(ServerPlayer player, int amount, WarpType type) {
-        impl().addWarp(player, amount, type);
+        BINDING.get().addWarp(player, amount, type);
     }
 
     /**
@@ -53,7 +55,7 @@ public final class WarpHelper {
      * @return permanent plus normal warp, excluding temporary
      */
     public static int getActualWarp(Player player) {
-        return impl().getActualWarp(player);
+        return BINDING.get().getActualWarp(player);
     }
 
     /**
@@ -65,14 +67,7 @@ public final class WarpHelper {
      * @return the warp contribution, zero or greater
      */
     public static int getFinalWarp(ItemStack stack, LivingEntity wearer) {
-        return impl().getFinalWarp(stack, wearer);
-    }
-
-    private static Bindings impl() {
-        if (bindings == null) {
-            throw new IllegalStateException("WarpHelper used before Thaumaturge bound its implementation");
-        }
-        return bindings;
+        return BINDING.get().getFinalWarp(stack, wearer);
     }
 
     /**

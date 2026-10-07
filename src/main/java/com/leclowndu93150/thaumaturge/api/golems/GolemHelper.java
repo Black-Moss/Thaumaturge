@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.golems;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealType;
@@ -24,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemHelper {
     private static final int PROVISION_QUEUE_LIMIT = 1000;
-    private static @Nullable Bindings bindings;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("GolemHelper");
 
     private GolemHelper() {}
 
@@ -32,16 +33,10 @@ public final class GolemHelper {
      * Installs the implementation. Called once by the mod.
      *
      * @param impl the implementation
+     * @throws IllegalStateException when an implementation is already bound
      */
     public static void bind(Bindings impl) {
-        bindings = impl;
-    }
-
-    private static Bindings impl() {
-        if (bindings == null) {
-            throw new IllegalStateException("GolemHelper used before Thaumaturge bound it");
-        }
-        return bindings;
+        BINDING.bind(impl);
     }
 
     /**
@@ -49,7 +44,7 @@ public final class GolemHelper {
      * @return the registered seal type, or empty
      */
     public static Optional<SealType> sealType(Identifier id) {
-        return impl().sealType(id);
+        return BINDING.get().sealType(id);
     }
 
     /**
@@ -68,7 +63,7 @@ public final class GolemHelper {
      * @return the seal, or null when there is none at that position
      */
     public static @Nullable ISealEntity getSealEntity(Level level, @Nullable SealPos pos) {
-        return impl().getSealEntity(level, pos);
+        return BINDING.get().getSealEntity(level, pos);
     }
 
     /**
@@ -78,7 +73,7 @@ public final class GolemHelper {
      * @param task  the task
      */
     public static void addGolemTask(Level level, Task task) {
-        impl().addGolemTask(level, task);
+        BINDING.get().addGolemTask(level, task);
     }
 
     /**
@@ -147,7 +142,7 @@ public final class GolemHelper {
     }
 
     private static void queue(Level level, ProvisionRequest request) {
-        List<ProvisionRequest> queue = impl().getProvisionRequests(level);
+        List<ProvisionRequest> queue = BINDING.get().getProvisionRequests(level);
         if (!queue.contains(request)) {
             queue.add(request);
         }
@@ -161,7 +156,7 @@ public final class GolemHelper {
      * @return the live provisioning queue; duplicate requests are folded and the oldest are dropped past 1000
      */
     public static List<ProvisionRequest> getProvisionRequests(Level level) {
-        return impl().getProvisionRequests(level);
+        return BINDING.get().getProvisionRequests(level);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.items;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
@@ -19,7 +20,7 @@ import org.jspecify.annotations.Nullable;
  * @since 1.0.0
  */
 public final class RechargeAccess {
-    private static @Nullable Bindings bindings;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("RechargeAccess");
 
     private RechargeAccess() {}
 
@@ -30,17 +31,7 @@ public final class RechargeAccess {
      * @throws IllegalStateException when already bound
      */
     public static void bind(Bindings impl) {
-        if (bindings != null) {
-            throw new IllegalStateException("RechargeAccess already bound");
-        }
-        bindings = impl;
-    }
-
-    private static Bindings impl() {
-        if (bindings == null) {
-            throw new IllegalStateException("RechargeAccess accessed before binding");
-        }
-        return bindings;
+        BINDING.bind(impl);
     }
 
     /**
@@ -48,7 +39,7 @@ public final class RechargeAccess {
      * @return the stack's charge profile, or null when the stack is not rechargeable
      */
     public static @Nullable ChargeProfile profile(ItemStack stack) {
-        return stack.isEmpty() ? null : stack.get(impl().profile());
+        return stack.isEmpty() ? null : stack.get(BINDING.get().profile());
     }
 
     /**
@@ -108,7 +99,7 @@ public final class RechargeAccess {
      * @return the current charge, or -1 when the stack is not rechargeable
      */
     public static int getCharge(ItemStack stack) {
-        return isRechargeable(stack) ? stack.getOrDefault(impl().charge(), 0) : -1;
+        return isRechargeable(stack) ? stack.getOrDefault(BINDING.get().charge(), 0) : -1;
     }
 
     /**
@@ -134,12 +125,12 @@ public final class RechargeAccess {
         if (charge < amount || charge < 0) {
             return false;
         }
-        stack.set(impl().charge(), charge - amount);
+        stack.set(BINDING.get().charge(), charge - amount);
         return true;
     }
 
     private static void store(ItemStack stack, ChargeProfile profile, int charge) {
-        stack.set(impl().charge(), Math.min(profile.capacity(), charge));
+        stack.set(BINDING.get().charge(), Math.min(profile.capacity(), charge));
     }
 
     /**

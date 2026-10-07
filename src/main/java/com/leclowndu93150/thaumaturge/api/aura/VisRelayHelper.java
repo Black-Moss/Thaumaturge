@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.aura;
 
+import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -20,7 +21,7 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
  * @since 1.0.0
  */
 public final class VisRelayHelper {
-    private static Bindings impl;
+    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("VisRelayHelper");
 
     private VisRelayHelper() {}
 
@@ -62,9 +63,10 @@ public final class VisRelayHelper {
      * call this.
      *
      * @param bindings the implementation
+     * @throws IllegalStateException when an implementation is already bound
      */
     public static void bind(Bindings bindings) {
-        impl = bindings;
+        BINDING.bind(bindings);
     }
 
     /**
@@ -78,7 +80,7 @@ public final class VisRelayHelper {
      * @return the centivis drained, or drainable when simulating; zero when unavailable
      */
     public static int drainCentivis(ServerLevel level, BlockPos consumerPos, ResourceKey<IAspect> primal, int amount, boolean simulate) {
-        return impl == null ? 0 : impl.drainCentivis(level, consumerPos, primal, amount, simulate);
+        return BINDING.isBound() ? BINDING.get().drainCentivis(level, consumerPos, primal, amount, simulate) : 0;
     }
 
     /**
@@ -97,6 +99,6 @@ public final class VisRelayHelper {
      * @since 1.0.0
      */
     public static int drainCentivis(ServerLevel level, BlockPos consumerPos, ResourceKey<IAspect> primal, int amount, TransactionContext transaction) {
-        return impl == null ? 0 : impl.drainCentivis(level, consumerPos, primal, amount, transaction);
+        return BINDING.isBound() ? BINDING.get().drainCentivis(level, consumerPos, primal, amount, transaction) : 0;
     }
 }
