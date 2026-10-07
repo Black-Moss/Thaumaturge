@@ -48,6 +48,11 @@ public final class ArcaneBoreBlockRenderer implements BlockEntityRenderer<BlockE
         state.beamSpin = BoreDrillFx.beamSpin(bore.boreLevel().getGameTime(), partialTicks);
         state.tip = BoreDrillFx.tipOffset(state.yaw, state.pitch, BlockEntityArcaneBore.EYE_HEIGHT).add(0.5, 0.0, 0.5);
         state.tipFrame = BoreDrillFx.tipFrame(ticks);
+        state.pose.yRot = state.yaw;
+        state.pose.xRot = state.pitch;
+        state.pose.ageInTicks = state.ageInTicks;
+        state.pose.digging = state.digging;
+        state.pose.beamSpin = state.beamSpin;
     }
 
     @Override
@@ -57,9 +62,7 @@ public final class ArcaneBoreBlockRenderer implements BlockEntityRenderer<BlockE
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0F, EntityModel.MODEL_Y_OFFSET, 0.0F);
-        model.setAim(state.yaw, state.pitch);
-        model.animate(state.ageInTicks, state.digging, state.beamSpin);
-        collector.submitModelPart(model.root(), poseStack, RenderTypes.entityTranslucent(TEXTURE), state.lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
+        collector.submitModel(model, state.pose, poseStack, RenderTypes.entityTranslucent(TEXTURE), state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null);
         poseStack.popPose();
         if (state.digging) {
             BoreDrillFx.submit(poseStack, collector, camera, state.tip, state.yaw, state.pitch, state.beamUvScroll, state.beamSpin, state.tipFrame);

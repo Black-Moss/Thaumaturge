@@ -1,10 +1,16 @@
 package com.leclowndu93150.thaumaturge.client.aura;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.world.level.ChunkPos;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jspecify.annotations.Nullable;
 
+@EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class ClientAuraCache {
     private static final Map<Long, Snapshot> ENTRIES = new ConcurrentHashMap<>();
     private static final Map<Long, Long> REQUESTS = new ConcurrentHashMap<>();
@@ -43,7 +49,8 @@ public final class ClientAuraCache {
         return true;
     }
 
-    public static void tick() {
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
         currentTick++;
     }
 

@@ -18,6 +18,12 @@ public final class FXManagerRegistry {
 
     private FXManagerRegistry() {}
 
+    public static void clearAll() {
+        for (AbstractFXManager<?> manager : MANAGERS) {
+            manager.clear();
+        }
+    }
+
     @SubscribeEvent
     public static void onTick(LevelTickEvent.Post event) {
         if (!(event.getLevel() instanceof ClientLevel cl))

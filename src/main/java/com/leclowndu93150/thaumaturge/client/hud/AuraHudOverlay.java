@@ -82,7 +82,6 @@ public final class AuraHudOverlay implements LeftHudStack.Gauge {
     public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-        ClientAuraCache.tick();
         ChunkPos pos = ChunkPos.containing(player.blockPosition());
         if (ClientAuraCache.shouldRequest(pos)) {
             ClientPacketDistributor.sendToServer(new ServerboundRequestAuraChunkPayload(pos.x(), pos.z()));

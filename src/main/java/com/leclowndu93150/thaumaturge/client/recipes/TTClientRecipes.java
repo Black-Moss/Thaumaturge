@@ -15,10 +15,17 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
-public class TTClientRecipes {
+public final class TTClientRecipes {
 
     private static RecipeMap recipeMap = RecipeMap.EMPTY;
     private static final Set<RecipeType<?>> knownRecipeTypes = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    private TTClientRecipes() {}
+
+    public static void clear() {
+        recipeMap = RecipeMap.EMPTY;
+        knownRecipeTypes.clear();
+    }
 
     @SubscribeEvent
     public static void receiveRecipes(RecipesReceivedEvent event) {

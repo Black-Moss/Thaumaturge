@@ -7,7 +7,6 @@ import com.leclowndu93150.thaumaturge.client.effect.instance.BoltInstance;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.ArcRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BeamRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BoltRenderType;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
@@ -33,6 +32,13 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     private static final float SOURCE_QUAD_SIZE = 0.33F;
 
     private BeamManager() {}
+
+    @Override
+    public void clear() {
+        ARCS.clear();
+        BOLTS.clear();
+        BEAMS.clear();
+    }
 
     public static void addArc(ArcInstance instance) {
         ARCS.add(instance);
@@ -75,7 +81,7 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         Vec3 camPos = camera.position();
 
         if (!ARCS.isEmpty()) {
-            MultiBufferSource.BufferSource bufSource = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
+            MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
             VertexConsumer consumer = bufSource.getBuffer(ArcRenderType.RENDER_TYPE);
             for (ArcInstance arc : ARCS)
                 renderArc(poseStack, consumer, arc, camPos, partialTick);
@@ -83,7 +89,7 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         }
 
         if (!BOLTS.isEmpty()) {
-            MultiBufferSource.BufferSource bufSource = MultiBufferSource.immediate(new ByteBufferBuilder(4096));
+            MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
             VertexConsumer consumer = bufSource.getBuffer(BoltRenderType.RENDER_TYPE);
             for (BoltInstance bolt : BOLTS)
                 renderBolt(poseStack, consumer, bolt, camPos, partialTick);
@@ -91,7 +97,7 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         }
 
         if (!BEAMS.isEmpty()) {
-            MultiBufferSource.BufferSource bufSource = MultiBufferSource.immediate(new ByteBufferBuilder(8192));
+            MultiBufferSource.BufferSource bufSource = Minecraft.getInstance().renderBuffers().bufferSource();
             for (BeamInstance beam : BEAMS)
                 renderBeam(poseStack, bufSource, beam, camPos, partialTick);
             for (int t = 0; t < 4; t++)
