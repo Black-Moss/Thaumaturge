@@ -143,7 +143,7 @@ public final class InfusionEnchantmentEvents {
 
     @SubscribeEvent
     public static void onBreakBlock(BreakBlockEvent event) {
-        if (event.getLevel().isClientSide() || event.getPlayer() == null) {
+        if (event.getLevel().isClientSide() || event.getPlayer() == null || EnchantMining.isHarvestingFurthest()) {
             return;
         }
         Player player = event.getPlayer();

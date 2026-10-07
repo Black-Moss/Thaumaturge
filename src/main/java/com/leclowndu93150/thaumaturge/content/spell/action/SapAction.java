@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.spell.action;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.ActionContext;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellAction;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellActionType;
+import com.leclowndu93150.thaumaturge.content.spell.engine.SpellBlockAccess;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTSpellActions;
 import com.mojang.serialization.Codec;
@@ -29,7 +30,7 @@ public record SapAction(float base, float perPower, float max) implements SpellA
         float radius = Math.min(max, ActionTargets.magnitude(base, perPower, ctx) + ctx.radius());
         for (BlockPos pos : ActionTargets.around(ctx, ctx.target().block().get().getBlockPos(), radius)) {
             BlockPos above = pos.above();
-            if (level.getBlockState(above).isAir() && level.getBlockState(pos).isCollisionShapeFullBlock(level, pos)) {
+            if (level.getBlockState(above).isAir() && level.getBlockState(pos).isCollisionShapeFullBlock(level, pos) && SpellBlockAccess.mayPlace(ctx.cast(), above)) {
                 level.setBlockAndUpdate(above, TTBlocks.EFFECT_SAP.get().defaultBlockState());
             }
         }

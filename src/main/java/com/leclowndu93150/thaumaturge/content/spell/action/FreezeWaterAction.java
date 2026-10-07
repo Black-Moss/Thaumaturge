@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.spell.action;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.ActionContext;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellAction;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellActionType;
+import com.leclowndu93150.thaumaturge.content.spell.engine.SpellBlockAccess;
 import com.leclowndu93150.thaumaturge.registry.TTSpellActions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -37,7 +38,7 @@ public record FreezeWaterAction(float base, float perPower, float max) implement
         float radius = Math.min(max, ActionTargets.magnitude(base, perPower, ctx) + ctx.radius());
         for (BlockPos pos : ActionTargets.around(ctx, ActionTargets.facing(ctx), radius)) {
             BlockState state = level.getBlockState(pos);
-            if (state.is(Blocks.WATER) && state.getFluidState().isSource() && level.isUnobstructed(ice, pos, CollisionContext.empty())) {
+            if (state.is(Blocks.WATER) && state.getFluidState().isSource() && level.isUnobstructed(ice, pos, CollisionContext.empty()) && SpellBlockAccess.mayPlace(ctx.cast(), pos)) {
                 level.setBlockAndUpdate(pos, ice);
                 level.scheduleTick(pos, Blocks.FROSTED_ICE, Mth.nextInt(level.getRandom(), MELT_MIN_TICKS, MELT_MAX_TICKS));
             }

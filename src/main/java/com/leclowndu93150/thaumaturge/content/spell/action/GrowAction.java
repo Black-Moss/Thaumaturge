@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.spell.action;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.ActionContext;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellAction;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellActionType;
+import com.leclowndu93150.thaumaturge.content.spell.engine.SpellBlockAccess;
 import com.leclowndu93150.thaumaturge.registry.TTSpellActions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -30,6 +31,9 @@ public record GrowAction(float base, float perPower) implements SpellAction {
         ServerLevel level = ctx.cast().level();
         int pulses = Math.max(1, Math.round(ActionTargets.magnitude(base, perPower, ctx)));
         for (BlockPos pos : ActionTargets.around(ctx, ctx.target().block().get().getBlockPos(), ctx.radius())) {
+            if (!(level.getBlockState(pos).getBlock() instanceof BonemealableBlock) || !SpellBlockAccess.mayPlace(ctx.cast(), pos)) {
+                continue;
+            }
             for (int pulse = 0; pulse < pulses; pulse++) {
                 BlockState state = level.getBlockState(pos);
                 if (!(state.getBlock() instanceof BonemealableBlock growable) || !growable.isValidBonemealTarget(level, pos, state)) {

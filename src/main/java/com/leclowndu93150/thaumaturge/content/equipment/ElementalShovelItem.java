@@ -22,6 +22,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.util.BlockSnapshot;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jspecify.annotations.Nullable;
 
 public final class ElementalShovelItem extends Item implements IArchitect {
@@ -64,7 +66,7 @@ public final class ElementalShovelItem extends Item implements IArchitect {
         ItemStack shovel = context.getItemInHand();
         int placed = 0;
         for (BlockPos cell : cells) {
-            if (!fits(level, cell, source)) {
+            if (!fits(level, cell, source) || !mayPlace(server, player, cell, context.getClickedFace(), shovel)) {
                 continue;
             }
             BlockState fill = pay(player, source);
@@ -82,6 +84,10 @@ public final class ElementalShovelItem extends Item implements IArchitect {
             }
         }
         return placed > 0 ? InteractionResult.SUCCESS_SERVER : InteractionResult.FAIL;
+    }
+
+    private static boolean mayPlace(ServerLevel level, Player player, BlockPos cell, Direction face, ItemStack shovel) {
+        return player.mayUseItemAt(cell, face, shovel) && player.mayInteract(level, cell) && !EventHooks.onBlockPlace(player, BlockSnapshot.create(level.dimension(), level, cell), face);
     }
 
     private static boolean fits(Level level, BlockPos cell, BlockState source) {

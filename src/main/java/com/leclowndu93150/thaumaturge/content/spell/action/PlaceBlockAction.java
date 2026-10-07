@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.spell.action;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.ActionContext;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellAction;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellActionType;
+import com.leclowndu93150.thaumaturge.content.spell.engine.SpellBlockAccess;
 import com.leclowndu93150.thaumaturge.registry.TTSpellActions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -37,7 +38,7 @@ public record PlaceBlockAction(BlockState state, float chance, boolean needsFloo
             if (needsFloor && !level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)) {
                 continue;
             }
-            if (ctx.cast().random().nextFloat() < chance) {
+            if (ctx.cast().random().nextFloat() < chance && SpellBlockAccess.mayPlace(ctx.cast(), pos)) {
                 level.setBlock(pos, state, Block.UPDATE_ALL);
             }
         }

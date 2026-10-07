@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.spell.action;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.ActionContext;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellAction;
 import com.leclowndu93150.thaumaturge.api.spell.affinity.SpellActionType;
+import com.leclowndu93150.thaumaturge.content.spell.engine.SpellBlockAccess;
 import com.leclowndu93150.thaumaturge.registry.TTSpellActions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -35,6 +36,9 @@ public record ExtinguishAction(float radius) implements SpellAction {
         boolean doused = false;
         for (BlockPos pos : ActionTargets.around(ctx, ActionTargets.facing(ctx), radius + ctx.radius())) {
             BlockState state = level.getBlockState(pos);
+            if (!(state.is(BlockTags.FIRE) || state.getBlock() instanceof CampfireBlock) || !SpellBlockAccess.mayBreak(ctx.cast(), pos)) {
+                continue;
+            }
             if (state.is(BlockTags.FIRE)) {
                 level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                 doused = true;

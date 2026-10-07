@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.spell.behavior.SpellBehaviorType;
 import com.leclowndu93150.thaumaturge.api.spell.cast.CastContext;
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellStats;
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
+import com.leclowndu93150.thaumaturge.content.spell.engine.SpellBlockAccess;
 import com.leclowndu93150.thaumaturge.registry.TTSpellBehaviors;
 import com.mojang.serialization.MapCodec;
 import java.util.List;
@@ -44,7 +45,7 @@ public final class HarvestEffect extends AbstractEffectBehavior {
         boolean reaped = false;
         for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-radius, -1, -radius), centre.offset(radius, 1, radius))) {
             BlockState state = level.getBlockState(pos);
-            if (state.getBlock() instanceof CropBlock crop && crop.isMaxAge(state) && ctx.budget().claim(pos)) {
+            if (state.getBlock() instanceof CropBlock crop && crop.isMaxAge(state) && SpellBlockAccess.mayBreak(ctx, pos) && ctx.budget().claim(pos)) {
                 reap(ctx, level, pos.immutable(), state, crop);
                 reaped = true;
             }
