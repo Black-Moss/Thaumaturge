@@ -323,6 +323,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     private int selectedStageIndex = -1;
     private int renderedStage = -1;
     private int renderedProgressStage = -1;
+    private int autoAdvanceRequestedStage = -1;
     private boolean renderedComplete;
     private int renderedAddenda = -1;
     private final Deque<Identifier> history = new ArrayDeque<>();
@@ -699,7 +700,11 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 }
             }
         } else if (!completedStage) {
-            ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(entryId));
+            int stageNow = KnowledgeAccess.of(minecraft.player).researchStage(entryId);
+            if (autoAdvanceRequestedStage != stageNow) {
+                autoAdvanceRequestedStage = stageNow;
+                ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(entryId));
+            }
         }
     }
 
