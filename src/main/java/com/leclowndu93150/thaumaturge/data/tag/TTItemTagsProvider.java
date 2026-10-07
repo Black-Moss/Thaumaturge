@@ -31,6 +31,9 @@ public final class TTItemTagsProvider extends BlockTagCopyingItemTagProvider {
         copy(BlockTags.FLOWERS, ItemTags.FLOWERS);
         copy(TTBlockTags.MAGICAL_PLANTS, TTItemTags.MAGICAL_PLANTS);
         copy(BlockTags.WOODEN_SLABS, ItemTags.WOODEN_SLABS);
+        copy(BlockTags.STAIRS, ItemTags.STAIRS);
+        copy(BlockTags.SLABS, ItemTags.SLABS);
+        copy(BlockTags.WALLS, ItemTags.WALLS);
         copy(BlockTags.WOODEN_DOORS, ItemTags.WOODEN_DOORS);
         copy(BlockTags.WOODEN_TRAPDOORS, ItemTags.WOODEN_TRAPDOORS);
         copy(BlockTags.WOODEN_FENCES, ItemTags.WOODEN_FENCES);

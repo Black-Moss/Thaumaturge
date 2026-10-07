@@ -16,11 +16,11 @@ final class PlainBlockModels {
 
     static void generate(BiConsumer<Identifier, ModelInstance> output) {
         model(output, "ancient_inner_stairs", Optional.of(Identifier.withDefaultNamespace("block/inner_stairs")),
-                Map.of("bottom", TTIds.rl("block/ancient_tile"), "top", TTIds.rl("block/ancient_tile"), "side", TTIds.rl("block/ancient_tile")));
+                Map.of("bottom", TTIds.rl("block/ancient_stone_1"), "top", TTIds.rl("block/ancient_stone_0"), "side", TTIds.rl("block/ancient_stone_3")));
         model(output, "ancient_outer_stairs", Optional.of(Identifier.withDefaultNamespace("block/outer_stairs")),
-                Map.of("bottom", TTIds.rl("block/ancient_tile"), "top", TTIds.rl("block/ancient_tile"), "side", TTIds.rl("block/ancient_tile")));
+                Map.of("bottom", TTIds.rl("block/ancient_stone_1"), "top", TTIds.rl("block/ancient_stone_0"), "side", TTIds.rl("block/ancient_stone_3")));
         model(output, "ancient_stairs", Optional.of(Identifier.withDefaultNamespace("block/stairs")),
-                Map.of("bottom", TTIds.rl("block/ancient_tile"), "top", TTIds.rl("block/ancient_tile"), "side", TTIds.rl("block/ancient_tile")));
+                Map.of("bottom", TTIds.rl("block/ancient_stone_1"), "top", TTIds.rl("block/ancient_stone_0"), "side", TTIds.rl("block/ancient_stone_3")));
         model(output, "arcane_brick_inner_stairs", Optional.of(Identifier.withDefaultNamespace("block/inner_stairs")),
                 Map.of("bottom", TTIds.rl("block/arcane_brick_stone"), "top", TTIds.rl("block/arcane_brick_stone"), "side", TTIds.rl("block/arcane_brick_stone")));
         model(output, "arcane_brick_outer_stairs", Optional.of(Identifier.withDefaultNamespace("block/outer_stairs")),
@@ -28,11 +28,11 @@ final class PlainBlockModels {
         model(output, "arcane_brick_stairs", Optional.of(Identifier.withDefaultNamespace("block/stairs")),
                 Map.of("bottom", TTIds.rl("block/arcane_brick_stone"), "top", TTIds.rl("block/arcane_brick_stone"), "side", TTIds.rl("block/arcane_brick_stone")));
         model(output, "arcane_inner_stairs", Optional.of(Identifier.withDefaultNamespace("block/inner_stairs")),
-                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_2"), "side", TTIds.rl("block/arcane_stone_3")));
+                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_1"), "side", TTIds.rl("block/arcane_stone_3")));
         model(output, "arcane_outer_stairs", Optional.of(Identifier.withDefaultNamespace("block/outer_stairs")),
-                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_2"), "side", TTIds.rl("block/arcane_stone_3")));
+                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_1"), "side", TTIds.rl("block/arcane_stone_3")));
         model(output, "arcane_stairs", Optional.of(Identifier.withDefaultNamespace("block/stairs")),
-                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_2"), "side", TTIds.rl("block/arcane_stone_3")));
+                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_1"), "side", TTIds.rl("block/arcane_stone_3")));
         model(output, "flux_goo", Optional.empty(), Map.of("particle", TTIds.rl("block/flux_goo")));
         model(output, "leaves_greatwood", Optional.of(Identifier.withDefaultNamespace("block/leaves")), Map.of("all", TTIds.rl("block/leaves_greatwood")));
         model(output, "leaves_silverwood", Optional.of(Identifier.withDefaultNamespace("block/leaves")), Map.of("all", TTIds.rl("block/leaves_silverwood")));
@@ -63,9 +63,9 @@ final class PlainBlockModels {
                 "east", TTIds.rl("block/smelter_void_side"), "west", TTIds.rl("block/smelter_void_side"), "particle", TTIds.rl("block/smelter_void_side")));
         model(output, "smelter_void_on", Optional.of(TTIds.rl("block/smelter_void_off")), Map.of("north", TTIds.rl("block/smelter_void_front_on")));
         model(output, "stairs_ancient", Optional.of(Identifier.withDefaultNamespace("block/stairs")),
-                Map.of("bottom", TTIds.rl("block/ancient_tile"), "top", TTIds.rl("block/ancient_tile"), "side", TTIds.rl("block/ancient_tile")));
+                Map.of("bottom", TTIds.rl("block/ancient_stone_1"), "top", TTIds.rl("block/ancient_stone_0"), "side", TTIds.rl("block/ancient_stone_3")));
         model(output, "stairs_arcane", Optional.of(Identifier.withDefaultNamespace("block/stairs")),
-                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_2"), "side", TTIds.rl("block/arcane_stone_3")));
+                Map.of("bottom", TTIds.rl("block/arcane_stone_1"), "top", TTIds.rl("block/arcane_stone_1"), "side", TTIds.rl("block/arcane_stone_3")));
         model(output, "stairs_arcane_brick", Optional.of(Identifier.withDefaultNamespace("block/stairs")),
                 Map.of("bottom", TTIds.rl("block/arcane_brick_stone"), "top", TTIds.rl("block/arcane_brick_stone"), "side", TTIds.rl("block/arcane_brick_stone")));
         model(output, "stone_ancient", Optional.of(Identifier.withDefaultNamespace("block/cube")),

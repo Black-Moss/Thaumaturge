@@ -147,6 +147,7 @@ import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.PoweredRailBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TintedParticleLeavesBlock;
 import net.minecraft.world.level.block.UntintedParticleLeavesBlock;
@@ -491,6 +492,30 @@ public final class TTBlocks {
     public static final DeferredBlock<BlockStairsTT> STAIRS_ANCIENT = BLOCKS.registerBlock("stairs_ancient", props -> new BlockStairsTT(STONE_ANCIENT.get().defaultBlockState(), props),
             TTBlocks::stoneProps);
 
+    public static final DeferredBlock<WallBlock> WALL_ARCANE_STONE = BLOCKS.registerBlock("wall_arcane_stone", WallBlock::new, TTBlocks::stoneWallProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ARCANE_BRICK = BLOCKS.registerBlock("wall_arcane_brick", WallBlock::new, TTBlocks::stoneWallProps);
+
+    public static final DeferredBlock<RotatedPillarBlock> STONE_ARCANE_PILLAR = BLOCKS.registerBlock("stone_arcane_pillar", RotatedPillarBlock::new, TTBlocks::stoneProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ANCIENT = BLOCKS.registerBlock("wall_ancient", WallBlock::new, TTBlocks::stoneWallProps);
+
+    public static final DeferredBlock<BlockStairsTT> STAIRS_ANCIENT_TILE = BLOCKS.registerBlock("stairs_ancient_tile", props -> new BlockStairsTT(STONE_ANCIENT_TILE.get().defaultBlockState(), props),
+            TTBlocks::stoneProps);
+
+    public static final DeferredBlock<SlabBlock> SLAB_ANCIENT_TILE = BLOCKS.registerBlock("slab_ancient_tile", SlabBlock::new, TTBlocks::stoneProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ANCIENT_TILE = BLOCKS.registerBlock("wall_ancient_tile", WallBlock::new, TTBlocks::stoneWallProps);
+
+    public static final DeferredBlock<BlockStairsTT> STAIRS_ANCIENT_ROCK = BLOCKS.registerBlock("stairs_ancient_rock", props -> new BlockStairsTT(STONE_ANCIENT_ROCK.get().defaultBlockState(), props),
+            TTBlocks::stoneProps);
+
+    public static final DeferredBlock<SlabBlock> SLAB_ANCIENT_ROCK = BLOCKS.registerBlock("slab_ancient_rock", SlabBlock::new, TTBlocks::stoneProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ANCIENT_ROCK = BLOCKS.registerBlock("wall_ancient_rock", WallBlock::new, TTBlocks::stoneWallProps);
+
+    public static final DeferredBlock<RotatedPillarBlock> STONE_ANCIENT_PILLAR = BLOCKS.registerBlock("stone_ancient_pillar", RotatedPillarBlock::new, TTBlocks::stoneProps);
+
     public static final DeferredBlock<Block> MATRIX_SPEED = BLOCKS.registerBlock("matrix_speed", Block::new, TTBlocks::stoneProps);
 
     public static final DeferredBlock<Block> MATRIX_COST = BLOCKS.registerBlock("matrix_cost", Block::new, TTBlocks::stoneProps);
@@ -574,6 +599,18 @@ public final class TTBlocks {
 
     private static BlockBehaviour.Properties stoneProps() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops();
+    }
+
+    private static BlockBehaviour.Properties stoneWallProps() {
+        return stoneProps().forceSolidOn();
+    }
+
+    private static BlockBehaviour.Properties eldritchStoneProps() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops();
+    }
+
+    private static BlockBehaviour.Properties eldritchWallProps() {
+        return eldritchStoneProps().forceSolidOn();
     }
 
     private static BlockBehaviour.Properties unbreakableProps() {
@@ -816,6 +853,24 @@ public final class TTBlocks {
 
     public static final DeferredBlock<BlockStairsTT> STAIRS_ELDRITCH = BLOCKS.registerBlock("stairs_eldritch", props -> new BlockStairsTT(ELDRITCH_STONE.get().defaultBlockState(), props),
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 10.0F).sound(SoundType.STONE).requiresCorrectToolForDrops());
+
+    public static final DeferredBlock<SlabBlock> SLAB_ELDRITCH_STONE = BLOCKS.registerBlock("slab_eldritch_stone", SlabBlock::new, TTBlocks::eldritchStoneProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ELDRITCH_STONE = BLOCKS.registerBlock("wall_eldritch_stone", WallBlock::new, TTBlocks::eldritchWallProps);
+
+    public static final DeferredBlock<BlockStairsTT> STAIRS_ELDRITCH_TILE = BLOCKS.registerBlock("stairs_eldritch_tile",
+            props -> new BlockStairsTT(STONE_ELDRITCH_TILE.get().defaultBlockState(), props), TTBlocks::eldritchStoneProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ELDRITCH_TILE = BLOCKS.registerBlock("wall_eldritch_tile", WallBlock::new, TTBlocks::eldritchWallProps);
+
+    public static final DeferredBlock<BlockStairsTT> STAIRS_ELDRITCH_ROCK = BLOCKS.registerBlock("stairs_eldritch_rock", props -> new BlockStairsTT(ELDRITCH_ROCK.get().defaultBlockState(), props),
+            TTBlocks::eldritchStoneProps);
+
+    public static final DeferredBlock<SlabBlock> SLAB_ELDRITCH_ROCK = BLOCKS.registerBlock("slab_eldritch_rock", SlabBlock::new, TTBlocks::eldritchStoneProps);
+
+    public static final DeferredBlock<WallBlock> WALL_ELDRITCH_ROCK = BLOCKS.registerBlock("wall_eldritch_rock", WallBlock::new, TTBlocks::eldritchWallProps);
+
+    public static final DeferredBlock<RotatedPillarBlock> STONE_ELDRITCH_PILLAR = BLOCKS.registerBlock("stone_eldritch_pillar", RotatedPillarBlock::new, TTBlocks::eldritchStoneProps);
 
     public static final DeferredBlock<Block> ELDRITCH_DOOR = BLOCKS.registerBlock("eldritch_door", Block::new,
             props -> props.mapColor(MapColor.COLOR_BLACK).strength(-1.0F, Float.MAX_VALUE).sound(SoundType.STONE).lightLevel(state -> 12));

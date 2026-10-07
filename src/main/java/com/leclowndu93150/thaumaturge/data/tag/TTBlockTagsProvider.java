@@ -103,6 +103,19 @@ public final class TTBlockTagsProvider extends BlockTagsProvider {
                 .add(TTBlocks.STAIRS_ANCIENT.get()).add(TTBlocks.STAIRS_ELDRITCH.get());
 
         tag(BlockTags.WOODEN_STAIRS).add(TTBlocks.STAIRS_GREATWOOD.get()).add(TTBlocks.STAIRS_SILVERWOOD.get());
+
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TTBlocks.WALL_ARCANE_STONE.get()).add(TTBlocks.WALL_ARCANE_BRICK.get()).add(TTBlocks.STONE_ARCANE_PILLAR.get()).add(TTBlocks.WALL_ANCIENT.get())
+                .add(TTBlocks.STAIRS_ANCIENT_TILE.get()).add(TTBlocks.WALL_ANCIENT_TILE.get()).add(TTBlocks.STAIRS_ANCIENT_ROCK.get()).add(TTBlocks.WALL_ANCIENT_ROCK.get())
+                .add(TTBlocks.STONE_ANCIENT_PILLAR.get()).add(TTBlocks.WALL_ELDRITCH_STONE.get()).add(TTBlocks.STAIRS_ELDRITCH_TILE.get()).add(TTBlocks.WALL_ELDRITCH_TILE.get())
+                .add(TTBlocks.STAIRS_ELDRITCH_ROCK.get()).add(TTBlocks.WALL_ELDRITCH_ROCK.get()).add(TTBlocks.STONE_ELDRITCH_PILLAR.get()).add(TTBlocks.SLAB_ANCIENT_TILE.get())
+                .add(TTBlocks.SLAB_ANCIENT_ROCK.get()).add(TTBlocks.SLAB_ELDRITCH_STONE.get()).add(TTBlocks.SLAB_ELDRITCH_ROCK.get());
+
+        tag(BlockTags.STAIRS).add(TTBlocks.STAIRS_ANCIENT_TILE.get()).add(TTBlocks.STAIRS_ANCIENT_ROCK.get()).add(TTBlocks.STAIRS_ELDRITCH_TILE.get()).add(TTBlocks.STAIRS_ELDRITCH_ROCK.get());
+
+        tag(BlockTags.SLABS).add(TTBlocks.SLAB_ANCIENT_TILE.get()).add(TTBlocks.SLAB_ANCIENT_ROCK.get()).add(TTBlocks.SLAB_ELDRITCH_STONE.get()).add(TTBlocks.SLAB_ELDRITCH_ROCK.get());
+
+        tag(BlockTags.WALLS).add(TTBlocks.WALL_ARCANE_STONE.get()).add(TTBlocks.WALL_ARCANE_BRICK.get()).add(TTBlocks.WALL_ANCIENT.get()).add(TTBlocks.WALL_ANCIENT_TILE.get())
+                .add(TTBlocks.WALL_ANCIENT_ROCK.get()).add(TTBlocks.WALL_ELDRITCH_STONE.get()).add(TTBlocks.WALL_ELDRITCH_TILE.get()).add(TTBlocks.WALL_ELDRITCH_ROCK.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(TTBlocks.ARCANE_GRINDSTONE.get());
 
         tag(BlockTags.WOODEN_DOORS).add(TTBlocks.DOOR_GREATWOOD.get()).add(TTBlocks.DOOR_SILVERWOOD.get());

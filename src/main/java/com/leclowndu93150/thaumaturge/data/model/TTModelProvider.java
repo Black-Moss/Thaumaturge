@@ -1388,6 +1388,36 @@ public final class TTModelProvider extends ModelProvider {
         stairsFromModels(blockModels, TTBlocks.STAIRS_ARCANE.get(), "arcane_stairs", "arcane_inner_stairs", "arcane_outer_stairs");
         stairsFromModels(blockModels, TTBlocks.STAIRS_ARCANE_BRICK.get(), "arcane_brick_stairs", "arcane_brick_inner_stairs", "arcane_brick_outer_stairs");
         stairsFromModels(blockModels, TTBlocks.STAIRS_ANCIENT.get(), "ancient_stairs", "ancient_inner_stairs", "ancient_outer_stairs");
+        stairs(blockModels, TTBlocks.STAIRS_ANCIENT_TILE.get(), texture("ancient_tile"), texture("ancient_tile"), texture("ancient_tile"));
+        stairs(blockModels, TTBlocks.STAIRS_ANCIENT_ROCK.get(), texture("ancient_rock_stone_2"), texture("ancient_rock_stone_2"), texture("ancient_rock_stone_2"));
+        stairs(blockModels, TTBlocks.STAIRS_ELDRITCH_TILE.get(), texture("eldritch_stone_1"), texture("eldritch_stone_1"), texture("eldritch_stone_3"));
+        stairs(blockModels, TTBlocks.STAIRS_ELDRITCH_ROCK.get(), texture("eldritch_rock"), texture("eldritch_rock"), texture("eldritch_rock"));
+
+        wall(blockModels, TTBlocks.WALL_ARCANE_STONE.get(), texture("arcane_stone_3"));
+        wall(blockModels, TTBlocks.WALL_ARCANE_BRICK.get(), texture("arcane_brick_stone"));
+        wall(blockModels, TTBlocks.WALL_ANCIENT.get(), texture("ancient_stone_3"));
+        wall(blockModels, TTBlocks.WALL_ANCIENT_TILE.get(), texture("ancient_tile"));
+        wall(blockModels, TTBlocks.WALL_ANCIENT_ROCK.get(), texture("ancient_rock_stone_2"));
+        wall(blockModels, TTBlocks.WALL_ELDRITCH_STONE.get(), texture("eldritch_stone"));
+        wall(blockModels, TTBlocks.WALL_ELDRITCH_TILE.get(), texture("eldritch_stone_3"));
+        wall(blockModels, TTBlocks.WALL_ELDRITCH_ROCK.get(), texture("eldritch_rock"));
+
+        pillar(blockModels, TTBlocks.STONE_ARCANE_PILLAR.get(), texture("stone_arcane_pillar_side"), texture("arcane_stone_1"));
+        pillar(blockModels, TTBlocks.STONE_ANCIENT_PILLAR.get(), texture("stone_ancient_pillar_side"), texture("ancient_stone_0"));
+        pillar(blockModels, TTBlocks.STONE_ELDRITCH_PILLAR.get(), texture("stone_eldritch_pillar_side"), texture("eldritch_deco"));
+    }
+
+    private void wall(BlockModelGenerators blockModels, Block wall, Material texture) {
+        blockModels.new BlockFamilyProvider(TextureMapping.cube(texture)).wall(wall);
+    }
+
+    private void pillar(BlockModelGenerators blockModels, Block pillar, Material side, Material end) {
+        TextureMapping mapping = TextureMapping.column(side, end);
+        Identifier vertical = ModelTemplates.CUBE_COLUMN.create(pillar, mapping, blockModels.modelOutput);
+        Identifier horizontal = ModelTemplates.CUBE_COLUMN_HORIZONTAL.create(pillar, mapping, blockModels.modelOutput);
+        blockModels.blockStateOutput
+                .accept(BlockModelGenerators.createRotatedPillarWithHorizontalVariant(pillar, BlockModelGenerators.plainVariant(vertical), BlockModelGenerators.plainVariant(horizontal)));
+        blockModels.registerSimpleItemModel(pillar.asItem(), vertical);
     }
 
     private void simpleCube(BlockModelGenerators blockModels, Block block, String modelName) {
@@ -1654,10 +1684,14 @@ public final class TTModelProvider extends ModelProvider {
     private void decorModels(BlockModelGenerators blockModels) {
         slab(blockModels, TTBlocks.SLAB_GREATWOOD.get(), TTBlocks.PLANK_GREATWOOD.get(), texture("plank_greatwood"), texture("plank_greatwood"), texture("plank_greatwood"));
         slab(blockModels, TTBlocks.SLAB_SILVERWOOD.get(), TTBlocks.PLANK_SILVERWOOD.get(), texture("plank_silverwood"), texture("plank_silverwood"), texture("plank_silverwood"));
-        slab(blockModels, TTBlocks.SLAB_ARCANE_STONE.get(), TTBlocks.STONE_ARCANE.get(), texture("arcane_stone_1"), texture("arcane_stone_2"), texture("arcane_stone_3"));
+        slab(blockModels, TTBlocks.SLAB_ARCANE_STONE.get(), TTBlocks.STONE_ARCANE.get(), texture("arcane_stone_1"), texture("arcane_stone_1"), texture("arcane_stone_3"));
         slab(blockModels, TTBlocks.SLAB_ARCANE_BRICK.get(), TTBlocks.STONE_ARCANE_BRICK.get(), texture("arcane_brick_stone"), texture("arcane_brick_stone"), texture("arcane_brick_stone"));
-        slab(blockModels, TTBlocks.SLAB_ANCIENT.get(), TTBlocks.STONE_ANCIENT.get(), texture("ancient_stone_1"), texture("ancient_stone_2"), texture("ancient_stone_3"));
-        slab(blockModels, TTBlocks.SLAB_ELDRITCH.get(), TTBlocks.STONE_ELDRITCH_TILE.get(), texture("eldritch_stone_1"), texture("eldritch_stone_2"), texture("eldritch_stone_3"));
+        slab(blockModels, TTBlocks.SLAB_ANCIENT.get(), TTBlocks.STONE_ANCIENT.get(), texture("ancient_stone_1"), texture("ancient_stone_0"), texture("ancient_stone_3"));
+        slab(blockModels, TTBlocks.SLAB_ELDRITCH.get(), TTBlocks.STONE_ELDRITCH_TILE.get(), texture("eldritch_stone_1"), texture("eldritch_stone_1"), texture("eldritch_stone_3"));
+        slab(blockModels, TTBlocks.SLAB_ELDRITCH_STONE.get(), TTBlocks.ELDRITCH_STONE.get(), texture("eldritch_stone"), texture("eldritch_stone"), texture("eldritch_stone"));
+        slab(blockModels, TTBlocks.SLAB_ELDRITCH_ROCK.get(), TTBlocks.ELDRITCH_ROCK.get(), texture("eldritch_rock"), texture("eldritch_rock"), texture("eldritch_rock"));
+        slab(blockModels, TTBlocks.SLAB_ANCIENT_TILE.get(), TTBlocks.STONE_ANCIENT_TILE.get(), texture("ancient_tile"), texture("ancient_tile"), texture("ancient_tile"));
+        slab(blockModels, TTBlocks.SLAB_ANCIENT_ROCK.get(), TTBlocks.STONE_ANCIENT_ROCK.get(), texture("ancient_rock_stone_2"), texture("ancient_rock_stone_2"), texture("ancient_rock_stone_2"));
         stairsFromTexture(blockModels, TTBlocks.STAIRS_GREATWOOD.get(), texture("plank_greatwood"));
         stairsFromTexture(blockModels, TTBlocks.STAIRS_SILVERWOOD.get(), texture("plank_silverwood"));
         arcaneGrindstone(blockModels);
@@ -1686,7 +1720,11 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void stairsFromTexture(BlockModelGenerators blockModels, Block block, Material all) {
-        TextureMapping mapping = new TextureMapping().put(TextureSlot.BOTTOM, all).put(TextureSlot.TOP, all).put(TextureSlot.SIDE, all);
+        stairs(blockModels, block, all, all, all);
+    }
+
+    private void stairs(BlockModelGenerators blockModels, Block block, Material bottom, Material top, Material side) {
+        TextureMapping mapping = new TextureMapping().put(TextureSlot.BOTTOM, bottom).put(TextureSlot.TOP, top).put(TextureSlot.SIDE, side);
         MultiVariant straight = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_STRAIGHT.create(block, mapping, blockModels.modelOutput));
         MultiVariant inner = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_INNER.create(block, mapping, blockModels.modelOutput));
         MultiVariant outer = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_OUTER.create(block, mapping, blockModels.modelOutput));

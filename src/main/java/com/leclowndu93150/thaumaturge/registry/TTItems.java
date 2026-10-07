@@ -492,6 +492,44 @@ public final class TTItems {
     public static final DeferredItem<BlockItem> STAIRS_ARCANE_BRICK = ITEMS.registerSimpleBlockItem(TTBlocks.STAIRS_ARCANE_BRICK);
     public static final DeferredItem<BlockItem> STAIRS_ANCIENT = ITEMS.registerSimpleBlockItem(TTBlocks.STAIRS_ANCIENT);
 
+    public static final DeferredItem<BlockItem> WALL_ARCANE_STONE = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ARCANE_STONE);
+
+    public static final DeferredItem<BlockItem> WALL_ARCANE_BRICK = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ARCANE_BRICK);
+
+    public static final DeferredItem<BlockItem> STONE_ARCANE_PILLAR = ITEMS.registerSimpleBlockItem(TTBlocks.STONE_ARCANE_PILLAR);
+
+    public static final DeferredItem<BlockItem> WALL_ANCIENT = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ANCIENT);
+
+    public static final DeferredItem<BlockItem> STAIRS_ANCIENT_TILE = ITEMS.registerSimpleBlockItem(TTBlocks.STAIRS_ANCIENT_TILE);
+
+    public static final DeferredItem<BlockItem> SLAB_ANCIENT_TILE = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_ANCIENT_TILE);
+
+    public static final DeferredItem<BlockItem> WALL_ANCIENT_TILE = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ANCIENT_TILE);
+
+    public static final DeferredItem<BlockItem> STAIRS_ANCIENT_ROCK = ITEMS.registerSimpleBlockItem(TTBlocks.STAIRS_ANCIENT_ROCK);
+
+    public static final DeferredItem<BlockItem> SLAB_ANCIENT_ROCK = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_ANCIENT_ROCK);
+
+    public static final DeferredItem<BlockItem> WALL_ANCIENT_ROCK = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ANCIENT_ROCK);
+
+    public static final DeferredItem<BlockItem> STONE_ANCIENT_PILLAR = ITEMS.registerSimpleBlockItem(TTBlocks.STONE_ANCIENT_PILLAR);
+
+    public static final DeferredItem<BlockItem> SLAB_ELDRITCH_STONE = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_ELDRITCH_STONE);
+
+    public static final DeferredItem<BlockItem> WALL_ELDRITCH_STONE = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ELDRITCH_STONE);
+
+    public static final DeferredItem<BlockItem> STAIRS_ELDRITCH_TILE = ITEMS.registerSimpleBlockItem(TTBlocks.STAIRS_ELDRITCH_TILE);
+
+    public static final DeferredItem<BlockItem> WALL_ELDRITCH_TILE = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ELDRITCH_TILE);
+
+    public static final DeferredItem<BlockItem> STAIRS_ELDRITCH_ROCK = ITEMS.registerSimpleBlockItem(TTBlocks.STAIRS_ELDRITCH_ROCK);
+
+    public static final DeferredItem<BlockItem> SLAB_ELDRITCH_ROCK = ITEMS.registerSimpleBlockItem(TTBlocks.SLAB_ELDRITCH_ROCK);
+
+    public static final DeferredItem<BlockItem> WALL_ELDRITCH_ROCK = ITEMS.registerSimpleBlockItem(TTBlocks.WALL_ELDRITCH_ROCK);
+
+    public static final DeferredItem<BlockItem> STONE_ELDRITCH_PILLAR = ITEMS.registerSimpleBlockItem(TTBlocks.STONE_ELDRITCH_PILLAR);
+
     public static final DeferredItem<BlockItem> SAPLING_GREATWOOD = ITEMS.registerSimpleBlockItem(TTBlocks.SAPLING_GREATWOOD);
     public static final DeferredItem<BlockItem> SAPLING_SILVERWOOD = ITEMS.registerSimpleBlockItem(TTBlocks.SAPLING_SILVERWOOD);
     public static final DeferredItem<BlockItem> LOG_GREATWOOD = ITEMS.registerSimpleBlockItem(TTBlocks.LOG_GREATWOOD);

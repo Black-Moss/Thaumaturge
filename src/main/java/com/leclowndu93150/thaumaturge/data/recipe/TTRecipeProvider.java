@@ -346,10 +346,9 @@ public final class TTRecipeProvider extends RecipeProvider {
                 .save(output);
         pressurePlateBuilder(RecipeCategory.REDSTONE, TTBlocks.PRESSURE_PLATE_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_pressure_plate")
                 .unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)).save(output);
-        slabRecipe(TTBlocks.SLAB_ARCANE_STONE.get(), TTBlocks.STONE_ARCANE.get());
-        slabRecipe(TTBlocks.SLAB_ARCANE_BRICK.get(), TTBlocks.STONE_ARCANE_BRICK.get());
-        slabRecipe(TTBlocks.SLAB_ANCIENT.get(), TTBlocks.STONE_ANCIENT.get());
-        slabRecipe(TTBlocks.SLAB_ELDRITCH.get(), TTBlocks.STONE_ELDRITCH_TILE.get());
+        pillarRecipe(TTBlocks.STONE_ARCANE_PILLAR.get(), TTBlocks.STONE_ARCANE.get());
+        pillarRecipe(TTBlocks.STONE_ANCIENT_PILLAR.get(), TTBlocks.STONE_ANCIENT.get());
+        pillarRecipe(TTBlocks.STONE_ELDRITCH_PILLAR.get(), TTBlocks.ELDRITCH_STONE.get());
 
         shaped(RecipeCategory.DECORATIONS, TTItems.TABLE_WOOD).pattern("SSS").pattern("W W").define('S', ItemTags.WOODEN_SLABS).define('W', ItemTags.PLANKS)
                 .unlockedBy("has", has(ItemTags.WOODEN_SLABS)).save(output);
@@ -385,8 +384,9 @@ public final class TTRecipeProvider extends RecipeProvider {
         shaped(RecipeCategory.BUILDING_BLOCKS, result, 4).pattern("K  ").pattern("KK ").pattern("KKK").define('K', base).unlockedBy("has", has(base)).save(output);
     }
 
-    private void slabRecipe(Block result, Block base) {
-        shaped(RecipeCategory.BUILDING_BLOCKS, result, 6).pattern("KKK").define('K', base).unlockedBy("has", has(base)).save(output);
+    private void pillarRecipe(Block result, Block base) {
+        shaped(RecipeCategory.BUILDING_BLOCKS, result, 2).pattern("K").pattern("K").define('K', base).unlockedBy("has", has(base)).save(output);
+        stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, result, base, 1);
     }
 
     private void stairsRecipe(Block result, TagKey<Item> base) {
