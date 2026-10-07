@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
-import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
 import com.leclowndu93150.thaumaturge.content.entity.AbstractTaintacle;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import net.minecraft.network.chat.Component;
@@ -24,7 +23,6 @@ public class EntityTaintacleGiant extends AbstractTaintacle {
 
     private static final int GIANT_XP = 20;
     private static final int HEAL_INTERVAL = 30;
-    private static final double LONELY_RANGE = 48.0;
 
     private final BossBar bossBar = new BossBar(this);
     private final BossRage rage = new BossRage(this, DATA_AGGRO);
@@ -100,14 +98,6 @@ public class EntityTaintacleGiant extends AbstractTaintacle {
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
         damage = this.rage.absorb(source, damage);
         return super.hurtServer(level, source, damage);
-    }
-
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        super.dropCustomDeathLoot(level, source, recentlyHit);
-        if (!LabyrinthHelper.isLabyrinthBound(this) && level.getEntitiesOfClass(EntityTaintacleGiant.class, this.getBoundingBox().inflate(LONELY_RANGE), other -> other != this).isEmpty()) {
-            BossHooks.dropPearl(level, this);
-        }
     }
 
     @Override

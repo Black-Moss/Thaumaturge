@@ -53,8 +53,6 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
     private static final int DIG_VISUAL_GRACE_TICKS = 4;
     private static final double EJECT_DISTANCE = 0.75;
     private static final float DISMANTLE_DROP_HEIGHT = 0.5F;
-    private static final float COMMON_LOOT_CHANCE = 0.5F;
-    private static final float RARE_LOOT_CHANCE = 0.2F;
     private static final double HURT_YAW_SPREAD = 45.0;
     private static final double HURT_PITCH_SPREAD = 20.0;
     private static final double KNOCKBACK_CLAMP = 0.1;
@@ -319,32 +317,6 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
         output.putFloat("charge", core.charge());
         output.putByte("facing", (byte) getFacing().ordinal());
         output.putBoolean("active", isActive());
-    }
-
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        super.dropCustomDeathLoot(level, source, recentlyHit);
-        if (random.nextFloat() < RARE_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTItems.MIND_CLOCKWORK.get()), DISMANTLE_DROP_HEIGHT);
-        }
-        if (random.nextFloat() < RARE_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTItems.MORPHIC_RESONATOR.get()), DISMANTLE_DROP_HEIGHT);
-        }
-        if (random.nextFloat() < RARE_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTBlocks.CRYSTAL_AER.get()), DISMANTLE_DROP_HEIGHT);
-        }
-        if (random.nextFloat() < RARE_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTBlocks.CRYSTAL_TERRA.get()), DISMANTLE_DROP_HEIGHT);
-        }
-        if (random.nextFloat() < COMMON_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTItems.MECHANISM_SIMPLE.get()), DISMANTLE_DROP_HEIGHT);
-        }
-        if (random.nextFloat() < COMMON_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTItems.PLATE_BRASS.get()), DISMANTLE_DROP_HEIGHT);
-        }
-        if (random.nextFloat() < COMMON_LOOT_CHANCE) {
-            spawnAtLocation(level, new ItemStack(TTBlocks.PLANK_GREATWOOD.get()), DISMANTLE_DROP_HEIGHT);
-        }
     }
 
     @Override

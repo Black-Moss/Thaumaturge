@@ -61,6 +61,7 @@ public final class TTItemTagsProvider extends BlockTagCopyingItemTagProvider {
         }
 
         tag(TTItemTags.SCRIBING_TOOLS).add(TTItems.SCRIBING_TOOLS.get());
+        tag(TTItemTags.FLOATING_DROPS).add(TTItems.PRIMORDIAL_PEARL.get());
         tag(TTItemTags.WANDS).add(TTItems.WAND.get(), TTItems.PECH_WAND.get());
         tag(TTItemTags.WAND_RODS).add(TTItems.WAND_ROD_GREATWOOD.get(), TTItems.WAND_ROD_OBSIDIAN.get(), TTItems.WAND_ROD_BLAZE.get(), TTItems.WAND_ROD_ICE.get(), TTItems.WAND_ROD_QUARTZ.get(),
                 TTItems.WAND_ROD_BONE.get(), TTItems.WAND_ROD_REED.get(), TTItems.WAND_ROD_SILVERWOOD.get(), TTItems.STAFF_ROD_GREATWOOD.get(), TTItems.STAFF_ROD_OBSIDIAN.get(),

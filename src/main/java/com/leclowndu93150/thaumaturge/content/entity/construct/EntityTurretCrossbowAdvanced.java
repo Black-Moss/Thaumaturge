@@ -1,12 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.entity.construct;
 
-import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -187,29 +185,4 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
         return MOVE_DAMPING;
     }
 
-    @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-        float bonus = 0.0F;
-        if (random.nextFloat() < 0.2F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTItems.MIND_BIOTHAUMIC.get()), 0.5F);
-        }
-        if (random.nextFloat() < 0.5F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTItems.MECHANISM_SIMPLE.get()), 0.5F);
-        }
-        if (random.nextFloat() < 0.5F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTBlocks.PLANK_GREATWOOD.get()), 0.5F);
-        }
-        if (random.nextFloat() < 0.5F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTBlocks.PLANK_GREATWOOD.get()), 0.5F);
-        }
-        if (random.nextFloat() < 0.3F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTItems.PLATE_BRASS.get()), 0.5F);
-        }
-        if (random.nextFloat() < 0.4F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTItems.PLATE_IRON.get()), 0.5F);
-        }
-        if (random.nextFloat() < 0.4F + bonus) {
-            spawnAtLocation(level, new ItemStack(TTItems.PLATE_IRON.get()), 0.5F);
-        }
-    }
 }
