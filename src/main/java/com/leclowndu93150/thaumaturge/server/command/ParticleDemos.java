@@ -31,9 +31,9 @@ public final class ParticleDemos {
         register("wispyMotes", "Pink wispy motes drifting upward", (p, v) -> Effects.wispyMotes(p.level(), v).color(0.9F, 0.5F, 0.9F).age(40).gravity(-0.01F).send());
         register("curlyWisp", "Angled rotating curly wisp", (p, v) -> Effects.curlyWisp(p.level(), v).color(0.5F, 0.7F, 1F).seed(2).send());
         register("pechsCurse", "Angled curse particle + wispy motes", (p, v) -> Effects.pechsCurse(p.level(), v).send());
-        register("cultistSpawn", "Cultist spawn-in animation (white→red gradient)", (p, v) -> Effects.cultistSpawn(p.level(), v).motion(0, 0.05, 0).send());
+        register("cultistSpawn", "Cultist spawn-in animation (white to red gradient)", (p, v) -> Effects.cultistSpawn(p.level(), v).motion(0, 0.05, 0).send());
 
-        register("fireMote", "Tiny glowing red mote (FXFireMote, full-bright)", (p, v) -> Effects.fireMote(p.level(), v).color(1F, 0.3F, 0F).scale(1.5F).send());
+        register("fireMote", "Tiny glowing red mote, full-bright", (p, v) -> Effects.fireMote(p.level(), v).color(1F, 0.3F, 0F).scale(1.5F).send());
         register("alumentum", "Alumentum mote (always translucent FireMote variant)", (p, v) -> Effects.alumentum(p.level(), v).color(0.3F, 0F, 0.8F).scale(1.2F).send());
         register("taint", "Taint mist particle", (p, v) -> Effects.taint(p.level(), v).motion(0, 0.02, 0).scale(2F).send());
         register("lightningFlash", "Brief lightning flash particle (5-9 ticks)", (p, v) -> Effects.lightningFlash(p.level(), v).color(1F, 1F, 0.6F).scale(3F).send());
@@ -57,10 +57,10 @@ public final class ParticleDemos {
         register("spark", "Small white spark (16-grid cells 8/24/40 flipped random)", (p, v) -> Effects.spark(p.level(), v).color(1F, 1F, 0.8F).size(0.4F).send());
         register("burst", "31-frame aged burst animation (cell 208..238)", (p, v) -> Effects.burst(p.level(), v).size(2F).send());
         register("essentiaDrop", "Single essentia drop with gravity", (p, v) -> Effects.essentiaDrop(p.level(), v).color(0.4F, 0.8F, 1F).alpha(0.7F).send());
-        register("jarSplash", "Jar splash droplet (TC dec-color 2650102 = #286176)", (p, v) -> Effects.jarSplash(p.level(), v).send());
+        register("jarSplash", "Jar splash droplet (#286176)", (p, v) -> Effects.jarSplash(p.level(), v).send());
 
-        register("vent", "FXVent puff (faithful TC vent)", (p, v) -> Effects.vent(p.level(), v).motion(0, 0.1, 0).color(0x808080).scale(1F).send());
-        register("vent2", "FXVent2 puff with jittered colors + gaussian gravity", (p, v) -> Effects.vent2(p.level(), v).motion(0, 0.15, 0).color(0x800080).scale(1F).withFlame().send());
+        register("vent", "Vent puff", (p, v) -> Effects.vent(p.level(), v).motion(0, 0.1, 0).color(0x808080).scale(1F).send());
+        register("vent2", "Second vent puff with jittered colors and gaussian gravity", (p, v) -> Effects.vent2(p.level(), v).motion(0, 0.15, 0).color(0x800080).scale(1F).withFlame().send());
 
         register("arcLightning", "Parabolic arc from eye to target with child sparkles", (p, v) -> Effects.arcLightning(p.level(), p.getEyePosition()).to(v).color(0xFFFFFF).gravity(0.2F).send());
         register("arcBolt", "Lightning bolt twin-cone from eye to target", (p, v) -> Effects.arcBolt(p.level(), p.getEyePosition()).to(v).color(0x80C0FF).width(1F).send());
@@ -69,7 +69,7 @@ public final class ParticleDemos {
 
         register("fluxVent_legacy", "Legacy flux vent path (now Effects.vent2 with flame)", (p, v) -> Effects.vent2(p.level(), v).motion(0, 0.15, 0).color(0x800080).scale(1F).withFlame().send());
 
-        register("blockRunes", "Block runes (4 calls, 4 face rotations) — purple", (p, v) -> {
+        register("blockRunes", "Block runes (4 calls, 4 face rotations), purple", (p, v) -> {
             for (int i = 0; i < 4; i++)
                 Effects.blockRunes(p.level(), v).color(0.8F, 0.2F, 1.0F).duration(20).send();
         });
@@ -77,7 +77,7 @@ public final class ParticleDemos {
             for (int i = 0; i < 4; i++)
                 Effects.blockRunes2(p.level(), v).color(0.4F, 1.0F, 0.6F).duration(20).send();
         });
-        register("smokeSpiral", "Spiral smoke trail spawned 20× in burst", (p, v) -> {
+        register("smokeSpiral", "Spiral smoke trail spawned 20 times in a burst", (p, v) -> {
             for (int i = 0; i < 20; i++) {
                 Effects.smokeSpiral(p.level(), v).radius(1.5F).start(i * 18).minY((int) v.y).color(0x808080).send();
             }
