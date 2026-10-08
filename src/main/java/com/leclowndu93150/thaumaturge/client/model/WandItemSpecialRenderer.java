@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.model;
 
+import net.minecraft.world.item.ItemDisplayContext;
+import com.leclowndu93150.thaumaturge.api.wands.render.WandRenderers;
+import com.leclowndu93150.thaumaturge.api.wands.render.WandRenderContext;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.client.casters.FocusColors;
@@ -35,7 +38,7 @@ import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
 public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandItemSpecialRenderer.WandArg> {
-    public record WandArg(WandCap cap, WandRod rod, boolean sceptre, boolean hasFocus, int focusColor) {
+    public record WandArg(ItemStack stack, WandCap cap, WandRod rod, boolean sceptre, boolean hasFocus, int focusColor) {
     }
 
     private static final Identifier WAND_TEXTURE = TTIds.rl("textures/models/wand.png");
@@ -82,7 +85,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.pushPose();
         poseStack.translate(0.5F, MODEL_LIFT, 0.5F);
         poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        submitParts(arg, poseStack, collector, light);
+        WandRenderers.render(context(arg.stack(), arg, poseStack, collector, light, overlay, null, false));
         poseStack.popPose();
     }
 
@@ -100,6 +103,10 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
     private static final float RUNE_HEIGHT = -0.01F;
 
     public static void submitParts(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        submitParts(arg, poseStack, collector, light, 0xFFFFFFFF, 0xFFFFFFFF);
+    }
+
+    public static void submitParts(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, int rodTint, int capTint) {
         boolean staff = arg.rod().staff();
         float ticks = clientTicks();
 
@@ -107,8 +114,8 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         if (staff) {
             poseStack.translate(0.0F, STAFF_MODEL_SHIFT, 0.0F);
         }
-        submitRod(arg, poseStack, collector, light, staff, ticks);
-        submitCaps(arg, poseStack, collector, light, staff);
+        submitRod(arg, poseStack, collector, light, staff, ticks, rodTint);
+        submitCaps(arg, poseStack, collector, light, staff, capTint);
         if (arg.hasFocus()) {
             submitFocus(arg, poseStack, collector, staff, ticks);
         }
@@ -121,7 +128,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         poseStack.popPose();
     }
 
-    private static void submitRod(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, boolean staff, float ticks) {
+    private static void submitRod(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, boolean staff, float ticks, int rodTint) {
         int rodLight = arg.rod().glow() ? (int) (200.0F + Mth.sin((int) ticks) * 5.0F + 5.0F) : light;
         RenderType rodType = TTFlatRenderTypes.entityCutoutFlat(arg.rod().texture());
         poseStack.pushPose();
@@ -130,7 +137,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
             poseStack.scale(1.2F, 2.0F, 1.2F);
         }
         PoseStack.Pose rodPose = poseStack.last().copy();
-        collector.submitCustomGeometry(poseStack, rodType, (pose, buffer) -> box(rodPose, buffer, -1.0F, 1.0F, -1.0F, 2, 18, 2, 0, 8, 0xFFFFFFFF, rodLight));
+        collector.submitCustomGeometry(poseStack, rodType, (pose, buffer) -> box(rodPose, buffer, -1.0F, 1.0F, -1.0F, 2, 18, 2, 0, 8, rodTint, rodLight));
         poseStack.popPose();
     }
 
@@ -151,7 +158,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         return layout;
     }
 
-    private static void submitCaps(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, boolean staff) {
+    private static void submitCaps(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, boolean staff, int capTint) {
         RenderType capType = TTFlatRenderTypes.entityCutoutFlat(arg.cap().texture());
         poseStack.pushPose();
         if (staff) {
@@ -165,7 +172,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
             poseStack.scale(placement.scaleXZ(), placement.scaleY(), placement.scaleXZ());
             poseStack.translate(0.0F, placement.pivotPx() * PX, 0.0F);
             PoseStack.Pose pose = poseStack.last().copy();
-            collector.submitCustomGeometry(poseStack, capType, (p, buffer) -> box(pose, buffer, -1.0F, -1.0F, -1.0F, 2, 2, 2, 0, 0, 0xFFFFFFFF, light));
+            collector.submitCustomGeometry(poseStack, capType, (p, buffer) -> box(pose, buffer, -1.0F, -1.0F, -1.0F, 2, 2, 2, 0, 0, capTint, light));
             poseStack.popPose();
         }
         poseStack.popPose();
@@ -281,7 +288,7 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         }
         boolean hasFocus = FocusItems.isFocus(focusStack);
         int color = hasFocus ? FocusColors.of(focusStack) : 0xFFFFFF;
-        return new WandArg(parts.cap(), parts.rod(), parts.sceptre(), hasFocus, color);
+        return new WandArg(stack.copy(), parts.cap(), parts.rod(), parts.sceptre(), hasFocus, color);
     }
 
     public record Unbaked(boolean staff) implements SpecialModelRenderer.Unbaked<WandArg> {
@@ -297,5 +304,10 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         public MapCodec<Unbaked> type() {
             return MAP_CODEC;
         }
+    }
+
+    public static WandRenderContext context(ItemStack stack, WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, int overlay, @Nullable ItemDisplayContext displayContext, boolean firstPersonHand) {
+        return new WandRenderContext(stack, arg.cap(), arg.rod(), arg.sceptre(), arg.hasFocus(), arg.focusColor(), poseStack, collector, light, overlay, displayContext, firstPersonHand,
+                (rodTint, capTint) -> submitParts(arg, poseStack, collector, light, rodTint, capTint));
     }
 }

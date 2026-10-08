@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.wands;
 
+import java.util.Map;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import java.util.List;
@@ -21,6 +22,7 @@ public final class WandCap {
     private final float baseCostModifier;
     private final List<ResourceKey<IAspect>> specialCostAspects;
     private final float specialCostModifier;
+    private final Map<ResourceKey<IAspect>, Float> aspectCostModifiers;
     private final int craftCost;
     private final Identifier texture;
 
@@ -35,9 +37,28 @@ public final class WandCap {
      * @param texture             the texture rendered on wand models built with this cap
      */
     public WandCap(float baseCostModifier, List<ResourceKey<IAspect>> specialCostAspects, float specialCostModifier, int craftCost, Identifier texture) {
+        this.aspectCostModifiers = Map.of();
         this.baseCostModifier = baseCostModifier;
         this.specialCostAspects = List.copyOf(specialCostAspects);
         this.specialCostModifier = specialCostModifier;
+        this.craftCost = craftCost;
+        this.texture = texture;
+    }
+
+    /**
+     * Creates a cap with independent cost multipliers for individual aspects.
+     *
+     * @param baseCostModifier fallback multiplier for unlisted aspects
+     * @param aspectCostModifiers aspect-specific multipliers, copied immutably
+     * @param craftCost crafting cost factor used for wand assembly
+     * @param texture texture rendered on the cap
+     * @since 1.0.0
+     */
+    public WandCap(float baseCostModifier, Map<ResourceKey<IAspect>, Float> aspectCostModifiers, int craftCost, Identifier texture) {
+        this.baseCostModifier = baseCostModifier;
+        this.specialCostAspects = List.of();
+        this.specialCostModifier = baseCostModifier;
+        this.aspectCostModifiers = Map.copyOf(aspectCostModifiers);
         this.craftCost = craftCost;
         this.texture = texture;
     }
@@ -70,7 +91,7 @@ public final class WandCap {
      * @return the applicable cost multiplier
      */
     public float costModifier(ResourceKey<IAspect> aspect) {
-        return specialCostAspects.contains(aspect) ? specialCostModifier : baseCostModifier;
+        return aspectCostModifiers.getOrDefault(aspect, specialCostAspects.contains(aspect) ? specialCostModifier : baseCostModifier);
     }
 
     /**
