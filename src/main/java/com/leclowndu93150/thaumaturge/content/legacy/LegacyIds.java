@@ -21,7 +21,7 @@ public final class LegacyIds {
     private LegacyIds() {}
 
     public static Identifier migrate(Identifier id) {
-        return LEGACY_NAMESPACE.equals(id.getNamespace()) ? Identifier.fromNamespaceAndPath(TTIds.MODID, migratePath(id.getPath())) : id;
+        return LEGACY_NAMESPACE.equals(id.getNamespace()) ? TTIds.rl(migratePath(id.getPath())) : id;
     }
 
     private static String migratePath(String path) {

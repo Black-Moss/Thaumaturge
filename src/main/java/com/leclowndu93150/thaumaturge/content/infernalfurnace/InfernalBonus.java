@@ -13,7 +13,6 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
@@ -37,9 +36,8 @@ public record InfernalBonus(HolderSet<Item> items, IntProvider count, float chan
                     IntProviders.codec(1, 64).optionalFieldOf("count", new ConstantInt(1)).forGetter(InfernalBonus::count),
                     Codec.floatRange(0, 1).optionalFieldOf("chance", 1.0f).forGetter(InfernalBonus::chance)).apply(instance, InfernalBonus::new));
 
-    public static final AdvancedDataMapType<Item, List<InfernalBonus>, Remover> DATA_MAP = AdvancedDataMapType
-            .builder(Identifier.fromNamespaceAndPath(TTIds.MODID, "infernal_bonus"), Registries.ITEM, CODEC.listOf(1, 64)).merger((_, _, fv, _, sv) -> Stream.concat(fv.stream(), sv.stream()).toList())
-            .remover(Remover.CODEC).synced(CODEC.listOf(1, 64), false).build();
+    public static final AdvancedDataMapType<Item, List<InfernalBonus>, Remover> DATA_MAP = AdvancedDataMapType.builder(TTIds.rl("infernal_bonus"), Registries.ITEM, CODEC.listOf(1, 64))
+            .merger((_, _, fv, _, sv) -> Stream.concat(fv.stream(), sv.stream()).toList()).remover(Remover.CODEC).synced(CODEC.listOf(1, 64), false).build();
 
     @SubscribeEvent
     public static void onRegister(RegisterDataMapTypesEvent event) {

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.recipe;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,12 +14,11 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import org.jspecify.annotations.Nullable;
 
 public record Blueprint(int xSize, int ySize, int zSize, Map<Character, BlueprintPart> keys, List<List<String>> pattern) {
-    public static final ResourceKey<Registry<Blueprint>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "blueprint"));
+    public static final ResourceKey<Registry<Blueprint>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("blueprint"));
 
     private static final Codec<Character> SYMBOL_CODEC = Codec.STRING.comapFlatMap((symbol) -> {
         if (symbol.length() != 1) {

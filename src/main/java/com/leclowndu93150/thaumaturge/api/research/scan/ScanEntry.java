@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.research.scan;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
@@ -41,7 +42,7 @@ public record ScanEntry(Identifier key, Optional<HolderSet<Block>> blocks, Optio
     /**
      * The datapack registry housing scan entries, at {@code data/<ns>/thaumaturge/scan/}.
      */
-    public static final ResourceKey<Registry<ScanEntry>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "scan"));
+    public static final ResourceKey<Registry<ScanEntry>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("scan"));
 
     /**
      * Codec used for both datapack loading and network sync.

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.golems.parts;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import java.util.List;
 import net.minecraft.core.Holder;
@@ -15,7 +16,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemAddon extends GolemPart {
     /** The registry key for golem addons. */
-    public static final ResourceKey<Registry<GolemAddon>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_addon"));
+    public static final ResourceKey<Registry<GolemAddon>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("golem_addon"));
 
     /**
      * @param research   research entries gating this addon; empty means ungated

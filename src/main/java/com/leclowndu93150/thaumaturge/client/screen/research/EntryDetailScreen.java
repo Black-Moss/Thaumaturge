@@ -202,8 +202,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
 
     private static final int LABEL_TINT = 0x40FFFFFF;
 
-    private static final Identifier FIRSTSTEPS_RESEARCH = Identifier.fromNamespaceAndPath(TTIds.MODID, "first_steps");
-    private static final Identifier KNOWLEDGETYPES_RESEARCH = Identifier.fromNamespaceAndPath(TTIds.MODID, "knowledge_types");
+    private static final Identifier FIRSTSTEPS_RESEARCH = TTIds.rl("first_steps");
+    private static final Identifier KNOWLEDGETYPES_RESEARCH = TTIds.rl("knowledge_types");
 
     private static final int ASPECTS_INSERT_OFFSET_X = 60;
     private static final int ASPECTS_INSERT_OFFSET_Y = 24;
@@ -747,7 +747,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             return;
         int ticksExisted = minecraft.player.tickCount;
         int frame = ticksExisted % FORBIDDEN_NODE_FRAME_COUNT;
-        Identifier nodeTex = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/misc/auranodes.png");
+        Identifier nodeTex = TTIds.rl("textures/misc/auranodes.png");
         int u = frame * FORBIDDEN_NODE_CELL_PX;
         int v = FORBIDDEN_NODE_ROW * FORBIDDEN_NODE_CELL_PX;
         int half = FORBIDDEN_NODE_DRAW_SIZE / 2;
@@ -1226,8 +1226,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             return;
         int count = -1;
         int start = aspectsPage * ASPECT_PAGE_ROWS;
-        Identifier backTile = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/aspects/_back.png");
-        Identifier unknownTile = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/aspects/_unknown.png");
+        Identifier backTile = TTIds.rl("textures/aspects/_back.png");
+        Identifier unknownTile = TTIds.rl("textures/aspects/_unknown.png");
         List<AspectInstance> sorted = known.sortedByTag();
         for (AspectInstance entry : sorted) {
             count++;
@@ -1447,7 +1447,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     }
 
     private void drawKnowledgeIcon(GuiGraphicsExtractor graphics, int x, int y, KnowledgeType type, Holder.Reference<IResearchCategory> category) {
-        Identifier typeIcon = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/research/knowledge_" + type.getSerializedName() + ".png");
+        Identifier typeIcon = TTIds.rl("textures/research/knowledge_" + type.getSerializedName() + ".png");
         graphics.pose().pushMatrix();
         graphics.pose().translate(x, y);
         graphics.pose().scale(KNOW_ICON_SCALE_INPAGE, KNOW_ICON_SCALE_INPAGE);

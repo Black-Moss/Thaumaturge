@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.essentia;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;
 
@@ -25,21 +25,19 @@ import net.neoforged.neoforge.capabilities.ItemCapability;
  */
 public final class EssentiaCapabilities {
     /** Sided block capability for essentia transport. */
-    public static final BlockCapability<IEssentiaTransport, Direction> TRANSPORT = BlockCapability.createSided(Identifier.fromNamespaceAndPath("thaumaturge", "essentia_transport"),
-            IEssentiaTransport.class);
+    public static final BlockCapability<IEssentiaTransport, Direction> TRANSPORT = BlockCapability.createSided(TTIds.rl("essentia_transport"), IEssentiaTransport.class);
 
     /** Sided block capability for listable, transactional essentia storage. */
-    public static final BlockCapability<IEssentiaStorage, Direction> STORAGE = BlockCapability.createSided(Identifier.fromNamespaceAndPath("thaumaturge", "essentia_storage"), IEssentiaStorage.class);
+    public static final BlockCapability<IEssentiaStorage, Direction> STORAGE = BlockCapability.createSided(TTIds.rl("essentia_storage"), IEssentiaStorage.class);
 
     /** Item capability for the essentia a stack carries. */
-    public static final ItemCapability<IItemEssentia, Void> CONTAINER = ItemCapability.createVoid(Identifier.fromNamespaceAndPath("thaumaturge", "essentia_container"), IItemEssentia.class);
+    public static final ItemCapability<IItemEssentia, Void> CONTAINER = ItemCapability.createVoid(TTIds.rl("essentia_container"), IItemEssentia.class);
 
     /** Item capability for essentia items automation may fill and drain. */
-    public static final ItemCapability<IEssentiaItemStorage, Void> ITEM_STORAGE = ItemCapability.createVoid(Identifier.fromNamespaceAndPath("thaumaturge", "essentia_item_storage"),
-            IEssentiaItemStorage.class);
+    public static final ItemCapability<IEssentiaItemStorage, Void> ITEM_STORAGE = ItemCapability.createVoid(TTIds.rl("essentia_item_storage"), IEssentiaItemStorage.class);
 
     /** Sided block capability for synthetic aspect queries (filters, routing intents). */
-    public static final BlockCapability<IAspectQuery, Direction> ASPECT_QUERY = BlockCapability.createSided(Identifier.fromNamespaceAndPath("thaumaturge", "aspect_query"), IAspectQuery.class);
+    public static final BlockCapability<IAspectQuery, Direction> ASPECT_QUERY = BlockCapability.createSided(TTIds.rl("aspect_query"), IAspectQuery.class);
 
     private EssentiaCapabilities() {}
 }

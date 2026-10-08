@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.spell.fx;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -15,7 +15,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public interface SpellFxStyle {
     /** The registry key of effect styles. */
-    ResourceKey<Registry<SpellFxStyle>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "spell_fx"));
+    ResourceKey<Registry<SpellFxStyle>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("spell_fx"));
 
     /**
      * Spawns one particle of this style. Called on the client thread, several times per event.

@@ -83,7 +83,7 @@ public final class TTItemTags {
     private TTItemTags() {}
 
     private static TagKey<Item> key(String path) {
-        return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TTIds.MODID, path));
+        return TagKey.create(Registries.ITEM, TTIds.rl(path));
     }
 
     private static TagKey<Item> common(String path) {

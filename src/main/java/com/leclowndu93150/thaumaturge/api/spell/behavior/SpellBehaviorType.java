@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.spell.behavior;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPartKind;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -20,5 +20,5 @@ import net.minecraft.resources.ResourceKey;
  */
 public record SpellBehaviorType<B extends SpellBehavior>(SpellPartKind kind, MapCodec<B> codec) {
     /** The registry key of behaviour types. */
-    public static final ResourceKey<Registry<SpellBehaviorType<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "spell_behavior"));
+    public static final ResourceKey<Registry<SpellBehaviorType<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("spell_behavior"));
 }

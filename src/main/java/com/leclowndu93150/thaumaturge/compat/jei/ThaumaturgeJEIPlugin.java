@@ -91,7 +91,7 @@ import org.jspecify.annotations.Nullable;
 
 @JeiPlugin
 public final class ThaumaturgeJEIPlugin implements IModPlugin {
-    private static final Identifier PLUGIN_UID = Identifier.fromNamespaceAndPath(TTIds.MODID, "jei_plugin");
+    private static final Identifier PLUGIN_UID = TTIds.rl("jei_plugin");
 
     public ThaumaturgeJEIPlugin() {}
 

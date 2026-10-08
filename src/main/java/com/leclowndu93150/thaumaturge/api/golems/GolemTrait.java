@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.golems;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import java.util.Objects;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemTrait {
     /** The registry key for golem traits. */
-    public static final ResourceKey<Registry<GolemTrait>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_trait"));
+    public static final ResourceKey<Registry<GolemTrait>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("golem_trait"));
 
     private final Identifier icon;
     private final @Nullable ResourceKey<GolemTrait> opposite;

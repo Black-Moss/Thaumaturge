@@ -27,7 +27,7 @@ public final class EntryIconRenderer {
     public static final int ICON_REFERENCE_SIZE = 16;
     public static final int HIT_PADDING = 2;
 
-    public static final Identifier NODE_TEXTURE = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/misc/auranodes.png");
+    public static final Identifier NODE_TEXTURE = TTIds.rl("textures/misc/auranodes.png");
     private static final int NODE_TEXTURE_SIZE = 2048;
     private static final int NODE_GRID = 32;
     private static final int NODE_FRAME_SIZE = NODE_TEXTURE_SIZE / NODE_GRID;

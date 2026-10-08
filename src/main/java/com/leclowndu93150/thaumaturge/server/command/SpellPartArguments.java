@@ -64,6 +64,6 @@ public final class SpellPartArguments {
     }
 
     private static Identifier id(String token) {
-        return token.contains(":") ? Identifier.parse(token) : Identifier.fromNamespaceAndPath(TTIds.MODID, token);
+        return token.contains(":") ? Identifier.parse(token) : TTIds.rl(token);
     }
 }

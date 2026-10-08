@@ -13,12 +13,12 @@ import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class BeamRenderType {
-    public static final Identifier BEAM = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/effect/beam1.png");
-    public static final Identifier BEAML = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/effect/beaml.png");
-    public static final Identifier BEAMH = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/effect/beamh.png");
-    public static final Identifier NODE = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/effect/auranodes.png");
+    public static final Identifier BEAM = TTIds.rl("textures/effect/beam1.png");
+    public static final Identifier BEAML = TTIds.rl("textures/effect/beaml.png");
+    public static final Identifier BEAMH = TTIds.rl("textures/effect/beamh.png");
+    public static final Identifier NODE = TTIds.rl("textures/effect/auranodes.png");
 
-    public static final RenderPipeline PIPELINE = TTFXPipelines.additiveTextured(Identifier.fromNamespaceAndPath(TTIds.MODID, "pipeline/beam"));
+    public static final RenderPipeline PIPELINE = TTFXPipelines.additiveTextured(TTIds.rl("pipeline/beam"));
 
     public static final RenderType TRUNK_BEAM = makeType("thaumaturge_beam_trunk_beam", BEAM);
     public static final RenderType TRUNK_BEAML = makeType("thaumaturge_beam_trunk_beaml", BEAML);

@@ -9,12 +9,11 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundSpellDraftPayload(BlockPos pos, String name, Spell spell) implements CustomPacketPayload {
-    public static final Type<ServerboundSpellDraftPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TTIds.MODID, "spell_draft"));
+    public static final Type<ServerboundSpellDraftPayload> TYPE = new Type<>(TTIds.rl("spell_draft"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundSpellDraftPayload> STREAM_CODEC = StreamCodec.composite(BlockPos.STREAM_CODEC, ServerboundSpellDraftPayload::pos,
             ByteBufCodecs.stringUtf8(BlockEntityFocalManipulator.MAX_NAME_LENGTH), ServerboundSpellDraftPayload::name, Spell.STREAM_CODEC, ServerboundSpellDraftPayload::spell,

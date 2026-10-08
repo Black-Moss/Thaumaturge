@@ -49,7 +49,7 @@ public final class TubeModels {
     }
 
     private static Identifier id(String path) {
-        return Identifier.fromNamespaceAndPath(TTIds.MODID, path);
+        return TTIds.rl(path);
     }
 
     private static void registerTube(BlockModelGenerators blockModels, Block block, Identifier coreModel, Identifier sideModel) {

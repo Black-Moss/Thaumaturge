@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public final class TaintSeedRenderer extends MobRenderer<AbstractTaintSeed, TaintSeedRenderState, TaintSeedModel> {
-    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/entity/taint_seed.png");
+    private static final Identifier TEXTURE = TTIds.rl("textures/entity/taint_seed.png");
     private static final float HEIGHT_SCALE_DIVISOR = 2.0F;
     private static final float EMERGE_TICKS_PER_HEIGHT = 10.0F;
 

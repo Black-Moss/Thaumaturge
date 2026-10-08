@@ -13,7 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 public final class CrystalItemModelGenerator {
-    private static final Identifier PLANTER_TEXTURE = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/crystal_planter");
+    private static final Identifier PLANTER_TEXTURE = TTIds.rl("item/crystal_planter");
 
     private CrystalItemModelGenerator() {}
 

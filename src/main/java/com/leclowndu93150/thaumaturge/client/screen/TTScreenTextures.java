@@ -29,10 +29,10 @@ public final class TTScreenTextures {
     private TTScreenTextures() {}
 
     private static Identifier gui(String name) {
-        return Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/gui/" + name);
+        return TTIds.rl("textures/gui/" + name);
     }
 
     private static Identifier research(String name) {
-        return Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/research/" + name);
+        return TTIds.rl("textures/research/" + name);
     }
 }

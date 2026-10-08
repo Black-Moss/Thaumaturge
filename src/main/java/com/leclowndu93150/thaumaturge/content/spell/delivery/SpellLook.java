@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.spell.delivery;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
@@ -21,7 +22,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 public record SpellLook(Identifier fx, int color) {
-    public static final Identifier DEFAULT_FX = Identifier.fromNamespaceAndPath("thaumaturge", "sparkle");
+    public static final Identifier DEFAULT_FX = TTIds.rl("sparkle");
     public static final SpellLook DEFAULT = new SpellLook(DEFAULT_FX, 0xFFFFFF);
 
     public static final Codec<SpellLook> CODEC = RecordCodecBuilder.create(i -> i

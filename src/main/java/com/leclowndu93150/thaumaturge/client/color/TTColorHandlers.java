@@ -9,11 +9,11 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class TTColorHandlers {
-    public static final Identifier ASPECT_COLOR_TINT_ID = Identifier.fromNamespaceAndPath(TTIds.MODID, "aspect_color");
-    public static final Identifier CRYSTAL_ASPECT_TINT_ID = Identifier.fromNamespaceAndPath(TTIds.MODID, "crystal_aspect");
-    public static final Identifier FOCUS_COLOR_TINT_ID = Identifier.fromNamespaceAndPath(TTIds.MODID, "focus_color");
-    public static final Identifier GOLEM_MATERIAL_TINT_ID = Identifier.fromNamespaceAndPath(TTIds.MODID, "golem_material");
-    public static final Identifier NOTE_COLOR_TINT_ID = Identifier.fromNamespaceAndPath(TTIds.MODID, "note_color");
+    public static final Identifier ASPECT_COLOR_TINT_ID = TTIds.rl("aspect_color");
+    public static final Identifier CRYSTAL_ASPECT_TINT_ID = TTIds.rl("crystal_aspect");
+    public static final Identifier FOCUS_COLOR_TINT_ID = TTIds.rl("focus_color");
+    public static final Identifier GOLEM_MATERIAL_TINT_ID = TTIds.rl("golem_material");
+    public static final Identifier NOTE_COLOR_TINT_ID = TTIds.rl("note_color");
 
     private TTColorHandlers() {}
 

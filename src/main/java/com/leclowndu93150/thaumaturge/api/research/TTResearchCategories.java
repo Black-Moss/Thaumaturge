@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.research;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -24,6 +23,6 @@ public final class TTResearchCategories {
     private TTResearchCategories() {}
 
     private static ResourceKey<IResearchCategory> key(String path) {
-        return ResourceKey.create(IResearchCategory.REGISTRY_KEY, Identifier.fromNamespaceAndPath(TTIds.MODID, path));
+        return ResourceKey.create(IResearchCategory.REGISTRY_KEY, TTIds.rl(path));
     }
 }

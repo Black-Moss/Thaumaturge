@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.golems.seals;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class SealType {
     /** The seal type registry. */
-    public static final ResourceKey<Registry<SealType>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "seal"));
+    public static final ResourceKey<Registry<SealType>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("seal"));
 
     private final Supplier<? extends ISealBehavior> behavior;
     private final MapCodec<ISealBehavior> behaviorCodec;

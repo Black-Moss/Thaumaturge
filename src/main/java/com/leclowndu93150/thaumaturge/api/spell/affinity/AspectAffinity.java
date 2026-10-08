@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.spell.affinity;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.api.spell.SpellRegistries;
 import com.mojang.serialization.Codec;
@@ -32,16 +33,15 @@ import net.minecraft.sounds.SoundEvent;
 public record AspectAffinity(Identifier fx, int complexity, float vis, Optional<ResearchGate> research, Optional<Holder<SoundEvent>> sound, List<SpellAction> entity, List<SpellAction> block,
         List<SpellAction> imbue) {
     /** The datapack registry key of affinities. */
-    public static final ResourceKey<Registry<AspectAffinity>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "spell_affinity"));
+    public static final ResourceKey<Registry<AspectAffinity>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("spell_affinity"));
 
     /** Disk and network codec. */
-    public static final Codec<AspectAffinity> CODEC = RecordCodecBuilder
-            .create(i -> i.group(Identifier.CODEC.optionalFieldOf("fx", Identifier.fromNamespaceAndPath("thaumaturge", "sparkle")).forGetter(AspectAffinity::fx),
-                    Codec.INT.optionalFieldOf("complexity", 0).forGetter(AspectAffinity::complexity), Codec.FLOAT.optionalFieldOf("vis", 0.0F).forGetter(AspectAffinity::vis),
-                    ResearchGate.CODEC.optionalFieldOf("research").forGetter(AspectAffinity::research), SoundEvent.CODEC.optionalFieldOf("sound").forGetter(AspectAffinity::sound),
-                    SpellRegistries.ACTION_CODEC.listOf().optionalFieldOf("entity", List.of()).forGetter(AspectAffinity::entity),
-                    SpellRegistries.ACTION_CODEC.listOf().optionalFieldOf("block", List.of()).forGetter(AspectAffinity::block),
-                    SpellRegistries.ACTION_CODEC.listOf().optionalFieldOf("imbue", List.of()).forGetter(AspectAffinity::imbue)).apply(i, AspectAffinity::new));
+    public static final Codec<AspectAffinity> CODEC = RecordCodecBuilder.create(i -> i.group(Identifier.CODEC.optionalFieldOf("fx", TTIds.rl("sparkle")).forGetter(AspectAffinity::fx),
+            Codec.INT.optionalFieldOf("complexity", 0).forGetter(AspectAffinity::complexity), Codec.FLOAT.optionalFieldOf("vis", 0.0F).forGetter(AspectAffinity::vis),
+            ResearchGate.CODEC.optionalFieldOf("research").forGetter(AspectAffinity::research), SoundEvent.CODEC.optionalFieldOf("sound").forGetter(AspectAffinity::sound),
+            SpellRegistries.ACTION_CODEC.listOf().optionalFieldOf("entity", List.of()).forGetter(AspectAffinity::entity),
+            SpellRegistries.ACTION_CODEC.listOf().optionalFieldOf("block", List.of()).forGetter(AspectAffinity::block),
+            SpellRegistries.ACTION_CODEC.listOf().optionalFieldOf("imbue", List.of()).forGetter(AspectAffinity::imbue)).apply(i, AspectAffinity::new));
 
     /**
      * Canonicalizes the lists into immutable copies.

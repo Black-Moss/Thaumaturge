@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.labyrinth;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
 
@@ -22,7 +22,7 @@ public interface LabyrinthEncounter {
     /**
      * Key of the datapack registry that holds encounter entries, {@code thaumaturge:labyrinth_encounter}.
      */
-    ResourceKey<Registry<LabyrinthEncounter>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "labyrinth_encounter"));
+    ResourceKey<Registry<LabyrinthEncounter>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("labyrinth_encounter"));
 
     /**
      * Inline encounter codec, dispatching on {@code type} through the {@link LabyrinthEncounterType} registry.

@@ -13,9 +13,9 @@ import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class EssentiaStreamRenderType {
-    public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/effect/essentia.png");
+    public static final Identifier TEXTURE = TTIds.rl("textures/effect/essentia.png");
 
-    public static final RenderPipeline PIPELINE = TTFXPipelines.translucentTextured(Identifier.fromNamespaceAndPath(TTIds.MODID, "pipeline/essentia_stream"));
+    public static final RenderPipeline PIPELINE = TTFXPipelines.translucentTextured(TTIds.rl("pipeline/essentia_stream"));
 
     public static final RenderType RENDER_TYPE = RenderType.create("thaumaturge_essentia_stream", RenderSetup.builder(PIPELINE).withTexture("Sampler0", TEXTURE).createRenderSetup());
 

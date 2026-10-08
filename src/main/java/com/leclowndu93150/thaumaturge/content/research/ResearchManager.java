@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
@@ -45,7 +46,7 @@ public final class ResearchManager {
     private ResearchManager() {}
 
     public static Identifier craftedKey(Identifier item) {
-        return Identifier.fromNamespaceAndPath("thaumaturge", CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
+        return TTIds.rl(CRAFTED_PREFIX + item.getNamespace() + "/" + item.getPath());
     }
 
     public static boolean unlockRequested(ServerPlayer player, Identifier research) {

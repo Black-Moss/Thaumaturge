@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.api.spell.affinity;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -15,5 +15,5 @@ import net.minecraft.resources.ResourceKey;
  */
 public record SpellActionType<A extends SpellAction>(MapCodec<A> codec) {
     /** The registry key of action types. */
-    public static final ResourceKey<Registry<SpellActionType<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "spell_action"));
+    public static final ResourceKey<Registry<SpellActionType<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("spell_action"));
 }

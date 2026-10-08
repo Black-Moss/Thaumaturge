@@ -68,10 +68,10 @@ public final class CategoryBootstrap {
     }
 
     private static Identifier tex(String path) {
-        return Identifier.fromNamespaceAndPath(TTIds.MODID, path);
+        return TTIds.rl(path);
     }
 
     private static Identifier unlock(String which) {
-        return Identifier.fromNamespaceAndPath(TTIds.MODID, "unlock_" + which);
+        return TTIds.rl("unlock_" + which);
     }
 }

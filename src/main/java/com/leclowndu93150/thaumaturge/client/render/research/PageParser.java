@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.render.research;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public final class PageParser {
     private static final float BONUS_BREAK_FRACTION = 0.66F;
     private static final int IMAGE_GAP = 2;
 
-    private static final Identifier KNOWLEDGETYPES_ID = Identifier.fromNamespaceAndPath("thaumaturge", "knowledge_types");
+    private static final Identifier KNOWLEDGETYPES_ID = TTIds.rl("knowledge_types");
     private static final String ADDENDUM_TEXT_KEY = "gui.thaumaturge.thaumonomicon.addendum";
 
     private PageParser() {}
@@ -289,8 +290,8 @@ public final class PageParser {
     }
 
     public static final class PageImage {
-        public static final PageImage LINE_DIVIDER = new PageImage(Identifier.fromNamespaceAndPath("thaumaturge", "textures/gui/gui_researchbook.png"), 24, 184, 95, 6, 1.0F);
-        public static final PageImage SECTION_DIVIDER = new PageImage(Identifier.fromNamespaceAndPath("thaumaturge", "textures/gui/gui_researchbook.png"), 28, 192, 140, 6, 1.0F);
+        public static final PageImage LINE_DIVIDER = new PageImage(TTIds.rl("textures/gui/gui_researchbook.png"), 24, 184, 95, 6, 1.0F);
+        public static final PageImage SECTION_DIVIDER = new PageImage(TTIds.rl("textures/gui/gui_researchbook.png"), 28, 192, 140, 6, 1.0F);
 
         public final Identifier texture;
         public final int u;

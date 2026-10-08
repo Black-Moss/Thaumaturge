@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.spell;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -7,7 +8,6 @@ import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -23,7 +23,7 @@ import net.minecraft.resources.ResourceKey;
  */
 public record Spell(CastStyle style, SpellNode root) {
     /** The hidden flow part every spell tree starts from. */
-    public static final ResourceKey<SpellPart> ORIGIN = ResourceKey.create(SpellPart.REGISTRY_KEY, Identifier.fromNamespaceAndPath("thaumaturge", "origin"));
+    public static final ResourceKey<SpellPart> ORIGIN = ResourceKey.create(SpellPart.REGISTRY_KEY, TTIds.rl("origin"));
 
     /** Disk codec. */
     public static final Codec<Spell> CODEC = RecordCodecBuilder

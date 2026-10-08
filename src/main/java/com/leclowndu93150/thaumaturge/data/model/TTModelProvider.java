@@ -170,9 +170,9 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private static void registerVoidRobePiece(ItemModelGenerators itemModels, Item item, String name) {
-        Identifier itemModelId = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/" + name);
-        Material clothTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/" + name + "_over"));
-        Material metalTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/" + name));
+        Identifier itemModelId = TTIds.rl("item/" + name);
+        Material clothTex = new Material(TTIds.rl("item/" + name + "_over"));
+        Material metalTex = new Material(TTIds.rl("item/" + name));
         ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, TextureMapping.layered(clothTex, metalTex), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Dye(ROBES_UNDYED_ARGB)));
     }
@@ -190,19 +190,19 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private static void registerInvisibleBlock(BlockModelGenerators blockModels, Block block) {
-        Identifier empty = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/empty");
+        Identifier empty = TTIds.rl("block/empty");
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(empty)));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
     }
 
     private static void registerNitor(BlockModelGenerators blockModels, ItemModelGenerators itemModels, DyeColor dye) {
         var block = TTBlocks.NITORS.get(dye).get();
-        Identifier empty = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/empty");
+        Identifier empty = TTIds.rl("block/empty");
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(empty)));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
 
         var item = TTItems.NITORS.get(dye).get();
-        Identifier itemModelId = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/nitor");
+        Identifier itemModelId = TTIds.rl("item/nitor");
         int rgb = dye.getTextureDiffuseColor() & 0xFFFFFF;
         ItemModel.Unbaked flat = ItemModelUtils.tintedModel(itemModelId, new Constant(rgb));
         ItemModel.Unbaked inHand = new SpecialModelWrapper.Unbaked(Identifier.withDefaultNamespace("block/block"), Optional.empty(), new NitorItemSpecialRenderer.Unbaked(block.dyeColor()));
@@ -222,18 +222,18 @@ public final class TTModelProvider extends ModelProvider {
         registerSimpleWithItem(blockModels, itemModels, TTBlocks.PEDESTAL_ANCIENT.get(), "pedestal_ancient");
         registerSimpleWithItem(blockModels, itemModels, TTBlocks.PEDESTAL_ELDRITCH.get(), "pedestal_eldritch");
         registerSimpleWithItem(blockModels, itemModels, TTBlocks.INFUSION_MATRIX.get(), "infusion_matrix");
-        itemModels.itemModelOutput.accept(TTBlocks.INFUSION_MATRIX.asItem(), ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/infusion_matrix")));
+        itemModels.itemModelOutput.accept(TTBlocks.INFUSION_MATRIX.asItem(), ItemModelUtils.plainModel(TTIds.rl("block/infusion_matrix")));
     }
 
     private static void registerPillar(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName, PropertyDispatch<VariantMutator> facing) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName);
+        Identifier model = TTIds.rl("block/" + modelName);
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant).with(facing));
         itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model), new ClientItem.Properties(true, true, 1));
     }
 
     private static void registerSimpleWithItem(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName);
+        Identifier model = TTIds.rl("block/" + modelName);
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, variant));
         if (block != TTBlocks.INFUSION_MATRIX.get()) {
@@ -242,19 +242,16 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private static void registerSpa(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
-        Identifier spaModel = ModelTemplates.CUBE_BOTTOM_TOP.create(ModelLocationUtils.getModelLocation(TTBlocks.SPA.get()),
-                new TextureMapping().put(TextureSlot.SIDE, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/spa_side")))
-                        .put(TextureSlot.TOP, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/spa_top")))
-                        .put(TextureSlot.BOTTOM, new Material(Identifier.withDefaultNamespace("block/furnace_top"))),
+        Identifier spaModel = ModelTemplates.CUBE_BOTTOM_TOP.create(
+                ModelLocationUtils.getModelLocation(TTBlocks.SPA.get()), new TextureMapping().put(TextureSlot.SIDE, new Material(TTIds.rl("block/spa_side")))
+                        .put(TextureSlot.TOP, new Material(TTIds.rl("block/spa_top"))).put(TextureSlot.BOTTOM, new Material(Identifier.withDefaultNamespace("block/furnace_top"))),
                 blockModels.modelOutput);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.SPA.get(), new MultiVariant(WeightedList.of(new Variant(spaModel)))));
         itemModels.itemModelOutput.accept(TTItems.SPA.get(), ItemModelUtils.plainModel(spaModel));
-        blockModels.blockStateOutput.accept(
-                MultiVariantGenerator.dispatch(TTBlocks.PURIFYING_FLUID.get(), new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/purifying_fluid"))))));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.PURIFYING_FLUID.get(), new MultiVariant(WeightedList.of(new Variant(TTIds.rl("block/purifying_fluid"))))));
         itemModels.generateFlatItem(TTItems.BUCKET_LIQUID_DEATH.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.BUCKET_PURIFYING.get(), ModelTemplates.FLAT_ITEM);
-        blockModels.blockStateOutput.accept(
-                MultiVariantGenerator.dispatch(TTBlocks.LIQUID_DEATH.get(), new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/liquid_death"))))));
+        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.LIQUID_DEATH.get(), new MultiVariant(WeightedList.of(new Variant(TTIds.rl("block/liquid_death"))))));
     }
 
     private static void registerGolemancy(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
@@ -288,30 +285,28 @@ public final class TTModelProvider extends ModelProvider {
 
         itemModels.itemModelOutput.accept(TTItems.GOLEM_PLACER.get(), new SpecialModelWrapper.Unbaked(TTIds.rl("item/golem_base"), Optional.empty(), new GolemItemSpecialRenderer.Unbaked()));
 
-        Identifier inlayDot = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/inlay_dot");
-        Identifier inlaySide = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/inlay_side");
+        Identifier inlayDot = TTIds.rl("block/inlay_dot");
+        Identifier inlaySide = TTIds.rl("block/inlay_side");
         MultiPartGenerator inlayGenerator = MultiPartGenerator.multiPart(TTBlocks.INLAY.get()).with(new MultiVariant(WeightedList.of(new Variant(inlayDot))));
         inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.NORTH, true), new MultiVariant(WeightedList.of(new Variant(inlaySide))));
         inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.EAST, true), new MultiVariant(WeightedList.of(BlockModelGenerators.Y_ROT_90.apply(new Variant(inlaySide)))));
         inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.SOUTH, true), new MultiVariant(WeightedList.of(BlockModelGenerators.Y_ROT_180.apply(new Variant(inlaySide)))));
         inlayGenerator = inlayGenerator.with(new ConditionBuilder().term(BlockInlay.WEST, true), new MultiVariant(WeightedList.of(BlockModelGenerators.Y_ROT_270.apply(new Variant(inlaySide)))));
         blockModels.blockStateOutput.accept(inlayGenerator);
-        Identifier inlayItemModel = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(TTItems.INLAY.get()), TextureMapping
-                .layered(new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/inlay_connect_under")), new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/inlay_connect1"))),
-                itemModels.modelOutput);
+        Identifier inlayItemModel = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(TTItems.INLAY.get()),
+                TextureMapping.layered(new Material(TTIds.rl("block/inlay_connect_under")), new Material(TTIds.rl("block/inlay_connect1"))), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(TTItems.INLAY.get(), ItemModelUtils.plainModel(inlayItemModel));
 
-        Identifier patternCrafterModel = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/pattern_crafter");
+        Identifier patternCrafterModel = TTIds.rl("block/pattern_crafter");
         PropertyDispatch<VariantMutator> patternCrafterFacing = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING).select(Direction.NORTH, BlockModelGenerators.NOP)
                 .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180).select(Direction.WEST, BlockModelGenerators.Y_ROT_270).select(Direction.EAST, BlockModelGenerators.Y_ROT_90);
         blockModels.blockStateOutput
                 .accept(MultiVariantGenerator.dispatch(TTBlocks.PATTERN_CRAFTER.get(), new MultiVariant(WeightedList.of(new Variant(patternCrafterModel)))).with(patternCrafterFacing));
         itemModels.itemModelOutput.accept(TTItems.PATTERN_CRAFTER.get(), ItemModelUtils.plainModel(patternCrafterModel));
 
-        Identifier sprayerModel = ModelTemplates.CUBE_BOTTOM_TOP.create(TTBlocks.POTION_SPRAYER.get(),
-                new TextureMapping().put(TextureSlot.TOP, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/potion_sprayer_top")))
-                        .put(TextureSlot.BOTTOM, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/potion_sprayer_bottom")))
-                        .put(TextureSlot.SIDE, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/potion_sprayer_side"))),
+        Identifier sprayerModel = ModelTemplates.CUBE_BOTTOM_TOP.create(
+                TTBlocks.POTION_SPRAYER.get(), new TextureMapping().put(TextureSlot.TOP, new Material(TTIds.rl("block/potion_sprayer_top")))
+                        .put(TextureSlot.BOTTOM, new Material(TTIds.rl("block/potion_sprayer_bottom"))).put(TextureSlot.SIDE, new Material(TTIds.rl("block/potion_sprayer_side"))),
                 blockModels.modelOutput);
         PropertyDispatch<VariantMutator> sprayerFacing = PropertyDispatch.modify(BlockStateProperties.FACING).select(Direction.UP, BlockModelGenerators.NOP)
                 .select(Direction.DOWN, BlockModelGenerators.X_ROT_180).select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
@@ -324,8 +319,8 @@ public final class TTModelProvider extends ModelProvider {
                 .select(Direction.DOWN, BlockModelGenerators.X_ROT_180).select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
                 .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180)).select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
                 .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
-        Identifier levitatorOn = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/levitator_on");
-        Identifier levitatorOff = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/levitator_off");
+        Identifier levitatorOn = TTIds.rl("block/levitator_on");
+        Identifier levitatorOff = TTIds.rl("block/levitator_off");
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.LEVITATOR.get()).with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
                 .select(true, new MultiVariant(WeightedList.of(new Variant(levitatorOn)))).select(false, new MultiVariant(WeightedList.of(new Variant(levitatorOff))))).with(levitatorFacing));
         itemModels.itemModelOutput.accept(TTItems.LEVITATOR.get(), ItemModelUtils.plainModel(levitatorOff));
@@ -336,7 +331,7 @@ public final class TTModelProvider extends ModelProvider {
 
         registerInvisibleBlock(blockModels, TTBlocks.GOLEM_BUILDER.get());
         itemModels.itemModelOutput.accept(TTItems.GOLEM_BUILDER.get(),
-                new SpecialModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/golem_builder_base"), Optional.empty(), new GolemBuilderItemSpecialRenderer.Unbaked()));
+                new SpecialModelWrapper.Unbaked(TTIds.rl("item/golem_builder_base"), Optional.empty(), new GolemBuilderItemSpecialRenderer.Unbaked()));
         registerInvisibleBlock(blockModels, TTBlocks.PLACEHOLDER_IRON_BARS.get());
         registerInvisibleBlock(blockModels, TTBlocks.PLACEHOLDER_CAULDRON.get());
         registerInvisibleBlock(blockModels, TTBlocks.PLACEHOLDER_ANVIL.get());
@@ -352,8 +347,8 @@ public final class TTModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TTItems.GRAPPLE_GUN_SPOOL.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.ELDRITCH_EYE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.RUNED_TABLET.get(), ModelTemplates.FLAT_ITEM);
-        ItemModel.Unbaked unloaded = ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/grapple_gun_1"));
-        ItemModel.Unbaked loaded = ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/grapple_gun_2"));
+        ItemModel.Unbaked unloaded = ItemModelUtils.plainModel(TTIds.rl("item/grapple_gun_1"));
+        ItemModel.Unbaked loaded = ItemModelUtils.plainModel(TTIds.rl("item/grapple_gun_2"));
         itemModels.itemModelOutput.accept(TTItems.GRAPPLE_GUN.get(), ItemModelUtils.conditional(ItemModelUtils.hasComponent(TTDataComponents.GRAPPLE_LOADED.get()), loaded, unloaded));
         registerActivatorRail(blockModels);
     }
@@ -395,26 +390,25 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private static void registerRobeItem(ItemModelGenerators itemModels, Item item, String name) {
-        Identifier itemModelId = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/" + name);
-        Material baseTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/" + name));
-        Material overTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/" + name + "_over"));
+        Identifier itemModelId = TTIds.rl("item/" + name);
+        Material baseTex = new Material(TTIds.rl("item/" + name));
+        Material overTex = new Material(TTIds.rl("item/" + name + "_over"));
         ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, TextureMapping.layered(baseTex, overTex), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item, ItemModelUtils.tintedModel(itemModelId, new Dye(ROBES_UNDYED_ARGB)));
     }
 
     private static void registerMirrorItem(ItemModelGenerators itemModels, Item item, String frameTexture) {
-        Material frame = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + frameTexture));
-        Identifier model = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(item),
-                TextureMapping.layered(frame, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/mirrorpane"))), itemModels.modelOutput);
-        Identifier linkedModel = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(item, "_on"),
-                TextureMapping.layered(frame, new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/mirrorpaneopen"))), itemModels.modelOutput);
+        Material frame = new Material(TTIds.rl("block/" + frameTexture));
+        Identifier model = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(item), TextureMapping.layered(frame, new Material(TTIds.rl("block/mirrorpane"))),
+                itemModels.modelOutput);
+        Identifier linkedModel = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(item, "_on"), TextureMapping.layered(frame, new Material(TTIds.rl("block/mirrorpaneopen"))),
+                itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item,
                 ItemModelUtils.conditional(new HasComponent(TTDataComponents.MIRROR_LINK.get(), false), ItemModelUtils.plainModel(linkedModel), ItemModelUtils.plainModel(model)));
     }
 
     private static void mirrorBlockState(BlockModelGenerators blockModels, Block block) {
-        Identifier model = ModelTemplates.PARTICLE_ONLY.createWithSuffix(block, "_state", TextureMapping.particle(new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/mirrorframe"))),
-                blockModels.modelOutput);
+        Identifier model = ModelTemplates.PARTICLE_ONLY.createWithSuffix(block, "_state", TextureMapping.particle(new Material(TTIds.rl("block/mirrorframe"))), blockModels.modelOutput);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)));
     }
 
@@ -489,7 +483,7 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private static void cubeAllTexture(BlockModelGenerators blockModels, Block block, String textureName) {
-        Identifier textureId = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + textureName);
+        Identifier textureId = TTIds.rl("block/" + textureName);
         Material texture = new Material(textureId);
         Identifier modelId = ModelTemplates.CUBE_ALL.create(block, TextureMapping.cube(texture), blockModels.modelOutput);
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(modelId)));
@@ -744,7 +738,7 @@ public final class TTModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TTItems.CHUNK_RABBIT.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.CHUNK_MUTTON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(TTItems.TRIPLE_MEAT_TREAT.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.itemModelOutput.accept(TTItems.THAUMOMETER.get(), ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/thaumometer")));
+        itemModels.itemModelOutput.accept(TTItems.THAUMOMETER.get(), ItemModelUtils.plainModel(TTIds.rl("item/thaumometer")));
         itemModels.generateFlatItem(TTItems.JAR_BRACE.get(), ModelTemplates.FLAT_ITEM);
         Identifier labelModelId = itemModels.createFlatItemModel(TTItems.LABEL.get(), ModelTemplates.FLAT_ITEM);
         Identifier labelOverlayModelId = itemModels.createFlatItemModel(TTItems.LABEL.get(), "_overlay", ModelTemplates.FLAT_ITEM);
@@ -805,9 +799,9 @@ public final class TTModelProvider extends ModelProvider {
         registerCelestialNotes(itemModels);
         registerBaubleItems(itemModels);
 
-        Identifier itemModelId = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/nitor");
-        Material baseTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/nitor"));
-        Material coreTex = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/nitor_core"));
+        Identifier itemModelId = TTIds.rl("item/nitor");
+        Material baseTex = new Material(TTIds.rl("block/nitor"));
+        Material coreTex = new Material(TTIds.rl("block/nitor_core"));
         TextureMapping textures = TextureMapping.layered(baseTex, coreTex);
         ModelTemplates.TWO_LAYERED_ITEM.create(itemModelId, textures, itemModels.modelOutput);
         for (DyeColor dye : DyeColor.values()) {
@@ -934,7 +928,7 @@ public final class TTModelProvider extends ModelProvider {
 
     private void horizontalBlock(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName, boolean oversizedInGui) {
         horizontalBlockState(blockModels, block, modelName);
-        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName), Optional.empty(), List.of()),
+        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(TTIds.rl("block/" + modelName), Optional.empty(), List.of()),
                 new ClientItem.Properties(true, oversizedInGui, 1));
     }
 
@@ -955,17 +949,17 @@ public final class TTModelProvider extends ModelProvider {
                 .select(Direction.UP, BlockModelGenerators.X_ROT_270).select(Direction.NORTH, BlockModelGenerators.NOP).select(Direction.EAST, BlockModelGenerators.Y_ROT_90)
                 .select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180).select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.BELLOWS.get(), variantOf("bellows")).with(rotations));
-        itemModels.itemModelOutput.accept(TTBlocks.BELLOWS.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/bellows"), Optional.empty(), List.of()));
+        itemModels.itemModelOutput.accept(TTBlocks.BELLOWS.asItem(), new CuboidItemModelWrapper.Unbaked(TTIds.rl("item/bellows"), Optional.empty(), List.of()));
     }
 
     private void registerBanners(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/tc_banner");
+        Identifier model = TTIds.rl("block/tc_banner");
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
-        Material stand = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/banner_stand"));
-        Material cloth = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/banner_cloth"));
-        Material symbol = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/banner_symbol"));
-        Identifier dyedItemModel = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/banner_dyed");
-        Identifier cultistItemModel = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/banner_cultist");
+        Material stand = new Material(TTIds.rl("item/banner_stand"));
+        Material cloth = new Material(TTIds.rl("item/banner_cloth"));
+        Material symbol = new Material(TTIds.rl("item/banner_symbol"));
+        Identifier dyedItemModel = TTIds.rl("item/banner_dyed");
+        Identifier cultistItemModel = TTIds.rl("item/banner_cultist");
         THREE_LAYERED_ITEM.create(dyedItemModel, TextureMapping.layered(stand, cloth, symbol), itemModels.modelOutput);
         ModelTemplates.TWO_LAYERED_ITEM.create(cultistItemModel, TextureMapping.layered(stand, new Material(cultistItemModel)), itemModels.modelOutput);
         for (DyeColor dye : DyeColor.values()) {
@@ -981,7 +975,7 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void registerCandles(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/candle");
+        Identifier model = TTIds.rl("block/candle");
         MultiVariant variant = new MultiVariant(WeightedList.of(new Variant(model)));
         for (DyeColor dye : DyeColor.values()) {
             Block candle = TTBlocks.CANDLES.get(dye).get();
@@ -991,9 +985,9 @@ public final class TTModelProvider extends ModelProvider {
         }
         for (CandleHolderMaterial material : CandleHolderMaterial.values()) {
             String name = "block/candle_holder_" + material.getSerializedName();
-            Identifier emptyHolder = Identifier.fromNamespaceAndPath(TTIds.MODID, name);
+            Identifier emptyHolder = TTIds.rl(name);
             MultiVariant empty = new MultiVariant(WeightedList.of(new Variant(emptyHolder)));
-            MultiVariant filled = new MultiVariant(WeightedList.of(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, name + "_filled"))));
+            MultiVariant filled = new MultiVariant(WeightedList.of(new Variant(TTIds.rl(name + "_filled"))));
             blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.CANDLE_HOLDERS.get(material).get())
                     .with(PropertyDispatch.initial(BlockCandleHolder.CANDLE).generate(held -> held.isPresent() ? filled : empty)));
             itemModels.itemModelOutput.accept(TTItems.CANDLE_HOLDERS.get(material).get(), ItemModelUtils.plainModel(emptyHolder));
@@ -1039,12 +1033,12 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void registerVerdantCharm(ItemModelGenerators itemModels) {
-        Material base = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/verdant_charm"));
+        Material base = new Material(TTIds.rl("item/verdant_charm"));
         List<SelectItemModel.SwitchCase<Integer>> cases = new ArrayList<>();
         Identifier fallback = null;
         for (int type = 0; type <= 2; type++) {
-            Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/verdant_charm_" + type);
-            Material overlay = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/verdant_charm_over_" + type));
+            Identifier model = TTIds.rl("item/verdant_charm_" + type);
+            Material overlay = new Material(TTIds.rl("item/verdant_charm_over_" + type));
             ModelTemplates.TWO_LAYERED_ITEM.create(model, TextureMapping.layered(base, overlay), itemModels.modelOutput);
             cases.add(ItemModelUtils.when(type, ItemModelUtils.plainModel(model)));
             if (type == 0) {
@@ -1063,25 +1057,22 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void registerCelestialNotes(ItemModelGenerators itemModels) {
-        Material sheet = new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/celestial_notes_sheet"));
+        Material sheet = new Material(TTIds.rl("item/celestial_notes_sheet"));
         List<SelectItemModel.SwitchCase<CelestialBody>> cases = new ArrayList<>();
         for (CelestialBody body : CelestialBody.values()) {
-            Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/celestial_notes_" + body.getSerializedName());
+            Identifier model = TTIds.rl("item/celestial_notes_" + body.getSerializedName());
             ModelTemplates.TWO_LAYERED_ITEM.create(model, TextureMapping.layered(sheet, new Material(model)), itemModels.modelOutput);
             cases.add(ItemModelUtils.when(body, ItemModelUtils.plainModel(model)));
         }
-        Identifier fallback = Identifier.fromNamespaceAndPath(TTIds.MODID, "item/celestial_notes_sun");
+        Identifier fallback = TTIds.rl("item/celestial_notes_sun");
         itemModels.itemModelOutput.accept(TTItems.CELESTIAL_NOTES.get(),
                 ItemModelUtils.select(new ComponentContents<>(TTDataComponents.CELESTIAL_BODY.get()), ItemModelUtils.plainModel(fallback), cases));
     }
 
     private void registerJar(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName) {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block, BlockModelGenerators.plainVariant(TTIds.rl("block/" + modelName))));
-        itemModels.itemModelOutput.accept(block.asItem(),
-                new CompositeModel.Unbaked(
-                        List.of(new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName), Optional.empty(), List.of()),
-                                new SpecialModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName), Optional.empty(), new JarItemSpecialRenderer.Unbaked())),
-                        Optional.empty()));
+        itemModels.itemModelOutput.accept(block.asItem(), new CompositeModel.Unbaked(List.of(new CuboidItemModelWrapper.Unbaked(TTIds.rl("block/" + modelName), Optional.empty(), List.of()),
+                new SpecialModelWrapper.Unbaked(TTIds.rl("block/" + modelName), Optional.empty(), new JarItemSpecialRenderer.Unbaked())), Optional.empty()));
     }
 
     private void registerAlembic(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block) {
@@ -1125,7 +1116,7 @@ public final class TTModelProvider extends ModelProvider {
                 .select(Direction.EAST, BlockModelGenerators.Y_ROT_90).select(Direction.SOUTH, BlockModelGenerators.Y_ROT_180).select(Direction.WEST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(lit).with(rotations));
 
-        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName + "_off"), Optional.empty(), List.of()));
+        itemModels.itemModelOutput.accept(block.asItem(), new CuboidItemModelWrapper.Unbaked(TTIds.rl("block/" + modelName + "_off"), Optional.empty(), List.of()));
     }
 
     private static void registerFluxGas(BlockModelGenerators blockModels) {
@@ -1209,28 +1200,25 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private static Material blockTexture(String name) {
-        return new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + name));
+        return new Material(TTIds.rl("block/" + name));
     }
 
     private MultiVariant variantOf(String modelName) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName);
+        Identifier model = TTIds.rl("block/" + modelName);
         return new MultiVariant(WeightedList.of(new Variant(model)));
     }
 
     private void registerDeconstructionTable(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         registerInvisibleBlock(blockModels, TTBlocks.DECONSTRUCTION_TABLE.get());
         itemModels.itemModelOutput.accept(TTBlocks.DECONSTRUCTION_TABLE.get().asItem(),
-                new SpecialModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/deconstruction_table_base"), Optional.empty(), new DeconTableItemSpecialRenderer.Unbaked()));
+                new SpecialModelWrapper.Unbaked(TTIds.rl("item/deconstruction_table_base"), Optional.empty(), new DeconTableItemSpecialRenderer.Unbaked()));
     }
 
     private void registerResearchNote(ItemModelGenerators itemModels) {
-        Identifier base = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(TTItems.RESEARCH_NOTE.get()), TextureMapping
-                .layered(new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/research_note")), new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/research_note_overlay"))),
-                itemModels.modelOutput);
+        Identifier base = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(TTItems.RESEARCH_NOTE.get()),
+                TextureMapping.layered(new Material(TTIds.rl("item/research_note")), new Material(TTIds.rl("item/research_note_overlay"))), itemModels.modelOutput);
         Identifier complete = ModelTemplates.TWO_LAYERED_ITEM.create(ModelLocationUtils.getModelLocation(TTItems.RESEARCH_NOTE.get(), "_complete"),
-                TextureMapping.layered(new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/research_note_complete")),
-                        new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "item/research_note_complete_overlay"))),
-                itemModels.modelOutput);
+                TextureMapping.layered(new Material(TTIds.rl("item/research_note_complete")), new Material(TTIds.rl("item/research_note_complete_overlay"))), itemModels.modelOutput);
         ItemModel.Unbaked baseModel = ItemModelUtils.tintedModel(base, new Constant(0xFFFFFF), new NoteColorTint(0x999999));
         ItemModel.Unbaked completeModel = ItemModelUtils.tintedModel(complete, new Constant(0xFFFFFF), new NoteColorTint(0x999999));
         itemModels.itemModelOutput.accept(TTItems.RESEARCH_NOTE.get(), ItemModelUtils.conditional(ItemModelUtils.hasComponent(TTDataComponents.NOTE_COMPLETE.get()), completeModel, baseModel));
@@ -1252,10 +1240,8 @@ public final class TTModelProvider extends ModelProvider {
     private void registerJarBrain(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TTBlocks.JAR_BRAIN.get(), BlockModelGenerators.plainVariant(TTIds.rl("block/jar_normal"))));
         itemModels.itemModelOutput.accept(TTBlocks.JAR_BRAIN.get().asItem(),
-                new CompositeModel.Unbaked(
-                        List.of(new CuboidItemModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/jar_normal"), Optional.empty(), List.of()),
-                                new SpecialModelWrapper.Unbaked(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/jar_normal"), Optional.empty(), new JarBrainItemSpecialRenderer.Unbaked())),
-                        Optional.empty()));
+                new CompositeModel.Unbaked(List.of(new CuboidItemModelWrapper.Unbaked(TTIds.rl("block/jar_normal"), Optional.empty(), List.of()),
+                        new SpecialModelWrapper.Unbaked(TTIds.rl("block/jar_normal"), Optional.empty(), new JarBrainItemSpecialRenderer.Unbaked())), Optional.empty()));
     }
 
     private void registerNoiseDevices(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
@@ -1291,7 +1277,7 @@ public final class TTModelProvider extends ModelProvider {
         registerLattice(blockModels, itemModels, TTBlocks.CONDENSER_LATTICE_DIRTY.get(), "condenser_lattice_core_dirty");
         registerRelay(blockModels, itemModels);
 
-        Identifier thaumatoriumModel = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/thaumatorium");
+        Identifier thaumatoriumModel = TTIds.rl("block/thaumatorium");
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.THAUMATORIUM.get(), new MultiVariant(WeightedList.of(new Variant(thaumatoriumModel))))
                 .with(PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING).generate(TTModelProvider::northYRotation)));
         itemModels.itemModelOutput.accept(TTItems.THAUMATORIUM.get(), ItemModelUtils.plainModel(thaumatoriumModel), new ClientItem.Properties(true, true, 1));
@@ -1323,8 +1309,8 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void registerLattice(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String coreModel) {
-        Identifier side = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/condenser_lattice_side");
-        Identifier core = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + coreModel);
+        Identifier side = TTIds.rl("block/condenser_lattice_side");
+        Identifier core = TTIds.rl("block/" + coreModel);
         MultiPartGenerator generator = MultiPartGenerator.multiPart(block).with(new MultiVariant(WeightedList.of(new Variant(core))));
         record LatticeFace(BooleanProperty property, VariantMutator mutator) {
         }
@@ -1341,8 +1327,8 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void registerRelay(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
-        Identifier on = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/redstone_relay_on");
-        Identifier off = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/redstone_relay_off");
+        Identifier on = TTIds.rl("block/redstone_relay_on");
+        Identifier off = TTIds.rl("block/redstone_relay_off");
         PropertyDispatch<VariantMutator> facing = PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING).select(Direction.SOUTH, BlockModelGenerators.NOP)
                 .select(Direction.NORTH, BlockModelGenerators.Y_ROT_180).select(Direction.WEST, BlockModelGenerators.Y_ROT_90).select(Direction.EAST, BlockModelGenerators.Y_ROT_270);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.REDSTONE_RELAY.get()).with(PropertyDispatch.initial(BlockStateProperties.POWERED)
@@ -1351,14 +1337,14 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void registerFacingDevice(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String modelName, PropertyDispatch<VariantMutator> facing) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName);
+        Identifier model = TTIds.rl("block/" + modelName);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, new MultiVariant(WeightedList.of(new Variant(model)))).with(facing));
         itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(model));
     }
 
     private void registerEnabledFacingDevice(BlockModelGenerators blockModels, ItemModelGenerators itemModels, Block block, String onModel, String offModel, PropertyDispatch<VariantMutator> facing) {
-        Identifier on = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + onModel);
-        Identifier off = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + offModel);
+        Identifier on = TTIds.rl("block/" + onModel);
+        Identifier off = TTIds.rl("block/" + offModel);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block).with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
                 .select(true, new MultiVariant(WeightedList.of(new Variant(on)))).select(false, new MultiVariant(WeightedList.of(new Variant(off))))).with(facing));
         itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.plainModel(off));
@@ -1370,9 +1356,8 @@ public final class TTModelProvider extends ModelProvider {
 
         Identifier[] batteryModels = new Identifier[5];
         for (int i = 0; i < 5; i++) {
-            Identifier textureId = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/vis_battery_" + i);
-            batteryModels[i] = ModelTemplates.CUBE_ALL.create(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/vis_battery_" + i), TextureMapping.cube(new Material(textureId)),
-                    blockModels.modelOutput);
+            Identifier textureId = TTIds.rl("block/vis_battery_" + i);
+            batteryModels[i] = ModelTemplates.CUBE_ALL.create(TTIds.rl("block/vis_battery_" + i), TextureMapping.cube(new Material(textureId)), blockModels.modelOutput);
         }
         PropertyDispatch<MultiVariant> chargeDispatch = PropertyDispatch.initial(BlockVisBattery.CHARGE).generate(charge -> {
             int tier = charge == 0 ? 0 : charge >= 10 ? 4 : (charge + 2) / 3;
@@ -1381,8 +1366,8 @@ public final class TTModelProvider extends ModelProvider {
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.VIS_BATTERY.get()).with(chargeDispatch));
         itemModels.itemModelOutput.accept(TTItems.VIS_BATTERY.get(), ItemModelUtils.plainModel(batteryModels[0]));
 
-        Identifier dioptraOn = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/dioptra_on");
-        Identifier dioptraOff = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/dioptra_off");
+        Identifier dioptraOn = TTIds.rl("block/dioptra_on");
+        Identifier dioptraOff = TTIds.rl("block/dioptra_off");
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(TTBlocks.DIOPTRA.get()).with(PropertyDispatch.initial(BlockStateProperties.ENABLED)
                 .select(true, new MultiVariant(WeightedList.of(new Variant(dioptraOn)))).select(false, new MultiVariant(WeightedList.of(new Variant(dioptraOff))))));
         itemModels.itemModelOutput.accept(TTItems.DIOPTRA.get(), ItemModelUtils.plainModel(dioptraOn));
@@ -1532,8 +1517,7 @@ public final class TTModelProvider extends ModelProvider {
         connectedCube(blockModels, TTBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
         simpleCube(blockModels, TTBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
         simpleCube(blockModels, TTBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
-        itemModels.itemModelOutput.accept(TTBlocks.LEAVES_GREATWOOD.get().asItem(),
-                ItemModelUtils.tintedModel(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/leaves_greatwood"), new Constant(FOLIAGE_DEFAULT_COLOR)));
+        itemModels.itemModelOutput.accept(TTBlocks.LEAVES_GREATWOOD.get().asItem(), ItemModelUtils.tintedModel(TTIds.rl("block/leaves_greatwood"), new Constant(FOLIAGE_DEFAULT_COLOR)));
         log(blockModels, TTBlocks.LOG_GREATWOOD.get(), TTBlocks.WOOD_GREATWOOD.get());
         log(blockModels, TTBlocks.LOG_SILVERWOOD.get(), TTBlocks.WOOD_SILVERWOOD.get());
         blockModels.blockStateOutput.accept(BlockModelGenerators.createRotatedPillarWithHorizontalVariant(TTBlocks.SILVERWOOD_NODE_LOG.get(),
@@ -1648,7 +1632,7 @@ public final class TTModelProvider extends ModelProvider {
         WeightedList.Builder<Variant> entries = WeightedList.builder();
         for (int tex = 1; tex <= 2; tex++) {
             for (String face : new String[]{"north", "south", "east", "west"}) {
-                entries.add(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/taint_log_" + face + tex)), 1);
+                entries.add(new Variant(TTIds.rl("block/taint_log_" + face + tex)), 1);
             }
         }
         MultiVariant barks = new MultiVariant(entries.build());
@@ -1660,7 +1644,7 @@ public final class TTModelProvider extends ModelProvider {
     private MultiVariant rotatedWeighted(String[] models, int[] weights) {
         WeightedList.Builder<Variant> entries = WeightedList.builder();
         for (int i = 0; i < models.length; i++) {
-            Variant base = new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + models[i]));
+            Variant base = new Variant(TTIds.rl("block/" + models[i]));
             entries.add(base, weights[i]);
             entries.add(BlockModelGenerators.X_ROT_90.apply(base), weights[i]);
             entries.add(BlockModelGenerators.Y_ROT_90.apply(base), weights[i]);
@@ -1679,8 +1663,8 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private MultiVariant orbVariants() {
-        return new MultiVariant(WeightedList.<Variant>builder().add(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/taint_orb_0")))
-                .add(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/taint_orb_1"))).add(new Variant(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/taint_orb_2"))).build());
+        return new MultiVariant(WeightedList.<Variant>builder().add(new Variant(TTIds.rl("block/taint_orb_0"))).add(new Variant(TTIds.rl("block/taint_orb_1")))
+                .add(new Variant(TTIds.rl("block/taint_orb_2"))).build());
     }
 
     private void registerTaintFibre(BlockModelGenerators blockModels) {
@@ -1704,7 +1688,7 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void blockItemModel(ItemModelGenerators itemModels, Item item, String modelName) {
-        itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName)));
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(TTIds.rl("block/" + modelName)));
     }
 
     private void woodFamily(BlockModelGenerators blockModels, Block planks, Block door, Block trapdoor, Block fence, Block fenceGate, Block button, Block pressurePlate) {
@@ -1756,7 +1740,7 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private Material texture(String name) {
-        return new Material(Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + name));
+        return new Material(TTIds.rl("block/" + name));
     }
 
     private void slab(BlockModelGenerators blockModels, Block slab, Block fullBlock, Material bottom, Material top, Material side) {
@@ -1828,7 +1812,7 @@ public final class TTModelProvider extends ModelProvider {
     }
 
     private void existingModelWithItem(BlockModelGenerators blockModels, Block block, String modelName) {
-        Identifier model = Identifier.fromNamespaceAndPath(TTIds.MODID, "block/" + modelName);
+        Identifier model = TTIds.rl("block/" + modelName);
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)));
         blockModels.registerSimpleItemModel(block.asItem(), model);
     }

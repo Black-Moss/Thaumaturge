@@ -306,7 +306,7 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
 
     private static <T> Identifier keyOf(Registry<T> registry, T value) {
         Identifier key = registry.getKey(value);
-        return key == null ? Identifier.fromNamespaceAndPath("thaumaturge", "unknown") : key;
+        return key == null ? TTIds.rl("unknown") : key;
     }
 
     private void computeOwnership() {

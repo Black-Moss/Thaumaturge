@@ -8,11 +8,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
 public record ClientboundSpellFxPayload(Vec3 anchor, List<Event> events) implements CustomPacketPayload {
-    public static final Type<ClientboundSpellFxPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TTIds.MODID, "spell_fx"));
+    public static final Type<ClientboundSpellFxPayload> TYPE = new Type<>(TTIds.rl("spell_fx"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundSpellFxPayload> STREAM_CODEC = StreamCodec.composite(Vec3.STREAM_CODEC, ClientboundSpellFxPayload::anchor,
             Event.STREAM_CODEC.apply(ByteBufCodecs.list()), ClientboundSpellFxPayload::events, ClientboundSpellFxPayload::new);

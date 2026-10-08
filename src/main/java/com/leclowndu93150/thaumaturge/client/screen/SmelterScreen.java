@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public final class SmelterScreen extends AbstractTTContainerScreen<MenuSmelter> {
-    private static final Identifier SHEET = Identifier.fromNamespaceAndPath(TTIds.MODID, "textures/gui/gui_smelter.png");
+    private static final Identifier SHEET = TTIds.rl("textures/gui/gui_smelter.png");
     private static final int SHEET_SIZE = 256;
     private static final int PANEL_WIDTH = 176;
     private static final int PANEL_HEIGHT = 166;

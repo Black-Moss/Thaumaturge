@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.spell;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 
@@ -24,5 +24,5 @@ public record FocusTier(int complexity, int depth, int branches, int repeats) {
                     Codec.INT.optionalFieldOf("branches", 0).forGetter(FocusTier::branches), Codec.INT.optionalFieldOf("repeats", 0).forGetter(FocusTier::repeats)).apply(i, FocusTier::new));
 
     /** The item data map {@code thaumaturge:spell_focus}, synced to clients. */
-    public static final DataMapType<Item, FocusTier> DATA_MAP = DataMapType.builder(Identifier.fromNamespaceAndPath("thaumaturge", "spell_focus"), Registries.ITEM, CODEC).synced(CODEC, false).build();
+    public static final DataMapType<Item, FocusTier> DATA_MAP = DataMapType.builder(TTIds.rl("spell_focus"), Registries.ITEM, CODEC).synced(CODEC, false).build();
 }

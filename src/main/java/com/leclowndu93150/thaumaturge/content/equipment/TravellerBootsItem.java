@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumaturge.api.items.ChargeDisplay;
 import com.leclowndu93150.thaumaturge.api.items.ChargeProfile;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -28,10 +27,9 @@ public final class TravellerBootsItem extends Item {
     private static final float JUMP_BOOST = 0.275F;
     private static final float WATER_AIR_BOOST = 0.025F;
     private static final float STEP_HEIGHT_BONUS = 0.4F;
-    private static final AttributeModifier STEP_MODIFIER = new AttributeModifier(Identifier.fromNamespaceAndPath(TTIds.MODID, "traveller_step"), STEP_HEIGHT_BONUS,
-            AttributeModifier.Operation.ADD_VALUE);
+    private static final AttributeModifier STEP_MODIFIER = new AttributeModifier(TTIds.rl("traveller_step"), STEP_HEIGHT_BONUS, AttributeModifier.Operation.ADD_VALUE);
 
-    private static final AttributeModifier JUMP_MODIFIER = new AttributeModifier(Identifier.fromNamespaceAndPath(TTIds.MODID, "traveller_jump"), JUMP_BOOST, AttributeModifier.Operation.ADD_VALUE);
+    private static final AttributeModifier JUMP_MODIFIER = new AttributeModifier(TTIds.rl("traveller_jump"), JUMP_BOOST, AttributeModifier.Operation.ADD_VALUE);
 
     public TravellerBootsItem(Properties properties) {
         super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(MAX_CHARGE, ChargeDisplay.ON_CHANGE)));

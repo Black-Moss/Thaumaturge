@@ -61,7 +61,7 @@ public final class TTBlockTags {
     private TTBlockTags() {}
 
     private static TagKey<Block> key(String path) {
-        return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(TTIds.MODID, path));
+        return TagKey.create(Registries.BLOCK, TTIds.rl(path));
     }
 
     private static TagKey<Block> common(String path) {

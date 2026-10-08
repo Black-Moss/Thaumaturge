@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.spell.part;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.api.spell.SpellRegistries;
 import com.leclowndu93150.thaumaturge.api.spell.behavior.SpellBehavior;
@@ -42,10 +43,10 @@ import net.minecraft.sounds.SoundEvent;
  */
 public record SpellPart(SpellBehavior behavior, Identifier icon, int color, int complexity, float vis, float power, AspectInput aspect, List<SettingSpec> settings, Optional<ResearchGate> research,
         int maxPerSpell, boolean hidden, Optional<Holder<SoundEvent>> sound, float visMultiplier, float cooldownMultiplier, Identifier fx) {
-    private static final Identifier DEFAULT_FX = Identifier.fromNamespaceAndPath("thaumaturge", "sparkle");
+    private static final Identifier DEFAULT_FX = TTIds.rl("sparkle");
 
     /** The datapack registry key of parts. */
-    public static final ResourceKey<Registry<SpellPart>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "spell_part"));
+    public static final ResourceKey<Registry<SpellPart>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("spell_part"));
 
     /** Disk and network codec. */
     public static final Codec<SpellPart> CODEC = RecordCodecBuilder.create(i -> i

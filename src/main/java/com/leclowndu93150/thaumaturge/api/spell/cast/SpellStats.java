@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.spell.cast;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.resources.Identifier;
@@ -50,6 +51,6 @@ public final class SpellStats {
     }
 
     private static SpellStat stat(String path, float defaultValue) {
-        return new SpellStat(Identifier.fromNamespaceAndPath("thaumaturge", path), defaultValue);
+        return new SpellStat(TTIds.rl(path), defaultValue);
     }
 }

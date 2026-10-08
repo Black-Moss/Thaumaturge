@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.api.golems.parts;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import java.util.List;
 import net.minecraft.core.Holder;
@@ -15,7 +16,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GolemArm extends GolemPart {
     /** The registry key for golem arms. */
-    public static final ResourceKey<Registry<GolemArm>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "golem_arm"));
+    public static final ResourceKey<Registry<GolemArm>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("golem_arm"));
 
     private final IGolemArmAbility ability;
 

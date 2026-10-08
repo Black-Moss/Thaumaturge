@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.registry;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -83,7 +82,7 @@ public final class TTSounds {
     private TTSounds() {}
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
-        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(TTIds.MODID, name)));
+        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(TTIds.rl(name)));
     }
 
     public static void register(IEventBus modBus) {

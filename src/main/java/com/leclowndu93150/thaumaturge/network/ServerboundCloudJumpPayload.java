@@ -8,13 +8,12 @@ import com.leclowndu93150.thaumaturge.registry.TTItems;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundCloudJumpPayload() implements CustomPacketPayload {
-    public static final Type<ServerboundCloudJumpPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(TTIds.MODID, "cloud_jump"));
+    public static final Type<ServerboundCloudJumpPayload> TYPE = new Type<>(TTIds.rl("cloud_jump"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundCloudJumpPayload> STREAM_CODEC = StreamCodec.unit(new ServerboundCloudJumpPayload());
 

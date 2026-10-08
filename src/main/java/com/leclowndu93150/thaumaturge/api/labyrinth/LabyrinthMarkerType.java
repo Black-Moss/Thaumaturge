@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.api.labyrinth;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -17,5 +17,5 @@ public record LabyrinthMarkerType<T extends LabyrinthMarker>(MapCodec<T> codec) 
     /**
      * Key of the built-in registry that holds marker types, {@code thaumaturge:labyrinth_marker_type}. Addons register their own types into it.
      */
-    public static final ResourceKey<Registry<LabyrinthMarkerType<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("thaumaturge", "labyrinth_marker_type"));
+    public static final ResourceKey<Registry<LabyrinthMarkerType<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("labyrinth_marker_type"));
 }

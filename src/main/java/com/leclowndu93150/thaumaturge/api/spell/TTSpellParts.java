@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.spell;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -119,6 +119,6 @@ public final class TTSpellParts {
     private TTSpellParts() {}
 
     private static ResourceKey<SpellPart> key(String path) {
-        return ResourceKey.create(SpellPart.REGISTRY_KEY, Identifier.fromNamespaceAndPath("thaumaturge", path));
+        return ResourceKey.create(SpellPart.REGISTRY_KEY, TTIds.rl(path));
     }
 }
