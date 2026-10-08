@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.warp.effect;
 
+import net.minecraft.util.Mth;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
@@ -24,7 +25,8 @@ public final class SunScornedEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(ServerLevel level, LivingEntity mob, int amplification) {
-        float brightness = mob.getLightLevelDependentMagicValue();
+        BlockPos lightPos = BlockPos.containing(mob.getX(), mob.getEyeY(), mob.getZ());
+        float brightness = brightness(level, lightPos);
         BlockPos pos = BlockPos.containing(mob.getX(), mob.getY(), mob.getZ());
         if (brightness > BURN_BRIGHTNESS && level.getRandom().nextFloat() * 30.0F < (brightness - 0.4F) * 2.0F && level.canSeeSky(pos)) {
             mob.igniteForSeconds(BURN_SECONDS);
@@ -32,5 +34,13 @@ public final class SunScornedEffect extends MobEffect {
             mob.heal(HEAL_AMOUNT);
         }
         return true;
+    }
+
+    private static float brightness(ServerLevel level, BlockPos pos) {
+        if (!level.hasChunkAt(pos)) {
+            return 0.0F;
+        }
+        float light = level.getMaxLocalRawBrightness(pos) / 15.0F;
+        return Mth.lerp(level.dimensionType().ambientLight(), light / (4.0F - 3.0F * light), 1.0F);
     }
 }

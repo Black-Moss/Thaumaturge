@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.compat.jei.ingredient;
 
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledge;
@@ -47,6 +48,11 @@ public final class AspectIngredientRenderer implements IIngredientRenderer<Aspec
             lines.add(AspectComponents.composition(ingredient).withStyle(ChatFormatting.DARK_GRAY));
         }
         return lines;
+    }
+
+    @Override
+    public void getTooltip(ITooltipBuilder tooltip, AspectInstance instance, TooltipFlag tooltipFlag) {
+        tooltip.addAll(getTooltip(instance, tooltipFlag));
     }
 
     @Override

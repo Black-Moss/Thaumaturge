@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity.portal;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultist;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -37,7 +38,7 @@ public final class CultistPortals {
     public static void summon(Mob portal, ServerLevel level, Mob arrival) {
         RandomSource random = portal.getRandom();
         arrival.setPos(portal.getX() + random.nextFloat() - random.nextFloat(), portal.getY() + ARRIVAL_LIFT, portal.getZ() + random.nextFloat() - random.nextFloat());
-        arrival.finalizeSpawn(level, level.getCurrentDifficultyAt(arrival.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
+        EventHooks.finalizeMobSpawn(arrival, level, level.getCurrentDifficultyAt(arrival.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
         level.addFreshEntity(arrival);
         if (arrival instanceof EntityCultist cultist) {
             cultist.spawnCultistArrivalParticles();

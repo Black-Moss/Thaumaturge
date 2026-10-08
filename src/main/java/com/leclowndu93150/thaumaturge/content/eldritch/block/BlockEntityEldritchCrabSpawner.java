@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.eldritch.block;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
 import com.leclowndu93150.thaumaturge.content.entity.EntityEldritchCrab;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
@@ -119,7 +120,7 @@ public final class BlockEntityEldritchCrabSpawner extends BlockEntity {
         double offsetZ = dir.getAxis() == Direction.Axis.Z ? crab.getBbWidth() / 2.0 : 0.5;
         crab.snapTo(pos.getX() + offsetX, pos.getY() + offsetY, pos.getZ() + offsetZ, dir.toYRot(), 0.0F);
         crab.setDeltaMovement(dir.getStepX() * 0.2F, dir.getStepY() * 0.2F, dir.getStepZ() * 0.2F);
-        crab.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.SPAWNER, null);
+        EventHooks.finalizeMobSpawn(crab, serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.SPAWNER, null);
         int difficulty = Math.max((int) (level.getDifficulty().getId() + serverLevel.getCurrentDifficultyAt(pos).getEffectiveDifficulty()), 1);
         crab.setHelm(level.getRandom().nextInt(Math.max(HELM_ROLL / difficulty, 1)) == 0);
         if (level.getRandom().nextInt(Math.max(CHAMPION_ROLL / difficulty, 1)) == 0) {

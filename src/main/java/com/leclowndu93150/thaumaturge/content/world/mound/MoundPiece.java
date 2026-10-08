@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.world.mound;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
@@ -160,7 +161,7 @@ public class MoundPiece extends ScatteredFeaturePiece {
         if (portal != null) {
             portal.setPersistenceRequired();
             portal.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
-            portal.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.STRUCTURE, null);
+            EventHooks.finalizeMobSpawn(portal, level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.STRUCTURE, null);
             level.addFreshEntityWithPassengers(portal);
         }
     }

@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.warp;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumaturge.content.entity.EntityEldritchGuardian;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
@@ -65,7 +66,7 @@ public final class GuardianSpawner {
                 portal.discard();
                 continue;
             }
-            portal.finalizeSpawn(level, level.getCurrentDifficultyAt(portal.blockPosition()), EntitySpawnReason.EVENT, null);
+            EventHooks.finalizeMobSpawn(portal, level, level.getCurrentDifficultyAt(portal.blockPosition()), EntitySpawnReason.EVENT, null);
             level.addFreshEntity(portal);
             WarpManager.sendActionBar(player, "warp.thaumaturge.text.16");
             return;

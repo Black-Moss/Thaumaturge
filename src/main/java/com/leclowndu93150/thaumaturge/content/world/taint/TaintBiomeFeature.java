@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.world.taint;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumaturge.content.entity.EntityTaintacle;
@@ -117,7 +118,7 @@ public final class TaintBiomeFeature extends Feature<TaintBiomeConfig> {
         }
         level.setBlock(pos, BlockTaintFibre.stateForWorld(level, pos), PLACE_FLAGS);
         taintacle.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, random.nextFloat() * FULL_TURN, 0.0F);
-        taintacle.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.CHUNK_GENERATION, null);
+        EventHooks.finalizeMobSpawn(taintacle, level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.CHUNK_GENERATION, null);
         taintacle.setPersistenceRequired();
         level.addFreshEntityWithPassengers(taintacle);
         return true;

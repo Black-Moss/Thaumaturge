@@ -59,7 +59,7 @@ public abstract class ItemMultiblockPlacer extends BlockItem {
             placeTarget(level, origin.offset(cell.offset()), cell.part().target(), placementFacing, context, player);
         }
         BlockPos corePos = origin.offset(anchor);
-        level.playSound(null, corePos, getBlock().defaultBlockState().getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, corePos, getBlock().defaultBlockState().getSoundType(level, corePos, player).getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
         if (player == null || !player.getAbilities().instabuild) {
             context.getItemInHand().shrink(1);
         }

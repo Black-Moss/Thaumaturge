@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
@@ -78,9 +79,6 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
             return InteractionResult.FAIL;
         }
         golem.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
-        if (!serverLevel.addFreshEntity(golem)) {
-            return InteractionResult.FAIL;
-        }
         golem.setValidSpawn();
         golem.setOwner(player);
         ItemStack held = context.getItemInHand();
@@ -89,7 +87,10 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
             golem.setProperties(props);
         }
         golem.setRankXp(held.getOrDefault(TTDataComponents.GOLEM_XP.get(), 0));
-        golem.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
+        EventHooks.finalizeMobSpawn(golem, serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
+        if (!serverLevel.addFreshEntity(golem)) {
+            return InteractionResult.FAIL;
+        }
         if (!player.hasInfiniteMaterials()) {
             held.shrink(1);
         }

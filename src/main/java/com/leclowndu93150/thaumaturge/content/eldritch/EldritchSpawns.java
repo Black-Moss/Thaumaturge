@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.eldritch;
 
+import net.neoforged.neoforge.event.EventHooks;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +24,7 @@ public final class EldritchSpawns {
             return Optional.empty();
         }
         mob.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, random.nextFloat() * FULL_TURN_DEGREES, 0.0F);
-        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(at), EntitySpawnReason.EVENT, null);
+        EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(at), EntitySpawnReason.EVENT, null);
         mob.setPersistenceRequired();
         mob.setHomeTo(home, leash);
         return Optional.of(mob);

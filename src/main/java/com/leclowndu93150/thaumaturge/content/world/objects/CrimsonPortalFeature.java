@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.world.objects;
 
+import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.mojang.serialization.Codec;
@@ -40,7 +41,7 @@ public final class CrimsonPortalFeature extends Feature<NoneFeatureConfiguration
         }
         portal.setPersistenceRequired();
         portal.snapTo(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0.0F, 0.0F);
-        portal.finalizeSpawn(level, level.getCurrentDifficultyAt(spawn), EntitySpawnReason.STRUCTURE, null);
+        EventHooks.finalizeMobSpawn(portal, level, level.getCurrentDifficultyAt(spawn), EntitySpawnReason.STRUCTURE, null);
         level.addFreshEntityWithPassengers(portal);
         return true;
     }
