@@ -652,8 +652,12 @@ public final class TTModelProvider extends ModelProvider {
                 BlockModelGenerators.createSimpleBlock(TTBlocks.ARCANE_WORKBENCH.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TTBlocks.ARCANE_WORKBENCH.get()))));
         blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(TTBlocks.ARCANE_WORKBENCH_CHARGER.get(),
                 BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TTBlocks.ARCANE_WORKBENCH_CHARGER.get()))));
+        PropertyDispatch<VariantMutator> relayFacing = PropertyDispatch.modify(BlockStateProperties.FACING).select(Direction.UP, BlockModelGenerators.NOP)
+                .select(Direction.DOWN, BlockModelGenerators.X_ROT_180).select(Direction.NORTH, BlockModelGenerators.X_ROT_90)
+                .select(Direction.SOUTH, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_180)).select(Direction.WEST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_270))
+                .select(Direction.EAST, BlockModelGenerators.X_ROT_90.then(BlockModelGenerators.Y_ROT_90));
         blockModels.blockStateOutput
-                .accept(BlockModelGenerators.createSimpleBlock(TTBlocks.VIS_RELAY.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TTBlocks.VIS_RELAY.get()))));
+                .accept(MultiVariantGenerator.dispatch(TTBlocks.VIS_RELAY.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TTBlocks.VIS_RELAY.get()))).with(relayFacing));
         itemModels.itemModelOutput.accept(TTItems.VIS_RELAY.get(), ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(TTBlocks.VIS_RELAY.get())));
         blockModels.blockStateOutput
                 .accept(BlockModelGenerators.createSimpleBlock(TTBlocks.NODE_STABILIZER.get(), BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TTBlocks.NODE_STABILIZER.get()))));

@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.client.effect.LateWorldRenderQueue;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.VisRelayBeamRenderTypes;
 import com.leclowndu93150.thaumaturge.content.aura.relay.BlockEntityVisRelay;
+import com.leclowndu93150.thaumaturge.content.aura.relay.BlockVisRelay;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -19,13 +20,13 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 import org.joml.Vector3f;
 
 public final class VisRelayRenderer implements BlockEntityRenderer<BlockEntityVisRelay, VisRelayRenderState> {
-    private static final float CRYSTAL_HEIGHT = 0.55F;
     private static final float BEAM_HALF_WIDTH = 0.105F;
     private static final int BEAM_QUADS = 2;
     private static final float QUAD_SCROLL_STEP = 1.0F / 3.0F;
@@ -69,8 +70,11 @@ public final class VisRelayRenderer implements BlockEntityRenderer<BlockEntityVi
         if (player == null || !relay.isLinked() || relay.parentPos() == null) {
             return;
         }
-        Vec3 own = Vec3.atCenterOf(relay.getBlockPos()).add(0.0, CRYSTAL_HEIGHT - 0.5, 0.0);
-        state.beamTarget = Vec3.atCenterOf(relay.parentPos()).subtract(own);
+        state.beamOrigin = BlockVisRelay.crystalPosition(relay.getBlockPos(), relay.getBlockState());
+        BlockPos parent = relay.parentPos();
+        BlockState parentState = player.level().getBlockState(parent);
+        Vec3 target = parentState.getBlock() instanceof BlockVisRelay ? BlockVisRelay.crystalPosition(parent, parentState) : Vec3.atCenterOf(parent);
+        state.beamTarget = target.subtract(state.beamOrigin);
         long now = player.level().getGameTime();
         float sincePulse = now - relay.pulseStart() + partialTicks;
         int color = relay.pulseColor();
@@ -90,7 +94,7 @@ public final class VisRelayRenderer implements BlockEntityRenderer<BlockEntityVi
         if (state.beamTarget == null) {
             return;
         }
-        Vec3 origin = Vec3.atCenterOf(state.blockPos).add(0.0, CRYSTAL_HEIGHT - 0.5, 0.0);
+        Vec3 origin = state.beamOrigin;
         Vec3 start = state.beamTarget;
         float beamAlpha = state.opacity * (state.revealing ? REVEALED_ALPHA : BEAM_ALPHA);
         float flareAlpha = state.opacity * (state.revealing ? REVEALED_ALPHA : FLARE_ALPHA);
