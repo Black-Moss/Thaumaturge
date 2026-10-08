@@ -37,7 +37,7 @@ public final class WardHandler {
 
     public static boolean canWard(BlockGetter level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        return !state.isAir() && !state.hasBlockEntity() && (state.isSolidRender() || state.is(TTBlockTags.WARDABLE_NON_SOLID)) && state.getDestroySpeed(level, pos) >= 0.0F;
+        return !state.isAir() && !state.hasBlockEntity() && (!state.getCollisionShape(level, pos).isEmpty() || state.is(TTBlockTags.WARDABLE_NON_SOLID)) && state.getDestroySpeed(level, pos) >= 0.0F;
     }
 
     public static boolean ward(ServerLevel level, BlockPos pos, UUID owner) {
