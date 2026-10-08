@@ -51,6 +51,7 @@ prism {
     modrinthMaven()
     maven("BlameJared", "https://maven.blamejared.com/")
     maven("IllusiveSoulworks", "https://maven.theillusivec4.top/")
+    maven("FTB", "https://maven.ftb.dev/releases")
 
     metadata {
         modId = prop("mod_id")
@@ -81,6 +82,7 @@ prism {
                 runtimeOnly("top.theillusivec4.curios:curios-neoforge:${prop("curios_version")}+$minecraftVersion")
 
                 compileOnly("maven.modrinth:jade:${prop("jade_version")}")
+                compileOnly("dev.ftb.mods:ftb-library-neoforge:${prop("ftb_library_version")}")
                 runtimeOnly("maven.modrinth:jade:${prop("jade_version")}")
 
                 compileOnly("maven.modrinth:distanthorizons:${prop("distant_horizons_version")}")
