@@ -35,6 +35,10 @@ These replacements were drawn by community contributors on the Thaumaturge asset
 | Lorc, 700 RPG Icons (used by anquietas_sys) | CC BY 3.0 | https://opengameart.org/content/700-rpg-icons | `textures/foci/earth.png` |
 | Minecraft `full_moon.png`, Mojang Studios | Minecraft EULA | https://www.minecraft.net/eula | `textures/research/r_celestial.png` |
 | Minecraft `obsidian.png`, Mojang Studios | Minecraft EULA | https://www.minecraft.net/eula | `textures/entity/obelisk_cap_altar.png` |
+| Minecraft `lava_still.png`, Mojang Studios (greyscale) | Minecraft EULA | https://www.minecraft.net/eula | `textures/block/animatedglow.png` |
+| Minecraft `furnace_top.png`, Mojang Studios | Minecraft EULA | https://www.minecraft.net/eula | `textures/block/al_furnace_side.png`, `textures/block/golem_fetter.png`, `textures/block/golem_fetter_active.png` (with an original powered channel) |
+| Minecraft `furnace_side.png`, Mojang Studios | Minecraft EULA | https://www.minecraft.net/eula | `textures/block/golem_fetter_side.png` (with an original iron strap) |
+| Minecraft `water_bucket.png`, Mojang Studios (water recoloured to the purifying fluid) | Minecraft EULA | https://www.minecraft.net/eula | `textures/item/purifying_bucket.png` |
 | Temphis Sweatermonkey font (runes) | used under a licence purchased by the contributor | https://www.cumberlandgames.com | `textures/block/advanced_alchemical_furnace.png`, `textures/block/advanced_alchemical_furnace_on.png` |
 
 ## Third-party models
@@ -138,6 +142,7 @@ Every aspect icon and the focus icons come from [game-icons.net](https://game-ic
 | `textures/foci/summon.png` | Lorc | https://game-icons.net/1x1/lorc/magic-gate.html |
 | `textures/foci/touch.png` | Lorc | https://game-icons.net/1x1/lorc/smoking-finger.html |
 | `textures/research/rd_chest.png` | Lorc | https://game-icons.net/1x1/lorc/locked-chest.html |
+| `textures/research/rd_flask.png` | Lorc | https://game-icons.net/1x1/lorc/fizzing-flask.html |
 | `textures/research/rd_map.png` | Lorc | https://game-icons.net/1x1/lorc/treasure-map.html |
 
 ## Painterly Spell Icons
