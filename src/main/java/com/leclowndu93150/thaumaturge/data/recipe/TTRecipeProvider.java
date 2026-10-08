@@ -371,13 +371,11 @@ public final class TTRecipeProvider extends RecipeProvider {
         shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.AMBER_BLOCK, 4).pattern("##").pattern("##").define('#', TTItems.AMBER_BRICK).unlockedBy("has", has(TTItems.AMBER_BRICK)).save(output,
                 TTIds.MODID + ":amber_block_from_brick");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_BARRIER.get(), 4), 50).aspect(TTAspects.IGNIS, 1).aspect(TTAspects.ORDO, 1).pattern("SAS").pattern("SBS")
-                .define('S', TTItems.STONE_ARCANE_BRICK).define('A', TTItems.CRYSTAL_IGNIS).define('B', TTItems.CRYSTAL_ORDO).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK))
-                .save(output);
+        arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_BARRIER.get(), 4), 50).pattern("SAS").pattern("SBS").define('S', TTItems.STONE_ARCANE_BRICK).define('A', crystal(TTAspects.IGNIS))
+                .define('B', crystal(TTAspects.ORDO)).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)).save(output);
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_TRAVEL.get(), 4), 50).aspect(TTAspects.AER, 1).aspect(TTAspects.TERRA, 1).pattern("SAS").pattern("SBS")
-                .define('S', TTItems.STONE_ARCANE_BRICK).define('A', TTItems.CRYSTAL_AER).define('B', TTItems.CRYSTAL_TERRA).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK))
-                .save(output);
+        arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_TRAVEL.get(), 4), 50).pattern("SAS").pattern("SBS").define('S', TTItems.STONE_ARCANE_BRICK).define('A', crystal(TTAspects.AER))
+                .define('B', crystal(TTAspects.TERRA)).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)).save(output);
     }
 
     private void stairsRecipe(Block result, Block base) {
@@ -457,28 +455,28 @@ public final class TTRecipeProvider extends RecipeProvider {
         ResearchGate gate = gate("elemental_tools");
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
                 enchantedTool(TTItems.ELEMENTAL_AXE.get(), Map.of(InfusionEnchantment.COLLECTOR, 1, InfusionEnchantment.BURROWING, 1)), Ingredient.of(TTItems.THAUMIUM_AXE.get()))
-                .component(Ingredient.of(TTItems.CRYSTAL_AQUA.get())).component(Ingredient.of(TTItems.CRYSTAL_AQUA.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
+                .component(crystal(TTAspects.AQUA)).component(crystal(TTAspects.AQUA)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
                 .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.AQUA, 60).aspect(TTAspects.HERBA, 30).instability(1).gate(gate)
                 .unlockedBy("has", has(TTItems.THAUMIUM_AXE)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
                 enchantedTool(TTItems.ELEMENTAL_PICKAXE.get(), Map.of(InfusionEnchantment.REFINING, 1, InfusionEnchantment.SOUNDING, 2)), Ingredient.of(TTItems.THAUMIUM_PICKAXE.get()))
-                .component(Ingredient.of(TTItems.CRYSTAL_IGNIS.get())).component(Ingredient.of(TTItems.CRYSTAL_IGNIS.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
+                .component(crystal(TTAspects.IGNIS)).component(crystal(TTAspects.IGNIS)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
                 .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.IGNIS, 30).aspect(TTAspects.METALLUM, 30).aspect(TTAspects.SENSUS, 30).instability(1)
                 .gate(gate).unlockedBy("has", has(TTItems.THAUMIUM_PICKAXE)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SWORD.get(), Map.of(InfusionEnchantment.ARCING, 2)),
-                Ingredient.of(TTItems.THAUMIUM_SWORD.get())).component(Ingredient.of(TTItems.CRYSTAL_AER.get())).component(Ingredient.of(TTItems.CRYSTAL_AER.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.AER, 30)
-                .aspect(TTAspects.MOTUS, 30).aspect(TTAspects.AVERSIO, 30).instability(1).gate(gate).unlockedBy("has", has(TTItems.THAUMIUM_SWORD)).save(output);
+                Ingredient.of(TTItems.THAUMIUM_SWORD.get())).component(crystal(TTAspects.AER)).component(crystal(TTAspects.AER)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
+                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.AER, 30).aspect(TTAspects.MOTUS, 30).aspect(TTAspects.AVERSIO, 30).instability(1).gate(gate)
+                .unlockedBy("has", has(TTItems.THAUMIUM_SWORD)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SPEAR.get(), Map.of(InfusionEnchantment.ESSENCE, 2)),
-                Ingredient.of(TTItems.THAUMIUM_SPEAR.get())).component(Ingredient.of(TTItems.CRYSTAL_AER.get())).component(Ingredient.of(TTItems.CRYSTAL_AER.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.MOTUS, 60)
-                .aspect(TTAspects.AER, 30).aspect(TTAspects.POTENTIA, 30).instability(1).gate(gate).unlockedBy("has", has(TTItems.THAUMIUM_SPEAR)).save(output);
+                Ingredient.of(TTItems.THAUMIUM_SPEAR.get())).component(crystal(TTAspects.AER)).component(crystal(TTAspects.AER)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
+                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.MOTUS, 60).aspect(TTAspects.AER, 30).aspect(TTAspects.POTENTIA, 30).instability(1).gate(gate)
+                .unlockedBy("has", has(TTItems.THAUMIUM_SPEAR)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_SHOVEL.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1)),
-                Ingredient.of(TTItems.THAUMIUM_SHOVEL.get())).component(Ingredient.of(TTItems.CRYSTAL_TERRA.get())).component(Ingredient.of(TTItems.CRYSTAL_TERRA.get()))
+                Ingredient.of(TTItems.THAUMIUM_SHOVEL.get())).component(crystal(TTAspects.TERRA)).component(crystal(TTAspects.TERRA))
                 .component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.TERRA, 60)
                 .aspect(TTAspects.FABRICO, 30).instability(1).gate(gate).unlockedBy("has", has(TTItems.THAUMIUM_SHOVEL)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ELEMENTAL_HOE.get()), Ingredient.of(TTItems.THAUMIUM_HOE.get()))
-                .component(Ingredient.of(TTItems.CRYSTAL_ORDO.get())).component(Ingredient.of(TTItems.CRYSTAL_PERDITIO.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
+                .component(crystal(TTAspects.ORDO)).component(crystal(TTAspects.PERDITIO)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
                 .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.ORDO, 30).aspect(TTAspects.HERBA, 30).aspect(TTAspects.PERDITIO, 30).instability(1).gate(gate)
                 .unlockedBy("has", has(TTItems.THAUMIUM_HOE)).save(output);
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
@@ -497,13 +495,13 @@ public final class TTRecipeProvider extends RecipeProvider {
 
     private void buildTravellerBootsRecipe() {
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.TRAVELLER_BOOTS.get()), Ingredient.of(Items.LEATHER_BOOTS))
-                .component(Ingredient.of(TTItems.CRYSTAL_AER.get())).component(Ingredient.of(TTItems.CRYSTAL_AER.get())).component(Ingredient.of(TTItems.FABRIC.get()))
-                .component(Ingredient.of(TTItems.FABRIC.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.FEATHERS))).component(Ingredient.of(items.getOrThrow(ItemTags.FISHES)))
-                .aspect(TTAspects.VOLATUS, 100).aspect(TTAspects.MOTUS, 100).instability(1).gate(gate("boots_traveller")).unlockedBy("has", has(Items.LEATHER_BOOTS)).save(output);
+                .component(crystal(TTAspects.AER)).component(crystal(TTAspects.AER)).component(Ingredient.of(TTItems.FABRIC.get())).component(Ingredient.of(TTItems.FABRIC.get()))
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.FEATHERS))).component(Ingredient.of(items.getOrThrow(ItemTags.FISHES))).aspect(TTAspects.VOLATUS, 100).aspect(TTAspects.MOTUS, 100)
+                .instability(1).gate(gate("boots_traveller")).unlockedBy("has", has(Items.LEATHER_BOOTS)).save(output);
     }
 
     private void buildThaumostaticHarnessRecipe() {
-        Ingredient airCrystal = Ingredient.of(TTItems.CRYSTAL_AER.get());
+        Ingredient airCrystal = crystal(TTAspects.AER);
         Ingredient greatwoodPlanks = Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD));
         Ingredient gold = Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD));
         Ingredient iron = Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON));
@@ -1045,16 +1043,16 @@ public final class TTRecipeProvider extends RecipeProvider {
                 .unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)).save(output);
 
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.LAMP_GROWTH), Ingredient.of(TTItems.LAMP_ARCANE.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(Items.BONE_MEAL)).component(Ingredient.of(TTItems.CRYSTAL_TERRA.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(Items.BONE_MEAL)).component(Ingredient.of(TTItems.CRYSTAL_TERRA.get()))
-                .aspect(TTAspects.HERBA, 20).aspect(TTAspects.LUX, 15).aspect(TTAspects.VICTUS, 15).aspect(TTAspects.INSTRUMENTUM, 15).instability(4).gate(gate("lamp_growth"))
-                .unlockedBy("has", has(TTItems.LAMP_ARCANE.get())).save(output);
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(Items.BONE_MEAL)).component(crystal(TTAspects.TERRA))
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(Items.BONE_MEAL)).component(crystal(TTAspects.TERRA)).aspect(TTAspects.HERBA, 20)
+                .aspect(TTAspects.LUX, 15).aspect(TTAspects.VICTUS, 15).aspect(TTAspects.INSTRUMENTUM, 15).instability(4).gate(gate("lamp_growth")).unlockedBy("has", has(TTItems.LAMP_ARCANE.get()))
+                .save(output);
 
         new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.LAMP_FERTILITY), Ingredient.of(TTItems.LAMP_ARCANE.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_WHEAT)))
-                .component(Ingredient.of(TTItems.CRYSTAL_IGNIS.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_CARROT))).component(Ingredient.of(TTItems.CRYSTAL_IGNIS.get())).aspect(TTAspects.BESTIA, 20).aspect(TTAspects.LUX, 15)
-                .aspect(TTAspects.VICTUS, 15).aspect(TTAspects.DESIDERIUM, 15).instability(4).gate(gate("lamp_fertility")).unlockedBy("has", has(TTItems.LAMP_ARCANE.get())).save(output);
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_WHEAT))).component(crystal(TTAspects.IGNIS))
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_CARROT))).component(crystal(TTAspects.IGNIS))
+                .aspect(TTAspects.BESTIA, 20).aspect(TTAspects.LUX, 15).aspect(TTAspects.VICTUS, 15).aspect(TTAspects.DESIDERIUM, 15).instability(4).gate(gate("lamp_fertility"))
+                .unlockedBy("has", has(TTItems.LAMP_ARCANE.get())).save(output);
     }
 
     private void buildEssentiaMachineRecipes() {
@@ -1280,10 +1278,9 @@ public final class TTRecipeProvider extends RecipeProvider {
     private void buildWearableInfusionRecipes() {
         HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.AMULET_VIS_CRAFTED.get()), Ingredient.of(TTItems.AMULET_MUNDANE.get()))
-                .component(Ingredient.of(TTItems.VIS_RESONATOR.get())).component(Ingredient.of(TTItems.CRYSTAL_AER.get())).component(Ingredient.of(TTItems.CRYSTAL_IGNIS.get()))
-                .component(Ingredient.of(TTItems.CRYSTAL_AQUA.get())).component(Ingredient.of(TTItems.CRYSTAL_TERRA.get())).component(Ingredient.of(TTItems.CRYSTAL_ORDO.get()))
-                .aspect(TTAspects.AURAM, 50).aspect(TTAspects.POTENTIA, 100).aspect(TTAspects.VACUOS, 50).instability(6).gate(gate("vis_amulet")).unlockedBy("has", has(TTItems.AMULET_MUNDANE.get()))
-                .save(output);
+                .component(Ingredient.of(TTItems.VIS_RESONATOR.get())).component(crystal(TTAspects.AER)).component(crystal(TTAspects.IGNIS)).component(crystal(TTAspects.AQUA))
+                .component(crystal(TTAspects.TERRA)).component(crystal(TTAspects.ORDO)).aspect(TTAspects.AURAM, 50).aspect(TTAspects.POTENTIA, 100).aspect(TTAspects.VACUOS, 50).instability(6)
+                .gate(gate("vis_amulet")).unlockedBy("has", has(TTItems.AMULET_MUNDANE.get())).save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), Ingredient.of(TTItems.AMULET_FANCY.get()))
                 .component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUICKSILVER))).component(crystal(TTAspects.VICTUS)).component(Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_MILK)))
                 .component(crystal(TTAspects.HERBA)).aspect(TTAspects.VICTUS, 60).aspect(TTAspects.ORDO, 30).aspect(TTAspects.HERBA, 60).instability(5).gate(gate("verdant_charms"))
@@ -1294,12 +1291,11 @@ public final class TTRecipeProvider extends RecipeProvider {
                 .instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get())).save(output, TTIds.MODID + ":infusion/verdant_charm_life");
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), Ingredient.of(TTItems.VERDANT_CHARM.get()))
                 .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_SUSTAIN).build()).component(Ingredient.of(TTItems.TRIPLE_MEAT_TREAT.get()))
-                .component(crystal(TTAspects.DESIDERIUM)).component(potion(Potions.STRONG_REGENERATION)).component(Ingredient.of(TTItems.CRYSTAL_AER.get())).aspect(TTAspects.DESIDERIUM, 80)
-                .aspect(TTAspects.AER, 80).instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get()))
-                .save(output, TTIds.MODID + ":infusion/verdant_charm_sustain");
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CLOUD_RING.get()), Ingredient.of(TTItems.RING_MUNDANE.get()))
-                .component(Ingredient.of(TTItems.CRYSTAL_AER.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.FEATHERS))).aspect(TTAspects.AER, 50).instability(1).gate(gate("cloud_ring"))
-                .unlockedBy("has", has(TTItems.RING_MUNDANE.get())).save(output);
+                .component(crystal(TTAspects.DESIDERIUM)).component(potion(Potions.STRONG_REGENERATION)).component(crystal(TTAspects.AER)).aspect(TTAspects.DESIDERIUM, 80).aspect(TTAspects.AER, 80)
+                .instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get())).save(output, TTIds.MODID + ":infusion/verdant_charm_sustain");
+        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CLOUD_RING.get()), Ingredient.of(TTItems.RING_MUNDANE.get())).component(crystal(TTAspects.AER))
+                .component(Ingredient.of(items.getOrThrow(Tags.Items.FEATHERS))).aspect(TTAspects.AER, 50).instability(1).gate(gate("cloud_ring")).unlockedBy("has", has(TTItems.RING_MUNDANE.get()))
+                .save(output);
         new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CURIOSITY_BAND.get()), Ingredient.of(TTItems.GIRDLE_FANCY.get()))
                 .component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD))).component(Ingredient.of(Items.WRITABLE_BOOK)).component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD)))
                 .component(Ingredient.of(Items.WRITABLE_BOOK)).component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD))).component(Ingredient.of(Items.WRITABLE_BOOK))
