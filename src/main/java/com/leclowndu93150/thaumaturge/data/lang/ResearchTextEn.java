@@ -219,7 +219,7 @@ public final class ResearchTextEn {
         add.accept("research.thaumaturge.vis_amulet.stage_0",
                 "If I wish to recharge my vis storage items I currently need to return to the nearest recharge pedestal or carry one of them around. This is not always convenient however - I must find a portable way to recharge my items. ");
         add.accept("research.thaumaturge.vis_amulet.stage_1",
-                "I have crafted an amulet capable of channeling vis from the aura, allowing me to recharge items in the field while it is worn.<BR>The amulet will only recharge items located in your hotbar, baubles or armor slots (in that order). It will only recharge items that can normally be recharged in a recharge pedestal.");
+                "I have crafted an amulet capable of channeling vis from the aura, allowing me to recharge items in the field while it is worn.<BR>The amulet will only recharge items located in your hotbar, offhand, baubles or armor slots (in that order). It will only recharge items that can normally be recharged in a recharge pedestal.");
         add.accept("research.thaumaturge.workbench_charger.title", "Workbench Charger");
         add.accept("research.thaumaturge.workbench_charger.stage_0",
                 "I am beginning to run into an annoying limitation with the arcane workbench. It is only able to draw vis from its immediate surroundings. While this is fine for most of the things I have been crafting so far, I soon foresee a time where I will have to craft something that requires more vis than there is nearby.<BR>I need to find a way to extend the reach of the arcane workbench. The further it can reach to draw vis, the more vis will be available for crafting.");
