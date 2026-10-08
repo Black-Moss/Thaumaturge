@@ -45,6 +45,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 public final class RecipeDisplayWidget {
+    public record ItemHit(ItemStack stack, int x, int y) {
+        public boolean contains(double mouseX, double mouseY) {
+            return hitItem(x, y, mouseX, mouseY);
+        }
+    }
+
     public static final int PANEL_SIZE = 104;
     public static final int CENTER_OFFSET = 52;
 
@@ -154,6 +160,11 @@ public final class RecipeDisplayWidget {
     }
 
     public static @Nullable ItemStack hoverStackForDisplay(int x, int y, RecipeDisplay display, long gameTime, double mouseX, double mouseY) {
+        ItemHit hit = hoverItemForDisplay(x, y, display, mouseX, mouseY);
+        return hit == null ? null : hit.stack();
+    }
+
+    public static @Nullable ItemHit hoverItemForDisplay(int x, int y, RecipeDisplay display, double mouseX, double mouseY) {
         int cx = x + CENTER_OFFSET;
         int cy = y + CENTER_OFFSET;
         ContextMap context = SlotDisplayContext.fromLevel(Minecraft.getInstance().level);
@@ -167,17 +178,16 @@ public final class RecipeDisplayWidget {
             return hoverConstructPage(cx, cy, multiblock, context, mouseX, mouseY);
         }
         Layout layout = collect(display, context);
-        ItemStack inputHover = hoverInput(cx, cy, layout, mouseX, mouseY);
-        if (inputHover != null && !inputHover.isEmpty()) {
+        ItemHit inputHover = hoverInput(cx, cy, layout, mouseX, mouseY);
+        if (inputHover != null) {
             return inputHover;
         }
-        if (!layout.output.isEmpty() && mouseX >= cx + OUTPUT_OFFSET_X && mouseX < cx + OUTPUT_OFFSET_X + ITEM_HIT_SIZE && mouseY >= cy + OUTPUT_OFFSET_Y
-                && mouseY < cy + OUTPUT_OFFSET_Y + ITEM_HIT_SIZE) {
-            return layout.output;
+        if (!layout.output.isEmpty() && hitItem(cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y, mouseX, mouseY)) {
+            return new ItemHit(layout.output, cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y);
         }
         if (layout.kind == Kind.ARCANE_SHAPED || layout.kind == Kind.ARCANE_SHAPELESS) {
-            ItemStack crystalHover = hoverCrystal(cx, cy, layout.crystals, mouseX, mouseY);
-            if (crystalHover != null && !crystalHover.isEmpty()) {
+            ItemHit crystalHover = hoverCrystal(cx, cy, layout.crystals, mouseX, mouseY);
+            if (crystalHover != null) {
                 return crystalHover;
             }
         }
@@ -303,7 +313,7 @@ public final class RecipeDisplayWidget {
         }
     }
 
-    private static @Nullable ItemStack hoverInput(int cx, int cy, Layout layout, double mouseX, double mouseY) {
+    private static @Nullable ItemHit hoverInput(int cx, int cy, Layout layout, double mouseX, double mouseY) {
         for (Slot slot : layout.slots) {
             int slotX = cx + GRID_ANCHOR_X + slot.col * GRID_STRIDE;
             int slotY = cy + GRID_ANCHOR_Y + slot.row * GRID_STRIDE;
@@ -313,12 +323,12 @@ public final class RecipeDisplayWidget {
                 continue;
             ItemStack stack = pickRotating(slot.cycle, slot.counter);
             if (!stack.isEmpty())
-                return stack;
+                return new ItemHit(stack, slotX, slotY);
         }
         return null;
     }
 
-    private static @Nullable ItemStack hoverCrystal(int cx, int cy, List<ItemStack> crystals, double mouseX, double mouseY) {
+    private static @Nullable ItemHit hoverCrystal(int cx, int cy, List<ItemStack> crystals, double mouseX, double mouseY) {
         if (crystals.isEmpty())
             return null;
         int sz = crystals.size();
@@ -332,7 +342,7 @@ public final class RecipeDisplayWidget {
                 continue;
             if (mouseY < slotY || mouseY >= slotY + ITEM_HIT_SIZE)
                 continue;
-            return stack;
+            return new ItemHit(stack, slotX, slotY);
         }
         return null;
     }
@@ -668,26 +678,26 @@ public final class RecipeDisplayWidget {
         return out;
     }
 
-    private static @Nullable ItemStack hoverCruciblePage(int cx, int cy, CrucibleRecipeDisplay display, ContextMap context, double mouseX, double mouseY) {
+    private static @Nullable ItemHit hoverCruciblePage(int cx, int cy, CrucibleRecipeDisplay display, ContextMap context, double mouseX, double mouseY) {
         ItemStack result = display.result().resolveForFirstStack(context);
         if (!result.isEmpty() && hitItem(cx + CRUCIBLE_RESULT_X, cy + CRUCIBLE_RESULT_Y, mouseX, mouseY)) {
-            return result;
+            return new ItemHit(result, cx + CRUCIBLE_RESULT_X, cy + CRUCIBLE_RESULT_Y);
         }
         ItemStack catalyst = pickRotating(resolveCycle(display.catalyst(), context), 0);
         if (!catalyst.isEmpty() && hitItem(cx + CRUCIBLE_CATALYST_X, cy + CRUCIBLE_CATALYST_Y, mouseX, mouseY)) {
-            return catalyst;
+            return new ItemHit(catalyst, cx + CRUCIBLE_CATALYST_X, cy + CRUCIBLE_CATALYST_Y);
         }
         return null;
     }
 
-    private static @Nullable ItemStack hoverInfusionPage(int cx, int cy, InfusionRecipeDisplay display, ContextMap context, double mouseX, double mouseY) {
+    private static @Nullable ItemHit hoverInfusionPage(int cx, int cy, InfusionRecipeDisplay display, ContextMap context, double mouseX, double mouseY) {
         ItemStack result = display.result().resolveForFirstStack(context);
         if (!result.isEmpty() && hitItem(cx + CRUCIBLE_RESULT_X, cy + INFUSION_RESULT_Y, mouseX, mouseY)) {
-            return result;
+            return new ItemHit(result, cx + CRUCIBLE_RESULT_X, cy + INFUSION_RESULT_Y);
         }
         ItemStack catalyst = pickRotating(resolveCycle(display.catalyst(), context), 0);
         if (!catalyst.isEmpty() && hitItem(cx + CRUCIBLE_RESULT_X, cy + INFUSION_CATALYST_Y, mouseX, mouseY)) {
-            return catalyst;
+            return new ItemHit(catalyst, cx + CRUCIBLE_RESULT_X, cy + INFUSION_CATALYST_Y);
         }
         List<SlotDisplay> components = display.components();
         for (int a = 0; a < components.size(); a++) {
@@ -695,22 +705,22 @@ public final class RecipeDisplayWidget {
             if (hitItem(cx + offset[0], cy + INFUSION_RING_CENTER_Y + offset[1], mouseX, mouseY)) {
                 ItemStack stack = pickRotating(resolveCycle(components.get(a), context), a + 1);
                 if (!stack.isEmpty()) {
-                    return stack;
+                    return new ItemHit(stack, cx + offset[0], cy + INFUSION_RING_CENTER_Y + offset[1]);
                 }
             }
         }
         return null;
     }
 
-    private static @Nullable ItemStack hoverConstructPage(int cx, int cy, MultiblockRecipeDisplay display, ContextMap context, double mouseX, double mouseY) {
+    private static @Nullable ItemHit hoverConstructPage(int cx, int cy, MultiblockRecipeDisplay display, ContextMap context, double mouseX, double mouseY) {
         ItemStack result = display.result().resolveForFirstStack(context);
         if (!result.isEmpty() && hitItem(cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y, mouseX, mouseY)) {
-            return result;
+            return new ItemHit(result, cx + OUTPUT_OFFSET_X, cy + OUTPUT_OFFSET_Y);
         }
         List<ItemStack> ingredients = blueprintIngredients(display.blueprint());
         for (int a = 0; a < ingredients.size(); a++) {
             if (hitItem(cx + CONSTRUCT_INGREDIENT_X + a * CONSTRUCT_INGREDIENT_STRIDE, cy + CONSTRUCT_INGREDIENT_Y, mouseX, mouseY)) {
-                return ingredients.get(a);
+                return new ItemHit(ingredients.get(a), cx + CONSTRUCT_INGREDIENT_X + a * CONSTRUCT_INGREDIENT_STRIDE, cy + CONSTRUCT_INGREDIENT_Y);
             }
         }
         return null;

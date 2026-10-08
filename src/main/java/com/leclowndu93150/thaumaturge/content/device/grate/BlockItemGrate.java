@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.device.grate;
 
+import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -62,15 +64,25 @@ public final class BlockItemGrate extends BaseEntityBlock {
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+        if (level.isClientSide()) {
+            return;
+        }
         boolean powered = level.hasNeighborSignal(pos);
         if (powered != state.getValue(POWERED)) {
             setOpen(level, pos, state.setValue(OPEN, powered).setValue(POWERED, powered));
         }
+        if (level.getBlockEntity(pos) instanceof BlockEntityItemGrate grate) {
+            grate.eject();
+        }
     }
 
     private static void setOpen(Level level, BlockPos pos, BlockState newState) {
+        boolean changed = level.getBlockState(pos).getValue(OPEN) != newState.getValue(OPEN);
         level.setBlock(pos, newState, UPDATE_CLIENTS);
         level.invalidateCapabilities(pos);
+        if (changed) {
+            level.playSound(null, pos, TTSounds.CREAK.get(), SoundSource.BLOCKS, 0.5F, newState.getValue(OPEN) ? 1.0F : 0.9F);
+        }
         if (newState.getValue(OPEN) && level.getBlockEntity(pos) instanceof BlockEntityItemGrate grate) {
             grate.eject();
         }

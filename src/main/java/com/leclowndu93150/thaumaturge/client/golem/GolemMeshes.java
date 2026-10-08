@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.Nullable;
 
 public final class GolemMeshes {
     private static final Map<Identifier, TTMesh> CACHE = new ConcurrentHashMap<>();
@@ -38,6 +39,10 @@ public final class GolemMeshes {
     }
 
     public static void renderPart(TTMeshPart part, PoseStack.Pose pose, VertexConsumer buffer, int light, int color) {
+        renderPart(part, pose, buffer, light, color, null);
+    }
+
+    public static void renderPart(TTMeshPart part, PoseStack.Pose pose, VertexConsumer buffer, int light, int color, int @Nullable [] quadLights) {
         float[] positions = part.positions();
         float[] uvs = part.uvs();
         float[] normals = part.normals();
@@ -52,8 +57,8 @@ public final class GolemMeshes {
             float nx = normals[vertex * 3];
             float ny = normals[vertex * 3 + 1];
             float nz = normals[vertex * 3 + 2];
-            buffer.addVertex(pose, positions[vertex * 3], positions[vertex * 3 + 1], positions[vertex * 3 + 2]).setColor(color).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
-                    .setNormal(pose, nx, ny, nz);
+            buffer.addVertex(pose, positions[vertex * 3], positions[vertex * 3 + 1], positions[vertex * 3 + 2]).setColor(color).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY)
+                    .setLight(quadLights == null ? light : quadLights[vertex / 4]).setNormal(pose, nx, ny, nz);
         }
     }
 }

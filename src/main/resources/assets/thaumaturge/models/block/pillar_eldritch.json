@@ -1,6 +1,7 @@
 {
     "loader": "thaumaturge:mesh",
     "parent": "block/block",
+    "ambientocclusion": false,
     "model": "thaumaturge:models/mesh/pillar.ttmesh",
     "corner_space": true,
     "textures": {

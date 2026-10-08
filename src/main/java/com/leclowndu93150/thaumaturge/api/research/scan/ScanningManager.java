@@ -8,7 +8,6 @@ import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -17,16 +16,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Registry and dispatcher for everything the thaumometer can scan.
  *
  * <p>A scan asks every registered {@link IScannable} and every {@link ScanEntry} whether it matches the target, advances the research
- * of each match, then tells the player what happened. Scanning a block that holds items also scans up to 100 of the stacks inside.
+ * of each match, then tells the player what happened. Scanning an inventory also scans all distinct stacks exposed by its item
+ * handlers, or its vanilla container when it has no item handler.
  *
  * <p>Registration is not thread-safe; register during mod construction only. Knowledge and aspect lookups go through a binding the mod
  * installs at construction; addons must not call {@link #bind}.
@@ -35,7 +32,6 @@ import org.jspecify.annotations.Nullable;
  */
 public final class ScanningManager {
     private static final List<IScannable> SUBJECTS = new ArrayList<>();
-    private static final int CONTAINER_SCAN_LIMIT = 100;
     private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("ScanningManager");
 
     private ScanningManager() {}
@@ -56,8 +52,44 @@ public final class ScanningManager {
      * @param target what the thaumometer points at
      */
     public static void scan(Player player, ScanTarget target) {
+        if (player.level().isClientSide()) {
+            return;
+        }
+        List<ItemStack> contents = ScanInventories.contents(player, target);
+        List<ScanEntry> entries = entries(player);
+        ScanResult result = scanTarget(player, target, entries);
+        if (contents.isEmpty()) {
+            report(player, result.refusal(), result.found(), result.silent());
+            return;
+        }
+        List<ItemStack> pending = new ArrayList<>(contents);
+        boolean progressed;
+        do {
+            progressed = false;
+            List<ItemStack> refused = new ArrayList<>();
+            for (ItemStack stack : pending) {
+                ScanResult item = scanTarget(player, ScanTarget.stack(stack), entries);
+                result = result.merge(item);
+                progressed |= item.progressed();
+                if (item.refusal() != null) {
+                    refused.add(stack);
+                }
+            }
+            pending = refused;
+        } while (progressed && !pending.isEmpty());
+        report(player, result.found() ? null : result.refusal(), result.found(), result.silent());
+    }
+
+    private record ScanResult(boolean found, boolean silent, @Nullable Component refusal, boolean progressed) {
+        ScanResult merge(ScanResult other) {
+            return new ScanResult(found || other.found, silent || other.silent, refusal == null ? other.refusal : refusal, progressed || other.progressed);
+        }
+    }
+
+    private static ScanResult scanTarget(Player player, ScanTarget target, List<ScanEntry> entries) {
         boolean found = false;
         boolean silent = false;
+        boolean progressed = false;
         Component refusal = null;
         for (IScannable subject : SUBJECTS) {
             if (!subject.matches(player, target)) {
@@ -69,22 +101,24 @@ public final class ScanningManager {
                 continue;
             }
             Identifier research = subject.research(player, target);
-            if (research != null && !advance(player, research) && !(KnowledgeAccess.of(player).isResearchKnown(research) && subject.rescannable(player, target))) {
-                continue;
+            if (research != null) {
+                boolean advanced = advance(player, research);
+                if (!advanced && !(KnowledgeAccess.of(player).isResearchKnown(research) && subject.rescannable(player, target))) {
+                    continue;
+                }
+                progressed |= advanced;
             }
             silent |= research == null;
             found = true;
             subject.onScanned(player, target);
         }
-        for (ScanEntry entry : entries(player)) {
+        for (ScanEntry entry : entries) {
             if (entry.matches(player, target) && advance(player, entry.key())) {
                 found = true;
+                progressed = true;
             }
         }
-        report(player, refusal, found, silent);
-        if (target instanceof ScannedBlock(var pos)) {
-            scanContents(player, player.level().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP));
-        }
+        return new ScanResult(found, silent, refusal, progressed);
     }
 
     private static boolean advance(Player player, Identifier research) {
@@ -101,30 +135,15 @@ public final class ScanningManager {
         }
     }
 
-    private static void scanContents(Player player, @Nullable ResourceHandler<ItemResource> contents) {
-        if (contents == null) {
-            return;
-        }
-        int scanned = 0;
-        for (int index = 0; index < contents.size(); index++) {
-            ItemResource resource = contents.getResource(index);
-            if (!resource.isEmpty()) {
-                scan(player, ScanTarget.stack(resource.toStack(contents.getAmountAsInt(index))));
-                scanned++;
-            }
-            if (scanned >= CONTAINER_SCAN_LIMIT) {
-                player.sendOverlayMessage(Component.translatable("message.thaumaturge.scan.inventory_too_large").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
-                return;
-            }
-        }
-    }
-
     /**
      * @param player the scanning player
      * @param target the candidate target
-     * @return whether scanning the target could still advance research the player lacks, or would trigger a keyless subject
+     * @return whether the target has an inventory, could still advance research the player lacks, or would trigger a keyless subject
      */
     public static boolean isStillScannable(Player player, ScanTarget target) {
+        if (ScanInventories.hasInventory(player, target)) {
+            return true;
+        }
         IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
         for (IScannable subject : SUBJECTS) {
             if (!subject.matches(player, target)) {

@@ -8,7 +8,10 @@ import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEnti
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -24,9 +27,13 @@ import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRenderer<BlockEntityAdvancedAlchemicalFurnace, AdvancedAlchemicalFurnaceRenderState> {
     private static final Identifier MODEL = TTIds.rl("models/mesh/advanced_alchemical_furnace.ttmesh");
@@ -80,6 +87,7 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
         state.assembled = furnace.isAssembled();
         state.heat = furnace.heat();
         state.stored = furnace.aspects().totalAmount();
+        state.meshLights = state.assembled && furnace.getLevel() != null ? sampleMeshLight(furnace.getLevel(), furnace.getBlockPos()) : Map.of();
     }
 
     @Override
@@ -92,7 +100,7 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.0F, 0.5F);
         poseStack.mulPose(Axis.XN.rotationDegrees(UPRIGHT_ANGLE));
-        submitMesh(hot, filled, poseStack, collector, state.lightCoords);
+        submitMesh(hot, filled, poseStack, collector, state.lightCoords, state.meshLights);
         if (filled) {
             submitStoredEssentia(state.stored, poseStack, collector);
         }
@@ -103,25 +111,67 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
     }
 
     public static void submitMesh(boolean hot, boolean filled, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        submitMesh(hot, filled, poseStack, collector, light, Map.of());
+    }
+
+    private static void submitMesh(boolean hot, boolean filled, PoseStack poseStack, SubmitNodeCollector collector, int light, Map<String, int[][]> meshLights) {
         TTMesh mesh = GolemMeshes.get(MODEL);
         for (TTMeshPart part : mesh.parts()) {
+            int[][] lights = meshLights.get(part.name());
             if (PART_BASE.equals(part.name())) {
-                collector.submitCustomGeometry(poseStack, hot ? BASE_HOT : BASE, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE));
+                collector.submitCustomGeometry(poseStack, hot ? BASE_HOT : BASE, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE, lights == null ? null : lights[0]));
             } else if (PART_TANK.equals(part.name())) {
-                submitTankPart(part, filled ? TANK_FILLED : TANK, poseStack, collector, light);
+                submitTankPart(part, filled ? TANK_FILLED : TANK, poseStack, collector, light, lights);
             } else if (PART_TANK_TRIM.equals(part.name())) {
-                submitTankPart(part, TANK_TRIM, poseStack, collector, light);
+                submitTankPart(part, TANK_TRIM, poseStack, collector, light, lights);
             }
         }
     }
 
-    private static void submitTankPart(TTMeshPart part, RenderType type, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+    private static void submitTankPart(TTMeshPart part, RenderType type, PoseStack poseStack, SubmitNodeCollector collector, int light, int @Nullable [][] lights) {
         for (int side = 0; side < SIDES; side++) {
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(SIDE_ANGLE * side));
-            collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE));
+            int[] quadLights = lights == null ? null : lights[side];
+            collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE, quadLights));
             poseStack.popPose();
         }
+    }
+
+    private static Map<String, int[][]> sampleMeshLight(Level level, BlockPos origin) {
+        Map<String, int[][]> result = new HashMap<>();
+        for (TTMeshPart part : GolemMeshes.get(MODEL).parts()) {
+            int sides = PART_BASE.equals(part.name()) ? 1 : SIDES;
+            int[][] lights = new int[sides][];
+            for (int side = 0; side < sides; side++) {
+                Matrix4f transform = new Matrix4f().translate(origin.getX() + 0.5F, origin.getY(), origin.getZ() + 0.5F).rotateX(-Mth.HALF_PI).rotateZ(side * Mth.HALF_PI);
+                lights[side] = samplePartLight(part, level, transform);
+            }
+            result.put(part.name(), lights);
+        }
+        return result;
+    }
+
+    private static int[] samplePartLight(TTMeshPart part, Level level, Matrix4f transform) {
+        int[] lights = new int[part.quadCount()];
+        float[] positions = part.positions();
+        float[] normals = part.normals();
+        Vector3f center = new Vector3f();
+        Vector3f normal = new Vector3f();
+        for (int quad = 0; quad < lights.length; quad++) {
+            center.zero();
+            normal.zero();
+            for (int corner = 0; corner < 4; corner++) {
+                int index = (quad * 4 + corner) * 3;
+                center.add(positions[index], positions[index + 1], positions[index + 2]);
+                normal.add(normals[index], normals[index + 1], normals[index + 2]);
+            }
+            center.mul(0.25F).mulPosition(transform);
+            normal.mulDirection(transform).normalize();
+            center.fma(0.01F, normal);
+            lights[quad] = LevelRenderer.getLightCoords(level, BlockPos.containing(center.x, center.y, center.z));
+        }
+        return lights;
     }
 
     private static void submitHeatVents(int heat, PoseStack poseStack, SubmitNodeCollector collector) {

@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumaturge.gametest;
 
+import com.leclowndu93150.thaumaturge.content.recipe.workbench.JarUpgradeTests;
+import com.leclowndu93150.thaumaturge.api.research.scan.InventoryScanTests;
 import com.leclowndu93150.thaumaturge.gametest.base.TTTestRegistrar;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
@@ -22,5 +24,9 @@ public final class TTGameTestRegistration {
         RunicShieldingTests.register(r);
         ManaBeanTests.register(r);
         WandTests.register(r);
+        JarUpgradeTests.register(r);
+        ItemGrateTests.register(r);
+        HungryNodeWardTests.register(r);
+        InventoryScanTests.register(r);
     }
 }

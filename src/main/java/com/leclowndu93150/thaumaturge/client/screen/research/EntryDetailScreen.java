@@ -23,6 +23,7 @@ import com.leclowndu93150.thaumaturge.client.render.research.EntryIconRenderer;
 import com.leclowndu93150.thaumaturge.client.render.research.PageParser;
 import com.leclowndu93150.thaumaturge.client.render.research.RecipeDisplayCache;
 import com.leclowndu93150.thaumaturge.client.render.research.RecipeDisplayWidget;
+import com.leclowndu93150.thaumaturge.client.render.research.RecipeDisplayWidget.ItemHit;
 import com.leclowndu93150.thaumaturge.client.screen.AbstractTTScreen;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.client.screen.TTTooltips;
@@ -327,6 +328,14 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     private boolean renderedComplete;
     private int renderedAddenda = -1;
     private final Deque<Identifier> history = new ArrayDeque<>();
+    private final List<ItemHit> renderedItemHits = new ArrayList<>();
+    private final List<AspectHit> renderedAspectHits = new ArrayList<>();
+
+    public record AspectHit(AspectInstance aspect, int x, int y) {
+        public boolean contains(double mouseX, double mouseY) {
+            return mouseX >= x && mouseX < x + SLOT_HIT_SIZE && mouseY >= y && mouseY < y + SLOT_HIT_SIZE;
+        }
+    }
 
     public EntryDetailScreen(Holder<IResearchEntry> entry, Identifier entryId, @Nullable Screen parent) {
         super(Component.translatable(entry.value().nameKey()));
@@ -338,6 +347,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
 
     @Override
     protected void init() {
+        renderedItemHits.clear();
+        renderedAspectHits.clear();
         super.init();
         sw = (width - PANE_W) / 2;
         sh = (height - PANE_H) / 2;
@@ -530,6 +541,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        renderedItemHits.clear();
+        renderedAspectHits.clear();
         previousLayer.visible = nextLayer.visible = false;
         previewLayers = 0;
         renderPaneBackground(graphics);
@@ -541,6 +554,10 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         renderTextPages(graphics, pageBaseY, pageMouseX, pageMouseY);
         renderRequirements(graphics, stage, sw, pageMouseX, pageMouseY);
         renderWarpIndicator(graphics, stage, sw, sh + CONTENT_Y_OFFSET + TITLE_Y_ADVANCE, pageMouseX, pageMouseY);
+        if (insertOpen) {
+            renderedItemHits.clear();
+            renderedAspectHits.clear();
+        }
         if (knowsResearch(KNOWLEDGETYPES_RESEARCH) && entryId.equals(KNOWLEDGETYPES_RESEARCH)) {
             drawKnowledges(graphics, sw, sh + KNOW_INPAGE_INSERT_INPAGE_Y_OFFSET - 16, pageMouseX, pageMouseY, true);
         }
@@ -778,6 +795,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             int slotX = innerX + shift;
             ItemStack stack = pickRotatingItem(req, i);
             if (!stack.isEmpty()) {
+                renderedItemHits.add(new ItemHit(stack, slotX, y));
                 graphics.item(stack, slotX, y);
                 graphics.itemDecorations(font, stack, slotX, y);
             }
@@ -834,6 +852,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         }
         Optional<Holder.Reference<IAspect>> aspect = registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().filter(holder -> ScanKeys.aspect(holder.key()).equals(prereq)).findFirst();
         if (aspect.isPresent()) {
+            renderedAspectHits.add(new AspectHit(new AspectInstance(aspect.get(), 1), x, y));
             drawAspectTag(graphics, x, y, aspect.get());
             return;
         }
@@ -892,7 +911,9 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 Identifier learnKey = ResearchNoteData.learnKey(entryId, theoryOrdinal);
                 theoryOrdinal++;
                 met = completedStage || knowledge.isResearchKnown(learnKey);
-                graphics.item(new ItemStack(TTItems.RESEARCH_NOTE.get()), slotX, y);
+                ItemStack note = new ItemStack(TTItems.RESEARCH_NOTE.get());
+                renderedItemHits.add(new ItemHit(note, slotX, y));
+                graphics.item(note, slotX, y);
                 if (mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
                     List<Component> lines = new ArrayList<>();
                     lines.add(Component.translatable("tooltip.thaumaturge.research_note.theory", Component.translatable(entry.value().nameKey())));
@@ -920,6 +941,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                     int chipX = slotX + a * spacing;
                     boolean aspectDiscovered = AspectPools.isDiscovered(minecraft.player, instance.aspect());
                     if (aspectDiscovered) {
+                        renderedAspectHits.add(new AspectHit(instance, chipX, y));
                         int have = AspectPools.amount(minecraft.player, instance.aspect());
                         float alpha = 1.0F;
                         if (have < instance.amount()) {
@@ -1019,7 +1041,11 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                     RECIPE_BOOKMARK_H, RECIPE_BOOKMARK_W, RECIPE_BOOKMARK_H, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE, tint);
             graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, x + shJitter, slotY - 1, (float) RECIPE_BOOKMARK_TIP_U, (float) RECIPE_BOOKMARK_V, RECIPE_BOOKMARK_TIP_W,
                     RECIPE_BOOKMARK_H, RECIPE_BOOKMARK_TIP_W, RECIPE_BOOKMARK_H, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
-            RecipeDisplayWidget.renderBookmarkIcon(graphics, x + shJitter + RECIPE_BOOKMARK_ICON_OFFSET - le, slotY - 1, shown);
+            int itemX = x + shJitter + RECIPE_BOOKMARK_ICON_OFFSET - le;
+            if (!result.isEmpty()) {
+                renderedItemHits.add(new ItemHit(result, itemX, slotY - 1));
+            }
+            RecipeDisplayWidget.renderBookmarkIcon(graphics, itemX, slotY - 1, shown);
             if (hoverState && !result.isEmpty()) {
                 graphics.setTooltipForNextFrame(font, result, mouseX, mouseY);
             }
@@ -1533,6 +1559,37 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (index < 0)
             index += size;
         return new ItemStack(req.items().get(index), Math.max(1, req.amount()), req.components());
+    }
+
+    public @Nullable ItemHit itemUnderMouse(double mouseX, double mouseY) {
+        if (minecraft == null || minecraft.player == null || minecraft.level == null)
+            return null;
+        for (int i = renderedItemHits.size() - 1; i >= 0; i--) {
+            ItemHit hit = renderedItemHits.get(i);
+            if (hit.contains(mouseX, mouseY))
+                return hit;
+        }
+        if (showingAspects || showingKnowledge || showingConstruct || shownRecipe == null)
+            return null;
+        List<RecipeDisplay> displays = RecipeDisplayCache.get(shownRecipe);
+        if (displays == null || displays.isEmpty())
+            return null;
+        RecipeDisplay current = displays.get(Mth.clamp(recipePage, 0, displays.size() - 1));
+        int paperX = (width - INSERT_PAPER_SIZE) / 2;
+        int paperY = (height - INSERT_PAPER_SIZE) / 2;
+        return RecipeDisplayWidget.hoverItemForDisplay(paperX + INSERT_PAPER_SIZE / 2 - RecipeDisplayWidget.width() / 2, paperY + INSERT_PAPER_SIZE / 2 - RecipeDisplayWidget.height() / 2, current,
+                mouseX, mouseY);
+    }
+
+    public @Nullable AspectHit aspectUnderMouse(double mouseX, double mouseY) {
+        if (minecraft == null || minecraft.player == null || minecraft.level == null || insertOpen())
+            return null;
+        for (int i = renderedAspectHits.size() - 1; i >= 0; i--) {
+            AspectHit hit = renderedAspectHits.get(i);
+            if (hit.contains(mouseX, mouseY) && AspectKnowledgeAccess.isKnown(hit.aspect().aspect()))
+                return hit;
+        }
+        return null;
     }
 
     private int countMatching(Player player, ResearchRequirement req) {

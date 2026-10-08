@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.client.screen.casters.focal.FocalManipulatorScreen;
+import com.leclowndu93150.thaumaturge.client.screen.research.EntryDetailScreen;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
@@ -177,6 +178,9 @@ public final class ThaumaturgeJEIPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addGuiContainerHandler(FocalManipulatorScreen.class, new FocalManipulatorGuiHandler());
+        ThaumonomiconGuiHandler bookHandler = new ThaumonomiconGuiHandler();
+        registration.addGuiScreenHandler(EntryDetailScreen.class, bookHandler);
+        registration.addGlobalGuiHandler(bookHandler);
     }
 
     @Override
