@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.gametest;
 
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.JarUpgradeTests;
 import com.leclowndu93150.thaumaturge.api.research.scan.InventoryScanTests;
+import com.leclowndu93150.thaumaturge.content.aura.AuraRetrogenTests;
 import com.leclowndu93150.thaumaturge.gametest.base.TTTestRegistrar;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
@@ -12,6 +13,7 @@ public final class TTGameTestRegistration {
         TTTestRegistrar r = new TTTestRegistrar(event);
         DataValidationTests.register(r);
         AuraTests.register(r);
+        AuraRetrogenTests.register(r);
         NodeTests.register(r);
         TransducerTests.register(r);
         RelayTests.register(r);

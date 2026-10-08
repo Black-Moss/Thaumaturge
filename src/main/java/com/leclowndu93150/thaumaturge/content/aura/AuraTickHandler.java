@@ -77,8 +77,9 @@ public final class AuraTickHandler {
             if (chunk == null) {
                 continue;
             }
-            PhysicalFluxOutbreaks.tryOutbreak(level, chunk, rand);
             AuraData data = chunk.getData(TTAttachments.AURA.get());
+            AuraGenHandler.initializeIfNeeded(level, chunk, data);
+            PhysicalFluxOutbreaks.tryOutbreak(level, chunk, rand);
             if (data.getBase() == 0) {
                 continue;
             }

@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.aura;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aura.BiomeAuraModifier;
-import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTDataMaps;
 import java.util.Random;
 import net.minecraft.core.BlockPos;
@@ -26,18 +25,8 @@ public final class AuraGenHandler {
         if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
             return;
         }
-        LevelChunk chunk = event.getChunk();
-        ChunkPos pos = chunk.getPos();
-        AuraManager.onChunkLoaded(serverLevel, pos);
-
-        AuraData data = chunk.getData(TTAttachments.AURA.get());
-        if (data.getBase() != 0) {
-            return;
-        }
-        if (!event.isNewChunk()) {
-            return;
-        }
-        generate(serverLevel, chunk, data);
+        // World queries must wait until the chunk has finished loading. The aura tick initializes it.
+        AuraManager.onChunkLoaded(serverLevel, event.getChunk().getPos());
     }
 
     @SubscribeEvent
@@ -48,7 +37,10 @@ public final class AuraGenHandler {
         AuraManager.onChunkUnloaded(serverLevel, event.getChunk().getPos());
     }
 
-    private static void generate(ServerLevel level, LevelChunk chunk, AuraData data) {
+    static void initializeIfNeeded(ServerLevel level, LevelChunk chunk, AuraData data) {
+        if (data.isInitialized()) {
+            return;
+        }
         int cx = chunk.getPos().x();
         int cz = chunk.getPos().z();
         float life = sampleBiome(level, new BlockPos(cx * 16 + 8, 50, cz * 16 + 8));
@@ -62,8 +54,10 @@ public final class AuraGenHandler {
         short base = (short) (life * 500.0F * noise);
         base = (short) Mth.clamp(base, 0, 500);
         data.setBase(base);
-        data.setVis(base);
-        data.setFlux(0.0F);
+        // An old chunk may already contain vis or pollution from machines, nodes or commands.
+        if (data.getVis() == 0.0F && data.getFlux() == 0.0F) {
+            data.setVis(base);
+        }
         data.setChunkPos(chunk.getPos());
         chunk.markUnsaved();
     }
