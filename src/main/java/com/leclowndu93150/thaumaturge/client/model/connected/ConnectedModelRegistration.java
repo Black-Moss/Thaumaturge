@@ -13,7 +13,7 @@ public final class ConnectedModelRegistration {
     @SubscribeEvent
     public static void onRegisterBlockStateModels(RegisterBlockStateModels event) {
         event.registerModel(ConnectedSheetModel.TYPE, ConnectedSheetModel.CODEC);
-        event.registerModel(ConnectedTilesModel.TYPE, ConnectedTilesModel.CODEC);
+        event.registerModel(ConnectedCornersModel.TYPE, ConnectedCornersModel.CODEC);
         event.registerModel(ConnectedStairsModel.TYPE, ConnectedStairsModel.CODEC);
     }
 }

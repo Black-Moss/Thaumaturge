@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.warding;
 
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
+import com.leclowndu93150.thaumaturge.client.model.connected.FaceCorners;
 import net.minecraft.core.RegistryAccess;
 import java.util.Optional;
 import com.leclowndu93150.thaumaturge.content.spell.effect.WardEffect;
@@ -77,7 +78,7 @@ public final class WardOverlayRenderer {
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
         VertexConsumer buffer = buffers.getBuffer(RUNES);
         Matrix4f pose = event.getPoseStack().last().pose();
-        TextureAtlasSprite[] sprites = new TextureAtlasSprite[WardConnectedTexture.CORNERS * WardConnectedTexture.STATES];
+        TextureAtlasSprite[] sprites = new TextureAtlasSprite[FaceCorners.COUNT * FaceCorners.STATES];
         BlockPos.MutableBlockPos neighbour = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (SectionPos section : ClientWardHolder.sections()) {
@@ -106,9 +107,10 @@ public final class WardOverlayRenderer {
             if (ClientWardHolder.isWarded(neighbour)) {
                 continue;
             }
-            for (int corner = 0; corner < WardConnectedTexture.CORNERS; corner++) {
-                int state = WardConnectedTexture.stateFor(pos, face, corner, cursor, connected);
-                int slot = corner * WardConnectedTexture.STATES + state;
+            int connections = WardConnectedTexture.connectionMask(pos, face, cursor, connected);
+            for (int corner = 0; corner < FaceCorners.COUNT; corner++) {
+                int state = FaceCorners.state(connections, corner);
+                int slot = FaceCorners.slot(corner, state);
                 TextureAtlasSprite sprite = sprites[slot];
                 if (sprite == null) {
                     sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(WardConnectedTexture.sprite(corner, state));
