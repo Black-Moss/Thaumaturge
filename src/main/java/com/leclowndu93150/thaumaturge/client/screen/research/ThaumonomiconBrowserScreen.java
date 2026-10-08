@@ -917,7 +917,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             lines.add(Component.literal("@@").append(Component.translatable("tooltip.thaumaturge.research.new_page")));
         }
         if (minecraft.options.advancedItemTooltips) {
-            lines.add(Component.literal(ChatFormatting.DARK_GRAY + node.id().toString()));
+            lines.add(Component.literal(node.id().toString()).withStyle(ChatFormatting.DARK_GRAY));
         }
         TTTooltipRenderer.render(graphics, font, lines, mouseX, mouseY);
     }
