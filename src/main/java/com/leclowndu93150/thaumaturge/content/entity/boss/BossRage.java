@@ -1,74 +1,90 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
+import com.leclowndu93150.thaumaturge.content.misc.TTActionBar;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 final class BossRage {
-    private static final float THRESHOLD = 35.0F;
-    private static final int RAGE_TICKS = 200;
-    private static final float REGEN_DIVISOR = 15.0F;
+    private static final String ENRAGED_KEY = "message.thaumaturge.boss.enraged";
+    private static final float HIT_CAP = 35.0F;
+    private static final int ANGER_TICKS = 200;
+    private static final int BUFF_TICKS = 200;
+    private static final float REGENERATION_DIVISOR = 15.0F;
     private static final float STRENGTH_DIVISOR = 10.0F;
     private static final float HASTE_DIVISOR = 40.0F;
-    private static final int PARTICLE_CHANCE = 15;
-    private static final double PARTICLE_RISE = 0.5;
-    private static final double PARTICLE_DRIFT = 0.02;
+    private static final int MAX_AMPLIFIER = 255;
+    private static final int PUFF_ONE_IN = 15;
+    private static final double PUFF_DRIFT = 0.02;
+    private static final double PUFF_SPREAD = 0.5;
 
     private final LivingEntity boss;
-    private final EntityDataAccessor<Integer> data;
+    private final EntityDataAccessor<Integer> anger;
 
-    BossRage(LivingEntity boss, EntityDataAccessor<Integer> data) {
+    BossRage(LivingEntity boss, EntityDataAccessor<Integer> anger) {
         this.boss = boss;
-        this.data = data;
+        this.anger = anger;
     }
 
     int anger() {
-        return boss.getEntityData().get(data);
+        return boss.getEntityData().get(anger);
     }
 
-    void setAnger(int anger) {
-        boss.getEntityData().set(data, anger);
+    void setAnger(int value) {
+        boss.getEntityData().set(anger, value);
     }
 
     void tick() {
-        int anger = anger();
-        if (anger <= 0) {
+        int current = anger();
+        if (current <= 0) {
             return;
         }
-        if (!boss.level().isClientSide()) {
-            setAnger(anger - 1);
-            return;
-        }
-        RandomSource random = boss.getRandom();
-        if (random.nextInt(PARTICLE_CHANCE) == 0) {
-            float width = boss.getBbWidth();
-            boss.level().addParticle(ParticleTypes.ANGRY_VILLAGER, boss.getX() + random.nextFloat() * width - width / 2.0,
-                    boss.getBoundingBox().minY + boss.getBbHeight() + random.nextFloat() * PARTICLE_RISE, boss.getZ() + random.nextFloat() * width - width / 2.0,
-                    random.nextGaussian() * PARTICLE_DRIFT, random.nextGaussian() * PARTICLE_DRIFT, random.nextGaussian() * PARTICLE_DRIFT);
+        if (boss.level().isClientSide()) {
+            if (boss.getRandom().nextInt(PUFF_ONE_IN) == 0) {
+                puff();
+            }
+        } else {
+            setAnger(current - 1);
         }
     }
 
     float absorb(DamageSource source, float damage) {
-        if (damage <= THRESHOLD || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+        if (damage <= HIT_CAP || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return damage;
         }
-        if (anger() == 0) {
-            boss.addEffect(new MobEffectInstance(MobEffects.REGENERATION, RAGE_TICKS, (int) (damage / REGEN_DIVISOR)));
-            boss.addEffect(new MobEffectInstance(MobEffects.STRENGTH, RAGE_TICKS, (int) (damage / STRENGTH_DIVISOR)));
-            boss.addEffect(new MobEffectInstance(MobEffects.HASTE, RAGE_TICKS, (int) (damage / HASTE_DIVISOR)));
-            setAnger(RAGE_TICKS);
-            if (source.getEntity() instanceof ServerPlayer player) {
-                player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("message.thaumaturge.boss.enraged", boss.getDisplayName())));
-            }
+        if (anger() <= 0) {
+            enrage(source, damage);
         }
-        return THRESHOLD;
+        return HIT_CAP;
+    }
+
+    private void enrage(DamageSource source, float damage) {
+        buff(MobEffects.REGENERATION, damage / REGENERATION_DIVISOR);
+        buff(MobEffects.STRENGTH, damage / STRENGTH_DIVISOR);
+        buff(MobEffects.HASTE, damage / HASTE_DIVISOR);
+        setAnger(ANGER_TICKS);
+        if (source.getEntity() instanceof Player player) {
+            TTActionBar.send(player, Component.translatable(ENRAGED_KEY, boss.getDisplayName()));
+        }
+    }
+
+    private void buff(Holder<MobEffect> effect, float level) {
+        boss.addEffect(new MobEffectInstance(effect, BUFF_TICKS, Mth.clamp((int) level, 0, MAX_AMPLIFIER)));
+    }
+
+    private void puff() {
+        RandomSource random = boss.getRandom();
+        boss.level().addParticle(ParticleTypes.ANGRY_VILLAGER, boss.getRandomX(PUFF_SPREAD), boss.getY() + boss.getBbHeight(), boss.getRandomZ(PUFF_SPREAD), random.nextGaussian() * PUFF_DRIFT,
+                random.nextGaussian() * PUFF_DRIFT, random.nextGaussian() * PUFF_DRIFT);
     }
 }

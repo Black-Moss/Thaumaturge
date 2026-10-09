@@ -12,24 +12,20 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ServerboundFocusChangePayload(String focusKey) implements CustomPacketPayload {
-    public static final Type<ServerboundFocusChangePayload> TYPE = new Type<>(TTIds.rl("focus_change"));
-
     private static final int MAX_KEY_LENGTH = 256;
+
+    public static final Type<ServerboundFocusChangePayload> TYPE = new Type<>(TTIds.rl("focus_change"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundFocusChangePayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.stringUtf8(MAX_KEY_LENGTH),
             ServerboundFocusChangePayload::focusKey, ServerboundFocusChangePayload::new);
 
-    public static void handle(ServerboundFocusChangePayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            Player player = ctx.player();
+    public static void handle(ServerboundFocusChangePayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
             ItemStack main = player.getMainHandItem();
-            if (main.getItem() instanceof ICaster) {
-                CasterManager.changeFocus(main, player.level(), player, payload.focusKey());
-                return;
-            }
-            ItemStack off = player.getOffhandItem();
-            if (off.getItem() instanceof ICaster) {
-                CasterManager.changeFocus(off, player.level(), player, payload.focusKey());
+            ItemStack target = main.getItem() instanceof ICaster ? main : player.getOffhandItem();
+            if (target.getItem() instanceof ICaster) {
+                CasterManager.applyFocusChoice(target, player.level(), player, payload.focusKey());
             }
         });
     }

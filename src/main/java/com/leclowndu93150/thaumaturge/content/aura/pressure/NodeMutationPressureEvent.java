@@ -27,8 +27,8 @@ public final class NodeMutationPressureEvent extends AbstractFluxPressureEvent {
             return false;
         }
         RandomSource random = level.getRandom();
-        node.setNodeType(random.nextBoolean() ? NodeType.TAINTED : MUTATIONS[random.nextInt(MUTATIONS.length)]);
-        node.nodeChange();
+        node.reclassify(random.nextBoolean() ? NodeType.TAINTED : MUTATIONS[random.nextInt(MUTATIONS.length)]);
+        node.invalidateRefill();
         return true;
     }
 }

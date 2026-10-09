@@ -1,10 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.decor;
 
-import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
@@ -17,7 +18,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -25,17 +25,24 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class BlockEffectShock extends Block {
     public static final MapCodec<BlockEffectShock> CODEC = simpleCodec(BlockEffectShock::new);
-
     private static final float SHOCK_DAMAGE = 1.0F;
-    private static final int SLOWNESS_DURATION = 20;
-    private static final int SELF_REMOVE_ONE_IN = 100;
-    private static final int SOUND_ONE_IN = 50;
-    private static final float SOUND_VOLUME = 0.25F;
+    private static final int SLOWNESS_TICKS = 20;
+    private static final int SLOWNESS_AMPLIFIER = 0;
+    private static final int REMOVAL_ODDS = 100;
+    private static final double SPARK_BASE_HEIGHT = 0.1515;
+    private static final float SPARK_MAX_LIFT = 0.33F;
+    private static final double SPARK_LIFT_HEIGHT_SHARE = 0.5;
     private static final float SPARK_BASE_SCALE = 3.0F;
-    private static final float SPARK_SCALE_SPREAD = 6.0F;
-    private static final float SPARK_HEIGHT = 0.1515F;
+    private static final float SPARK_LIFT_SCALE = 6.0F;
+    private static final float SPARK_ALPHA = 0.8F;
+    private static final float SPARK_RED_MIN = 0.65F;
+    private static final float SPARK_RED_RANGE = 0.1F;
+    private static final float SPARK_OPAQUE = 1.0F;
+    private static final int HUM_ODDS = 50;
+    private static final float HUM_VOLUME = 0.25F;
+    private static final float HUM_PITCH_SPREAD = 0.2F;
 
-    public BlockEffectShock(BlockBehaviour.Properties properties) {
+    public BlockEffectShock(Properties properties) {
         super(properties);
     }
 
@@ -60,36 +67,42 @@ public final class BlockEffectShock extends Block {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        if (level.isClientSide()) {
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier applier, boolean intersects) {
+        if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (entity instanceof LivingEntity living && level instanceof ServerLevel serverLevel) {
+        if (entity instanceof LivingEntity living) {
             living.hurtServer(serverLevel, serverLevel.damageSources().magic(), SHOCK_DAMAGE);
-            living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, SLOWNESS_DURATION, 0, true, true));
+            living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, SLOWNESS_TICKS, SLOWNESS_AMPLIFIER, true, true));
         }
-        if (level.getRandom().nextInt(SELF_REMOVE_ONE_IN) == 0) {
-            level.removeBlock(pos, false);
+        if (serverLevel.getRandom().nextInt(REMOVAL_ODDS) == 0) {
+            dissipate(serverLevel, pos);
         }
     }
 
-    @Override
-    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    private static void dissipate(ServerLevel level, BlockPos pos) {
         level.removeBlock(pos, false);
     }
 
     @Override
-    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        float h = random.nextFloat() * 0.33F;
-        spawnSpark(level, pos.getX() + random.nextFloat(), pos.getY() + SPARK_HEIGHT + h / 2.0F, pos.getZ() + random.nextFloat(), SPARK_BASE_SCALE + h * SPARK_SCALE_SPREAD,
-                0.65F + random.nextFloat() * 0.1F, 1.0F, 1.0F, 0.8F);
-        if (random.nextInt(SOUND_ONE_IN) == 0) {
-            level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), TTSounds.JACOBS.get(), SoundSource.AMBIENT, SOUND_VOLUME, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.2F, false);
-        }
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        dissipate(level, pos);
     }
 
-    private static void spawnSpark(Level level, double x, double y, double z, float size, float r, float g, float b, float alpha) {
-        RandomSource rand = level.getRandom();
-        level.addParticle(new SparkParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, size), x, y, z, 0.0, 0.0, 0.0);
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        float lift = random.nextFloat() * SPARK_MAX_LIFT;
+        double x = pos.getX() + random.nextDouble();
+        double y = pos.getY() + SPARK_BASE_HEIGHT + lift * SPARK_LIFT_HEIGHT_SHARE;
+        double z = pos.getZ() + random.nextDouble();
+        int color = ARGB.colorFromFloat(SPARK_OPAQUE, SPARK_RED_MIN + random.nextFloat() * SPARK_RED_RANGE, SPARK_OPAQUE, SPARK_OPAQUE);
+        level.addParticle(new SparkParticleOptions(color, SPARK_ALPHA, SPARK_BASE_SCALE + SPARK_LIFT_SCALE * lift), x, y, z, 0.0, 0.0, 0.0);
+        if (random.nextInt(HUM_ODDS) == 0) {
+            float up = random.nextFloat();
+            float down = random.nextFloat();
+            float pitch = 1.0F + HUM_PITCH_SPREAD * (up - down);
+            SoundEvent hum = TTSounds.JACOBS.get();
+            level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), hum, SoundSource.AMBIENT, HUM_VOLUME, pitch, false);
+        }
     }
 }

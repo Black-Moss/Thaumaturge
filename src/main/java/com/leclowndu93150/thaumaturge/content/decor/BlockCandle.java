@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.decor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -38,10 +37,5 @@ public final class BlockCandle extends AbstractCandleBlock {
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
-    }
-
-    @Override
-    public boolean canStabiliseInfusion(Level level, BlockPos pos) {
-        return true;
     }
 }

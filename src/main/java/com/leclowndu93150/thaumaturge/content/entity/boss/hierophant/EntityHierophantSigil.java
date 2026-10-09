@@ -26,7 +26,7 @@ public final class EntityHierophantSigil extends AbstractHierophantSpell {
     protected void tickSpell(ServerLevel level, int age) {
         if (age == WARNING_TICKS) {
             level.playSound(null, blockPosition(), TTSounds.ZAP.get(), SoundSource.HOSTILE, 1.0F, 0.65F);
-            Effects.arcBolt(level, position()).to(position().add(0, HEIGHT, 0)).color(0xB395CF).send();
+            Effects.boltStrike(level, position()).to(position().add(0, HEIGHT, 0)).color(0xB395CF).send();
         }
         if (age >= WARNING_TICKS) {
             resolveTargets(level, new AABB(getX() - RADIUS, getY(), getZ() - RADIUS, getX() + RADIUS, getY() + HEIGHT, getZ() + RADIUS), position().add(0, 0.5, 0));

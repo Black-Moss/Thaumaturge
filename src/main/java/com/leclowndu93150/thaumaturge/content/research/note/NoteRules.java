@@ -2,88 +2,72 @@ package com.leclowndu93150.thaumaturge.content.research.note;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import net.minecraft.core.Holder;
 
 public final class NoteRules {
     private NoteRules() {}
 
-    public static boolean connects(Holder<IAspect> a, Holder<IAspect> b, Predicate<Holder<IAspect>> discovered) {
-        if (a == null || b == null) {
-            return false;
-        }
-        if (!discovered.test(a) || !discovered.test(b)) {
-            return false;
-        }
-        return componentOf(a, b) || componentOf(b, a);
-    }
-
-    private static boolean componentOf(Holder<IAspect> compound, Holder<IAspect> component) {
-        if (compound.value().isPrimal()) {
-            return false;
-        }
-        for (Holder<IAspect> part : compound.value().components()) {
-            if (part.is(component.getKey())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public record Completion(boolean complete, List<ResearchNoteData.Cell> prunedCells) {
     }
 
-    public static Completion checkCompletion(ResearchNoteData data, Predicate<Holder<IAspect>> discovered) {
-        Map<HexGrid.Hex, ResearchNoteData.Cell> map = data.cellMap();
-        List<HexGrid.Hex> roots = new ArrayList<>();
-        for (ResearchNoteData.Cell cell : data.cells()) {
-            if (cell.type() == ResearchNoteData.TYPE_ROOT) {
-                roots.add(cell.hex());
+    public static boolean connects(Holder<IAspect> first, Holder<IAspect> second, Predicate<Holder<IAspect>> discovered) {
+        if (first == null || second == null) {
+            return false;
+        }
+        return !sameKey(first, second) && discovered.test(first) && discovered.test(second) && (composedOf(first, second) || composedOf(second, first));
+    }
+
+    public static Completion checkCompletion(ResearchNoteData note, Predicate<Holder<IAspect>> discovered) {
+        List<ResearchNoteData.Cell> all = note.cells();
+        List<ResearchNoteData.Cell> anchors = all.stream().filter(NoteRules::isRoot).toList();
+        if (anchors.isEmpty()) {
+            return new Completion(false, all);
+        }
+        Set<HexGrid.Hex> linked = flood(note.cellMap(), anchors.get(0).hex(), discovered);
+        if (!anchors.stream().allMatch(anchor -> linked.contains(anchor.hex()))) {
+            return new Completion(false, all);
+        }
+        return new Completion(true, all.stream().filter(cell -> isRoot(cell) || linked.contains(cell.hex())).toList());
+    }
+
+    private static boolean isRoot(ResearchNoteData.Cell cell) {
+        return cell.type() == ResearchNoteData.TYPE_ROOT;
+    }
+
+    private static Set<HexGrid.Hex> flood(Map<HexGrid.Hex, ResearchNoteData.Cell> cells, HexGrid.Hex start, Predicate<Holder<IAspect>> discovered) {
+        Set<HexGrid.Hex> seen = new HashSet<>(Set.of(start));
+        Deque<HexGrid.Hex> frontier = new ArrayDeque<>(List.of(start));
+        while (!frontier.isEmpty()) {
+            HexGrid.Hex here = frontier.pop();
+            ResearchNoteData.Cell origin = cells.get(here);
+            if (origin == null || !origin.active()) {
+                continue;
             }
+            IntStream.range(0, HexGrid.NEIGHBOURS.length).mapToObj(here::neighbour).filter(there -> !seen.contains(there) && linksTo(origin, cells.get(there), discovered)).toList().forEach(there -> {
+                seen.add(there);
+                frontier.push(there);
+            });
         }
-        if (roots.isEmpty()) {
-            return new Completion(false, data.cells());
-        }
-        Set<HexGrid.Hex> visited = new HashSet<>();
-        Deque<HexGrid.Hex> queue = new ArrayDeque<>();
-        HexGrid.Hex start = roots.get(0);
-        visited.add(start);
-        queue.add(start);
-        while (!queue.isEmpty()) {
-            HexGrid.Hex current = queue.poll();
-            ResearchNoteData.Cell currentCell = map.get(current);
-            for (int dir = 0; dir < 6; dir++) {
-                HexGrid.Hex next = current.neighbour(dir);
-                if (visited.contains(next)) {
-                    continue;
-                }
-                ResearchNoteData.Cell nextCell = map.get(next);
-                if (nextCell == null || !nextCell.active() || !currentCell.active()) {
-                    continue;
-                }
-                if (connects(currentCell.aspectOrNull(), nextCell.aspectOrNull(), discovered)) {
-                    visited.add(next);
-                    queue.add(next);
-                }
-            }
-        }
-        for (HexGrid.Hex root : roots) {
-            if (!visited.contains(root)) {
-                return new Completion(false, data.cells());
-            }
-        }
-        List<ResearchNoteData.Cell> pruned = new ArrayList<>();
-        for (ResearchNoteData.Cell cell : data.cells()) {
-            if (cell.type() == ResearchNoteData.TYPE_ROOT || visited.contains(cell.hex())) {
-                pruned.add(cell);
-            }
-        }
-        return new Completion(true, pruned);
+        return seen;
+    }
+
+    private static boolean linksTo(ResearchNoteData.Cell origin, ResearchNoteData.Cell target, Predicate<Holder<IAspect>> discovered) {
+        return target != null && target.active() && connects(origin.aspectOrNull(), target.aspectOrNull(), discovered);
+    }
+
+    private static boolean composedOf(Holder<IAspect> compound, Holder<IAspect> part) {
+        return compound.value().components().stream().anyMatch(component -> sameKey(component, part));
+    }
+
+    private static boolean sameKey(Holder<IAspect> first, Holder<IAspect> second) {
+        return first.unwrapKey().filter(key -> Optional.of(key).equals(second.unwrapKey())).isPresent();
     }
 }

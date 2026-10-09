@@ -10,15 +10,25 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.util.Mth;
 
 public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> {
     public static final BoreVoidStreamManager INSTANCE = new BoreVoidStreamManager();
+
+    private static final float TWO_PI = Mth.TWO_PI;
+    private static final float HALF_PI = Mth.HALF_PI;
+    private static final float GLOW_RADIUS_MULTIPLIER = 1.5F;
+    private static final float CORE_RADIUS_MULTIPLIER = 0.5F;
+    private static final int UNUSED_LIGHT = 0;
+    private static final int RED = 0;
+    private static final int GREEN = 1;
+    private static final int BLUE = 2;
 
     private static final List<BoreStreamInstance> BORES = new ArrayList<>();
     private static final List<VoidStreamInstance> VOIDS = new ArrayList<>();
@@ -35,7 +45,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
 
     @Override
     protected Collection<IFXInstance> activeInstances() {
-        throw new UnsupportedOperationException("BoreVoidStreamManager overrides tickAll directly");
+        throw new UnsupportedOperationException("BoreVoidStreamManager overrides tick handling directly");
     }
 
     @Override
@@ -46,86 +56,75 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
 
     @Override
     public void tickAll(ClientLevel level) {
-        tickList(BORES);
-        tickList(VOIDS);
+        advance(BORES);
+        advance(VOIDS);
     }
 
-    private static <I extends IFXInstance> void tickList(List<I> list) {
-        Iterator<I> it = list.iterator();
-        while (it.hasNext()) {
-            I inst = it.next();
-            inst.tick();
-            if (inst.isExpired())
-                it.remove();
-        }
+    private static void advance(List<? extends IFXInstance> instances) {
+        instances.removeIf(BoreVoidStreamManager::step);
+    }
+
+    private static boolean step(IFXInstance instance) {
+        instance.tick();
+        return instance.isExpired();
     }
 
     @Override
     public void renderAll(PoseStack poseStack, Camera camera, float partialTick) {
-        if (BORES.isEmpty() && VOIDS.isEmpty())
+        if (BORES.isEmpty() && VOIDS.isEmpty()) {
             return;
-        double cx = camera.position().x;
-        double cy = camera.position().y;
-        double cz = camera.position().z;
-
-        if (!BORES.isEmpty()) {
-            MultiBufferSource.BufferSource buf = Minecraft.getInstance().renderBuffers().bufferSource();
-            VertexConsumer consumer = buf.getBuffer(EssentiaStreamRenderType.RENDER_TYPE);
-            for (BoreStreamInstance inst : BORES) {
-                StreamInstance.Snapshot snap = inst.snapshot(partialTick);
-                if (snap == null)
-                    continue;
-                poseStack.pushPose();
-                poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-                PolyCone.render(poseStack, consumer, snap.points(), snap.colours(), snap.radii(), 0, snap.texSlice(), snap.start());
-                poseStack.popPose();
-            }
-            buf.endBatch(EssentiaStreamRenderType.RENDER_TYPE);
         }
-
+        double camX = camera.position().x;
+        double camY = camera.position().y;
+        double camZ = camera.position().z;
+        MultiBufferSource.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+        drawBores(poseStack, buffers, camX, camY, camZ, partialTick);
         if (!VOIDS.isEmpty()) {
-            float yawRad = (float) Math.toRadians(camera.yRot());
-            float pitchRad = (float) Math.toRadians(camera.xRot());
-            float yawNorm = ((yawRad % (float) (2.0 * Math.PI)) + (float) (2.0 * Math.PI)) % (float) (2.0 * Math.PI) / (float) (2.0 * Math.PI);
-            float pitchNorm = (pitchRad + (float) (Math.PI * 0.5)) / (float) Math.PI;
-
-            MultiBufferSource.BufferSource bufA = Minecraft.getInstance().renderBuffers().bufferSource();
-            VertexConsumer addConsumer = bufA.getBuffer(VoidStreamRenderType.ADDITIVE);
-            for (VoidStreamInstance inst : VOIDS) {
-                StreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 1.5F);
-                if (snap == null)
-                    continue;
-                packYawPitch(snap.colours(), yawNorm, pitchNorm);
-                poseStack.pushPose();
-                poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-                PolyCone.render(poseStack, addConsumer, snap.points(), snap.colours(), snap.radii(), 0, snap.texSlice(), snap.start());
-                poseStack.popPose();
-            }
-            bufA.endBatch(VoidStreamRenderType.ADDITIVE);
-
-            MultiBufferSource.BufferSource bufT = Minecraft.getInstance().renderBuffers().bufferSource();
-            VertexConsumer trConsumer = bufT.getBuffer(VoidStreamRenderType.TRANSLUCENT);
-            for (VoidStreamInstance inst : VOIDS) {
-                StreamInstance.Snapshot snap = inst.snapshotWithRadiusMul(partialTick, 0.5F);
-                if (snap == null)
-                    continue;
-                packYawPitch(snap.colours(), yawNorm, pitchNorm);
-                poseStack.pushPose();
-                poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-                PolyCone.render(poseStack, trConsumer, snap.points(), snap.colours(), snap.radii(), 0, snap.texSlice(), snap.start());
-                poseStack.popPose();
-            }
-            bufT.endBatch(VoidStreamRenderType.TRANSLUCENT);
+            float yaw = Mth.positiveModulo((float) Math.toRadians(camera.yRot()), TWO_PI) / TWO_PI;
+            float pitch = ((float) Math.toRadians(camera.xRot()) + HALF_PI) / Mth.PI;
+            drawVoids(poseStack, buffers, VoidStreamRenderType.ADDITIVE, GLOW_RADIUS_MULTIPLIER, yaw, pitch, camX, camY, camZ, partialTick);
+            drawVoids(poseStack, buffers, VoidStreamRenderType.TRANSLUCENT, CORE_RADIUS_MULTIPLIER, yaw, pitch, camX, camY, camZ, partialTick);
         }
     }
 
-    private static void packYawPitch(float[][] colours, float yawNorm, float pitchNorm) {
-        for (int i = 0; i < colours.length; i++) {
-            float alpha = colours[i][3];
-            colours[i][0] = yawNorm;
-            colours[i][1] = pitchNorm;
-            colours[i][2] = 0.0F;
-            colours[i][3] = alpha;
+    private static void drawBores(PoseStack poseStack, MultiBufferSource.BufferSource buffers, double camX, double camY, double camZ, float partialTick) {
+        if (BORES.isEmpty()) {
+            return;
+        }
+        VertexConsumer consumer = buffers.getBuffer(EssentiaStreamRenderType.RENDER_TYPE);
+        for (BoreStreamInstance bore : BORES) {
+            emit(poseStack, consumer, bore.snapshot(partialTick), camX, camY, camZ);
+        }
+        buffers.endBatch(EssentiaStreamRenderType.RENDER_TYPE);
+    }
+
+    private static void drawVoids(PoseStack poseStack, MultiBufferSource.BufferSource buffers, RenderType type, float radiusMultiplier, float yaw, float pitch, double camX, double camY, double camZ, float partialTick) {
+        VertexConsumer consumer = buffers.getBuffer(type);
+        for (VoidStreamInstance stream : VOIDS) {
+            StreamInstance.Snapshot snapshot = stream.snapshotWithRadiusMul(partialTick, radiusMultiplier);
+            if (snapshot != null) {
+                packAngles(snapshot.colours(), yaw, pitch);
+            }
+            emit(poseStack, consumer, snapshot, camX, camY, camZ);
+        }
+        buffers.endBatch(type);
+    }
+
+    private static void emit(PoseStack poseStack, VertexConsumer consumer, StreamInstance.Snapshot snapshot, double camX, double camY, double camZ) {
+        if (snapshot == null) {
+            return;
+        }
+        poseStack.pushPose();
+        poseStack.translate(snapshot.originX() - camX, snapshot.originY() - camY, snapshot.originZ() - camZ);
+        PolyCone.render(poseStack, consumer, snapshot.points(), snapshot.colours(), snapshot.radii(), UNUSED_LIGHT, snapshot.texSlice(), snapshot.start());
+        poseStack.popPose();
+    }
+
+    private static void packAngles(float[][] colours, float yaw, float pitch) {
+        for (float[] colour : colours) {
+            colour[RED] = yaw;
+            colour[GREEN] = pitch;
+            colour[BLUE] = 0.0F;
         }
     }
 }

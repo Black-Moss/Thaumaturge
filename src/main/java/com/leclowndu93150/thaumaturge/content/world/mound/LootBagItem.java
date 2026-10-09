@@ -21,6 +21,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 public final class LootBagItem extends Item {
     private static final float OPEN_VOLUME = 0.75F;
+    private static final String USAGE_KEY = "tooltip.thaumaturge.loot_bag.use";
 
     private final ResourceKey<LootTable> lootTable;
 
@@ -31,21 +32,30 @@ public final class LootBagItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        Component usage = Component.translatable(USAGE_KEY);
         super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("tooltip.thaumaturge.loot_bag.use"));
+        tooltip.accept(usage);
     }
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (level instanceof ServerLevel server) {
-            LootTable table = server.getServer().reloadableRegistries().getLootTable(lootTable);
-            LootParams params = new LootParams.Builder(server).withParameter(LootContextParams.ORIGIN, player.position()).create(LootContextParamSets.CHEST);
-            for (ItemStack loot : table.getRandomItems(params)) {
-                server.addFreshEntity(new ItemEntity(server, player.getX(), player.getY(), player.getZ(), loot.copy()));
-            }
+        ItemStack held = player.getItemInHand(hand);
+        if (!level.isClientSide() && level instanceof ServerLevel server) {
+            spill(server, player);
             player.playSound(TTSounds.COINS.get(), OPEN_VOLUME, 1.0F);
         }
-        player.getItemInHand(hand).shrink(1);
+        held.shrink(1);
         return InteractionResult.SUCCESS;
+    }
+
+    private void spill(ServerLevel server, Player player) {
+        LootParams.Builder builder = new LootParams.Builder(server);
+        builder.withParameter(LootContextParams.ORIGIN, player.position());
+        LootParams params = builder.create(LootContextParamSets.CHEST);
+        LootTable table = server.getServer().reloadableRegistries().getLootTable(lootTable);
+        table.getRandomItems(params).forEach(loot -> {
+            ItemEntity drop = new ItemEntity(server, player.getX(), player.getY(), player.getZ(), loot.copy());
+            server.addFreshEntity(drop);
+        });
     }
 }

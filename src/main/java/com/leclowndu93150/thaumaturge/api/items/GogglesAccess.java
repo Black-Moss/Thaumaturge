@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class GogglesAccess {
     private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("GogglesAccess");
+    private static final int PERCENT_SCALE = 100;
     private static @Nullable Curios curios;
 
     private GogglesAccess() {}
@@ -76,11 +77,11 @@ public final class GogglesAccess {
      * @return the total discount in whole percent, never negative; 0 for a null player
      */
     public static int totalVisDiscount(@Nullable Player player) {
-        if (player == null) {
-            return 0;
+        AttributeInstance attribute = player != null ? player.getAttribute(BINDING.get().visDiscount()) : null;
+        if (attribute != null) {
+            return (int) (attribute.getValue() * PERCENT_SCALE);
         }
-        AttributeInstance attribute = player.getAttribute(BINDING.get().visDiscount());
-        return attribute == null ? 0 : (int) (attribute.getValue() * 100);
+        return 0;
     }
 
     /**

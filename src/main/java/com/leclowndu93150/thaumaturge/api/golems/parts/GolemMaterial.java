@@ -11,164 +11,160 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A material a golem can be assembled from. Materials contribute health, armor and melee
- * damage, the golem's body texture, and the base and mechanism items consumed when parts
- * declare material placeholders.
+ * A material golems are built from. Materials live in the {@link #REGISTRY_KEY} registry, so addons may contribute their own.
+ *
+ * <p>Instances are immutable. The registry is server data and is not synchronised to clients, so each side registers the
+ * same entries from the same code. The crafting item suppliers run on demand, never during registration.
  *
  * @since 1.0.0
  */
 public final class GolemMaterial {
-    /** The registry key for golem materials. */
+    /** The registry key of golem materials. */
     public static final ResourceKey<Registry<GolemMaterial>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("golem_material"));
 
+    private static final String NAME_KEY_PREFIX = "golem.material.";
+    private static final String DESCRIPTION_KEY_PREFIX = "golem.material.text.";
+    private static final char KEY_SEPARATOR = '.';
+
+    private final Appearance appearance;
+    private final Combat combat;
+    private final Components components;
     private final List<Identifier> research;
-    private final Identifier texture;
-    private final int itemColor;
-    private final int healthMod;
-    private final int armor;
-    private final int damage;
-    private final Supplier<ItemStack> componentBase;
-    private final Supplier<ItemStack> componentMechanism;
     private final List<Holder<GolemTrait>> traits;
-    private final boolean antenna;
 
     /**
-     * Creates a material whose golems render without the head antenna.
+     * Creates a material without a head antenna.
      *
-
-     * @param research           research entries gating this material in the golem press;
-     *                           empty means always available
-     * @param texture            the body texture rendered on golems of this material
-     * @param itemColor          the {@code 0xRRGGBB} tint applied to golem placer items
-     * @param healthMod          health added to the golem's base of 10
-     * @param armor              the golem's armor rating
-     * @param damage             the golem's base melee damage when it can fight
-     * @param componentBase      supplies the material's base crafting item
-     * @param componentMechanism supplies the material's mechanism crafting item
-     * @param traits             traits granted by the material
+     * @param research  the research entries that unlock the material; empty when it is always available
+     * @param texture   the body texture
+     * @param itemColor the 24-bit RGB tint of golem placer items
+     * @param healthMod the health points added to the golem's base health
+     * @param armor     the armor rating
+     * @param damage    the base melee damage
+     * @param base      supplies the base crafting item
+     * @param mechanism supplies the mechanism crafting item
+     * @param traits    the traits the material grants
      */
-    public GolemMaterial(List<Identifier> research, Identifier texture, int itemColor, int healthMod, int armor, int damage, Supplier<ItemStack> componentBase, Supplier<ItemStack> componentMechanism, List<Holder<GolemTrait>> traits) {
-        this(research, texture, itemColor, healthMod, armor, damage, componentBase, componentMechanism, traits, false);
+    public GolemMaterial(List<Identifier> research, Identifier texture, int itemColor, int healthMod, int armor, int damage, Supplier<ItemStack> base, Supplier<ItemStack> mechanism, List<Holder<GolemTrait>> traits) {
+        this(research, texture, itemColor, healthMod, armor, damage, base, mechanism, traits, false);
     }
 
     /**
-     * @param research           research entries gating this material in the golem press;
-     *                           empty means always available
-     * @param texture            the body texture rendered on golems of this material
-     * @param itemColor          the {@code 0xRRGGBB} tint applied to golem placer items
-     * @param healthMod          health added to the golem's base of 10
-     * @param armor              the golem's armor rating
-     * @param damage             the golem's base melee damage when it can fight
-     * @param componentBase      supplies the material's base crafting item
-     * @param componentMechanism supplies the material's mechanism crafting item
-     * @param traits             traits granted by the material
-     * @param antenna            whether golems of this material render the copper golem's head antenna
-     * @since 1.0.0
+     * @param research  the research entries that unlock the material; empty when it is always available
+     * @param texture   the body texture
+     * @param itemColor the 24-bit RGB tint of golem placer items
+     * @param healthMod the health points added to the golem's base health
+     * @param armor     the armor rating
+     * @param damage    the base melee damage
+     * @param base      supplies the base crafting item
+     * @param mechanism supplies the mechanism crafting item
+     * @param traits    the traits the material grants
+     * @param antenna   whether the copper golem head antenna is drawn
      */
-    public GolemMaterial(List<Identifier> research, Identifier texture, int itemColor, int healthMod, int armor, int damage, Supplier<ItemStack> componentBase, Supplier<ItemStack> componentMechanism, List<Holder<GolemTrait>> traits, boolean antenna) {
-        this.research = List.copyOf(research);
-        this.texture = texture;
-        this.itemColor = itemColor;
-        this.healthMod = healthMod;
-        this.armor = armor;
-        this.damage = damage;
-        this.componentBase = componentBase;
-        this.componentMechanism = componentMechanism;
+    public GolemMaterial(List<Identifier> research, Identifier texture, int itemColor, int healthMod, int armor, int damage, Supplier<ItemStack> base, Supplier<ItemStack> mechanism, List<Holder<GolemTrait>> traits, boolean antenna) {
+        this.appearance = new Appearance(texture, itemColor, antenna);
+        this.combat = new Combat(healthMod, armor, damage);
+        this.components = new Components(base, mechanism);
         this.traits = List.copyOf(traits);
-        this.antenna = antenna;
+        this.research = List.copyOf(research);
     }
 
     /**
-     * @return research entries gating this material; empty means ungated
+     * @return the research entries that unlock the material, or an empty list when it is always available
      */
     public List<Identifier> research() {
         return research;
     }
 
     /**
-     * @return the body texture for golems of this material
+     * @return the body texture
      */
     public Identifier texture() {
-        return texture;
+        return appearance.texture();
     }
 
     /**
-     * @return the {@code 0xRRGGBB} item tint
+     * @return the 24-bit RGB tint of golem placer items
      */
     public int itemColor() {
-        return itemColor;
+        return appearance.itemColor();
     }
 
     /**
-     * @return health added to the golem's base of 10
+     * @return the health points added to the golem's base health
      */
     public int healthMod() {
-        return healthMod;
+        return combat.healthMod();
     }
 
     /**
-     * @return the golem's armor rating
+     * @return the armor rating
      */
     public int armor() {
-        return armor;
+        return combat.armor();
     }
 
     /**
-     * @return the golem's base melee damage
+     * @return the base melee damage
      */
     public int damage() {
-        return damage;
+        return combat.damage();
     }
 
     /**
-     * @return a fresh copy of the material's base crafting item
+     * @return a new copy of the base crafting item
      */
     public ItemStack base() {
-        return componentBase.get().copy();
+        return components.base().get().copy();
     }
 
     /**
-     * @return a fresh copy of the material's mechanism crafting item
+     * @return a new copy of the mechanism crafting item
      */
     public ItemStack mechanism() {
-        return componentMechanism.get().copy();
+        return components.mechanism().get().copy();
     }
 
     /**
-     * @return traits granted by the material
+     * @return the traits the material grants; unmodifiable
      */
     public List<Holder<GolemTrait>> traits() {
         return traits;
     }
 
     /**
-     * Whether golems of this material render the head antenna of the copper golem model they are
-     * drawn with. A golem wearing a hat accessory hides the antenna regardless.
-     *
-     * @return true when the antenna is drawn
-     * @since 1.0.0
+     * @return whether the copper golem head antenna is drawn; a hat accessory hides it regardless
      */
     public boolean antenna() {
-        return antenna;
+        return appearance.antenna();
     }
 
     /**
-     * The translation key for a material's display name in golem UIs.
-     *
-     * @param id the material id
-     * @return {@code golem.material.<namespace>.<path>}
+     * @param id the id of a material
+     * @return the lang key of the material's display name
      */
     public static String nameKey(Identifier id) {
-        return "golem.material." + id.getNamespace() + "." + id.getPath();
+        return keyFor(NAME_KEY_PREFIX, id);
     }
 
     /**
-     * The translation key for a material's descriptive text in golem UIs.
-     *
-     * @param id the material id
-     * @return {@code golem.material.text.<namespace>.<path>}
+     * @param id the id of a material
+     * @return the lang key of the material's descriptive text
      */
     public static String descriptionKey(Identifier id) {
-        return "golem.material.text." + id.getNamespace() + "." + id.getPath();
+        return keyFor(DESCRIPTION_KEY_PREFIX, id);
+    }
+
+    private static String keyFor(String prefix, Identifier id) {
+        return new StringBuilder(prefix).append(id.getNamespace()).append(KEY_SEPARATOR).append(id.getPath()).toString();
+    }
+
+    private record Appearance(Identifier texture, int itemColor, boolean antenna) {
+    }
+
+    private record Combat(int healthMod, int armor, int damage) {
+    }
+
+    private record Components(Supplier<ItemStack> base, Supplier<ItemStack> mechanism) {
     }
 }

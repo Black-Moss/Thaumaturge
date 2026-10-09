@@ -1,9 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity.trait;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.entity.trait.MobTrait;
-import java.util.List;
-import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,37 +14,20 @@ public final class MobTraitEvents {
 
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (!event.getLevel().isClientSide() && event.getEntity() instanceof LivingEntity mob && !MobTraitEngine.traits(mob).isEmpty()) {
-            MobTraitEngine.refresh(mob);
+        if (!event.getLevel().isClientSide() && event.getEntity() instanceof LivingEntity living && MobTraitEngine.traits(living).size() > 0) {
+            MobTraitEngine.refresh(living);
         }
     }
 
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
-        if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof LivingEntity mob) || !mob.isAlive()) {
-            return;
-        }
-        for (Holder<MobTrait> trait : MobTraitEngine.traits(mob)) {
-            trait.value().tick(mob);
+        if (event.getEntity() instanceof LivingEntity living && living.isAlive() && !living.level().isClientSide()) {
+            MobTraitEngine.traits(living).forEach(trait -> trait.value().tick(living));
         }
     }
 
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        LivingEntity victim = event.getEntity();
-        if (victim.level().isClientSide()) {
-            return;
-        }
-        LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity living ? living : null;
-        for (Holder<MobTrait> trait : MobTraitEngine.traits(victim)) {
-            event.setAmount(trait.value().onHurt(victim, attacker, event.getSource(), event.getAmount()));
-        }
-        if (attacker == null || event.getAmount() <= 0.0F) {
-            return;
-        }
-        List<Holder<MobTrait>> attackerTraits = MobTraitEngine.traits(attacker);
-        for (Holder<MobTrait> trait : attackerTraits) {
-            event.setAmount(trait.value().onAttack(attacker, victim, event.getSource(), event.getAmount()));
-        }
+        MobTraitDamagePipeline.apply(event);
     }
 }

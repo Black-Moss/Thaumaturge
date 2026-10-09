@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.content.device.BlockEntityVoidSiphon;
 import com.leclowndu93150.thaumaturge.content.device.fluxscrubber.BlockEntityFluxScrubber;
 import com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace.BlockEntityAdvancedAlchemicalFurnace;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntitySmelter;
+import com.leclowndu93150.thaumaturge.content.essentia.smeltery.SmelterGauge;
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockEntityGolemBuilder;
 import com.leclowndu93150.thaumaturge.content.infernalfurnace.BlockEntityInfernalFurnace;
 import com.leclowndu93150.thaumaturge.content.research.decon.BlockEntityDeconstructionTable;
@@ -39,8 +40,8 @@ final class JadeMachineDetails {
             data.summary("jade.thaumaturge.transducer.charge", machine.getCount() * 100 / BlockEntityNodeTransducer.CHARGE_TARGET);
     }
     static void smelter(BlockEntitySmelter machine, JadeDetailBuilder data) {
-        int progress = machine.getCookProgressScaled(100);
-        int burn = machine.getBurnTimeRemainingScaled(100);
+        int progress = machine.scaled(SmelterGauge.COOK, 100);
+        int burn = machine.scaled(SmelterGauge.FUEL, 100);
         data.summary(progress > 0 || burn > 0 ? "jade.thaumaturge.state.processing" : "jade.thaumaturge.state.idle");
         if (progress > 0)
             data.detail("jade.thaumaturge.machine.progress", progress);
@@ -75,9 +76,9 @@ final class JadeMachineDetails {
     }
     static void golemBuilder(BlockEntityGolemBuilder machine, JadeDetailBuilder data) {
         data.title(Component.translatable("block.thaumaturge.golem_builder"));
-        data.summary(machine.maxCost() > 0 ? "jade.thaumaturge.state.processing" : "jade.thaumaturge.state.idle");
-        progress(data, machine.maxCost() - machine.cost(), machine.maxCost());
-        int output = machine.output().getAmountAsInt(BlockEntityGolemBuilder.SLOT_OUTPUT);
+        data.summary(machine.totalCost() > 0 ? "jade.thaumaturge.state.processing" : "jade.thaumaturge.state.idle");
+        progress(data, machine.totalCost() - machine.cost(), machine.totalCost());
+        int output = machine.outputHandler().getAmountAsInt(BlockEntityGolemBuilder.SLOT_OUTPUT);
         if (output > 0)
             data.summary("jade.thaumaturge.machine.output", output);
     }
@@ -104,10 +105,10 @@ final class JadeMachineDetails {
     }
     static void furnace(BlockEntityInfernalFurnace machine, JadeDetailBuilder data) {
         data.title(Component.translatable("block.thaumaturge.infernal_furnace"));
-        progress(data, machine.furnaceCookTime, machine.furnaceMaxCookTime);
+        progress(data, machine.smeltTicksLeft, machine.smeltTicksTotal);
         int stored = 0;
-        for (int i = 0; i < machine.inventory().size(); i++)
-            stored += machine.inventory().getAmountAsInt(i);
+        for (int i = 0; i < machine.items().size(); i++)
+            stored += machine.items().getAmountAsInt(i);
         data.summary("jade.thaumaturge.machine.stored_items", stored);
     }
     static void focal(BlockEntityFocalManipulator machine, JadeDetailBuilder data) {

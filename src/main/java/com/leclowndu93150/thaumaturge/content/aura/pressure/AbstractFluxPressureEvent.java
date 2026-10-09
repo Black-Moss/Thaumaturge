@@ -1,35 +1,32 @@
 package com.leclowndu93150.thaumaturge.content.aura.pressure;
 
 public abstract class AbstractFluxPressureEvent implements FluxPressureEvent {
-    private final String name;
-    private final int weight;
-    private final float cost;
-    private final boolean allowedNearTaint;
+    private final Traits traits;
 
     protected AbstractFluxPressureEvent(String name, int weight, float cost, boolean allowedNearTaint) {
-        this.name = name;
-        this.weight = weight;
-        this.cost = cost;
-        this.allowedNearTaint = allowedNearTaint;
+        this.traits = new Traits(name, weight, cost, allowedNearTaint);
     }
 
     @Override
     public final String name() {
-        return name;
+        return traits.label();
     }
 
     @Override
     public final int weight() {
-        return weight;
+        return traits.chance();
     }
 
     @Override
     public final float cost() {
-        return cost;
+        return traits.price();
     }
 
     @Override
     public final boolean allowedNearTaint() {
-        return allowedNearTaint;
+        return traits.taintSafe();
+    }
+
+    private record Traits(String label, int chance, float price, boolean taintSafe) {
     }
 }

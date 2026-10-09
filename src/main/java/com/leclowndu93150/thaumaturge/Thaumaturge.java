@@ -76,7 +76,7 @@ import com.leclowndu93150.thaumaturge.content.research.pool.AspectPoolBindings;
 import com.leclowndu93150.thaumaturge.content.research.scan.ScanBindings;
 import com.leclowndu93150.thaumaturge.content.taint.TaintApiBindings;
 import com.leclowndu93150.thaumaturge.content.wands.WandAccessBindings;
-import com.leclowndu93150.thaumaturge.content.warp.WarpManager;
+import com.leclowndu93150.thaumaturge.content.warp.WarpBindings;
 import com.leclowndu93150.thaumaturge.content.workbench.ArcaneCraftingTransactions;
 import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
 import com.leclowndu93150.thaumaturge.registry.TTBiomeModifierSerializers;
@@ -165,7 +165,7 @@ public final class Thaumaturge {
         VisRelayHelper.bind(new VisRelayNetwork());
         TaintApi.bind(new TaintApiBindings());
         MobTraits.bind(new MobTraitBindings());
-        WarpHelper.bind(new WarpManager.Bindings());
+        WarpHelper.bind(new WarpBindings());
         ScanningManager.bind(new ScanBindings());
         GolemHelper.bind(new GolemBindings());
         AspectPoolAccess.bind(new AspectPoolBindings());

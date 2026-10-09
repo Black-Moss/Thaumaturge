@@ -4,9 +4,14 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityFallingTaint;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
 import com.leclowndu93150.thaumaturge.content.taint.entity.EntityTaintSporeSwarmer;
+import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGoo;
+import com.leclowndu93150.thaumaturge.content.taint.flux.FluxGooFluid;
+import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.mojang.serialization.MapCodec;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -15,8 +20,6 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseFireBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
@@ -24,11 +27,14 @@ import net.minecraft.world.phys.AABB;
 public final class BlockTaintCrust extends AbstractTaintBlock {
     public static final MapCodec<BlockTaintCrust> CODEC = simpleCodec(BlockTaintCrust::new);
 
-    private static final int CREEP_REACH = 4;
-    private static final int GOO_BLOCKING_AMOUNT = 4;
-    private static final int OUTSIDE_BIOME_DECAY_CHANCE = 20;
-    private static final int SWARMER_CHANCE = 200;
+    private static final int BIOME_DECAY_ONE_IN = 20;
+    private static final int CREEP_DEPTH = 3;
+    private static final int SWARMER_ONE_IN = 200;
     private static final double SWARMER_SPACING = 16.0;
+    private static final int LOG_CLEARANCE = 1;
+    private static final double HALF = 0.5;
+    private static final int BLOCKING_GOO_AMOUNT = 4;
+    private static final Direction[] ENCLOSING_SIDES = {Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 
     public BlockTaintCrust(Properties properties) {
         super(properties);
@@ -41,106 +47,105 @@ public final class BlockTaintCrust extends AbstractTaintBlock {
 
     @Override
     public void decay(Level level, BlockPos pos, BlockState state) {
-        level.setBlock(pos, TTBlocks.FLUX_GOO.get().defaultBlockState(), Block.UPDATE_ALL);
+        level.setBlockAndUpdate(pos, FluxGooFluid.gooBlockState(PhysicalFlux.MAX_QUANTA));
     }
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         TaintHelper.trySpreadTaintedBiome(level, pos, random);
-        if (!TaintBiomeManager.isTainted(level, pos) && random.nextInt(OUTSIDE_BIOME_DECAY_CHANCE) == 0) {
+        if (TaintBiomeManager.isTainted(level, pos)) {
+            if (!shed(level, pos, state, random)) {
+                subRandomTick(state, level, pos, random);
+            }
+        } else if (random.nextInt(BIOME_DECAY_ONE_IN) == 0) {
             decay(level, pos, state);
-            return;
+        } else {
+            shed(level, pos, state, random);
         }
-        subRandomTick(state, level, pos, random);
     }
 
     @Override
     protected void subRandomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (tryToFall(level, pos, pos)) {
+        TaintHelper.attemptFibreGrowth(level, pos, false);
+        if (rollSwarmer(level, pos, random) || hasOpenSide(level, pos)) {
             return;
         }
-        if (level.isEmptyBlock(pos.above()) && canCreep(level, pos, Direction.Plane.HORIZONTAL.getRandomDirection(random))) {
-            return;
-        }
-        if (!TaintBiomeManager.isTainted(level, pos)) {
-            return;
-        }
-        TaintHelper.spreadFibres(level, pos, false);
-        if (level.isEmptyBlock(pos.above()) && random.nextInt(SWARMER_CHANCE) == 0 && level.getEntitiesOfClass(EntityTaintSporeSwarmer.class, new AABB(pos).inflate(SWARMER_SPACING)).isEmpty()) {
-            uprootIntoSwarmer(level, pos);
-            return;
-        }
-        if (isEnclosed(level, pos)) {
-            level.setBlock(pos, TTBlocks.FLUX_GOO.get().defaultBlockState(), Block.UPDATE_ALL);
-        }
-    }
-
-    private boolean canCreep(ServerLevel level, BlockPos pos, Direction dir) {
-        for (int a = 1; a < CREEP_REACH; a++) {
-            if (!level.isEmptyBlock(pos.relative(dir).below(a)) || !level.getBlockState(pos.below(a)).is(this)) {
-                return false;
-            }
-        }
-        return tryToFall(level, pos, pos.relative(dir));
-    }
-
-    private static void uprootIntoSwarmer(ServerLevel level, BlockPos pos) {
-        level.removeBlock(pos, false);
-        EntityTaintSporeSwarmer swarmer = TTEntities.TAINT_SPORE_SWARMER.get().create(level, EntitySpawnReason.NATURAL);
-        if (swarmer != null) {
-            swarmer.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
-            level.addFreshEntity(swarmer);
-        }
-    }
-
-    private boolean isEnclosed(ServerLevel level, BlockPos pos) {
-        if (!level.getBlockState(pos.above()).is(this)) {
-            return false;
-        }
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            if (!level.getBlockState(pos.relative(direction)).is(this)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean tryToFall(ServerLevel level, BlockPos pos, BlockPos target) {
-        if (!BlockTaintFibre.isOnlyAdjacentToTaint(level, pos)) {
-            return false;
-        }
-        if (!canFallBelow(level, target.below()) || target.getY() < level.getMinY()) {
-            return false;
-        }
-        EntityFallingTaint falling = new EntityFallingTaint(level, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5, level.getBlockState(pos), pos);
-        level.addFreshEntity(falling);
-        return true;
+        decay(level, pos, state);
     }
 
     public static boolean canFallBelow(Level level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        for (int xx = -1; xx <= 1; xx++) {
-            for (int zz = -1; zz <= 1; zz++) {
-                for (int yy = -1; yy <= 1; yy++) {
-                    if (level.getBlockState(pos.offset(xx, yy, zz)).is(BlockTags.LOGS)) {
-                        return false;
-                    }
-                }
-            }
-        }
-        if (state.isAir()) {
-            return true;
-        }
-        FluidState fluid = state.getFluidState();
-        if (state.is(TTBlocks.FLUX_GOO.get()) && fluid.getAmount() >= GOO_BLOCKING_AMOUNT) {
+        boolean nearLog = BlockPos.betweenClosedStream(pos.getX() - LOG_CLEARANCE, pos.getY() - LOG_CLEARANCE, pos.getZ() - LOG_CLEARANCE, pos.getX() + LOG_CLEARANCE, pos.getY() + LOG_CLEARANCE,
+                pos.getZ() + LOG_CLEARANCE).anyMatch(near -> level.getBlockState(near).is(BlockTags.LOGS));
+        if (nearLog) {
             return false;
         }
-        if (state.getBlock() instanceof BaseFireBlock || state.is(TTBlocks.TAINT_FIBRE.get())) {
-            return true;
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof BlockFluxGoo goo && goo.fluxAmount(state) >= BLOCKING_GOO_AMOUNT) {
+            return false;
         }
-        if (state.canBeReplaced()) {
-            return true;
+        FluidState fluid = state.getFluidState();
+        boolean liquid = fluid.is(FluidTags.WATER) || fluid.is(FluidTags.LAVA);
+        return liquid || state.isAir() || state.is(BlockTags.FIRE) || state.is(TTBlocks.TAINT_FIBRE) || state.canBeReplaced();
+    }
+
+    private static boolean rollSwarmer(ServerLevel level, BlockPos pos, RandomSource random) {
+        return level.getBlockState(pos.above()).isAir() && random.nextInt(SWARMER_ONE_IN) == 0 && trySpawnSwarmer(level, pos);
+    }
+
+    private static boolean hasOpenSide(Level level, BlockPos pos) {
+        return Arrays.stream(ENCLOSING_SIDES).anyMatch(side -> !isCrust(level, pos.relative(side)));
+    }
+
+    private static boolean isCrust(Level level, BlockPos pos) {
+        return level.getBlockState(pos).is(TTBlocks.TAINT_CRUST);
+    }
+
+    private static boolean shed(ServerLevel level, BlockPos pos, BlockState state, RandomSource random) {
+        return release(level, pos, pos, state) || tryCreep(level, pos, state, random);
+    }
+
+    private static boolean canRelease(ServerLevel level, BlockPos cell, BlockPos origin) {
+        return BlockTaintFibre.isOnlyAdjacentToTaint(level, origin) && cell.getY() >= level.getMinY() && canFallBelow(level, cell.below());
+    }
+
+    private static boolean release(ServerLevel level, BlockPos cell, BlockPos origin, BlockState state) {
+        if (!canRelease(level, cell, origin)) {
+            return false;
         }
-        return fluid.is(FluidTags.WATER) || fluid.is(FluidTags.LAVA);
+        double x = cell.getX() + HALF;
+        double y = cell.getY() + HALF;
+        double z = cell.getZ() + HALF;
+        level.addFreshEntity(new EntityFallingTaint(level, x, y, z, state, origin));
+        return true;
+    }
+
+    private static boolean tryCreep(ServerLevel level, BlockPos pos, BlockState state, RandomSource random) {
+        if (!level.getBlockState(pos.above()).isAir()) {
+            return false;
+        }
+        BlockPos side = pos.relative(Direction.Plane.HORIZONTAL.getRandomDirection(random));
+        return hasCreepRoom(level, pos, side) && release(level, side, pos, state);
+    }
+
+    private static boolean hasCreepRoom(ServerLevel level, BlockPos pos, BlockPos side) {
+        return IntStream.rangeClosed(1, CREEP_DEPTH).allMatch(depth -> level.getBlockState(side.below(depth)).isAir() && isCrust(level, pos.below(depth)));
+    }
+
+    private static boolean trySpawnSwarmer(ServerLevel level, BlockPos pos) {
+        if (!level.getEntitiesOfClass(EntityTaintSporeSwarmer.class, new AABB(pos).inflate(SWARMER_SPACING)).isEmpty()) {
+            return false;
+        }
+        EntityTaintSporeSwarmer swarmer = TTEntities.TAINT_SPORE_SWARMER.get().create(level, EntitySpawnReason.NATURAL);
+        if (swarmer == null) {
+            return false;
+        }
+        replaceWithSwarmer(level, pos, swarmer);
+        return true;
+    }
+
+    private static void replaceWithSwarmer(ServerLevel level, BlockPos pos, EntityTaintSporeSwarmer swarmer) {
+        swarmer.snapTo(pos.getX() + HALF, pos.getY(), pos.getZ() + HALF, 0.0F, 0.0F);
+        level.removeBlock(pos, false);
+        level.addFreshEntity(swarmer);
     }
 }

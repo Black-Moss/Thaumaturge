@@ -45,6 +45,9 @@ public final class BlockArcaneEar extends BaseEntityBlock {
     private static final Map<Direction, VoxelShape> TOGGLE_OFF_SHAPES = DeviceShapes.facingShapesFromUp(Shapes.or(EAR, SWITCH_OFF));
     private static final Map<Direction, VoxelShape> TOGGLE_ON_SHAPES = DeviceShapes.facingShapesFromUp(Shapes.or(EAR, SWITCH_ON));
 
+    private static final int FULL_SIGNAL = 15;
+    private static final int NO_SIGNAL = 0;
+
     private final boolean toggle;
 
     public BlockArcaneEar(boolean toggle, BlockBehaviour.Properties properties) {
@@ -69,28 +72,35 @@ public final class BlockArcaneEar extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        Map<Direction, VoxelShape> shapes = !toggle ? EAR_SHAPES : state.getValue(BlockStateProperties.ENABLED) ? TOGGLE_ON_SHAPES : TOGGLE_OFF_SHAPES;
-        return shapes.get(state.getValue(BlockStateProperties.FACING));
+        return shapeTable(state).get(state.getValue(BlockStateProperties.FACING));
+    }
+
+    private Map<Direction, VoxelShape> shapeTable(BlockState state) {
+        if (!toggle) {
+            return EAR_SHAPES;
+        }
+        return isPowered(state) ? TOGGLE_ON_SHAPES : TOGGLE_OFF_SHAPES;
+    }
+
+    private static boolean isPowered(BlockState state) {
+        return state.getValue(BlockStateProperties.ENABLED);
     }
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(BlockStateProperties.FACING, context.getClickedFace()).setValue(BlockStateProperties.ENABLED, false);
+        return defaultBlockState().setValue(BlockStateProperties.FACING, context.getClickedFace());
     }
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        Direction facing = state.getValue(BlockStateProperties.FACING);
-        BlockPos support = pos.relative(facing.getOpposite());
-        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+        Direction toward = state.getValue(BlockStateProperties.FACING).getOpposite();
+        BlockPos base = pos.relative(toward);
+        return level.getBlockState(base).isFaceSturdy(level, base, toward.getOpposite());
     }
 
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (!canSurvive(state, level, pos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
-        return super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+        return canSurvive(state, level, pos) ? super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random) : Blocks.AIR.defaultBlockState();
     }
 
     @Override
@@ -101,25 +111,25 @@ public final class BlockArcaneEar extends BaseEntityBlock {
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
-        if (level.getBlockEntity(pos) instanceof BlockEntityArcaneEar ear) {
-            ear.updateTone();
-        }
+        refreshTone(level, pos);
     }
 
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
-        if (level.getBlockEntity(pos) instanceof BlockEntityArcaneEar ear) {
+        refreshTone(level, pos);
+    }
+
+    private static void refreshTone(Level level, BlockPos pos) {
+        BlockEntity entity = level.getBlockEntity(pos);
+        if (entity instanceof BlockEntityArcaneEar ear) {
             ear.updateTone();
         }
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
-        }
-        if (level.getBlockEntity(pos) instanceof BlockEntityArcaneEar ear) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof BlockEntityArcaneEar ear) {
             ear.changePitch();
             ear.playNote();
         }
@@ -133,12 +143,12 @@ public final class BlockArcaneEar extends BaseEntityBlock {
 
     @Override
     protected int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return state.getValue(BlockStateProperties.ENABLED) ? 15 : 0;
+        return isPowered(state) ? FULL_SIGNAL : NO_SIGNAL;
     }
 
     @Override
     protected int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return state.getValue(BlockStateProperties.ENABLED) ? 15 : 0;
+        return getSignal(state, level, pos, direction);
     }
 
     @Override

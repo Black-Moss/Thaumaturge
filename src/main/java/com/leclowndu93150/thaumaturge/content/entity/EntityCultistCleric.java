@@ -1,10 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.content.entity.ai.AltarFocusGoal;
-import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.registry.TTLootTables;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -12,22 +12,15 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.Mth;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
-import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.entity.monster.illager.AbstractIllager;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
@@ -36,64 +29,77 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.Vec3;
 
 public class EntityCultistCleric extends EntityCultist implements RangedAttackMob {
-    private static final EntityDataAccessor<Boolean> DATA_RITUALIST = SynchedEntityData.defineId(EntityCultistCleric.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<BlockPos> DATA_RITUAL_ANCHOR = SynchedEntityData.defineId(EntityCultistCleric.class, EntityDataSerializers.BLOCK_POS);
-
-    private static final float RITUAL_PITCH_STEP = 10.0F;
-    private static final double RITUAL_ANCHOR_HEIGHT = 1.5;
-
+    private static final EntityDataAccessor<Boolean> RITUALIST = SynchedEntityData.defineId(EntityCultistCleric.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<BlockPos> ANCHOR = SynchedEntityData.defineId(EntityCultistCleric.class, EntityDataSerializers.BLOCK_POS);
+    private static final String RITUALIST_KEY = "ritualist";
+    private static final double MAX_HEALTH = 24.0;
+    private static final double MOVE_SPEED = 1.0;
+    private static final double MIN_ATTACK_DISTANCE = 2.0;
+    private static final int MIN_ATTACK_INTERVAL = 20;
+    private static final int MAX_ATTACK_INTERVAL = 40;
+    private static final float ATTACK_RADIUS = 24.0F;
+    private static final int ALTAR_PRIORITY = 1;
+    private static final int RANGED_PRIORITY = 2;
+    private static final int MELEE_PRIORITY = 3;
+    private static final int RAGE_LIMIT = 5;
+    private static final int AMBIENT_INTERVAL = 500;
+    private static final float ANCHOR_CENTER = 0.5F;
+    private static final double ANCHOR_HEIGHT = 1.5;
+    private static final float PITCH_STEP = 10.0F;
+    private static final float HEAD_STEP = 40.0F;
     private static final float ORB_CHANCE = 0.34F;
+    private static final float VOLLEY_CHANCE = 1.0F - ORB_CHANCE;
+    private static final double LEAD_TICKS = 10.0;
     private static final float ORB_SPEED = 0.66F;
-    private static final float ORB_SPREAD = 3.0F;
-    private static final int FIREBALL_COUNT = 3;
-    private static final int FIREBALL_LEVEL_EVENT = 1009;
+    private static final float ORB_INACCURACY = 3.0F;
+    private static final float ORB_SOUND_VOLUME = 1.0F;
+    private static final float ORB_SOUND_PITCH_SPREAD = 0.1F;
+    private static final int VOLLEY_EVENT = 1009;
+    private static final int VOLLEY_SIZE = 3;
+    private static final float VOLLEY_SPREAD = 0.5F;
+    private static final double VOLLEY_LIFT = 0.5;
+
+    private static final List<WeightedAttack> ATTACKS = List.of(new WeightedAttack(ORB_CHANCE, new OrbAttack()), new WeightedAttack(VOLLEY_CHANCE, new VolleyAttack()));
 
     public int rage;
+
+    private final RitualState ritual = new RitualState();
 
     public EntityCultistCleric(EntityType<? extends EntityCultistCleric> type, Level level) {
         super(type, level);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createCultistAttributes().add(Attributes.MAX_HEALTH, 24.0);
+        return createCultistAttributes(MAX_HEALTH);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new AltarFocusGoal(this));
-        this.goalSelector.addGoal(2, new LongRangeAttackGoal(this, 2.0, 1.0, 20, 40, 24.0F));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0, false));
-        this.goalSelector.addGoal(5, new OpenDoorGoal(this, true));
-        this.goalSelector.addGoal(6, new MoveTowardsRestrictionGoal(this, 0.8));
-        this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.8));
-        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-        this.targetSelector.addGoal(1, new CultistHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, EntityEldritchGuardian.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractIllager.class, true));
+        LongRangeAttackGoal ranged = new LongRangeAttackGoal(this, MOVE_SPEED, MIN_ATTACK_DISTANCE, MIN_ATTACK_INTERVAL, MAX_ATTACK_INTERVAL, ATTACK_RADIUS);
+        this.goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MOVE_SPEED, false));
+        this.goalSelector.addGoal(RANGED_PRIORITY, ranged);
+        this.goalSelector.addGoal(ALTAR_PRIORITY, new AltarFocusGoal(this));
+        this.addIdleGoals();
+        this.addTargetGoals();
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        super.defineSynchedData(entityData);
-        entityData.define(DATA_RITUALIST, false);
-        entityData.define(DATA_RITUAL_ANCHOR, BlockPos.ZERO);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ANCHOR, BlockPos.ZERO);
+        builder.define(RITUALIST, false);
     }
 
     public boolean isRitualist() {
-        return this.entityData.get(DATA_RITUALIST);
+        return this.ritual.isActive();
     }
 
     public void setRitualist(boolean ritualist) {
-        this.entityData.set(DATA_RITUALIST, ritualist);
-        if (ritualist && this.hasHome()) {
-            this.entityData.set(DATA_RITUAL_ANCHOR, this.getHomePosition());
-        }
+        this.ritual.set(ritualist);
     }
 
     public BlockPos ritualAnchor() {
-        return this.entityData.get(DATA_RITUAL_ANCHOR);
+        return this.ritual.anchor();
     }
 
     @Override
@@ -102,82 +108,48 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
     }
 
     @Override
-    public void performRangedAttack(LivingEntity target, float velocity) {
-        double dx = target.getX() - this.getX();
-        double dy = target.getBoundingBox().minY + target.getBbHeight() / 2.0F - (this.getY() + this.getBbHeight() / 2.0F);
-        double dz = target.getZ() - this.getZ();
-        this.swing(this.getUsedItemHand());
-        if (this.random.nextFloat() > 1.0F - ORB_CHANCE) {
-            EntityGolemOrb blast = new EntityGolemOrb(this.level(), this, target, true);
-            Vec3 v = target.position().add(target.getDeltaMovement().scale(10.0)).subtract(this.position()).normalize();
-            blast.setPos(blast.getX() + v.x, blast.getY() + v.y, blast.getZ() + v.z);
-            blast.shoot(v.x, v.y, v.z, ORB_SPEED, ORB_SPREAD);
-            this.playSound(TTSounds.EGATTACK.get(), 1.0F, 1.0F + this.random.nextFloat() * 0.1F);
-            this.level().addFreshEntity(blast);
-        } else {
-            float spread = Mth.sqrt(velocity) * 0.5F;
-            this.level().levelEvent(null, FIREBALL_LEVEL_EVENT, this.blockPosition(), 0);
-            for (int i = 0; i < FIREBALL_COUNT; i++) {
-                Vec3 shot = new Vec3(dx + this.random.nextGaussian() * spread, dy, dz + this.random.nextGaussian() * spread);
-                SmallFireball fireball = new SmallFireball(this.level(), this, shot.normalize());
-                fireball.setPos(fireball.getX(), this.getY() + this.getBbHeight() / 2.0F + 0.5, fireball.getZ());
-                this.level().addFreshEntity(fireball);
-            }
+    public void performRangedAttack(LivingEntity target, float distanceFactor) {
+        if (!(this.level() instanceof ServerLevel level)) {
+            return;
         }
+        this.swing(InteractionHand.MAIN_HAND);
+        selectAttack(this.getRandom()).fire(this, level, target, distanceFactor);
     }
 
     @Override
-    public boolean removeWhenFarAway(double distance) {
-        return !this.isRitualist();
-    }
-
-    @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if (this.isInvulnerableTo(level, source)) {
+    public boolean removeWhenFarAway(double distanceSqr) {
+        if (this.isRitualist()) {
             return false;
         }
-        this.setRitualist(false);
-        return super.hurtServer(level, source, damage);
+        return super.removeWhenFarAway(distanceSqr);
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        boolean immune = this.isInvulnerableTo(level, source);
+        if (!immune) {
+            this.ritual.clear();
+        }
+        return super.hurtServer(level, source, amount);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (this.level().isClientSide() && this.isRitualist()) {
-            faceRitualAnchor();
-        }
-        if (!this.level().isClientSide() && this.isRitualist() && this.rage >= 5) {
-            this.setRitualist(false);
-        }
-    }
-
-    private void faceRitualAnchor() {
-        BlockPos anchor = ritualAnchor();
-        double dx = anchor.getX() + 0.5 - this.getX();
-        double dy = anchor.getY() + RITUAL_ANCHOR_HEIGHT - (this.getY() + this.getEyeHeight());
-        double dz = anchor.getZ() + 0.5 - this.getZ();
-        double horizontal = Math.sqrt(dx * dx + dz * dz);
-        float yaw = (float) (Math.atan2(dz, dx) * 180.0 / Math.PI) - 90.0F;
-        float pitch = (float) (-(Math.atan2(dy, horizontal) * 180.0 / Math.PI));
-        this.setXRot(rotateTowards(this.getXRot(), pitch, RITUAL_PITCH_STEP));
-        this.yHeadRot = rotateTowards(this.yHeadRot, yaw, this.getMaxHeadXRot());
-    }
-
-    private static float rotateTowards(float current, float target, float step) {
-        float delta = Mth.wrapDegrees(target - current);
-        return current + Mth.clamp(delta, -step, step);
+        this.ritual.tick();
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
+        boolean stored = input.getBooleanOr(RITUALIST_KEY, false);
         super.readAdditionalSaveData(input);
-        this.setRitualist(input.getBooleanOr("ritualist", false));
+        this.setRitualist(stored);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
+        output.putBoolean(RITUALIST_KEY, this.isRitualist());
         super.addAdditionalSaveData(output);
-        output.putBoolean("ritualist", this.isRitualist());
     }
 
     @Override
@@ -187,6 +159,97 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
 
     @Override
     public int getAmbientSoundInterval() {
-        return 500;
+        return AMBIENT_INTERVAL;
+    }
+
+    private static AttackStrategy selectAttack(RandomSource random) {
+        float roll = random.nextFloat();
+        float threshold = 0.0F;
+        for (WeightedAttack attack : ATTACKS) {
+            threshold += attack.weight();
+            if (roll < threshold) {
+                return attack.strategy();
+            }
+        }
+        return ATTACKS.get(ATTACKS.size() - 1).strategy();
+    }
+
+    private interface AttackStrategy {
+        void fire(EntityCultistCleric cleric, ServerLevel level, LivingEntity target, float distanceFactor);
+    }
+
+    private record WeightedAttack(float weight, AttackStrategy strategy) {
+    }
+
+    private static final class OrbAttack implements AttackStrategy {
+        @Override
+        public void fire(EntityCultistCleric cleric, ServerLevel level, LivingEntity target, float distanceFactor) {
+            RandomSource random = cleric.getRandom();
+            Vec3 aim = Aiming.launchVector(cleric.position(), target.position(), target.getKnownMovement(), LEAD_TICKS);
+            EntityGolemOrb orb = new EntityGolemOrb(level, cleric, target, true);
+            orb.setPos(orb.getX() + aim.x, orb.getY() + aim.y, orb.getZ() + aim.z);
+            orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
+            level.addFreshEntity(orb);
+            level.playSound(null, cleric.getX(), cleric.getY(), cleric.getZ(), TTSounds.EGATTACK.get(), SoundSource.HOSTILE, ORB_SOUND_VOLUME, 1.0F + random.nextFloat() * ORB_SOUND_PITCH_SPREAD);
+        }
+    }
+
+    private static final class VolleyAttack implements AttackStrategy {
+        @Override
+        public void fire(EntityCultistCleric cleric, ServerLevel level, LivingEntity target, float distanceFactor) {
+            RandomSource random = cleric.getRandom();
+            level.levelEvent(null, VOLLEY_EVENT, cleric.blockPosition(), 0);
+            double spread = VOLLEY_SPREAD * Math.sqrt(distanceFactor);
+            double originY = cleric.getY() + cleric.getBbHeight() / 2.0;
+            Vec3 origin = new Vec3(cleric.getX(), originY, cleric.getZ());
+            Vec3 aimPoint = new Vec3(target.getX(), target.getBoundingBox().minY + target.getBbHeight() / 2.0, target.getZ());
+            for (int i = 0; i < VOLLEY_SIZE; i++) {
+                double offsetX = random.nextGaussian() * spread;
+                double offsetZ = random.nextGaussian() * spread;
+                Vec3 direction = Aiming.launchVector(origin, aimPoint, Vec3.ZERO, 0.0, offsetX, offsetZ);
+                SmallFireball fireball = new SmallFireball(level, cleric, direction);
+                fireball.setPos(fireball.getX(), originY + VOLLEY_LIFT, fireball.getZ());
+                level.addFreshEntity(fireball);
+            }
+        }
+    }
+
+    private final class RitualState {
+        boolean isActive() {
+            return EntityCultistCleric.this.entityData.get(RITUALIST);
+        }
+
+        BlockPos anchor() {
+            return EntityCultistCleric.this.entityData.get(ANCHOR);
+        }
+
+        void set(boolean ritualist) {
+            EntityCultistCleric.this.entityData.set(RITUALIST, ritualist);
+            if (!ritualist || !EntityCultistCleric.this.hasHome()) {
+                return;
+            }
+            EntityCultistCleric.this.entityData.set(ANCHOR, EntityCultistCleric.this.getHomePosition());
+        }
+
+        void clear() {
+            set(false);
+        }
+
+        void tick() {
+            if (!isActive()) {
+                return;
+            }
+            if (EntityCultistCleric.this.level().isClientSide()) {
+                focusOnAnchor();
+            } else if (EntityCultistCleric.this.rage >= RAGE_LIMIT) {
+                clear();
+            }
+        }
+
+        private void focusOnAnchor() {
+            BlockPos anchor = anchor();
+            Vec3 focus = new Vec3(anchor.getX() + ANCHOR_CENTER, anchor.getY() + ANCHOR_HEIGHT, anchor.getZ() + ANCHOR_CENTER);
+            EntityCultistCleric.this.lookAt(focus, HEAD_STEP, PITCH_STEP);
+        }
     }
 }

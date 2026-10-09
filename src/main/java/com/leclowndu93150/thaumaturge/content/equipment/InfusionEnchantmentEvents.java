@@ -2,22 +2,31 @@ package com.leclowndu93150.thaumaturge.content.equipment;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCrystalAccess;
 import com.leclowndu93150.thaumaturge.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntityFollowingItem;
-import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -26,7 +35,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,12 +47,14 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
@@ -50,123 +62,127 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.LeftClickBlock.Action;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
+import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class InfusionEnchantmentEvents {
-    private static final float REFINING_CHANCE_PER_LEVEL = 0.125F;
-    private static final int SOUNDING_DAMAGE = 5;
-    private static final float ARCING_DAMAGE_FRACTION = 0.5F;
-    private static final int SLASH_LIFE = 8;
-    private static final int GLIMMER_LIGHT_THRESHOLD = 10;
-    private static final float TC_QUARTZ_NUGGET_CHANCE = 0.05F;
-
-    private static final ThreadLocal<Boolean> DESTRUCTIVE_RECURSION = ThreadLocal.withInitial(() -> false);
-    private static final Map<UUID, DestructiveTarget> DESTRUCTIVE_TARGETS = new HashMap<>();
-
-    public static void resetSession() {
-        DESTRUCTIVE_TARGETS.clear();
-    }
-
-    private record DestructiveTarget(ResourceKey<Level> dimension, BlockPos pos, Direction face) {
-        private boolean matches(ServerLevel level, BlockPos pos) {
-            return dimension.equals(level.dimension()) && this.pos.equals(pos);
-        }
-    }
+    private static final double ARC_HORIZONTAL_BASE = 1.5;
+    private static final double ARC_VERTICAL_BASE = 1.0;
+    private static final double ARC_DAMAGE_FRACTION = 0.5;
+    private static final double ARC_KNOCKBACK = 0.5;
+    private static final double ARC_LIFT = 0.1;
+    private static final int ARC_SLASH_TICKS = 8;
+    private static final float ARC_SOUND_VOLUME = 1.0F;
+    private static final float ARC_SOUND_PITCH_BASE = 0.9F;
+    private static final float ARC_SOUND_PITCH_SPREAD = 0.2F;
+    private static final double HALF = 2.0;
+    private static final int SOUNDING_WEAR = 5;
+    private static final float SOUNDING_VOLUME = 0.2F;
+    private static final float SOUNDING_PITCH_BASE = 0.2F;
+    private static final float SOUNDING_PITCH_SPREAD = 0.2F;
+    private static final double BLOCK_CENTER = 0.5;
+    private static final int TOOL_WEAR = 1;
+    private static final float EFFECTIVE_SPEED = 1.0F;
+    private static final double REFINING_CHANCE_BASE = 1.0;
+    private static final double REFINING_CHANCE_STEP = 0.125;
+    private static final float REFINING_VOLUME = 0.2F;
+    private static final float REFINING_PITCH_BASE = 0.7F;
+    private static final float REFINING_PITCH_SPREAD = 0.2F;
+    private static final int LAMPLIGHT_THRESHOLD = 10;
+    private static final int LIGHT_FALLOFF = 1;
+    private static final int CUBE_SIDE = 3;
+    private static final int CUBE_CELLS = CUBE_SIDE * CUBE_SIDE * CUBE_SIDE;
+    private static final int ESSENCE_ROLL_BOUND = InfusionEnchantment.ESSENCE.maxLevel();
+    private static final int ESSENCE_SKIP_MIN = 1;
+    private static final int ESSENCE_SKIP_OPTIONS = 2;
+    private static final Map<UUID, DestructiveTarget> TARGETS = new HashMap<>();
+    private static final Map<Direction.Axis, List<Vec3i>> PLANE_STEPS = planeSteps();
+    private static final ThreadLocal<Boolean> EXPANDING = ThreadLocal.withInitial(() -> false);
+    private static final List<NuggetChance> NUGGET_CHANCES = Stream
+            .of(new NuggetChance(state -> state.is(BlockTags.DIAMOND_ORES), 0.05), new NuggetChance(state -> state.is(BlockTags.EMERALD_ORES), 0.075),
+                    new NuggetChance(state -> state.is(BlockTags.LAPIS_ORES), 0.01), new NuggetChance(state -> state.is(BlockTags.COAL_ORES), 0.001),
+                    new NuggetChance(state -> state.is(BlockTags.REDSTONE_ORES), 0.01), new NuggetChance(state -> state.is(TTBlocks.ORE_QUARTZ), 0.05),
+                    new NuggetChance(state -> state.is(Tags.Blocks.ORES_QUARTZ), 0.01), new NuggetChance(state -> state.is(TTBlockTags.ORES_AMBER), 0.05))
+            .sorted(Comparator.comparingDouble(NuggetChance::chance).reversed()).toList();
 
     private InfusionEnchantmentEvents() {}
 
-    @SubscribeEvent
-    public static void onAttack(AttackEntityEvent event) {
-        Player player = event.getEntity();
-        if (player.level().isClientSide()) {
-            return;
-        }
-        ItemStack held = player.getMainHandItem();
-        int rank = InfusionEnchantmentHelper.level(held, InfusionEnchantment.ARCING);
-        if (rank <= 0 || !event.getTarget().isAlive()) {
-            return;
-        }
-        Entity target = event.getTarget();
-        ServerLevel level = (ServerLevel) player.level();
-        AABB area = target.getBoundingBox().inflate(1.5 + rank, 1.0F + rank / 2.0F, 1.5 + rank);
-        List<Entity> nearby = level.getEntities(player, area);
-        int count = 0;
-        for (Entity other : nearby) {
-            if (count >= rank) {
-                break;
-            }
-            if (other.isRemoved() || other.getId() == target.getId() || !other.isAlive() || isFriendly(player, other)) {
-                continue;
-            }
-            if (!(other instanceof Mob living)) {
-                continue;
-            }
-            float damage = (float) player.getAttributeValue(Attributes.ATTACK_DAMAGE);
-            if (living.hurtServer(level, level.damageSources().playerAttack(player), damage * ARCING_DAMAGE_FRACTION)) {
-                EnchantmentHelper.doPostAttackEffects(level, living, level.damageSources().playerAttack(player));
-                float yaw = player.getYRot() * ((float) Math.PI / 180.0F);
-                living.push(-Mth.sin(yaw) * 0.5F, 0.1, Mth.cos(yaw) * 0.5F);
-                Effects.slash(level, target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(), living.getX(), living.getY() + living.getBbHeight() / 2.0, living.getZ(), SLASH_LIFE);
-                count++;
-            }
-        }
-        if (count > 0) {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.WIND.get(), SoundSource.PLAYERS, 1.0F, 0.9F + level.getRandom().nextFloat() * 0.2F);
-            Effects.slash(level, player.getX(), player.getY() + player.getBbHeight() / 2.0, player.getZ(), target.getX(), target.getY() + target.getBbHeight() / 2.0, target.getZ(), SLASH_LIFE);
-        }
+    public static void resetSession() {
+        TARGETS.clear();
     }
 
-    private static boolean isFriendly(Player source, Entity target) {
-        if (source.getRootVehicle() == target.getRootVehicle() || source.isAlliedTo(target)) {
-            return true;
+    @SubscribeEvent
+    public static void onAttack(AttackEntityEvent event) {
+        Player attacker = event.getEntity();
+        if (!(attacker.level() instanceof ServerLevel level) || !(event.getTarget() instanceof LivingEntity target) || !target.isAlive()) {
+            return;
         }
-        return target instanceof OwnableEntity ownable && source == ownable.getOwner();
+        ItemStack weapon = attacker.getMainHandItem();
+        int arcing = cappedLevel(weapon, InfusionEnchantment.ARCING);
+        if (arcing < 1) {
+            return;
+        }
+        AABB area = target.getBoundingBox().inflate(ARC_HORIZONTAL_BASE + arcing, ARC_VERTICAL_BASE + arcing / HALF, ARC_HORIZONTAL_BASE + arcing);
+        List<Mob> victims = level.getEntitiesOfClass(Mob.class, area, mob -> isArcVictim(attacker, target, mob));
+        DamageSource source = level.damageSources().playerAttack(attacker);
+        float damage = (float) (ARC_DAMAGE_FRACTION * attacker.getAttributeValue(Attributes.ATTACK_DAMAGE));
+        float yaw = attacker.getYRot() * Mth.DEG_TO_RAD;
+        Vec3 origin = bodyCenter(target);
+        int hits = 0;
+        for (Mob victim : victims.subList(0, Math.min(arcing, victims.size()))) {
+            if (victim.hurtServer(level, source, damage)) {
+                EnchantmentHelper.doPostAttackEffectsWithItemSource(level, victim, source, weapon);
+                victim.push(-Mth.sin(yaw) * ARC_KNOCKBACK, ARC_LIFT, Mth.cos(yaw) * ARC_KNOCKBACK);
+                arcBolt(level, origin, bodyCenter(victim));
+                hits++;
+            }
+        }
+        if (hits > 0) {
+            level.playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(), TTSounds.WIND.get(), SoundSource.PLAYERS, ARC_SOUND_VOLUME,
+                    ARC_SOUND_PITCH_BASE + level.getRandom().nextFloat() * ARC_SOUND_PITCH_SPREAD);
+            arcBolt(level, bodyCenter(attacker), origin);
+        }
     }
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getLevel().isClientSide() || event.getEntity() == null) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
         Player player = event.getEntity();
-        ItemStack held = player.getItemInHand(event.getHand() == null ? InteractionHand.MAIN_HAND : event.getHand());
-        int rank = InfusionEnchantmentHelper.level(held, InfusionEnchantment.SOUNDING);
-        if (rank > 0 && player.isShiftKeyDown()) {
-            held.hurtAndBreak(SOUNDING_DAMAGE, player, event.getHand() == InteractionHand.OFF_HAND ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND);
-            ServerLevel level = (ServerLevel) event.getLevel();
-            level.playSound(null, event.getPos().getX() + 0.5, event.getPos().getY() + 0.5, event.getPos().getZ() + 0.5, TTSounds.WANDFAIL.get(), SoundSource.BLOCKS, 0.2F,
-                    0.2F + level.getRandom().nextFloat() * 0.2F);
-            if (player instanceof ServerPlayer serverPlayer) {
-                SoundingScan.perform(level, serverPlayer, event.getPos(), rank);
-            }
+        ItemStack stack = event.getItemStack();
+        int sounding = cappedLevel(stack, InfusionEnchantment.SOUNDING);
+        if (sounding < 1 || !player.isShiftKeyDown()) {
+            return;
+        }
+        BlockPos pos = event.getPos();
+        stack.hurtAndBreak(SOUNDING_WEAR, player, event.getHand().asEquipmentSlot());
+        level.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, TTSounds.WANDFAIL.get(), SoundSource.BLOCKS, SOUNDING_VOLUME,
+                SOUNDING_PITCH_BASE + level.getRandom().nextFloat() * SOUNDING_PITCH_SPREAD);
+        ServerPlayer viewer = player instanceof ServerPlayer asServer ? asServer : null;
+        if (viewer != null) {
+            SoundingScan.perform(level, viewer, pos, sounding);
         }
     }
 
     @SubscribeEvent
     public static void onBreakBlock(BreakBlockEvent event) {
-        if (event.getLevel().isClientSide() || event.getPlayer() == null || EnchantMining.isHarvestingFurthest()) {
+        if (!(event.getLevel() instanceof ServerLevel level) || EnchantMining.isHarvestingFurthest()) {
             return;
         }
         Player player = event.getPlayer();
-        ItemStack held = player.getMainHandItem();
-        if (!InfusionEnchantmentHelper.has(held, InfusionEnchantment.BURROWING) || player.isShiftKeyDown()) {
-            return;
-        }
-        ServerLevel level = (ServerLevel) event.getLevel();
-        BlockPos pos = event.getPos();
+        ItemStack tool = player.getMainHandItem();
         BlockState state = event.getState();
-        if (!held.isCorrectToolForDrops(state)) {
-            return;
-        }
-        if (!(EnchantMining.isLog(level, pos) || EnchantMining.isOre(level, pos))) {
+        boolean burrowable = state.is(BlockTags.LOGS) || state.is(Tags.Blocks.ORES);
+        if (player.isShiftKeyDown() || !burrowable || !InfusionEnchantmentHelper.has(tool, InfusionEnchantment.BURROWING) || !tool.isCorrectToolForDrops(state)) {
             return;
         }
         event.setCanceled(true);
-        held.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
-        EnchantMining.breakFurthest(level, pos, state, player);
+        event.setNotifyClient(true);
+        EnchantMining.breakFurthest(level, event.getPos(), state, player);
+        tool.hurtAndBreak(TOOL_WEAR, player, EquipmentSlot.MAINHAND);
     }
 
     @SubscribeEvent
@@ -175,180 +191,257 @@ public final class InfusionEnchantmentEvents {
             return;
         }
         Player player = event.getEntity();
-        ItemStack held = player.getMainHandItem();
-        if (event.getAction() == Action.ABORT || player.isShiftKeyDown() || !InfusionEnchantmentHelper.has(held, InfusionEnchantment.DESTRUCTIVE)
-                || !held.isCorrectToolForDrops(event.getLevel().getBlockState(event.getPos()))) {
-            DESTRUCTIVE_TARGETS.remove(player.getUUID());
-            return;
+        DestructiveTarget swing = startsDestructiveSwing(event, player) ? new DestructiveTarget(event.getLevel().dimension(), event.getPos().immutable(), event.getFace()) : null;
+        TARGETS.compute(player.getUUID(), (id, previous) -> swing);
+    }
+
+    private static boolean startsDestructiveSwing(PlayerInteractEvent.LeftClickBlock event, Player player) {
+        if (event.getAction() == PlayerInteractEvent.LeftClickBlock.Action.ABORT || player.isShiftKeyDown() || event.getFace() == null) {
+            return false;
         }
-        DESTRUCTIVE_TARGETS.put(player.getUUID(), new DestructiveTarget(event.getLevel().dimension(), event.getPos().immutable(), event.getFace()));
+        ItemStack held = player.getMainHandItem();
+        BlockState hit = event.getLevel().getBlockState(event.getPos());
+        return held.isCorrectToolForDrops(hit) && InfusionEnchantmentHelper.has(held, InfusionEnchantment.DESTRUCTIVE);
     }
 
     @SubscribeEvent
-    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        DESTRUCTIVE_TARGETS.remove(event.getEntity().getUUID());
+    public static void onLivingDrops(LivingDropsEvent event) {
+        if (!(event.getEntity().level() instanceof ServerLevel level) || !(event.getSource().getEntity() instanceof Player killer)) {
+            return;
+        }
+        ItemStack weapon = killer.getMainHandItem();
+        boolean collector = InfusionEnchantmentHelper.has(weapon, InfusionEnchantment.COLLECTOR);
+        if (collector) {
+            follow(level, event.getDrops(), killer);
+        }
+        int essence = cappedLevel(weapon, InfusionEnchantment.ESSENCE);
+        if (essence >= 1) {
+            distil(level, event, killer, collector, essence);
+        }
     }
 
     @SubscribeEvent
     public static void onBlockDrops(BlockDropsEvent event) {
         ServerLevel level = event.getLevel();
-        BlockState state = event.getState();
-        BlockPos pos = event.getPos();
-        addRareNugget(event, level, state);
-        Entity breaker = event.getBreaker();
-        if (!(breaker instanceof Player player)) {
+        if (event.getBreaker() instanceof Player breaker) {
+            ItemStack held = breaker.getMainHandItem();
+            refine(level, event, held);
+            dropNugget(level, event, isSilkTouch(level, held));
+            applyHarvestPerks(level, event, breaker, held);
+        } else {
+            dropNugget(level, event, false);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        TARGETS.remove(event.getEntity().getUUID());
+    }
+
+    private static void applyHarvestPerks(ServerLevel level, BlockDropsEvent event, Player player, ItemStack tool) {
+        DestructiveTarget target = TARGETS.remove(player.getUUID());
+        boolean sneaking = player.isShiftKeyDown();
+        if (!sneaking && InfusionEnchantmentHelper.has(tool, InfusionEnchantment.COLLECTOR)) {
+            follow(level, event.getDrops(), player);
+        }
+        if (!sneaking && InfusionEnchantmentHelper.has(tool, InfusionEnchantment.LAMPLIGHT)) {
+            placeGlimmer(level, event.getPos());
+        }
+        expand(level, player, tool, target, event);
+    }
+
+    private static int cappedLevel(ItemStack stack, InfusionEnchantment enchantment) {
+        return Math.min(InfusionEnchantmentHelper.level(stack, enchantment), enchantment.maxLevel());
+    }
+
+    private static boolean isSilkTouch(ServerLevel level, ItemStack tool) {
+        return EnchantmentHelper.getItemEnchantmentLevel(silkHolder(level), tool) > 0;
+    }
+
+    private static Holder<Enchantment> silkHolder(ServerLevel level) {
+        return level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
+    }
+
+    private static boolean isArcVictim(Player attacker, LivingEntity target, Mob mob) {
+        return mob != target && !mob.isRemoved() && mob.isAlive() && mob.getRootVehicle() != attacker.getRootVehicle() && !mob.isAlliedTo(attacker)
+                && !(mob instanceof OwnableEntity ownable && ownable.getOwner() == attacker);
+    }
+
+    private static Vec3 bodyCenter(Entity entity) {
+        return entity.position().add(0.0, entity.getBbHeight() / HALF, 0.0);
+    }
+
+    private static void arcBolt(ServerLevel level, Vec3 from, Vec3 to) {
+        Effects.slash(level, from.x, from.y, from.z, to.x, to.y, to.z, ARC_SLASH_TICKS);
+    }
+
+    private static void refine(ServerLevel level, BlockDropsEvent event, ItemStack tool) {
+        int refining = cappedLevel(tool, InfusionEnchantment.REFINING);
+        Item cluster = refining > 0 ? RefiningResults.clusterFor(event.getState()) : null;
+        if (cluster == null) {
             return;
         }
-        DestructiveTarget target = DESTRUCTIVE_TARGETS.remove(player.getUUID());
-        ItemStack held = player.getMainHandItem();
+        double chance = (REFINING_CHANCE_BASE + refining) * REFINING_CHANCE_STEP;
+        if (swapForClusters(level, event.getDrops(), cluster, chance) == 0) {
+            return;
+        }
+        refineChime(level, event.getPos());
+    }
 
-        if (InfusionEnchantmentHelper.has(held, InfusionEnchantment.REFINING)) {
-            int fortune = 1 + InfusionEnchantmentHelper.level(held, InfusionEnchantment.REFINING);
-            float chance = fortune * REFINING_CHANCE_PER_LEVEL;
-            Item cluster = RefiningResults.clusterFor(state);
-            if (cluster != null) {
-                boolean changed = false;
-                for (ItemEntity drop : event.getDrops()) {
-                    if (level.getRandom().nextFloat() <= chance) {
-                        drop.setItem(new ItemStack(cluster, drop.getItem().getCount()));
-                        changed = true;
-                    }
-                }
-                if (changed) {
-                    level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F, 0.7F + level.getRandom().nextFloat() * 0.2F);
-                }
+    private static void refineChime(ServerLevel level, BlockPos pos) {
+        float pitch = REFINING_PITCH_SPREAD * level.getRandom().nextFloat() + REFINING_PITCH_BASE;
+        level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, REFINING_VOLUME, pitch);
+    }
+
+    private static int swapForClusters(ServerLevel level, Collection<ItemEntity> drops, Item cluster, double chance) {
+        List<ItemEntity> chosen = drops.stream().filter(drop -> level.getRandom().nextDouble() <= chance).toList();
+        chosen.forEach(drop -> drop.setItem(new ItemStack(cluster, drop.getItem().getCount())));
+        return chosen.size();
+    }
+
+    private static void dropNugget(ServerLevel level, BlockDropsEvent event, boolean silkTouched) {
+        if (!silkTouched && rollNugget(level, event.getState())) {
+            event.getDrops().add(nuggetAt(level, event.getPos()));
+        }
+    }
+
+    private static boolean rollNugget(ServerLevel level, BlockState broken) {
+        double chance = nuggetChance(broken);
+        return chance > 0.0 && level.getRandom().nextDouble() < chance;
+    }
+
+    private static double nuggetChance(BlockState broken) {
+        for (NuggetChance entry : NUGGET_CHANCES) {
+            if (entry.match().test(broken)) {
+                return entry.chance();
             }
         }
+        return 0.0;
+    }
 
-        if (!DESTRUCTIVE_RECURSION.get() && InfusionEnchantmentHelper.has(held, InfusionEnchantment.DESTRUCTIVE) && !player.isShiftKeyDown() && held.isCorrectToolForDrops(state)) {
-            DESTRUCTIVE_RECURSION.set(true);
-            try {
-                Direction face = target != null && target.matches(level, pos) ? target.face() : Direction.getApproximateNearest(player.getViewVector(1.0F));
-                for (int aa = -1; aa <= 1; aa++) {
-                    for (int bb = -1; bb <= 1; bb++) {
-                        if (aa == 0 && bb == 0) {
-                            continue;
-                        }
-                        int xx = 0;
-                        int yy = 0;
-                        int zz = 0;
-                        int axis = face.ordinal();
-                        if (axis <= 1) {
-                            xx = aa;
-                            zz = bb;
-                        } else if (axis <= 3) {
-                            xx = aa;
-                            yy = bb;
-                        } else {
-                            zz = aa;
-                            yy = bb;
-                        }
-                        BlockPos offset = pos.offset(xx, yy, zz);
-                        BlockState neighbour = level.getBlockState(offset);
-                        if (neighbour.getDestroySpeed(level, offset) >= 0.0F && held.getDestroySpeed(neighbour) > 1.0F) {
-                            held.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
-                            EnchantMining.harvestBlock(level, player, offset, false);
-                        }
-                    }
-                }
-            } finally {
-                DESTRUCTIVE_RECURSION.set(false);
-            }
-        }
+    private static ItemEntity nuggetAt(ServerLevel level, BlockPos pos) {
+        Vec3 center = Vec3.atCenterOf(pos);
+        return new ItemEntity(level, center.x, center.y, center.z, new ItemStack(TTItems.NUGGET_QUARTZ.get()), 0.0, 0.0, 0.0);
+    }
 
-        if (InfusionEnchantmentHelper.has(held, InfusionEnchantment.COLLECTOR) && !player.isShiftKeyDown()) {
-            for (ItemEntity drop : event.getDrops()) {
-                EntityFollowingItem follow = new EntityFollowingItem(level, drop.getX(), drop.getY(), drop.getZ(), drop.getItem().copy(), player);
-                follow.setDeltaMovement(drop.getDeltaMovement());
-                follow.setDefaultPickUpDelay();
-                level.addFreshEntity(follow);
-            }
-            event.getDrops().clear();
-        }
+    private static void follow(ServerLevel level, Collection<ItemEntity> drops, Player collector) {
+        List<ItemEntity> followers = drops.stream().<ItemEntity>map(drop -> adopt(level, drop, collector)).toList();
+        drops.clear();
+        drops.addAll(followers);
+    }
 
-        if (InfusionEnchantmentHelper.has(held, InfusionEnchantment.LAMPLIGHT) && !player.isShiftKeyDown()) {
-            if (level.isEmptyBlock(pos) && settledLight(level, pos) < GLIMMER_LIGHT_THRESHOLD) {
-                level.setBlock(pos, TTBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
-            }
+    private static EntityFollowingItem adopt(ServerLevel level, ItemEntity drop, Player collector) {
+        Vec3 at = drop.position();
+        EntityFollowingItem follower = new EntityFollowingItem(level, at.x, at.y, at.z, drop.getItem().copy(), collector);
+        follower.setDefaultPickUpDelay();
+        follower.setDeltaMovement(drop.getDeltaMovement());
+        return follower;
+    }
+
+    private static void placeGlimmer(ServerLevel level, BlockPos pos) {
+        if (level.getBlockState(pos).isAir() && settledLight(level, pos) < LAMPLIGHT_THRESHOLD) {
+            level.setBlock(pos, TTBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
         }
     }
 
     private static int settledLight(ServerLevel level, BlockPos pos) {
-        int light = level.getRawBrightness(pos, 0);
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (Direction direction : Direction.values()) {
-            cursor.setWithOffset(pos, direction);
-            light = Math.max(light, level.getRawBrightness(cursor, 0) - 1);
-        }
-        return light;
+        int own = level.getRawBrightness(pos, 0);
+        int spill = Stream.of(Direction.values()).map(pos::relative).filter(level::hasChunkAt).mapToInt(next -> level.getRawBrightness(next, 0) - LIGHT_FALLOFF).max().orElse(Integer.MIN_VALUE);
+        return Math.max(own, spill);
     }
 
-    @SubscribeEvent
-    public static void onLivingDrops(LivingDropsEvent event) {
-        if (!(event.getSource().getEntity() instanceof Player player) || player.level().isClientSide()) {
+    private static void expand(ServerLevel level, Player player, ItemStack tool, @Nullable DestructiveTarget target, BlockDropsEvent event) {
+        if (EXPANDING.get() || player.isShiftKeyDown() || !InfusionEnchantmentHelper.has(tool, InfusionEnchantment.DESTRUCTIVE) || !tool.isCorrectToolForDrops(event.getState())) {
             return;
         }
-        ItemStack held = player.getMainHandItem();
-        List<InfusionEnchantment> list = InfusionEnchantmentHelper.list(held);
-        ServerLevel level = (ServerLevel) player.level();
-        LivingEntity victim = event.getEntity();
-
-        if (list.contains(InfusionEnchantment.COLLECTOR)) {
-            List<ItemEntity> drops = List.copyOf(event.getDrops());
-            event.getDrops().clear();
-            for (ItemEntity drop : drops) {
-                EntityFollowingItem follow = new EntityFollowingItem(level, drop.getX(), drop.getY(), drop.getZ(), drop.getItem().copy(), player);
-                follow.setDeltaMovement(drop.getDeltaMovement());
-                follow.setDefaultPickUpDelay();
-                event.getDrops().add(follow);
+        BlockPos origin = event.getPos();
+        Direction.Axis axis = swingFace(level, origin, player, target).getAxis();
+        EXPANDING.set(true);
+        try {
+            Iterator<Vec3i> steps = PLANE_STEPS.get(axis).iterator();
+            while (steps.hasNext() && !tool.isEmpty()) {
+                harvestAdjacent(level, player, tool, origin.offset(steps.next()));
             }
-        }
-
-        if (list.contains(InfusionEnchantment.ESSENCE)) {
-            int rank = InfusionEnchantmentHelper.level(held, InfusionEnchantment.ESSENCE);
-            AspectList aspects = EntityAspects.of(victim);
-            if (!aspects.isEmpty()) {
-                distillEssence(level, player, victim, aspects, rank, list.contains(InfusionEnchantment.COLLECTOR), event);
-            }
+        } finally {
+            EXPANDING.set(false);
         }
     }
 
-    private static void distillEssence(ServerLevel level, Player player, LivingEntity victim, AspectList aspects, int rank, boolean collector, LivingDropsEvent event) {
-        AspectList remaining = aspects;
-        int produced = level.getRandom().nextInt(5) < rank ? 0 : 99;
-        double x = victim.getX();
-        double y = victim.getY() + victim.getEyeHeight();
-        double z = victim.getZ();
-        while (produced < rank && !remaining.isEmpty()) {
-            List<AspectInstance> entries = remaining.entries();
-            AspectInstance entry = entries.get(level.getRandom().nextInt(entries.size()));
-            remaining = remaining.remove(entry.aspect(), 1);
-            ItemStack crystal = EssentiaCrystalFactory.of(entry.aspect());
-            if (collector) {
-                event.getDrops().add(new EntityFollowingItem(level, x, y, z, crystal, player));
+    private static Direction swingFace(ServerLevel level, BlockPos pos, Player player, @Nullable DestructiveTarget target) {
+        if (target != null && target.covers(level.dimension(), pos)) {
+            return target.face();
+        }
+        return Direction.getApproximateNearest(player.getLookAngle());
+    }
+
+    private static Vec3i cell(int index) {
+        return new Vec3i(index / (CUBE_SIDE * CUBE_SIDE) - 1, index / CUBE_SIDE % CUBE_SIDE - 1, index % CUBE_SIDE - 1);
+    }
+
+    private static Map<Direction.Axis, List<Vec3i>> planeSteps() {
+        Map<Direction.Axis, List<Vec3i>> steps = new EnumMap<>(Direction.Axis.class);
+        for (Direction.Axis axis : Direction.Axis.values()) {
+            List<Vec3i> plane = IntStream.range(0, CUBE_CELLS).mapToObj(InfusionEnchantmentEvents::cell)
+                    .filter(cell -> axis.choose(cell.getX(), cell.getY(), cell.getZ()) == 0 && !cell.equals(Vec3i.ZERO)).toList();
+            steps.put(axis, plane);
+        }
+        return steps;
+    }
+
+    private static boolean canBeSpedUp(ServerLevel level, BlockPos pos, ItemStack tool) {
+        BlockState target = level.getBlockState(pos);
+        return tool.getDestroySpeed(target) > EFFECTIVE_SPEED && target.getDestroySpeed(level, pos) >= 0.0F;
+    }
+
+    private static void harvestAdjacent(ServerLevel level, Player player, ItemStack tool, BlockPos pos) {
+        if (canBeSpedUp(level, pos, tool) && EnchantMining.harvestBlock(level, player, pos, false)) {
+            tool.hurtAndBreak(TOOL_WEAR, player, EquipmentSlot.MAINHAND);
+        }
+    }
+
+    private static void distil(ServerLevel level, LivingDropsEvent event, Player killer, boolean collector, int essence) {
+        LivingEntity dead = event.getEntity();
+        RandomSource random = level.getRandom();
+        List<AspectInstance> remaining = new ArrayList<>(EntityAspects.of(dead).entries());
+        if (remaining.isEmpty() || random.nextInt(ESSENCE_ROLL_BOUND) >= essence) {
+            return;
+        }
+        int made = 0;
+        while (made < essence && !remaining.isEmpty()) {
+            int index = random.nextInt(remaining.size());
+            AspectInstance picked = remaining.get(index);
+            event.getDrops().add(crystalDrop(level, dead, killer, collector, picked));
+            if (picked.amount() > 1) {
+                remaining.set(index, picked.withAmount(picked.amount() - 1));
             } else {
-                event.getDrops().add(new ItemEntity(level, x, y, z, crystal));
+                remaining.remove(index);
             }
-            produced++;
-            if (!remaining.isEmpty() && level.getRandom().nextInt(rank) == 0) {
-                produced += 1 + level.getRandom().nextInt(2);
+            made++;
+            if (!remaining.isEmpty() && random.nextInt(essence) == 0) {
+                int skipped = ESSENCE_SKIP_MIN + random.nextInt(ESSENCE_SKIP_OPTIONS);
+                made += skipped;
+                discardRandom(random, remaining, skipped);
             }
         }
     }
 
-    private static void addRareNugget(BlockDropsEvent event, ServerLevel level, BlockState state) {
-        boolean silk = event.getBreaker() instanceof Player p
-                && p.getMainHandItem().getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH)) > 0;
-        if (silk) {
-            return;
+    private static ItemEntity crystalDrop(ServerLevel level, LivingEntity dead, Player killer, boolean collector, AspectInstance picked) {
+        ItemStack crystal = EssentiaCrystalAccess.create(picked.aspect(), 1);
+        return collector ? new EntityFollowingItem(level, dead.getX(), dead.getEyeY(), dead.getZ(), crystal, killer) : new ItemEntity(level, dead.getX(), dead.getEyeY(), dead.getZ(), crystal);
+    }
+
+    private static void discardRandom(RandomSource random, List<AspectInstance> pool, int count) {
+        for (int removed = 0; removed < count && !pool.isEmpty(); removed++) {
+            pool.remove(random.nextInt(pool.size()));
         }
-        float roll = level.getRandom().nextFloat();
-        boolean rare = state.is(BlockTags.DIAMOND_ORES) && roll < 0.05F || state.is(BlockTags.EMERALD_ORES) && roll < 0.075F || state.is(BlockTags.LAPIS_ORES) && roll < 0.01F
-                || state.is(BlockTags.COAL_ORES) && roll < 0.001F || state.is(BlockTags.REDSTONE_ORES) && roll < 0.01F || state.is(TTBlocks.ORE_QUARTZ.get()) && roll < TC_QUARTZ_NUGGET_CHANCE
-                || state.is(Tags.Blocks.ORES_QUARTZ) && roll < 0.01F || state.is(TTBlockTags.ORES_AMBER) && roll < 0.05F;
-        if (rare) {
-            BlockPos pos = event.getPos();
-            event.getDrops().add(new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, new ItemStack(TTItems.NUGGET_QUARTZ.get())));
+    }
+
+    private record DestructiveTarget(ResourceKey<Level> dimension, BlockPos pos, Direction face) {
+        boolean covers(ResourceKey<Level> where, BlockPos at) {
+            return dimension.equals(where) && pos.equals(at);
         }
+    }
+
+    private record NuggetChance(Predicate<BlockState> match, double chance) {
     }
 }

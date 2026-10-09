@@ -12,12 +12,15 @@ import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -27,10 +30,11 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.providers.VanillaEnchantmentProviders;
 import net.minecraft.world.level.Level;
@@ -41,28 +45,46 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public class EntityCultistLeader extends EntityThaumaturgeBoss implements RangedAttackMob {
-    private static final BossTitles TITLES = new BossTitles("entity.thaumaturge.cultist_leader.name.custom",
-            List.of("Alberic", "Anselm", "Bastian", "Beturian", "Chabier", "Chorache", "Chuse", "Dodorol", "Ebardo", "Ferrando", "Fertus", "Guillen", "Larpe", "Obano", "Zelipe"));
+    private static final String NAME_KEY = "entity.thaumaturge.cultist_leader.name.custom";
+    private static final List<String> TITLE_NAMES = List.of("Alberic", "Anselm", "Bastian", "Beturian", "Chabier", "Chorache", "Chuse", "Dodorol", "Ebardo", "Ferrando", "Fertus", "Guillen", "Larpe",
+            "Obano", "Zelipe");
+    private static final BossTitles TITLES = new BossTitles(NAME_KEY, TITLE_NAMES);
+    private static final List<Class<? extends Entity>> CULT_MEMBER_TYPES = List.of(EntityCultist.class, EntityCultistLeader.class);
+    private static final Map<EquipmentSlot, Float> NO_DROP_OVERRIDES = Map.of();
+    private static final double MAX_HEALTH = 150.0;
+    private static final double MOVEMENT_SPEED = 0.32;
+    private static final double ATTACK_DAMAGE = 5.0;
     private static final int EXPERIENCE = 40;
-    private static final double SPEED = 0.32;
-    private static final double HEALTH = 150.0;
-    private static final double STRIKE = 5.0;
-    private static final double VOLLEY_PACE = 1.0;
-    private static final int VOLLEY_MIN_DELAY = 30;
-    private static final int VOLLEY_MAX_DELAY = 40;
-    private static final double VOLLEY_MIN_DISTANCE = 16.0;
-    private static final float VOLLEY_RANGE = 24.0F;
-    private static final double CHARGE_PACE = 1.1;
-    private static final double WANDER_PACE = 0.8;
-    private static final float GAZE_RANGE = 8.0F;
+    private static final int FLOAT_PRIORITY = 0;
+    private static final int RANGED_PRIORITY = 2;
+    private static final int MELEE_PRIORITY = 3;
+    private static final int HOME_PRIORITY = 6;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
+    private static final int RETALIATE_PRIORITY = 1;
+    private static final int PLAYER_TARGET_PRIORITY = 2;
+    private static final double RANGED_SPEED = 1.0;
+    private static final double RANGED_MIN_DISTANCE = 16.0;
+    private static final int RANGED_MIN_INTERVAL = 30;
+    private static final int RANGED_MAX_INTERVAL = 40;
+    private static final float RANGED_RADIUS = 24.0F;
+    private static final double MELEE_SPEED = 1.1;
+    private static final double HOME_SPEED = 0.8;
+    private static final double STROLL_SPEED = 0.8;
+    private static final float LOOK_RANGE = 8.0F;
+    private static final float WEAPON_ENCHANT_CHANCE = 0.5F;
+    private static final int RALLY_INTERVAL = 5;
+    private static final double RALLY_RADIUS = 8.0;
+    private static final int RALLY_TICKS = 60;
+    private static final int RALLY_AMPLIFIER = 1;
     private static final float ORB_SPEED = 0.66F;
     private static final float ORB_SPREAD = 3.0F;
-    private static final double ORB_LOFT = 2.0;
-    private static final float AIM_TURN = 30.0F;
-    private static final double RALLY_RADIUS = 8.0;
-    private static final int RALLY_DURATION = 60;
-    private static final int RALLY_AMPLIFIER = 1;
-    private static final float BLADE_ENCHANT_CHANCE = 0.5F;
+    private static final double ORB_CLEARANCE = 1.0;
+    private static final double ORB_ARC_PER_BLOCK = 0.1;
+    private static final double CHEST_FRACTION = 0.65;
+    private static final float ORB_VOLUME = 1.0F;
+    private static final float ORB_PITCH_BASE = 1.0F;
+    private static final float ORB_PITCH_SPREAD = 0.1F;
 
     private int title;
 
@@ -72,74 +94,117 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createBossAttributes().add(Attributes.MOVEMENT_SPEED, SPEED).add(Attributes.MAX_HEALTH, HEALTH).add(Attributes.ATTACK_DAMAGE, STRIKE);
+        return createBossAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE);
     }
 
     @Override
     protected void registerGoals() {
-        goalSelector.addGoal(0, new FloatGoal(this));
-        goalSelector.addGoal(2, new LongRangeAttackGoal(this, VOLLEY_MIN_DISTANCE, VOLLEY_PACE, VOLLEY_MIN_DELAY, VOLLEY_MAX_DELAY, VOLLEY_RANGE));
-        goalSelector.addGoal(3, new MeleeAttackGoal(this, CHARGE_PACE, false));
-        goalSelector.addGoal(6, new MoveTowardsRestrictionGoal(this, WANDER_PACE));
-        goalSelector.addGoal(7, new RandomStrollGoal(this, WANDER_PACE));
-        goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, GAZE_RANGE));
-        goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-        targetSelector.addGoal(1, new CultistHurtByTargetGoal(this));
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        registerBehaviourGoals();
+        registerTargetingGoals();
+    }
+
+    private void registerBehaviourGoals() {
+        goalSelector.addGoal(FLOAT_PRIORITY, new FloatGoal(this));
+        LongRangeAttackGoal ranged = new LongRangeAttackGoal(this, RANGED_SPEED, RANGED_MIN_DISTANCE, RANGED_MIN_INTERVAL, RANGED_MAX_INTERVAL, RANGED_RADIUS);
+        goalSelector.addGoal(RANGED_PRIORITY, ranged);
+        goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
+        goalSelector.addGoal(HOME_PRIORITY, new MoveTowardsRestrictionGoal(this, HOME_SPEED));
+        goalSelector.addGoal(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
+        goalSelector.addGoal(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_RANGE));
+        goalSelector.addGoal(LOOK_PRIORITY, new RandomLookAroundGoal(this));
+    }
+
+    private void registerTargetingGoals() {
+        NearestAttackableTargetGoal<Player> playerHunt = new NearestAttackableTargetGoal<>(this, Player.class, true);
+        targetSelector.addGoal(RETALIATE_PRIORITY, new CultistHurtByTargetGoal(this));
+        targetSelector.addGoal(PLAYER_TARGET_PRIORITY, playerHunt);
     }
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData data) {
-        equip(TTLootTables.EQUIPMENT_CULTIST_LEADER, Map.of());
-        if (random.nextFloat() < BLADE_ENCHANT_CHANCE * difficulty.getSpecialMultiplier()) {
-            EnchantmentHelper.enchantItemFromProvider(getMainHandItem(), level.registryAccess(), VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT, difficulty, random);
-        }
-        title = TITLES.roll(random);
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+        equip(TTLootTables.EQUIPMENT_CULTIST_LEADER, NO_DROP_OVERRIDES);
+        enchantWeapon(level, difficulty);
         ChampionHelper.makeChampion(this, true);
-        return super.finalizeSpawn(level, difficulty, reason, data);
+        title = TITLES.roll(getRandom());
+        return super.finalizeSpawn(level, difficulty, reason, groupData);
+    }
+
+    private void enchantWeapon(ServerLevelAccessor level, DifficultyInstance difficulty) {
+        ItemStack weapon = getMainHandItem();
+        if (!weapon.isEmpty() && getRandom().nextFloat() < WEAPON_ENCHANT_CHANCE * difficulty.getSpecialMultiplier()) {
+            EnchantmentHelper.enchantItemFromProvider(weapon, level.registryAccess(), VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT, difficulty, getRandom());
+            setItemSlot(EquipmentSlot.MAINHAND, weapon);
+        }
     }
 
     @Override
-    public void generateName() {
+    public void assignTitle() {
         MobTraits.champion(this).ifPresent(trait -> setCustomName(TITLES.name(title, MobTraitNames.of(trait))));
     }
 
     @Override
     public boolean considersEntityAsAlly(Entity other) {
-        return isBrother(other) || super.considersEntityAsAlly(other);
+        return isFellowCultist(other) || super.considersEntityAsAlly(other);
     }
 
     @Override
     public boolean canAttack(LivingEntity target) {
-        return !isBrother(target) && super.canAttack(target);
+        return !isFellowCultist(target) && super.canAttack(target);
     }
 
-    private static boolean isBrother(Entity entity) {
-        return entity instanceof EntityCultist || entity instanceof EntityCultistLeader;
+    private static boolean isFellowCultist(Entity entity) {
+        for (Class<? extends Entity> memberType : CULT_MEMBER_TYPES) {
+            if (memberType.isInstance(entity)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     protected void customServerAiStep(ServerLevel level) {
         super.customServerAiStep(level);
-        for (EntityCultist follower : level.getEntitiesOfClass(EntityCultist.class, getBoundingBox().inflate(RALLY_RADIUS), follower -> !follower.hasEffect(MobEffects.REGENERATION))) {
-            follower.addEffect(new MobEffectInstance(MobEffects.REGENERATION, RALLY_DURATION, RALLY_AMPLIFIER));
+        if (tickCount % RALLY_INTERVAL == 0) {
+            rally(level);
         }
     }
 
+    private void rally(ServerLevel level) {
+        List<EntityCultist> needy = level.getEntitiesOfClass(EntityCultist.class, getBoundingBox().inflate(RALLY_RADIUS), EntityCultistLeader::lacksRegeneration);
+        needy.forEach(EntityCultistLeader::grantRallyRegeneration);
+    }
+
+    private static boolean lacksRegeneration(EntityCultist cultist) {
+        return cultist.isAlive() && !cultist.hasEffect(MobEffects.REGENERATION);
+    }
+
+    private static void grantRallyRegeneration(EntityCultist cultist) {
+        cultist.addEffect(new MobEffectInstance(MobEffects.REGENERATION, RALLY_TICKS, RALLY_AMPLIFIER));
+    }
+
     @Override
-    public void performRangedAttack(LivingEntity target, float velocity) {
-        if (!hasLineOfSight(target)) {
+    public void performRangedAttack(LivingEntity target, float power) {
+        if (!(level() instanceof ServerLevel level) || !hasLineOfSight(target)) {
             return;
         }
-        Vec3 heart = target.getBoundingBox().getCenter();
-        swing(getUsedItemHand());
-        getLookControl().setLookAt(heart.x, heart.y, heart.z, AIM_TURN, AIM_TURN);
-        EntityGolemOrb orb = new EntityGolemOrb(level(), this, target, true);
-        orb.setPos(orb.getX() + orb.getDeltaMovement().x / 2.0, orb.getY(), orb.getZ() + orb.getDeltaMovement().z / 2.0);
-        Vec3 aim = heart.subtract(position().add(0.0, getBbHeight() / 2.0F, 0.0));
-        orb.shoot(aim.x, aim.y + ORB_LOFT, aim.z, ORB_SPEED, ORB_SPREAD);
-        playSound(TTSounds.EGATTACK.get(), 1.0F, 1.0F + random.nextFloat() * 0.1F);
-        level().addFreshEntity(orb);
+        swing(InteractionHand.MAIN_HAND);
+        EntityGolemOrb orb = new EntityGolemOrb(level, this, target, true);
+        Vec3 aim = arcedAim(orb, target);
+        orb.setPos(orb.position().add(aim.normalize().scale(ORB_CLEARANCE)));
+        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_SPREAD);
+        level.addFreshEntity(orb);
+        playOrbSound(level);
+    }
+
+    private static Vec3 arcedAim(EntityGolemOrb orb, LivingEntity target) {
+        Vec3 flat = new Vec3(target.getX() - orb.getX(), 0.0, target.getZ() - orb.getZ());
+        double rise = target.getY(CHEST_FRACTION) - orb.getY() + Math.sqrt(flat.lengthSqr()) * ORB_ARC_PER_BLOCK;
+        return new Vec3(flat.x, rise, flat.z);
+    }
+
+    private void playOrbSound(ServerLevel level) {
+        float pitch = ORB_PITCH_BASE + getRandom().nextFloat() * ORB_PITCH_SPREAD;
+        level.playSound(null, getX(), getY(), getZ(), TTSounds.EGATTACK.get(), SoundSource.HOSTILE, ORB_VOLUME, pitch);
     }
 
     @Override

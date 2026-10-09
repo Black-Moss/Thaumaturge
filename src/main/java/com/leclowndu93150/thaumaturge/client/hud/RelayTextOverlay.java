@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityRedstoneRelay;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,6 +19,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class RelayTextOverlay {
@@ -33,35 +33,44 @@ public final class RelayTextOverlay {
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent.AfterWeather event) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null || mc.options.hideGui) {
+        BlockPos target = lookedAtBlock(mc);
+        if (target == null || !(mc.level.getBlockEntity(target) instanceof BlockEntityRedstoneRelay relay)) {
             return;
         }
-        if (!(mc.hitResult instanceof BlockHitResult hit) || mc.hitResult.getType() != HitResult.Type.BLOCK) {
-            return;
-        }
-        BlockPos pos = hit.getBlockPos();
-        if (!(mc.level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay)) {
-            return;
-        }
-        Direction facing = mc.level.getBlockState(pos).getValue(DiodeBlock.FACING);
+        Direction facing = mc.level.getBlockState(target).getValue(DiodeBlock.FACING);
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        drawTextInAir(event.getPoseStack(), mc, buffers, pos.getX() + 0.5 - facing.getStepX() * KNOB_OFFSET, pos.getY() + TEXT_HEIGHT, pos.getZ() + 0.5 - facing.getStepZ() * KNOB_OFFSET,
-                Component.literal(String.valueOf(relay.getOut())));
-        drawTextInAir(event.getPoseStack(), mc, buffers, pos.getX() + 0.5 + facing.getStepX() * KNOB_OFFSET, pos.getY() + TEXT_HEIGHT, pos.getZ() + 0.5 + facing.getStepZ() * KNOB_OFFSET,
-                Component.literal(String.valueOf(relay.getIn())));
+        drawKnobValue(event.getPoseStack(), mc, buffers, knobAnchor(target, facing, -1), relay.getOut());
+        drawKnobValue(event.getPoseStack(), mc, buffers, knobAnchor(target, facing, 1), relay.getIn());
         buffers.endBatch();
     }
 
-    private static void drawTextInAir(PoseStack poseStack, Minecraft mc, MultiBufferSource buffers, double x, double y, double z, Component text) {
-        Camera camera = mc.gameRenderer.getMainCamera();
-        Vec3 cam = camera.position();
-        float yaw = (float) Math.toDegrees(Math.atan2(cam.x - x, cam.z - z));
+    private static @Nullable BlockPos lookedAtBlock(Minecraft mc) {
+        if (mc.level == null || mc.player == null || mc.options.hideGui) {
+            return null;
+        }
+        HitResult result = mc.hitResult;
+        if (result instanceof BlockHitResult hit && result.getType() == HitResult.Type.BLOCK) {
+            return hit.getBlockPos();
+        }
+        return null;
+    }
+
+    private static Vec3 knobAnchor(BlockPos pos, Direction facing, int side) {
+        double reach = side * KNOB_OFFSET;
+        return new Vec3(pos.getX() + 0.5 + facing.getStepX() * reach, pos.getY() + TEXT_HEIGHT, pos.getZ() + 0.5 + facing.getStepZ() * reach);
+    }
+
+    private static void drawKnobValue(PoseStack poseStack, Minecraft mc, MultiBufferSource buffers, Vec3 anchor, int value) {
+        Vec3 eye = mc.gameRenderer.getMainCamera().position();
+        Vec3 offset = anchor.subtract(eye);
+        float yaw = (float) Math.toDegrees(Math.atan2(-offset.x, -offset.z));
+        Component label = Component.literal(String.valueOf(value));
         poseStack.pushPose();
-        poseStack.translate(x - cam.x, y - cam.y, z - cam.z);
+        poseStack.translate(offset.x, offset.y, offset.z);
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw + 180.0F));
         poseStack.scale(-TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
-        int width = mc.font.width(text);
-        mc.font.drawInBatch(text, 1 - width / 2, 1.0F, TEXT_COLOR, true, poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH, 0, LightCoordsUtil.FULL_BRIGHT);
+        float left = 1 - mc.font.width(label) / 2;
+        mc.font.drawInBatch(label, left, 1.0F, TEXT_COLOR, true, poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH, 0, LightCoordsUtil.FULL_BRIGHT);
         poseStack.popPose();
     }
 }

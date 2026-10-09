@@ -2,9 +2,8 @@ package com.leclowndu93150.thaumaturge.compat.jei.category;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.content.spell.item.SpellPartIngredient;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.recipe.IInfusionRecipe;
-import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
 import com.leclowndu93150.thaumaturge.compat.jei.drawables.AlphaDrawable;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientRenderer;
 import com.leclowndu93150.thaumaturge.compat.jei.ingredient.AspectIngredientType;
@@ -13,10 +12,12 @@ import com.leclowndu93150.thaumaturge.content.infusion.InfusionEnchantmentRecipe
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionRecipe;
 import com.leclowndu93150.thaumaturge.content.infusion.InfusionRunicAugmentRecipe;
 import com.leclowndu93150.thaumaturge.content.item.PhialItem;
+import com.leclowndu93150.thaumaturge.content.spell.item.SpellPartIngredient;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
-import java.util.Optional;
+import java.util.List;
+import java.util.function.Function;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
@@ -32,10 +33,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -47,34 +47,54 @@ public final class InfusionCategory<R extends Recipe<?> & IInfusionRecipe> imple
     public static final IRecipeHolderType<InfusionEnchantmentRecipe> ENCHANTMENT_RECIPE_TYPE = IRecipeHolderType.create(TTRecipeTypes.INFUSION_ENCHANTMENT.get());
     public static final IRecipeHolderType<InfusionRunicAugmentRecipe> RUNIC_RECIPE_TYPE = IRecipeHolderType.create(TTRecipeTypes.RUNIC_AUGMENT.get());
 
-    private static final Identifier TEXTURE = TTIds.rl("textures/gui/gui_researchbook_overlay.png");
-    private static final int TEXTURE_SIZE = 512;
-
-    private static final int WIDTH = 146;
-    private static final int HEIGHT = 170;
     public static final int ASPECT_Y = 135;
     public static final int ASPECT_X = 46;
     public static final int SPACE = 22;
 
+    private static final Identifier TEXTURE = TTIds.rl("textures/gui/gui_researchbook_overlay.png");
+    private static final int WIDTH = 146;
+    private static final int HEIGHT = 170;
+    private static final int BACKDROP_U = 413;
+    private static final int BACKDROP_V = 154;
+    private static final int BACKDROP_SIZE = 86;
+    private static final int BACKDROP_PAD_TOP = 40;
+    private static final int BACKDROP_PAD_BOTTOM = 44;
+    private static final int BACKDROP_PAD_SIDE = 30;
+    private static final int PLATE_U = 40;
+    private static final int PLATE_V = 6;
+    private static final int PLATE_SIZE = 32;
+    private static final int PLATE_X = 57;
+    private static final int PLATE_Y = 0;
     private static final int OUTPUT_X = 65;
     private static final int OUTPUT_Y = 7;
-    private static final int CATALYST_X = 65;
-    private static final int CATALYST_Y = 75;
+    private static final int CENTER_X = 65;
+    private static final int CENTER_Y = 75;
+    private static final int RING_RADIUS = 40;
+    private static final double FULL_TURN_DEGREES = 360.0;
+    private static final double RING_START_DEGREES = -90.0;
+    private static final int ASPECT_ROW_OFFSET = 30;
+    private static final int ASPECT_ROW_HALVES = 2;
+    private static final int LOCK_X = 92;
+    private static final int LOCK_Y = 9;
+    private static final int LOCK_SIZE = 16;
+    private static final int INSTABILITY_CENTER_X = 73;
+    private static final int INSTABILITY_Y = 158;
+    private static final int INSTABILITY_COLOR = 0xFF504030;
+    private static final int INSTABILITY_DIVISOR = 2;
+    private static final String INSTABILITY_KEY = "gui.thaumaturge.infusion.instability";
 
-    private static final int PAGE_TEXT_COLOR = 0xFF504030;
-    private static final int INSTABILITY_LEVEL_CAP = 5;
-    private static final ChatFormatting[] INSTABILITY_COLORS = {ChatFormatting.DARK_BLUE, ChatFormatting.BLUE, ChatFormatting.DARK_PURPLE, ChatFormatting.YELLOW, ChatFormatting.GOLD,
-            ChatFormatting.DARK_RED};
+    private static final IDrawable BACKDROP = new AlphaDrawable(TEXTURE, BACKDROP_U, BACKDROP_V, BACKDROP_SIZE, BACKDROP_SIZE, BACKDROP_PAD_TOP, BACKDROP_PAD_BOTTOM, BACKDROP_PAD_SIDE,
+            BACKDROP_PAD_SIDE);
+    private static final IDrawable PLATE = new AlphaDrawable(TEXTURE, PLATE_U, PLATE_V, PLATE_SIZE, PLATE_SIZE);
 
-    private static final IDrawable BACKGROUND = new AlphaDrawable(TEXTURE, 413, 154, 86, 86, 40, 44, 30, 30);
     private final IDrawable icon;
-    private final IRecipeHolderType<R> recipeType;
     private final Component title;
+    private final IRecipeHolderType<R> recipeType;
 
     public InfusionCategory(IGuiHelper guiHelper, IRecipeHolderType<R> recipeType, String titleKey) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(TTItems.INFUSION_MATRIX.get()));
-        this.recipeType = recipeType;
         this.title = Component.translatable(titleKey);
+        this.recipeType = recipeType;
     }
 
     @Override
@@ -99,64 +119,108 @@ public final class InfusionCategory<R extends Recipe<?> & IInfusionRecipe> imple
 
     @Override
     public IDrawable getIcon() {
-        return this.icon;
-    }
-
-    private static void addIngredient(IRecipeSlotBuilder slot, Ingredient ingredient) {
-        if (ingredient.getCustomIngredient() instanceof SpellPartIngredient focus) {
-            slot.addItemStacks(focus.displayStacks());
-        } else {
-            slot.add(ingredient);
-        }
+        return icon;
     }
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<R> holder, IFocusGroup focuses) {
         R recipe = holder.value();
+        List<AspectInstance> aspects = recipe.aspects().sortedByAmount();
+
         builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).add(recipe.resultItem());
-        addIngredient(builder.addInputSlot(CATALYST_X, CATALYST_Y), recipe.catalyst());
-        float currentRotation = -90.0F;
-        for (Ingredient ingredient : holder.value().components()) {
-            int x = 30 + (int) (Mth.cos((float) (currentRotation / 180.0F * Math.PI)) * 40.0F) + 35;
-            int y = (int) (Mth.sin(currentRotation / 180.0F * 3.1415927F) * 40.0F) + 75;
-            addIngredient(builder.addInputSlot(x, y), ingredient);
-            currentRotation += (360f / holder.value().components().size());
-        }
+        addIngredientSlot(builder, CENTER_X, CENTER_Y, recipe.catalyst());
+        addRingSlots(builder, recipe.components());
+        addAspectSlots(builder, aspects);
 
-        int center = (recipe.aspects().size() * SPACE) / 2;
-        int x = 0;
-        for (AspectInstance aspect : recipe.aspects().sortedByAmount()) {
-            builder.addInputSlot(30 + ASPECT_X - center + x * SPACE, ASPECT_Y).setCustomRenderer(AspectIngredientType.INSTANCE, AspectIngredientRenderer.INSTANCE).add(AspectIngredientType.INSTANCE,
-                    aspect);
+        addHiddenInputs(builder, aspects, PhialItem::makeFilled);
+        addHiddenInputs(builder, aspects, EssentiaCrystalFactory::of);
+    }
 
-            builder.addInvisibleIngredients(RecipeIngredientRole.INPUT).add(PhialItem.makeFilled(aspect.aspect()));
-            builder.addInvisibleIngredients(RecipeIngredientRole.INPUT).add(EssentiaCrystalFactory.of(aspect.aspect()));
-            ++x;
+    @Override
+    public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<R> holder, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+        R recipe = holder.value();
+        boolean unlocked = recipe.doesPassGate(Minecraft.getInstance().player);
+        if (!unlocked && isOverLock(mouseX, mouseY)) {
+            tooltip.addAll(ResearchUtils.generateMissingResearchList(recipe.researchGate().orElseThrow()));
         }
     }
 
     @Override
-    public void getTooltip(ITooltipBuilder tooltip, RecipeHolder<R> recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-        Optional<ResearchGate> gate = recipe.value().researchGate();
-        boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
-        if (!doesPassGate && gate.isPresent() && mouseX > 92 && mouseX < 108 && mouseY > 9 && mouseY < 25) {
-            tooltip.addAll(ResearchUtils.generateMissingResearchList(gate.get()));
-        }
-    }
+    public void draw(RecipeHolder<R> holder, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
+        R recipe = holder.value();
+        boolean unlocked = recipe.doesPassGate(Minecraft.getInstance().player);
+        BACKDROP.draw(graphics);
+        PLATE.draw(graphics, PLATE_X, PLATE_Y);
 
-    @Override
-    public void draw(RecipeHolder<R> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         Font font = Minecraft.getInstance().font;
-        Component header = Component.translatable("gui.thaumaturge.recipe_type.infusion");
-        BACKGROUND.draw(guiGraphics);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, 57, 0, 40, 6, 32, 32, 512, 512);
-        int level = Math.min(INSTABILITY_LEVEL_CAP, recipe.value().instability() / 2);
-        Component levelName = Component.translatable("gui.thaumaturge.infusion.instability." + level).withStyle(INSTABILITY_COLORS[level]);
-        Component label = Component.translatable("gui.thaumaturge.infusion.instability", levelName);
-        guiGraphics.text(font, label, WIDTH / 2 - font.width(label) / 2, 158, PAGE_TEXT_COLOR, false);
-        boolean doesPassGate = recipe.value().doesPassGate(Minecraft.getInstance().player);
-        if (!doesPassGate) {
-            guiGraphics.item(Items.BARRIER.getDefaultInstance(), 92, 9);
+        Component label = InstabilityLevel.forInstability(recipe.instability()).label();
+        graphics.text(font, label, INSTABILITY_CENTER_X - font.width(label) / 2, INSTABILITY_Y, INSTABILITY_COLOR, false);
+
+        if (!unlocked) {
+            graphics.item(Items.BARRIER.getDefaultInstance(), LOCK_X, LOCK_Y);
+        }
+    }
+
+    private static boolean isOverLock(double mouseX, double mouseY) {
+        return mouseX > LOCK_X && mouseX < LOCK_X + LOCK_SIZE && mouseY > LOCK_Y && mouseY < LOCK_Y + LOCK_SIZE;
+    }
+
+    private static void addHiddenInputs(IRecipeLayoutBuilder builder, List<AspectInstance> aspects, Function<Holder<IAspect>, ItemStack> stackFactory) {
+        for (AspectInstance instance : aspects) {
+            builder.addInvisibleIngredients(RecipeIngredientRole.INPUT).add(stackFactory.apply(instance.aspect()));
+        }
+    }
+
+    private static void addIngredientSlot(IRecipeLayoutBuilder builder, int x, int y, Ingredient ingredient) {
+        IRecipeSlotBuilder slot = builder.addInputSlot(x, y);
+        if (ingredient.getCustomIngredient() instanceof SpellPartIngredient spellPart) {
+            slot.addItemStacks(spellPart.displayStacks());
+            return;
+        }
+        slot.add(ingredient);
+    }
+
+    private static void addRingSlots(IRecipeLayoutBuilder builder, List<Ingredient> components) {
+        double step = FULL_TURN_DEGREES / components.size();
+        int index = 0;
+        for (Ingredient component : components) {
+            double angle = Math.toRadians(RING_START_DEGREES + index * step);
+            int x = CENTER_X + (int) (RING_RADIUS * Math.cos(angle));
+            int y = CENTER_Y + (int) (RING_RADIUS * Math.sin(angle));
+            addIngredientSlot(builder, x, y, component);
+            index++;
+        }
+    }
+
+    private static void addAspectSlots(IRecipeLayoutBuilder builder, List<AspectInstance> aspects) {
+        int left = ASPECT_ROW_OFFSET + ASPECT_X - (aspects.size() * SPACE) / ASPECT_ROW_HALVES;
+        int x = left;
+        for (AspectInstance instance : aspects) {
+            builder.addInputSlot(x, ASPECT_Y).setCustomRenderer(AspectIngredientType.INSTANCE, AspectIngredientRenderer.INSTANCE).add(AspectIngredientType.INSTANCE, instance);
+            x += SPACE;
+        }
+    }
+
+    private enum InstabilityLevel {
+        STABLE("gui.thaumaturge.infusion.instability.0", ChatFormatting.DARK_BLUE), STEADY("gui.thaumaturge.infusion.instability.1", ChatFormatting.BLUE), UNSETTLED(
+                "gui.thaumaturge.infusion.instability.2", ChatFormatting.DARK_PURPLE), VOLATILE("gui.thaumaturge.infusion.instability.3", ChatFormatting.YELLOW), DANGEROUS(
+                        "gui.thaumaturge.infusion.instability.4", ChatFormatting.GOLD), CATASTROPHIC("gui.thaumaturge.infusion.instability.5", ChatFormatting.DARK_RED);
+
+        private final String nameKey;
+        private final ChatFormatting color;
+
+        InstabilityLevel(String nameKey, ChatFormatting color) {
+            this.nameKey = nameKey;
+            this.color = color;
+        }
+
+        static InstabilityLevel forInstability(int instability) {
+            InstabilityLevel[] levels = values();
+            return levels[Math.clamp(instability / INSTABILITY_DIVISOR, 0, levels.length - 1)];
+        }
+
+        Component label() {
+            return Component.translatable(INSTABILITY_KEY, Component.translatable(nameKey).withStyle(color));
         }
     }
 }

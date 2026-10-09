@@ -17,28 +17,27 @@ import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 
 public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxRiftRenderState> {
-    private static final RenderType RIFT_GLOW_TYPE = TTFXRenderTypes.RIFT_GLOW;
-
-    private static final RenderType RIFT_GLOW_NO_DEPTH_TYPE = TTFXRenderTypes.RIFT_GLOW_NO_DEPTH;
-
-    private static final RenderType RIFT_SOLID_TYPE = TTFXRenderTypes.RIFT_SOLID;
-
-    private static final int TUBE_SIDES = 6;
-    private static final int GLOW_PASSES = 3;
-    private static final float GLOW_RADIUS_BASE = 1.25F;
-    private static final float GLOW_RADIUS_STEP = 0.5F;
+    private static final float SHADOW_RADIUS = 0.0F;
+    private static final int MIN_POINTS = 3;
+    private static final int SIDES = 6;
+    private static final float STABLE_LIMIT = 50.0F;
+    private static final float MAX_INSTABILITY = 1.5F;
+    private static final float PHASE_PER_POINT = 10.0F;
     private static final float WOBBLE_AMPLITUDE = 0.1F;
-    private static final float MAX_STAB_FACTOR = 1.5F;
-    private static final float STAB_DIVISOR = 50.0F;
-    private static final float TIME_OFFSET_PER_POINT = 10.0F;
-    private static final float WOBBLE_X_PERIOD = 50.0F;
-    private static final float WOBBLE_Y_PERIOD = 60.0F;
-    private static final float WOBBLE_Z_PERIOD = 70.0F;
-    private static final float WIDTH_PULSE_PERIOD = 8.0F;
+    private static final float WOBBLE_X_DIVISOR = 50.0F;
+    private static final float WOBBLE_Y_DIVISOR = 60.0F;
+    private static final float WOBBLE_Z_DIVISOR = 70.0F;
+    private static final float PULSE_DIVISOR = 8.0F;
+    private static final float CORE_SCALE = 1.0F;
+    private static final float INNER_SHELL_SCALE = 1.25F;
+    private static final float MIDDLE_SHELL_SCALE = 1.75F;
+    private static final float OUTER_SHELL_SCALE = 2.25F;
+    private static final float MIN_DIRECTION_LENGTH = 0.001F;
+    private static final float VERTICAL_THRESHOLD = 0.9F;
 
     public FluxRiftRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.shadowRadius = 0.0F;
+        this.shadowRadius = SHADOW_RADIUS;
     }
 
     @Override
@@ -50,98 +49,97 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
     public void extractRenderState(EntityFluxRift entity, FluxRiftRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
         state.points.clear();
-        state.points.addAll(entity.points);
+        state.points.addAll(entity.outline);
         state.widths.clear();
-        state.widths.addAll(entity.pointsWidth);
-        state.stability = entity.getRiftStability();
-        state.animationTime = entity.tickCount + partialTicks;
-        state.goggles = Minecraft.getInstance().player != null && GogglesAccess.wearsRevealingGear(Minecraft.getInstance().player);
+        state.widths.addAll(entity.outlineWidths);
+        state.stability = entity.stabilityValue();
+        state.animationTime = state.ageInTicks;
+        state.goggles = GogglesAccess.wearsRevealingGear(Minecraft.getInstance().player);
     }
 
     @Override
     public void submit(FluxRiftRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        int count = state.points.size();
-        if (count <= 2) {
+        if (ringCount(state) < MIN_POINTS) {
             return;
         }
-        float stab = Mth.clamp(1.0F - state.stability / STAB_DIVISOR, 0.0F, MAX_STAB_FACTOR);
-        Vec3[] centers = new Vec3[count];
+        Tube tube = buildTube(state);
+        RenderType innerShell = state.goggles ? TTFXRenderTypes.RIFT_GLOW_NO_DEPTH : TTFXRenderTypes.RIFT_GLOW;
+        submitTube(collector, poseStack, TTFXRenderTypes.RIFT_GLOW, tube, OUTER_SHELL_SCALE);
+        submitTube(collector, poseStack, TTFXRenderTypes.RIFT_GLOW, tube, MIDDLE_SHELL_SCALE);
+        submitTube(collector, poseStack, innerShell, tube, INNER_SHELL_SCALE);
+        submitTube(collector, poseStack, TTFXRenderTypes.RIFT_SOLID, tube, CORE_SCALE);
+    }
+
+    private static void submitTube(SubmitNodeCollector collector, PoseStack poseStack, RenderType type, Tube tube, float scale) {
+        collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> tube.write(buffer, pose.pose(), scale));
+    }
+
+    private static int ringCount(FluxRiftRenderState state) {
+        return Math.min(state.points.size(), state.widths.size());
+    }
+
+    private static Tube buildTube(FluxRiftRenderState state) {
+        int count = ringCount(state);
+        float instability = Mth.clamp(1.0F - state.stability / STABLE_LIMIT, 0.0F, MAX_INSTABILITY);
+        float middle = (count - 1) / 2.0F;
+        float[] centers = new float[count * 3];
         float[] radii = new float[count];
-        for (int a = 0; a < count; a++) {
-            float time = state.animationTime;
-            if (a > count / 2) {
-                time -= a * TIME_OFFSET_PER_POINT;
-            } else if (a < count / 2) {
-                time += a * TIME_OFFSET_PER_POINT;
-            }
-            Vec3 p = state.points.get(a);
-            centers[a] = new Vec3(p.x + Math.sin(time / WOBBLE_X_PERIOD) * WOBBLE_AMPLITUDE * stab, p.y + Math.sin(time / WOBBLE_Y_PERIOD) * WOBBLE_AMPLITUDE * stab,
-                    p.z + Math.sin(time / WOBBLE_Z_PERIOD) * WOBBLE_AMPLITUDE * stab);
-            double pulse = 1.0 - Math.sin(time / WIDTH_PULSE_PERIOD) * 0.1F * stab;
-            radii[a] = (float) (state.widths.get(a) * pulse);
+        for (int i = 0; i < count; i++) {
+            Vec3 point = state.points.get(i);
+            float time = state.animationTime + (i - middle) * PHASE_PER_POINT;
+            float amplitude = WOBBLE_AMPLITUDE * instability;
+            centers[i * 3] = (float) point.x + Mth.sin(time / WOBBLE_X_DIVISOR) * amplitude;
+            centers[i * 3 + 1] = (float) point.y + Mth.sin(time / WOBBLE_Y_DIVISOR) * amplitude;
+            centers[i * 3 + 2] = (float) point.z + Mth.sin(time / WOBBLE_Z_DIVISOR) * amplitude;
+            radii[i] = state.widths.get(i) * (1.0F - Mth.sin(time / PULSE_DIVISOR) * amplitude);
         }
-        for (int pass = 0; pass <= GLOW_PASSES; pass++) {
-            RenderType type;
-            float radiusScale;
-            if (pass < GLOW_PASSES) {
-                type = pass == 0 && state.goggles ? RIFT_GLOW_NO_DEPTH_TYPE : RIFT_GLOW_TYPE;
-                radiusScale = GLOW_RADIUS_BASE + GLOW_RADIUS_STEP * pass;
-            } else {
-                type = RIFT_SOLID_TYPE;
-                radiusScale = 1.0F;
+        float[] offsets = new float[count * SIDES * 3];
+        Vector3f direction = new Vector3f();
+        Vector3f reference = new Vector3f();
+        Vector3f across = new Vector3f();
+        Vector3f along = new Vector3f();
+        for (int i = 0; i < count; i++) {
+            int previous = Math.max(i - 1, 0);
+            int next = Math.min(i + 1, count - 1);
+            direction.set(centers[next * 3] - centers[previous * 3], centers[next * 3 + 1] - centers[previous * 3 + 1], centers[next * 3 + 2] - centers[previous * 3 + 2]);
+            if (direction.length() < MIN_DIRECTION_LENGTH) {
+                direction.set(0.0F, 1.0F, 0.0F);
             }
-            submitTube(collector, poseStack, type, centers, radii, radiusScale);
+            direction.normalize();
+            reference.set(Math.abs(direction.y) > VERTICAL_THRESHOLD ? 1.0F : 0.0F, Math.abs(direction.y) > VERTICAL_THRESHOLD ? 0.0F : 1.0F, 0.0F);
+            reference.cross(direction, across).normalize();
+            direction.cross(across, along);
+            for (int side = 0; side < SIDES; side++) {
+                float angle = Mth.TWO_PI * side / SIDES;
+                float cos = Mth.cos(angle);
+                float sin = Mth.sin(angle);
+                int base = (i * SIDES + side) * 3;
+                offsets[base] = across.x * cos + along.x * sin;
+                offsets[base + 1] = across.y * cos + along.y * sin;
+                offsets[base + 2] = across.z * cos + along.z * sin;
+            }
         }
+        return new Tube(count, centers, radii, offsets);
     }
 
-    private static void submitTube(SubmitNodeCollector collector, PoseStack poseStack, RenderType type, Vec3[] centers, float[] radii, float radiusScale) {
-        collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {
-            Vector3f[] previousRing = null;
-            for (int a = 0; a < centers.length; a++) {
-                Vec3 direction = segmentDirection(centers, a);
-                Vector3f[] ring = buildRing(centers[a], direction, radii[a] * radiusScale);
-                if (previousRing != null) {
-                    for (int side = 0; side < TUBE_SIDES; side++) {
-                        int next = (side + 1) % TUBE_SIDES;
-                        addVertex(buffer, pose.pose(), previousRing[side]);
-                        addVertex(buffer, pose.pose(), previousRing[next]);
-                        addVertex(buffer, pose.pose(), ring[next]);
-                        addVertex(buffer, pose.pose(), ring[side]);
-                    }
+    private record Tube(int count, float[] centers, float[] radii, float[] offsets) {
+        void write(VertexConsumer buffer, Matrix4fc matrix, float scale) {
+            for (int i = 0; i < count - 1; i++) {
+                for (int side = 0; side < SIDES; side++) {
+                    int nextSide = (side + 1) % SIDES;
+                    vertex(buffer, matrix, i, side, scale);
+                    vertex(buffer, matrix, i, nextSide, scale);
+                    vertex(buffer, matrix, i + 1, nextSide, scale);
+                    vertex(buffer, matrix, i + 1, side, scale);
                 }
-                previousRing = ring;
             }
-        });
-    }
-
-    private static void addVertex(VertexConsumer buffer, Matrix4fc pose, Vector3f vertex) {
-        buffer.addVertex(pose, vertex.x, vertex.y, vertex.z);
-    }
-
-    private static Vec3 segmentDirection(Vec3[] centers, int index) {
-        Vec3 direction;
-        if (index == 0) {
-            direction = centers[1].subtract(centers[0]);
-        } else if (index == centers.length - 1) {
-            direction = centers[index].subtract(centers[index - 1]);
-        } else {
-            direction = centers[index + 1].subtract(centers[index - 1]);
         }
-        return direction.lengthSqr() < 1.0E-6 ? new Vec3(0.0, 1.0, 0.0) : direction.normalize();
-    }
 
-    private static Vector3f[] buildRing(Vec3 center, Vec3 direction, float radius) {
-        Vec3 reference = Math.abs(direction.y) < 0.99 ? new Vec3(0.0, 1.0, 0.0) : new Vec3(1.0, 0.0, 0.0);
-        Vec3 u = direction.cross(reference).normalize();
-        Vec3 v = direction.cross(u).normalize();
-        Vector3f[] ring = new Vector3f[TUBE_SIDES];
-        for (int side = 0; side < TUBE_SIDES; side++) {
-            double angle = (Math.PI * 2.0 * side) / TUBE_SIDES;
-            double cos = Math.cos(angle) * radius;
-            double sin = Math.sin(angle) * radius;
-            ring[side] = new Vector3f((float) (center.x + u.x * cos + v.x * sin), (float) (center.y + u.y * cos + v.y * sin), (float) (center.z + u.z * cos + v.z * sin));
+        private void vertex(VertexConsumer buffer, Matrix4fc matrix, int ring, int side, float scale) {
+            int offset = (ring * SIDES + side) * 3;
+            float radius = radii[ring] * scale;
+            buffer.addVertex(matrix, centers[ring * 3] + offsets[offset] * radius, centers[ring * 3 + 1] + offsets[offset + 1] * radius, centers[ring * 3 + 2] + offsets[offset + 2] * radius);
         }
-        return ring;
     }
 }

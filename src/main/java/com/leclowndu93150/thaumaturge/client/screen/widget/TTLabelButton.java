@@ -8,10 +8,10 @@ import net.minecraft.resources.Identifier;
 
 public final class TTLabelButton extends TTImageButton {
     private static final float LABEL_SCALE = 0.5F;
-    private static final int LABEL_BASELINE = -4;
-    private static final int LABEL_IDLE = 0xFFFFFFFF;
-    private static final int LABEL_HOVERED = 0xFFFFFFA0;
-    private static final int LABEL_DISABLED = 0xFFA0A0A0;
+    private static final int LABEL_VERTICAL_OFFSET = -4;
+    private static final int LABEL_COLOR_DISABLED = 0xFFA0A0A0;
+    private static final int LABEL_COLOR_HOVERED = 0xFFFFFFA0;
+    private static final int LABEL_COLOR_IDLE = 0xFFFFFFFF;
 
     private TTLabelButton(int x, int y, int width, int height, Identifier texture, int u, int v, int spriteWidth, int spriteHeight, int textureWidth, int textureHeight, Component message, Runnable onPress) {
         super(x, y, width, height, texture, u, v, spriteWidth, spriteHeight, textureWidth, textureHeight, message, onPress);
@@ -26,15 +26,15 @@ public final class TTLabelButton extends TTImageButton {
     protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractContents(graphics, mouseX, mouseY, partialTick);
         Component message = getMessage();
-        if (message == null || message.getString().isEmpty()) {
+        if (message.getString().isEmpty()) {
             return;
         }
         Font font = Minecraft.getInstance().font;
-        int color = !active ? LABEL_DISABLED : isHovered() ? LABEL_HOVERED : LABEL_IDLE;
+        int color = !active ? LABEL_COLOR_DISABLED : isHovered() ? LABEL_COLOR_HOVERED : LABEL_COLOR_IDLE;
         graphics.pose().pushMatrix();
         graphics.pose().translate(getX() + getWidth() / 2.0F, getY() + getHeight() / 2.0F);
         graphics.pose().scale(LABEL_SCALE, LABEL_SCALE);
-        graphics.text(font, message, -font.width(message) / 2, LABEL_BASELINE, color, true);
+        graphics.text(font, message, -font.width(message) / 2, LABEL_VERTICAL_OFFSET, color, true);
         graphics.pose().popMatrix();
     }
 }

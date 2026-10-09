@@ -9,9 +9,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
 final class WardenShield {
-    private static final double SHARE_OF_HEALTH = 0.66;
-    private static final int REGROWTH_INTERVAL = 25;
-    private static final float REGROWTH = 1.0F;
+    private static final double CAPACITY_FACTOR = 0.66;
+    private static final int REGENERATION_INTERVAL = 25;
+    private static final float REGENERATION_AMOUNT = 1.0F;
 
     private final LivingEntity bearer;
     private final ServerBossEvent bar;
@@ -21,12 +21,8 @@ final class WardenShield {
         this.bar = new ServerBossEvent(Mth.createInsecureUUID(bearer.getRandom()), Component.empty(), BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.NOTCHED_10);
     }
 
-    static double capacityFor(double health) {
-        return health * SHARE_OF_HEALTH;
-    }
-
-    private int capacity() {
-        return (int) capacityFor(bearer.getAttributeBaseValue(Attributes.MAX_HEALTH));
+    static double capacityFor(double maxHealth) {
+        return maxHealth * CAPACITY_FACTOR;
     }
 
     void raise() {
@@ -39,10 +35,11 @@ final class WardenShield {
 
     void tick() {
         int capacity = capacity();
-        if (bearer.invulnerableTime <= 0 && bearer.tickCount % REGROWTH_INTERVAL == 0 && bearer.getAbsorptionAmount() < capacity) {
-            bearer.setAbsorptionAmount(bearer.getAbsorptionAmount() + REGROWTH);
+        float absorption = bearer.getAbsorptionAmount();
+        if (bearer.tickCount % REGENERATION_INTERVAL == 0 && absorption < capacity && bearer.invulnerableTime <= 0) {
+            bearer.setAbsorptionAmount(absorption + REGENERATION_AMOUNT);
         }
-        bar.setProgress(Mth.clamp(bearer.getAbsorptionAmount() / capacity, 0.0F, 1.0F));
+        bar.setProgress(capacity > 0 ? Mth.clamp(bearer.getAbsorptionAmount() / capacity, 0.0F, 1.0F) : 0.0F);
     }
 
     void show(ServerPlayer player) {
@@ -51,5 +48,9 @@ final class WardenShield {
 
     void hide(ServerPlayer player) {
         bar.removePlayer(player);
+    }
+
+    private int capacity() {
+        return (int) capacityFor(bearer.getAttributeBaseValue(Attributes.MAX_HEALTH));
     }
 }

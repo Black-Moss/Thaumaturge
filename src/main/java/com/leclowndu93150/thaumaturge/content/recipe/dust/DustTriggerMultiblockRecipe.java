@@ -7,9 +7,11 @@ import com.leclowndu93150.thaumaturge.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerPlacement;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumaturge.registry.TTRecipeSerializers;
 import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -38,7 +40,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jspecify.annotations.Nullable;
 
 public final class DustTriggerMultiblockRecipe implements DustTrigger {
-
     public static final MapCodec<DustTriggerMultiblockRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(Identifier.CODEC.fieldOf("blueprint").forGetter(r -> r.blueprintId),
             ItemStackTemplate.CODEC.fieldOf("result").forGetter(r -> r.result), ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research)).apply(i, DustTriggerMultiblockRecipe::new));
 
@@ -67,7 +68,7 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
 
     @Override
     public List<RecipeDisplay> display() {
-        return List.of(new MultiblockRecipeDisplay(blueprintId, new SlotDisplay.ItemStackSlotDisplay(result)));
+        return List.of(new MultiblockRecipeDisplay(this.blueprintId, new SlotDisplay.ItemStackSlotDisplay(this.result)));
     }
 
     @Override
@@ -82,16 +83,12 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
 
     @Override
     public boolean matches(DustTriggerInput input, Level level) {
-        return findPlacement(input) != null;
+        return place(level, input.pos()) != null;
     }
 
     @Override
     public @Nullable DustTriggerPlacement findPlacement(DustTriggerInput input) {
-        Blueprint blueprint = lookupBlueprint(input.level());
-        if (blueprint == null) {
-            return null;
-        }
-        return MultiblockMatcher.find(input.level(), input.pos(), blueprint);
+        return place(input.level(), input.pos());
     }
 
     @Override
@@ -100,80 +97,33 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
     }
 
     @Override
-    public List<BlockPos> sparkle(Level level, Player player, BlockPos pos, DustTriggerPlacement placement) {
-        Blueprint blueprint = lookupBlueprint(level);
+    public List<BlockPos> sparkle(Level level, Player player, BlockPos clicked, @Nullable DustTriggerPlacement placement) {
+        Blueprint blueprint = blueprint(level);
         if (blueprint == null || placement == null || placement.facing() == null) {
-            return List.of(pos);
+            return List.of(clicked);
         }
-        BlockPos origin = pos.offset(placement.xOffset(), placement.yOffset(), placement.zOffset());
-        return new RotatedBlueprint(blueprint, MultiblockMatcher.rotationsFor(placement.facing())).cells().stream().map(cell -> origin.offset(cell.offset())).toList();
+        BlockPos origin = originOf(clicked, placement);
+        List<BlockPos> positions = new ArrayList<>();
+        for (BlueprintCell cell : cellsOf(blueprint, placement.facing())) {
+            positions.add(origin.offset(cell.offset()));
+        }
+        return positions;
     }
 
     @Override
     public void execute(DustTriggerInput input, Player player, @Nullable DustTriggerPlacement placement, Direction useFace) {
-        Level level = input.level();
-        if (!(level instanceof ServerLevel serverLevel)) {
+        if (!(input.level() instanceof ServerLevel level) || placement == null || placement.facing() == null) {
             return;
         }
-        if (placement == null || placement.facing() == null) {
-            return;
-        }
-        Blueprint blueprint = lookupBlueprint(level);
+        Blueprint blueprint = blueprint(level);
         if (blueprint == null) {
             return;
         }
-        BlockPos origin = input.pos().offset(placement.xOffset(), placement.yOffset(), placement.zOffset());
-        for (BlueprintCell cell : new RotatedBlueprint(blueprint, MultiblockMatcher.rotationsFor(placement.facing())).cells()) {
-            BlockPos cellPos = origin.offset(cell.offset());
-            enqueueForPart(serverLevel, cellPos, level.getBlockState(cellPos), cell.part(), placement.facing(), useFace, player, cell.part().priority());
+        Direction orientation = placement.facing();
+        BlockPos origin = originOf(input.pos(), placement);
+        for (BlueprintCell cell : cellsOf(blueprint, orientation)) {
+            apply(level, origin.offset(cell.offset()), cell.part(), orientation, useFace, player);
         }
-    }
-
-    private static void enqueueForPart(ServerLevel level, BlockPos pos, BlockState original, BlueprintPart part, Direction placementFacing, Direction useFace, Player player, int delay) {
-        BlueprintTarget target = part.target();
-        if (target instanceof BlueprintTarget.Keep) {
-            return;
-        }
-        if (target instanceof BlueprintTarget.Air) {
-            DustTriggerSwapQueue.enqueueClear(level, pos, original, delay);
-            return;
-        }
-        if (target instanceof BlueprintTarget.BlockTarget blockTarget) {
-            BlockState placed = blockTarget.block().defaultBlockState();
-            Direction facing;
-            if (blockTarget.applyPlayerFacing()) {
-                Direction side2 = useFace.getAxis().isHorizontal() ? useFace : player.getDirection().getOpposite();
-                facing = side2;
-            } else if (blockTarget.opposite()) {
-                facing = placementFacing.getOpposite();
-            } else {
-                facing = placementFacing;
-            }
-            if (placed.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-                placed = placed.setValue(BlockStateProperties.HORIZONTAL_FACING, facing);
-            } else if (placed.hasProperty(BlockStateProperties.FACING)) {
-                placed = placed.setValue(BlockStateProperties.FACING, facing);
-            }
-            DustTriggerSwapQueue.enqueuePlace(level, pos, original, placed, delay);
-            return;
-        }
-        if (target instanceof BlueprintTarget.StateTarget stateTarget) {
-            DustTriggerSwapQueue.enqueuePlace(level, pos, original, stateTarget.state(), delay);
-            return;
-        }
-        if (target instanceof BlueprintTarget.StackTarget stackTarget) {
-            DustTriggerSwapQueue.enqueueDrop(level, pos, original, stackTarget.stack(), delay);
-        }
-    }
-
-    private @Nullable Blueprint lookupBlueprint(Level level) {
-        ResourceKey<Blueprint> key = ResourceKey.create(Blueprint.REGISTRY_KEY, this.blueprintId);
-        Registry<Blueprint> registry = level.registryAccess().lookup(Blueprint.REGISTRY_KEY).orElse(null);
-        if (registry == null) {
-            return null;
-        }
-        Holder<Blueprint> holder = registry.get(key).orElse(null);
-        return holder == null ? null : holder.value();
     }
 
     @Override
@@ -188,7 +138,7 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
 
     @Override
     public RecipeSerializer<DustTriggerMultiblockRecipe> getSerializer() {
-        return SERIALIZER;
+        return TTRecipeSerializers.DUST_TRIGGER_MULTIBLOCK.get();
     }
 
     @Override
@@ -204,5 +154,58 @@ public final class DustTriggerMultiblockRecipe implements DustTrigger {
     @Override
     public RecipeBookCategory recipeBookCategory() {
         return RecipeBookCategories.CRAFTING_MISC;
+    }
+
+    private @Nullable DustTriggerPlacement place(Level level, BlockPos clicked) {
+        Blueprint blueprint = blueprint(level);
+        return blueprint == null ? null : MultiblockMatcher.find(level, clicked, blueprint);
+    }
+
+    private @Nullable Blueprint blueprint(Level level) {
+        Registry<Blueprint> registry = level.registryAccess().lookup(Blueprint.REGISTRY_KEY).orElse(null);
+        if (registry == null) {
+            return null;
+        }
+        return registry.get(ResourceKey.create(Blueprint.REGISTRY_KEY, this.blueprintId)).map(Holder::value).orElse(null);
+    }
+
+    private static BlockPos originOf(BlockPos clicked, DustTriggerPlacement placement) {
+        return clicked.offset(placement.xOffset(), placement.yOffset(), placement.zOffset());
+    }
+
+    private static List<BlueprintCell> cellsOf(Blueprint blueprint, Direction orientation) {
+        return new RotatedBlueprint(blueprint, MultiblockMatcher.rotationsFor(orientation)).cells();
+    }
+
+    private static void apply(ServerLevel level, BlockPos pos, BlueprintPart part, Direction orientation, Direction useFace, Player player) {
+        BlockState original = level.getBlockState(pos);
+        int delay = part.priority();
+        switch (part.target()) {
+            case BlueprintTarget.Keep keep -> {
+            }
+            case BlueprintTarget.Air air -> DustTriggerSwapQueue.enqueueClear(level, pos, original, delay);
+            case BlueprintTarget.BlockTarget block -> DustTriggerSwapQueue.enqueuePlace(level, pos, original, faced(block, orientation, useFace, player), delay);
+            case BlueprintTarget.StateTarget state -> DustTriggerSwapQueue.enqueuePlace(level, pos, original, state.state(), delay);
+            case BlueprintTarget.StackTarget stack -> DustTriggerSwapQueue.enqueueDrop(level, pos, original, stack.stack(), delay);
+        }
+    }
+
+    private static BlockState faced(BlueprintTarget.BlockTarget target, Direction orientation, Direction useFace, Player player) {
+        BlockState state = target.block().defaultBlockState();
+        Direction facing = facingFor(target, orientation, useFace, player);
+        if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return state.setValue(BlockStateProperties.HORIZONTAL_FACING, facing);
+        }
+        if (state.hasProperty(BlockStateProperties.FACING)) {
+            return state.setValue(BlockStateProperties.FACING, facing);
+        }
+        return state;
+    }
+
+    private static Direction facingFor(BlueprintTarget.BlockTarget target, Direction orientation, Direction useFace, Player player) {
+        if (target.applyPlayerFacing()) {
+            return useFace.getAxis().isHorizontal() ? useFace : player.getDirection().getOpposite();
+        }
+        return target.opposite() ? orientation.getOpposite() : orientation;
     }
 }

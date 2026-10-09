@@ -6,11 +6,12 @@ import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTEffectTags;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -26,86 +27,85 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 public final class ItemManaBean extends Item {
-    private static final int EFFECT_AMPLIFIER = 2;
-    private static final double INSTANT_HEALTH_FACTOR = 3.0;
-    private static final int EFFECT_BASE_DURATION = 160;
-    private static final int EFFECT_EXTRA_DURATION = 80;
-    private static final float GRANT_CHANCE = 0.25F;
+    private static final int INSTANT_EFFECT_AMPLIFIER = 2;
+    private static final double INSTANT_EFFECT_SCALE = 3.0;
+    private static final int EFFECT_MIN_DURATION_TICKS = 160;
+    private static final int EFFECT_DURATION_SPREAD_TICKS = 80;
+    private static final int EFFECT_AMPLIFIER = 0;
+    private static final float ASPECT_GRANT_CHANCE = 0.25F;
+    private static final int ASPECT_GRANT_AMOUNT = 1;
+    private static final int BEAN_ASPECT_AMOUNT = 1;
 
     public ItemManaBean(Properties properties) {
         super(properties);
     }
 
     public static @Nullable Holder<IAspect> aspectOf(ItemStack stack) {
-        AspectInstance stored = stack.get(TTDataComponents.CRYSTAL_ASPECT.get());
-        return stored == null ? null : stored.aspect();
+        AspectInstance instance = stack.get(TTDataComponents.CRYSTAL_ASPECT.get());
+        return instance == null ? null : instance.aspect();
     }
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+        Holder<IAspect> aspect = aspectOf(stack);
+        ItemStack result = super.finishUsingItem(stack, level, entity);
         if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer player) {
             RandomSource random = serverLevel.getRandom();
-            Optional<Holder<MobEffect>> rolled = serverLevel.registryAccess().lookupOrThrow(TTEffectTags.MANA_BEAN_EFFECTS.registry()).get(TTEffectTags.MANA_BEAN_EFFECTS)
-                    .flatMap(set -> set.getRandomElement(random));
-            rolled.ifPresent(effect -> {
-                if (effect.value().isInstantenous()) {
-                    effect.value().applyInstantenousEffect(serverLevel, player, player, player, EFFECT_AMPLIFIER, INSTANT_HEALTH_FACTOR);
-                } else {
-                    player.addEffect(new MobEffectInstance(effect, EFFECT_BASE_DURATION + random.nextInt(EFFECT_EXTRA_DURATION), 0));
-                }
-            });
-            Holder<IAspect> aspect = aspectOf(stack);
-            if (aspect != null && random.nextFloat() < GRANT_CHANCE) {
-                AspectPools.grant(player, aspect, 1);
+            serverLevel.registryAccess().lookupOrThrow(Registries.MOB_EFFECT).getRandomElementOf(TTEffectTags.MANA_BEAN_EFFECTS, random)
+                    .ifPresent(effect -> applyEffect(serverLevel, player, effect, random));
+            if (aspect != null && random.nextFloat() < ASPECT_GRANT_CHANCE) {
+                AspectPools.grant(player, aspect, ASPECT_GRANT_AMOUNT);
             }
         }
-        return super.finishUsingItem(stack, level, entity);
+        return result;
+    }
+
+    private static void applyEffect(ServerLevel level, ServerPlayer player, Holder<MobEffect> effect, RandomSource random) {
+        if (effect.value().isInstantenous()) {
+            effect.value().applyInstantenousEffect(level, null, null, player, INSTANT_EFFECT_AMPLIFIER, INSTANT_EFFECT_SCALE);
+        } else {
+            player.addEffect(new MobEffectInstance(effect, EFFECT_MIN_DURATION_TICKS + random.nextInt(EFFECT_DURATION_SPREAD_TICKS), EFFECT_AMPLIFIER));
+        }
     }
 
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
-        if (!stack.has(TTDataComponents.CRYSTAL_ASPECT.get())) {
-            assignRandomAspect(stack, level);
+        if (stack.has(TTDataComponents.CRYSTAL_ASPECT.get())) {
+            return;
         }
-    }
-
-    private static void assignRandomAspect(ItemStack stack, ServerLevel level) {
-        List<Holder.Reference<IAspect>> aspects = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList();
+        List<Holder<IAspect>> aspects = new ArrayList<>();
+        level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspects::add);
         if (!aspects.isEmpty()) {
-            Holder<IAspect> aspect = aspects.get(level.getRandom().nextInt(aspects.size()));
-            stack.set(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1));
+            stack.set(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspects.get(level.getRandom().nextInt(aspects.size())), BEAN_ASPECT_AMOUNT));
         }
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
         Player player = context.getPlayer();
-        if (player == null || context.getClickedFace() != Direction.DOWN) {
-            return InteractionResult.PASS;
-        }
-        BlockPos logPos = context.getClickedPos();
-        BlockPos podPos = logPos.below();
-        if (!level.getBlockState(logPos).is(BlockTags.LOGS) || !level.getBlockState(podPos).isAir() || !BlockManaPod.canGrowAt(level, podPos)) {
+        Level level = context.getLevel();
+        BlockPos clicked = context.getClickedPos();
+        BlockPos below = clicked.below();
+        if (player == null || context.getClickedFace() != Direction.DOWN || !level.getBlockState(clicked).is(BlockTags.LOGS) || !level.getBlockState(below).isAir()
+                || !BlockManaPod.canGrowAt(level, below)) {
             return InteractionResult.PASS;
         }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        level.setBlock(podPos, TTBlocks.MANA_POD.get().defaultBlockState(), 3);
-        if (level.getBlockEntity(podPos) instanceof BlockEntityManaPod pod) {
-            Holder<IAspect> aspect = aspectOf(context.getItemInHand());
-            if (aspect != null) {
-                pod.setAspect(aspect.unwrapKey().orElse(null));
-            }
+        ItemStack stack = context.getItemInHand();
+        Holder<IAspect> aspect = aspectOf(stack);
+        level.setBlock(below, TTBlocks.MANA_POD.get().defaultBlockState(), Block.UPDATE_ALL);
+        if (aspect != null && level.getBlockEntity(below) instanceof BlockEntityManaPod pod) {
+            pod.setAspect(aspect.unwrapKey().orElse(null));
         }
         if (!player.hasInfiniteMaterials()) {
-            context.getItemInHand().shrink(1);
+            stack.shrink(1);
         }
         return InteractionResult.SUCCESS_SERVER;
     }
-
 }

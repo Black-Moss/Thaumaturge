@@ -14,11 +14,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class BlockEntityBellows extends BlockEntity implements IBellowsPower {
-    private static final int STOKE_INTERVAL = 2;
-    private static final int STOKE_FINISH_MARGIN = 5;
     private static final float PUFF_VOLUME = 0.02F;
-    private static final float PUFF_PITCH = 0.5F;
+    private static final float PUFF_BASE_PITCH = 0.5F;
     private static final float PUFF_PITCH_SPREAD = 0.08F;
+    private static final int BOOST_INTERVAL = 2;
+    private static final int BOOST_STEP = 1;
+    private static final int BOOST_MARGIN = 5;
 
     public BlockEntityBellows(BlockPos pos, BlockState state) {
         super(TTBlockEntities.BELLOWS.get(), pos, state);
@@ -28,21 +29,24 @@ public final class BlockEntityBellows extends BlockEntity implements IBellowsPow
         if (!state.getValue(BlockBellows.ENABLED)) {
             return;
         }
-        long time = level.getGameTime();
-        if (BellowsStroke.startsSqueeze(time, pos)) {
+        long gameTime = level.getGameTime();
+        if (BellowsStroke.startsSqueeze(gameTime, pos)) {
             RandomSource random = level.getRandom();
-            level.playSound(null, pos, SoundEvents.GHAST_SHOOT, SoundSource.BLOCKS, PUFF_VOLUME, PUFF_PITCH + random.triangle(0.0F, PUFF_PITCH_SPREAD));
+            level.playSound(null, pos, SoundEvents.GHAST_SHOOT, SoundSource.BLOCKS, PUFF_VOLUME, PUFF_BASE_PITCH + (random.nextFloat() - random.nextFloat()) * PUFF_PITCH_SPREAD);
         }
-        if (time % STOKE_INTERVAL == 0 && level.getBlockEntity(pos.relative(state.getValue(BlockBellows.FACING))) instanceof AbstractFurnaceBlockEntity furnace) {
-            stoke(furnace);
+        if (gameTime % BOOST_INTERVAL == 0) {
+            bellows.boostFurnace(level, pos.relative(state.getValue(BlockBellows.FACING)));
         }
     }
 
-    private static void stoke(AbstractFurnaceBlockEntity furnace) {
-        AbstractFurnaceBlockEntityAccessor cooking = (AbstractFurnaceBlockEntityAccessor) furnace;
-        int progress = cooking.thaumaturge$getCookTime();
-        if (progress > 0 && progress < cooking.thaumaturge$getCookTimeTotal() - STOKE_FINISH_MARGIN) {
-            cooking.thaumaturge$setCookTime(progress + 1);
+    private void boostFurnace(Level level, BlockPos target) {
+        if (!(level.getBlockEntity(target) instanceof AbstractFurnaceBlockEntity furnace)) {
+            return;
+        }
+        AbstractFurnaceBlockEntityAccessor access = (AbstractFurnaceBlockEntityAccessor) furnace;
+        int progress = access.thaumaturge$getCookTime();
+        if (progress > 0 && progress < access.thaumaturge$getCookTimeTotal() - BOOST_MARGIN) {
+            access.thaumaturge$setCookTime(progress + BOOST_STEP);
             furnace.setChanged();
         }
     }

@@ -17,9 +17,9 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public final class BlockEntityVisGenerator extends BlockEntity implements EnergyHandler {
     private static final int CAPACITY = 1000;
-    private static final int MAX_PUSH = 20;
-    private static final float VIS_PER_CHARGE = 1.0F;
-    private static final int ENERGY_PER_VIS = 1000;
+    private static final int OUTPUT_PER_TICK = 20;
+    private static final float VIS_PER_REFILL = 1.0F;
+    private static final String ENERGY_KEY = "energy";
 
     private int energy;
 
@@ -32,23 +32,33 @@ public final class BlockEntityVisGenerator extends BlockEntity implements Energy
             return;
         }
         if (generator.energy == 0) {
-            float vis = AuraHelper.drainVis(level, pos, VIS_PER_CHARGE, false);
-            generator.energy = (int) (vis * ENERGY_PER_VIS);
-            generator.setChanged();
+            generator.refill(level, pos);
         }
-        Direction facing = state.getValue(BlockStateProperties.FACING);
+        generator.push(level, pos, state.getValue(BlockStateProperties.FACING));
+    }
+
+    private void refill(Level level, BlockPos pos) {
+        float vis = AuraHelper.drainVis(level, pos, VIS_PER_REFILL, false);
+        energy = (int) (vis * CAPACITY);
+        if (energy > 0) {
+            setChanged();
+        }
+    }
+
+    private void push(Level level, BlockPos pos, Direction facing) {
+        if (energy <= 0) {
+            return;
+        }
         EnergyHandler target = level.getCapability(Capabilities.Energy.BLOCK, pos.relative(facing), facing.getOpposite());
-        if (target != null) {
-            int pushed;
-            try (Transaction ctx = Transaction.openRoot()) {
-                pushed = target.insert(Math.min(generator.energy, MAX_PUSH), ctx);
-                if (pushed > 0) {
-                    ctx.commit();
-                }
-            }
-            if (pushed > 0) {
-                generator.energy -= pushed;
-                generator.setChanged();
+        if (target == null) {
+            return;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int accepted = target.insert(Math.min(energy, OUTPUT_PER_TICK), transaction);
+            if (accepted > 0) {
+                transaction.commit();
+                energy -= accepted;
+                setChanged();
             }
         }
     }
@@ -80,12 +90,12 @@ public final class BlockEntityVisGenerator extends BlockEntity implements Energy
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        energy = input.getIntOr("energy", 0);
+        energy = input.getIntOr(ENERGY_KEY, 0);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("energy", energy);
+        output.putInt(ENERGY_KEY, energy);
     }
 }

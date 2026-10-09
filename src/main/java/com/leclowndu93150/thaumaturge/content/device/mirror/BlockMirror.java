@@ -96,9 +96,8 @@ public final class BlockMirror extends BaseEntityBlock implements IEssentiaStrea
     @Override
     public StreamPort essentiaStreamPort(BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
         Direction facing = state.getValue(FACING);
-        Vec3 normal = new Vec3(facing.getStepX(), facing.getStepY(), facing.getStepZ());
         Vec3 center = Vec3.atCenterOf(pos);
-        return new StreamPort(center.add(normal.scale(PANE_SURFACE)), center.add(normal.scale(PANE_CLEARANCE)));
+        return new StreamPort(center.relative(facing, PANE_SURFACE), center.relative(facing, PANE_CLEARANCE));
     }
 
     @Override
@@ -109,24 +108,23 @@ public final class BlockMirror extends BaseEntityBlock implements IEssentiaStrea
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        Direction facing = state.getValue(FACING);
-        BlockPos support = pos.relative(facing.getOpposite());
-        return level.getBlockState(support).isFaceSturdy(level, support, facing);
+        Direction face = state.getValue(FACING);
+        BlockPos behind = pos.relative(face, -1);
+        return level.getBlockState(behind).isFaceSturdy(level, behind, face);
     }
 
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
-        if (!state.canSurvive(level, pos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
-        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
+        return state.canSurvive(level, pos) ? super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random) : Blocks.AIR.defaultBlockState();
     }
 
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        if (!level.isClientSide() && !essentia && entity instanceof ItemEntity itemEntity && entity.isAlive() && !entity.isOnPortalCooldown()
-                && level.getBlockEntity(pos) instanceof BlockEntityMirror mirror) {
-            mirror.transport(itemEntity);
+        if (level.isClientSide() || essentia || !entity.isAlive() || entity.isOnPortalCooldown()) {
+            return;
+        }
+        if (entity instanceof ItemEntity dropped && level.getBlockEntity(pos) instanceof BlockEntityMirror receiver) {
+            receiver.transport(dropped);
         }
     }
 

@@ -1,20 +1,23 @@
 package com.leclowndu93150.thaumaturge.api.items;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -22,256 +25,187 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Inventory access and filter matching used by golem seals and provisioning. Replaces the Inventory
- * access and filter matching used by golem seals and provisioning, built on the NeoForge resource
- * transfer API.
+ * Static inventory access and ghost-stack filter matching, built on the NeoForge item resource transfer API.
+ *
+ * <p>Calls that touch a world handler, an item entity or a player inventory belong on the logical server. The pure comparison and
+ * filter functions and {@link #isPlayerCarryingAmount} are safe on the client. Every transaction is opened and closed inside a single
+ * call, so no member may be called from inside a caller's own root transaction.
  *
  * @since 1.0.0
  */
 public final class InvHelper {
+    /** Matches by item or shared item tag, with no damage or component relaxation. */
+    public static final InvFilter BASE_TAGS = new InvFilter(false, false, true, false);
+
+    private static final double EJECT_SPEED = 0.3;
+    private static final double CELL_CENTER = 0.5;
+    private static final double EYE_FRACTION = 0.5;
+    private static final int NO_MATCH = -1;
+    private static final int LEAVE_ONE_MINIMUM = 2;
+    private static final int PLAYER_FILTER_COMPONENTS_BIT = 1;
+    private static final int PLAYER_FILTER_TAGS_BIT = 1 << 1;
+    private static final int PLAYER_FILTER_VARIANTS = 4;
+    private static final int[] MAIN_INVENTORY_SLOTS = IntStream.range(0, Inventory.INVENTORY_SIZE).toArray();
+    private static final InvFilter[] PLAYER_FILTERS = buildPlayerFilters();
+
     private InvHelper() {}
 
     /**
-     * Comparison flags for filter matching. Damage maps the legacy metadata toggle, tags
-     * replace the ore dictionary toggle and mod matches by item namespace.
-     *
-     * @since 1.0.0
-     */
-    public static final class InvFilter {
-        /** Compares item, damage and all components exactly. */
-        public static final InvFilter STRICT = new InvFilter(false, false, false, false);
-
-        private final boolean ignoreDamage;
-        private final boolean ignoreComponents;
-        private final boolean useTags;
-        private final boolean useMod;
-        private boolean relaxedComponents;
-
-        public InvFilter(boolean ignoreDamage, boolean ignoreComponents, boolean useTags, boolean useMod) {
-            this.ignoreDamage = ignoreDamage;
-            this.ignoreComponents = ignoreComponents;
-            this.useTags = useTags;
-            this.useMod = useMod;
-        }
-
-        /**
-         * Relaxes component matching: the first stack's components must be present on the
-         * second, which may carry extras.
-         *
-         * @return this filter
-         */
-        public InvFilter setRelaxedComponents() {
-            this.relaxedComponents = true;
-            return this;
-        }
-    }
-
-    /**
-     * A filter match result: the matched stack and the size limit of the filter slot that
-     * matched, or zero when unlimited.
-     *
-     * @since 1.0.0
-     */
-    public record FilterMatch(ItemStack stack, int sizeLimit) {
-    }
-
-    /**
-     * @param level the level
-     * @param pos   the block to query
-     * @param side  the side to access from, or null for the unsided handler
-     * @return the item handler there, or null when absent
+     * @param level the level to query
+     * @param pos   the block position
+     * @param side  the face to access, or null for unsided access
+     * @return the item handler at the position, or null when there is none
      */
     public static @Nullable ResourceHandler<ItemResource> getItemHandlerAt(Level level, BlockPos pos, @Nullable Direction side) {
         return level.getCapability(Capabilities.Item.BLOCK, pos, side);
     }
 
     /**
-     * Inserts a stack into a handler.
+     * Offers the whole stack to a handler in one root transaction.
      *
-     * @return the remainder that did not fit
+     * @param handler  the target, or null for an absent inventory
+     * @param stack    the stack to insert; not modified
+     * @param simulate whether to leave the handler unchanged
+     * @return the unplaced remainder; the empty stack when everything was accepted, the input stack when the handler is null or the
+     *         stack is empty
      */
     public static ItemStack insertStack(@Nullable ResourceHandler<ItemResource> handler, ItemStack stack, boolean simulate) {
         if (handler == null || stack.isEmpty()) {
             return stack;
         }
-        int inserted;
+        int offered = stack.getCount();
+        int accepted;
         try (Transaction transaction = Transaction.openRoot()) {
-            inserted = handler.insert(ItemResource.of(stack), stack.getCount(), transaction);
+            accepted = handler.insert(ItemResource.of(stack), offered, transaction);
             if (!simulate) {
                 transaction.commit();
             }
         }
-        if (inserted >= stack.getCount()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack remainder = stack.copy();
-        remainder.setCount(stack.getCount() - inserted);
-        return remainder;
+        return copyOrEmpty(stack, offered - accepted);
     }
 
     /**
-     * Inserts a stack into the inventory at a position.
-     *
-     * @return the remainder that did not fit
+     * @param level    the level
+     * @param pos      the block holding the inventory
+     * @param side     the face to insert through
+     * @param stack    the stack to insert; not modified
+     * @param simulate whether to leave the inventory unchanged
+     * @return the unplaced remainder; the input stack when no handler exists at the position
      */
     public static ItemStack insertStackAt(Level level, BlockPos pos, Direction side, ItemStack stack, boolean simulate) {
-        ResourceHandler<ItemResource> inventory = getItemHandlerAt(level, pos, side);
-        return inventory != null ? insertStack(inventory, stack, simulate) : stack;
+        ResourceHandler<ItemResource> handler = getItemHandlerAt(level, pos, side);
+        return handler == null ? stack : insertStack(handler, stack, simulate);
     }
 
     /**
-     * @return a copy of the portion of the stack the inventory can accept
+     * Reports how much of the stack an inventory would accept without changing it.
+     *
+     * @param level the level
+     * @param pos   the block holding the inventory
+     * @param side  the face to insert through
+     * @param stack the stack to test
+     * @return a copy of the stack when all of it fits, a copy carrying only the accepted count when part fits, otherwise the empty
+     *         stack
      */
     public static ItemStack hasRoomFor(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        ItemStack rejected = insertStackAt(level, pos, side, stack.copy(), true);
-        if (rejected.isEmpty()) {
-            return stack.copy();
-        }
-        ItemStack accepted = stack.copy();
-        accepted.setCount(stack.getCount() - rejected.getCount());
-        return accepted;
+        return copyOrEmpty(stack, acceptableCount(level, pos, side, stack));
     }
 
     /**
-     * @return whether the inventory can accept at least one item of the stack
+     * @param level the level
+     * @param pos   the block holding the inventory
+     * @param side  the face to insert through
+     * @param stack the stack to test
+     * @return true when the stack is empty or at least one item of it would be accepted
      */
     public static boolean hasRoomForSome(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        ItemStack rejected = insertStackAt(level, pos, side, stack.copy(), true);
-        return stack.getCount() == 0 || rejected.getCount() != stack.getCount();
+        return stack.isEmpty() || acceptableCount(level, pos, side, stack) > 0;
     }
 
     /**
-     * @return whether the inventory can accept the whole stack
+     * @param level the level
+     * @param pos   the block holding the inventory
+     * @param side  the face to insert through
+     * @param stack the stack to test
+     * @return true when the whole stack would be accepted
      */
     public static boolean hasRoomForAll(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        return insertStackAt(level, pos, side, stack.copy(), true).isEmpty();
+        return acceptableCount(level, pos, side, stack) >= stack.getCount();
     }
 
     /**
-     * @return the total count of matching items in the handler
+     * @param handler the inventory, or null
+     * @param wanted  the stack to count, the first operand of every comparison
+     * @param filter  the comparison flags
+     * @return the number of matching items across all slots; zero for a null handler
      */
-    public static int countTotalItemsIn(@Nullable ResourceHandler<ItemResource> inventory, ItemStack stack, InvFilter filter) {
-        int count = 0;
-        if (inventory != null) {
-            for (int index = 0; index < inventory.size(); index++) {
-                ItemResource resource = inventory.getResource(index);
-                if (!resource.isEmpty() && areItemStacksEqual(stack, resource.toStack(1), filter)) {
-                    count += inventory.getAmountAsInt(index);
-                }
-            }
-        }
-        return count;
+    public static int countTotalItemsIn(@Nullable ResourceHandler<ItemResource> handler, ItemStack wanted, InvFilter filter) {
+        return handler == null ? 0 : IntStream.range(0, handler.size()).map(slot -> matchingAmount(handler, slot, wanted, filter)).sum();
     }
 
     /**
-     * @return the total count of matching items in the inventory at a position
+     * @param level  the level
+     * @param pos    the block holding the inventory
+     * @param side   the face to access
+     * @param wanted the stack to count
+     * @param filter the comparison flags
+     * @return the number of matching items in the inventory at the position
      */
-    public static int countTotalItemsIn(Level level, BlockPos pos, Direction side, ItemStack stack, InvFilter filter) {
-        return countTotalItemsIn(getItemHandlerAt(level, pos, side), stack, filter);
+    public static int countTotalItemsIn(Level level, BlockPos pos, Direction side, ItemStack wanted, InvFilter filter) {
+        ResourceHandler<ItemResource> handler = getItemHandlerAt(level, pos, side);
+        return handler == null ? 0 : countTotalItemsIn(handler, wanted, filter);
     }
 
     /**
-     * Compares two stacks under the filter's flags. Counts are ignored.
+     * Compares two stacks under a filter. Counts never take part. The first applicable rule decides: an empty stack equals only
+     * another empty stack; then mod match, tag match, item identity, damage, ignored components, relaxed components, and finally exact
+     * component equality (leaving out damage when damage is ignored). Only the tag rule and the relaxed rule are directional, with
+     * {@code first} as the tested side.
+     *
+     * @param first  the first stack
+     * @param second the second stack
+     * @param filter the comparison flags
+     * @return whether the stacks are equal under the filter
      */
     public static boolean areItemStacksEqual(ItemStack first, ItemStack second, InvFilter filter) {
-        if (first.isEmpty() || second.isEmpty()) {
-            return first.isEmpty() && second.isEmpty();
-        }
-        if (filter.useMod) {
-            return itemId(first).getNamespace().equals(itemId(second).getNamespace());
-        }
-        if (filter.useTags) {
-            return first.getItem() == second.getItem() || shareTag(first, second);
-        }
-        if (first.getItem() != second.getItem()) {
+        if (first.isEmpty() != second.isEmpty()) {
             return false;
         }
-        if (!filter.ignoreDamage && first.getDamageValue() != second.getDamageValue()) {
-            return false;
-        }
-        if (filter.ignoreComponents) {
+        if (first.isEmpty()) {
             return true;
         }
-        if (filter.relaxedComponents) {
-            return componentsContainedIn(first, second);
+        boolean equal = sameItemAndData(first, second, filter);
+        if (filter.has(InvFilter.BY_TAGS)) {
+            equal = sharesItemOrTag(first, second);
         }
-        return componentsEqualIgnoringDamage(first, second, filter.ignoreDamage);
-    }
-
-    private static Identifier itemId(ItemStack stack) {
-        return BuiltInRegistries.ITEM.getKey(stack.getItem());
-    }
-
-    private static boolean shareTag(ItemStack first, ItemStack second) {
-        return first.getItem().builtInRegistryHolder().tags().anyMatch(second::is);
-    }
-
-    private static boolean componentsContainedIn(ItemStack first, ItemStack second) {
-        for (DataComponentType<?> type : first.getComponents().keySet()) {
-            if (!Objects.equals(first.getComponents().get(type), second.getComponents().get(type))) {
-                return false;
-            }
+        if (filter.has(InvFilter.BY_MOD)) {
+            equal = namespaceOf(first).equals(namespaceOf(second));
         }
-        return true;
-    }
-
-    private static boolean componentsEqualIgnoringDamage(ItemStack first, ItemStack second, boolean ignoreDamage) {
-        if (!ignoreDamage) {
-            return ItemStack.isSameItemSameComponents(first, second);
-        }
-        DataComponentMap firstComponents = first.getComponents();
-        DataComponentMap secondComponents = second.getComponents();
-        for (DataComponentType<?> type : firstComponents.keySet()) {
-            if (type != DataComponents.DAMAGE && !Objects.equals(firstComponents.get(type), secondComponents.get(type))) {
-                return false;
-            }
-        }
-        for (DataComponentType<?> type : secondComponents.keySet()) {
-            if (type != DataComponents.DAMAGE && !firstComponents.keySet().contains(type)) {
-                return false;
-            }
-        }
-        return true;
+        return equal;
     }
 
     /**
-     * Finds the first stack in a handler that passes a ghost-stack filter.
+     * Searches a handler for the first slot content that passes a whitelist or blacklist of ghost stacks. The source is unchanged.
      *
-     * @param filterStacks the ghost stacks
-     * @param blacklist    whether matching stacks are excluded instead of required
-     * @param inv          the inventory to scan
-     * @param filter       the comparison flags
-     * @param leaveOne     whether the last item of a kind must stay behind
-     * @return the first matching stack, or an empty stack
+     * @param ghosts    the ghost stacks; empty ones are ignored
+     * @param blacklist true to forbid a matching ghost, false to require one
+     * @param handler   the inventory to search, or null
+     * @param filter    the comparison flags between a ghost and a candidate
+     * @param leaveOne  whether a candidate is offered only when the handler holds at least two matching items
+     * @return a candidate with its count capped at the item's maximum stack size, or the empty stack
      */
-    public static ItemStack findFirstMatchFromFilter(List<ItemStack> filterStacks, boolean blacklist, ResourceHandler<ItemResource> inv, InvFilter filter, boolean leaveOne) {
-        slots : for (int index = 0; index < inv.size(); index++) {
-            ItemResource resource = inv.getResource(index);
+    public static ItemStack findFirstMatchFromFilter(List<ItemStack> ghosts, boolean blacklist, @Nullable ResourceHandler<ItemResource> handler, InvFilter filter, boolean leaveOne) {
+        if (handler == null) {
+            return ItemStack.EMPTY;
+        }
+        GhostFilter ghostFilter = new GhostFilter(ghosts, filter);
+        for (int slot = 0; slot < handler.size(); slot++) {
+            ItemResource resource = handler.getResource(slot);
             if (resource.isEmpty()) {
                 continue;
             }
-            ItemStack candidate = resource.toStack(Math.min(inv.getAmountAsInt(index), resource.toStack(1).getMaxStackSize()));
-            if (candidate.isEmpty() || (leaveOne && countTotalItemsIn(inv, candidate, filter) < 2)) {
-                continue;
-            }
-            boolean allow = false;
-            boolean allEmpty = true;
-            for (ItemStack ghost : filterStacks) {
-                if (ghost.isEmpty()) {
-                    continue;
-                }
-                allEmpty = false;
-                boolean matches = areItemStacksEqual(ghost, candidate, filter);
-                if (blacklist) {
-                    if (matches) {
-                        continue slots;
-                    }
-                    allow = true;
-                } else if (matches) {
-                    return candidate;
-                }
-            }
-            if (blacklist && (allow || allEmpty)) {
+            ItemStack candidate = resource.toStack(Math.min(handler.getAmountAsInt(slot), resource.getMaxStackSize()));
+            if (ghostFilter.passes(blacklist, candidate) && (!leaveOne || countTotalItemsIn(handler, candidate, filter) >= LEAVE_ONE_MINIMUM)) {
                 return candidate;
             }
         }
@@ -279,293 +213,520 @@ public final class InvHelper {
     }
 
     /**
-     * @return whether a stack passes a ghost-stack filter
+     * @param ghosts    the ghost stacks; empty ones are ignored
+     * @param blacklist true for a blacklist, false for a whitelist
+     * @param stack     the candidate
+     * @param filter    the comparison flags between a ghost and the candidate
+     * @return whether the candidate passes; an empty candidate never does
      */
-    public static boolean matchesFilters(List<ItemStack> filterStacks, boolean blacklist, ItemStack stack, InvFilter filter) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-        boolean allow = false;
-        boolean allEmpty = true;
-        for (ItemStack ghost : filterStacks) {
-            if (ghost.isEmpty()) {
-                continue;
-            }
-            allEmpty = false;
-            boolean matches = areItemStacksEqual(ghost, stack, filter);
-            if (blacklist) {
-                if (matches) {
-                    return false;
-                }
-                allow = true;
-            } else if (matches) {
-                return true;
-            }
-        }
-        return blacklist && (allow || allEmpty);
+    public static boolean matchesFilters(List<ItemStack> ghosts, boolean blacklist, ItemStack stack, InvFilter filter) {
+        return new GhostFilter(ghosts, filter).passes(blacklist, stack);
     }
 
     /**
-     * Finds the first candidate stack that passes a ghost-stack filter.
-     *
-     * @return the matching stack, or an empty stack
+     * @param ghosts     the ghost stacks; empty ones are ignored
+     * @param sizes      the size limits, aligned by position with the ghosts
+     * @param blacklist  true for a blacklist, false for a whitelist
+     * @param candidates the stacks to search in order
+     * @param filter     the comparison flags between a ghost and a candidate
+     * @return the first passing candidate, or the empty stack
+     * @throws IndexOutOfBoundsException when a matching whitelist ghost has no entry in {@code sizes}
      */
-    public static ItemStack findFirstMatchFromFilter(List<ItemStack> filterStacks, List<Integer> filterSizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
-        return findFirstMatchFromFilterWithSize(filterStacks, filterSizes, blacklist, candidates, filter).stack();
+    public static ItemStack findFirstMatchFromFilter(List<ItemStack> ghosts, List<Integer> sizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
+        return findFirstMatchFromFilterWithSize(ghosts, sizes, blacklist, candidates, filter).stack();
     }
 
     /**
-     * Finds the first candidate stack that passes a ghost-stack filter, with the matching
-     * slot's size limit.
+     * @param ghosts     the ghost stacks; empty ones are ignored
+     * @param sizes      the size limits, aligned by position with the ghosts
+     * @param blacklist  true for a blacklist, false for a whitelist
+     * @param candidates the stacks to search in order
+     * @param filter     the comparison flags between a ghost and a candidate
+     * @return the first passing candidate with its size limit; the limit is the matching ghost's entry under a whitelist and zero
+     *         under a blacklist or when nothing passes
+     * @throws IndexOutOfBoundsException when a matching whitelist ghost has no entry in {@code sizes}
      */
-    public static FilterMatch findFirstMatchFromFilterWithSize(List<ItemStack> filterStacks, List<Integer> filterSizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
-        candidates : for (ItemStack candidate : candidates) {
+    public static FilterMatch findFirstMatchFromFilterWithSize(List<ItemStack> ghosts, List<Integer> sizes, boolean blacklist, List<ItemStack> candidates, InvFilter filter) {
+        GhostFilter ghostFilter = new GhostFilter(ghosts, filter);
+        for (ItemStack candidate : candidates) {
             if (candidate.isEmpty()) {
                 continue;
             }
-            boolean allow = false;
-            boolean allEmpty = true;
-            for (int slot = 0; slot < filterStacks.size(); slot++) {
-                ItemStack ghost = filterStacks.get(slot);
-                if (ghost.isEmpty()) {
-                    continue;
-                }
-                allEmpty = false;
-                boolean matches = areItemStacksEqual(ghost, candidate, filter);
-                if (blacklist) {
-                    if (matches) {
-                        continue candidates;
-                    }
-                    allow = true;
-                } else if (matches) {
-                    return new FilterMatch(candidate, filterSizes.get(slot));
-                }
-            }
-            if (blacklist && (allow || allEmpty)) {
-                return new FilterMatch(candidate, 0);
+            int index = ghostFilter.firstMatch(candidate);
+            if (blacklist ? index == NO_MATCH : index != NO_MATCH) {
+                return new FilterMatch(candidate, blacklist ? 0 : sizes.get(index));
             }
         }
         return new FilterMatch(ItemStack.EMPTY, 0);
     }
 
     /**
-     * @return a copy of the stack, capped at the given count
+     * @param stack the stack to copy
+     * @param limit the largest count of the copy
+     * @return a copy with the smaller of the stack's count and the limit, or the empty stack for an empty input
      */
     public static ItemStack copyLimitedStack(ItemStack stack, int limit) {
-        if (stack.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack copy = stack.copy();
-        if (copy.getCount() > limit) {
-            copy.setCount(limit);
-        }
-        return copy;
+        return stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(Math.min(stack.getCount(), limit));
     }
 
     /**
-     * Removes up to the stack's count of matching items from the inventory at a position.
-     *
-     * @return the removed items, or an empty stack
+     * @param level    the level
+     * @param pos      the block holding the inventory
+     * @param side     the face to access
+     * @param wanted   the stack to extract, its count being the amount requested
+     * @param filter   the comparison flags
+     * @param simulate whether to leave the inventory unchanged
+     * @return a copy of the wanted stack carrying the removed count, or the empty stack when nothing was removed
      */
-    public static ItemStack removeStackFrom(Level level, BlockPos pos, Direction side, ItemStack stack, InvFilter filter, boolean simulate) {
-        return removeStackFrom(getItemHandlerAt(level, pos, side), stack, filter, simulate);
+    public static ItemStack removeStackFrom(Level level, BlockPos pos, Direction side, ItemStack wanted, InvFilter filter, boolean simulate) {
+        ResourceHandler<ItemResource> handler = getItemHandlerAt(level, pos, side);
+        return handler == null ? ItemStack.EMPTY : removeStackFrom(handler, wanted, filter, simulate);
     }
 
     /**
-     * Removes up to the stack's count of matching items from a handler.
+     * Drains matching stacks from the slots in index order within one root transaction.
      *
-     * @return the removed items, or an empty stack
+     * @param handler  the inventory, or null
+     * @param wanted   the stack to extract, the first operand of every comparison
+     * @param filter   the comparison flags
+     * @param simulate whether to leave the inventory unchanged
+     * @return a copy of the wanted stack carrying the removed count, or the empty stack when nothing was removed or the handler is
+     *         null or the wanted stack is empty
      */
-    public static ItemStack removeStackFrom(@Nullable ResourceHandler<ItemResource> inventory, ItemStack stack, InvFilter filter, boolean simulate) {
-        if (inventory == null || stack.isEmpty()) {
+    public static ItemStack removeStackFrom(@Nullable ResourceHandler<ItemResource> handler, ItemStack wanted, InvFilter filter, boolean simulate) {
+        if (handler == null || wanted.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        int amount = stack.getCount();
+        int needed = wanted.getCount();
         int removed = 0;
         try (Transaction transaction = Transaction.openRoot()) {
-            for (int index = 0; index < inventory.size() && removed < amount; index++) {
-                ItemResource resource = inventory.getResource(index);
-                if (!resource.isEmpty() && areItemStacksEqual(stack, resource.toStack(1), filter)) {
-                    removed += inventory.extract(index, resource, amount - removed, transaction);
+            for (int slot = 0; slot < handler.size() && removed < needed; slot++) {
+                ItemResource resource = handler.getResource(slot);
+                if (!resource.isEmpty() && areItemStacksEqual(wanted, resource.toStack(), filter)) {
+                    removed += handler.extract(slot, resource, needed - removed, transaction);
                 }
             }
             if (!simulate) {
                 transaction.commit();
             }
         }
-        if (removed == 0) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack out = stack.copy();
-        out.setCount(removed);
-        return out;
+        return removed == 0 ? ItemStack.EMPTY : wanted.copyWithCount(removed);
     }
 
     /**
-     * Pushes a stack into the inventory beyond the given side, spilling the remainder into
-     * the world as an item entity.
-     */
-    public static void ejectStackAt(Level level, BlockPos pos, Direction side, ItemStack out) {
-        ejectStackAt(level, pos, side, out, false);
-    }
-
-    /**
-     * Pushes a stack into the inventory beyond the given side. In smart mode the remainder
-     * is returned instead of spilled when an inventory exists there.
+     * Ejects a stack, discarding the result. Behaves as {@link #ejectStackAt(Level, BlockPos, Direction, ItemStack, boolean)} with
+     * the smart flag off.
      *
-     * @return the remainder in smart mode, otherwise an empty stack
+     * @param level the server level
+     * @param pos   the origin position
+     * @param side  the direction to eject toward
+     * @param stack the stack to eject
      */
-    public static ItemStack ejectStackAt(Level level, BlockPos pos, Direction side, ItemStack out, boolean smart) {
-        ItemStack remainder = insertStackAt(level, pos.relative(side), side.getOpposite(), out, false);
-        if (smart && getItemHandlerAt(level, pos.relative(side), side.getOpposite()) != null) {
-            return remainder;
+    public static void ejectStackAt(Level level, BlockPos pos, Direction side, ItemStack stack) {
+        ejectStackAt(level, pos, side, stack, false);
+    }
+
+    /**
+     * Places the stack into the inventory of the neighbouring block on a side and spawns what does not fit as an item entity moving
+     * outward. The caller guarantees a server level.
+     *
+     * @param level the server level
+     * @param pos   the origin position
+     * @param side  the direction to eject toward
+     * @param stack the stack to eject
+     * @param smart whether a neighbouring inventory takes responsibility for the leftover
+     * @return the leftover when smart is set and an inventory exists on that side; otherwise the empty stack
+     */
+    public static ItemStack ejectStackAt(Level level, BlockPos pos, Direction side, ItemStack stack, boolean smart) {
+        EjectPlacement placement = EjectPlacement.compute(level, pos, side);
+        EjectHandoff handoff = EjectHandoff.perform(level, pos, side, stack);
+        if (handoff.returnsLeftover(smart)) {
+            return handoff.leftover();
         }
-        if (remainder.isEmpty()) {
-            return ItemStack.EMPTY;
+        if (!handoff.leftover().isEmpty()) {
+            level.addFreshEntity(placement.createEntity(level, handoff.leftover()));
         }
-        BlockPos spawnPos = pos;
-        BlockPos target = pos.relative(side);
-        if (level.getBlockState(target).isCollisionShapeFullBlock(level, target)) {
-            spawnPos = pos.relative(side.getOpposite());
-        }
-        ItemEntity entity = new ItemEntity(level, spawnPos.getX() + 0.5 + side.getStepX(), spawnPos.getY() + side.getStepY(), spawnPos.getZ() + 0.5 + side.getStepZ(), remainder);
-        entity.setDeltaMovement(0.3 * side.getStepX(), 0.3 * side.getStepY(), 0.3 * side.getStepZ());
-        level.addFreshEntity(entity);
         return ItemStack.EMPTY;
     }
 
     /**
-     * @return the total count of matching dropped items around a position
+     * @param level  the level
+     * @param pos    the block whose cell is the search centre
+     * @param wanted the stack to count, the first operand of every comparison
+     * @param range  the distance in blocks added on each axis in both directions
+     * @param filter the comparison flags
+     * @return the combined count of matching dropped items touching the grown cell
      */
-    public static int countStackInWorld(Level level, BlockPos pos, ItemStack stack, double range, InvFilter filter) {
-        int count = 0;
-        AABB area = new AABB(pos).inflate(range);
-        for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, area)) {
-            if (!item.getItem().isEmpty() && areItemStacksEqual(stack, item.getItem(), filter)) {
-                count += item.getItem().getCount();
+    public static int countStackInWorld(Level level, BlockPos pos, ItemStack wanted, double range, InvFilter filter) {
+        int total = 0;
+        for (ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(range))) {
+            ItemStack dropped = entity.getItem();
+            if (!dropped.isEmpty() && areItemStacksEqual(wanted, dropped, filter)) {
+                total += dropped.getCount();
             }
         }
-        return count;
+        return total;
     }
 
     /**
-     * Drops a stack at an entity's chest height. Server side only.
+     * Drops a copy of the stack at the entity's horizontal position and at its feet plus half its eye height. Does nothing on the
+     * client or for an empty stack.
+     *
+     * @param level  the level
+     * @param stack  the stack to drop; not modified
+     * @param entity the entity to drop at
      */
     public static void dropItemAtEntity(Level level, ItemStack stack, Entity entity) {
-        if (!level.isClientSide() && !stack.isEmpty()) {
-            level.addFreshEntity(new ItemEntity(level, entity.getX(), entity.getY() + entity.getEyeHeight() / 2.0F, entity.getZ(), stack.copy()));
+        if (level.isClientSide() || stack.isEmpty()) {
+            return;
         }
+        level.addFreshEntity(new ItemEntity(level, entity.getX(), entity.getY() + entity.getEyeHeight() * EYE_FRACTION, entity.getZ(), stack.copy()));
     }
 
-    /** Matches by item identity or shared tag, like the legacy ore dictionary base filter. */
-    public static final InvFilter BASE_TAGS = new InvFilter(false, false, true, false);
-
     /**
-     * @return whether inventories adjacent to the position, ignoring the top, together hold
-     *         the stack's count of matching items
+     * @param level the level
+     * @param pos   the origin position
+     * @param stack the stack to find
+     * @return whether the neighbours other than the one above together hold at least the stack's count under {@link #BASE_TAGS}
      */
     public static boolean checkAdjacentChests(Level level, BlockPos pos, ItemStack stack) {
-        int needed = stack.getCount();
-        for (Direction face : Direction.values()) {
-            if (face == Direction.UP) {
-                continue;
-            }
-            needed -= countTotalItemsIn(level, pos.relative(face), face.getOpposite(), stack.copy(), BASE_TAGS);
-            if (needed <= 0) {
-                return true;
-            }
-        }
-        return false;
+        int available = Direction.stream().filter(direction -> direction != Direction.UP)
+                .mapToInt(direction -> countTotalItemsIn(level, pos.relative(direction), direction.getOpposite(), stack, BASE_TAGS)).sum();
+        return available >= stack.getCount();
     }
 
     /**
-     * Removes the stack's count of matching items from inventories adjacent to the position.
+     * Removes the stack's count from the neighbours other than the one above, in direction order. A partial removal is not undone
+     * when the pool runs out.
      *
-     * @return whether the full amount was consumed
+     * @param level the level
+     * @param pos   the origin position
+     * @param stack the stack to remove; not modified
+     * @return whether the whole count was removed
      */
     public static boolean consumeFromAdjacentChests(Level level, BlockPos pos, ItemStack stack) {
-        ItemStack remaining = stack.copy();
-        for (Direction face : Direction.values()) {
-            if (face == Direction.UP || remaining.isEmpty()) {
-                continue;
-            }
-            ItemStack removed = removeStackFrom(level, pos.relative(face), face.getOpposite(), remaining, BASE_TAGS, false);
-            remaining.setCount(remaining.getCount() - removed.getCount());
-        }
-        return remaining.isEmpty();
+        List<Removal> plan = new ArrayList<>();
+        boolean covered = planAdjacentRemovals(level, pos, stack, plan) <= 0;
+        applyPlan(plan);
+        return covered;
     }
 
     /**
-     * @return whether the player's main inventory holds the stack's count of matching items
-     */
-    public static boolean isPlayerCarryingAmount(Player player, ItemStack stack, boolean useTags) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-        int needed = stack.getCount();
-        InvFilter filter = new InvFilter(false, stack.isComponentsPatchEmpty(), useTags, false).setRelaxedComponents();
-        for (ItemStack held : player.getInventory().getNonEquipmentItems()) {
-            if (areItemStacksEqual(held, stack, filter)) {
-                needed -= held.getCount();
-                if (needed <= 0) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Removes the stack's count of matching items from the player's main inventory.
+     * Counts the main inventory only, not armour and not the off-hand.
      *
-     * @param skipCheck whether to skip the carrying pre-check
-     * @return whether the full amount was consumed
+     * @param player the player
+     * @param wanted the wanted stack
+     * @param tags   whether to match by shared item tags
+     * @return true when matching held stacks together hold at least the wanted count; false for an empty wanted stack
      */
-    public static boolean consumePlayerItem(Player player, ItemStack stack, boolean skipCheck, boolean useTags) {
-        if (!skipCheck && !isPlayerCarryingAmount(player, stack, useTags)) {
+    public static boolean isPlayerCarryingAmount(Player player, ItemStack wanted, boolean tags) {
+        if (wanted.isEmpty()) {
             return false;
         }
-        int remaining = stack.getCount();
-        InvFilter filter = new InvFilter(false, stack.isComponentsPatchEmpty(), useTags, false).setRelaxedComponents();
-        List<ItemStack> items = player.getInventory().getNonEquipmentItems();
-        for (int slot = 0; slot < items.size(); slot++) {
-            ItemStack held = items.get(slot);
-            if (!areItemStacksEqual(held, stack, filter)) {
-                continue;
+        InvFilter filter = playerFilter(wanted, tags);
+        List<ItemStack> inventory = player.getInventory().getNonEquipmentItems();
+        int total = 0;
+        for (int slot : MAIN_INVENTORY_SLOTS) {
+            ItemStack held = inventory.get(slot);
+            if (!held.isEmpty() && areItemStacksEqual(held, wanted, filter)) {
+                total += held.getCount();
             }
-            if (held.getCount() > remaining) {
-                held.shrink(remaining);
-                remaining = 0;
-            } else {
-                remaining -= held.getCount();
-                items.set(slot, ItemStack.EMPTY);
-            }
+        }
+        return total >= wanted.getCount();
+    }
+
+    /**
+     * Removes the wanted count from matching main-inventory stacks in slot order. With the check skipped a false result can leave a
+     * partial removal in place. No sync call is made; container synchronisation carries the change.
+     *
+     * @param player    the player
+     * @param wanted    the wanted stack
+     * @param skipCheck whether to skip the carrying check that otherwise runs first
+     * @param tags      whether to match by shared item tags
+     * @return whether the whole count was removed
+     */
+    public static boolean consumePlayerItem(Player player, ItemStack wanted, boolean skipCheck, boolean tags) {
+        if (!skipCheck && !isPlayerCarryingAmount(player, wanted, tags)) {
+            return false;
+        }
+        InvFilter filter = playerFilter(wanted, tags);
+        List<ItemStack> inventory = player.getInventory().getNonEquipmentItems();
+        int remaining = wanted.getCount();
+        for (int slot : MAIN_INVENTORY_SLOTS) {
             if (remaining <= 0) {
-                return true;
+                break;
             }
+            ItemStack held = inventory.get(slot);
+            if (held.isEmpty() || !areItemStacksEqual(held, wanted, filter)) {
+                continue;
+            }
+            int taken = Math.min(remaining, held.getCount());
+            if (taken >= held.getCount()) {
+                inventory.set(slot, ItemStack.EMPTY);
+            } else {
+                held.shrink(taken);
+            }
+            remaining -= taken;
         }
-        return false;
+        return remaining <= 0;
     }
 
     /**
-     * Checks or consumes the given stacks from adjacent inventories first, then the player.
+     * Succeeds only when each stack, judged alone, is fully available in the adjacent containers or fully in the player's inventory
+     * with tags on. Unless simulating, each stack is then consumed from the containers, and from the player when the containers fall
+     * short; a shortfall may already have removed part of the stack from the containers.
      *
-     * @param simulate whether to only check availability
-     * @return whether every stack is available or was consumed
+     * @param level    the level
+     * @param pos      the origin position
+     * @param player   the player
+     * @param simulate whether to only report availability
+     * @param stacks   the stacks to consume
+     * @return false, with nothing touched, when any stack is unavailable; otherwise true
      */
-    public static boolean consumeItemsFromAdjacentInventoryOrPlayer(Level level, BlockPos pos, Player player, boolean simulate, ItemStack... items) {
-        for (ItemStack stack : items) {
+    public static boolean consumeItemsFromAdjacentInventoryOrPlayer(Level level, BlockPos pos, Player player, boolean simulate, ItemStack... stacks) {
+        for (ItemStack stack : stacks) {
             if (!checkAdjacentChests(level, pos, stack) && !isPlayerCarryingAmount(player, stack, true)) {
                 return false;
             }
         }
         if (!simulate) {
-            for (ItemStack stack : items) {
-                if (!consumeFromAdjacentChests(level, pos, stack.copy())) {
-                    consumePlayerItem(player, stack, true, true);
+            for (ItemStack stack : stacks) {
+                List<Removal> plan = new ArrayList<>();
+                int uncovered = planAdjacentRemovals(level, pos, stack, plan);
+                if (uncovered > 0) {
+                    plan.add(new PlayerRemoval(player, stack));
                 }
+                applyPlan(plan);
             }
         }
         return true;
+    }
+
+    private static InvFilter[] buildPlayerFilters() {
+        InvFilter[] filters = new InvFilter[PLAYER_FILTER_VARIANTS];
+        for (int variant = 0; variant < PLAYER_FILTER_VARIANTS; variant++) {
+            boolean ignoreComponents = (variant & PLAYER_FILTER_COMPONENTS_BIT) != 0;
+            boolean tags = (variant & PLAYER_FILTER_TAGS_BIT) != 0;
+            filters[variant] = new InvFilter(false, ignoreComponents, tags, false).setRelaxedComponents();
+        }
+        return filters;
+    }
+
+    private static InvFilter playerFilter(ItemStack wanted, boolean tags) {
+        int variant = (wanted.isComponentsPatchEmpty() ? PLAYER_FILTER_COMPONENTS_BIT : 0) | (tags ? PLAYER_FILTER_TAGS_BIT : 0);
+        return PLAYER_FILTERS[variant];
+    }
+
+    private static int planAdjacentRemovals(Level level, BlockPos pos, ItemStack stack, List<Removal> plan) {
+        int remaining = stack.getCount();
+        for (Direction direction : Direction.values()) {
+            if (remaining <= 0) {
+                break;
+            }
+            if (direction == Direction.UP) {
+                continue;
+            }
+            ResourceHandler<ItemResource> handler = getItemHandlerAt(level, pos.relative(direction), direction.getOpposite());
+            int available = removeStackFrom(handler, stack.copyWithCount(remaining), BASE_TAGS, true).getCount();
+            if (available > 0) {
+                plan.add(new HandlerRemoval(handler, stack.copyWithCount(available)));
+                remaining -= available;
+            }
+        }
+        return remaining;
+    }
+
+    private static void applyPlan(List<Removal> plan) {
+        for (Removal removal : plan) {
+            removal.apply();
+        }
+    }
+
+    private static boolean sharesItemOrTag(ItemStack first, ItemStack second) {
+        return first.getItem() == second.getItem() || first.typeHolder().tags().anyMatch(second::is);
+    }
+
+    private static int matchingAmount(ResourceHandler<ItemResource> handler, int slot, ItemStack wanted, InvFilter filter) {
+        ItemResource resource = handler.getResource(slot);
+        if (resource.isEmpty() || !areItemStacksEqual(wanted, resource.toStack(), filter)) {
+            return 0;
+        }
+        return handler.getAmountAsInt(slot);
+    }
+
+    private static boolean sameItemAndData(ItemStack first, ItemStack second, InvFilter filter) {
+        if (first.getItem() != second.getItem()) {
+            return false;
+        }
+        boolean ignoreDamage = filter.has(InvFilter.IGNORE_DAMAGE);
+        if (!ignoreDamage && first.getDamageValue() != second.getDamageValue()) {
+            return false;
+        }
+        if (filter.has(InvFilter.IGNORE_COMPONENTS)) {
+            return true;
+        }
+        if (filter.has(InvFilter.RELAXED)) {
+            return isSubset(first.getComponents(), second.getComponents());
+        }
+        if (ignoreDamage) {
+            return sameComponentsExceptDamage(first.getComponents(), second.getComponents());
+        }
+        return ItemStack.isSameItemSameComponents(first, second);
+    }
+
+    private static ItemStack copyOrEmpty(ItemStack stack, int count) {
+        return count > 0 ? stack.copyWithCount(count) : ItemStack.EMPTY;
+    }
+
+    private static int acceptableCount(Level level, BlockPos pos, Direction side, ItemStack stack) {
+        return stack.getCount() - insertStackAt(level, pos, side, stack, true).getCount();
+    }
+
+    private static String namespaceOf(ItemStack stack) {
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace();
+    }
+
+    private static boolean isSubset(DataComponentMap subset, DataComponentMap superset) {
+        return subset.stream().allMatch(component -> Objects.equals(component.value(), superset.get(component.type())));
+    }
+
+    private static boolean sameComponentsExceptDamage(DataComponentMap first, DataComponentMap second) {
+        DataComponentMap left = first.filter(InvHelper::isNotDamage);
+        DataComponentMap right = second.filter(InvHelper::isNotDamage);
+        return left.keySet().equals(right.keySet()) && isSubset(left, right);
+    }
+
+    private static boolean isNotDamage(DataComponentType<?> type) {
+        return type != DataComponents.DAMAGE;
+    }
+
+    private interface Removal {
+        void apply();
+    }
+
+    private record HandlerRemoval(ResourceHandler<ItemResource> handler, ItemStack stack) implements Removal {
+        @Override
+        public void apply() {
+            removeStackFrom(handler, stack, BASE_TAGS, false);
+        }
+    }
+
+    private record PlayerRemoval(Player player, ItemStack stack) implements Removal {
+        @Override
+        public void apply() {
+            consumePlayerItem(player, stack, true, true);
+        }
+    }
+
+    private record EjectPlacement(double x, double y, double z, Vec3 velocity) {
+        static EjectPlacement compute(Level level, BlockPos pos, Direction side) {
+            BlockPos neighbor = pos.relative(side);
+            BlockPos base = level.getBlockState(neighbor).isCollisionShapeFullBlock(level, neighbor) ? pos.relative(side.getOpposite()) : pos;
+            Vec3 velocity = new Vec3(side.getStepX() * EJECT_SPEED, side.getStepY() * EJECT_SPEED, side.getStepZ() * EJECT_SPEED);
+            return new EjectPlacement(base.getX() + CELL_CENTER + side.getStepX(), base.getY() + side.getStepY(), base.getZ() + CELL_CENTER + side.getStepZ(), velocity);
+        }
+
+        ItemEntity createEntity(Level level, ItemStack stack) {
+            ItemEntity entity = new ItemEntity(level, x, y, z, stack);
+            entity.setDeltaMovement(velocity);
+            return entity;
+        }
+    }
+
+    private record EjectHandoff(boolean inventoryPresent, ItemStack leftover) {
+        static EjectHandoff perform(Level level, BlockPos pos, Direction side, ItemStack stack) {
+            ResourceHandler<ItemResource> handler = getItemHandlerAt(level, pos.relative(side), side.getOpposite());
+            return new EjectHandoff(handler != null, insertStack(handler, stack, false));
+        }
+
+        boolean returnsLeftover(boolean smart) {
+            return smart && inventoryPresent;
+        }
+    }
+
+    private static final class GhostFilter {
+        private final List<ItemStack> ghosts = new ArrayList<>();
+        private final List<Integer> positions = new ArrayList<>();
+        private final InvFilter filter;
+
+        private GhostFilter(List<ItemStack> source, InvFilter filter) {
+            this.filter = filter;
+            for (int index = 0; index < source.size(); index++) {
+                ItemStack ghost = source.get(index);
+                if (!ghost.isEmpty()) {
+                    ghosts.add(ghost);
+                    positions.add(index);
+                }
+            }
+        }
+
+        private int firstMatch(ItemStack candidate) {
+            int entry = 0;
+            while (entry < ghosts.size() && !areItemStacksEqual(ghosts.get(entry), candidate, filter)) {
+                entry++;
+            }
+            return entry < ghosts.size() ? positions.get(entry) : NO_MATCH;
+        }
+
+        private boolean passes(boolean blacklist, ItemStack candidate) {
+            return !candidate.isEmpty() && (firstMatch(candidate) == NO_MATCH) == blacklist;
+        }
+    }
+
+    /**
+     * The result of a size-aware filter search.
+     *
+     * @param stack     the matching stack, or the empty stack
+     * @param sizeLimit the size limit that goes with the match; zero when unlimited
+     * @since 1.0.0
+     */
+    public record FilterMatch(ItemStack stack, int sizeLimit) {
+    }
+
+    /**
+     * Comparison flags for {@link #areItemStacksEqual}. Counts never take part. The relaxed switch is off by default and, once set,
+     * is never cleared.
+     *
+     * @since 1.0.0
+     */
+    public static final class InvFilter {
+        /** Compares item, damage and components exactly. */
+        public static final InvFilter STRICT = new InvFilter(false, false, false, false);
+
+        private static final int IGNORE_DAMAGE = 1;
+        private static final int IGNORE_COMPONENTS = 1 << 1;
+        private static final int BY_TAGS = 1 << 2;
+        private static final int BY_MOD = 1 << 3;
+        private static final int RELAXED = 1 << 4;
+
+        private int flags;
+
+        /**
+         * @param ignoreDamage     whether differing damage values still match
+         * @param ignoreComponents whether differing components still match
+         * @param byTags           whether items sharing an item tag match
+         * @param byMod            whether items from the same namespace match
+         */
+        public InvFilter(boolean ignoreDamage, boolean ignoreComponents, boolean byTags, boolean byMod) {
+            flags = bit(byMod, BY_MOD) | bit(byTags, BY_TAGS) | bit(ignoreComponents, IGNORE_COMPONENTS) | bit(ignoreDamage, IGNORE_DAMAGE);
+        }
+
+        /**
+         * Lets the first stack's components be a subset of the second stack's. Callers must not apply this to {@link #STRICT}.
+         *
+         * @return this filter
+         */
+        public InvFilter setRelaxedComponents() {
+            flags |= RELAXED;
+            return this;
+        }
+
+        private boolean has(int bit) {
+            return (flags & bit) != 0;
+        }
+
+        private static int bit(boolean enabled, int bit) {
+            return enabled ? bit : 0;
+        }
     }
 }

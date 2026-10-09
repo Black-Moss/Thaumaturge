@@ -11,32 +11,32 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 public final class ResearchToast implements Toast {
-    private static final long DURATION_MS = 5000L;
-    private static final Identifier HUD = TTIds.rl("textures/gui/hud.png");
-    private static final int TEX_SIZE = 256;
-    private static final int BACKGROUND_U = 0;
-    private static final int BACKGROUND_V = 224;
-    private static final int BACKGROUND_W = 160;
-    private static final int BACKGROUND_H = 32;
+    private static final Identifier BACKGROUND = TTIds.rl("textures/gui/hud.png");
+    private static final int SHEET_SIZE = 256;
+    private static final int CARD_WIDTH = 160;
+    private static final int CARD_HEIGHT = 32;
+    private static final float BACKGROUND_U = 0.0F;
+    private static final float BACKGROUND_V = 224.0F;
     private static final int ICON_X = 6;
     private static final int ICON_Y = 8;
     private static final int TEXT_X = 30;
-    private static final int TITLE_Y = 7;
+    private static final int HEADING_Y = 7;
     private static final int NAME_Y = 18;
-    private static final int TITLE_COLOR = 0xFFA23BF1;
+    private static final int HEADING_COLOR = 0xFFA23BF1;
     private static final int NAME_COLOR = 0xFFFFAB09;
-    private static final float NAME_MAX_WIDTH = 124.0F;
+    private static final int NAME_MAX_WIDTH = 124;
+    private static final long DISPLAY_TIME_MS = 5000L;
 
-    private final Component title;
-    private final Component subtitle;
+    private final Identifier research;
+    private final Component heading;
+    private final Component name;
     private final Object icon;
-    private final Identifier id;
-    private Toast.Visibility wantedVisibility = Visibility.SHOW;
+    private Visibility wantedVisibility = Visibility.SHOW;
 
-    public ResearchToast(Identifier researchId, Component title, Component subtitle, Object icon) {
-        this.id = researchId;
-        this.title = title;
-        this.subtitle = subtitle;
+    public ResearchToast(Identifier research, Component heading, Component name, Object icon) {
+        this.research = research;
+        this.heading = heading;
+        this.name = name;
         this.icon = icon;
     }
 
@@ -47,29 +47,33 @@ public final class ResearchToast implements Toast {
 
     @Override
     public void update(ToastManager manager, long fullyVisibleForMs) {
-        wantedVisibility = fullyVisibleForMs > DURATION_MS ? Visibility.HIDE : Visibility.SHOW;
+        wantedVisibility = fullyVisibleForMs > DISPLAY_TIME_MS ? Visibility.HIDE : Visibility.SHOW;
     }
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, Font font, long fullyVisibleForMs) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, HUD, 0, 0, (float) BACKGROUND_U, (float) BACKGROUND_V, BACKGROUND_W, BACKGROUND_H, BACKGROUND_W, BACKGROUND_H, TEX_SIZE, TEX_SIZE);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND, 0, 0, BACKGROUND_U, BACKGROUND_V, CARD_WIDTH, CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT, SHEET_SIZE, SHEET_SIZE);
         EntryIconRenderer.drawResearchIcon(graphics, ICON_X, ICON_Y, icon, false);
-        graphics.text(font, title, TEXT_X, TITLE_Y, TITLE_COLOR, false);
-        float nameWidth = font.width(subtitle);
-        if (nameWidth > NAME_MAX_WIDTH) {
-            float scale = NAME_MAX_WIDTH / nameWidth;
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(TEXT_X, NAME_Y);
-            graphics.pose().scale(scale, scale);
-            graphics.text(font, subtitle, 0, 0, NAME_COLOR, false);
-            graphics.pose().popMatrix();
-        } else {
-            graphics.text(font, subtitle, TEXT_X, NAME_Y, NAME_COLOR, false);
+        graphics.text(font, heading, TEXT_X, HEADING_Y, HEADING_COLOR, false);
+        drawName(graphics, font);
+    }
+
+    private void drawName(GuiGraphicsExtractor graphics, Font font) {
+        int width = font.width(name);
+        if (width <= NAME_MAX_WIDTH) {
+            graphics.text(font, name, TEXT_X, NAME_Y, NAME_COLOR, false);
+            return;
         }
+        float scale = (float) NAME_MAX_WIDTH / (float) width;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) TEXT_X, (float) NAME_Y);
+        graphics.pose().scale(scale, scale);
+        graphics.text(font, name, 0, 0, NAME_COLOR, false);
+        graphics.pose().popMatrix();
     }
 
     @Override
     public Object getToken() {
-        return id;
+        return research;
     }
 }

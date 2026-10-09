@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -29,24 +30,31 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
     public static final Identifier ALTAR_TEXTURE = TTIds.rl("textures/entity/obelisk_cap_altar.png");
     public static final Identifier ALTAR_MODEL = TTIds.rl("models/mesh/obelisk_cap_altar.ttmesh");
 
-    private static final float EYE_OFFSET = 0.46F;
+    private static final float CENTER = 0.5F;
+    private static final float UPRIGHT_DEGREES = 90.0F;
+    private static final int MAX_EYES = 4;
+    private static final float EYE_SIDE_DEGREES = 90.0F;
+    private static final float EYE_BASE_YAW = 90.0F;
     private static final float EYE_HEIGHT = 0.2F;
-    private static final float EYE_TILT = 18.0F;
-    private static final float FLAT_ITEM_LIFT = 0.125F;
-    private static final float IN_FRAME_SCALE = 0.5128205F;
-    private static final float IN_FRAME_DROP = -0.05F;
+    private static final float EYE_REACH = 0.46F;
+    private static final float EYE_TILT_DEGREES = -18.0F;
+    private static final float ITEM_SCALE = 0.5128205F;
+    private static final float EYE_LIFT = 0.075F;
+    private static final float FLIP_DEGREES = 180.0F;
+    private static final int OUTLINE_NONE = 0;
+    private static final int DISPLAY_SEED = 0;
 
-    private final Identifier model;
+    private final Identifier meshId;
     private final Identifier texture;
-    private final Identifier textureOuter;
+    private final Identifier outerTexture;
     private final ToIntFunction<T> eyeCount;
     private final ItemModelResolver itemModelResolver;
-    private ItemStack eyeStack = ItemStack.EMPTY;
+    private @Nullable ItemStack eyeStack;
 
-    public EldritchCapRenderer(BlockEntityRendererProvider.Context context, Identifier model, Identifier texture, Identifier textureOuter, ToIntFunction<T> eyeCount) {
-        this.model = model;
+    public EldritchCapRenderer(BlockEntityRendererProvider.Context context, Identifier meshId, Identifier texture, Identifier outerTexture, ToIntFunction<T> eyeCount) {
+        this.meshId = meshId;
         this.texture = texture;
-        this.textureOuter = textureOuter;
+        this.outerTexture = outerTexture;
         this.eyeCount = eyeCount;
         this.itemModelResolver = context.itemModelResolver();
     }
@@ -57,45 +65,54 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
     }
 
     @Override
-    public void extractRenderState(T cap, EldritchCapRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
-        BlockEntityRenderer.super.extractRenderState(cap, state, partialTicks, cameraPosition, breakProgress);
-        state.eyes = eyeCount.applyAsInt(cap);
-        state.outerLands = cap.getLevel() != null && cap.getLevel().dimension() == OuterLands.DIMENSION;
-        if (state.eyes > 0) {
-            if (eyeStack.isEmpty()) {
-                eyeStack = new ItemStack(TTItems.ELDRITCH_EYE.get());
-            }
-            ItemStackRenderState itemState = new ItemStackRenderState();
-            itemModelResolver.updateForTopItem(itemState, eyeStack, ItemDisplayContext.FIXED, cap.getLevel(), null, 0);
-            state.eye = itemState;
-        } else {
-            state.eye = null;
+    public void extractRenderState(T blockEntity, EldritchCapRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+        Level level = blockEntity.getLevel();
+        state.outerLands = level != null && OuterLands.DIMENSION.equals(level.dimension());
+        state.eyes = Math.min(MAX_EYES, eyeCount.applyAsInt(blockEntity));
+        state.eye = state.eyes > 0 ? resolveEye(level) : null;
+    }
+
+    private ItemStackRenderState resolveEye(@Nullable Level level) {
+        if (eyeStack == null) {
+            eyeStack = new ItemStack(TTItems.ELDRITCH_EYE.get());
         }
+        ItemStackRenderState resolved = new ItemStackRenderState();
+        itemModelResolver.updateForTopItem(resolved, eyeStack, ItemDisplayContext.FIXED, level, null, DISPLAY_SEED);
+        return resolved;
     }
 
     @Override
     public void submit(EldritchCapRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        RenderType type = RenderTypes.entityCutout(state.outerLands ? textureOuter : texture);
-        poseStack.pushPose();
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
-        EldritchObeliskRenderer.submitCap(model, poseStack, collector, type, state.lightCoords);
-        poseStack.popPose();
-        if (state.eye == null) {
+        submitMesh(state, poseStack, collector);
+        ItemStackRenderState eye = state.eye;
+        if (eye == null) {
             return;
         }
-        for (int a = 0; a < state.eyes; a++) {
+        for (int side = 0; side < state.eyes; side++) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, 0.0F, 0.5F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(a * 90.0F));
-            poseStack.translate(EYE_OFFSET, EYE_HEIGHT, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
-            poseStack.mulPose(Axis.XN.rotationDegrees(EYE_TILT));
-            poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
-            poseStack.translate(0.0F, IN_FRAME_DROP + FLAT_ITEM_LIFT, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-            state.eye.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+            placeEye(poseStack, side);
+            eye.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);
             poseStack.popPose();
         }
+    }
+
+    private void submitMesh(EldritchCapRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
+        RenderType type = RenderTypes.entityCutout(state.outerLands ? outerTexture : texture);
+        poseStack.pushPose();
+        poseStack.translate(CENTER, 0.0F, CENTER);
+        poseStack.mulPose(Axis.XN.rotationDegrees(UPRIGHT_DEGREES));
+        EldritchObeliskRenderer.submitCap(meshId, poseStack, collector, type, state.lightCoords);
+        poseStack.popPose();
+    }
+
+    private static void placeEye(PoseStack poseStack, int side) {
+        poseStack.translate(CENTER, 0.0F, CENTER);
+        poseStack.mulPose(Axis.YP.rotationDegrees(EYE_BASE_YAW + side * EYE_SIDE_DEGREES));
+        poseStack.translate(0.0F, EYE_HEIGHT, EYE_REACH);
+        poseStack.mulPose(Axis.XP.rotationDegrees(EYE_TILT_DEGREES));
+        poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
+        poseStack.translate(0.0F, EYE_LIFT, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(FLIP_DEGREES));
     }
 }

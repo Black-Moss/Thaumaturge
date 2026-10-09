@@ -4,57 +4,56 @@ import com.leclowndu93150.thaumaturge.content.particle.FireMoteParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 
 public final class FireMoteParticle extends TTParticle {
     private static final int LIFETIME = 16;
-    private static final int EMISSIVE_LIGHT = 0x00F000F0;
-    private static final float SKIP_CHANCE = 1.0F / 6.0F;
+    private static final int EXTRA_AGE_ODDS = 6;
+    private static final float BYTE_RANGE = 255.0F;
+    private static final float SIZE_UNIT = 0.1F;
     private static final float SPIN_PER_TICK = 1.0F;
+    private static final float START_ROLL = (float) (Math.PI * 2.0);
 
+    private final ParticleSheet moteSheet;
+    private final boolean translucent;
     private final float startAlpha;
     private final float startSize;
-    private final boolean translucent;
 
     private FireMoteParticle(ClientLevel level, double x, double y, double z, FireMoteParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, options.vx(), options.vy(), options.vz(), sheet);
-        this.rCol = normalize(options.r());
-        this.gCol = normalize(options.g());
-        this.bCol = normalize(options.b());
+        this.moteSheet = sheet;
+        this.translucent = options.translucent();
+        float divisor = Math.max(options.r(), Math.max(options.g(), options.b())) > 1.0F ? BYTE_RANGE : 1.0F;
+        setColor(options.r() / divisor, options.g() / divisor, options.b() / divisor);
         this.startAlpha = options.alpha();
         this.alpha = this.startAlpha;
-        this.lifetime = LIFETIME;
-        this.startSize = options.scale() * 0.1F;
+        this.startSize = options.scale() * SIZE_UNIT;
         this.quadSize = this.startSize;
-        this.translucent = options.translucent();
-        this.roll = (float) (Math.PI * 2.0);
-        this.oRoll = this.roll;
-    }
-
-    private static float normalize(float channel) {
-        return channel > 1.0F ? channel / 255.0F : channel;
+        this.lifetime = LIFETIME;
+        this.roll = START_ROLL;
+        this.oRoll = START_ROLL;
     }
 
     @Override
     protected void update() {
-        if (this.random.nextFloat() < SKIP_CHANCE) {
+        if (this.random.nextInt(EXTRA_AGE_ODDS) == 0) {
             this.age++;
         }
-        this.oRoll = this.roll;
         this.roll += SPIN_PER_TICK;
-        float t = progress();
-        this.quadSize = this.startSize * (1.0F - t);
-        this.alpha = this.startAlpha * (1.0F - t);
+        float remaining = 1.0F - progress();
+        this.alpha = this.startAlpha * remaining;
+        this.quadSize = this.startSize * remaining;
     }
 
     @Override
     protected int getLightCoords(float partialTick) {
-        return EMISSIVE_LIGHT;
+        return LightCoordsUtil.FULL_BRIGHT;
     }
 
     @Override
     public Layer getLayer() {
-        return this.translucent ? TTParticleLayers.translucent(this.sheet) : TTParticleLayers.additive(this.sheet);
+        return this.translucent ? TTParticleLayers.translucent(this.moteSheet) : TTParticleLayers.additive(this.moteSheet);
     }
 
     public static final class Provider implements ParticleProvider<FireMoteParticleOptions> {

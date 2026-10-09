@@ -1,12 +1,10 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStreamPort;
-import com.leclowndu93150.thaumaturge.api.items.ILabel;
-import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockAlembic;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.LabelledVesselActions;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -14,7 +12,6 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -24,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -38,24 +36,49 @@ import org.jspecify.annotations.Nullable;
 
 public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaStreamPort, IEssentiaJar {
     public static final MapCodec<BlockJar> CODEC = simpleCodec(BlockJar::new);
+    public static final VoxelShape SHAPE = Shapes.or(Block.box(3, 0, 3, 13, 12, 13), Block.box(5, 12, 5, 11, 14, 11));
 
-    public static final VoxelShape SHAPE = Shapes.or(box(3.0, 0.0, 3.0, 13.0, 12.0, 13.0), box(5.0, 12.0, 5.0, 11.0, 14.0, 11.0));
-    private static final double MOUTH_HEIGHT = 0.8;
-    private static final double MOUTH_CLEARANCE = 1.4;
+    private static final double MOUTH_ANCHOR_HEIGHT = 0.8;
+    private static final double MOUTH_CLEARANCE_HEIGHT = 1.4;
+    private static final int MAX_COMPARATOR_SIGNAL = 15;
+    private static final int COMPARATOR_STEPS = 14;
+    private static final float KEY_VOLUME = 1.0F;
+    private static final float KEY_PITCH = 1.0F;
 
     public BlockJar(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
     @Override
-    protected MapCodec<? extends BlockJar> codec() {
-        return CODEC;
+    public boolean applyLabel(Player player, BlockPos pos, Direction face, ItemStack stack) {
+        Level level = player.level();
+        BlockEntity found = level.getBlockEntity(pos);
+        if (!(found instanceof BlockEntityJar jar)) {
+            return false;
+        }
+        ResourceKey<IAspect> label = LabelledVesselActions.aspectToLabel(stack, face, jar.aspectFilterKey(), jar.aspectKey(), jar.amount());
+        if (label != null) {
+            jar.setAspectFilter(label);
+            jar.setFacing(face);
+            LabelledVesselActions.playLabelSound(level, pos);
+        }
+        return label != null;
     }
 
     @Override
-    public StreamPort essentiaStreamPort(BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
-        Vec3 base = Vec3.atBottomCenterOf(pos);
-        return new StreamPort(base.add(0.0, MOUTH_HEIGHT, 0.0), base.add(0.0, MOUTH_CLEARANCE, 0.0));
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        return interact(level, pos, player, hit, ItemStack.EMPTY);
+    }
+
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        boolean holdingBrace = stack.is(TTItems.JAR_BRACE.get());
+        return holdingBrace ? interact(level, pos, player, hit, stack) : InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return getShape(state, level, pos, context);
     }
 
     @Override
@@ -64,25 +87,28 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
-    }
-
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new BlockEntityJar(pos, state);
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (placer == null) {
+            return;
+        }
+        if (level.getBlockEntity(pos) instanceof BlockEntityJar jar && jar.aspectFilterKey() != null) {
+            jar.setFacing(placer.getDirection().getOpposite());
+        }
     }
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (level.isClientSide())
-            return super.playerWillDestroy(level, pos, state, player);
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar))
-            return super.playerWillDestroy(level, pos, state, player);
-        if (jar.isBlocked()) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityJar jar && jar.isBlocked() && !level.isClientSide()) {
             popResource(level, pos, new ItemStack(TTItems.JAR_BRACE.get()));
         }
         return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+        BlockEntity found = level.getBlockEntity(pos);
+        return found instanceof BlockEntityJar jar ? comparatorSignal(jar.amount()) : 0;
     }
 
     @Override
@@ -91,111 +117,73 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     }
 
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar))
-            return 0;
-        int amt = jar.amount();
-        if (amt <= 0)
-            return 0;
-        float ratio = amt / (float) BlockEntityJar.CAPACITY;
-        return Math.min(15, (int) Math.floor(ratio * 14.0F) + 1);
+    public StreamPort essentiaStreamPort(BlockGetter level, BlockPos pos, BlockState state, Vec3 farEnd, boolean outgoing) {
+        Vec3 floor = Vec3.atBottomCenterOf(pos);
+        Vec3 anchor = floor.add(0.0, MOUTH_ANCHOR_HEIGHT, 0.0);
+        Vec3 clearance = floor.add(0.0, MOUTH_CLEARANCE_HEIGHT, 0.0);
+        return new StreamPort(anchor, clearance);
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar))
-            return InteractionResult.PASS;
-        if (level.isClientSide())
-            return InteractionResult.SUCCESS;
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide()) {
+            return null;
+        }
+        return createTickerHelper(type, TTBlockEntities.JAR.get(), BlockEntityJar::serverTick);
+    }
 
-        if (stack.is(TTItems.JAR_BRACE.get())) {
-            if (jar.isBlocked())
-                return InteractionResult.TRY_WITH_EMPTY_HAND;
-            jar.setBraced(true);
-            if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
-            }
-            level.playSound(null, pos, TTSounds.KEY.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new BlockEntityJar(pos, state);
+    }
+
+    @Override
+    protected MapCodec<? extends BlockJar> codec() {
+        return CODEC;
+    }
+
+    private static int comparatorSignal(int amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        double fill = (double) amount / DEFAULT_CAPACITY;
+        return Math.min(MAX_COMPARATOR_SIGNAL, (int) Math.floor(fill * COMPARATOR_STEPS) + 1);
+    }
+
+    private static InteractionResult interact(Level level, BlockPos pos, Player player, BlockHitResult hit, ItemStack brace) {
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar)) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        return InteractionResult.TRY_WITH_EMPTY_HAND;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar))
-            return InteractionResult.PASS;
-        if (level.isClientSide())
-            return InteractionResult.SUCCESS;
-        if (!player.isCrouching())
-            return InteractionResult.PASS;
-
-        if (jar.aspectFilterKey() != null && hitResult.getDirection() == jar.facing()) {
-            jar.setAspectFilter(null);
-            jar.setChanged();
-            jar.syncToClient();
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            BlockAlembic.popResourceFromFace(level, pos, hitResult.getDirection(), new ItemStack(TTItems.LABEL.get()));
+        if (!brace.isEmpty() && !jar.isBlocked()) {
+            installBrace(jar, brace, player, level, pos);
+        } else if (player.isShiftKeyDown()) {
+            dispose(jar, level, pos, hit.getDirection());
         } else {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.JAR.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
-            float pitch = 1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.3F;
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.5F, pitch);
-            AuraHelper.polluteAura(level, pos, jar.amount(), true);
-            jar.clearAspect();
+            return InteractionResult.PASS;
         }
-        return InteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS_SERVER;
     }
 
-    @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
-        super.setPlacedBy(level, pos, state, by, itemStack);
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJar jar))
+    private static void dispose(BlockEntityJar jar, Level level, BlockPos pos, Direction hitFace) {
+        boolean onLabel = jar.aspectFilterKey() != null && hitFace == jar.facing();
+        if (!onLabel) {
+            LabelledVesselActions.pourOut(level, pos, jar.amount());
+            jar.clearAspect();
+            jar.setChangedAndSync();
             return;
-        if (by == null)
-            return;
-        if (jar.aspectFilterKey() == null)
-            return;
-        jar.setFacing(by.getDirection().getOpposite());
+        }
+        jar.setAspectFilter(null);
+        LabelledVesselActions.removeLabel(level, pos, hitFace);
     }
 
-    @Override
-    public boolean applyLabel(Player player, BlockPos pos, Direction face, ItemStack stack) {
-        if (!(player.level().getBlockEntity(pos) instanceof BlockEntityJar jar))
-            return false;
-        if (!(stack.getItem() instanceof ILabel label))
-            return false;
-        if (face.getStepY() != 0)
-            return false;
-        if (jar.aspectFilterKey() != null)
-            return false;
-
-        ResourceKey<IAspect> labelAspect = label.getFilteredAspect(stack);
-        if (jar.amount() == 0 && labelAspect == null)
-            return false;
-
-        ResourceKey<IAspect> aspect = null;
-        if (jar.amount() == 0 && labelAspect != null)
-            aspect = labelAspect;
-        if (jar.amount() > 0)
-            aspect = jar.aspectKey();
-
-        if (aspect == null)
-            return false;
-        if (labelAspect != null && !labelAspect.equals(aspect))
-            return false;
-
-        BlockState state = player.level().getBlockState(pos);
-        setPlacedBy(player.level(), pos, state, player, stack);
-        jar.setAspectFilter(aspect);
-        jar.setFacing(face);
-        jar.setChanged();
-        jar.syncToClient();
-        player.level().playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-        return true;
-    }
-
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> type) {
-        return level.isClientSide() ? null : createTickerHelper(type, TTBlockEntities.JAR.get(), BlockEntityJar::serverTick);
+    private static void installBrace(BlockEntityJar jar, ItemStack stack, Player player, Level level, BlockPos pos) {
+        jar.setBraced(true);
+        if (!player.hasInfiniteMaterials()) {
+            stack.shrink(1);
+        }
+        level.playSound(null, pos, TTSounds.KEY.get(), SoundSource.BLOCKS, KEY_VOLUME, KEY_PITCH);
     }
 }

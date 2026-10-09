@@ -1,18 +1,17 @@
 package com.leclowndu93150.thaumaturge.client.warding;
 
-import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
-import com.leclowndu93150.thaumaturge.client.model.connected.FaceCorners;
-import net.minecraft.core.RegistryAccess;
-import java.util.Optional;
-import com.leclowndu93150.thaumaturge.content.spell.effect.WardEffect;
-import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
-import com.leclowndu93150.thaumaturge.api.spell.Spells;
-import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
-import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.spell.Spell;
+import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
+import com.leclowndu93150.thaumaturge.api.spell.Spells;
+import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
+import com.leclowndu93150.thaumaturge.client.model.connected.FaceCorners;
+import com.leclowndu93150.thaumaturge.content.spell.effect.WardEffect;
 import com.leclowndu93150.thaumaturge.content.warding.ClientWardHolder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.Optional;
 import java.util.function.Predicate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,6 +20,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.util.Mth;
@@ -35,7 +35,8 @@ import org.joml.Matrix4f;
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class WardOverlayRenderer {
     private static final double RENDER_RANGE = 48.0;
-    private static final double SECTION_RANGE = RENDER_RANGE + 16.0;
+    private static final double SECTION_WIDTH = 16.0;
+    private static final double SECTION_RANGE = RENDER_RANGE + SECTION_WIDTH;
 
     private static final float OUTSET = 0.001F;
     private static final float SPAN = 1.0F + OUTSET + OUTSET;
@@ -70,7 +71,7 @@ public final class WardOverlayRenderer {
         if (minecraft.level == null || player == null || minecraft.options.hideGui) {
             return;
         }
-        if (!holdsWardFocus(player) || ClientWardHolder.sections().isEmpty()) {
+        if (!holdsWardFocus(player, minecraft.level.registryAccess()) || ClientWardHolder.sections().isEmpty()) {
             return;
         }
         Vec3 cam = minecraft.gameRenderer.getMainCamera().position();
@@ -150,19 +151,18 @@ public final class WardOverlayRenderer {
         return flag == 0 ? -OUTSET : 1.0F + OUTSET;
     }
 
-    private static boolean holdsWardFocus(LocalPlayer player) {
-        return hasWard(player.getMainHandItem()) || hasWard(player.getOffhandItem());
+    private static boolean holdsWardFocus(LocalPlayer player, RegistryAccess registries) {
+        return hasWard(player.getMainHandItem(), registries) || hasWard(player.getOffhandItem(), registries);
     }
 
-    private static boolean hasWard(ItemStack stack) {
-        if (!(stack.getItem() instanceof ICaster caster) || Minecraft.getInstance().level == null) {
+    private static boolean hasWard(ItemStack stack, RegistryAccess registries) {
+        if (!(stack.getItem() instanceof ICaster caster)) {
             return false;
         }
         Spell spell = Spells.spellOf(caster.getFocusStack(stack));
         if (spell == null) {
             return false;
         }
-        RegistryAccess registries = Minecraft.getInstance().level.registryAccess();
         for (SpellNode node : spell.nodes()) {
             Optional<SpellPart> part = Spells.part(registries, node.part());
             if (part.isPresent() && part.get().behavior() instanceof WardEffect) {

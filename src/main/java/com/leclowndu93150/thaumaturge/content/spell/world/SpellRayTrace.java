@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -21,14 +23,13 @@ public final class SpellRayTrace {
     private SpellRayTrace() {}
 
     public static BlockHitResult clipBlocks(Level level, @Nullable Entity source, Vec3 from, Vec3 to) {
-        CollisionContext context = source != null ? CollisionContext.of(source) : CollisionContext.empty();
-        return level.clip(new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, context));
+        return level.clip(new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, contextFor(source)));
     }
 
     public static List<EntityHitResult> entitiesAlong(Level level, @Nullable Entity source, Vec3 from, Vec3 to) {
         AABB sweep = new AABB(from, to).inflate(ENTITY_PADDING + 1.0);
         List<EntityHitResult> hits = new ArrayList<>();
-        for (Entity candidate : level.getEntities(source, sweep, entity -> entity.isPickable() && entity.isAlive() && !entity.isSpectator())) {
+        for (Entity candidate : level.getEntities(source, sweep, SpellRayTrace::canBeHit)) {
             AABB box = candidate.getBoundingBox().inflate(ENTITY_PADDING);
             Optional<Vec3> entry = box.contains(from) ? Optional.of(from) : box.clip(from, to);
             entry.ifPresent(point -> hits.add(new EntityHitResult(candidate, point)));
@@ -38,34 +39,39 @@ public final class SpellRayTrace {
     }
 
     public static HitResult trace(Level level, @Nullable Entity source, Vec3 from, Vec3 direction, double range) {
-        Vec3 to = from.add(direction.normalize().scale(range));
-        BlockHitResult block = clipBlocks(level, source, from, to);
-        Vec3 reach = block.getType() == HitResult.Type.MISS ? to : block.getLocation();
-        List<EntityHitResult> entities = entitiesAlong(level, source, from, reach);
-        if (!entities.isEmpty()) {
-            return entities.getFirst();
-        }
-        return block;
+        BlockHitResult block = clipBlocks(level, source, from, pointAlong(from, direction, range));
+        List<EntityHitResult> entities = entitiesAlong(level, source, from, stopPoint(block, from, direction, range));
+        return entities.isEmpty() ? block : entities.getFirst();
     }
 
     public static List<HitResult> pierce(Level level, @Nullable Entity source, Vec3 from, Vec3 direction, double range, int entityCount) {
-        Vec3 to = from.add(direction.normalize().scale(range));
-        BlockHitResult block = clipBlocks(level, source, from, to);
-        Vec3 reach = block.getType() == HitResult.Type.MISS ? to : block.getLocation();
-        List<HitResult> out = new ArrayList<>();
-        for (EntityHitResult hit : entitiesAlong(level, source, from, reach)) {
-            if (out.size() >= entityCount) {
-                return out;
-            }
-            out.add(hit);
-        }
-        if (block.getType() != HitResult.Type.MISS) {
-            out.add(block);
-        }
-        return out;
+        BlockHitResult block = clipBlocks(level, source, from, pointAlong(from, direction, range));
+        List<EntityHitResult> entities = entitiesAlong(level, source, from, stopPoint(block, from, direction, range));
+        boolean blockReached = entities.size() <= entityCount && block.getType() != HitResult.Type.MISS;
+        Stream<HitResult> struck = entities.stream().limit(Math.max(entityCount, 0)).map(HitResult.class::cast);
+        return Stream.concat(struck, blockReached ? Stream.<HitResult>of(block) : Stream.<HitResult>empty()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static Vec3 endOf(HitResult hit, Vec3 from, Vec3 direction, double range) {
-        return hit.getType() == HitResult.Type.MISS ? from.add(direction.normalize().scale(range)) : hit.getLocation();
+        return stopPoint(hit, from, direction, range);
+    }
+
+    private static Vec3 stopPoint(HitResult hit, Vec3 from, Vec3 direction, double range) {
+        return hit.getType() == HitResult.Type.MISS ? pointAlong(from, direction, range) : hit.getLocation();
+    }
+
+    private static Vec3 pointAlong(Vec3 from, Vec3 direction, double range) {
+        return from.add(direction.normalize().scale(range));
+    }
+
+    private static boolean canBeHit(Entity entity) {
+        return entity.isPickable() && entity.isAlive() && !entity.isSpectator();
+    }
+
+    private static CollisionContext contextFor(@Nullable Entity source) {
+        if (source == null) {
+            return CollisionContext.empty();
+        }
+        return CollisionContext.of(source);
     }
 }

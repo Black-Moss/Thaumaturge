@@ -2,13 +2,15 @@ package com.leclowndu93150.thaumaturge.content.aspect;
 
 import com.leclowndu93150.thaumaturge.Thaumaturge;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectIndex;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectRecipeContributor;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
+import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
-import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingRecipe;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +27,9 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 
 public final class CraftingAspectContributor implements IAspectRecipeContributor {
-    private static final CraftingInput EMPTY_INPUT = CraftingInput.of(0, 0, List.of());
+    private static final int NO_VIS = -1;
+    private static final int MIN_OUTPUT_COUNT = 1;
+    private static final int VIS_PER_STEP = 2;
 
     private Map<Item, List<Candidate>> candidates = Map.of();
     private Holder<IAspect> magic;
@@ -35,77 +39,72 @@ public final class CraftingAspectContributor implements IAspectRecipeContributor
 
     @Override
     public void beginBuild(RecipeManager recipes, HolderLookup.Provider registries) {
-        magic = registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(TTAspects.PRAECANTATIO);
+        Holder<IAspect> resolved = Aspects.resolve(registries, TTAspects.PRAECANTATIO);
+        if (resolved == null) {
+            throw new IllegalStateException("Aspect " + TTAspects.PRAECANTATIO.identifier() + " is missing from the aspect registry");
+        }
         Map<Item, List<Candidate>> map = new HashMap<>();
         int skipped = 0;
         for (RecipeHolder<?> holder : recipes.getRecipes()) {
-            Recipe<?> recipe = holder.value();
+            ItemStack output = outputOf(holder.value());
+            if (output.isEmpty()) {
+                continue;
+            }
             try {
-                if (recipe instanceof ArcaneCraftingRecipe arcane) {
-                    ItemStack output = safeAssembleArcane(arcane);
-                    if (!output.isEmpty()) {
-                        int count = Math.max(1, output.getCount());
-                        map.computeIfAbsent(output.getItem(), item -> new ArrayList<>()).add(new Candidate(arcane.placementInfo().ingredients(), count, arcane.visCost()));
-                    }
-                } else if (recipe instanceof CraftingRecipe crafting) {
-                    ItemStack output = safeAssemble(crafting);
-                    if (!output.isEmpty()) {
-                        map.computeIfAbsent(output.getItem(), item -> new ArrayList<>()).add(new Candidate(crafting.placementInfo().ingredients(), output.getCount(), -1));
-                    }
-                }
-            } catch (Throwable t) {
+                map.computeIfAbsent(output.getItem(), item -> new ArrayList<>()).add(candidateOf(holder.value(), output));
+            } catch (RuntimeException e) {
                 skipped++;
             }
         }
         if (skipped > 0) {
             Thaumaturge.LOGGER.warn("Skipped {} crafting recipes with broken placement info while indexing aspects", skipped);
         }
+        magic = resolved;
         candidates = map;
     }
 
     @Override
     public Optional<AspectList> derive(Item item, RecipeManager recipes, HolderLookup.Provider registries, IAspectIndex partial) {
-        List<Candidate> list = candidates.get(item);
-        if (list == null) {
+        List<Candidate> pool = candidates.get(item);
+        if (pool == null) {
             return Optional.empty();
         }
-        AspectList best = null;
-        int bestSize = Integer.MAX_VALUE;
-        for (Candidate candidate : list) {
-            AspectList out = RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
-            if (candidate.vis() > 0) {
-                int bonus = (int) (Math.sqrt(1 + candidate.vis() / 2) / candidate.count());
-                if (bonus > 0) {
-                    out = out.add(magic, bonus);
-                }
-            }
-            if (out == null || out.isEmpty()) {
-                continue;
-            }
-            int size = out.totalAmount();
-            if (size > 0 && size < bestSize) {
-                best = out;
-                bestSize = size;
-            }
-        }
-        return Optional.ofNullable(best);
+        return pool.stream().map(candidate -> aspectsOf(candidate, partial)).filter(aspects -> aspects.totalAmount() > 0).min(Comparator.comparingInt(AspectList::totalAmount));
     }
 
-    private static ItemStack safeAssemble(CraftingRecipe recipe) {
-        try {
-            ItemStack result = recipe.assemble(EMPTY_INPUT);
-            return result == null ? ItemStack.EMPTY : result;
-        } catch (Throwable ignored) {
-            return ItemStack.EMPTY;
-        }
+    private AspectList aspectsOf(Candidate candidate, IAspectIndex partial) {
+        AspectList base = RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
+        int bonus = magicBonus(candidate);
+        return bonus > 0 ? base.add(magic, bonus) : base;
     }
 
-    private static ItemStack safeAssembleArcane(ArcaneCraftingRecipe recipe) {
+    private static int magicBonus(Candidate candidate) {
+        if (candidate.vis() <= 0) {
+            return 0;
+        }
+        double root = Math.sqrt(1 + candidate.vis() / VIS_PER_STEP);
+        return (int) (root / Math.max(MIN_OUTPUT_COUNT, candidate.count()));
+    }
+
+    private static ItemStack outputOf(Recipe<?> recipe) {
         try {
-            ItemStack result = recipe.assemble(ArcaneCraftingInput.EMPTY);
-            return result == null ? ItemStack.EMPTY : result;
-        } catch (Throwable ignored) {
+            if (recipe instanceof IArcaneRecipe arcane) {
+                return arcane.assemble(ArcaneCraftingInput.EMPTY);
+            }
+            if (recipe instanceof CraftingRecipe crafting) {
+                return crafting.assemble(CraftingInput.EMPTY);
+            }
+        } catch (RuntimeException e) {
             return ItemStack.EMPTY;
         }
+        return ItemStack.EMPTY;
+    }
+
+    private static Candidate candidateOf(Recipe<?> recipe, ItemStack output) {
+        int count = Math.max(MIN_OUTPUT_COUNT, output.getCount());
+        if (recipe instanceof IArcaneRecipe arcane) {
+            return new Candidate(List.copyOf(arcane.placementInfo().ingredients()), count, arcane.visCost());
+        }
+        return new Candidate(List.copyOf(recipe.placementInfo().ingredients()), output.getCount(), NO_VIS);
     }
 }

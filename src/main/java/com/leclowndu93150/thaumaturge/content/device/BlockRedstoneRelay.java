@@ -28,6 +28,10 @@ public final class BlockRedstoneRelay extends DiodeBlock implements EntityBlock 
     public static final MapCodec<BlockRedstoneRelay> CODEC = simpleCodec(BlockRedstoneRelay::new);
 
     private static final int DELAY_TICKS = 2;
+    private static final int DEFAULT_IN = 1;
+    private static final int DEFAULT_OUT = 15;
+    private static final float CLICK_VOLUME = 0.5F;
+    private static final float CLICK_PITCH = 1.0F;
     private static final int SOUTH_TO_NORTH_QUARTERS = 2;
     private static final Map<Direction, VoxelShape> SHAPES = DeviceShapes
             .facingShapesFromNorth(DeviceShapes.rotate(Shapes.or(box(0.0, 0.0, 0.0, 16.0, 1.0, 16.0), box(1.0, 1.0, 1.0, 15.0, 2.0, 15.0), box(2.0, 2.0, 2.0, 6.0, 3.0, 6.0),
@@ -60,13 +64,22 @@ public final class BlockRedstoneRelay extends DiodeBlock implements EntityBlock 
 
     @Override
     protected boolean shouldTurnOn(Level level, BlockPos pos, BlockState state) {
-        int threshold = level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay ? relay.getIn() : 1;
-        return this.getInputSignal(level, pos, state) >= threshold;
+        int needed = level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay ? relay.getIn() : DEFAULT_IN;
+        return getInputSignal(level, pos, state) >= needed;
     }
 
     @Override
     protected int getOutputSignal(BlockGetter level, BlockPos pos, BlockState state) {
-        return level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay ? relay.getOut() : 15;
+        return level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay ? relay.getOut() : DEFAULT_OUT;
+    }
+
+    private static void adjustSetting(BlockEntityRedstoneRelay relay, Direction facing, Vec3 offsetFromCenter) {
+        double towardFront = offsetFromCenter.x * facing.getStepX() + offsetFromCenter.z * facing.getStepZ();
+        if (towardFront < 0.0) {
+            relay.increaseOut();
+            return;
+        }
+        relay.increaseIn();
     }
 
     @Override
@@ -74,25 +87,10 @@ public final class BlockRedstoneRelay extends DiodeBlock implements EntityBlock 
         if (!player.mayBuild()) {
             return InteractionResult.PASS;
         }
-        if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
-        }
-        if (level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay) {
-            Vec3 local = hitResult.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ());
-            Direction facing = state.getValue(FACING);
-            double along = switch (facing) {
-                case NORTH -> 1.0 - local.z;
-                case SOUTH -> local.z;
-                case WEST -> 1.0 - local.x;
-                default -> local.x;
-            };
-            if (along < 0.5) {
-                relay.increaseOut();
-            } else {
-                relay.increaseIn();
-            }
-            level.playSound(null, pos, TTSounds.KEY.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-            this.checkTickOnNeighbor(level, pos, state);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof BlockEntityRedstoneRelay relay) {
+            adjustSetting(relay, state.getValue(FACING), hitResult.getLocation().subtract(Vec3.atCenterOf(pos)));
+            level.playSound(null, pos, TTSounds.KEY.get(), SoundSource.BLOCKS, CLICK_VOLUME, CLICK_PITCH);
+            checkTickOnNeighbor(level, pos, state);
         }
         return InteractionResult.SUCCESS;
     }

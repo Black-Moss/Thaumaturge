@@ -9,22 +9,23 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEntityFluxScrubber, FluxScrubberRenderState> {
-    private static final Identifier MODEL = TTIds.rl("models/mesh/flux_scrubber.ttmesh");
-    private static final RenderType TIP = RenderTypes.entityCutout(TTIds.rl("textures/block/flux_scrubber.png"));
-    private static final String PART_TIP = "Tip";
-    private static final float BOB_RATE = 8.0F;
+    private static final Identifier MESH = TTIds.rl("models/mesh/flux_scrubber.ttmesh");
+    private static final Identifier TEXTURE = TTIds.rl("textures/block/flux_scrubber.png");
+    private static final String TIP_PART = "Tip";
+    private static final float BOB_PERIOD = 8.0F;
     private static final float BOB_AMPLITUDE = 0.075F;
-    private static final int PHASE_RANGE = 1000;
+    private static final long PHASE_RANGE = 1000L;
+    private static final int WHITE = 0xFFFFFFFF;
 
     public FluxScrubberRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -37,9 +38,9 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
     public void extractRenderState(BlockEntityFluxScrubber scrubber, FluxScrubberRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(scrubber, state, partialTicks, cameraPosition, breakProgress);
         state.facing = scrubber.getBlockState().getValue(BlockStateProperties.FACING);
-        long gameTime = scrubber.getLevel() == null ? 0L : scrubber.getLevel().getGameTime();
-        float time = gameTime + partialTicks + Math.floorMod(scrubber.getBlockPos().asLong(), PHASE_RANGE);
-        state.bob = Mth.sin(time / BOB_RATE) * BOB_AMPLITUDE + BOB_AMPLITUDE;
+        Level level = scrubber.getLevel();
+        float time = (level == null ? 0L : level.getGameTime()) + partialTicks + Math.floorMod(scrubber.getBlockPos().asLong(), PHASE_RANGE);
+        state.bob = BOB_AMPLITUDE * Mth.sin(time / BOB_PERIOD) + BOB_AMPLITUDE;
     }
 
     @Override
@@ -48,9 +49,9 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
         poseStack.pushPose();
         LegacyFacingPose.apply(poseStack, state.facing);
         poseStack.translate(0.0F, 0.0F, -state.bob);
-        for (TTMeshPart part : GolemMeshes.get(MODEL).parts()) {
-            if (PART_TIP.equals(part.name())) {
-                collector.submitCustomGeometry(poseStack, TIP, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
+        for (TTMeshPart part : GolemMeshes.get(MESH).parts()) {
+            if (TIP_PART.equals(part.name())) {
+                collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE));
             }
         }
         poseStack.popPose();

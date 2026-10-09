@@ -2,14 +2,15 @@ package com.leclowndu93150.thaumaturge.client.entity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
+import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
@@ -17,29 +18,31 @@ import net.minecraft.util.Mth;
 import org.joml.Matrix4fc;
 
 public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPortalLesser, CultistPortalRenderer.State> {
-    public static final class State extends EntityRenderState {
-        public boolean active;
-        public float activeCounter;
-        public int hurtTime;
-        public int pulse;
-        public float healthFraction;
-        public float halfHeight;
-    }
-
     private static final Identifier TEXTURE = TTIds.rl("textures/misc/cultist_portal.png");
-    private static final RenderType PORTAL_TYPE = TTFXRenderTypes.translucent(TEXTURE);
-
-    private static final int FRAMES = 32;
-    private static final float FRAME_WIDTH = 1.0F / FRAMES;
-    private static final float BASE_SCALE_Y = 1.4F;
-    private static final float SCALE_FACTOR = 1.25F;
-    private static final float GROW_TICKS = 50.0F;
+    private static final float SHADOW_RADIUS = 0.0F;
+    private static final float LESSER_SCALE_Y = 1.4F;
+    private static final float LESSER_SCALE_FACTOR = 1.25F;
+    private static final int FRAME_COUNT = 32;
+    private static final float FULL_GROWTH_TICKS = 50.0F;
+    private static final float HURT_DEGREES_PER_TICK = 72.0F;
+    private static final float HURT_SHRINK_DIVISOR = 4.0F;
+    private static final float HURT_GROWTH = 6.0F;
+    private static final float PULSE_DEGREES_PER_TICK = 36.0F;
+    private static final float PULSE_GROW_DIVISOR = 4.0F;
+    private static final float PULSE_GROWTH = 12.0F;
+    private static final float DAMAGE_DIVISOR = 3.0F;
+    private static final float SHIMMER_HEIGHT_PERIOD_BASE = 5.0F;
+    private static final float SHIMMER_HEIGHT_PERIOD_RATE = 12.0F;
+    private static final float SHIMMER_WIDTH_PERIOD_BASE = 6.0F;
+    private static final float SHIMMER_WIDTH_PERIOD_RATE = 15.0F;
+    private static final float SHIMMER_HEIGHT_DIVISOR = 4.0F;
+    private static final float SHIMMER_WIDTH_DIVISOR = 3.0F;
+    private static final float HALF_TURN_DEGREES = 180.0F;
     private static final int LIGHT = 0x00F000DC;
-    private static final float BILLBOARD_YAW_OFFSET = 180.0F;
 
     public CultistPortalRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.shadowRadius = 0.0F;
+        this.shadowRadius = SHADOW_RADIUS;
     }
 
     @Override
@@ -61,48 +64,71 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        submitPortal(state, poseStack, collector, camera, BASE_SCALE_Y, SCALE_FACTOR);
+        submitPortal(state, poseStack, collector, camera, LESSER_SCALE_Y, LESSER_SCALE_FACTOR);
     }
 
     static void submitPortal(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera, float baseScaleY, float scaleFactor) {
         if (!state.active) {
             return;
         }
-        float scaleY = baseScaleY;
-        float grown = Math.min(GROW_TICKS, state.activeCounter);
-        if (state.hurtTime > 0) {
-            double d = Math.sin(state.hurtTime * 72.0 * Math.PI / 180.0);
-            scaleY -= (float) (d / 4.0);
-            grown += (float) (6.0 * d);
-        }
-        if (state.pulse > 0) {
-            double d = Math.sin(state.pulse * 36.0 * Math.PI / 180.0);
-            scaleY += (float) (d / 4.0);
-            grown += (float) (12.0 * d);
-        }
-        float scale = grown / GROW_TICKS * scaleFactor;
-        float m = (1.0F - state.healthFraction) / 3.0F;
-        float bob = Mth.sin(state.activeCounter / (5.0F - 12.0F * m)) * m + m;
-        float bob2 = Mth.sin(state.activeCounter / (6.0F - 15.0F * m)) * m + m;
-        float alpha = 1.0F - bob;
-        scaleY -= bob / 4.0F;
-        scale -= bob2 / 3.0F;
-        int frame = FRAMES - 1 - (int) state.activeCounter % FRAMES;
-        float u0 = frame * FRAME_WIDTH;
-        float u1 = u0 + FRAME_WIDTH;
-        int tint = ARGB.colorFromFloat(alpha, 1.0F, 1.0F, 1.0F);
-        float sx = scale;
-        float sy = scaleY;
+        float baseWidth = Math.min(FULL_GROWTH_TICKS, state.activeCounter) / FULL_GROWTH_TICKS * scaleFactor;
+        PortalContribution total = hurtContribution(state, scaleFactor).plus(pulseContribution(state, scaleFactor)).plus(shimmerContribution(state));
+        float sx = baseWidth + total.widthDelta();
+        float sy = baseScaleY + total.heightDelta();
+        int frame = FRAME_COUNT - 1 - Math.floorMod(Mth.floor(state.activeCounter), FRAME_COUNT);
+        float u0 = StripUv.u0(frame, FRAME_COUNT);
+        float u1 = StripUv.u1(frame, FRAME_COUNT);
+        int tint = ARGB.white(total.alphaFactor());
         poseStack.pushPose();
         poseStack.translate(0.0F, state.halfHeight, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(BILLBOARD_YAW_OFFSET - camera.yRot));
-        collector.submitCustomGeometry(poseStack, PORTAL_TYPE, (pose, buffer) -> {
-            Matrix4fc mat = pose.pose();
-            buffer.addVertex(mat, -sx, -sy, 0.0F).setUv(u1, 0.0F).setColor(tint).setLight(LIGHT);
-            buffer.addVertex(mat, -sx, sy, 0.0F).setUv(u1, 1.0F).setColor(tint).setLight(LIGHT);
-            buffer.addVertex(mat, sx, sy, 0.0F).setUv(u0, 1.0F).setColor(tint).setLight(LIGHT);
-            buffer.addVertex(mat, sx, -sy, 0.0F).setUv(u0, 0.0F).setColor(tint).setLight(LIGHT);
-        });
+        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN_DEGREES - camera.yRot));
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.translucent(TEXTURE), (pose, buffer) -> writeQuad(buffer, pose.pose(), sx, sy, u0, u1, tint));
         poseStack.popPose();
+    }
+
+    private static PortalContribution hurtContribution(State state, float scaleFactor) {
+        if (state.hurtTime <= 0) {
+            return PortalContribution.NONE;
+        }
+        float wobble = PortalWave.sineByDegrees(state.hurtTime, HURT_DEGREES_PER_TICK);
+        return new PortalContribution(-wobble / HURT_SHRINK_DIVISOR, growthToWidth(HURT_GROWTH * wobble, scaleFactor), 1.0F);
+    }
+
+    private static PortalContribution pulseContribution(State state, float scaleFactor) {
+        if (state.pulse <= 0) {
+            return PortalContribution.NONE;
+        }
+        float beat = PortalWave.sineByDegrees(state.pulse, PULSE_DEGREES_PER_TICK);
+        return new PortalContribution(beat / PULSE_GROW_DIVISOR, growthToWidth(PULSE_GROWTH * beat, scaleFactor), 1.0F);
+    }
+
+    private static PortalContribution shimmerContribution(State state) {
+        float amplitude = (1.0F - state.healthFraction) / DAMAGE_DIVISOR;
+        float heightPeriod = PortalWave.period(SHIMMER_HEIGHT_PERIOD_BASE, SHIMMER_HEIGHT_PERIOD_RATE, amplitude);
+        float widthPeriod = PortalWave.period(SHIMMER_WIDTH_PERIOD_BASE, SHIMMER_WIDTH_PERIOD_RATE, amplitude);
+        float heightBob = PortalWave.offsetSine(state.activeCounter, heightPeriod, amplitude);
+        float widthBob = PortalWave.offsetSine(state.activeCounter, widthPeriod, amplitude);
+        float alpha = Mth.clamp(1.0F - heightBob, 0.0F, 1.0F);
+        return new PortalContribution(-heightBob / SHIMMER_HEIGHT_DIVISOR, -widthBob / SHIMMER_WIDTH_DIVISOR, alpha);
+    }
+
+    private static float growthToWidth(float growthTicks, float scaleFactor) {
+        return growthTicks / FULL_GROWTH_TICKS * scaleFactor;
+    }
+
+    private static void writeQuad(VertexConsumer buffer, Matrix4fc matrix, float halfWidth, float halfHeight, float u0, float u1, int tint) {
+        buffer.addVertex(matrix, -halfWidth, -halfHeight, 0.0F).setUv(u1, StripUv.V1).setColor(tint).setLight(LIGHT);
+        buffer.addVertex(matrix, halfWidth, -halfHeight, 0.0F).setUv(u0, StripUv.V1).setColor(tint).setLight(LIGHT);
+        buffer.addVertex(matrix, halfWidth, halfHeight, 0.0F).setUv(u0, StripUv.V0).setColor(tint).setLight(LIGHT);
+        buffer.addVertex(matrix, -halfWidth, halfHeight, 0.0F).setUv(u1, StripUv.V0).setColor(tint).setLight(LIGHT);
+    }
+
+    public static final class State extends EntityRenderState {
+        public boolean active;
+        public float activeCounter;
+        public int hurtTime;
+        public int pulse;
+        public float healthFraction;
+        public float halfHeight;
     }
 }

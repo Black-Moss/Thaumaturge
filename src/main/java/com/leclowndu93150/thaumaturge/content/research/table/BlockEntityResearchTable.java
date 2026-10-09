@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchTableAid;
@@ -17,37 +16,29 @@ import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
-import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
-import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItemTags;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -59,308 +50,170 @@ public final class BlockEntityResearchTable extends AbstractSyncedBlockEntity im
     public static final int SLOT_SCRIBE_TOOLS = 0;
     public static final int SLOT_NOTE = 1;
     public static final int SLOT_COUNT = 2;
-
     public static final Identifier RESEARCH_EXPERTISE = TTIds.rl("research_expertise");
     public static final Identifier RESEARCH_MASTERY = TTIds.rl("research_mastery");
     public static final Identifier RESEARCH_DUPLICATION = TTIds.rl("research_duplication");
 
-    private static final int RECALC_INTERVAL_TICKS = 600;
-    private static final int BONUS_SCAN_RADIUS = 8;
-    private static final int BOOKSHELF_BONUS_CHANCE = 300;
-    private static final int BRAIN_JAR_BONUS_CHANCE = 200;
-    private static final float EXPERTISE_REFUND_CHANCE = 0.25F;
-    private static final float MASTERY_REFUND_CHANCE = 0.5F;
+    private static final int BONUS_INTERVAL_TICKS = 600;
+    private static final int BONUS_AMOUNT = 1;
+    private static final int PLACE_COST = 1;
+    private static final int COMBINE_COST = 1;
+    private static final int IDENTICAL_COMBINE_COST = 2;
+    private static final float MAX_SAVE_CHANCE = 0.5F;
     private static final float MASTERY_FREE_CHANCE = 0.1F;
-    private static final float MAX_AID_SAVE_CHANCE = 0.5F;
+    private static final float MASTERY_REFUND_CHANCE = 0.5F;
+    private static final float EXPERTISE_REFUND_CHANCE = 0.25F;
+    private static final float ORB_VOLUME = 0.2F;
+    private static final float COMBINE_VOLUME = 0.3F;
+    private static final float WRITE_VOLUME = 0.2F;
+    private static final float ERASE_VOLUME = 0.2F;
+    private static final float LEARN_VOLUME = 1.0F;
+    private static final float DUPLICATE_VOLUME = 0.5F;
+    private static final float NEUTRAL_PITCH = 1.0F;
+    private static final float PITCH_SPREAD = 0.2F;
+    private static final float ERASE_PITCH_SPREAD = 0.1F;
+    private static final float ORB_PITCH_BASE = 0.9F;
+    private static final String BONUS_KEY = "bonus_aspects";
+    private static final String TITLE_KEY = "gui.thaumaturge.research_table.title";
 
-    private static final Component TITLE = Component.translatable("gui.thaumaturge.research_table.title");
-
-    private final TableInventory inventory = new TableInventory();
-    private AspectList bonusAspects = AspectList.EMPTY;
-    private int recalcCounter;
+    private final ResearchInventory items = new ResearchInventory();
+    private AspectList bonus = AspectList.EMPTY;
+    private int bonusTicks;
 
     public BlockEntityResearchTable(BlockPos pos, BlockState state) {
         super(TTBlockEntities.RESEARCH_TABLE.get(), pos, state);
     }
 
     public ItemStacksResourceHandler items() {
-        return inventory;
+        return items;
     }
 
     public AspectList bonusAspects() {
-        return bonusAspects;
+        return bonus;
     }
 
     @Override
     public Component getDisplayName() {
-        return TITLE;
+        return Component.translatable(TITLE_KEY);
     }
 
     @Override
-    public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new MenuResearchTable(containerId, playerInventory, this);
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return new MenuResearchTable(containerId, inventory, this);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityResearchTable table) {
-        if (++table.recalcCounter >= RECALC_INTERVAL_TICKS) {
-            table.recalcCounter = 0;
-            table.recalculateBonus(level, pos);
+        if (level.isClientSide() || ++table.bonusTicks < BONUS_INTERVAL_TICKS) {
+            return;
         }
-    }
-
-    private void recalculateBonus(Level level, BlockPos pos) {
-        RandomSource random = level.getRandom();
-        HolderLookup.RegistryLookup<IAspect> aspects = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
-        boolean changed = false;
-        if (level.getRawBrightness(pos.above(), 0) < 4 && !level.canSeeSky(pos.above()) && random.nextInt(20) == 0) {
-            changed |= addBonus(aspects, TTAspects.PERDITIO);
+        table.bonusTicks = 0;
+        AspectList updated = ResearchTableBonuses.recalculate(level, pos, table.bonus, level.getRandom());
+        if (updated != table.bonus) {
+            table.bonus = updated;
+            table.setChangedAndSync();
         }
-        int height = level.getHeight();
-        for (float factor : new float[]{0.5F, 0.66F, 0.75F}) {
-            if (pos.getY() > height * factor && random.nextInt(20) == 0) {
-                changed |= addBonus(aspects, TTAspects.AER);
-            }
-        }
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        scan : for (int x = -BONUS_SCAN_RADIUS; x <= BONUS_SCAN_RADIUS; x++) {
-            for (int y = -BONUS_SCAN_RADIUS; y <= BONUS_SCAN_RADIUS; y++) {
-                for (int z = -BONUS_SCAN_RADIUS; z <= BONUS_SCAN_RADIUS; z++) {
-                    cursor.setWithOffset(pos, x, y, z);
-                    if (!level.isLoaded(cursor)) {
-                        continue;
-                    }
-                    ResourceKey<IAspect> match = bonusFor(level.getBlockState(cursor), random, aspects);
-                    if (match != null && addBonus(aspects, match)) {
-                        changed = true;
-                        break scan;
-                    }
-                }
-            }
-        }
-        if (changed) {
-            setChanged();
-            syncToClient();
-        }
-    }
-
-    private @Nullable ResourceKey<IAspect> bonusFor(BlockState state, RandomSource random, HolderLookup.RegistryLookup<IAspect> aspects) {
-        if ((state.is(Blocks.BOOKSHELF) && random.nextInt(BOOKSHELF_BONUS_CHANCE) == 0) || (state.is(TTBlocks.JAR_BRAIN.get()) && random.nextInt(BRAIN_JAR_BONUS_CHANCE) == 0)) {
-            List<Holder.Reference<IAspect>> candidates = aspects.listElements().toList();
-            return candidates.isEmpty() ? null : candidates.get(random.nextInt(candidates.size())).key();
-        }
-        if (state.is(TTBlocks.CRYSTAL_AER.get()) && random.nextInt(10) == 0)
-            return TTAspects.AER;
-        if (state.is(TTBlocks.CRYSTAL_IGNIS.get()) && random.nextInt(10) == 0)
-            return TTAspects.IGNIS;
-        if (state.is(TTBlocks.CRYSTAL_AQUA.get()) && random.nextInt(10) == 0)
-            return TTAspects.AQUA;
-        if (state.is(TTBlocks.CRYSTAL_TERRA.get()) && random.nextInt(10) == 0)
-            return TTAspects.TERRA;
-        if (state.is(TTBlocks.CRYSTAL_ORDO.get()) && random.nextInt(10) == 0)
-            return TTAspects.ORDO;
-        if (state.is(TTBlocks.CRYSTAL_PERDITIO.get()) && random.nextInt(10) == 0)
-            return TTAspects.PERDITIO;
-        if (state.is(BlockTags.SUBSTRATE_OVERWORLD) && random.nextInt(20) == 0)
-            return TTAspects.TERRA;
-        if (state.getFluidState().is(FluidTags.WATER) && random.nextInt(15) == 0)
-            return TTAspects.AQUA;
-        if ((state.getFluidState().is(FluidTags.LAVA) || state.is(Blocks.FIRE)) && random.nextInt(20) == 0) {
-            return TTAspects.IGNIS;
-        }
-        if (state.is(TTBlockTags.RESEARCH_BONUS_ORDO) && random.nextInt(20) == 0) {
-            return TTAspects.ORDO;
-        }
-        return null;
-    }
-
-    private boolean addBonus(HolderLookup.RegistryLookup<IAspect> aspects, ResourceKey<IAspect> key) {
-        Holder<IAspect> holder = aspects.get(key).orElse(null);
-        if (holder == null || bonusAspects.amountOf(holder) >= 1) {
-            return false;
-        }
-        bonusAspects = bonusAspects.add(holder, 1);
-        return true;
     }
 
     public void ensureNotePuzzle() {
         if (level == null || level.isClientSide()) {
             return;
         }
+        HolderLookup.Provider registries = level.registryAccess();
         ResearchNoteData data = noteData();
-        if (data == null || data.complete() || !data.cells().isEmpty()) {
-            return;
-        }
-        IResearchEntry entry = level.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, data.entry())).map(Holder.Reference::value)
-                .orElse(null);
+        IResearchEntry entry = data != null && isUnsolvedBlank(data) ? entryOf(registries, data.entry()) : null;
         if (entry == null) {
             return;
         }
-        AspectList anchors = ResearchNotes.anchors(level.registryAccess(), entry);
-        writeNoteData(NoteGenerator.generate(data.entry(), data.index(), anchors, entry.complexity(), level.getRandom()));
+        AspectList anchors = ResearchNotes.anchors(registries, entry);
+        storeGenerated(NoteGenerator.generate(data.entry(), data.index(), anchors, entry.complexity(), level.getRandom()));
+    }
+
+    private void storeGenerated(ResearchNoteData generated) {
+        ItemStack note = stackIn(SLOT_NOTE);
+        note.set(TTDataComponents.RESEARCH_NOTE.get(), generated);
+        commit(SLOT_NOTE, note, Math.max(1, note.getCount()));
     }
 
     public @Nullable ResearchNoteData noteData() {
-        ItemStack note = inventory.getResource(SLOT_NOTE).toStack(1);
-        return note.isEmpty() ? null : ResearchNotes.dataOf(note);
+        return ResearchNotes.dataOf(stackIn(SLOT_NOTE));
     }
 
-    private void writeNoteData(ResearchNoteData data) {
-        ItemResource resource = inventory.getResource(SLOT_NOTE);
-        int amount = Math.max(1, inventory.getAmountAsInt(SLOT_NOTE));
-        ItemStack note = resource.toStack(amount);
-        note.set(TTDataComponents.RESEARCH_NOTE.get(), data);
-        if (data.complete()) {
-            note.set(TTDataComponents.NOTE_COMPLETE.get(), true);
+    private static boolean isUnsolvedBlank(ResearchNoteData data) {
+        return !data.complete() && data.cells().isEmpty();
+    }
+
+    private @Nullable ResearchNoteData editableNote() {
+        ResearchNoteData data = noteData();
+        return level == null || data == null || data.complete() || !hasInkReady() ? null : data;
+    }
+
+    private ResearchNoteData settle(ServerPlayer player, ResearchNoteData edited) {
+        NoteRules.Completion completion = NoteRules.checkCompletion(edited, usable -> AspectPools.isDiscovered(player, usable));
+        if (!completion.complete()) {
+            return edited;
         }
-        inventory.set(SLOT_NOTE, ItemResource.of(note), amount);
-        setChanged();
-        syncToClient();
+        ResearchNoteData finished = edited.withCells(completion.prunedCells()).asComplete();
+        playAtTable(TTSounds.LEARN.get(), LEARN_VOLUME, NEUTRAL_PITCH);
+        return finished;
     }
 
     public void placeAspect(ServerPlayer player, HexGrid.Hex hex, @Nullable Holder<IAspect> aspect) {
-        ResearchNoteData data = noteData();
-        if (data == null || data.complete() || !hasInkReady()) {
+        ResearchNoteData data = editableNote();
+        ResearchNoteData.Cell cell = data == null ? null : data.cellAt(hex);
+        if (cell == null) {
             return;
         }
-        ResearchNoteData.Cell cell = data.cellAt(hex);
-        if (cell == null || getLevel() == null) {
+        ResearchNoteData edited = aspect == null ? rubOut(cell, data, player) : inscribe(cell, aspect, data, player);
+        if (edited != null) {
+            writeNote(settle(player, edited));
+        }
+    }
+
+    public void combineAspects(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second, boolean firstFromBonus, boolean secondFromBonus) {
+        Holder<IAspect> result = level == null ? null : AspectCombinations.result(level.registryAccess(), first, second);
+        if (result == null) {
             return;
         }
-        Level level = getLevel();
+        int firstCost = first.equals(second) && firstFromBonus == secondFromBonus ? IDENTICAL_COMBINE_COST : COMBINE_COST;
+        if (available(player, second, secondFromBonus) < COMBINE_COST || available(player, first, firstFromBonus) < firstCost) {
+            return;
+        }
         RandomSource random = player.getRandom();
-        if (aspect != null) {
-            if (cell.type() != ResearchNoteData.TYPE_BLANK || !AspectPools.isDiscovered(player, aspect)) {
-                return;
-            }
-            boolean mastery = KnowledgeAccess.of(player).isResearchComplete(RESEARCH_MASTERY);
-            if (mastery && random.nextFloat() < MASTERY_FREE_CHANCE) {
-                playOrb(level, random);
-            } else if (AspectPools.amount(player, aspect) <= 0) {
-                if (bonusAspects.amountOf(aspect) <= 0) {
-                    return;
-                }
-                bonusAspects = bonusAspects.remove(aspect, 1);
-            } else if (random.nextFloat() < aidSaveChance()) {
-                playOrb(level, random);
-            } else {
-                AspectPools.spend(player, aspect, 1);
-            }
-            consumeInk();
-            data = data.withCell(hex, ResearchNoteData.TYPE_PLACED, aspect);
-            level.playSound(null, worldPosition, TTSounds.WRITE.get(), SoundSource.BLOCKS, 0.2F, 1.0F);
-        } else {
-            if (cell.type() != ResearchNoteData.TYPE_PLACED) {
-                return;
-            }
-            Holder<IAspect> erased = cell.aspectOrNull();
-            boolean expertise = KnowledgeAccess.of(player).isResearchComplete(RESEARCH_EXPERTISE);
-            boolean mastery = KnowledgeAccess.of(player).isResearchComplete(RESEARCH_MASTERY);
-            float refundChance = mastery ? MASTERY_REFUND_CHANCE : expertise ? EXPERTISE_REFUND_CHANCE : 0.0F;
-            if (erased != null && random.nextFloat() < refundChance) {
-                AspectPools.refund(player, erased, 1);
-            }
-            consumeInk();
-            data = data.withCell(hex, ResearchNoteData.TYPE_BLANK, null);
-            level.playSound(null, worldPosition, TTSounds.ERASE.get(), SoundSource.BLOCKS, 0.2F, 1.0F + random.nextFloat() * 0.1F);
-        }
-        NoteRules.Completion completion = NoteRules.checkCompletion(data, a -> AspectPools.isDiscovered(player, a));
-        if (completion.complete()) {
-            data = data.withCells(completion.prunedCells()).asComplete();
-            level.playSound(null, worldPosition, TTSounds.LEARN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-        }
-        writeNoteData(data);
-    }
-
-    public void combineAspects(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second, boolean bonusFirst, boolean bonusSecond) {
-        Holder<IAspect> result = combinationResult(player, first, second);
-        if (result == null || !canPayCombination(player, first, bonusFirst, second, bonusSecond)) {
+        boolean paid = consume(player, first, firstFromBonus, random);
+        paid = paid && consume(player, second, secondFromBonus, random);
+        setChangedAndSync();
+        if (!paid) {
             return;
         }
-        if (!consumeCombinationInput(player, first, bonusFirst) || !consumeCombinationInput(player, second, bonusSecond)) {
-            return;
-        }
-        setChanged();
-        syncToClient();
-        if (getLevel() != null) {
-            AspectPools.grant(player, result, 1);
-            getLevel().playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.3F, 1.0F);
-        }
-    }
-
-    private boolean canPayCombination(ServerPlayer player, Holder<IAspect> first, boolean bonusFirst, Holder<IAspect> second, boolean bonusSecond) {
-        int needFirst = first.equals(second) && bonusFirst == bonusSecond ? 2 : 1;
-        return available(player, first, bonusFirst) >= needFirst && available(player, second, bonusSecond) >= 1;
-    }
-
-    private int available(ServerPlayer player, Holder<IAspect> aspect, boolean fromBonus) {
-        return fromBonus ? bonusAspects.amountOf(aspect) : AspectPools.amount(player, aspect);
-    }
-
-    private boolean consumeCombinationInput(ServerPlayer player, Holder<IAspect> aspect, boolean fromBonus) {
-        if (fromBonus) {
-            if (bonusAspects.amountOf(aspect) <= 0) {
-                return false;
-            }
-            bonusAspects = bonusAspects.remove(aspect, 1);
-            return true;
-        }
-        if (AspectPools.amount(player, aspect) > 0 && player.getRandom().nextFloat() < aidSaveChance()) {
-            return true;
-        }
-        return AspectPools.spend(player, aspect, 1);
-    }
-
-    private float aidSaveChance() {
-        Level level = getLevel();
-        if (level == null) {
-            return 0.0F;
-        }
-        Direction facing = getBlockState().getValue(BlockResearchTable.FACING);
-        return Math.min(MAX_AID_SAVE_CHANCE, aidChanceAbove(level, worldPosition) + aidChanceAbove(level, worldPosition.relative(facing)));
-    }
-
-    private static float aidChanceAbove(Level level, BlockPos tablePos) {
-        BlockPos top = tablePos.above();
-        BlockState state = level.getBlockState(top);
-        return state.getBlock() instanceof IResearchTableAid aid ? aid.aspectSaveChance(level, top, state) : 0.0F;
-    }
-
-    private @Nullable Holder<IAspect> combinationResult(ServerPlayer player, Holder<IAspect> first, Holder<IAspect> second) {
-        return AspectCombinations.result(player.registryAccess(), first, second);
+        AspectPools.grant(player, result, BONUS_AMOUNT);
+        playAtTable(SoundEvents.EXPERIENCE_ORB_PICKUP, COMBINE_VOLUME, NEUTRAL_PITCH);
     }
 
     public void duplicateNote(ServerPlayer player) {
-        if (!KnowledgeAccess.of(player).isResearchComplete(RESEARCH_DUPLICATION) || getLevel() == null) {
-            return;
-        }
         ResearchNoteData data = noteData();
-        if (data == null || !data.complete()) {
+        boolean eligible = level != null && data != null && data.complete();
+        if (!eligible || !completed(player, RESEARCH_DUPLICATION)) {
             return;
         }
+        Inventory inventory = player.getInventory();
         AspectList cost = duplicationCost(player, data);
-        if (cost == null) {
+        int paperSlot = paperSlot(inventory);
+        boolean payable = cost != null && paperSlot >= 0 && ResearchNotes.consumeInk(player, true) && AspectPools.canAfford(player, cost);
+        if (!payable || !ResearchNotes.consumeInk(player, false)) {
             return;
         }
-        if (!ResearchNotes.consumeInk(player, true) || !hasPlayerItem(player, Items.PAPER)) {
-            return;
-        }
-        if (!AspectPools.spendAll(player, cost)) {
-            return;
-        }
-        ResearchNotes.consumeInk(player, false);
-        consumePlayerItem(player, Items.PAPER);
-        ItemStack copy = inventory.getResource(SLOT_NOTE).toStack(1);
-        copy.set(TTDataComponents.RESEARCH_NOTE.get(), data.withCopies(data.copies() + 1));
-        writeNoteData(data.withCopies(data.copies() + 1));
-        if (!player.getInventory().add(copy)) {
+        inventory.getItem(paperSlot).shrink(1);
+        AspectPools.spendAll(player, cost);
+        writeNote(data.withCopies(data.copies() + 1));
+        ItemStack copy = stackIn(SLOT_NOTE).copyWithCount(1);
+        if (!inventory.add(copy)) {
             player.drop(copy, false);
         }
-        getLevel().playSound(null, worldPosition, TTSounds.WRITE.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+        playAtTable(TTSounds.WRITE.get(), DUPLICATE_VOLUME, NEUTRAL_PITCH);
     }
 
     public @Nullable AspectList duplicationCost(Player player, ResearchNoteData data) {
-        IResearchEntry entry = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, data.entry())).map(Holder.Reference::value)
-                .orElse(null);
+        IResearchEntry entry = entryOf(player.registryAccess(), data.entry());
         if (entry == null) {
             return null;
         }
@@ -371,103 +224,199 @@ public final class BlockEntityResearchTable extends AbstractSyncedBlockEntity im
         return cost;
     }
 
-    private static boolean hasPlayerItem(Player player, Item item) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            if (player.getInventory().getItem(i).is(item)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void consumePlayerItem(Player player, Item item) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (stack.is(item)) {
-                stack.shrink(1);
-                return;
-            }
-        }
-    }
-
-    private void playOrb(Level level, RandomSource random) {
-        level.playSound(null, worldPosition, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.2F, 0.9F + random.nextFloat() * 0.2F);
-    }
-
     public boolean consumeInk() {
-        ItemStack tools = inventory.getResource(SLOT_SCRIBE_TOOLS).toStack(1);
-        if (tools.isEmpty())
+        if (!hasInkReady()) {
             return false;
-        int damage = tools.getDamageValue();
-        int max = tools.getMaxDamage();
-        if (max <= 0 || damage >= max)
-            return false;
-        tools.setDamageValue(damage + 1);
-        inventory.set(SLOT_SCRIBE_TOOLS, ItemResource.of(tools), 1);
-        setChanged();
+        }
+        ItemStack tools = stackIn(SLOT_SCRIBE_TOOLS);
+        int worn = tools.getDamageValue() + 1;
+        tools.setDamageValue(worn);
+        commit(SLOT_SCRIBE_TOOLS, tools, tools.getCount());
         return true;
     }
 
     public boolean hasInkReady() {
-        ItemStack tools = inventory.getResource(SLOT_SCRIBE_TOOLS).toStack(1);
-        return !tools.isEmpty() && tools.isDamageableItem() && tools.getDamageValue() < tools.getMaxDamage();
+        return inkLeft(stackIn(SLOT_SCRIBE_TOOLS)) > 0;
+    }
+
+    private static int inkLeft(ItemStack tools) {
+        return tools.isDamageableItem() && !tools.isEmpty() ? tools.getMaxDamage() - tools.getDamageValue() : 0;
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        if (level != null && !level.isClientSide()) {
-            dropContents(level, pos);
+        if (level instanceof ServerLevel server) {
+            for (int slot = SLOT_SCRIBE_TOOLS; slot < SLOT_COUNT; slot++) {
+                spill(server, pos, stackIn(slot));
+            }
         }
     }
 
-    private void dropContents(Level level, BlockPos pos) {
-        SimpleContainer container = new SimpleContainer(SLOT_COUNT);
-        for (int i = 0; i < SLOT_COUNT; i++) {
-            ItemResource resource = inventory.getResource(i);
-            int amount = inventory.getAmountAsInt(i);
-            if (!resource.isEmpty() && amount > 0) {
-                container.setItem(i, resource.toStack(amount));
-            }
+    private static void spill(Level world, BlockPos at, ItemStack stack) {
+        if (!stack.isEmpty()) {
+            Containers.dropItemStack(world, at.getX(), at.getY(), at.getZ(), stack);
         }
-        Containers.dropContents(level, pos, container);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        inventory.deserialize(input);
-        bonusAspects = input.read("bonus_aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
+        bonus = input.read(BONUS_KEY, AspectList.CODEC).orElse(AspectList.EMPTY);
+        items.deserialize(input);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        inventory.serialize(output);
-        output.store("bonus_aspects", AspectList.CODEC, bonusAspects);
+        items.serialize(output);
+        output.store(BONUS_KEY, AspectList.CODEC, bonus);
     }
 
-    private final class TableInventory extends ItemStacksResourceHandler {
-        TableInventory() {
-            super(NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY));
+    private @Nullable ResearchNoteData inscribe(ResearchNoteData.Cell cell, Holder<IAspect> aspect, ResearchNoteData data, ServerPlayer player) {
+        boolean open = cell.type() == ResearchNoteData.TYPE_BLANK && AspectPools.isDiscovered(player, aspect);
+        RandomSource random = player.getRandom();
+        Boolean free = open ? payForStroke(player, aspect, random) : null;
+        if (free == null) {
+            return null;
         }
+        if (free) {
+            playAtTable(SoundEvents.EXPERIENCE_ORB_PICKUP, ORB_VOLUME, ORB_PITCH_BASE + random.nextFloat() * PITCH_SPREAD);
+        }
+        ResearchNoteData placed = data.withCell(cell.hex(), ResearchNoteData.TYPE_PLACED, aspect);
+        return strokeDone(placed, TTSounds.WRITE.get(), WRITE_VOLUME, NEUTRAL_PITCH);
+    }
 
-        @Override
-        protected void onContentsChanged(int index, ItemStack previousContents) {
-            setChanged();
-            syncToClient();
-            if (index == SLOT_NOTE) {
-                ensureNotePuzzle();
+    private @Nullable Boolean payForStroke(ServerPlayer player, Holder<IAspect> aspect, RandomSource random) {
+        if (completed(player, RESEARCH_MASTERY) && random.nextFloat() < MASTERY_FREE_CHANCE) {
+            return Boolean.TRUE;
+        }
+        if (AspectPools.amount(player, aspect) > 0) {
+            if (random.nextFloat() < aspectSaveChance()) {
+                return Boolean.TRUE;
             }
+            AspectPools.spend(player, aspect, PLACE_COST);
+            return Boolean.FALSE;
+        }
+        if (bonus.amountOf(aspect) <= 0) {
+            return null;
+        }
+        bonus = bonus.remove(aspect, PLACE_COST);
+        return Boolean.FALSE;
+    }
+
+    private @Nullable ResearchNoteData rubOut(ResearchNoteData.Cell cell, ResearchNoteData data, ServerPlayer player) {
+        if (cell.type() != ResearchNoteData.TYPE_PLACED) {
+            return null;
+        }
+        RandomSource random = player.getRandom();
+        Holder<IAspect> held = cell.aspectOrNull();
+        if (held != null && random.nextFloat() < refundChance(player)) {
+            AspectPools.refund(player, held, PLACE_COST);
+        }
+        ResearchNoteData blanked = data.withCell(cell.hex(), ResearchNoteData.TYPE_BLANK, null);
+        return strokeDone(blanked, TTSounds.ERASE.get(), ERASE_VOLUME, NEUTRAL_PITCH + random.nextFloat() * ERASE_PITCH_SPREAD);
+    }
+
+    private ResearchNoteData strokeDone(ResearchNoteData result, SoundEvent sound, float volume, float pitch) {
+        consumeInk();
+        playAtTable(sound, volume, pitch);
+        return result;
+    }
+
+    private static float refundChance(Player player) {
+        if (completed(player, RESEARCH_MASTERY)) {
+            return MASTERY_REFUND_CHANCE;
+        }
+        return completed(player, RESEARCH_EXPERTISE) ? EXPERTISE_REFUND_CHANCE : 0.0F;
+    }
+
+    private static boolean completed(Player player, Identifier research) {
+        return KnowledgeAccess.of(player).isResearchComplete(research);
+    }
+
+    private int available(Player player, Holder<IAspect> aspect, boolean fromBonus) {
+        return fromBonus ? bonus.amountOf(aspect) : AspectPools.amount(player, aspect);
+    }
+
+    private boolean consume(ServerPlayer player, Holder<IAspect> aspect, boolean fromBonus, RandomSource random) {
+        if (fromBonus) {
+            if (bonus.amountOf(aspect) <= 0) {
+                return false;
+            }
+            bonus = bonus.remove(aspect, COMBINE_COST);
+            return true;
+        }
+        if (AspectPools.amount(player, aspect) > 0 && random.nextFloat() < aspectSaveChance()) {
+            return true;
+        }
+        return AspectPools.spend(player, aspect, COMBINE_COST);
+    }
+
+    private float aspectSaveChance() {
+        if (level == null) {
+            return 0.0F;
+        }
+        BlockPos partner = worldPosition.relative(getBlockState().getValue(BlockResearchTable.FACING));
+        return Math.min(MAX_SAVE_CHANCE, aidChance(worldPosition) + aidChance(partner));
+    }
+
+    private float aidChance(BlockPos tablePos) {
+        BlockPos above = tablePos.above();
+        BlockState state = level.getBlockState(above);
+        return state.getBlock() instanceof IResearchTableAid aid ? aid.aspectSaveChance(level, above, state) : 0.0F;
+    }
+
+    private void writeNote(ResearchNoteData data) {
+        ItemStack note = stackIn(SLOT_NOTE);
+        note.set(TTDataComponents.RESEARCH_NOTE.get(), data);
+        note.set(TTDataComponents.NOTE_COMPLETE.get(), data.complete() ? Boolean.TRUE : note.get(TTDataComponents.NOTE_COMPLETE.get()));
+        commit(SLOT_NOTE, note, note.getCount());
+        setChangedAndSync();
+    }
+
+    private void commit(int slot, ItemStack stack, int amount) {
+        items.set(slot, ItemResource.of(stack), amount);
+    }
+
+    private ItemStack stackIn(int slot) {
+        return items.getResource(slot).toStack(items.getAmountAsInt(slot));
+    }
+
+    private void playAtTable(SoundEvent sound, float volume, float pitch) {
+        level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, pitch);
+    }
+
+    private static int paperSlot(Inventory inventory) {
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            if (inventory.getItem(slot).is(Items.PAPER)) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    private static @Nullable IResearchEntry entryOf(HolderLookup.Provider registries, Identifier id) {
+        return registries.lookupOrThrow(IResearchEntry.REGISTRY_KEY).get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, id)).map(Holder::value).orElse(null);
+    }
+
+    private final class ResearchInventory extends ItemStacksResourceHandler {
+        ResearchInventory() {
+            super(SLOT_COUNT);
         }
 
         @Override
         public boolean isValid(int index, ItemResource resource) {
-            return switch (index) {
-                case SLOT_SCRIBE_TOOLS -> resource.is(TTItemTags.SCRIBING_TOOLS);
-                case SLOT_NOTE -> resource.toStack(1).has(TTDataComponents.RESEARCH_NOTE.get());
-                default -> false;
-            };
+            ItemStack stack = resource.toStack(1);
+            return index == SLOT_SCRIBE_TOOLS ? stack.is(TTItemTags.SCRIBING_TOOLS) : ResearchNotes.dataOf(stack) != null;
+        }
+
+        @Override
+        protected void onContentsChanged(int index, ItemStack previousContents) {
+            setChangedAndSync();
+            if (index == SLOT_NOTE) {
+                ensureNotePuzzle();
+            }
         }
     }
 }

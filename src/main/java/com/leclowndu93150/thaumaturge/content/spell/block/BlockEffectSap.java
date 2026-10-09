@@ -18,25 +18,34 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class BlockEffectSap extends Block {
-    public static final MapCodec<BlockEffectSap> CODEC = simpleCodec(BlockEffectSap::new);
-
-    private static final int EFFECT_DURATION_TICKS = 40;
+    private static final int EFFECT_TICKS = 40;
+    private static final int WITHER_AMPLIFIER = 0;
     private static final int SLOWNESS_AMPLIFIER = 1;
     private static final int HUNGER_AMPLIFIER = 1;
-    private static final int SOUND_ONE_IN = 50;
-    private static final float SOUND_VOLUME = 0.25F;
+    private static final double SPARK_BASE_HEIGHT = 0.1515;
+    private static final float SPARK_MAX_LIFT = 0.33F;
+    private static final double SPARK_LIFT_HEIGHT_SHARE = 0.5;
     private static final float SPARK_BASE_SCALE = 3.0F;
-    private static final float SPARK_SCALE_SPREAD = 6.0F;
-    private static final float SPARK_HEIGHT = 0.1515F;
+    private static final float SPARK_LIFT_SCALE = 6.0F;
+    private static final float SPARK_ALPHA = 1.0F;
+    private static final float SPARK_RED_BASE = 0.3F;
+    private static final float SPARK_RED_DROP = 0.1F;
+    private static final float SPARK_GREEN = 0.0F;
+    private static final float SPARK_BLUE_BASE = 0.5F;
+    private static final float SPARK_BLUE_RANGE = 0.2F;
+    private static final int HUM_ODDS = 50;
+    private static final float HUM_VOLUME = 0.25F;
+    private static final float HUM_PITCH_SPREAD = 0.2F;
 
-    public BlockEffectSap(BlockBehaviour.Properties properties) {
+    public static final MapCodec<BlockEffectSap> CODEC = simpleCodec(BlockEffectSap::new);
+
+    public BlockEffectSap(Properties properties) {
         super(properties);
     }
 
@@ -61,16 +70,13 @@ public final class BlockEffectSap extends Block {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        if (level.isClientSide() || entity.is(ThaumaturgeEntityTypeTags.ELDRITCH)) {
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier applier, boolean intersects) {
+        if (level.isClientSide() || !(entity instanceof LivingEntity living) || living.is(ThaumaturgeEntityTypeTags.ELDRITCH) || living.hasEffect(MobEffects.WITHER)) {
             return;
         }
-        if (!(entity instanceof LivingEntity living) || living.hasEffect(MobEffects.WITHER)) {
-            return;
-        }
-        living.addEffect(new MobEffectInstance(MobEffects.WITHER, EFFECT_DURATION_TICKS, 0, true, true));
-        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, EFFECT_DURATION_TICKS, SLOWNESS_AMPLIFIER, true, true));
-        living.addEffect(new MobEffectInstance(MobEffects.HUNGER, EFFECT_DURATION_TICKS, HUNGER_AMPLIFIER, true, true));
+        living.addEffect(new MobEffectInstance(MobEffects.WITHER, EFFECT_TICKS, WITHER_AMPLIFIER, true, true));
+        living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, EFFECT_TICKS, SLOWNESS_AMPLIFIER, true, true));
+        living.addEffect(new MobEffectInstance(MobEffects.HUNGER, EFFECT_TICKS, HUNGER_AMPLIFIER, true, true));
     }
 
     @Override
@@ -80,16 +86,15 @@ public final class BlockEffectSap extends Block {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        float h = random.nextFloat() * 0.33F;
-        spawnSpark(level, pos.getX() + random.nextFloat(), pos.getY() + SPARK_HEIGHT + h / 2.0F, pos.getZ() + random.nextFloat(), SPARK_BASE_SCALE + h * SPARK_SCALE_SPREAD,
-                0.3F - random.nextFloat() * 0.1F, 0.0F, 0.5F + random.nextFloat() * 0.2F, 1.0F);
-        if (random.nextInt(SOUND_ONE_IN) == 0) {
-            level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), TTSounds.JACOBS.get(), SoundSource.AMBIENT, SOUND_VOLUME, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.2F, false);
+        float lift = random.nextFloat() * SPARK_MAX_LIFT;
+        double x = pos.getX() + random.nextDouble();
+        double y = pos.getY() + SPARK_BASE_HEIGHT + lift * SPARK_LIFT_HEIGHT_SHARE;
+        double z = pos.getZ() + random.nextDouble();
+        int color = ARGB.colorFromFloat(SPARK_ALPHA, SPARK_RED_BASE - random.nextFloat() * SPARK_RED_DROP, SPARK_GREEN, SPARK_BLUE_BASE + random.nextFloat() * SPARK_BLUE_RANGE);
+        level.addParticle(new SparkParticleOptions(color, SPARK_ALPHA, SPARK_BASE_SCALE + SPARK_LIFT_SCALE * lift), x, y, z, 0.0, 0.0, 0.0);
+        if (random.nextInt(HUM_ODDS) == 0) {
+            float pitch = 1.0F + (random.nextFloat() - random.nextFloat()) * HUM_PITCH_SPREAD;
+            level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), TTSounds.JACOBS.get(), SoundSource.AMBIENT, HUM_VOLUME, pitch, false);
         }
-    }
-
-    private static void spawnSpark(Level level, double x, double y, double z, float size, float r, float g, float b, float alpha) {
-        RandomSource rand = level.getRandom();
-        level.addParticle(new SparkParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, size), x, y, z, 0.0, 0.0, 0.0);
     }
 }

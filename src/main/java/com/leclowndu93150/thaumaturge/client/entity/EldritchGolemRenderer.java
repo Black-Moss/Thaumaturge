@@ -35,7 +35,7 @@ public final class EldritchGolemRenderer extends ScaledMobRenderer<EntityEldritc
         super.extractRenderState(golem, state, partialTicks);
         state.headless = golem.isHeadless();
         state.attackTime = Math.max(0.0F, golem.swingCooldown() - partialTicks);
-        state.spawnTimer = golem.getSpawnTimer();
+        state.spawnTimer = golem.emergenceTicks();
     }
 
     private static final class CoreLayer extends RenderLayer<EldritchGolemRenderState, EldritchGolemModel> {

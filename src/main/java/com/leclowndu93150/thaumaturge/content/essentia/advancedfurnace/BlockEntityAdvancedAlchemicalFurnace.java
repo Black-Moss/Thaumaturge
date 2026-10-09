@@ -8,9 +8,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -21,7 +19,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Containers;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -36,14 +34,24 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     public static final int MAX_POWER = 500;
     public static final int HOT_HEAT = 100;
     public static final int HEAT_PER_ASPECT = 2;
-    private static final int POWER_DRAW_INTERVAL = 5;
+
+    private static final String ASPECTS_KEY = "Aspects";
+    private static final String INPUT_KEY = "Input";
+    private static final String HEAT_KEY = "Heat";
+    private static final String PERDITIO_KEY = "Perditio";
+    private static final String AQUA_KEY = "Aqua";
+    private static final String COOLDOWN_KEY = "Cooldown";
+    private static final String CYCLE_KEY = "CycleDuration";
+    private static final String ASSEMBLED_KEY = "Assembled";
+    private static final int POWER_INTERVAL = 5;
     private static final int POWER_REQUEST = 50;
     private static final int HEAT_DECAY = 1;
     private static final int MIN_COOLDOWN = 5;
-    private static final float COOLDOWN_RANGE = 100.0F;
+    private static final int COOLDOWN_RANGE = 100;
+    private static final int HORIZONTAL_COUNT = 4;
 
-    private final Map<Direction, AdvancedFurnaceNozzle> nozzles = new EnumMap<>(Direction.class);
-    private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+    private final AdvancedFurnaceNozzle[] nozzles = new AdvancedFurnaceNozzle[HORIZONTAL_COUNT];
+    private final BlockPos.MutableBlockPos formedCursor = new BlockPos.MutableBlockPos();
     private AspectList aspects = AspectList.EMPTY;
     private ItemStack input = ItemStack.EMPTY;
     private @Nullable AspectList inputAspects;
@@ -57,138 +65,165 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     public BlockEntityAdvancedAlchemicalFurnace(BlockPos pos, BlockState state) {
         super(TTBlockEntities.ADVANCED_ALCHEMICAL_FURNACE.get(), pos, state);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            nozzles.put(direction, new AdvancedFurnaceNozzle(this, direction));
+            nozzles[direction.get2DDataValue()] = new AdvancedFurnaceNozzle(this, direction);
         }
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityAdvancedAlchemicalFurnace furnace) {
-        if (level instanceof ServerLevel serverLevel) {
-            furnace.tickServer(serverLevel);
+        if (!(level instanceof ServerLevel server) || !AdvancedAlchemicalFurnaceStructure.isLoaded(level, pos)) {
+            return;
         }
+        furnace.syncAssembly(server, pos);
+        if (furnace.assembled) {
+            furnace.runCycle(server, pos);
+        }
+        furnace.updateLit(server, pos, state);
     }
 
-    private void tickServer(ServerLevel level) {
-        if (!AdvancedAlchemicalFurnaceStructure.isLoaded(level, worldPosition)) {
+    private void syncAssembly(ServerLevel server, BlockPos pos) {
+        boolean nowFormed = AdvancedAlchemicalFurnaceStructure.isFormed(server, pos, formedCursor);
+        if (nowFormed == assembled) {
             return;
         }
-        boolean visible = false;
-        boolean formed = AdvancedAlchemicalFurnaceStructure.isFormed(level, worldPosition, cursor);
-        if (formed != assembled) {
-            assembled = formed;
-            AdvancedAlchemicalFurnaceStructure.refreshNozzles(level, worldPosition);
-            visible = true;
-        }
-        if (!assembled) {
-            setLit(false);
-            if (visible) {
-                markUpdated();
-            }
+        assembled = nowFormed;
+        AdvancedAlchemicalFurnaceStructure.refreshNozzles(server, pos);
+        changed();
+    }
+
+    private void updateLit(ServerLevel server, BlockPos pos, BlockState state) {
+        boolean shouldLight = assembled && cooldown > 0;
+        if (state.getValue(BlockAdvancedAlchemicalFurnace.LIT) == shouldLight) {
             return;
         }
-        if (level.getGameTime() % POWER_DRAW_INTERVAL == 0) {
-            visible |= charge(level);
-        }
+        server.setBlock(pos, state.setValue(BlockAdvancedAlchemicalFurnace.LIT, shouldLight), Block.UPDATE_ALL);
+    }
+
+    private void runCycle(ServerLevel server, BlockPos pos) {
         if (cooldown > 0) {
-            cooldown--;
-            if (cooldown == 0) {
+            if (--cooldown == 0) {
                 cycleDuration = 0;
             }
             setChanged();
         }
-        if (cooldown == 0 && !input.isEmpty()) {
-            visible |= processInput();
+        if (server.getGameTime() % POWER_INTERVAL == 0) {
+            rechargeReserves(server, pos);
         }
-        setLit(cooldown > 0);
-        if (visible) {
-            markUpdated();
+        tryProcessInput();
+    }
+
+    private void rechargeReserves(ServerLevel server, BlockPos pos) {
+        int totalBefore = heat + perditio + aqua;
+        int cooled = Math.max(0, heat - HEAT_DECAY);
+        heat = topUp(server, pos, TTAspects.IGNIS, cooled);
+        perditio = topUp(server, pos, TTAspects.PERDITIO, perditio);
+        aqua = topUp(server, pos, TTAspects.AQUA, aqua);
+        if (heat + perditio + aqua != totalBefore) {
+            changed();
         }
     }
 
-    private boolean charge(ServerLevel level) {
-        int heatBefore = heat;
-        int perditioBefore = perditio;
-        int aquaBefore = aqua;
-        heat = Math.max(0, heat - HEAT_DECAY);
-        heat += draw(level, TTAspects.IGNIS, heat);
-        perditio += draw(level, TTAspects.PERDITIO, perditio);
-        aqua += draw(level, TTAspects.AQUA, aqua);
-        return heat != heatBefore || perditio != perditioBefore || aqua != aquaBefore;
+    private static int topUp(ServerLevel server, BlockPos pos, ResourceKey<IAspect> primal, int level) {
+        int headroom = MAX_POWER - level;
+        if (headroom <= 0) {
+            return level;
+        }
+        int request = Math.min(headroom, POWER_REQUEST);
+        int gained = VisRelayNetwork.drainEverySourceNear(server, pos, primal, request);
+        if (gained < request) {
+            gained += VisRelayNetwork.drainNodesNear(server, pos, primal, request - gained);
+        }
+        return Math.min(level + gained, MAX_POWER);
     }
 
-    private int draw(ServerLevel level, ResourceKey<IAspect> primal, int stored) {
-        if (stored >= MAX_POWER) {
-            return 0;
-        }
-        int request = Math.min(POWER_REQUEST, MAX_POWER - stored);
-        int drained = VisRelayNetwork.drainEverySourceNear(level, worldPosition, primal, request);
-        if (drained < request) {
-            drained += VisRelayNetwork.drainNodesNear(level, worldPosition, primal, request - drained);
-        }
-        return drained;
+    private boolean canAfford(int points) {
+        return heat >= points * HEAT_PER_ASPECT && perditio >= points && aqua >= points && aspects.totalAmount() + points <= MAX_ESSENTIA;
     }
 
-    private boolean processInput() {
-        AspectList result = inputAspects();
-        int amount = result.totalAmount();
-        if (aspects.totalAmount() + amount > MAX_ESSENTIA || heat < amount * HEAT_PER_ASPECT || perditio < amount || aqua < amount) {
-            return false;
+    private void tryProcessInput() {
+        if (cooldown > 0 || input.isEmpty()) {
+            return;
         }
-        heat -= amount * HEAT_PER_ASPECT;
-        perditio -= amount;
-        aqua -= amount;
-        aspects = aspects.add(result);
-        setInput(ItemStack.EMPTY);
-        cooldown = MIN_COOLDOWN + Math.round((1.0F - heat / (float) MAX_POWER) * COOLDOWN_RANGE);
+        AspectList batch = inputContent();
+        int points = batch.totalAmount();
+        if (!canAfford(points)) {
+            return;
+        }
+        heat -= points * HEAT_PER_ASPECT;
+        perditio -= points;
+        aqua -= points;
+        aspects = aspects.add(batch);
+        input = ItemStack.EMPTY;
+        inputAspects = null;
+        float missingHeat = 1.0F - (float) heat / MAX_POWER;
+        cooldown = MIN_COOLDOWN + Math.round(missingHeat * COOLDOWN_RANGE);
         cycleDuration = cooldown;
-        return true;
+        changed();
+    }
+
+    private AspectList inputContent() {
+        AspectList cached = inputAspects;
+        if (cached == null) {
+            cached = input.isEmpty() ? AspectList.EMPTY : AspectIndexAccess.of(input);
+            inputAspects = cached;
+        }
+        return cached;
+    }
+
+    private void changed() {
+        setChanged();
+        if (level != null) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL);
+        }
+    }
+
+    private boolean canReceiveInput(ItemStack stack) {
+        boolean serverSide = level != null && !level.isClientSide();
+        return serverSide && assembled && input.isEmpty() && !stack.isEmpty();
+    }
+
+    private static boolean fitsFurnace(int points) {
+        return points > 0 && points <= MAX_ESSENTIA && points * HEAT_PER_ASPECT <= MAX_POWER;
     }
 
     public boolean insertInput(ItemStack stack) {
-        if (!assembled || !input.isEmpty() || stack.isEmpty()) {
+        if (!canReceiveInput(stack)) {
             return false;
         }
-        int amount = AspectIndexAccess.of(stack).totalAmount();
-        if (amount <= 0 || amount > MAX_ESSENTIA || amount * HEAT_PER_ASPECT > MAX_POWER) {
+        AspectList content = AspectIndexAccess.of(stack);
+        if (!fitsFurnace(content.totalAmount())) {
             return false;
         }
-        setInput(stack.copyWithCount(1));
-        markUpdated();
+        input = stack.copyWithCount(1);
+        inputAspects = content;
+        changed();
         return true;
     }
 
-    private void setInput(ItemStack stack) {
-        input = stack;
-        inputAspects = null;
-    }
-
-    private AspectList inputAspects() {
-        if (inputAspects == null) {
-            inputAspects = input.isEmpty() ? AspectList.EMPTY : AspectIndexAccess.of(input);
-        }
-        return inputAspects;
-    }
-
     public int takeEssentia(Holder<IAspect> aspect, int amount) {
-        int available = aspects.amountOf(aspect);
-        if (amount <= 0 || available <= 0) {
+        int taken = Math.min(amount, aspects.amountOf(aspect));
+        if (taken <= 0) {
             return 0;
         }
-        int taken = Math.min(amount, available);
         aspects = aspects.remove(aspect, taken);
-        markUpdated();
+        changed();
         return taken;
     }
 
     public @Nullable Holder<IAspect> randomEssentia() {
-        List<AspectInstance> entries = aspects.entries();
-        if (entries.isEmpty()) {
+        List<AspectInstance> stored = aspects.entries();
+        if (stored.isEmpty()) {
             return null;
         }
-        return entries.get(level == null ? 0 : level.getRandom().nextInt(entries.size())).aspect();
+        int index = level == null ? 0 : level.getRandom().nextInt(stored.size());
+        return stored.get(index).aspect();
     }
 
     public AdvancedFurnaceNozzle nozzle(Direction outputFace) {
-        return nozzles.get(outputFace);
+        if (!outputFace.getAxis().isHorizontal()) {
+            throw new IllegalArgumentException("Nozzles exist only on horizontal faces, got " + outputFace);
+        }
+        return nozzles[outputFace.get2DDataValue()];
     }
 
     public boolean isAssembled() {
@@ -204,7 +239,7 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     }
 
     public int inputCost() {
-        return inputAspects().totalAmount();
+        return input.isEmpty() ? 0 : inputContent().totalAmount();
     }
 
     public int heat() {
@@ -227,62 +262,54 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
         return cycleDuration;
     }
 
-    private void setLit(boolean lit) {
-        BlockState state = getBlockState();
-        if (level != null && state.getValue(BlockAdvancedAlchemicalFurnace.LIT) != lit) {
-            level.setBlock(worldPosition, state.setValue(BlockAdvancedAlchemicalFurnace.LIT, lit), Block.UPDATE_ALL);
-        }
-    }
-
-    private void markUpdated() {
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-        }
-    }
-
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        super.preRemoveSideEffects(pos, state);
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-        if (!input.isEmpty()) {
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), input);
-            setInput(ItemStack.EMPTY);
-        }
-        if (!aspects.isEmpty()) {
-            AuraHelper.polluteAura(level, pos, aspects.totalAmount(), true);
+        if (level instanceof ServerLevel server) {
+            if (!input.isEmpty()) {
+                server.addFreshEntity(new ItemEntity(server, pos.getX(), pos.getY(), pos.getZ(), input.copy()));
+            }
+            int stored = aspects.totalAmount();
+            if (stored > 0) {
+                AuraHelper.polluteAura(server, pos, stored, true);
+            }
+            input = ItemStack.EMPTY;
+            inputAspects = null;
             aspects = AspectList.EMPTY;
         }
+        super.preRemoveSideEffects(pos, state);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("Aspects", AspectList.CODEC, aspects);
+        output.store(ASPECTS_KEY, AspectList.CODEC, aspects);
         if (!input.isEmpty()) {
-            output.store("Input", ItemStack.CODEC, input);
+            output.store(INPUT_KEY, ItemStack.CODEC, input);
         }
-        output.putInt("Heat", heat);
-        output.putInt("Perditio", perditio);
-        output.putInt("Aqua", aqua);
-        output.putInt("Cooldown", cooldown);
-        output.putInt("CycleDuration", cycleDuration);
-        output.putBoolean("Assembled", assembled);
+        output.putInt(HEAT_KEY, heat);
+        output.putInt(PERDITIO_KEY, perditio);
+        output.putInt(AQUA_KEY, aqua);
+        output.putInt(COOLDOWN_KEY, cooldown);
+        output.putInt(CYCLE_KEY, cycleDuration);
+        output.putBoolean(ASSEMBLED_KEY, assembled);
     }
 
     @Override
-    protected void loadAdditional(ValueInput valueInput) {
-        super.loadAdditional(valueInput);
-        aspects = valueInput.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
-        setInput(valueInput.read("Input", ItemStack.CODEC).orElse(ItemStack.EMPTY));
-        heat = Math.clamp(valueInput.getIntOr("Heat", 0), 0, MAX_POWER);
-        perditio = Math.clamp(valueInput.getIntOr("Perditio", 0), 0, MAX_POWER);
-        aqua = Math.clamp(valueInput.getIntOr("Aqua", 0), 0, MAX_POWER);
-        cooldown = Math.max(0, valueInput.getIntOr("Cooldown", 0));
-        cycleDuration = Math.max(cooldown, valueInput.getIntOr("CycleDuration", 0));
-        assembled = valueInput.getBooleanOr("Assembled", false);
+    protected void loadAdditional(ValueInput stored) {
+        super.loadAdditional(stored);
+        assembled = stored.getBooleanOr(ASSEMBLED_KEY, false);
+        inputAspects = null;
+        input = stored.read(INPUT_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        aspects = stored.read(ASPECTS_KEY, AspectList.CODEC).orElse(AspectList.EMPTY);
+        heat = readReserve(stored, HEAT_KEY);
+        perditio = readReserve(stored, PERDITIO_KEY);
+        aqua = readReserve(stored, AQUA_KEY);
+        cooldown = Math.max(0, stored.getIntOr(COOLDOWN_KEY, 0));
+        cycleDuration = Math.max(cooldown, stored.getIntOr(CYCLE_KEY, 0));
+    }
+
+    private static int readReserve(ValueInput stored, String key) {
+        return Math.clamp(stored.getIntOr(key, 0), 0, MAX_POWER);
     }
 
     @Override

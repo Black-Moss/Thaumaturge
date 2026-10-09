@@ -1,20 +1,22 @@
 package com.leclowndu93150.thaumaturge.api.golems.seals;
 
 /**
- * A page of the seal configuration screen. The ordinal is the page id used by the menu and by the
- * {@code button.category.<ordinal>.desc} translation keys.
+ * The pages of the seal configuration screen.
  *
+ * @apiNote the ordinals are written into menu transfer data and select the lang keys
+ *          {@code gui.thaumaturge.seal.category.<ordinal>} and {@code gui.thaumaturge.seal.category.<ordinal>.desc}.
+ *          Constants are never reordered or inserted.
  * @since 1.0.0
  */
 public enum SealPanel {
-    /** Priority, golem colour, lock and redstone control. Every seal has it. */
+    /** Priority, golem colour, locking and redstone control. */
     PRIORITY,
-    /** The item filter. Present when the type has a filter. */
+    /** The item filter. */
     FILTER,
-    /** The work area. Present when the type has a configurable area. */
+    /** The size of the work area. */
     AREA,
-    /** The type's settings. Present when the type shows them. */
+    /** The behaviour options of the seal. */
     TOGGLES,
-    /** The required and forbidden golem traits. Every seal has it. */
+    /** The traits a golem must have or must lack. */
     TAGS
 }

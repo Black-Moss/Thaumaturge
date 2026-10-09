@@ -8,84 +8,90 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * An enchantment applied through infusion crafting rather than the vanilla enchanting table.
+ * The closed catalogue of infusion enchantments. Each constant lists the tool classes it may be applied to and its highest level.
  *
- * <p>Each value declares the tool classes it may be applied to and the maximum level it may
- * reach. Levels are stored per stack in the {@code thaumaturge:infusion_enchantments} data
- * component. Applicability is tested against an item's tool classes, weapon status, armor slot,
- * or {@link ChargeProfile rechargeable} nature.
+ * <p>The ordinal is the network id and the serialized name is the persistent id, so neither may change. The tool class tokens are
+ * interpreted by the infusion enchantment helper; tokens that no constant uses stay available to addons.
  *
  * @since 1.0.0
  */
 public enum InfusionEnchantment implements StringRepresentable {
-    /** Draws harvested drops and combat drops toward the player. */
-    COLLECTOR("collector", Set.of("axe", "pickaxe", "shovel", "weapon"), 1),
+    /** Draws harvested and combat drops toward the player. */
+    COLLECTOR("collector", Tokens.MAX_ONE, Tokens.AXE, Tokens.PICKAXE, Tokens.SHOVEL, Tokens.WEAPON),
     /** Breaks a plane of blocks around the mined block. */
-    DESTRUCTIVE("destructive", Set.of("axe", "pickaxe", "shovel"), 1),
+    DESTRUCTIVE("destructive", Tokens.MAX_ONE, Tokens.AXE, Tokens.PICKAXE, Tokens.SHOVEL),
     /** Follows a vein of logs or ore, breaking the furthest connected block. */
-    BURROWING("burrowing", Set.of("axe", "pickaxe"), 1),
+    BURROWING("burrowing", Tokens.MAX_ONE, Tokens.AXE, Tokens.PICKAXE),
     /** Pings nearby ore on a sneak right-click. */
-    SOUNDING("sounding", Set.of("pickaxe"), 4),
-    /** Chance to upgrade a drop to a more valuable form, scaling with level. */
-    REFINING("refining", Set.of("pickaxe"), 4),
-    /** Chains a fraction of the strike to nearby enemies. */
-    ARCING("arcing", Set.of("weapon"), 4),
+    SOUNDING("sounding", Tokens.MAX_FOUR, Tokens.PICKAXE),
+    /** Gives a chance to upgrade a drop, scaling with level. */
+    REFINING("refining", Tokens.MAX_FOUR, Tokens.PICKAXE),
+    /** Chains a fraction of a strike to nearby enemies. */
+    ARCING("arcing", Tokens.MAX_FOUR, Tokens.WEAPON),
     /** Drops aspect crystals distilled from slain creatures. */
-    ESSENCE("essence", Set.of("weapon"), 5),
-    /** Increases the vis capacity of a chargeable item. */
-    VISBATTERY("visbattery", Set.of("chargable"), 3),
-    /** Increases the recharge rate of a chargeable item. */
-    VISCHARGE("vischarge", Set.of("chargable"), 1),
+    ESSENCE("essence", Tokens.MAX_FIVE, Tokens.WEAPON),
+    /** Raises the vis capacity of a chargeable item. */
+    VISBATTERY("visbattery", Tokens.MAX_THREE, Tokens.CHARGABLE),
+    /** Raises the recharge rate of a chargeable item. */
+    VISCHARGE("vischarge", Tokens.MAX_ONE, Tokens.CHARGABLE),
     /** Boots movement enchant. */
-    SWIFT("swift", Set.of("boots"), 4),
+    SWIFT("swift", Tokens.MAX_FOUR, Tokens.BOOTS),
     /** Leggings movement enchant. */
-    AGILE("agile", Set.of("legs"), 1),
+    AGILE("agile", Tokens.MAX_ONE, Tokens.LEGS),
     /** Chestplate taint enchant. */
-    INFESTED("infested", Set.of("chest"), 1),
+    INFESTED("infested", Tokens.MAX_ONE, Tokens.CHEST),
     /** Places a glimmer light in darkness where a block was mined. */
-    LAMPLIGHT("lamplight", Set.of("axe", "pickaxe", "shovel"), 1);
+    LAMPLIGHT("lamplight", Tokens.MAX_ONE, Tokens.AXE, Tokens.PICKAXE, Tokens.SHOVEL);
 
-    /** Codec for datapack and component serialization. */
+    /** The persistent codec; writes the serialized name and rejects unknown names. Usable as a map key codec. */
     public static final Codec<InfusionEnchantment> CODEC = StringRepresentable.fromEnum(InfusionEnchantment::values);
 
-    /** Network codec for payload and component sync. */
-    public static final StreamCodec<ByteBuf, InfusionEnchantment> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], InfusionEnchantment::ordinal);
+    /** The network codec; writes the ordinal as a variable-length integer. */
+    public static final StreamCodec<ByteBuf, InfusionEnchantment> STREAM_CODEC = ByteBufCodecs.idMapper(index -> values()[index], InfusionEnchantment::ordinal);
 
-    private final String name;
-    private final Set<String> toolClasses;
+    private final String serializedName;
     private final int maxLevel;
+    private final Set<String> toolClasses;
 
-    InfusionEnchantment(String name, Set<String> toolClasses, int maxLevel) {
-        this.name = name;
-        this.toolClasses = toolClasses;
+    InfusionEnchantment(String serializedName, int maxLevel, String... toolClasses) {
+        this.serializedName = serializedName;
         this.maxLevel = maxLevel;
+        this.toolClasses = Set.of(toolClasses);
     }
 
-    /**
-     * Stable lowercase name used as the JSON enum value.
-     *
-     * @return the lowercase name
-     */
     @Override
     public String getSerializedName() {
-        return name;
+        return serializedName;
     }
 
     /**
-     * The set of tool-class tokens this enchantment may be applied to.
-     *
-     * @return an unmodifiable set of tool-class tokens
+     * @return the tool class tokens this enchantment may be applied to; never null and never modified by callers
      */
     public Set<String> toolClasses() {
         return toolClasses;
     }
 
     /**
-     * The highest level this enchantment may reach.
-     *
-     * @return the maximum level, always positive
+     * @return the highest level a stack may carry; positive
      */
     public int maxLevel() {
         return maxLevel;
+    }
+
+    private static final class Tokens {
+        static final String AXE = "axe";
+        static final String PICKAXE = "pickaxe";
+        static final String SHOVEL = "shovel";
+        static final String WEAPON = "weapon";
+        static final String CHARGABLE = "chargable";
+        static final String BOOTS = "boots";
+        static final String LEGS = "legs";
+        static final String CHEST = "chest";
+        static final int MAX_ONE = 1;
+        static final int MAX_THREE = 3;
+        static final int MAX_FOUR = 4;
+        static final int MAX_FIVE = 5;
+
+        private Tokens() {}
     }
 }

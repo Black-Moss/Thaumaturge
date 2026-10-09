@@ -5,50 +5,60 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
+import org.jspecify.annotations.Nullable;
 
 public final class WatchTargetGoal extends Goal {
-    private final Mob watcher;
-    private LivingEntity closestEntity;
-    private int lookTime;
+    private static final int MIN_LOOK_TICKS = 40;
+    private static final int LOOK_TICK_SPREAD = 40;
+    private static final float YAW_SPEED = 10.0F;
 
-    public WatchTargetGoal(Mob watcher) {
-        this.watcher = watcher;
-        setFlags(EnumSet.of(Flag.LOOK));
+    private @Nullable LivingEntity watched;
+    private int lookTime;
+    private final Mob mob;
+
+    public WatchTargetGoal(Mob mob) {
+        setFlags(EnumSet.of(Goal.Flag.LOOK));
+        this.mob = mob;
     }
 
     @Override
     public boolean canUse() {
-        if (watcher.getTarget() != null) {
-            closestEntity = watcher.getTarget();
+        remember(mob.getTarget());
+        return watched != null;
+    }
+
+    private void remember(@Nullable LivingEntity candidate) {
+        if (candidate != null) {
+            watched = candidate;
         }
-        return closestEntity != null;
     }
 
     @Override
     public boolean canContinueToUse() {
-        double range = watcher.getAttributeValue(Attributes.FOLLOW_RANGE);
-        if (!closestEntity.isAlive()) {
+        if (lookTime <= 0 || watched == null) {
             return false;
         }
-        if (watcher.distanceToSqr(closestEntity) > range * range) {
-            return false;
-        }
-        return lookTime > 0;
+        double range = mob.getAttributeValue(Attributes.FOLLOW_RANGE);
+        return watched.isAlive() && mob.distanceToSqr(watched) <= range * range;
     }
 
     @Override
     public void start() {
-        lookTime = 40 + watcher.getRandom().nextInt(40);
-    }
-
-    @Override
-    public void stop() {
-        closestEntity = null;
+        lookTime = MIN_LOOK_TICKS + mob.getRandom().nextInt(LOOK_TICK_SPREAD);
     }
 
     @Override
     public void tick() {
-        watcher.getLookControl().setLookAt(closestEntity.getX(), closestEntity.getY() + closestEntity.getEyeHeight(), closestEntity.getZ(), 10.0F, watcher.getMaxHeadXRot());
+        LivingEntity subject = watched;
+        if (subject != null) {
+            double eyeY = subject.getY() + subject.getEyeHeight();
+            mob.getLookControl().setLookAt(subject.getX(), eyeY, subject.getZ(), YAW_SPEED, mob.getMaxHeadXRot());
+        }
         lookTime--;
+    }
+
+    @Override
+    public void stop() {
+        watched = null;
     }
 }

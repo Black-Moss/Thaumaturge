@@ -4,10 +4,10 @@ import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
-import com.leclowndu93150.thaumaturge.content.entity.eldritch.LeadingAim;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitNames;
-import com.leclowndu93150.thaumaturge.content.world.mound.BlockLoot;
+import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -18,6 +18,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
@@ -30,11 +31,12 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -45,232 +47,305 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jspecify.annotations.Nullable;
 
 public class EntityEldritchGolem extends EntityThaumaturgeBoss implements RangedAttackMob {
     private static final EntityDataAccessor<Boolean> HEADLESS = SynchedEntityData.defineId(EntityEldritchGolem.class, EntityDataSerializers.BOOLEAN);
     private static final String HEADLESS_KEY = "headless";
+    private static final String NAME_KEY = "entity.thaumaturge.eldritch_golem.name.custom";
     private static final byte SWING_EVENT = 4;
-    private static final double SPEED = 0.3;
-    private static final double STRIKE = 10.0;
-    private static final double HEALTH = 400.0;
-    private static final double PLATING = 6.0;
-    private static final double CHARGE_PACE = 1.1;
-    private static final double WANDER_PACE = 0.8;
-    private static final float GAZE_RANGE = 8.0F;
+    private static final double MOVEMENT_SPEED = 0.3;
+    private static final double ATTACK_DAMAGE = 10.0;
+    private static final double MAX_HEALTH = 400.0;
+    private static final double ARMOR = 6.0;
+    private static final int FLOAT_PRIORITY = 0;
+    private static final int BEAM_PRIORITY = 2;
+    private static final int MELEE_PRIORITY = 3;
+    private static final int HOME_PRIORITY = 6;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
+    private static final int RETALIATE_PRIORITY = 1;
+    private static final int PLAYER_TARGET_PRIORITY = 2;
+    private static final double MELEE_SPEED = 1.1;
+    private static final double HOME_SPEED = 0.8;
+    private static final double STROLL_SPEED = 0.8;
+    private static final float LOOK_RANGE = 8.0F;
+    private static final double BEAM_SPEED = 1.0;
     private static final double BEAM_MIN_DISTANCE = 3.0;
-    private static final double BEAM_PACE = 1.0;
     private static final int BEAM_INTERVAL = 5;
-    private static final float BEAM_RANGE = 24.0F;
-    private static final float BEAM_SPEED = 0.66F;
-    private static final float BEAM_SPREAD = 5.0F;
-    private static final float AIM_TURN = 30.0F;
-    private static final int AWAKENING = 100;
-    private static final float AWAKENING_MEND = 2.0F;
-    private static final int SWING_RECOVERY = 10;
-    private static final float SWING_SHARE = 0.75F;
-    private static final double SWING_LIFT = 0.2;
-    private static final float HEADLESS_FLING = 1.5F;
-    private static final double FLING_RISE = 0.1;
-    private static final float DECAPITATION_BLAST = 2.0F;
-    private static final float HEAD_OFFSET = 0.75F;
-    private static final float TRAMPLE_HARDNESS = 0.15F;
-    private static final int STOMP_ODDS = 5;
-    private static final double STRIDE_SQ = 2.5000003E-7F;
-    private static final double DUST_LIFT = 0.1;
-    private static final double DUST_SPRAY = 4.0;
-    private static final double DUST_RISE = 0.5;
+    private static final float BEAM_RADIUS = 24.0F;
+    private static final int AWAKEN_TICKS = 100;
+    private static final float AWAKEN_HEALING = 2.0F;
+    private static final float HEAD_BLAST_POWER = 2.0F;
+    private static final double HEAD_BLAST_OFFSET = 0.75;
+    private static final int SWING_TICKS = 10;
+    private static final float SWING_DAMAGE_FACTOR = 0.75F;
+    private static final double LAUNCH_LIFT = 0.2;
+    private static final double HEADLESS_PUSH = 1.5;
+    private static final double HEADLESS_LIFT = 0.1;
+    private static final float SWING_VOLUME = 1.0F;
+    private static final float SWING_PITCH = 1.0F;
+    private static final SoundEvent HURT_SOUND = SoundEvents.IRON_GOLEM_HURT;
+    private static final SoundEvent DEATH_SOUND = SoundEvents.IRON_GOLEM_DEATH;
+    private static final SoundEvent STEP_SOUND = SoundEvents.IRON_GOLEM_STEP;
+    private static final float STEP_VOLUME = 1.0F;
+    private static final float STEP_PITCH = 1.0F;
+    private static final double MOVING_SPEED_SQR = 0.0005 * 0.0005;
+    private static final int STOMP_ONE_IN = 5;
+    private static final double UNDERFOOT_DEPTH = 0.2;
+    private static final double DUST_RING_FRACTION = 0.5;
+    private static final double DUST_RING_JITTER = 0.25;
+    private static final double DUST_BASE_HEIGHT = 0.05;
+    private static final double DUST_LIFT_SIGMA = 0.08;
+    private static final double DUST_OUTWARD_SPEED = 0.12;
+    private static final double DUST_OUTWARD_JITTER = 0.5;
+    private static final double FULL_TURN = Math.PI * 2.0;
+    private static final float SOFT_BLOCK_HARDNESS = 0.15F;
+    private static final float TORSO_FRACTION = 0.6F;
+    private static final double AIM_LEAD_TICKS = 10.0;
+    private static final double ORB_CLEARANCE = 1.0;
+    private static final float ORB_SPEED = 0.66F;
+    private static final float ORB_SPREAD = 5.0F;
+    private static final float ORB_VOLUME = 1.0F;
+    private static final float ORB_PITCH_BASE = 1.0F;
+    private static final float ORB_PITCH_SPREAD = 0.1F;
 
-    private final GolemBeamCore beamCore = new GolemBeamCore(this);
+    private final GolemBeamCore beam = new GolemBeamCore(this);
     private boolean beamArmed;
-    private int swingCooldown;
+    private int swingTicks;
 
     public EntityEldritchGolem(EntityType<? extends EntityEldritchGolem> type, Level level) {
         super(type, level);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createBossAttributes().add(Attributes.MOVEMENT_SPEED, SPEED).add(Attributes.ATTACK_DAMAGE, STRIKE).add(Attributes.MAX_HEALTH, HEALTH).add(Attributes.ARMOR, PLATING);
+        return createBossAttributes().add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE).add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.ARMOR, ARMOR);
     }
 
     @Override
     protected void registerGoals() {
-        goalSelector.addGoal(0, new FloatGoal(this));
-        goalSelector.addGoal(3, new MeleeAttackGoal(this, CHARGE_PACE, false));
-        goalSelector.addGoal(6, new MoveTowardsRestrictionGoal(this, WANDER_PACE));
-        goalSelector.addGoal(7, new RandomStrollGoal(this, WANDER_PACE));
-        goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, GAZE_RANGE));
-        goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-        targetSelector.addGoal(1, new HurtByTargetGoal(this).setAlertOthers());
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        addBehaviourGoals();
+        addTargetingGoals();
+    }
+
+    private void addBehaviourGoals() {
+        Goal[] ordered = {new FloatGoal(this), new MeleeAttackGoal(this, MELEE_SPEED, false), new MoveTowardsRestrictionGoal(this, HOME_SPEED), new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED),
+                new LookAtPlayerGoal(this, Player.class, LOOK_RANGE), new RandomLookAroundGoal(this)};
+        int[] priorities = {FLOAT_PRIORITY, MELEE_PRIORITY, HOME_PRIORITY, STROLL_PRIORITY, LOOK_PRIORITY, LOOK_PRIORITY};
+        for (int i = 0; i < ordered.length; i++) {
+            goalSelector.addGoal(priorities[i], ordered[i]);
+        }
+    }
+
+    private void addTargetingGoals() {
+        targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this).setAlertOthers());
+        targetSelector.addGoal(PLAYER_TARGET_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        super.defineSynchedData(entityData);
-        entityData.define(HEADLESS, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder.define(HEADLESS, false));
     }
 
     public boolean isHeadless() {
-        return entityData.get(HEADLESS);
+        return getEntityData().get(HEADLESS).booleanValue();
+    }
+
+    private void setHeadless(boolean headless) {
+        entityData.set(HEADLESS, headless);
     }
 
     public int swingCooldown() {
-        return swingCooldown;
+        return swingTicks;
+    }
+
+    private void equipBeamGoal() {
+        if (!beamArmed) {
+            beamArmed = true;
+            goalSelector.addGoal(BEAM_PRIORITY, new LongRangeAttackGoal(this, BEAM_SPEED, BEAM_MIN_DISTANCE, BEAM_INTERVAL, BEAM_INTERVAL, BEAM_RADIUS));
+        }
     }
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData data) {
-        spawnTimer = AWAKENING;
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
         ChampionHelper.makeChampion(this, true);
-        return super.finalizeSpawn(level, difficulty, reason, data);
+        spawnTimer = AWAKEN_TICKS;
+        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, groupData);
+        return result;
     }
 
     @Override
-    public void generateName() {
-        MobTraits.champion(this).ifPresent(trait -> setCustomName(Component.translatable("entity.thaumaturge.eldritch_golem.name.custom", MobTraitNames.of(trait))));
+    public void assignTitle() {
+        MobTraits.champion(this).ifPresent(trait -> setCustomName(Component.translatable(NAME_KEY, MobTraitNames.of(trait))));
     }
 
     @Override
     public void tick() {
-        super.tick();
-        if (!(level() instanceof ServerLevel server)) {
-            return;
+        if (level() instanceof ServerLevel server) {
+            if (spawnTimer > 0) {
+                heal(AWAKEN_HEALING);
+            }
+            super.tick();
+            if (isHeadless()) {
+                beam.tick(server);
+            }
+        } else {
+            super.tick();
         }
-        if (getSpawnTimer() > 0) {
-            heal(AWAKENING_MEND);
-        }
-        if (isHeadless()) {
-            beamCore.tick(server);
+        if (swingTicks > 0) {
+            swingTicks--;
         }
     }
 
     @Override
     public void aiStep() {
         super.aiStep();
-        if (swingCooldown > 0) {
-            swingCooldown--;
-        }
-        boolean stomping = getDeltaMovement().horizontalDistanceSqr() > STRIDE_SQ && random.nextInt(STOMP_ODDS) == 0;
-        BlockPos feet = blockPosition();
-        BlockState underfoot = level().getBlockState(feet);
-        if (level().isClientSide()) {
-            if (stomping && !underfoot.isAir()) {
-                kickUpDust(underfoot);
-            }
-            return;
-        }
-        if (stomping && underfoot.getBlock() instanceof BlockLoot) {
-            level().destroyBlock(feet, true);
-            underfoot = level().getBlockState(feet);
-        }
-        float hardness = underfoot.getDestroySpeed(level(), feet);
-        if (!underfoot.isAir() && hardness >= 0.0F && hardness <= TRAMPLE_HARDNESS) {
-            level().destroyBlock(feet, true);
+        boolean stomping = rollStomp();
+        if (level() instanceof ServerLevel server) {
+            trample(server, stomping);
+        } else if (stomping) {
+            scatterDust();
         }
     }
 
-    private void kickUpDust(BlockState underfoot) {
-        level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, underfoot), getX() + (random.nextFloat() - 0.5) * getBbWidth(), getBoundingBox().minY + DUST_LIFT,
-                getZ() + (random.nextFloat() - 0.5) * getBbWidth(), DUST_SPRAY * (random.nextFloat() - 0.5), DUST_RISE, (random.nextFloat() - 0.5) * DUST_SPRAY);
+    private boolean rollStomp() {
+        return getDeltaMovement().horizontalDistanceSqr() > MOVING_SPEED_SQR && random.nextInt(STOMP_ONE_IN) == 0;
+    }
+
+    private void trample(ServerLevel level, boolean stomping) {
+        if (!EventHooks.canEntityGrief(level, this)) {
+            return;
+        }
+        if (stomping) {
+            breakWhen(level, underfoot(), EntityEldritchGolem::isLootCrate);
+        }
+        BlockPos cell = blockPosition();
+        breakWhen(level, cell, state -> isBrittle(state, level, cell));
+    }
+
+    private void breakWhen(ServerLevel level, BlockPos pos, Predicate<BlockState> condition) {
+        if (condition.test(level.getBlockState(pos))) {
+            level.destroyBlock(pos, true, this);
+        }
+    }
+
+    private static boolean isLootCrate(BlockState state) {
+        return state.is(TTBlocks.LOOT_CRATE_COMMON) || state.is(TTBlocks.LOOT_CRATE_UNCOMMON) || state.is(TTBlocks.LOOT_CRATE_RARE);
+    }
+
+    private static boolean isBrittle(BlockState state, ServerLevel level, BlockPos pos) {
+        float hardness = state.getDestroySpeed(level, pos);
+        return !state.isAir() && hardness >= 0.0F && hardness <= SOFT_BLOCK_HARDNESS;
+    }
+
+    private BlockPos underfoot() {
+        return BlockPos.containing(getX(), Mth.floor(getY() - UNDERFOOT_DEPTH), getZ());
+    }
+
+    private void scatterDust() {
+        BlockState state = level().getBlockState(underfoot());
+        if (state.isAir()) {
+            return;
+        }
+        double angle = random.nextDouble() * FULL_TURN;
+        double dirX = Math.cos(angle);
+        double dirZ = Math.sin(angle);
+        double radius = getBbWidth() * (DUST_RING_FRACTION + random.nextDouble() * DUST_RING_JITTER);
+        double outward = DUST_OUTWARD_SPEED * (1.0 - DUST_OUTWARD_JITTER + random.nextDouble() * DUST_OUTWARD_JITTER);
+        double lift = Math.abs(random.nextGaussian()) * DUST_LIFT_SIGMA;
+        level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state), getX() + dirX * radius, getY() + DUST_BASE_HEIGHT, getZ() + dirZ * radius, dirX * outward, lift, dirZ * outward);
     }
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if (!isHeadless() && damage > getHealth() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            loseHead(level);
+        if (!isHeadless() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !isInvulnerableTo(level, source) && getHealth() - damage <= 0.0F) {
+            shedHead(level);
             return false;
         }
         return super.hurtServer(level, source, damage);
     }
 
-    private void loseHead(ServerLevel level) {
-        entityData.set(HEADLESS, true);
-        spawnTimer = AWAKENING;
-        float bearing = getYRot() % 360.0F * Mth.DEG_TO_RAD;
-        level.explode(this, getX() + Mth.cos(bearing) * HEAD_OFFSET, getEyeY(), getZ() + Mth.sin(bearing) * HEAD_OFFSET, DECAPITATION_BLAST, false, Level.ExplosionInteraction.NONE);
-        armBeam();
-    }
-
-    private void armBeam() {
-        if (!beamArmed) {
-            beamArmed = true;
-            goalSelector.addGoal(2, new LongRangeAttackGoal(this, BEAM_MIN_DISTANCE, BEAM_PACE, BEAM_INTERVAL, BEAM_INTERVAL, BEAM_RANGE));
-        }
+    private void shedHead(ServerLevel level) {
+        setHeadless(true);
+        spawnTimer = AWAKEN_TICKS;
+        equipBeamGoal();
+        Vec3 facing = Vec3.directionFromRotation(0.0F, getYRot());
+        level.explode(this, getX() + facing.x * HEAD_BLAST_OFFSET, getEyeY(), getZ() + facing.z * HEAD_BLAST_OFFSET, HEAD_BLAST_POWER, false, Level.ExplosionInteraction.NONE);
     }
 
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        if (swingCooldown > 0) {
-            return false;
-        }
-        swingCooldown = SWING_RECOVERY;
+        swingTicks = SWING_TICKS;
         level.broadcastEntityEvent(this, SWING_EVENT);
-        boolean landed = target.hurtServer(level, damageSources().mobAttack(this), (float) getAttributeValue(Attributes.ATTACK_DAMAGE) * SWING_SHARE);
-        if (landed) {
-            target.setDeltaMovement(target.getDeltaMovement().add(0.0, SWING_LIFT, 0.0));
+        level.playSound(null, getX(), getY(), getZ(), SoundEvents.IRON_GOLEM_ATTACK, SoundSource.HOSTILE, SWING_VOLUME, SWING_PITCH);
+        float damage = (float) getAttributeValue(Attributes.ATTACK_DAMAGE) * SWING_DAMAGE_FACTOR;
+        boolean hit = target.hurtServer(level, damageSources().mobAttack(this), damage);
+        if (hit) {
+            Vec3 push = new Vec3(0.0, LAUNCH_LIFT, 0.0);
             if (isHeadless()) {
-                float bearing = getYRot() * Mth.DEG_TO_RAD;
-                target.push(-Mth.sin(bearing) * HEADLESS_FLING, FLING_RISE, Mth.cos(bearing) * HEADLESS_FLING);
+                Vec3 facing = Vec3.directionFromRotation(0.0F, getYRot());
+                push = push.add(facing.x * HEADLESS_PUSH, HEADLESS_LIFT, facing.z * HEADLESS_PUSH);
             }
+            target.push(push.x, push.y, push.z);
+            target.hurtMarked = true;
         }
-        return landed;
+        return hit;
     }
 
     @Override
-    public void performRangedAttack(LivingEntity target, float velocity) {
-        if (!beamCore.ready() || !hasLineOfSight(target)) {
+    public void performRangedAttack(LivingEntity target, float power) {
+        if (!(level() instanceof ServerLevel level) || spawnTimer > 0 || !beam.ready() || !hasLineOfSight(target)) {
             return;
         }
-        beamCore.spend(random);
-        Vec3 heart = target.getBoundingBox().getCenter();
-        getLookControl().setLookAt(heart.x, heart.y, heart.z, AIM_TURN, AIM_TURN);
-        Vec3 look = getLookAngle();
-        EntityGolemOrb orb = new EntityGolemOrb(level(), this, target, false);
-        orb.setPos(orb.getX() + look.x, orb.getY(), orb.getZ() + look.z);
-        Vec3 aim = LeadingAim.at(this, target);
-        orb.shoot(aim.x, aim.y, aim.z, BEAM_SPEED, BEAM_SPREAD);
-        playSound(TTSounds.EGATTACK.get(), 1.0F, 1.0F + random.nextFloat() * 0.1F);
-        level().addFreshEntity(orb);
+        beam.spend(random);
+        EntityGolemOrb orb = new EntityGolemOrb(level, this, target, false);
+        Vec3 drift = target.getDeltaMovement();
+        Vec3 aim = new Vec3(target.getX() + drift.x * AIM_LEAD_TICKS - orb.getX(), target.getY(TORSO_FRACTION) + drift.y * AIM_LEAD_TICKS - orb.getY(),
+                target.getZ() + drift.z * AIM_LEAD_TICKS - orb.getZ());
+        Vec3 clearance = aim.normalize().scale(ORB_CLEARANCE);
+        orb.setPos(orb.getX() + clearance.x, orb.getY() + clearance.y, orb.getZ() + clearance.z);
+        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_SPREAD);
+        level.addFreshEntity(orb);
+        level.playSound(null, getX(), getY(), getZ(), TTSounds.EGATTACK.get(), SoundSource.HOSTILE, ORB_VOLUME, ORB_PITCH_BASE + random.nextFloat() * ORB_PITCH_SPREAD);
     }
 
     @Override
     public void handleEntityEvent(byte event) {
-        if (event != SWING_EVENT) {
+        if (event == SWING_EVENT) {
+            swingTicks = SWING_TICKS;
+        } else {
             super.handleEntityEvent(event);
-            return;
         }
-        swingCooldown = SWING_RECOVERY;
-        playSound(SoundEvents.IRON_GOLEM_ATTACK, 1.0F, 1.0F);
     }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.IRON_GOLEM_HURT;
-    }
-
-    @Override
-    protected SoundEvent getDeathSound() {
-        return SoundEvents.IRON_GOLEM_DEATH;
+    protected SoundEvent getHurtSound(DamageSource cause) {
+        return HURT_SOUND;
     }
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState state) {
-        playSound(SoundEvents.IRON_GOLEM_STEP, 1.0F, 1.0F);
+        playSound(STEP_SOUND, STEP_VOLUME, STEP_PITCH);
     }
 
     @Override
-    protected void addAdditionalSaveData(ValueOutput output) {
-        super.addAdditionalSaveData(output);
-        output.putBoolean(HEADLESS_KEY, isHeadless());
+    protected SoundEvent getDeathSound() {
+        return DEATH_SOUND;
     }
 
     @Override
-    protected void readAdditionalSaveData(ValueInput input) {
-        super.readAdditionalSaveData(input);
-        entityData.set(HEADLESS, input.getBooleanOr(HEADLESS_KEY, false));
+    protected void readAdditionalSaveData(ValueInput in) {
+        super.readAdditionalSaveData(in);
+        setHeadless(in.getBooleanOr(HEADLESS_KEY, false));
         if (isHeadless()) {
-            armBeam();
+            equipBeamGoal();
         }
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput out) {
+        super.addAdditionalSaveData(out);
+        out.putBoolean(HEADLESS_KEY, isHeadless());
     }
 }

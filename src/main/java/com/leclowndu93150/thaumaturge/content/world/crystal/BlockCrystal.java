@@ -4,11 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.mojang.serialization.MapCodec;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
@@ -19,55 +15,56 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockCrystal extends Block {
-    public static final IntegerProperty SIZE = IntegerProperty.create("size", 0, 3);
-    public static final IntegerProperty GENERATION = IntegerProperty.create("gen", 1, 4);
+    private static final int MAX_SIZE = 3;
+    private static final int MAX_GENERATION = 4;
+    private static final int MIN_GENERATION = 1;
 
-    private static final int VIS_THRESHOLD = 10;
+    public static final IntegerProperty SIZE = IntegerProperty.create("size", 0, MAX_SIZE);
+    public static final IntegerProperty GENERATION = IntegerProperty.create("gen", MIN_GENERATION, MAX_GENERATION);
+
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final MapCodec<BlockCrystal> CODEC = simpleCodec(properties -> new BlockCrystal(properties, null, false));
+    private static final int MAX_SPAWN_SIZE = 0;
+    private static final int GROWTH_LIMIT_BASE = 5;
+    private static final int GROWTH_BONUS_VALUES = 3;
+    private static final int ACTIVITY_BASE = 3;
+    private static final int SPREAD_ACCEPT_ONE_IN = 16;
+    private static final int SAME_GENERATION_ONE_IN = 6;
+    private static final int SUPPORT_RECHECK_DELAY = 1;
+    private static final int CHANGE_FLAGS = 3;
+    private static final int SPREAD_REACH = 1;
+    private static final int SPREAD_SPAN = 2 * SPREAD_REACH + 1;
+    private static final float THRESHOLD = 10.0F;
+    private static final float TRANSFER = 10.0F;
     private static final float DECAY_FLUX = 1.0F;
-    private static final float FLUX_DRAIN_TOLERANCE = 0.001F;
+    private static final float DRAIN_TOLERANCE = 0.001F;
+    private static final float FLUX_CONVERSION_DIVISOR = 2.0F;
 
-    private static final double[][][] SHARD_BOXES = {{{6.0, 0.0, 5.5, 10.0, 7.5, 9.0}, {7.0, 0.0, 9.0, 9.5, 6.0, 10.0}, {7.0, 6.5, 7.0, 9.0, 8.0, 8.5}},
-            {{12.0, 0.0, 5.5, 15.0, 4.5, 7.5}, {13.0, 0.0, 7.5, 14.0, 3.5, 8.0}, {13.0, 2.0, 5.0, 13.5, 3.0, 5.5}},
-            {{2.0, 0.0, 10.5, 4.5, 3.5, 12.0}, {2.0, 0.0, 12.0, 4.5, 3.0, 12.5}, {2.5, 3.0, 11.0, 4.0, 4.5, 12.5}},
-            {{9.0, 0.0, 1.5, 12.0, 6.5, 3.5}, {10.0, 0.0, 3.5, 11.5, 5.0, 4.5}, {10.0, 2.5, 1.0, 10.5, 5.0, 1.5}},
-            {{4.5, 0.0, 2.0, 7.5, 4.5, 3.5}, {5.0, 0.0, 1.0, 7.0, 4.0, 2.0}, {5.0, 0.0, 3.0, 7.0, 4.0, 4.0}},
-            {{11.5, 0.0, 9.5, 14.0, 5.0, 12.5}, {12.5, 5.0, 10.5, 13.5, 6.0, 11.5}, {14.0, 2.5, 10.0, 14.5, 4.0, 10.5}},
-            {{6.5, 0.0, 12.0, 9.5, 4.0, 14.5}, {7.0, 3.5, 12.5, 9.0, 5.5, 14.5}, {7.5, 1.5, 14.5, 9.0, 4.5, 15.0}},
-            {{1.0, 0.0, 5.0, 4.0, 6.0, 7.0}, {1.5, 1.5, 4.5, 3.0, 4.0, 5.0}, {2.0, 0.5, 7.0, 3.5, 4.0, 7.5}}};
-    private static final double SHAPE_SNAP = 32.0;
-    private static final Map<Direction, List<VoxelShape>> SHARD_SHAPES = shardShapes();
-    private static final int SHAPE_CACHE_LIMIT = 4096;
-
-    private final ResourceKey<IAspect> aspect;
+    private final @Nullable ResourceKey<IAspect> aspect;
     private final boolean flux;
-    private final Map<Long, VoxelShape> shapeCache = new ConcurrentHashMap<>();
 
-    public BlockCrystal(BlockBehaviour.Properties properties, ResourceKey<IAspect> aspect, boolean flux) {
+    public BlockCrystal(Properties properties, @Nullable ResourceKey<IAspect> aspect, boolean flux) {
         super(properties);
-        this.aspect = aspect;
+        registerDefaultState(stateDefinition.any().setValue(GENERATION, MIN_GENERATION).setValue(SIZE, 0));
         this.flux = flux;
-        registerDefaultState(stateDefinition.any().setValue(SIZE, 0).setValue(GENERATION, 1));
+        this.aspect = aspect;
     }
-
-    private static final MapCodec<BlockCrystal> CODEC = simpleCodec(p -> new BlockCrystal(p, null, false));
 
     @Override
     protected MapCodec<? extends Block> codec() {
         return CODEC;
     }
 
-    public ResourceKey<IAspect> aspect() {
+    public @Nullable ResourceKey<IAspect> aspect() {
         return aspect;
     }
 
@@ -90,79 +87,12 @@ public final class BlockCrystal extends Block {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        long seed = CrystalShards.seed(state, pos);
-        int count = growth(state) + 1;
-        long key = 0L;
-        for (Direction face : Direction.values()) {
-            if (!CrystalShards.supports(level, pos, face)) {
-                continue;
-            }
-            List<Integer> order = CrystalShards.order(face, seed);
-            long faceMask = 0L;
-            for (int i = 0; i < count; i++) {
-                faceMask |= 1L << order.get(i);
-            }
-            key |= faceMask << (face.ordinal() * CrystalShards.COUNT);
-        }
-        if (key == 0L) {
-            return SHARD_SHAPES.get(Direction.DOWN).get(CrystalShards.unsupported(seed));
-        }
-        VoxelShape cached = shapeCache.get(key);
-        if (cached != null) {
-            return cached;
-        }
-        VoxelShape shape = buildShape(key);
-        if (shapeCache.size() < SHAPE_CACHE_LIMIT) {
-            shapeCache.put(key, shape);
-        }
-        return shape;
-    }
-
-    private static VoxelShape buildShape(long key) {
-        List<VoxelShape> parts = new ArrayList<>();
-        for (Direction face : Direction.values()) {
-            List<VoxelShape> shards = SHARD_SHAPES.get(face);
-            long faceMask = key >>> (face.ordinal() * CrystalShards.COUNT);
-            for (int shard = 0; shard < CrystalShards.COUNT; shard++) {
-                if ((faceMask & (1L << shard)) != 0L) {
-                    parts.add(shards.get(shard));
-                }
-            }
-        }
-        return Shapes.or(Shapes.empty(), parts.toArray(new VoxelShape[0])).optimize();
+        return CrystalShapes.shapeFor(state, level, pos);
     }
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty();
-    }
-
-    private static Map<Direction, List<VoxelShape>> shardShapes() {
-        Map<Direction, List<VoxelShape>> shapes = new EnumMap<>(Direction.class);
-        for (Direction face : Direction.values()) {
-            Matrix4f transform = CrystalFaceTransforms.forFace(face);
-            List<VoxelShape> shards = new ArrayList<>();
-            for (double[][] boxes : SHARD_BOXES) {
-                VoxelShape shard = Shapes.empty();
-                for (double[] box : boxes) {
-                    shard = Shapes.or(shard, transformed(transform, box));
-                }
-                shards.add(shard.optimize());
-            }
-            shapes.put(face, List.copyOf(shards));
-        }
-        return shapes;
-    }
-
-    private static VoxelShape transformed(Matrix4f transform, double[] box) {
-        Vector3f from = transform.transformPosition(new Vector3f((float) (box[0] / 16.0), (float) (box[1] / 16.0), (float) (box[2] / 16.0)));
-        Vector3f to = transform.transformPosition(new Vector3f((float) (box[3] / 16.0), (float) (box[4] / 16.0), (float) (box[5] / 16.0)));
-        return Shapes.box(snap(Math.min(from.x, to.x)), snap(Math.min(from.y, to.y)), snap(Math.min(from.z, to.z)), snap(Math.max(from.x, to.x)), snap(Math.max(from.y, to.y)),
-                snap(Math.max(from.z, to.z)));
-    }
-
-    private static double snap(float value) {
-        return Math.round(value * SHAPE_SNAP) / SHAPE_SNAP;
     }
 
     @Override
@@ -177,95 +107,141 @@ public final class BlockCrystal extends Block {
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return hasSturdyNeighbour(level, pos);
+        return hasSupport(level, pos);
     }
 
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (!state.canSurvive(level, pos)) {
-            ticks.scheduleTick(pos, this, 1);
+        boolean unsupported = !hasSupport(level, pos);
+        if (unsupported && !level.isClientSide()) {
+            ticks.scheduleTick(pos, this, SUPPORT_RECHECK_DELAY);
         }
         return super.updateShape(state, level, ticks, pos, direction, neighbourPos, neighbourState, random);
     }
 
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (!state.canSurvive(level, pos)) {
+        if (!hasSupport(level, pos)) {
             level.destroyBlock(pos, true);
         }
     }
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (random.nextInt(3 + generation(state)) != 0) {
+        int rollBound = ACTIVITY_BASE + generation(state);
+        if (random.nextInt(rollBound) > 0) {
             return;
         }
-        int growth = growth(state);
-        int generation = generation(state);
-        if (!flux) {
-            float vis = AuraHelper.getVis(level, pos);
-            if (vis <= VIS_THRESHOLD) {
-                if (growth > 0) {
-                    level.setBlockAndUpdate(pos, state.setValue(SIZE, growth - 1));
-                    AuraHelper.addVis(level, pos, VIS_THRESHOLD);
-                } else if (touchingSameCrystal(level, pos)) {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-                    AuraHelper.addVis(level, pos, VIS_THRESHOLD);
-                    AuraHelper.addFlux(level, pos, DECAY_FLUX);
-                }
-            } else if (vis > AuraHelper.getAuraBase(level, pos) + VIS_THRESHOLD) {
-                if (growth < 3 && growth < 5 - generation + Math.floorMod(pos.asLong(), 3L)) {
-                    if (AuraHelper.drainVis(level, pos, VIS_THRESHOLD, false) > 0.0F) {
-                        level.setBlockAndUpdate(pos, state.setValue(SIZE, growth + 1));
-                    }
-                } else if (generation < 4) {
-                    BlockPos spreadTo = spreadCrystal(level, pos, random);
-                    if (spreadTo != null && AuraHelper.drainVis(level, pos, VIS_THRESHOLD, false) > 0.0F) {
-                        int childGeneration = generation;
-                        if (random.nextInt(6) == 0) {
-                            childGeneration--;
-                        }
-                        level.setBlockAndUpdate(spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
-                    }
-                }
-            } else {
-                float ambientFlux = AuraHelper.getFlux(level, pos);
-                int conversionCost = growth + 1;
-                if (ambientFlux > vis && ambientFlux > AuraHelper.getAuraBase(level, pos) / 2.0F && AuraHelper.drainFlux(level, pos, conversionCost, false) >= conversionCost - FLUX_DRAIN_TOLERANCE) {
-                    level.setBlockAndUpdate(pos, TTBlocks.CRYSTAL_VITIUM.get().defaultBlockState().setValue(SIZE, growth).setValue(GENERATION, generation));
-                }
-            }
-        } else {
-            float flux = AuraHelper.getFlux(level, pos);
-            if (flux <= VIS_THRESHOLD) {
-                if (growth > 0) {
-                    level.setBlockAndUpdate(pos, state.setValue(SIZE, growth - 1));
-                    AuraHelper.addFlux(level, pos, VIS_THRESHOLD);
-                } else if (touchingSameCrystal(level, pos)) {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-                    AuraHelper.addFlux(level, pos, VIS_THRESHOLD);
-                }
-            } else if (flux > AuraHelper.getAuraBase(level, pos) + VIS_THRESHOLD) {
-                if (growth < 3 && growth < 5 - generation + Math.floorMod(pos.asLong(), 3L)) {
-                    if (AuraHelper.drainFlux(level, pos, VIS_THRESHOLD, false) > 0.0F) {
-                        level.setBlockAndUpdate(pos, state.setValue(SIZE, growth + 1));
-                    }
-                } else if (generation < 4) {
-                    BlockPos spreadTo = spreadCrystal(level, pos, random);
-                    if (spreadTo != null && AuraHelper.drainFlux(level, pos, VIS_THRESHOLD, false) > 0.0F) {
-                        int childGeneration = generation;
-                        if (random.nextInt(6) == 0) {
-                            childGeneration--;
-                        }
-                        level.setBlockAndUpdate(spreadTo, defaultBlockState().setValue(GENERATION, childGeneration + 1));
-                    }
+        float base = AuraHelper.getAuraBase(level, pos);
+        float stock = currentStock(level, pos);
+        switch (classify(stock, base)) {
+            case STARVED -> starve(state, level, pos);
+            case RICH -> thrive(state, level, pos, random);
+            case MIDDLE -> {
+                if (!flux) {
+                    convertToFlux(state, level, pos, stock, base);
                 }
             }
         }
     }
 
-    private boolean touchingSameCrystal(LevelReader level, BlockPos pos) {
-        for (Direction direction : Direction.values()) {
+    private static AuraBand classify(float stock, float base) {
+        if (stock <= THRESHOLD) {
+            return AuraBand.STARVED;
+        }
+        return stock > base + THRESHOLD ? AuraBand.RICH : AuraBand.MIDDLE;
+    }
+
+    private float currentStock(ServerLevel level, BlockPos pos) {
+        return flux ? AuraHelper.getFlux(level, pos) : AuraHelper.getVis(level, pos);
+    }
+
+    private static boolean hasSupport(LevelReader level, BlockPos pos) {
+        return Arrays.stream(DIRECTIONS).anyMatch(side -> CrystalShards.supports(level, pos, side));
+    }
+
+    private void starve(BlockState state, ServerLevel level, BlockPos pos) {
+        int size = growth(state);
+        boolean depleted = size == 0;
+        if (depleted && !touchesSibling(level, pos)) {
+            return;
+        }
+        BlockState next = depleted ? Blocks.AIR.defaultBlockState() : state.setValue(SIZE, size - 1);
+        level.setBlock(pos, next, CHANGE_FLAGS);
+        returnToAura(level, pos);
+        if (depleted && !flux) {
+            AuraHelper.addFlux(level, pos, DECAY_FLUX);
+        }
+    }
+
+    private void thrive(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        int generation = generation(state);
+        int growthBonus = (int) Math.floorMod(state.getSeed(pos), (long) GROWTH_BONUS_VALUES);
+        int sizeCeiling = Math.min(MAX_SIZE, GROWTH_LIMIT_BASE - generation + growthBonus);
+        if (growth(state) < sizeCeiling) {
+            grow(state, level, pos);
+        } else if (generation < MAX_GENERATION) {
+            spread(level, pos, random, generation);
+        }
+    }
+
+    private void grow(BlockState state, ServerLevel level, BlockPos pos) {
+        if (drain(level, pos, TRANSFER) > 0.0F) {
+            level.setBlock(pos, state.setValue(SIZE, growth(state) + 1), CHANGE_FLAGS);
+        }
+    }
+
+    private void spread(ServerLevel level, BlockPos pos, RandomSource random, int generation) {
+        BlockPos target = pickSpreadTarget(level, pos, random);
+        if (target != null && drain(level, pos, TRANSFER) > 0.0F) {
+            int childGeneration = random.nextInt(SAME_GENERATION_ONE_IN) == 0 ? generation : generation + 1;
+            level.setBlock(target, offspring(childGeneration), CHANGE_FLAGS);
+        }
+    }
+
+    private BlockState offspring(int generation) {
+        return defaultBlockState().setValue(SIZE, MAX_SPAWN_SIZE).setValue(GENERATION, generation);
+    }
+
+    private void convertToFlux(BlockState state, ServerLevel level, BlockPos pos, float vis, float base) {
+        float fluxStock = AuraHelper.getFlux(level, pos);
+        boolean fluxDominates = fluxStock > vis && fluxStock > base / FLUX_CONVERSION_DIVISOR;
+        if (!fluxDominates) {
+            return;
+        }
+        float cost = growth(state) + 1;
+        float drained = AuraHelper.drainFlux(level, pos, cost, false);
+        if (drained < cost - DRAIN_TOLERANCE) {
+            return;
+        }
+        BlockState converted = TTBlocks.CRYSTAL_VITIUM.get().defaultBlockState().setValue(SIZE, growth(state)).setValue(GENERATION, generation(state));
+        level.setBlock(pos, converted, CHANGE_FLAGS);
+    }
+
+    private @Nullable BlockPos pickSpreadTarget(ServerLevel level, BlockPos pos, RandomSource random) {
+        int dx = random.nextInt(SPREAD_SPAN) - SPREAD_REACH;
+        int dy = random.nextInt(SPREAD_SPAN) - SPREAD_REACH;
+        int dz = random.nextInt(SPREAD_SPAN) - SPREAD_REACH;
+        if (dx == 0 && dy == 0 && dz == 0) {
+            return null;
+        }
+        if (random.nextInt(SPREAD_ACCEPT_ONE_IN) != 0) {
+            return null;
+        }
+        BlockPos target = pos.offset(dx, dy, dz);
+        return !level.isOutsideBuildHeight(target) && canReceiveSpread(level, target) ? target : null;
+    }
+
+    private static boolean canReceiveSpread(ServerLevel level, BlockPos target) {
+        BlockState occupant = level.getBlockState(target);
+        if (!occupant.getFluidState().isEmpty()) {
+            return false;
+        }
+        return (occupant.isAir() || occupant.canBeReplaced()) && hasSupport(level, target);
+    }
+
+    private boolean touchesSibling(ServerLevel level, BlockPos pos) {
+        for (Direction direction : DIRECTIONS) {
             if (level.getBlockState(pos.relative(direction)).is(this)) {
                 return true;
             }
@@ -273,35 +249,19 @@ public final class BlockCrystal extends Block {
         return false;
     }
 
-    private static boolean hasSturdyNeighbour(LevelReader level, BlockPos pos) {
-        for (Direction direction : Direction.values()) {
-            BlockPos neighbour = pos.relative(direction);
-            BlockState neighbourState = level.getBlockState(neighbour);
-            if (neighbourState.isFaceSturdy(level, neighbour, direction.getOpposite())) {
-                return true;
-            }
-        }
-        return false;
+    private float drain(ServerLevel level, BlockPos pos, float amount) {
+        return flux ? AuraHelper.drainFlux(level, pos, amount, false) : AuraHelper.drainVis(level, pos, amount, false);
     }
 
-    private BlockPos spreadCrystal(ServerLevel level, BlockPos pos, RandomSource random) {
-        int xx = pos.getX() + random.nextInt(3) - 1;
-        int yy = pos.getY() + random.nextInt(3) - 1;
-        int zz = pos.getZ() + random.nextInt(3) - 1;
-        BlockPos target = new BlockPos(xx, yy, zz);
-        if (target.equals(pos)) {
-            return null;
+    private void returnToAura(ServerLevel level, BlockPos pos) {
+        if (flux) {
+            AuraHelper.addFlux(level, pos, TRANSFER);
+        } else {
+            AuraHelper.addVis(level, pos, TRANSFER);
         }
-        BlockState targetState = level.getBlockState(target);
-        if (targetState.liquid()) {
-            return null;
-        }
-        if (!targetState.isAir() && !targetState.canBeReplaced()) {
-            return null;
-        }
-        if (random.nextInt(16) != 0) {
-            return null;
-        }
-        return hasSturdyNeighbour(level, target) ? target : null;
+    }
+
+    private enum AuraBand {
+        STARVED, RICH, MIDDLE
     }
 }

@@ -17,14 +17,13 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jspecify.annotations.Nullable;
 
 public abstract class BlockLamp extends BaseEntityBlock {
     private static final VoxelShape SHAPE = box(4.0, 2.0, 4.0, 12.0, 14.0, 12.0);
 
     protected BlockLamp(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.FACING, Direction.DOWN).setValue(BlockStateProperties.ENABLED, false));
+        registerDefaultState(stateDefinition.any().setValue(BlockStateProperties.FACING, Direction.DOWN).setValue(BlockStateProperties.ENABLED, false));
     }
 
     public static void showLit(Level level, BlockPos pos, BlockState state, boolean lit) {
@@ -44,21 +43,22 @@ public abstract class BlockLamp extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(BlockStateProperties.FACING, context.getClickedFace().getOpposite()).setValue(BlockStateProperties.ENABLED, false);
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return unlitFacing(context.getClickedFace().getOpposite());
     }
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        Direction facing = state.getValue(BlockStateProperties.FACING);
-        return !level.getBlockState(pos.relative(facing)).isAir();
+        BlockPos support = pos.relative(state.getValue(BlockStateProperties.FACING));
+        return !level.getBlockState(support).isAir();
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (!canSurvive(state, level, pos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
-        return super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        return state.canSurvive(level, pos) ? super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random) : Blocks.AIR.defaultBlockState();
+    }
+
+    private BlockState unlitFacing(Direction facing) {
+        return defaultBlockState().setValue(BlockStateProperties.ENABLED, false).setValue(BlockStateProperties.FACING, facing);
     }
 }

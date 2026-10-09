@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
-import com.leclowndu93150.thaumaturge.content.device.DeviceShapes;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,15 +22,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public class BlockSmelterAux extends Block {
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    private static final Map<Direction, VoxelShape> SHAPES = DeviceShapes.facingShapesFromNorth(Shapes.or(box(3.0, 0.0, 3.0, 13.0, 12.0, 13.0), box(2.0, 1.0, 2.0, 14.0, 2.0, 14.0),
-            box(2.0, 10.0, 2.0, 14.0, 11.0, 14.0), box(6.0, 12.0, 6.0, 10.0, 13.0, 10.0), box(6.0, 6.0, 1.0, 10.0, 10.0, 3.0), box(5.0, 5.0, 0.0, 11.0, 11.0, 1.0)));
+    private static final Map<Direction, VoxelShape> SHAPES = SmelterPartShapes.fromNorth(Shapes.or(Block.box(3, 0, 3, 13, 12, 13), Block.box(2, 1, 2, 14, 2, 14), Block.box(2, 10, 2, 14, 11, 14),
+            Block.box(6, 12, 6, 10, 13, 10), Block.box(6, 6, 1, 10, 10, 3), Block.box(5, 5, 0, 11, 11, 1)));
 
     public BlockSmelterAux(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -41,7 +39,7 @@ public class BlockSmelterAux extends Block {
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
-        return state.setValue(FACING, mirror.mirror(state.getValue(FACING)));
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
@@ -51,11 +49,8 @@ public class BlockSmelterAux extends Block {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction face = context.getClickedFace();
-        if (!face.getAxis().isHorizontal()) {
-            return null;
-        }
-        return defaultBlockState().setValue(FACING, face.getOpposite());
+        Direction clicked = context.getClickedFace();
+        return clicked.getAxis().isVertical() ? null : defaultBlockState().setValue(FACING, clicked.getOpposite());
     }
 
     @Override
@@ -65,15 +60,11 @@ public class BlockSmelterAux extends Block {
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return level.getBlockState(pos.relative(state.getValue(FACING))).getBlock() instanceof BlockSmelter
-                && level.getBlockState(pos.relative(state.getValue(FACING))).getValue(FACING) != state.getValue(FACING).getOpposite();
+        return SmelterPartShapes.attachedToSmelter(level, pos, state.getValue(FACING));
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (!canSurvive(state, level, pos)) {
-            return Blocks.AIR.defaultBlockState();
-        }
-        return super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        return canSurvive(state, level, pos) ? state : Blocks.AIR.defaultBlockState();
     }
 }

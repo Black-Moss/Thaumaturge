@@ -3,8 +3,8 @@ package com.leclowndu93150.thaumaturge.content.device;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
@@ -13,76 +13,99 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class BlockEntityLampArcane extends BlockEntity {
-    private static final int SPAWN_INTERVAL = 5;
-    private static final int SPREAD = 16;
-    private static final int SURFACE_CLEARANCE = 4;
-    private static final int MAX_BLOCK_LIGHT = 11;
-    private static final int CLEANUP_RADIUS = 15;
+    private static final int PLACE_INTERVAL = 5;
+    private static final int OFFSET_SPAN = 16;
+    private static final int LIGHT_RADIUS = 15;
+    private static final int SURFACE_CEILING = 4;
+    private static final int FLOOR_MARGIN = 5;
+    private static final int MAX_LIGHT_LEVEL = 11;
+
+    private final BlockPos.MutableBlockPos target = new BlockPos.MutableBlockPos();
 
     public BlockEntityLampArcane(BlockPos pos, BlockState state) {
         super(TTBlockEntities.LAMP_ARCANE.get(), pos, state);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityLampArcane lamp) {
-        boolean powered = level.hasNeighborSignal(pos);
-        if (powered == state.getValue(BlockStateProperties.ENABLED)) {
-            level.setBlock(pos, state.setValue(BlockStateProperties.ENABLED, !powered), Block.UPDATE_ALL);
-            if (powered) {
+        boolean lit = state.getValue(BlockStateProperties.ENABLED);
+        if (level.hasNeighborSignal(pos)) {
+            if (lit) {
+                BlockLamp.showLit(level, pos, state, false);
                 lamp.removeLights();
             }
-        }
-        if (level.getGameTime() % SPAWN_INTERVAL != 0 || powered) {
             return;
         }
-        int x = level.getRandom().nextInt(SPREAD) - level.getRandom().nextInt(SPREAD);
-        int y = level.getRandom().nextInt(SPREAD) - level.getRandom().nextInt(SPREAD);
-        int z = level.getRandom().nextInt(SPREAD) - level.getRandom().nextInt(SPREAD);
-        BlockPos target = pos.offset(x, y, z);
-        BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, target);
-        if (target.getY() > surface.getY() + SURFACE_CLEARANCE) {
-            target = surface.above(SURFACE_CLEARANCE);
+        if (!lit) {
+            BlockLamp.showLit(level, pos, state, true);
         }
-        if (target.getY() < level.getMinY() + SURFACE_CLEARANCE + 1) {
-            target = new BlockPos(target.getX(), level.getMinY() + SURFACE_CLEARANCE + 1, target.getZ());
-        }
-        if (level.getBlockState(target).isAir() && !level.getBlockState(target).is(TTBlocks.EFFECT_GLIMMER.get()) && level.getBrightness(LightLayer.BLOCK, target) < MAX_BLOCK_LIGHT
-                && hasLineOfSight(level, pos, target)) {
-            level.setBlock(target, TTBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
+        if (level.getGameTime() % PLACE_INTERVAL == 0) {
+            lamp.tryPlaceGlimmer(level, pos);
         }
     }
 
-    private static boolean hasLineOfSight(Level level, BlockPos from, BlockPos to) {
-        ClipContext context = new ClipContext(Vec3.atCenterOf(from), Vec3.atCenterOf(to), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty());
-        BlockHitResult hit = BlockGetter.traverseBlocks(context.getFrom(), context.getTo(), context, (ctx, pos) -> {
-            if (pos.equals(from)) {
-                return null;
-            }
-            BlockState state = level.getBlockState(pos);
-            return ctx.getBlockShape(state, level, pos).clip(ctx.getFrom(), ctx.getTo(), pos);
-        }, ctx -> null);
-        return hit == null || hit.getBlockPos().equals(to);
+    private static int spread(RandomSource random) {
+        return random.nextInt(OFFSET_SPAN) - random.nextInt(OFFSET_SPAN);
+    }
+
+    private void tryPlaceGlimmer(Level level, BlockPos origin) {
+        RandomSource random = level.getRandom();
+        int x = origin.getX() + spread(random);
+        int y = origin.getY() + spread(random);
+        int z = origin.getZ() + spread(random);
+        target.set(x, y, z);
+        if (!level.hasChunkAt(target)) {
+            return;
+        }
+        target.setY(adjustHeight(level, y));
+        if (!isFreeDarkCell(level) || !hasClearLine(level, origin, target)) {
+            return;
+        }
+        level.setBlock(target.immutable(), TTBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
+    }
+
+    private int adjustHeight(Level level, int wanted) {
+        int surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, target).getY();
+        int lowered = Math.min(wanted, surface + SURFACE_CEILING);
+        return Math.max(level.getMinY() + FLOOR_MARGIN, lowered);
+    }
+
+    private boolean isFreeDarkCell(Level level) {
+        return level.getBlockState(target).isAir() && level.getBrightness(LightLayer.BLOCK, target) < MAX_LIGHT_LEVEL;
+    }
+
+    private static boolean hasClearLine(Level level, BlockPos origin, BlockPos end) {
+        Vec3 from = Vec3.atCenterOf(origin);
+        Vec3 to = Vec3.atCenterOf(end);
+        BlockPos goal = end.immutable();
+        Boolean clear = BlockGetter.traverseBlocks(from, to, level, (getter, cell) -> blocksRay(getter, cell, origin, goal, from, to) ? Boolean.FALSE : null, getter -> Boolean.TRUE);
+        return clear;
+    }
+
+    private static boolean blocksRay(BlockGetter getter, BlockPos cell, BlockPos origin, BlockPos goal, Vec3 from, Vec3 to) {
+        if (cell.equals(origin) || cell.equals(goal)) {
+            return false;
+        }
+        VoxelShape shape = getter.getBlockState(cell).getCollisionShape(getter, cell);
+        return !shape.isEmpty() && shape.clip(from, to, cell) != null;
     }
 
     public void removeLights() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        BlockPos pos = getBlockPos();
-        for (int x = -CLEANUP_RADIUS; x <= CLEANUP_RADIUS; x++) {
-            for (int y = -CLEANUP_RADIUS; y <= CLEANUP_RADIUS; y++) {
-                for (int z = -CLEANUP_RADIUS; z <= CLEANUP_RADIUS; z++) {
-                    cursor.set(pos.getX() + x, pos.getY() + y, pos.getZ() + z);
-                    if (level.getBlockState(cursor).is(TTBlocks.EFFECT_GLIMMER.get())) {
-                        level.setBlock(cursor, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-                    }
-                }
+        Block glimmer = TTBlocks.EFFECT_GLIMMER.get();
+        BlockState air = Blocks.AIR.defaultBlockState();
+        BlockPos low = worldPosition.offset(-LIGHT_RADIUS, -LIGHT_RADIUS, -LIGHT_RADIUS);
+        BlockPos high = worldPosition.offset(LIGHT_RADIUS, LIGHT_RADIUS, LIGHT_RADIUS);
+        for (BlockPos cell : BlockPos.betweenClosed(low, high)) {
+            if (!level.hasChunkAt(cell) || !level.getBlockState(cell).is(glimmer)) {
+                continue;
             }
+            level.setBlock(cell.immutable(), air, Block.UPDATE_ALL);
         }
     }
 

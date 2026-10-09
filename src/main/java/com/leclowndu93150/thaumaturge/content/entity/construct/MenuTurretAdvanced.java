@@ -2,8 +2,6 @@ package com.leclowndu93150.thaumaturge.content.entity.construct;
 
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
@@ -15,19 +13,16 @@ public final class MenuTurretAdvanced extends MenuTurretBasic {
     public static final int BUTTON_PLAYER = 3;
     public static final int BUTTON_FRIENDLY = 4;
 
-    public MenuTurretAdvanced(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(TTMenus.TURRET_ADVANCED.get(), containerId, playerInventory, playerInventory.player.level().getEntity(buf.readVarInt()) instanceof EntityTurretCrossbowAdvanced t ? t : null, AMMO_X,
-                AMMO_Y);
+    public MenuTurretAdvanced(int containerId, Inventory inventory, RegistryFriendlyByteBuf buf) {
+        super(TTMenus.TURRET_ADVANCED.get(), containerId, inventory, resolve(inventory, buf.readVarInt()), AMMO_X, AMMO_Y);
     }
 
-    private MenuTurretAdvanced(int containerId, Inventory playerInventory, @Nullable EntityTurretCrossbowAdvanced turret) {
-        super(TTMenus.TURRET_ADVANCED.get(), containerId, playerInventory, turret, AMMO_X, AMMO_Y);
+    private MenuTurretAdvanced(int containerId, Inventory inventory, EntityTurretCrossbowAdvanced turret) {
+        super(TTMenus.TURRET_ADVANCED.get(), containerId, inventory, turret, AMMO_X, AMMO_Y);
     }
 
     public static void open(Player player, EntityTurretCrossbowAdvanced turret) {
-        if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new SimpleMenuProvider((id, inv, p) -> new MenuTurretAdvanced(id, inv, turret), turret.getDisplayName()), buf -> buf.writeVarInt(turret.getId()));
-        }
+        present(player, turret, (containerId, inventory, viewer) -> new MenuTurretAdvanced(containerId, inventory, turret));
     }
 
     public @Nullable EntityTurretCrossbowAdvanced advancedTurret() {
@@ -35,20 +30,23 @@ public final class MenuTurretAdvanced extends MenuTurretBasic {
     }
 
     @Override
-    public boolean clickMenuButton(Player player, int id) {
-        EntityTurretCrossbowAdvanced advanced = advancedTurret();
-        if (advanced == null) {
-            return super.clickMenuButton(player, id);
+    public boolean clickMenuButton(Player player, int buttonId) {
+        if (buttonId < BUTTON_ANIMAL || buttonId > BUTTON_FRIENDLY) {
+            return super.clickMenuButton(player, buttonId);
         }
-        switch (id) {
-            case BUTTON_ANIMAL -> advanced.setTargetAnimal(!advanced.getTargetAnimal());
-            case BUTTON_MOB -> advanced.setTargetMob(!advanced.getTargetMob());
-            case BUTTON_PLAYER -> advanced.setTargetPlayer(!advanced.getTargetPlayer());
-            case BUTTON_FRIENDLY -> advanced.setTargetFriendly(!advanced.getTargetFriendly());
-            default -> {
-                return super.clickMenuButton(player, id);
-            }
+        EntityTurretCrossbowAdvanced advanced = advancedTurret();
+        if (advanced != null && !player.level().isClientSide()) {
+            toggle(advanced, buttonId);
         }
         return true;
+    }
+
+    private static void toggle(EntityTurretCrossbowAdvanced advanced, int buttonId) {
+        switch (buttonId) {
+            case BUTTON_ANIMAL -> advanced.flipFilter(TurretFilter.ANIMALS);
+            case BUTTON_MOB -> advanced.flipFilter(TurretFilter.MOBS);
+            case BUTTON_PLAYER -> advanced.flipFilter(TurretFilter.PLAYERS);
+            default -> advanced.flipFilter(TurretFilter.FRIENDLY);
+        }
     }
 }

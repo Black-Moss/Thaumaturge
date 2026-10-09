@@ -7,103 +7,119 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 
 public final class GolemHands implements IGolemHands {
-    private static final List<EquipmentSlot> ONE_HAND = List.of(EquipmentSlot.MAINHAND);
-    private static final List<EquipmentSlot> TWO_HANDS = List.of(EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND);
+    private static final int BASE_HAND_COUNT = 1;
 
     private final EntityThaumaturgeGolem golem;
+    private final Hand primary;
+    private final Hand secondary;
+    private final List<Hand> allHands;
 
     public GolemHands(EntityThaumaturgeGolem golem) {
         this.golem = golem;
+        this.primary = new Hand(EquipmentSlot.MAINHAND);
+        this.secondary = new Hand(EquipmentSlot.OFFHAND);
+        this.allHands = List.of(primary, secondary);
     }
 
-    private List<EquipmentSlot> hands() {
-        return golem.properties().hasTrait(TTGolemTraits.HAULER.get()) ? TWO_HANDS : ONE_HAND;
+    private List<Hand> hands() {
+        return golem.hasTrait(TTGolemTraits.HAULER) ? allHands : allHands.subList(0, BASE_HAND_COUNT);
     }
 
     @Override
     public ItemStack hold(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return stack;
+        ItemStack leftover = stack;
+        for (Hand hand : hands()) {
+            leftover = hand.accept(leftover);
         }
-        for (EquipmentSlot hand : hands()) {
-            ItemStack held = golem.getItemBySlot(hand);
-            if (held.isEmpty()) {
-                golem.setItemSlot(hand, stack);
-                return ItemStack.EMPTY;
-            }
-            if (ItemStack.isSameItemSameComponents(held, stack) && held.getCount() < held.getMaxStackSize()) {
-                int moved = Math.min(stack.getCount(), held.getMaxStackSize() - held.getCount());
-                held.grow(moved);
-                stack.shrink(moved);
-                if (stack.isEmpty()) {
-                    return ItemStack.EMPTY;
-                }
-            }
-        }
-        return stack;
+        return leftover;
     }
 
     @Override
     public ItemStack release(ItemStack wanted) {
-        ItemStack released = ItemStack.EMPTY;
-        for (EquipmentSlot hand : hands()) {
-            released = takeFrom(hand, wanted);
-            if (!released.isEmpty()) {
-                break;
-            }
-        }
-        shiftToMainHand();
-        return released;
+        ItemStack result = hands().stream().filter(hand -> hand.supplies(wanted)).findFirst().map(hand -> hand.withdraw(wanted)).orElse(ItemStack.EMPTY);
+        refillPrimary();
+        return result;
     }
 
-    private ItemStack takeFrom(EquipmentSlot hand, ItemStack wanted) {
-        ItemStack held = golem.getItemBySlot(hand);
-        if (held.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        if (wanted.isEmpty()) {
-            golem.setItemSlot(hand, ItemStack.EMPTY);
-            return held.copy();
-        }
-        if (!ItemStack.isSameItemSameComponents(held, wanted)) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack taken = held.copyWithCount(Math.min(wanted.getCount(), held.getCount()));
-        held.shrink(wanted.getCount());
-        if (held.isEmpty()) {
-            golem.setItemSlot(hand, ItemStack.EMPTY);
-        }
-        return taken;
-    }
-
-    private void shiftToMainHand() {
-        if (hands().size() > 1 && golem.getMainHandItem().isEmpty() && !golem.getOffhandItem().isEmpty()) {
-            golem.setItemSlot(EquipmentSlot.MAINHAND, golem.getOffhandItem().copy());
-            golem.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+    private void refillPrimary() {
+        if (hands().size() > BASE_HAND_COUNT && primary.isIdle() && !secondary.isIdle()) {
+            primary.set(secondary.get());
+            secondary.set(ItemStack.EMPTY);
         }
     }
 
     @Override
     public int room(ItemStack stack) {
-        int room = 0;
-        for (EquipmentSlot hand : hands()) {
-            ItemStack held = golem.getItemBySlot(hand);
-            if (held.isEmpty()) {
-                room += stack.getMaxStackSize();
-            } else if (ItemStack.isSameItemSameComponents(held, stack)) {
-                room += held.getMaxStackSize() - held.getCount();
-            }
-        }
-        return room;
+        return hands().stream().mapToInt(hand -> hand.space(stack)).sum();
     }
 
     @Override
     public boolean holds(ItemStack stack) {
-        return !stack.isEmpty() && hands().stream().map(golem::getItemBySlot).anyMatch(held -> !held.isEmpty() && ItemStack.isSameItemSameComponents(held, stack));
+        return !stack.isEmpty() && hands().stream().anyMatch(hand -> hand.carries(stack));
     }
 
     @Override
     public List<ItemStack> contents() {
-        return hands().stream().map(golem::getItemBySlot).toList();
+        return hands().stream().map(Hand::get).toList();
+    }
+
+    private final class Hand {
+        private final EquipmentSlot slot;
+
+        private Hand(EquipmentSlot slot) {
+            this.slot = slot;
+        }
+
+        private ItemStack get() {
+            return golem.getItemBySlot(slot);
+        }
+
+        private void set(ItemStack stack) {
+            golem.setItemSlot(slot, stack);
+        }
+
+        private boolean isIdle() {
+            return get().isEmpty();
+        }
+
+        private boolean carries(ItemStack kind) {
+            ItemStack held = get();
+            return !held.isEmpty() && ItemStack.isSameItemSameComponents(held, kind);
+        }
+
+        private int space(ItemStack kind) {
+            if (isIdle()) {
+                return kind.getMaxStackSize();
+            }
+            return carries(kind) ? Math.max(0, kind.getMaxStackSize() - get().getCount()) : 0;
+        }
+
+        private ItemStack accept(ItemStack incoming) {
+            if (incoming.isEmpty()) {
+                return incoming;
+            }
+            if (isIdle()) {
+                set(incoming);
+                return ItemStack.EMPTY;
+            }
+            int added = Math.min(incoming.getCount(), space(incoming));
+            get().grow(added);
+            incoming.shrink(added);
+            return incoming.isEmpty() ? ItemStack.EMPTY : incoming;
+        }
+
+        private boolean supplies(ItemStack wanted) {
+            return !isIdle() && (wanted.isEmpty() || carries(wanted));
+        }
+
+        private ItemStack withdraw(ItemStack wanted) {
+            ItemStack held = get();
+            int amount = wanted.isEmpty() ? held.getCount() : Math.min(wanted.getCount(), held.getCount());
+            ItemStack taken = held.split(amount);
+            if (held.isEmpty()) {
+                set(ItemStack.EMPTY);
+            }
+            return taken;
+        }
     }
 }

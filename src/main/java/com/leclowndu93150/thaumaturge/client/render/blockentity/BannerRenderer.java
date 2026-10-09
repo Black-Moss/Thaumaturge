@@ -11,7 +11,9 @@ import com.leclowndu93150.thaumaturge.content.decor.banner.BlockEntityBanner;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -21,28 +23,42 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4fc;
+import org.joml.Quaternionf;
 import org.jspecify.annotations.Nullable;
 
 public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBanner, BannerRenderState> {
-    private static final Identifier TEX_BLANK = TTIds.rl("textures/entity/banner_blank.png");
-    private static final Identifier TEX_CULTIST = TTIds.rl("textures/entity/banner_cultist.png");
-    private static final float SWAY_PERIOD = 11.0F;
-    private static final float WALL_FORWARD = -0.21875F;
-    private static final float MODEL_FLIP = 180.0F;
-    private static final int UPPER_CLOTH_SEGMENT = 0;
-    private static final float ASPECT_HALF_WIDTH = 0.3F;
-    private static final float ASPECT_TOP = 0.35F;
-    private static final float ASPECT_BOTTOM = 0.95F;
-    private static final float ASPECT_Z = -0.052F;
+    private static final Identifier BLANK_TEXTURE = TTIds.rl("textures/entity/banner_blank.png");
+    private static final Identifier CULTIST_TEXTURE = TTIds.rl("textures/entity/banner_cultist.png");
+    private static final float STANDING_STEP_DEGREES = 22.5F;
+    private static final int UNDYED = -1;
+    private static final int OPAQUE = 0xFF000000;
+    private static final float PHASE_X = 7.0F;
+    private static final float PHASE_Y = 9.0F;
+    private static final float PHASE_Z = 13.0F;
+    private static final float PHASE_DIVISOR = 11.0F;
+    private static final float HALF_TURN = 180.0F;
+    private static final float POSE_X = 0.5F;
+    private static final float POSE_Y = 1.5F;
+    private static final float WALL_OFFSET_Y = 1.0F;
+    private static final float WALL_OFFSET_Z = -0.21875F;
+    private static final float EMBLEM_DROP = -0.3125F;
+    private static final float EMBLEM_Z = -0.052F;
+    private static final float EMBLEM_HALF_WIDTH = 0.3F;
+    private static final float EMBLEM_BOTTOM = 0.35F;
+    private static final float EMBLEM_TOP = 0.95F;
+    private static final float EMBLEM_ALPHA = 0.75F;
+    private static final int OUTLINE_NONE = 0;
+    private static final int UNTINTED = -1;
+    private static final int TOP_SEGMENT = 0;
 
     private final TTBannerModel frame;
     private final TTBannerModel cloth;
@@ -61,70 +77,94 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     public void extractRenderState(BlockEntityBanner banner, BannerRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(banner, state, partialTicks, cameraPosition, breakProgress);
         BlockState blockState = banner.getBlockState();
-        state.onWall = blockState.getBlock() instanceof BannerWallBlock;
-        if (state.onWall) {
-            Direction facing = blockState.getValue(BannerWallBlock.FACING);
-            state.yawDegrees = switch (facing) {
-                case WEST -> 90.0F;
-                case NORTH -> 180.0F;
-                case EAST -> 270.0F;
-                default -> 0.0F;
-            };
+        Block block = blockState.getBlock();
+        boolean wall = block instanceof BannerWallBlock;
+        state.onWall = wall;
+        if (wall) {
+            state.yawDegrees = blockState.getValue(BannerWallBlock.FACING).toYRot();
         } else {
-            state.yawDegrees = blockState.getValue(BannerStandingBlock.ROTATION) * 22.5F;
+            state.yawDegrees = blockState.getValue(BannerStandingBlock.ROTATION) * STANDING_STEP_DEGREES;
         }
-        DyeColor dye = blockState.getBlock() instanceof AbstractBannerBlock bannerBlock ? bannerBlock.dye() : null;
-        state.color = dye == null ? -1 : 0xFF000000 | dye.getTextureDiffuseColor();
-        state.aspectTexture = null;
-        ResourceKey<IAspect> aspect = banner.aspect();
-        if (aspect != null && banner.getLevel() != null) {
-            state.aspectTexture = banner.getLevel().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(aspect).map(Holder::value).map(IAspect::texture).orElse(null);
-        }
-        BlockPos pos = banner.getBlockPos();
-        float time = (pos.getX() * 7 + pos.getY() * 9 + pos.getZ() * 13) + (Minecraft.getInstance().player == null ? 0 : Minecraft.getInstance().player.tickCount) + partialTicks;
-        state.phase = time / SWAY_PERIOD;
+        state.color = block instanceof AbstractBannerBlock bannerBlock ? tintOf(bannerBlock.dye()) : UNDYED;
+        state.aspectTexture = aspectTexture(banner);
+        state.phase = swayPhase(banner.getBlockPos(), partialTicks);
     }
 
     @Override
     public void submit(BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        Identifier texture = state.color == -1 ? TEX_CULTIST : TEX_BLANK;
-        int tint = state.color == -1 ? -1 : state.color;
         poseStack.pushPose();
-        poseStack.translate(0.5F, 1.5F, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F + state.yawDegrees));
+        orient(state, poseStack);
+        submitBody(state, poseStack, collector);
+        Identifier emblem = state.aspectTexture;
+        if (emblem != null) {
+            submitEmblem(state, poseStack, collector, emblem);
+        }
+        poseStack.popPose();
+    }
+
+    private static void orient(BannerRenderState state, PoseStack poseStack) {
+        poseStack.translate(POSE_X, POSE_Y, POSE_X);
+        poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
+        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN + state.yawDegrees));
         if (state.onWall) {
-            poseStack.translate(0.0F, 1.0F, WALL_FORWARD);
+            poseStack.translate(0.0F, WALL_OFFSET_Y, WALL_OFFSET_Z);
         }
+    }
+
+    private void submitBody(BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
+        RenderType layer = RenderTypes.entityCutout(state.color == UNDYED ? CULTIST_TEXTURE : BLANK_TEXTURE);
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(MODEL_FLIP));
-        RenderType renderType = RenderTypes.entityCutout(texture);
-        collector.submitModel(frame, state, poseStack, renderType, state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null, 0, null);
-        collector.submitModel(cloth, state, poseStack, renderType, state.lightCoords, OverlayTexture.NO_OVERLAY, tint, null, 0, null);
-        poseStack.popPose();
-        if (state.aspectTexture != null) {
-            submitAspect(collector, poseStack, state);
-        }
+        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN));
+        collector.submitModel(frame, state, poseStack, layer, state.lightCoords, OverlayTexture.NO_OVERLAY, UNTINTED, null, OUTLINE_NONE, state.breakProgress);
+        collector.submitModel(cloth, state, poseStack, layer, state.lightCoords, OverlayTexture.NO_OVERLAY, state.color, null, OUTLINE_NONE, state.breakProgress);
         poseStack.popPose();
     }
 
-    private void submitAspect(SubmitNodeCollector collector, PoseStack poseStack, BannerRenderState state) {
-        poseStack.pushPose();
-        poseStack.translate(0.0F, -5.0F / 16.0F, 0.0F);
-        poseStack.mulPose(Axis.XP.rotation(-TTBannerModel.clothBend(state.phase, UPPER_CLOTH_SEGMENT)));
+    private static int tintOf(@Nullable DyeColor dye) {
+        return dye == null ? UNDYED : OPAQUE | dye.getTextureDiffuseColor();
+    }
+
+    private static float swayPhase(BlockPos pos, float partialTicks) {
+        return (positionOffset(pos) + localPlayerTicks() + partialTicks) / PHASE_DIVISOR;
+    }
+
+    private static float positionOffset(BlockPos pos) {
+        return pos.getX() * PHASE_X + pos.getY() * PHASE_Y + pos.getZ() * PHASE_Z;
+    }
+
+    private static float localPlayerTicks() {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null ? 0.0F : player.tickCount;
+    }
+
+    private static void submitEmblem(BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, Identifier texture) {
         int light = state.lightCoords;
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(state.aspectTexture), (pose, buffer) -> {
-            Matrix4fc mat = pose.pose();
-            int color = ARGB.colorFromFloat(0.75F, 1.0F, 1.0F, 1.0F);
-            addVertex(buffer, mat, -ASPECT_HALF_WIDTH, ASPECT_TOP, 0.0F, 1.0F, color, light);
-            addVertex(buffer, mat, ASPECT_HALF_WIDTH, ASPECT_TOP, 1.0F, 1.0F, color, light);
-            addVertex(buffer, mat, ASPECT_HALF_WIDTH, ASPECT_BOTTOM, 1.0F, 0.0F, color, light);
-            addVertex(buffer, mat, -ASPECT_HALF_WIDTH, ASPECT_BOTTOM, 0.0F, 0.0F, color, light);
-        });
+        poseStack.pushPose();
+        poseStack.translate(0.0F, EMBLEM_DROP, 0.0F);
+        poseStack.mulPose(new Quaternionf().rotationX(-TTBannerModel.clothBend(state.phase, TOP_SEGMENT)));
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(texture), (pose, buffer) -> writeEmblem(pose, buffer, light));
         poseStack.popPose();
     }
 
-    private static void addVertex(VertexConsumer buffer, Matrix4fc mat, float x, float y, float u, float v, int color, int light) {
-        buffer.addVertex(mat, x, y, ASPECT_Z).setUv(u, v).setColor(color).setLight(light).setNormal(0.0F, 0.0F, -1.0F).setOverlay(OverlayTexture.NO_OVERLAY);
+    private static void writeEmblem(PoseStack.Pose pose, VertexConsumer buffer, int light) {
+        int color = ARGB.colorFromFloat(EMBLEM_ALPHA, 1.0F, 1.0F, 1.0F);
+        emblemVertex(pose, buffer, -EMBLEM_HALF_WIDTH, EMBLEM_BOTTOM, 0.0F, 1.0F, color, light);
+        emblemVertex(pose, buffer, EMBLEM_HALF_WIDTH, EMBLEM_BOTTOM, 1.0F, 1.0F, color, light);
+        emblemVertex(pose, buffer, EMBLEM_HALF_WIDTH, EMBLEM_TOP, 1.0F, 0.0F, color, light);
+        emblemVertex(pose, buffer, -EMBLEM_HALF_WIDTH, EMBLEM_TOP, 0.0F, 0.0F, color, light);
+    }
+
+    private static void emblemVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float u, float v, int color, int light) {
+        buffer.addVertex(pose, x, y, EMBLEM_Z).setColor(color).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, 0.0F, 0.0F, -1.0F);
+    }
+
+    private static @Nullable Identifier aspectTexture(BlockEntityBanner banner) {
+        Level level = banner.getLevel();
+        ResourceKey<IAspect> key = banner.aspect();
+        if (level == null || key == null) {
+            return null;
+        }
+        Optional<Holder.Reference<IAspect>> found = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(key);
+        return found.map(holder -> holder.value().texture()).orElse(null);
     }
 }

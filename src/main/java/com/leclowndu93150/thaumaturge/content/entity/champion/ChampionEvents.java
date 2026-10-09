@@ -1,23 +1,30 @@
 package com.leclowndu93150.thaumaturge.content.entity.champion;
 
-import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTLootTables;
-import net.minecraft.core.Holder;
+import java.util.Collection;
+import java.util.Set;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -28,41 +35,26 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class ChampionEvents {
     private static final int ROLL_BOUND = 100;
-    private static final double MIN_CHAMPION_HEALTH = 10.0;
-    private static final int XP_BASE = 5;
-    private static final int XP_SPREAD = 3;
+    private static final double MIN_BASE_HEALTH = 10.0;
+    private static final int LENIENT_BONUS = 2;
+    private static final int HARD_PENALTY = 2;
+    private static final int SPOOKY_PENALTY = 2;
+    private static final int SPOOKY_PENALTY_DISABLED = 1;
+    private static final int WHITELIST_FLOOR = 1;
+    private static final int KILL_EXPERIENCE_BASE = 5;
+    private static final int KILL_EXPERIENCE_SPREAD = 3;
+
+    private static final Set<ResourceKey<Level>> SPOOKY_DIMENSIONS = Set.of(Level.NETHER, Level.END);
 
     private ChampionEvents() {}
 
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (event.getLevel().isClientSide() || !(event.getEntity() instanceof Monster mob) || mob instanceof EntityCultistPortalLesser || ChampionHelper.rolled(mob)) {
+        Level level = event.getLevel();
+        if (level.isClientSide() || !(event.getEntity() instanceof Monster mob) || mob instanceof EntityCultistPortalLesser || ChampionHelper.rolled(mob)) {
             return;
         }
-        boolean allowed = ThaumaturgeCommonConfig.ALLOW_CHAMPION_MOBS.get();
-        int roll = mob.getRandom().nextInt(ROLL_BOUND);
-        Level level = mob.level();
-        if (level.getDifficulty() == Difficulty.EASY || !allowed) {
-            roll += 2;
-        }
-        if (level.getDifficulty() == Difficulty.HARD && allowed) {
-            roll -= 2;
-        }
-        Holder<Biome> biome = level.getBiome(mob.blockPosition());
-        if (biome.is(TTBiomeTags.IS_SPOOKY) || level.dimension() == Level.NETHER || level.dimension() == Level.END) {
-            roll -= allowed ? 2 : 1;
-        }
-        int whitelistBonus = 0;
-        boolean whitelisted = false;
-        Integer weight = mob.getType().builtInRegistryHolder().getData(ChampionDataMaps.CHAMPION_WHITELIST);
-        if (weight != null) {
-            whitelisted = true;
-            if (allowed) {
-                whitelistBonus = Math.max(whitelistBonus, weight - 1);
-            }
-        }
-        roll -= whitelistBonus;
-        if (whitelisted && roll <= 0 && mob.getAttributeBaseValue(Attributes.MAX_HEALTH) >= MIN_CHAMPION_HEALTH) {
+        if (winsRoll(level, mob)) {
             ChampionHelper.makeChampion(mob, false);
         } else {
             ChampionHelper.markRolled(mob);
@@ -71,25 +63,78 @@ public final class ChampionEvents {
 
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        if (!event.getEntity().level().isClientSide() && event.getEntity().is(ThaumaturgeEntityTypeTags.ELDRITCH)) {
-            ShieldChargeSound.playIfShielded(event.getEntity());
+        LivingEntity target = event.getEntity();
+        if (isServerSideEldritch(target)) {
+            ShieldChargeSound.playIfShielded(target);
         }
     }
 
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (!(entity.level() instanceof ServerLevel server) || !event.isRecentlyHit() || !MobTraits.isChampion(entity)) {
+        LivingEntity victim = event.getEntity();
+        if (!event.isRecentlyHit() || !MobTraits.isChampion(victim) || !(victim.level() instanceof ServerLevel level)) {
             return;
         }
-        Entity killer = event.getSource().getEntity();
-        if (killer instanceof FakePlayer) {
+        Player killer = victim.getLastHurtByPlayer();
+        if (killer == null || killer instanceof FakePlayer) {
             return;
         }
-        int xp = XP_BASE + entity.getRandom().nextInt(XP_SPREAD);
-        ExperienceOrb.award(server, entity.position(), xp);
-        entity.dropFromLootTable(server, event.getSource(), true, TTLootTables.CHAMPION_BAG,
-                bag -> event.getDrops().add(new ItemEntity(server, entity.getX(), entity.getY() + entity.getEyeHeight(), entity.getZ(), bag)));
+        ExperienceOrb.award(level, victim.position(), KILL_EXPERIENCE_BASE + victim.getRandom().nextInt(KILL_EXPERIENCE_SPREAD));
+        LootTable table = level.getServer().reloadableRegistries().getLootTable(TTLootTables.CHAMPION_BAG);
+        Collection<ItemEntity> drops = event.getDrops();
+        table.getRandomItems(bagParams(level, victim, killer, event.getSource()), reward -> drops.add(rewardEntity(level, victim, reward)));
     }
 
+    private static ItemEntity rewardEntity(ServerLevel level, LivingEntity victim, ItemStack reward) {
+        return new ItemEntity(level, victim.getX(), victim.getY(), victim.getZ(), reward);
+    }
+
+    private static boolean isServerSideEldritch(LivingEntity entity) {
+        return !entity.level().isClientSide() && entity.getType().builtInRegistryHolder().is(ThaumaturgeEntityTypeTags.ELDRITCH);
+    }
+
+    private static LootParams bagParams(ServerLevel level, LivingEntity victim, Player killer, DamageSource source) {
+        LootParams.Builder builder = new LootParams.Builder(level);
+        builder.withParameter(LootContextParams.LAST_DAMAGE_PLAYER, killer);
+        builder.withLuck(killer.getLuck());
+        builder.withParameter(LootContextParams.DAMAGE_SOURCE, source);
+        builder.withOptionalParameter(LootContextParams.DIRECT_ATTACKING_ENTITY, source.getDirectEntity());
+        builder.withOptionalParameter(LootContextParams.ATTACKING_ENTITY, source.getEntity());
+        builder.withParameter(LootContextParams.ORIGIN, victim.position());
+        builder.withParameter(LootContextParams.THIS_ENTITY, victim);
+        return builder.create(LootContextParamSets.ENTITY);
+    }
+
+    private static boolean winsRoll(Level level, Monster mob) {
+        Integer weight = mob.getType().builtInRegistryHolder().getData(ChampionDataMaps.CHAMPION_WHITELIST);
+        boolean eligible = weight != null && mob.getAttributeBaseValue(Attributes.MAX_HEALTH) >= MIN_BASE_HEALTH;
+        if (!eligible) {
+            return false;
+        }
+        boolean enabled = ThaumaturgeCommonConfig.ALLOW_CHAMPION_MOBS.get();
+        int roll = mob.getRandom().nextInt(ROLL_BOUND);
+        return roll + rollModifier(level, mob, enabled, weight) <= 0;
+    }
+
+    private static int rollModifier(Level level, Monster mob, boolean enabled, int weight) {
+        int modifier = 0;
+        Difficulty difficulty = level.getDifficulty();
+        if (difficulty == Difficulty.EASY || !enabled) {
+            modifier += LENIENT_BONUS;
+        }
+        if (difficulty == Difficulty.HARD && enabled) {
+            modifier -= HARD_PENALTY;
+        }
+        if (isSpooky(level, mob)) {
+            modifier -= enabled ? SPOOKY_PENALTY : SPOOKY_PENALTY_DISABLED;
+        }
+        if (enabled && weight > WHITELIST_FLOOR) {
+            modifier -= weight - WHITELIST_FLOOR;
+        }
+        return modifier;
+    }
+
+    private static boolean isSpooky(Level level, Monster mob) {
+        return SPOOKY_DIMENSIONS.contains(level.dimension()) || level.getBiome(mob.blockPosition()).is(TTBiomeTags.IS_SPOOKY);
+    }
 }

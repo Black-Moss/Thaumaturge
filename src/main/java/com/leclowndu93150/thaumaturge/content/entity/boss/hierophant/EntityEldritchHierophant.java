@@ -278,7 +278,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
             final double radius = EntityHierophantNova.START_RADIUS + (1 - progress) * 2;
             final double angle = age * 0.4;
             final Vec3 point = position().add(Math.cos(angle) * radius, SPELL_HEIGHT, Math.sin(angle) * radius);
-            Effects.blockRunes(level, point).color(0.65F, 0.4F, 0.8F).duration(16).send();
+            Effects.glyphField(level, point).color(0.65F, 0.4F, 0.8F).lifetime(16).send();
             level.sendParticles(new DustParticleOptions(AMBER_COLOR, 1.4F), point.x, point.y, point.z, 2, 0.1, 0.1, 0.1, 0);
         }
     }
@@ -326,7 +326,7 @@ public final class EntityEldritchHierophant extends EntityThaumaturgeBoss {
             return;
         }
         final Vec3 seal = ground(level, position);
-        Effects.arcBolt(level, releaseHand(false)).to(seal.add(0, 0.5, 0)).color(ARC_COLOR).send();
+        Effects.boltStrike(level, releaseHand(false)).to(seal.add(0, 0.5, 0)).color(ARC_COLOR).send();
         castSpell(TTIds.ELDRITCH_SIGIL, seal, Vec3.directionFromRotation(0, getYRot()), 1.4F, false);
     }
 

@@ -10,10 +10,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
 public abstract class AbstractChampionTrait implements MobTrait {
-    private static final double CHAMPION_HEALTH = 100.0;
-    private static final double CHAMPION_DAMAGE = 2.0;
-    private static final float ASSIGN_HEAL = 25.0F;
     private static final String NAME_KEY = "champion.thaumaturge.name";
+    private static final double BONUS_HEALTH = 100.0;
+    private static final double DAMAGE_MULTIPLIER_BONUS = 2.0;
+    private static final float ASSIGNMENT_HEAL = 25.0F;
 
     @Override
     public final boolean isChampion() {
@@ -22,14 +22,14 @@ public abstract class AbstractChampionTrait implements MobTrait {
 
     @Override
     public final void modifiers(LivingEntity mob, MobTraitModifiers modifiers) {
-        modifiers.add(Attributes.MAX_HEALTH, CHAMPION_HEALTH, AttributeModifier.Operation.ADD_VALUE);
-        modifiers.add(Attributes.ATTACK_DAMAGE, CHAMPION_DAMAGE, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        modifiers.add(Attributes.MAX_HEALTH, BONUS_HEALTH, AttributeModifier.Operation.ADD_VALUE);
+        modifiers.add(Attributes.ATTACK_DAMAGE, DAMAGE_MULTIPLIER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
         championModifiers(mob, modifiers);
     }
 
     @Override
     public final void onAdded(LivingEntity mob) {
-        mob.heal(ASSIGN_HEAL);
+        mob.heal(ASSIGNMENT_HEAL);
         mob.setCustomName(Component.translatable(NAME_KEY, MobTraitNames.of(TTMobTraits.registry().wrapAsHolder(this)), mob.getName()));
         onChampionAdded(mob);
     }

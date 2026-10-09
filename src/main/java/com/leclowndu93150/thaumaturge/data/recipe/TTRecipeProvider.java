@@ -24,6 +24,7 @@ import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.data.recipe.builders.CrucibleRecipeBuilder;
 import com.leclowndu93150.thaumaturge.data.recipe.builders.InfusionEnchantmentRecipeBuilder;
 import com.leclowndu93150.thaumaturge.data.recipe.builders.InfusionRecipeBuilder;
+import com.leclowndu93150.thaumaturge.data.recipe.builders.workbench.ArcaneWorkbenchRecipeBuilder;
 import com.leclowndu93150.thaumaturge.data.recipe.builders.workbench.ArcaneWorkbenchShapedRecipeBuilder;
 import com.leclowndu93150.thaumaturge.data.recipe.builders.workbench.ArcaneWorkbenchShapelessRecipeBuilder;
 import com.leclowndu93150.thaumaturge.mixin.data.recipes.RecipeProviderAccessor;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.UnaryOperator;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
@@ -52,6 +52,7 @@ import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
@@ -84,6 +85,15 @@ import net.neoforged.neoforge.registries.DeferredItem;
 
 public final class TTRecipeProvider extends RecipeProvider {
     private static final int ARCANE_GRINDSTONE_VIS = 50;
+    private static final List<GearShape> TOOL_SHAPES = List.of(new GearShape(RecipeCategory.COMBAT, true, List.of("I", "I", "S")),
+            new GearShape(RecipeCategory.TOOLS, true, List.of("III", " S ", " S ")), new GearShape(RecipeCategory.TOOLS, true, List.of("II", "IS", " S")),
+            new GearShape(RecipeCategory.TOOLS, true, List.of("I", "S", "S")), new GearShape(RecipeCategory.TOOLS, true, List.of("II", " S", " S")),
+            new GearShape(RecipeCategory.COMBAT, true, List.of("  I", " S ", "S  ")));
+    private static final List<GearShape> ARMOR_SHAPES = List.of(new GearShape(RecipeCategory.COMBAT, false, List.of("III", "I I")),
+            new GearShape(RecipeCategory.COMBAT, false, List.of("I I", "III", "III")), new GearShape(RecipeCategory.COMBAT, false, List.of("III", "I I", "I I")),
+            new GearShape(RecipeCategory.COMBAT, false, List.of("I I", "I I")));
+    private static final int ELEMENTAL_TOOL_INSTABILITY = 1;
+    private static final int CLOTH_VIS = 100;
 
     private TTRecipeProvider(HolderLookup.Provider provider, RecipeOutput output) {
         super(provider, output);
@@ -99,6 +109,76 @@ public final class TTRecipeProvider extends RecipeProvider {
 
     private static ResourceKey<Recipe<?>> recipeId(String path) {
         return ResourceKey.create(Registries.RECIPE, TTIds.rl(path));
+    }
+
+    private static AspectCost cost(ResourceKey<IAspect> aspect, int amount) {
+        return new AspectCost(aspect, amount);
+    }
+
+    private static <R extends ArcaneWorkbenchRecipeBuilder<R>> R priced(R builder, AspectCost... costs) {
+        for (AspectCost cost : costs) {
+            builder.aspect(cost.aspect(), cost.amount());
+        }
+        return builder;
+    }
+
+    private static CrucibleRecipeBuilder priced(CrucibleRecipeBuilder builder, AspectCost... costs) {
+        for (AspectCost cost : costs) {
+            builder.aspect(cost.aspect(), cost.amount());
+        }
+        return builder;
+    }
+
+    private static InfusionRecipeBuilder priced(InfusionRecipeBuilder builder, AspectCost... costs) {
+        for (AspectCost cost : costs) {
+            builder.aspect(cost.aspect(), cost.amount());
+        }
+        return builder;
+    }
+
+    private static ShapedRecipeBuilder rows(ShapedRecipeBuilder builder, String... rows) {
+        for (String row : rows) {
+            builder.pattern(row);
+        }
+        return builder;
+    }
+
+    private static ArcaneWorkbenchShapedRecipeBuilder rows(ArcaneWorkbenchShapedRecipeBuilder builder, String... rows) {
+        for (String row : rows) {
+            builder.pattern(row);
+        }
+        return builder;
+    }
+
+    private void commit(RecipeBuilder builder) {
+        builder.save(output);
+    }
+
+    private void commit(RecipeBuilder builder, String id) {
+        builder.save(output, id);
+    }
+
+    private void commit(RecipeBuilder builder, ResourceKey<Recipe<?>> key) {
+        builder.save(output, key);
+    }
+
+    private void commit(RecipeBuilder builder, RecipeOutput target) {
+        builder.save(target);
+    }
+
+    private void commit(RecipeBuilder builder, RecipeOutput target, String id) {
+        builder.save(target, id);
+    }
+
+    private RecipeOutput whenTagPresent(TagKey<Item> tag) {
+        return output.withConditions(new NotCondition(new TagEmptyCondition<>(tag)));
+    }
+
+    private static InfusionRecipeBuilder parts(InfusionRecipeBuilder builder, Ingredient... ingredients) {
+        for (Ingredient ingredient : ingredients) {
+            builder.component(ingredient);
+        }
+        return builder;
     }
 
     @Override
@@ -134,28 +214,32 @@ public final class TTRecipeProvider extends RecipeProvider {
         buildWandRecipes();
         buildNodeHusbandryRecipes();
 
-        shapeless(RecipeCategory.MISC, TTItems.SCRIBING_TOOLS).requires(TTItems.PHIAL).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.FEATHERS).unlockedBy("has", has(TTItems.PHIAL)).save(output);
+        commit(shapeless(RecipeCategory.MISC, TTItems.SCRIBING_TOOLS).requires(TTItems.PHIAL).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.FEATHERS).unlockedBy("has", has(TTItems.PHIAL)));
 
-        shapeless(RecipeCategory.MISC, TTItems.SCRIBING_TOOLS).requires(Items.GLASS_BOTTLE).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.FEATHERS).unlockedBy("has", has(Tags.Items.GLASS_PANES))
-                .save(output, TTIds.MODID + ":scribing_tools_alt");
+        commit(shapeless(RecipeCategory.MISC, TTItems.SCRIBING_TOOLS).requires(Items.GLASS_BOTTLE).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.FEATHERS).unlockedBy("has",
+                has(Tags.Items.GLASS_PANES)), TTIds.MODID + ":scribing_tools_alt");
 
-        shapeless(RecipeCategory.MISC, TTItems.LABEL, 4).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.SLIME_BALLS).requires(Items.PAPER, 4).unlockedBy("has", has(Tags.Items.SLIME_BALLS))
-                .save(output);
+        commit(shapeless(RecipeCategory.MISC, TTItems.LABEL, 4).requires(Tags.Items.DYES_BLACK).requires(Tags.Items.SLIME_BALLS).requires(Items.PAPER, 4).unlockedBy("has",
+                has(Tags.Items.SLIME_BALLS)));
 
-        shapeless(RecipeCategory.MISC, TTItems.LABEL).requires(TTItems.LABEL).unlockedBy("has", has(TTItems.LABEL)).save(output, TTIds.MODID + ":label_clear");
+        commit(shapeless(RecipeCategory.MISC, TTItems.LABEL).requires(TTItems.LABEL).unlockedBy("has", has(TTItems.LABEL)), TTIds.MODID + ":label_clear");
 
         SpecialRecipeBuilder.special(LabelFilterRecipe::new).save(output, TTIds.rl("label_filter").toString());
 
-        shaped(RecipeCategory.MISC, TTItems.JAR_BRACE, 2).pattern("SBS").pattern("B B").pattern("SBS").define('S', Tags.Items.RODS_WOODEN).define('B', TTItemTags.NUGGETS_BRASS)
-                .unlockedBy("has", has(TTItemTags.NUGGETS_BRASS)).save(output);
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.JAR_BRACE, 2), "SBS", "B B", "SBS").define('S', Tags.Items.RODS_WOODEN).define('B', TTItemTags.NUGGETS_BRASS).unlockedBy("has",
+                has(TTItemTags.NUGGETS_BRASS)));
 
         for (DyeColor color : DyeColor.values()) {
             shapeless(RecipeCategory.MISC, TTItems.NITORS.get(color).get()).requires(TTItemTags.NITORS).requires(color.getTag()).group(NITOR_DYE_GROUP).unlockedBy("has", has(TTItemTags.NITORS))
                     .save(output, TTIds.MODID + ":nitors/" + color.getName());
         }
 
-        shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.STONE_ARCANE, 8).pattern("SSS").pattern("SVS").pattern("SSS").define('S', Tags.Items.STONES).define('V', TTItems.ESSENTIA_CRYSTAL)
-                .unlockedBy("has", has(TTItems.ESSENTIA_CRYSTAL)).save(output);
+        ShapedRecipeBuilder arcaneStone = shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.STONE_ARCANE, 8);
+        rows(arcaneStone, "SSS", "SVS", "SSS");
+        arcaneStone.define('S', Tags.Items.STONES);
+        arcaneStone.define('V', TTItems.ESSENTIA_CRYSTAL);
+        arcaneStone.unlockedBy("has", has(TTItems.ESSENTIA_CRYSTAL));
+        commit(arcaneStone);
 
         TTBlockFamilies.getAllFamilies().forEach(family -> {
             family.getVariants().forEach((variant, result) -> {
@@ -174,19 +258,19 @@ public final class TTRecipeProvider extends RecipeProvider {
             });
         });
 
-        shapeless(RecipeCategory.BUILDING_BLOCKS, TTItems.PLANK_GREATWOOD, 4).requires(TTItemTags.GREATWOOD_LOGS).unlockedBy("has", has(TTItemTags.GREATWOOD_LOGS)).save(output);
+        commit(shapeless(RecipeCategory.BUILDING_BLOCKS, TTItems.PLANK_GREATWOOD, 4).requires(TTItemTags.GREATWOOD_LOGS).unlockedBy("has", has(TTItemTags.GREATWOOD_LOGS)));
 
-        shapeless(RecipeCategory.BUILDING_BLOCKS, TTItems.PLANK_SILVERWOOD, 4).requires(TTItemTags.SILVERWOOD_LOGS).unlockedBy("has", has(TTItemTags.SILVERWOOD_LOGS)).save(output);
+        commit(shapeless(RecipeCategory.BUILDING_BLOCKS, TTItems.PLANK_SILVERWOOD, 4).requires(TTItemTags.SILVERWOOD_LOGS).unlockedBy("has", has(TTItemTags.SILVERWOOD_LOGS)));
 
-        shaped(RecipeCategory.MISC, TTItems.PHIAL, 8).pattern(" C ").pattern("P P").pattern(" P ").define('C', Items.CLAY_BALL).define('P', Tags.Items.GLASS_BLOCKS)
-                .unlockedBy("has", has(Tags.Items.GLASS_BLOCKS)).save(output);
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.PHIAL, 8), " C ", "P P", " P ").define('C', Items.CLAY_BALL).define('P', Tags.Items.GLASS_BLOCKS).unlockedBy("has",
+                has(Tags.Items.GLASS_BLOCKS)));
 
         oreSmelting(TTItems.QUICKSILVER, TTItemTags.ORES_CINNABAR, 1F, "quicksilver");
         rawSmelting(TTItems.QUICKSILVER, TTItemTags.RAW_MATERIALS_CINNABAR, 0.7F, "quicksilver", "raw_cinnabar");
         oreSmelting(TTItems.AMBER, TTItemTags.ORES_AMBER, 1F, "amber");
         oreSmelting(Items.QUARTZ, Tags.Items.ORES_QUARTZ, 0.2F, "quartz");
 
-        SimpleCookingRecipeBuilder.smoking(Ingredient.of(Items.RESIN_CLUMP), RecipeCategory.MISC, TTItems.AMBER.get(), AMBER_FROM_RESIN_XP, AMBER_FROM_RESIN_TIME).group("amber")
+        SimpleCookingRecipeBuilder.smoking(single(Items.RESIN_CLUMP), RecipeCategory.MISC, TTItems.AMBER.get(), AMBER_FROM_RESIN_XP, AMBER_FROM_RESIN_TIME).group("amber")
                 .unlockedBy("has", has(Items.RESIN_CLUMP)).save(output, ResourceKey.create(Registries.RECIPE, TTIds.rl("amber_from_resin")));
 
         block3x3(TTItems.METAL_BRASS_BLOCK, TTItemTags.INGOTS_BRASS, TTItems.INGOT_BRASS, TTItemTags.STORAGE_BLOCKS_BRASS);
@@ -211,29 +295,28 @@ public final class TTRecipeProvider extends RecipeProvider {
         clusterSmelting(TTItems.QUICKSILVER, TTItems.CLUSTER_CINNABAR, "quicksilver");
         clusterSmelting(Items.QUARTZ, TTItems.CLUSTER_QUARTZ, "quartz");
 
-        shapeless(RecipeCategory.MISC, TTItems.QUICKSILVER).requires(TTItems.PLANT_SHIMMERLEAF).unlockedBy("has", has(TTItems.PLANT_SHIMMERLEAF)).save(output,
+        commit(shapeless(RecipeCategory.MISC, TTItems.QUICKSILVER).requires(TTItems.PLANT_SHIMMERLEAF).unlockedBy("has", has(TTItems.PLANT_SHIMMERLEAF)),
                 TTIds.MODID + ":quicksilver_from_shimmerleaf");
 
-        shapeless(RecipeCategory.MISC, Items.BLAZE_POWDER).requires(TTItems.PLANT_CINDERPEARL).unlockedBy("has", has(TTItems.PLANT_CINDERPEARL)).save(output,
+        commit(shapeless(RecipeCategory.MISC, Items.BLAZE_POWDER).requires(TTItems.PLANT_CINDERPEARL).unlockedBy("has", has(TTItems.PLANT_CINDERPEARL)),
                 TTIds.MODID + ":blaze_powder_from_cinderpearl");
 
-        shaped(RecipeCategory.DECORATIONS, TTBlocks.CANDLES.get(DyeColor.WHITE).get(), 3).pattern(" S ").pattern(" T ").pattern(" T ").define('S', Tags.Items.STRINGS).define('T', TTItems.TALLOW.get())
-                .unlockedBy("has_tallow", has(TTItems.TALLOW.get())).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.CANDLE_HOLDERS.get(CandleHolderMaterial.BRASS)), 10).aspect(TTAspects.IGNIS, 1).pattern(" N ").pattern("NPN").define('N', TTItemTags.NUGGETS_BRASS)
-                .define('P', TTItemTags.PLATES_BRASS).gate(gate("candle_holders", 1)).unlockedBy("has", has(TTItemTags.PLATES_BRASS)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.CANDLE_HOLDERS.get(CandleHolderMaterial.THAUMIUM)), 25).aspect(TTAspects.IGNIS, 1).aspect(TTAspects.ORDO, 1).pattern(" N ").pattern("NPN")
-                .define('N', TTItemTags.NUGGETS_THAUMIUM).define('P', TTItemTags.PLATES_THAUMIUM).gate(gate("candle_holders", 2)).unlockedBy("has", has(TTItemTags.PLATES_THAUMIUM)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.CANDLE_HOLDERS.get(CandleHolderMaterial.VOID)), 50).aspect(TTAspects.IGNIS, 1).aspect(TTAspects.PERDITIO, 1).pattern(" N ").pattern("NPN")
-                .define('N', TTItemTags.NUGGETS_VOID_METAL).define('P', TTItemTags.PLATES_VOID_METAL).gate(gate("candle_holders", 3)).unlockedBy("has", has(TTItemTags.PLATES_VOID_METAL)).save(output);
+        commit(rows(shaped(RecipeCategory.DECORATIONS, TTBlocks.CANDLES.get(DyeColor.WHITE).get(), 3), " S ", " T ", " T ").define('S', Tags.Items.STRINGS).define('T', TTItems.TALLOW.get())
+                .unlockedBy("has_tallow", has(TTItems.TALLOW.get())));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.CANDLE_HOLDERS.get(CandleHolderMaterial.BRASS)), 10), cost(TTAspects.IGNIS, 1)), " N ", "NPN")
+                .define('N', TTItemTags.NUGGETS_BRASS).define('P', TTItemTags.PLATES_BRASS).gate(gate("candle_holders", 1)).unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.CANDLE_HOLDERS.get(CandleHolderMaterial.THAUMIUM)), 25), cost(TTAspects.IGNIS, 1), cost(TTAspects.ORDO, 1)), " N ", "NPN")
+                .define('N', TTItemTags.NUGGETS_THAUMIUM).define('P', TTItemTags.PLATES_THAUMIUM).gate(gate("candle_holders", 2)).unlockedBy("has", has(TTItemTags.PLATES_THAUMIUM)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.CANDLE_HOLDERS.get(CandleHolderMaterial.VOID)), 50), cost(TTAspects.IGNIS, 1), cost(TTAspects.PERDITIO, 1)), " N ", "NPN")
+                .define('N', TTItemTags.NUGGETS_VOID_METAL).define('P', TTItemTags.PLATES_VOID_METAL).gate(gate("candle_holders", 3)).unlockedBy("has", has(TTItemTags.PLATES_VOID_METAL)));
         for (DyeColor dye : DyeColor.values()) {
             shapeless(RecipeCategory.DECORATIONS, TTBlocks.CANDLES.get(dye).get()).requires(dyeTag(dye)).requires(TTItemTags.CANDLES).unlockedBy("has_candle", has(TTItemTags.CANDLES)).save(output,
                     TTIds.MODID + ":candle_" + dye.getName() + "_from_dye");
         }
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.THAUMONOMICON_LINKING),
-                Ingredient.of(TTItems.THAUMONOMICON_SHARING)).aspect(TTAspects.COGNITIO, 40).aspect(TTAspects.SENSUS, 20).aspect(TTAspects.ALIENIS, 10).component(Ingredient.of(TTItems.VOID_SEED))
-                .component(Ingredient.of(TTItems.BRAIN)).component(Ingredient.of(TTItems.VOID_SEED)).component(Ingredient.of(Items.ENDER_EYE)).instability(2).gate(gate("link_book", 1))
-                .unlockedBy("has", has(TTItems.THAUMONOMICON_SHARING)).save(output);
+        commit(parts(priced(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.THAUMONOMICON_LINKING), single(TTItems.THAUMONOMICON_SHARING)), cost(TTAspects.COGNITIO, 40),
+                cost(TTAspects.SENSUS, 20), cost(TTAspects.ALIENIS, 10)), single(TTItems.VOID_SEED), single(TTItems.BRAIN), single(TTItems.VOID_SEED), single(Items.ENDER_EYE)).instability(2)
+                .gate(gate("link_book", 1)).unlockedBy("has", has(TTItems.THAUMONOMICON_SHARING)));
 
         woodFromLogs(TTItems.WOOD_GREATWOOD, TTItems.LOG_GREATWOOD);
         woodFromLogs(TTItems.STRIPPED_WOOD_GREATWOOD, TTItems.STRIPPED_LOG_GREATWOOD);
@@ -242,76 +325,75 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private void block3x3(ItemLike block, TagKey<Item> baseTag, ItemLike baseItem, TagKey<Item> blockTag) {
-        shaped(RecipeCategory.MISC, block).pattern("###").pattern("###").pattern("###").define('#', baseTag).unlockedBy("has", has(baseTag)).save(output);
+        commit(rows(shaped(RecipeCategory.MISC, block), "###", "###", "###").define('#', baseTag).unlockedBy("has", has(baseTag)));
 
-        shapeless(RecipeCategory.MISC, baseItem, 9).requires(blockTag).unlockedBy("has", has(blockTag)).save(output,
+        commit(shapeless(RecipeCategory.MISC, baseItem, 9).requires(blockTag).unlockedBy("has", has(blockTag)),
                 TTIds.MODID + ":" + BuiltInRegistries.ITEM.getKey(baseItem.asItem()).getPath() + "_from_block");
     }
 
     private void block2x2(ItemLike block, TagKey<Item> baseTag, ItemLike baseItem, TagKey<Item> blockTag) {
-        shaped(RecipeCategory.MISC, block).pattern("##").pattern("##").define('#', baseTag).unlockedBy("has", has(baseTag)).save(output);
+        commit(rows(shaped(RecipeCategory.MISC, block), "##", "##").define('#', baseTag).unlockedBy("has", has(baseTag)));
 
-        shapeless(RecipeCategory.MISC, baseItem, 4).requires(blockTag).unlockedBy("has", has(blockTag)).save(output,
+        commit(shapeless(RecipeCategory.MISC, baseItem, 4).requires(blockTag).unlockedBy("has", has(blockTag)),
                 TTIds.MODID + ":" + BuiltInRegistries.ITEM.getKey(baseItem.asItem()).getPath() + "_from_block");
     }
 
     private void nuggets3x3(ItemLike item, TagKey<Item> nuggetsTag, ItemLike nuggets, TagKey<Item> itemTag) {
-        shaped(RecipeCategory.MISC, item).pattern("###").pattern("###").pattern("###").define('#', nuggetsTag).unlockedBy("has", has(nuggetsTag)).save(output,
+        commit(rows(shaped(RecipeCategory.MISC, item), "###", "###", "###").define('#', nuggetsTag).unlockedBy("has", has(nuggetsTag)),
                 TTIds.MODID + ":" + BuiltInRegistries.ITEM.getKey(nuggets.asItem()).getPath() + "_from_nuggets");
 
-        shapeless(RecipeCategory.MISC, nuggets, 9).requires(itemTag).unlockedBy("has", has(itemTag)).save(output);
+        commit(shapeless(RecipeCategory.MISC, nuggets, 9).requires(itemTag).unlockedBy("has", has(itemTag)));
     }
 
     private void oreSmelting(ItemLike item, TagKey<Item> oreTag, float xp, String group) {
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(items.getOrThrow(oreTag)), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 200).group(group).unlockedBy("has", this.has(oreTag))
-                .save(this.output, recipeId(getItemName(item) + "_from_ore"));
+        SimpleCookingRecipeBuilder.smelting(tagged(oreTag), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 200).group(group).unlockedBy("has", this.has(oreTag)).save(this.output,
+                recipeId(getItemName(item) + "_from_ore"));
 
-        SimpleCookingRecipeBuilder.blasting(Ingredient.of(items.getOrThrow(oreTag)), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 100).group(group).unlockedBy("has", this.has(oreTag))
-                .save(this.output, recipeId(getItemName(item) + "_blasting_from_ore"));
+        SimpleCookingRecipeBuilder.blasting(tagged(oreTag), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 100).group(group).unlockedBy("has", this.has(oreTag)).save(this.output,
+                recipeId(getItemName(item) + "_blasting_from_ore"));
     }
 
     private void rawSmelting(ItemLike item, TagKey<Item> rawTag, float xp, String group, String rawName) {
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(items.getOrThrow(rawTag)), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 200).group(group).unlockedBy("has", this.has(rawTag))
-                .save(this.output, recipeId(getItemName(item) + "_from_" + rawName));
+        SimpleCookingRecipeBuilder.smelting(tagged(rawTag), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 200).group(group).unlockedBy("has", this.has(rawTag)).save(this.output,
+                recipeId(getItemName(item) + "_from_" + rawName));
 
-        SimpleCookingRecipeBuilder.blasting(Ingredient.of(items.getOrThrow(rawTag)), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 100).group(group).unlockedBy("has", this.has(rawTag))
-                .save(this.output, recipeId(getItemName(item) + "_blasting_from_" + rawName));
+        SimpleCookingRecipeBuilder.blasting(tagged(rawTag), RecipeCategory.MISC, CookingBookCategory.MISC, item, xp, 100).group(group).unlockedBy("has", this.has(rawTag)).save(this.output,
+                recipeId(getItemName(item) + "_blasting_from_" + rawName));
     }
 
     private void clusterSmelting(ItemLike item, ItemLike cluster, String group) {
 
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(cluster), RecipeCategory.MISC, CookingBookCategory.MISC, new ItemStackTemplate(item.asItem(), 2), 1F, 200).group(group)
+        SimpleCookingRecipeBuilder.smelting(single(cluster), RecipeCategory.MISC, CookingBookCategory.MISC, new ItemStackTemplate(item.asItem(), 2), 1F, 200).group(group)
                 .unlockedBy("has", this.has(cluster)).save(this.output, recipeId(getItemName(item) + "_from_cluster"));
 
-        SimpleCookingRecipeBuilder.blasting(Ingredient.of(cluster), RecipeCategory.MISC, CookingBookCategory.MISC, new ItemStackTemplate(item.asItem(), 2), 1F, 100).group(group)
+        SimpleCookingRecipeBuilder.blasting(single(cluster), RecipeCategory.MISC, CookingBookCategory.MISC, new ItemStackTemplate(item.asItem(), 2), 1F, 100).group(group)
                 .unlockedBy("has", this.has(cluster)).save(this.output, recipeId(getItemName(item) + "_blasting_from_cluster"));
     }
 
     @Override
     protected void stonecutterResultFromBase(RecipeCategory category, ItemLike result, ItemLike base, int count) {
-        SingleItemRecipeBuilder.stonecutting(Ingredient.of(base), category, result, count).unlockedBy(getHasName(base), this.has(base)).save(this.output,
+        SingleItemRecipeBuilder.stonecutting(single(base), category, result, count).unlockedBy(getHasName(base), this.has(base)).save(this.output,
                 recipeId(getConversionRecipeName(result, base) + "_stonecutting"));
     }
 
     private void plateRecipe(ItemLike plate, TagKey<Item> ingotTag) {
-        shaped(RecipeCategory.MISC, plate, 3).pattern("NNN").define('N', ingotTag).unlockedBy("has", has(ingotTag)).save(output);
+        commit(rows(shaped(RecipeCategory.MISC, plate, 3), "NNN").define('N', ingotTag).unlockedBy("has", has(ingotTag)));
     }
 
     private void buildWardingRecipes() {
         ResearchGate wardedArcana = gate("warded_arcana");
-        arcaneShaped(new ItemStackTemplate(TTItems.WARDED_GLASS.get(), 8), 25).aspect(TTAspects.AQUA, 5).aspect(TTAspects.ORDO, 10).aspect(TTAspects.TERRA, 5).aspect(TTAspects.IGNIS, 5).pattern("GGG")
-                .pattern("WBW").pattern("GGG").define('G', Tags.Items.GLASS_BLOCKS).define('W', TTItems.PLANK_GREATWOOD).define('B', TTItems.BRAIN).gate(wardedArcana)
-                .unlockedBy("has", has(TTItems.BRAIN)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_DOOR.get()), 45).aspect(TTAspects.AQUA, 20).aspect(TTAspects.ORDO, 10).aspect(TTAspects.TERRA, 10).aspect(TTAspects.IGNIS, 5).pattern("TDT")
-                .pattern("DBD").pattern("TDT").define('T', TTItemTags.INGOTS_THAUMIUM).define('D', TTItems.PLANK_GREATWOOD).define('B', TTItems.BRAIN).gate(wardedArcana)
-                .unlockedBy("has", has(TTItems.BRAIN)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_PRESSURE_PLATE.get()), 45).aspect(TTAspects.AQUA, 20).aspect(TTAspects.ORDO, 10).aspect(TTAspects.TERRA, 10).aspect(TTAspects.IGNIS, 5)
-                .pattern(" B ").pattern("TDT").define('T', TTItemTags.INGOTS_THAUMIUM).define('D', TTItems.PLANK_GREATWOOD).define('B', TTItems.BRAIN).gate(wardedArcana)
-                .unlockedBy("has", has(TTItems.BRAIN)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_KEY_IRON.get(), 2), 10).aspect(TTAspects.AQUA, 5).aspect(TTAspects.ORDO, 5).pattern("NNI").pattern("N  ").define('N', Tags.Items.NUGGETS_IRON)
-                .define('I', Tags.Items.INGOTS_IRON).gate(wardedArcana).unlockedBy("has", has(Tags.Items.INGOTS_IRON)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_KEY_GOLD.get(), 2), 10).aspect(TTAspects.AQUA, 5).aspect(TTAspects.ORDO, 5).pattern("NNI").pattern("N  ").define('N', Tags.Items.NUGGETS_GOLD)
-                .define('I', Tags.Items.INGOTS_GOLD).gate(wardedArcana).unlockedBy("has", has(Tags.Items.INGOTS_GOLD)).save(output);
+        commit(rows(
+                priced(arcaneShaped(new ItemStackTemplate(TTItems.WARDED_GLASS.get(), 8), 25), cost(TTAspects.AQUA, 5), cost(TTAspects.ORDO, 10), cost(TTAspects.TERRA, 5), cost(TTAspects.IGNIS, 5)),
+                "GGG", "WBW", "GGG").define('G', Tags.Items.GLASS_BLOCKS).define('W', TTItems.PLANK_GREATWOOD).define('B', TTItems.BRAIN).gate(wardedArcana).unlockedBy("has", has(TTItems.BRAIN)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_DOOR.get()), 45), cost(TTAspects.AQUA, 20), cost(TTAspects.ORDO, 10), cost(TTAspects.TERRA, 10), cost(TTAspects.IGNIS, 5)),
+                "TDT", "DBD", "TDT").define('T', TTItemTags.INGOTS_THAUMIUM).define('D', TTItems.PLANK_GREATWOOD).define('B', TTItems.BRAIN).gate(wardedArcana).unlockedBy("has", has(TTItems.BRAIN)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_PRESSURE_PLATE.get()), 45), cost(TTAspects.AQUA, 20), cost(TTAspects.ORDO, 10), cost(TTAspects.TERRA, 10),
+                cost(TTAspects.IGNIS, 5)), " B ", "TDT").define('T', TTItemTags.INGOTS_THAUMIUM).define('D', TTItems.PLANK_GREATWOOD).define('B', TTItems.BRAIN).gate(wardedArcana)
+                .unlockedBy("has", has(TTItems.BRAIN)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_KEY_IRON.get(), 2), 10), cost(TTAspects.AQUA, 5), cost(TTAspects.ORDO, 5)), "NNI", "N  ")
+                .define('N', Tags.Items.NUGGETS_IRON).define('I', Tags.Items.INGOTS_IRON).gate(wardedArcana).unlockedBy("has", has(Tags.Items.INGOTS_IRON)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_KEY_GOLD.get(), 2), 10), cost(TTAspects.AQUA, 5), cost(TTAspects.ORDO, 5)), "NNI", "N  ")
+                .define('N', Tags.Items.NUGGETS_GOLD).define('I', Tags.Items.INGOTS_GOLD).gate(wardedArcana).unlockedBy("has", has(Tags.Items.INGOTS_GOLD)));
     }
 
     private void buildDecorRecipes() {
@@ -321,194 +403,192 @@ public final class TTRecipeProvider extends RecipeProvider {
         stairsRecipe(TTBlocks.STAIRS_SILVERWOOD.get(), TTItemTags.PLANKS_SILVERWOOD);
         slabRecipe(TTBlocks.SLAB_GREATWOOD.get(), TTItemTags.PLANKS_GREATWOOD);
         slabRecipe(TTBlocks.SLAB_SILVERWOOD.get(), TTItemTags.PLANKS_SILVERWOOD);
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_GRINDSTONE), ARCANE_GRINDSTONE_VIS).aspect(TTAspects.ORDO, 2).aspect(TTAspects.PERDITIO, 2).pattern(" T ").pattern("TGT").pattern(" T ")
-                .define('T', TTItemTags.INGOTS_THAUMIUM).define('G', Items.GRINDSTONE).gate(gate("infusion_enchantment")).unlockedBy("has", has(TTItemTags.INGOTS_THAUMIUM)).save(output);
-        doorBuilder(TTBlocks.DOOR_GREATWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).group("wooden_door").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)).save(output);
-        trapdoorBuilder(TTBlocks.TRAPDOOR_GREATWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).group("wooden_trapdoor").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD))
-                .save(output);
-        fenceBuilder(TTBlocks.FENCE_GREATWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).group("wooden_fence").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD))
-                .save(output);
-        fenceGateBuilder(TTBlocks.FENCE_GATE_GREATWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).group("wooden_fence_gate")
-                .unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)).save(output);
-        buttonBuilder(TTBlocks.BUTTON_GREATWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).group("wooden_button").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD))
-                .save(output);
-        pressurePlateBuilder(RecipeCategory.REDSTONE, TTBlocks.PRESSURE_PLATE_GREATWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).group("wooden_pressure_plate")
-                .unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)).save(output);
-        doorBuilder(TTBlocks.DOOR_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_door").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD))
-                .save(output);
-        trapdoorBuilder(TTBlocks.TRAPDOOR_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_trapdoor").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD))
-                .save(output);
-        fenceBuilder(TTBlocks.FENCE_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_fence").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD))
-                .save(output);
-        fenceGateBuilder(TTBlocks.FENCE_GATE_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_fence_gate")
-                .unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)).save(output);
-        buttonBuilder(TTBlocks.BUTTON_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_button").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD))
-                .save(output);
-        pressurePlateBuilder(RecipeCategory.REDSTONE, TTBlocks.PRESSURE_PLATE_SILVERWOOD.get(), Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_SILVERWOOD))).group("wooden_pressure_plate")
-                .unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_GRINDSTONE), ARCANE_GRINDSTONE_VIS), cost(TTAspects.ORDO, 2), cost(TTAspects.PERDITIO, 2)), " T ", "TGT", " T ")
+                .define('T', TTItemTags.INGOTS_THAUMIUM).define('G', Items.GRINDSTONE).gate(gate("infusion_enchantment")).unlockedBy("has", has(TTItemTags.INGOTS_THAUMIUM)));
+        commit(doorBuilder(TTBlocks.DOOR_GREATWOOD.get(), tagged(TTItemTags.PLANKS_GREATWOOD)).group("wooden_door").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)));
+        commit(trapdoorBuilder(TTBlocks.TRAPDOOR_GREATWOOD.get(), tagged(TTItemTags.PLANKS_GREATWOOD)).group("wooden_trapdoor").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)));
+        commit(fenceBuilder(TTBlocks.FENCE_GREATWOOD.get(), tagged(TTItemTags.PLANKS_GREATWOOD)).group("wooden_fence").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)));
+        commit(fenceGateBuilder(TTBlocks.FENCE_GATE_GREATWOOD.get(), tagged(TTItemTags.PLANKS_GREATWOOD)).group("wooden_fence_gate").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)));
+        commit(buttonBuilder(TTBlocks.BUTTON_GREATWOOD.get(), tagged(TTItemTags.PLANKS_GREATWOOD)).group("wooden_button").unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)));
+        commit(pressurePlateBuilder(RecipeCategory.REDSTONE, TTBlocks.PRESSURE_PLATE_GREATWOOD.get(), tagged(TTItemTags.PLANKS_GREATWOOD)).group("wooden_pressure_plate").unlockedBy("has",
+                has(TTItemTags.PLANKS_GREATWOOD)));
+        commit(doorBuilder(TTBlocks.DOOR_SILVERWOOD.get(), tagged(TTItemTags.PLANKS_SILVERWOOD)).group("wooden_door").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)));
+        commit(trapdoorBuilder(TTBlocks.TRAPDOOR_SILVERWOOD.get(), tagged(TTItemTags.PLANKS_SILVERWOOD)).group("wooden_trapdoor").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)));
+        commit(fenceBuilder(TTBlocks.FENCE_SILVERWOOD.get(), tagged(TTItemTags.PLANKS_SILVERWOOD)).group("wooden_fence").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)));
+        commit(fenceGateBuilder(TTBlocks.FENCE_GATE_SILVERWOOD.get(), tagged(TTItemTags.PLANKS_SILVERWOOD)).group("wooden_fence_gate").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)));
+        commit(buttonBuilder(TTBlocks.BUTTON_SILVERWOOD.get(), tagged(TTItemTags.PLANKS_SILVERWOOD)).group("wooden_button").unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)));
+        commit(pressurePlateBuilder(RecipeCategory.REDSTONE, TTBlocks.PRESSURE_PLATE_SILVERWOOD.get(), tagged(TTItemTags.PLANKS_SILVERWOOD)).group("wooden_pressure_plate").unlockedBy("has",
+                has(TTItemTags.PLANKS_SILVERWOOD)));
         pillarRecipe(TTBlocks.STONE_ARCANE_PILLAR.get(), TTBlocks.STONE_ARCANE.get());
         pillarRecipe(TTBlocks.STONE_ANCIENT_PILLAR.get(), TTBlocks.STONE_ANCIENT.get());
         pillarRecipe(TTBlocks.STONE_ELDRITCH_PILLAR.get(), TTBlocks.ELDRITCH_STONE.get());
 
-        shaped(RecipeCategory.DECORATIONS, TTItems.TABLE_WOOD).pattern("SSS").pattern("W W").define('S', ItemTags.WOODEN_SLABS).define('W', ItemTags.PLANKS)
-                .unlockedBy("has", has(ItemTags.WOODEN_SLABS)).save(output);
+        commit(rows(shaped(RecipeCategory.DECORATIONS, TTItems.TABLE_WOOD), "SSS", "W W").define('S', ItemTags.WOODEN_SLABS).define('W', ItemTags.PLANKS).unlockedBy("has",
+                has(ItemTags.WOODEN_SLABS)));
 
-        shaped(RecipeCategory.DECORATIONS, TTItems.TABLE_STONE).pattern("SSS").pattern("W W").define('S', Items.STONE_SLAB).define('W', Tags.Items.STONES).unlockedBy("has", has(Items.STONE_SLAB))
-                .save(output);
+        commit(rows(shaped(RecipeCategory.DECORATIONS, TTItems.TABLE_STONE), "SSS", "W W").define('S', Items.STONE_SLAB).define('W', Tags.Items.STONES).unlockedBy("has", has(Items.STONE_SLAB)));
 
-        shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.FLESH_BLOCK).pattern("###").pattern("###").pattern("###").define('#', Items.ROTTEN_FLESH).unlockedBy("has", has(Items.ROTTEN_FLESH))
-                .save(output);
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.FLESH_BLOCK), "###", "###", "###").define('#', Items.ROTTEN_FLESH).unlockedBy("has", has(Items.ROTTEN_FLESH)));
 
-        shapeless(RecipeCategory.MISC, Items.ROTTEN_FLESH, 9).requires(TTItems.FLESH_BLOCK).unlockedBy("has", has(TTItems.FLESH_BLOCK)).save(output, TTIds.MODID + ":rotten_flesh_from_flesh_block");
+        commit(shapeless(RecipeCategory.MISC, Items.ROTTEN_FLESH, 9).requires(TTItems.FLESH_BLOCK).unlockedBy("has", has(TTItems.FLESH_BLOCK)), TTIds.MODID + ":rotten_flesh_from_flesh_block");
 
         stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, TTItems.OBSIDIAN_TILE, Items.OBSIDIAN, 1);
         stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, TTItems.OBSIDIAN_TOTEM, Items.OBSIDIAN, 1);
         stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, TTItems.OBSIDIAN_TOTEM, TTItems.OBSIDIAN_TILE, 1);
 
-        shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.AMBER_BRICK, 4).pattern("##").pattern("##").define('#', TTItemTags.STORAGE_BLOCKS_AMBER).unlockedBy("has", has(TTItemTags.STORAGE_BLOCKS_AMBER))
-                .save(output);
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.AMBER_BRICK, 4), "##", "##").define('#', TTItemTags.STORAGE_BLOCKS_AMBER).unlockedBy("has", has(TTItemTags.STORAGE_BLOCKS_AMBER)));
 
-        shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.AMBER_BLOCK, 4).pattern("##").pattern("##").define('#', TTItems.AMBER_BRICK).unlockedBy("has", has(TTItems.AMBER_BRICK)).save(output,
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.AMBER_BLOCK, 4), "##", "##").define('#', TTItems.AMBER_BRICK).unlockedBy("has", has(TTItems.AMBER_BRICK)),
                 TTIds.MODID + ":amber_block_from_brick");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_BARRIER.get(), 4), 50).pattern("SAS").pattern("SBS").define('S', TTItems.STONE_ARCANE_BRICK).define('A', crystal(TTAspects.IGNIS))
-                .define('B', crystal(TTAspects.ORDO)).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_BARRIER.get(), 4), 50), "SAS", "SBS").define('S', TTItems.STONE_ARCANE_BRICK).define('A', crystal(TTAspects.IGNIS))
+                .define('B', crystal(TTAspects.ORDO)).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_TRAVEL.get(), 4), 50).pattern("SAS").pattern("SBS").define('S', TTItems.STONE_ARCANE_BRICK).define('A', crystal(TTAspects.AER))
-                .define('B', crystal(TTAspects.TERRA)).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.PAVING_STONE_TRAVEL.get(), 4), 50), "SAS", "SBS").define('S', TTItems.STONE_ARCANE_BRICK).define('A', crystal(TTAspects.AER))
+                .define('B', crystal(TTAspects.TERRA)).gate(artificeGate).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)));
     }
 
     private void stairsRecipe(Block result, Block base) {
-        shaped(RecipeCategory.BUILDING_BLOCKS, result, 4).pattern("K  ").pattern("KK ").pattern("KKK").define('K', base).unlockedBy("has", has(base)).save(output);
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, result, 4), "K  ", "KK ", "KKK").define('K', base).unlockedBy("has", has(base)));
     }
 
     private void pillarRecipe(Block result, Block base) {
-        shaped(RecipeCategory.BUILDING_BLOCKS, result, 2).pattern("K").pattern("K").define('K', base).unlockedBy("has", has(base)).save(output);
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, result, 2), "K", "K").define('K', base).unlockedBy("has", has(base)));
         stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, result, base, 1);
     }
 
     private void stairsRecipe(Block result, TagKey<Item> base) {
-        shaped(RecipeCategory.BUILDING_BLOCKS, result, 4).pattern("K  ").pattern("KK ").pattern("KKK").define('K', base).unlockedBy("has", has(base)).save(output);
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, result, 4), "K  ", "KK ", "KKK").define('K', base).unlockedBy("has", has(base)));
     }
 
     private void slabRecipe(Block result, TagKey<Item> base) {
-        shaped(RecipeCategory.BUILDING_BLOCKS, result, 6).pattern("KKK").define('K', base).unlockedBy("has", has(base)).save(output);
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, result, 6), "KKK").define('K', base).unlockedBy("has", has(base)));
     }
 
     private void buildConstructRecipes() {
-        arcaneShapeless(new ItemStackTemplate(TTItems.ACTIVATOR_RAIL), 10).requires(Items.ACTIVATOR_RAIL).gate(gate("first_steps")).unlockedBy("has", has(Items.ACTIVATOR_RAIL)).save(output);
+        commit(arcaneShapeless(new ItemStackTemplate(TTItems.ACTIVATOR_RAIL), 10).requires(Items.ACTIVATOR_RAIL).gate(gate("first_steps")).unlockedBy("has", has(Items.ACTIVATOR_RAIL)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.TURRET_BASIC), 100).aspect(TTAspects.AER, 1).pattern("BGI").pattern("WMW").pattern("S S").define('G', TTItems.MECHANISM_SIMPLE)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.TURRET_BASIC), 100), cost(TTAspects.AER, 1)), "BGI", "WMW", "S S").define('G', TTItems.MECHANISM_SIMPLE)
                 .define('I', TTItemTags.PLATES_IRON).define('S', Tags.Items.RODS_WOODEN).define('M', TTItems.MIND_CLOCKWORK).define('B', Tags.Items.TOOLS_BOW).define('W', TTItemTags.PLANKS_GREATWOOD)
-                .gate(gate("basic_turret")).unlockedBy("has", has(TTItems.MIND_CLOCKWORK)).save(output);
+                .gate(gate("basic_turret")).unlockedBy("has", has(TTItems.MIND_CLOCKWORK)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.TURRET_ADVANCED), 150).aspect(TTAspects.AER, 2).pattern("PMP").pattern("PTP").define('T', TTItems.TURRET_BASIC).define('P', TTItemTags.PLATES_IRON)
-                .define('M', TTItems.MIND_BIOTHAUMIC).gate(gate("advanced_turret")).unlockedBy("has", has(TTItems.MIND_BIOTHAUMIC)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.TURRET_ADVANCED), 150), cost(TTAspects.AER, 2)), "PMP", "PTP").define('T', TTItems.TURRET_BASIC)
+                .define('P', TTItemTags.PLATES_IRON).define('M', TTItems.MIND_BIOTHAUMIC).gate(gate("advanced_turret")).unlockedBy("has", has(TTItems.MIND_BIOTHAUMIC)));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ARCANE_BORE), Ingredient.of(TTItems.TURRET_BASIC.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD)))
-                .component(Ingredient.of(TTItems.MECHANISM_COMPLEX.get())).component(Ingredient.of(registries.lookupOrThrow(Registries.ITEM).getOrThrow(TTItemTags.PLATES_BRASS)))
-                .component(Ingredient.of(Items.DIAMOND_PICKAXE)).component(Ingredient.of(Items.DIAMOND_SHOVEL)).component(Ingredient.of(TTItems.MORPHIC_RESONATOR.get()))
-                .component(Ingredient.of(TTItems.RARE_EARTH.get())).aspect(TTAspects.POTENTIA, 25).aspect(TTAspects.TERRA, 25).aspect(TTAspects.MACHINA, 100).aspect(TTAspects.VACUOS, 25)
-                .aspect(TTAspects.MOTUS, 25).instability(4).gate(gate("arcane_bore")).unlockedBy("has", has(TTItems.TURRET_BASIC)).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ARCANE_BORE), single(TTItems.TURRET_BASIC.get())), tagged(TTItemTags.PLANKS_GREATWOOD),
+                        tagged(TTItemTags.PLANKS_GREATWOOD), single(TTItems.MECHANISM_COMPLEX.get()), tagged(TTItemTags.PLATES_BRASS), single(Items.DIAMOND_PICKAXE), single(Items.DIAMOND_SHOVEL),
+                        single(TTItems.MORPHIC_RESONATOR.get()), single(TTItems.RARE_EARTH.get())),
+                cost(TTAspects.POTENTIA, 25), cost(TTAspects.TERRA, 25), cost(TTAspects.MACHINA, 100), cost(TTAspects.VACUOS, 25), cost(TTAspects.MOTUS, 25)).instability(4).gate(gate("arcane_bore"))
+                .unlockedBy("has", has(TTItems.TURRET_BASIC)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GRAPPLE_GUN_TIP), 25).aspect(TTAspects.TERRA, 1).pattern("BRB").pattern("RHR").pattern("BRB").define('B', TTItemTags.PLATES_BRASS)
-                .define('R', TTItems.RARE_EARTH).define('H', Items.TRIPWIRE_HOOK).gate(gate("grapple_gun")).unlockedBy("has", has(TTItems.RARE_EARTH)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GRAPPLE_GUN_TIP), 25), cost(TTAspects.TERRA, 1)), "BRB", "RHR", "BRB").define('B', TTItemTags.PLATES_BRASS)
+                .define('R', TTItems.RARE_EARTH).define('H', Items.TRIPWIRE_HOOK).gate(gate("grapple_gun")).unlockedBy("has", has(TTItems.RARE_EARTH)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GRAPPLE_GUN_SPOOL), 25).aspect(TTAspects.AQUA, 1).pattern("SHS").pattern("SGS").pattern("SSS").define('G', TTItems.MECHANISM_SIMPLE)
-                .define('S', Tags.Items.STRINGS).define('H', Items.TRIPWIRE_HOOK).gate(gate("grapple_gun")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GRAPPLE_GUN_SPOOL), 25), cost(TTAspects.AQUA, 1)), "SHS", "SGS", "SSS").define('G', TTItems.MECHANISM_SIMPLE)
+                .define('S', Tags.Items.STRINGS).define('H', Items.TRIPWIRE_HOOK).gate(gate("grapple_gun")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GRAPPLE_GUN), 75).aspect(TTAspects.AER, 1).aspect(TTAspects.IGNIS, 1).pattern("  S").pattern("TII").pattern(" BW")
-                .define('B', TTItemTags.PLATES_BRASS).define('I', TTItemTags.PLATES_IRON).define('T', TTItems.GRAPPLE_GUN_TIP).define('W', ItemTags.PLANKS).define('S', TTItems.GRAPPLE_GUN_SPOOL)
-                .gate(gate("grapple_gun")).unlockedBy("has", has(TTItems.GRAPPLE_GUN_TIP)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GRAPPLE_GUN), 75), cost(TTAspects.AER, 1), cost(TTAspects.IGNIS, 1)), "  S", "TII", " BW").define('B', TTItemTags.PLATES_BRASS)
+                .define('I', TTItemTags.PLATES_IRON).define('T', TTItems.GRAPPLE_GUN_TIP).define('W', ItemTags.PLANKS).define('S', TTItems.GRAPPLE_GUN_SPOOL).gate(gate("grapple_gun"))
+                .unlockedBy("has", has(TTItems.GRAPPLE_GUN_TIP)));
     }
 
     private void buildFocalManipulatorRecipe() {
-        arcaneShaped(new ItemStackTemplate(TTItems.FOCAL_MANIPULATOR), 100).aspect(TTAspects.TERRA, 1).aspect(TTAspects.AQUA, 1).pattern("ISI").pattern("BRB").pattern("GTG")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.FOCAL_MANIPULATOR), 100), cost(TTAspects.TERRA, 1), cost(TTAspects.AQUA, 1)), "ISI", "BRB", "GTG")
                 .define('I', TTItemTags.PLATES_IRON).define('S', TTItems.SLAB_ARCANE_STONE).define('B', TTItems.STONE_ARCANE).define('R', TTItems.VIS_RESONATOR).define('G', Tags.Items.INGOTS_GOLD)
-                .define('T', TTItems.TABLE_STONE).gate(gate("base_auromancy", 1)).unlockedBy("has", has(TTItems.VIS_RESONATOR)).save(output);
+                .define('T', TTItems.TABLE_STONE).gate(gate("base_auromancy", 1)).unlockedBy("has", has(TTItems.VIS_RESONATOR)));
     }
 
     private void buildInfusionAltarRecipes() {
-        arcaneShaped(new ItemStackTemplate(TTItems.INFUSION_MATRIX), 150).allAspects().pattern("S S").pattern(" N ").pattern("S S").define('S', TTItems.STONE_ARCANE_BRICK)
-                .define('N', TTItemTags.NITORS).gate(gate("infusion", 1)).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.INFUSION_MATRIX), 150).allAspects(), "S S", " N ", "S S").define('S', TTItems.STONE_ARCANE_BRICK).define('N', TTItemTags.NITORS)
+                .gate(gate("infusion", 1)).unlockedBy("has", has(TTItems.STONE_ARCANE_BRICK)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PEDESTAL_ARCANE), 10).pattern("SSS").pattern(" B ").pattern("SSS").define('S', TTItems.SLAB_ARCANE_STONE).define('B', TTItems.STONE_ARCANE)
-                .gate(gate("infusion")).unlockedBy("has", has(TTItems.STONE_ARCANE)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.PEDESTAL_ARCANE), 10), "SSS", " B ", "SSS").define('S', TTItems.SLAB_ARCANE_STONE).define('B', TTItems.STONE_ARCANE)
+                .gate(gate("infusion")).unlockedBy("has", has(TTItems.STONE_ARCANE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PEDESTAL_ANCIENT), 150).pattern("SSS").pattern(" B ").pattern("SSS").define('S', TTItems.SLAB_ANCIENT).define('B', TTItems.STONE_ANCIENT)
-                .gate(gate("infusion_ancient")).unlockedBy("has", has(TTItems.STONE_ANCIENT)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.PEDESTAL_ANCIENT), 150), "SSS", " B ", "SSS").define('S', TTItems.SLAB_ANCIENT).define('B', TTItems.STONE_ANCIENT)
+                .gate(gate("infusion_ancient")).unlockedBy("has", has(TTItems.STONE_ANCIENT)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PEDESTAL_ELDRITCH), 150).pattern("SSS").pattern(" B ").pattern("SSS").define('S', TTItems.SLAB_ELDRITCH).define('B', TTItems.STONE_ELDRITCH_TILE)
-                .gate(gate("infusion_eldritch")).unlockedBy("has", has(TTItems.STONE_ELDRITCH_TILE)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.PEDESTAL_ELDRITCH), 150), "SSS", " B ", "SSS").define('S', TTItems.SLAB_ELDRITCH).define('B', TTItems.STONE_ELDRITCH_TILE)
+                .gate(gate("infusion_eldritch")).unlockedBy("has", has(TTItems.STONE_ELDRITCH_TILE)));
     }
 
     private void buildEssentiaReservoirRecipe() {
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.ESSENTIA_RESERVOIR), Ingredient.of(TTItems.TUBE_BUFFER.get()))
-                .component(Ingredient.of(TTItems.INGOT_VOID.get())).component(Ingredient.of(TTItems.JAR_NORMAL.get())).component(Ingredient.of(TTItems.JAR_NORMAL.get()))
-                .component(Ingredient.of(TTItems.INGOT_VOID.get())).component(Ingredient.of(TTItems.JAR_NORMAL.get())).component(Ingredient.of(TTItems.JAR_NORMAL.get())).aspect(TTAspects.AQUA, 8)
-                .aspect(TTAspects.VACUOS, 8).aspect(TTAspects.PRAECANTATIO, 8).aspect(TTAspects.PERMUTATIO, 8).instability(6).gate(gate("essentia_reservoir"))
-                .unlockedBy("has", has(TTItems.TUBE_BUFFER)).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.ESSENTIA_RESERVOIR), single(TTItems.TUBE_BUFFER.get())), single(TTItems.INGOT_VOID.get()),
+                        single(TTItems.JAR_NORMAL.get()), single(TTItems.JAR_NORMAL.get()), single(TTItems.INGOT_VOID.get()), single(TTItems.JAR_NORMAL.get()), single(TTItems.JAR_NORMAL.get())),
+                cost(TTAspects.AQUA, 8), cost(TTAspects.VACUOS, 8), cost(TTAspects.PRAECANTATIO, 8), cost(TTAspects.PERMUTATIO, 8)).instability(6).gate(gate("essentia_reservoir"))
+                .unlockedBy("has", has(TTItems.TUBE_BUFFER)));
     }
 
     private void buildElementalToolRecipes() {
-        ResearchGate gate = gate("elemental_tools");
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
-                enchantedTool(TTItems.ELEMENTAL_AXE.get(), Map.of(InfusionEnchantment.COLLECTOR, 1, InfusionEnchantment.BURROWING, 1)), Ingredient.of(TTItems.THAUMIUM_AXE.get()))
-                .component(crystal(TTAspects.AQUA)).component(crystal(TTAspects.AQUA)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.AQUA, 60).aspect(TTAspects.HERBA, 30).instability(1).gate(gate)
-                .unlockedBy("has", has(TTItems.THAUMIUM_AXE)).save(output);
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
-                enchantedTool(TTItems.ELEMENTAL_PICKAXE.get(), Map.of(InfusionEnchantment.REFINING, 1, InfusionEnchantment.SOUNDING, 2)), Ingredient.of(TTItems.THAUMIUM_PICKAXE.get()))
-                .component(crystal(TTAspects.IGNIS)).component(crystal(TTAspects.IGNIS)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.IGNIS, 30).aspect(TTAspects.METALLUM, 30).aspect(TTAspects.SENSUS, 30).instability(1)
-                .gate(gate).unlockedBy("has", has(TTItems.THAUMIUM_PICKAXE)).save(output);
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SWORD.get(), Map.of(InfusionEnchantment.ARCING, 2)),
-                Ingredient.of(TTItems.THAUMIUM_SWORD.get())).component(crystal(TTAspects.AER)).component(crystal(TTAspects.AER)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.AER, 30).aspect(TTAspects.MOTUS, 30).aspect(TTAspects.AVERSIO, 30).instability(1).gate(gate)
-                .unlockedBy("has", has(TTItems.THAUMIUM_SWORD)).save(output);
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SPEAR.get(), Map.of(InfusionEnchantment.ESSENCE, 2)),
-                Ingredient.of(TTItems.THAUMIUM_SPEAR.get())).component(crystal(TTAspects.AER)).component(crystal(TTAspects.AER)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.MOTUS, 60).aspect(TTAspects.AER, 30).aspect(TTAspects.POTENTIA, 30).instability(1).gate(gate)
-                .unlockedBy("has", has(TTItems.THAUMIUM_SPEAR)).save(output);
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_SHOVEL.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1)),
-                Ingredient.of(TTItems.THAUMIUM_SHOVEL.get())).component(crystal(TTAspects.TERRA)).component(crystal(TTAspects.TERRA))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.TERRA, 60)
-                .aspect(TTAspects.FABRICO, 30).instability(1).gate(gate).unlockedBy("has", has(TTItems.THAUMIUM_SHOVEL)).save(output);
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ELEMENTAL_HOE.get()), Ingredient.of(TTItems.THAUMIUM_HOE.get()))
-                .component(crystal(TTAspects.ORDO)).component(crystal(TTAspects.PERDITIO)).component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD))).aspect(TTAspects.ORDO, 30).aspect(TTAspects.HERBA, 30).aspect(TTAspects.PERDITIO, 30).instability(1).gate(gate)
-                .unlockedBy("has", has(TTItems.THAUMIUM_HOE)).save(output);
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS,
-                enchantedTool(TTItems.PRIMAL_CRUSHER.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1, InfusionEnchantment.REFINING, 1)), Ingredient.of(TTItems.PRIMORDIAL_PEARL.get()))
-                .component(Ingredient.of(TTItems.VOID_PICKAXE.get())).component(Ingredient.of(TTItems.VOID_SHOVEL.get())).component(Ingredient.of(TTItems.ELEMENTAL_PICKAXE.get()))
-                .component(Ingredient.of(TTItems.ELEMENTAL_SHOVEL.get())).aspect(TTAspects.TERRA, 75).aspect(TTAspects.INSTRUMENTUM, 75).aspect(TTAspects.PERDITIO, 50).aspect(TTAspects.VACUOS, 50)
-                .aspect(TTAspects.AVERSIO, 50).aspect(TTAspects.ALIENIS, 50).aspect(TTAspects.DESIDERIUM, 50).instability(6).gate(gate("primal_crusher"))
-                .unlockedBy("has", has(TTItems.PRIMORDIAL_PEARL)).save(output);
+        for (ElementalToolSpec spec : elementalToolSpecs()) {
+            elementalTool(spec);
+        }
+
+        commit(priced(
+                parts(infusion(RecipeCategory.TOOLS, enchantedTool(TTItems.PRIMAL_CRUSHER.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1, InfusionEnchantment.REFINING, 1)),
+                        single(TTItems.PRIMORDIAL_PEARL.get())), single(TTItems.VOID_PICKAXE.get()), single(TTItems.VOID_SHOVEL.get()), single(TTItems.ELEMENTAL_PICKAXE.get()),
+                        single(TTItems.ELEMENTAL_SHOVEL.get())),
+                cost(TTAspects.TERRA, 75), cost(TTAspects.INSTRUMENTUM, 75), cost(TTAspects.PERDITIO, 50), cost(TTAspects.VACUOS, 50), cost(TTAspects.AVERSIO, 50), cost(TTAspects.ALIENIS, 50),
+                cost(TTAspects.DESIDERIUM, 50)).instability(6).gate(gate("primal_crusher")).unlockedBy("has", has(TTItems.PRIMORDIAL_PEARL)));
+    }
+
+    private record ElementalToolSpec(RecipeCategory category, ItemStackTemplate result, Item base, ResourceKey<IAspect> firstCrystal, ResourceKey<IAspect> secondCrystal, List<AspectCost> costs) {
+    }
+
+    private static ElementalToolSpec elemental(RecipeCategory category, ItemStackTemplate result, Item base, ResourceKey<IAspect> firstCrystal, ResourceKey<IAspect> secondCrystal, AspectCost... costs) {
+        return new ElementalToolSpec(category, result, base, firstCrystal, secondCrystal, List.of(costs));
+    }
+
+    private static List<ElementalToolSpec> elementalToolSpecs() {
+        return List.of(
+                elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_AXE.get(), Map.of(InfusionEnchantment.COLLECTOR, 1, InfusionEnchantment.BURROWING, 1)), TTItems.THAUMIUM_AXE.get(),
+                        TTAspects.AQUA, TTAspects.AQUA, cost(TTAspects.AQUA, 60), cost(TTAspects.HERBA, 30)),
+                elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_PICKAXE.get(), Map.of(InfusionEnchantment.REFINING, 1, InfusionEnchantment.SOUNDING, 2)),
+                        TTItems.THAUMIUM_PICKAXE.get(), TTAspects.IGNIS, TTAspects.IGNIS, cost(TTAspects.IGNIS, 30), cost(TTAspects.METALLUM, 30), cost(TTAspects.SENSUS, 30)),
+                elemental(RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SWORD.get(), Map.of(InfusionEnchantment.ARCING, 2)), TTItems.THAUMIUM_SWORD.get(), TTAspects.AER, TTAspects.AER,
+                        cost(TTAspects.AER, 30), cost(TTAspects.MOTUS, 30), cost(TTAspects.AVERSIO, 30)),
+                elemental(RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SPEAR.get(), Map.of(InfusionEnchantment.ESSENCE, 2)), TTItems.THAUMIUM_SPEAR.get(), TTAspects.AER, TTAspects.AER,
+                        cost(TTAspects.MOTUS, 60), cost(TTAspects.AER, 30), cost(TTAspects.POTENTIA, 30)),
+                elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_SHOVEL.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1)), TTItems.THAUMIUM_SHOVEL.get(), TTAspects.TERRA,
+                        TTAspects.TERRA, cost(TTAspects.TERRA, 60), cost(TTAspects.FABRICO, 30)),
+                elemental(RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ELEMENTAL_HOE.get()), TTItems.THAUMIUM_HOE.get(), TTAspects.ORDO, TTAspects.PERDITIO, cost(TTAspects.ORDO, 30),
+                        cost(TTAspects.HERBA, 30), cost(TTAspects.PERDITIO, 30)));
+    }
+
+    private void elementalTool(ElementalToolSpec spec) {
+        InfusionRecipeBuilder builder = infusion(spec.category(), spec.result(), single(spec.base()));
+        parts(builder, crystal(spec.firstCrystal()), crystal(spec.secondCrystal()), tagged(TTItemTags.NUGGETS_QUARTZ), tagged(TTItemTags.PLANKS_GREATWOOD));
+        priced(builder, spec.costs().toArray(AspectCost[]::new));
+        commit(builder.instability(ELEMENTAL_TOOL_INSTABILITY).gate(gate("elemental_tools")).unlockedBy("has", has(spec.base())));
+    }
+
+    private record AspectCost(ResourceKey<IAspect> aspect, int amount) {
     }
 
     private void buildRechargePedestalRecipe() {
-        arcaneShaped(new ItemStackTemplate(TTItems.RECHARGE_PEDESTAL), 100).aspect(TTAspects.AER, 1).aspect(TTAspects.ORDO, 1).pattern(" R ").pattern("DID").pattern("SSS")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.RECHARGE_PEDESTAL), 100), cost(TTAspects.AER, 1), cost(TTAspects.ORDO, 1)), " R ", "DID", "SSS")
                 .define('R', TTItems.VIS_RESONATOR).define('D', Tags.Items.GEMS_DIAMOND).define('I', Tags.Items.INGOTS_GOLD).define('S', Tags.Items.STONES).gate(gate("recharge_pedestal"))
-                .unlockedBy("has", has(TTItems.VIS_RESONATOR)).save(output);
+                .unlockedBy("has", has(TTItems.VIS_RESONATOR)));
     }
 
     private void buildTravellerBootsRecipe() {
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.TRAVELLER_BOOTS.get()), Ingredient.of(Items.LEATHER_BOOTS))
-                .component(crystal(TTAspects.AER)).component(crystal(TTAspects.AER)).component(Ingredient.of(TTItems.FABRIC.get())).component(Ingredient.of(TTItems.FABRIC.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.FEATHERS))).component(Ingredient.of(items.getOrThrow(ItemTags.FISHES))).aspect(TTAspects.VOLATUS, 100).aspect(TTAspects.MOTUS, 100)
-                .instability(1).gate(gate("boots_traveller")).unlockedBy("has", has(Items.LEATHER_BOOTS)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.TRAVELLER_BOOTS.get()), single(Items.LEATHER_BOOTS)), crystal(TTAspects.AER), crystal(TTAspects.AER),
+                single(TTItems.FABRIC.get()), single(TTItems.FABRIC.get()), tagged(Tags.Items.FEATHERS), tagged(ItemTags.FISHES)), cost(TTAspects.VOLATUS, 100), cost(TTAspects.MOTUS, 100))
+                .instability(1).gate(gate("boots_traveller")).unlockedBy("has", has(Items.LEATHER_BOOTS)));
     }
 
     private void buildThaumostaticHarnessRecipe() {
         Ingredient airCrystal = crystal(TTAspects.AER);
-        Ingredient greatwoodPlanks = Ingredient.of(items.getOrThrow(TTItemTags.PLANKS_GREATWOOD));
-        Ingredient gold = Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD));
-        Ingredient iron = Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON));
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.THAUMOSTATIC_HARNESS.get()),
-                Ingredient.of(Items.LEATHER_CHESTPLATE)).component(airCrystal).component(airCrystal).component(greatwoodPlanks).component(greatwoodPlanks).component(Ingredient.of(Items.COMPARATOR))
-                .component(gold).component(gold).component(iron).component(iron).aspect(TTAspects.VOLATUS, 32).aspect(TTAspects.POTENTIA, 32).aspect(TTAspects.MACHINA, 32).aspect(TTAspects.MOTUS, 16)
-                .instability(6).gate(gate("thaumostatic_harness")).unlockedBy("has", has(TTItems.TRAVELLER_BOOTS)).save(output);
+        Ingredient greatwoodPlanks = tagged(TTItemTags.PLANKS_GREATWOOD);
+        Ingredient gold = tagged(Tags.Items.INGOTS_GOLD);
+        Ingredient iron = tagged(Tags.Items.INGOTS_IRON);
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.THAUMOSTATIC_HARNESS.get()), single(Items.LEATHER_CHESTPLATE)), airCrystal, airCrystal, greatwoodPlanks,
+                        greatwoodPlanks, single(Items.COMPARATOR), gold, gold, iron, iron),
+                cost(TTAspects.VOLATUS, 32), cost(TTAspects.POTENTIA, 32), cost(TTAspects.MACHINA, 32), cost(TTAspects.MOTUS, 16)).instability(6).gate(gate("thaumostatic_harness"))
+                .unlockedBy("has", has(TTItems.TRAVELLER_BOOTS)));
     }
 
     private static ItemStackTemplate enchantedTool(Item item, Map<InfusionEnchantment, Integer> enchantments) {
@@ -516,16 +596,32 @@ public final class TTRecipeProvider extends RecipeProvider {
         return new ItemStackTemplate(item, patch);
     }
 
+    private record EnchantStep(InfusionEnchantment enchantment, Item displayCatalyst, Ingredient signature, List<AspectCost> costs) {
+    }
+
+    private static EnchantStep enchantStep(InfusionEnchantment enchantment, Item displayCatalyst, Ingredient signature, AspectCost... costs) {
+        return new EnchantStep(enchantment, displayCatalyst, signature, List.of(costs));
+    }
+
+    private List<EnchantStep> enchantSteps() {
+        return List.of(enchantStep(InfusionEnchantment.BURROWING, Items.WOODEN_PICKAXE, single(Items.RABBIT_FOOT), cost(TTAspects.SENSUS, 80), cost(TTAspects.TERRA, 150)),
+                enchantStep(InfusionEnchantment.COLLECTOR, Items.STONE_AXE, single(Items.LEAD), cost(TTAspects.DESIDERIUM, 80), cost(TTAspects.AQUA, 100)),
+                enchantStep(InfusionEnchantment.DESTRUCTIVE, Items.STONE_PICKAXE, single(Items.TNT), cost(TTAspects.AVERSIO, 200), cost(TTAspects.PERDITIO, 250)),
+                enchantStep(InfusionEnchantment.REFINING, Items.IRON_PICKAXE, single(TTItems.SALIS_MUNDUS.get()), cost(TTAspects.ORDO, 80), cost(TTAspects.PERMUTATIO, 60)),
+                enchantStep(InfusionEnchantment.SOUNDING, Items.GOLDEN_PICKAXE, single(Items.MAP), cost(TTAspects.SENSUS, 40), cost(TTAspects.IGNIS, 60)),
+                enchantStep(InfusionEnchantment.ARCING, Items.WOODEN_SWORD, tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), cost(TTAspects.POTENTIA, 40), cost(TTAspects.AER, 60)),
+                enchantStep(InfusionEnchantment.ESSENCE, Items.STONE_SWORD, single(TTItems.ESSENTIA_CRYSTAL.get()), cost(TTAspects.BESTIA, 40), cost(TTAspects.VITIUM, 60)),
+                enchantStep(InfusionEnchantment.LAMPLIGHT, Items.GOLDEN_PICKAXE, tagged(TTItemTags.NITORS), cost(TTAspects.LUX, 80), cost(TTAspects.AER, 20)));
+    }
+
     private void buildInfusionEnchantmentRecipes() {
-        infusionEnchantment(InfusionEnchantment.BURROWING, Items.WOODEN_PICKAXE, Ingredient.of(Items.RABBIT_FOOT)).aspect(TTAspects.SENSUS, 80).aspect(TTAspects.TERRA, 150).save(output);
-        infusionEnchantment(InfusionEnchantment.COLLECTOR, Items.STONE_AXE, Ingredient.of(Items.LEAD)).aspect(TTAspects.DESIDERIUM, 80).aspect(TTAspects.AQUA, 100).save(output);
-        infusionEnchantment(InfusionEnchantment.DESTRUCTIVE, Items.STONE_PICKAXE, Ingredient.of(Items.TNT)).aspect(TTAspects.AVERSIO, 200).aspect(TTAspects.PERDITIO, 250).save(output);
-        infusionEnchantment(InfusionEnchantment.REFINING, Items.IRON_PICKAXE, Ingredient.of(TTItems.SALIS_MUNDUS.get())).aspect(TTAspects.ORDO, 80).aspect(TTAspects.PERMUTATIO, 60).save(output);
-        infusionEnchantment(InfusionEnchantment.SOUNDING, Items.GOLDEN_PICKAXE, Ingredient.of(Items.MAP)).aspect(TTAspects.SENSUS, 40).aspect(TTAspects.IGNIS, 60).save(output);
-        infusionEnchantment(InfusionEnchantment.ARCING, Items.WOODEN_SWORD, Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE))).aspect(TTAspects.POTENTIA, 40)
-                .aspect(TTAspects.AER, 60).save(output);
-        infusionEnchantment(InfusionEnchantment.ESSENCE, Items.STONE_SWORD, Ingredient.of(TTItems.ESSENTIA_CRYSTAL.get())).aspect(TTAspects.BESTIA, 40).aspect(TTAspects.VITIUM, 60).save(output);
-        infusionEnchantment(InfusionEnchantment.LAMPLIGHT, Items.GOLDEN_PICKAXE, Ingredient.of(items.getOrThrow(TTItemTags.NITORS))).aspect(TTAspects.LUX, 80).aspect(TTAspects.AER, 20).save(output);
+        for (EnchantStep step : enchantSteps()) {
+            InfusionEnchantmentRecipeBuilder builder = infusionEnchantment(step.enchantment(), step.displayCatalyst(), step.signature());
+            for (AspectCost cost : step.costs()) {
+                builder.aspect(cost.aspect(), cost.amount());
+            }
+            builder.save(output);
+        }
     }
 
     private void buildRunicAugmentRecipe() {
@@ -533,24 +629,24 @@ public final class TTRecipeProvider extends RecipeProvider {
         HolderGetter<Item> items = registries.lookupOrThrow(Registries.ITEM);
         AspectList baseAspects = AspectList.of(new AspectInstance(aspects.getOrThrow(TTAspects.PRAEMUNIO), 40), new AspectInstance(aspects.getOrThrow(TTAspects.VITREUS), 20),
                 new AspectInstance(aspects.getOrThrow(TTAspects.POTENTIA), 20));
-        Ingredient amber = Ingredient.of(items.getOrThrow(TTItemTags.GEMS_AMBER));
-        InfusionRunicAugmentRecipe recipe = new InfusionRunicAugmentRecipe(List.of(Ingredient.of(TTItems.SALIS_MUNDUS.get()), amber), amber, baseAspects, Ingredient.of(Items.IRON_CHESTPLATE),
+        Ingredient amber = tagged(TTItemTags.GEMS_AMBER);
+        InfusionRunicAugmentRecipe recipe = new InfusionRunicAugmentRecipe(List.of(single(TTItems.SALIS_MUNDUS.get()), amber), amber, baseAspects, single(Items.IRON_CHESTPLATE),
                 Optional.of(gate("runic_shielding")));
         output.accept(ResourceKey.create(Registries.RECIPE, TTIds.rl("runic_augment/runic_shielding")), recipe, null);
     }
 
     private InfusionEnchantmentRecipeBuilder infusionEnchantment(InfusionEnchantment enchantment, Item displayCatalyst, Ingredient signature) {
-        return new InfusionEnchantmentRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), enchantment, Ingredient.of(displayCatalyst)).component(Ingredient.of(Items.ENCHANTED_BOOK))
-                .component(signature).gate(gate("infusion_enchantment"));
+        return new InfusionEnchantmentRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), enchantment, single(displayCatalyst)).component(single(Items.ENCHANTED_BOOK)).component(signature)
+                .gate(gate("infusion_enchantment"));
     }
 
     private void buildGearRecipes() {
-        toolRecipes("thaumium", TTItemTags.INGOTS_THAUMIUM, TTItems.THAUMIUM_SWORD.get(), TTItems.THAUMIUM_PICKAXE.get(), TTItems.THAUMIUM_AXE.get(), TTItems.THAUMIUM_SHOVEL.get(),
-                TTItems.THAUMIUM_HOE.get(), TTItems.THAUMIUM_SPEAR.get());
-        toolRecipes("void", TTItemTags.INGOTS_VOID_METAL, TTItems.VOID_SWORD.get(), TTItems.VOID_PICKAXE.get(), TTItems.VOID_AXE.get(), TTItems.VOID_SHOVEL.get(), TTItems.VOID_HOE.get(),
+        toolRecipes(TTItemTags.INGOTS_THAUMIUM, TTItems.THAUMIUM_SWORD.get(), TTItems.THAUMIUM_PICKAXE.get(), TTItems.THAUMIUM_AXE.get(), TTItems.THAUMIUM_SHOVEL.get(), TTItems.THAUMIUM_HOE.get(),
+                TTItems.THAUMIUM_SPEAR.get());
+        toolRecipes(TTItemTags.INGOTS_VOID_METAL, TTItems.VOID_SWORD.get(), TTItems.VOID_PICKAXE.get(), TTItems.VOID_AXE.get(), TTItems.VOID_SHOVEL.get(), TTItems.VOID_HOE.get(),
                 TTItems.VOID_SPEAR.get());
-        armorRecipes("thaumium", TTItemTags.INGOTS_THAUMIUM, TTItems.THAUMIUM_HELM.get(), TTItems.THAUMIUM_CHEST.get(), TTItems.THAUMIUM_LEGS.get(), TTItems.THAUMIUM_BOOTS.get());
-        armorRecipes("void", TTItemTags.INGOTS_VOID_METAL, TTItems.VOID_HELM.get(), TTItems.VOID_CHEST.get(), TTItems.VOID_LEGS.get(), TTItems.VOID_BOOTS.get());
+        armorRecipes(TTItemTags.INGOTS_THAUMIUM, TTItems.THAUMIUM_HELM.get(), TTItems.THAUMIUM_CHEST.get(), TTItems.THAUMIUM_LEGS.get(), TTItems.THAUMIUM_BOOTS.get());
+        armorRecipes(TTItemTags.INGOTS_VOID_METAL, TTItems.VOID_HELM.get(), TTItems.VOID_CHEST.get(), TTItems.VOID_LEGS.get(), TTItems.VOID_BOOTS.get());
         robeDyeRecipe(TTItems.CLOTH_CHEST.get());
         robeDyeRecipe(TTItems.CLOTH_LEGS.get());
         robeDyeRecipe(TTItems.CLOTH_BOOTS.get());
@@ -561,24 +657,38 @@ public final class TTRecipeProvider extends RecipeProvider {
 
     private void robeDyeRecipe(Item target) {
         CustomCraftingRecipeBuilder
-                .customCrafting(RecipeCategory.MISC, (commonInfo, bookInfo) -> new DyeRecipe(commonInfo, bookInfo, Ingredient.of(target), tag(ItemTags.DYES), new ItemStackTemplate(target)))
+                .customCrafting(RecipeCategory.MISC, (commonInfo, bookInfo) -> new DyeRecipe(commonInfo, bookInfo, single(target), tag(ItemTags.DYES), new ItemStackTemplate(target)))
                 .unlockedBy(getHasName(target), has(target)).group("cloth_robes").save(output, TTIds.MODID + ":" + BuiltInRegistries.ITEM.getKey(target).getPath() + "_dyed");
     }
 
-    private void toolRecipes(String name, TagKey<Item> ingot, Item sword, Item pickaxe, Item axe, Item shovel, Item hoe, Item spear) {
-        shaped(RecipeCategory.COMBAT, sword).pattern("I").pattern("I").pattern("S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.TOOLS, pickaxe).pattern("III").pattern(" S ").pattern(" S ").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.TOOLS, axe).pattern("II").pattern("IS").pattern(" S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.TOOLS, shovel).pattern("I").pattern("S").pattern("S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.TOOLS, hoe).pattern("II").pattern(" S").pattern(" S").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.COMBAT, spear).pattern("  I").pattern(" S ").pattern("S  ").define('I', ingot).define('S', Tags.Items.RODS_WOODEN).unlockedBy("has_ingot", has(ingot)).save(output);
+    private void toolRecipes(TagKey<Item> ingot, Item... tools) {
+        gearSet(TOOL_SHAPES, ingot, tools);
     }
 
-    private void armorRecipes(String name, TagKey<Item> ingot, Item helm, Item chest, Item legs, Item boots) {
-        shaped(RecipeCategory.COMBAT, helm).pattern("III").pattern("I I").define('I', ingot).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.COMBAT, chest).pattern("I I").pattern("III").pattern("III").define('I', ingot).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.COMBAT, legs).pattern("III").pattern("I I").pattern("I I").define('I', ingot).unlockedBy("has_ingot", has(ingot)).save(output);
-        shaped(RecipeCategory.COMBAT, boots).pattern("I I").pattern("I I").define('I', ingot).unlockedBy("has_ingot", has(ingot)).save(output);
+    private void armorRecipes(TagKey<Item> ingot, Item... pieces) {
+        gearSet(ARMOR_SHAPES, ingot, pieces);
+    }
+
+    private void gearSet(List<GearShape> shapes, TagKey<Item> ingot, Item[] pieces) {
+        int index = 0;
+        for (Item piece : pieces) {
+            gearPiece(shapes.get(index++), piece, ingot);
+        }
+    }
+
+    private void gearPiece(GearShape shape, Item result, TagKey<Item> ingot) {
+        ShapedRecipeBuilder builder = shaped(shape.category(), result);
+        for (String row : shape.rows()) {
+            builder.pattern(row);
+        }
+        builder.define('I', ingot);
+        if (shape.usesRod()) {
+            builder.define('S', Tags.Items.RODS_WOODEN);
+        }
+        builder.unlockedBy("has_ingot", has(ingot)).save(output);
+    }
+
+    private record GearShape(RecipeCategory category, boolean usesRod, List<String> rows) {
     }
 
     private void buildBannerRecipes() {
@@ -589,7 +699,24 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private static Item wool(DyeColor dye) {
-        return BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(dye.getName() + "_wool"));
+        return switch (dye) {
+            case WHITE -> Items.WHITE_WOOL;
+            case ORANGE -> Items.ORANGE_WOOL;
+            case MAGENTA -> Items.MAGENTA_WOOL;
+            case LIGHT_BLUE -> Items.LIGHT_BLUE_WOOL;
+            case YELLOW -> Items.YELLOW_WOOL;
+            case LIME -> Items.LIME_WOOL;
+            case PINK -> Items.PINK_WOOL;
+            case GRAY -> Items.GRAY_WOOL;
+            case LIGHT_GRAY -> Items.LIGHT_GRAY_WOOL;
+            case CYAN -> Items.CYAN_WOOL;
+            case PURPLE -> Items.PURPLE_WOOL;
+            case BLUE -> Items.BLUE_WOOL;
+            case BROWN -> Items.BROWN_WOOL;
+            case GREEN -> Items.GREEN_WOOL;
+            case RED -> Items.RED_WOOL;
+            case BLACK -> Items.BLACK_WOOL;
+        };
     }
 
     private static TagKey<Item> dyeTag(DyeColor dye) {
@@ -597,197 +724,175 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private void buildIngredientRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.INLAY.get(), 2), 25), cost(TTAspects.AQUA, 1)).requires(Tags.Items.DUSTS_REDSTONE).requires(Tags.Items.INGOTS_GOLD)
+                .gate(gate("infusion_stable")).unlockedBy("has", has(Tags.Items.DUSTS_REDSTONE)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.INLAY.get(), 2), 25).aspect(TTAspects.AQUA, 1).requires(Tags.Items.DUSTS_REDSTONE).requires(Tags.Items.INGOTS_GOLD).gate(gate("infusion_stable"))
-                .unlockedBy("has", has(Tags.Items.DUSTS_REDSTONE)).save(output);
-
-        arcaneShaped(new ItemStackTemplate(TTItems.PATTERN_CRAFTER), 50).aspect(TTAspects.TERRA, 1).aspect(TTAspects.AQUA, 1).aspect(TTAspects.ORDO, 1).pattern("VH ").pattern("GCG").pattern(" W ")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.PATTERN_CRAFTER), 50), cost(TTAspects.TERRA, 1), cost(TTAspects.AQUA, 1), cost(TTAspects.ORDO, 1)), "VH ", "GCG", " W ")
                 .define('H', Items.HOPPER).define('W', TTItemTags.PLANKS_GREATWOOD).define('G', TTItems.MECHANISM_SIMPLE).define('V', TTItems.VIS_RESONATOR)
-                .define('C', Tags.Items.PLAYER_WORKSTATIONS_CRAFTING_TABLES).gate(gate("arcane_pattern_crafter")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)).save(output);
+                .define('C', Tags.Items.PLAYER_WORKSTATIONS_CRAFTING_TABLES).gate(gate("arcane_pattern_crafter")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        shapeless(RecipeCategory.TOOLS, TTItems.SCRIBING_TOOLS).requires(TTItems.SCRIBING_TOOLS).requires(Tags.Items.DYES_BLACK).unlockedBy("has", has(TTItems.SCRIBING_TOOLS)).save(output,
+        commit(shapeless(RecipeCategory.TOOLS, TTItems.SCRIBING_TOOLS).requires(TTItems.SCRIBING_TOOLS).requires(Tags.Items.DYES_BLACK).unlockedBy("has", has(TTItems.SCRIBING_TOOLS)),
                 "thaumaturge:scribing_tools_refill");
 
-        arcaneShaped(new ItemStackTemplate(TTBlocks.DECONSTRUCTION_TABLE.asItem()), 20).aspect(TTAspects.PERDITIO, 1).pattern(" S ").pattern("ATP").define('S', TTItems.THAUMOMETER)
-                .define('T', TTBlocks.TABLE_WOOD.asItem()).define('A', Items.GOLDEN_AXE).define('P', Items.GOLDEN_PICKAXE).gate(gate("deconstructor")).unlockedBy("has", has(TTItems.THAUMOMETER))
-                .save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTBlocks.DECONSTRUCTION_TABLE.asItem()), 20), cost(TTAspects.PERDITIO, 1)), " S ", "ATP").define('S', TTItems.THAUMOMETER)
+                .define('T', TTBlocks.TABLE_WOOD.asItem()).define('A', Items.GOLDEN_AXE).define('P', Items.GOLDEN_PICKAXE).gate(gate("deconstructor")).unlockedBy("has", has(TTItems.THAUMOMETER)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.POTION_SPRAYER), 75).aspect(TTAspects.AQUA, 1).aspect(TTAspects.IGNIS, 1).pattern("BDB").pattern("IAI").pattern("ICI")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.POTION_SPRAYER), 75), cost(TTAspects.AQUA, 1), cost(TTAspects.IGNIS, 1)), "BDB", "IAI", "ICI")
                 .define('B', TTItemTags.PLATES_BRASS).define('I', TTItemTags.PLATES_IRON).define('A', Items.BREWING_STAND).define('D', Items.DISPENSER).define('C', TTItems.ALCHEMICAL_CONSTRUCT)
-                .gate(gate("potion_sprayer")).unlockedBy("has", has(TTItems.ALCHEMICAL_CONSTRUCT)).save(output);
+                .gate(gate("potion_sprayer")).unlockedBy("has", has(TTItems.ALCHEMICAL_CONSTRUCT)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.SPA), 50).aspect(TTAspects.AQUA).pattern("QIQ").pattern("SJS").pattern("SPS").define('Q', Items.QUARTZ_BLOCK).define('I', Items.IRON_BARS)
-                .define('S', TTItems.STONE_ARCANE).define('J', TTItems.JAR_NORMAL).define('P', TTItems.MECHANISM_SIMPLE).gate(gate("arcane_spa")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE))
-                .save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SPA), 50), cost(TTAspects.AQUA, 1)), "QIQ", "SJS", "SPS").define('Q', Items.QUARTZ_BLOCK).define('I', Items.IRON_BARS)
+                .define('S', TTItems.STONE_ARCANE).define('J', TTItems.JAR_NORMAL).define('P', TTItems.MECHANISM_SIMPLE).gate(gate("arcane_spa")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.FABRIC), 5).pattern(" S ").pattern("SCS").pattern(" S ").define('S', Tags.Items.STRINGS).define('C', ItemTags.WOOL).gate(gate("unlock_infusion"))
-                .unlockedBy("has", has(Tags.Items.STRINGS)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.FABRIC), 5), " S ", "SCS", " S ").define('S', Tags.Items.STRINGS).define('C', ItemTags.WOOL).gate(gate("unlock_infusion"))
+                .unlockedBy("has", has(Tags.Items.STRINGS)));
 
         clothRecipe(TTItems.CLOTH_CHEST.get(), "I I", "III", "III");
         clothRecipe(TTItems.CLOTH_LEGS.get(), "III", "I I", "I I");
-        clothRecipe(TTItems.CLOTH_BOOTS.get(), "I I", "I I", null);
+        clothRecipe(TTItems.CLOTH_BOOTS.get(), "I I", "I I");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MECHANISM_SIMPLE), 10).aspect(TTAspects.IGNIS).aspect(TTAspects.AQUA).pattern(" B ").pattern("ISI").pattern(" B ")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MECHANISM_SIMPLE), 10), cost(TTAspects.IGNIS, 1), cost(TTAspects.AQUA, 1)), " B ", "ISI", " B ")
                 .define('B', TTItemTags.PLATES_BRASS).define('I', TTItemTags.PLATES_IRON).define('S', Tags.Items.RODS_WOODEN).gate(gate("base_artifice"))
-                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)).save(output);
+                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MECHANISM_COMPLEX), 50).aspect(TTAspects.IGNIS).aspect(TTAspects.AQUA).pattern(" M ").pattern("TQT").pattern(" M ")
-                .define('T', TTItemTags.PLATES_THAUMIUM).define('Q', Items.PISTON).define('M', TTItems.MECHANISM_SIMPLE).gate(gate("base_artifice")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE))
-                .save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MECHANISM_COMPLEX), 50), cost(TTAspects.IGNIS, 1), cost(TTAspects.AQUA, 1)), " M ", "TQT", " M ")
+                .define('T', TTItemTags.PLATES_THAUMIUM).define('Q', Items.PISTON).define('M', TTItems.MECHANISM_SIMPLE).gate(gate("base_artifice")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.MIRRORED_GLASS), 50).aspect(TTAspects.AQUA).aspect(TTAspects.ORDO).requires(TTItemTags.GEMS_QUICKSILVER).requires(Tags.Items.GLASS_PANES)
-                .gate(gate("base_artifice")).unlockedBy("has", has(TTItemTags.GEMS_QUICKSILVER)).save(output);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.MIRRORED_GLASS), 50), cost(TTAspects.AQUA, 1), cost(TTAspects.ORDO, 1)).requires(TTItemTags.GEMS_QUICKSILVER)
+                .requires(Tags.Items.GLASS_PANES).gate(gate("base_artifice")).unlockedBy("has", has(TTItemTags.GEMS_QUICKSILVER)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.FILTER.get(), 2), 15).aspect(TTAspects.AQUA).pattern("GWG").define('G', Tags.Items.INGOTS_GOLD).define('W', TTItemTags.PLANKS_SILVERWOOD)
-                .gate(gate("base_alchemy")).unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.FILTER.get(), 2), 15), cost(TTAspects.AQUA, 1)), "GWG").define('G', Tags.Items.INGOTS_GOLD)
+                .define('W', TTItemTags.PLANKS_SILVERWOOD).gate(gate("base_alchemy")).unlockedBy("has", has(TTItemTags.PLANKS_SILVERWOOD)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MORPHIC_RESONATOR), 50).aspect(TTAspects.AER).aspect(TTAspects.IGNIS).pattern(" G ").pattern("BSB").pattern(" G ")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MORPHIC_RESONATOR), 50), cost(TTAspects.AER, 1), cost(TTAspects.IGNIS, 1)), " G ", "BSB", " G ")
                 .define('G', Tags.Items.GLASS_PANES).define('B', TTItemTags.PLATES_BRASS).define('S', TTItemTags.NUGGETS_QUICKSILVER).gate(gate("base_alchemy"))
-                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)).save(output);
+                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.BOTTLE_TAINT),
-                DataComponentIngredient.of(TTDataComponents.ASPECTS.get(), AspectList.of(new AspectInstance(aspects.getOrThrow(TTAspects.VITIUM), PhialItem.BASE_AMOUNT)), TTItems.PHIAL.get()))
-                .aspect(TTAspects.VITIUM, 30).aspect(TTAspects.AQUA, 30).gate(gate("bottle_taint")).unlockedBy("has", has(TTItems.PHIAL.get())).save(output);
+        commit(priced(
+                crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.BOTTLE_TAINT),
+                        DataComponentIngredient.of(TTDataComponents.ASPECTS.get(), AspectList.of(new AspectInstance(getAspect(TTAspects.VITIUM), PhialItem.BASE_AMOUNT)), TTItems.PHIAL.get())),
+                cost(TTAspects.VITIUM, 30), cost(TTAspects.AQUA, 30)).gate(gate("bottle_taint")).unlockedBy("has", has(TTItems.PHIAL.get())));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.ETHEREAL_BLOOM), Ingredient.of(TTItems.PLANT_SHIMMERLEAF.get())).aspect(TTAspects.LUX, 8)
-                .aspect(TTAspects.HERBA, 16).aspect(TTAspects.VICTUS, 16).aspect(TTAspects.VITIUM, 16).gate(gate("ethereal_bloom")).unlockedBy("has", has(TTItems.PLANT_SHIMMERLEAF.get()))
-                .save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.ETHEREAL_BLOOM), single(TTItems.PLANT_SHIMMERLEAF.get())), cost(TTAspects.LUX, 8), cost(TTAspects.HERBA, 16),
+                cost(TTAspects.VICTUS, 16), cost(TTAspects.VITIUM, 16)).gate(gate("ethereal_bloom")).unlockedBy("has", has(TTItems.PLANT_SHIMMERLEAF.get())));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.BATH_SALTS), Ingredient.of(TTItems.SALIS_MUNDUS)).aspect(TTAspects.COGNITIO, 40).aspect(TTAspects.AER, 40)
-                .aspect(TTAspects.ORDO, 40).aspect(TTAspects.VICTUS, 40).gate(gate("bath_salts")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)).save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.BATH_SALTS), single(TTItems.SALIS_MUNDUS)), cost(TTAspects.COGNITIO, 40), cost(TTAspects.AER, 40),
+                cost(TTAspects.ORDO, 40), cost(TTAspects.VICTUS, 40)).gate(gate("bath_salts")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.SANITY_SOAP), Ingredient.of(Items.ROTTEN_FLESH)).aspect(TTAspects.COGNITIO, 75)
-                .aspect(TTAspects.ALIENIS, 50).aspect(TTAspects.ORDO, 75).aspect(TTAspects.VICTUS, 50).gate(gate("sane_soap")).unlockedBy("has", has(Items.ROTTEN_FLESH)).save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.SANITY_SOAP), single(Items.ROTTEN_FLESH)), cost(TTAspects.COGNITIO, 75), cost(TTAspects.ALIENIS, 50),
+                cost(TTAspects.ORDO, 75), cost(TTAspects.VICTUS, 50)).gate(gate("sane_soap")).unlockedBy("has", has(Items.ROTTEN_FLESH)));
 
-        shapeless(RecipeCategory.FOOD, TTItems.TRIPLE_MEAT_TREAT).requires(TTItemTags.MEAT_CHUNKS).requires(TTItemTags.MEAT_CHUNKS).requires(TTItemTags.MEAT_CHUNKS).requires(Items.SUGAR)
-                .unlockedBy("has", has(TTItemTags.MEAT_CHUNKS)).save(output);
+        commit(shapeless(RecipeCategory.FOOD, TTItems.TRIPLE_MEAT_TREAT).requires(TTItemTags.MEAT_CHUNKS).requires(TTItemTags.MEAT_CHUNKS).requires(TTItemTags.MEAT_CHUNKS).requires(Items.SUGAR)
+                .unlockedBy("has", has(TTItemTags.MEAT_CHUNKS)));
     }
 
-    private void clothRecipe(Item result, String row1, String row2, String row3) {
-        ArcaneWorkbenchShapedRecipeBuilder builder = arcaneShaped(new ItemStackTemplate(result), 100).pattern(row1).pattern(row2);
-        if (row3 != null) {
-            builder.pattern(row3);
+    private void clothRecipe(Item result, String... rows) {
+        ArcaneWorkbenchShapedRecipeBuilder builder = arcaneShaped(new ItemStackTemplate(result), CLOTH_VIS);
+        for (String row : rows) {
+            builder.pattern(row);
         }
         builder.define('I', TTItems.FABRIC).gate(gate("unlock_infusion")).unlockedBy("has", has(TTItems.FABRIC)).save(output);
     }
 
     private void buildCrystalClusterRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        crystalCluster(aspects, TTItems.CRYSTAL_AER, TTAspects.AER, 0);
-        crystalCluster(aspects, TTItems.CRYSTAL_IGNIS, TTAspects.IGNIS, 0);
-        crystalCluster(aspects, TTItems.CRYSTAL_AQUA, TTAspects.AQUA, 0);
-        crystalCluster(aspects, TTItems.CRYSTAL_TERRA, TTAspects.TERRA, 0);
-        crystalCluster(aspects, TTItems.CRYSTAL_ORDO, TTAspects.ORDO, 0);
-        crystalCluster(aspects, TTItems.CRYSTAL_PERDITIO, TTAspects.PERDITIO, 0);
-        crystalCluster(aspects, TTItems.CRYSTAL_VITIUM, TTAspects.VITIUM, 4);
+        crystalCluster(TTItems.CRYSTAL_AER, TTAspects.AER, 0);
+        crystalCluster(TTItems.CRYSTAL_IGNIS, TTAspects.IGNIS, 0);
+        crystalCluster(TTItems.CRYSTAL_AQUA, TTAspects.AQUA, 0);
+        crystalCluster(TTItems.CRYSTAL_TERRA, TTAspects.TERRA, 0);
+        crystalCluster(TTItems.CRYSTAL_ORDO, TTAspects.ORDO, 0);
+        crystalCluster(TTItems.CRYSTAL_PERDITIO, TTAspects.PERDITIO, 0);
+        crystalCluster(TTItems.CRYSTAL_VITIUM, TTAspects.VITIUM, 4);
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.ELDRITCH_EYE.get()), Ingredient.of(Items.ENDER_EYE)).component(Ingredient.of(TTItems.VOID_SEED.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).aspect(TTAspects.ALIENIS, 64).aspect(TTAspects.VACUOS, 16).aspect(TTAspects.TENEBRAE, 16)
-                .aspect(TTAspects.MOTUS, 16).instability(5).gate(gate("oculus")).unlockedBy("has", has(Items.ENDER_EYE)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.ELDRITCH_EYE.get()), single(Items.ENDER_EYE)), single(TTItems.VOID_SEED.get()), tagged(Tags.Items.INGOTS_GOLD)),
+                cost(TTAspects.ALIENIS, 64), cost(TTAspects.VACUOS, 16), cost(TTAspects.TENEBRAE, 16), cost(TTAspects.MOTUS, 16)).instability(5).gate(gate("oculus"))
+                .unlockedBy("has", has(Items.ENDER_EYE)));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CAUSALITY_COLLAPSER.get()), Ingredient.of(Items.TNT))
-                .component(Ingredient.of(TTItems.MORPHIC_RESONATOR.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE)))
-                .component(Ingredient.of(TTItems.ALUMENTUM.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.NITORS))).component(Ingredient.of(TTItems.VIS_RESONATOR.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE))).component(Ingredient.of(TTItems.ALUMENTUM.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NITORS))).aspect(TTAspects.ALIENIS, 50).aspect(TTAspects.VITIUM, 50).instability(8).gate(gate("rift_closer"))
-                .unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.CAUSALITY_COLLAPSER.get()), single(Items.TNT)), single(TTItems.MORPHIC_RESONATOR.get()),
+                tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), single(TTItems.ALUMENTUM.get()), tagged(TTItemTags.NITORS), single(TTItems.VIS_RESONATOR.get()), tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE),
+                single(TTItems.ALUMENTUM.get()), tagged(TTItemTags.NITORS)), cost(TTAspects.ALIENIS, 50), cost(TTAspects.VITIUM, 50)).instability(8).gate(gate("rift_closer"))
+                .unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)));
     }
 
-    private void crystalCluster(HolderLookup<IAspect> aspects, ItemLike cluster, ResourceKey<IAspect> aspect, int instability) {
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(cluster.asItem()), crystal(aspect)).component(Ingredient.of(items.getOrThrow(Tags.Items.SEEDS_WHEAT)))
-                .component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).aspect(aspect, 10).aspect(TTAspects.VITREUS, 10).aspect(TTAspects.VINCULUM, 5).instability(instability)
-                .gate(gate("crystal_farmer")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)).save(output);
+    private void crystalCluster(ItemLike cluster, ResourceKey<IAspect> aspect, int instability) {
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(cluster.asItem()), crystal(aspect)), tagged(Tags.Items.SEEDS_WHEAT), single(TTItems.SALIS_MUNDUS.get())).aspect(aspect, 10),
+                cost(TTAspects.VITREUS, 10), cost(TTAspects.VINCULUM, 5)).instability(instability).gate(gate("crystal_farmer")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)));
     }
 
     private void buildFocusRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.FOCUS_1.get()),
+                DataComponentIngredient.of(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(getAspect(TTAspects.ORDO), 1), TTItems.ESSENTIA_CRYSTAL.get())).gate(gate("unlock_auromancy")),
+                cost(TTAspects.VITREUS, 20), cost(TTAspects.PRAECANTATIO, 10), cost(TTAspects.AURAM, 5)).unlockedBy("has", has(TTItems.ESSENTIA_CRYSTAL.get())));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.FOCUS_1.get()),
-                DataComponentIngredient.of(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspects.getOrThrow(TTAspects.ORDO), 1), TTItems.ESSENTIA_CRYSTAL.get()))
-                .gate(gate("unlock_auromancy")).aspect(TTAspects.VITREUS, 20).aspect(TTAspects.PRAECANTATIO, 10).aspect(TTAspects.AURAM, 5).unlockedBy("has", has(TTItems.ESSENTIA_CRYSTAL.get()))
-                .save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.FOCUS_2.get()), single(TTItems.FOCUS_1.get())), tagged(TTItemTags.GEMS_QUICKSILVER),
+                tagged(Tags.Items.GEMS_DIAMOND), tagged(TTItemTags.GEMS_QUICKSILVER), tagged(Tags.Items.ENDER_PEARLS)), cost(TTAspects.PRAECANTATIO, 25), cost(TTAspects.ORDO, 50)).instability(3)
+                .gate(gate("focus_advanced", 0)).unlockedBy("has", has(TTItems.FOCUS_1.get())));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.FOCUS_2.get()), Ingredient.of(TTItems.FOCUS_1.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.GEMS_QUICKSILVER))).component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_DIAMOND)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.GEMS_QUICKSILVER))).component(Ingredient.of(items.getOrThrow(Tags.Items.ENDER_PEARLS))).aspect(TTAspects.PRAECANTATIO, 25)
-                .aspect(TTAspects.ORDO, 50).instability(3).gate(gate("focus_advanced", 0)).unlockedBy("has", has(TTItems.FOCUS_1.get())).save(output);
-
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.FOCUS_3.get()), Ingredient.of(TTItems.FOCUS_2.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.GEMS_QUICKSILVER))).component(Ingredient.of(TTItems.PRIMORDIAL_PEARL.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.GEMS_QUICKSILVER))).component(Ingredient.of(items.getOrThrow(Tags.Items.NETHER_STARS))).aspect(TTAspects.PRAECANTATIO, 25)
-                .aspect(TTAspects.ORDO, 50).aspect(TTAspects.VACUOS, 100).instability(5).gate(gate("focus_greater", 0)).unlockedBy("has", has(TTItems.FOCUS_2.get())).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.FOCUS_3.get()), single(TTItems.FOCUS_2.get())), tagged(TTItemTags.GEMS_QUICKSILVER),
+                        single(TTItems.PRIMORDIAL_PEARL.get()), tagged(TTItemTags.GEMS_QUICKSILVER), tagged(Tags.Items.NETHER_STARS)),
+                cost(TTAspects.PRAECANTATIO, 25), cost(TTAspects.ORDO, 50), cost(TTAspects.VACUOS, 100)).instability(5).gate(gate("focus_greater", 0)).unlockedBy("has", has(TTItems.FOCUS_2.get())));
     }
 
     private void buildCrucibleRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.TALLOW.get()), single(Items.ROTTEN_FLESH)), cost(TTAspects.IGNIS, 1)).gate(gate("hedge_alchemy", 0)).unlockedBy("has",
+                has(Items.ROTTEN_FLESH)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.TALLOW.get()), Ingredient.of(Items.ROTTEN_FLESH)).aspect(TTAspects.IGNIS, 1)
-                .gate(gate("hedge_alchemy", 0)).unlockedBy("has", has(Items.ROTTEN_FLESH)).save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.LEATHER), single(Items.ROTTEN_FLESH)), cost(TTAspects.AER, 3), cost(TTAspects.BESTIA, 3)).gate(gate("hedge_alchemy", 0))
+                .unlockedBy("has", has(Items.ROTTEN_FLESH)), TTIds.MODID + ":crucible/leather");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.LEATHER), Ingredient.of(Items.ROTTEN_FLESH)).aspect(TTAspects.AER, 3).aspect(TTAspects.BESTIA, 3)
-                .gate(gate("hedge_alchemy", 0)).unlockedBy("has", has(Items.ROTTEN_FLESH)).save(output, TTIds.MODID + ":crucible/leather");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.GUNPOWDER, 2), tagged(Tags.Items.GUNPOWDERS)), cost(TTAspects.IGNIS, 10), cost(TTAspects.PERDITIO, 10),
+                cost(TTAspects.ALKIMIA, 5)).gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Tags.Items.GUNPOWDERS)), TTIds.MODID + ":crucible/gunpowder");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.GUNPOWDER, 2), Ingredient.of(items.getOrThrow(Tags.Items.GUNPOWDERS))).aspect(TTAspects.IGNIS, 10)
-                .aspect(TTAspects.PERDITIO, 10).aspect(TTAspects.ALKIMIA, 5).gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Tags.Items.GUNPOWDERS))
-                .save(output, TTIds.MODID + ":crucible/gunpowder");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.SLIME_BALL, 2), tagged(Tags.Items.SLIME_BALLS)), cost(TTAspects.AQUA, 5), cost(TTAspects.VICTUS, 5),
+                cost(TTAspects.ALKIMIA, 1)).gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Tags.Items.SLIME_BALLS)), TTIds.MODID + ":crucible/slime_ball");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.SLIME_BALL, 2), Ingredient.of(items.getOrThrow(Tags.Items.SLIME_BALLS))).aspect(TTAspects.AQUA, 5)
-                .aspect(TTAspects.VICTUS, 5).aspect(TTAspects.ALKIMIA, 1).gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Tags.Items.SLIME_BALLS))
-                .save(output, TTIds.MODID + ":crucible/slime_ball");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.GLOWSTONE_DUST, 2), tagged(Tags.Items.DUSTS_GLOWSTONE)), cost(TTAspects.SENSUS, 5), cost(TTAspects.LUX, 10))
+                .gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Tags.Items.DUSTS_GLOWSTONE)), TTIds.MODID + ":crucible/glowstone_dust");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.GLOWSTONE_DUST, 2), Ingredient.of(items.getOrThrow(Tags.Items.DUSTS_GLOWSTONE))).aspect(TTAspects.SENSUS, 5)
-                .aspect(TTAspects.LUX, 10).gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Tags.Items.DUSTS_GLOWSTONE)).save(output, TTIds.MODID + ":crucible/glowstone_dust");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.INK_SAC, 2), single(Items.INK_SAC)), cost(TTAspects.AQUA, 2), cost(TTAspects.BESTIA, 2)).gate(gate("hedge_alchemy", 1))
+                .unlockedBy("has", has(Items.INK_SAC)), TTIds.MODID + ":crucible/dye");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.INK_SAC, 2), Ingredient.of(Items.INK_SAC)).aspect(TTAspects.AQUA, 2).aspect(TTAspects.BESTIA, 2)
-                .gate(gate("hedge_alchemy", 1)).unlockedBy("has", has(Items.INK_SAC)).save(output, TTIds.MODID + ":crucible/dye");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.CLAY_BALL), single(Items.DIRT)), cost(TTAspects.AQUA, 5)).gate(gate("hedge_alchemy", 2)).unlockedBy("has",
+                has(Items.DIRT)), TTIds.MODID + ":crucible/clay_ball");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.CLAY_BALL), Ingredient.of(Items.DIRT)).aspect(TTAspects.AQUA, 5).gate(gate("hedge_alchemy", 2))
-                .unlockedBy("has", has(Items.DIRT)).save(output, TTIds.MODID + ":crucible/clay_ball");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.STRING), tagged(Tags.Items.CROPS_WHEAT)), cost(TTAspects.BESTIA, 5), cost(TTAspects.FABRICO, 1))
+                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.CROPS_WHEAT)), TTIds.MODID + ":crucible/string");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.STRING), Ingredient.of(items.getOrThrow(Tags.Items.CROPS_WHEAT))).aspect(TTAspects.BESTIA, 5)
-                .aspect(TTAspects.FABRICO, 1).gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.CROPS_WHEAT)).save(output, TTIds.MODID + ":crucible/string");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.COBWEB), tagged(Tags.Items.STRINGS)), cost(TTAspects.VINCULUM, 5)).gate(gate("hedge_alchemy", 2)).unlockedBy("has",
+                has(Tags.Items.STRINGS)), TTIds.MODID + ":crucible/cobweb");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.COBWEB), Ingredient.of(items.getOrThrow(Tags.Items.STRINGS))).aspect(TTAspects.VINCULUM, 5)
-                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.STRINGS)).save(output, TTIds.MODID + ":crucible/cobweb");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.LAVA_BUCKET), tagged(Tags.Items.BUCKETS_EMPTY)), cost(TTAspects.IGNIS, 15), cost(TTAspects.TERRA, 5))
+                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY)), TTIds.MODID + ":crucible/lava_bucket");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.LAVA_BUCKET), Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_EMPTY))).aspect(TTAspects.IGNIS, 15)
-                .aspect(TTAspects.TERRA, 5).gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY)).save(output, TTIds.MODID + ":crucible/lava_bucket");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.MOSSY_COBBLESTONE), single(Items.COBBLESTONE)), cost(TTAspects.HERBA, 2)).gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.COBBLESTONE)), TTIds.MODID + ":crucible/mossy_cobblestone");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.MOSSY_COBBLESTONE), Ingredient.of(Items.COBBLESTONE)).aspect(TTAspects.HERBA, 2)
-                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.COBBLESTONE)).save(output, TTIds.MODID + ":crucible/mossy_cobblestone");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.MOSSY_STONE_BRICKS), single(Items.STONE_BRICKS)), cost(TTAspects.HERBA, 2)).gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.STONE_BRICKS)), TTIds.MODID + ":crucible/mossy_stone_bricks");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.MOSSY_STONE_BRICKS), Ingredient.of(Items.STONE_BRICKS)).aspect(TTAspects.HERBA, 2)
-                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.STONE_BRICKS)).save(output, TTIds.MODID + ":crucible/mossy_stone_bricks");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.ICE), single(Items.SNOW_BLOCK)), cost(TTAspects.ORDO, 1), cost(TTAspects.GELUM, 1)).gate(gate("hedge_alchemy", 2))
+                .unlockedBy("has", has(Items.SNOW_BLOCK)), TTIds.MODID + ":crucible/ice");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.ICE), Ingredient.of(Items.SNOW_BLOCK)).aspect(TTAspects.ORDO, 1).aspect(TTAspects.GELUM, 1)
-                .gate(gate("hedge_alchemy", 2)).unlockedBy("has", has(Items.SNOW_BLOCK)).save(output, TTIds.MODID + ":crucible/ice");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.BONE_MEAL, 4), single(Items.BONE)), cost(TTAspects.PERDITIO, 1)).gate(gate("hedge_alchemy", 2)).unlockedBy("has",
+                has(Items.BONE)), TTIds.MODID + ":crucible/bone_meal");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.BONE_MEAL, 4), Ingredient.of(Items.BONE)).aspect(TTAspects.PERDITIO, 1).gate(gate("hedge_alchemy", 2))
-                .unlockedBy("has", has(Items.BONE)).save(output, TTIds.MODID + ":crucible/bone_meal");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.BUCKET_LIQUID_DEATH.get()), tagged(Tags.Items.BUCKETS_EMPTY)), cost(TTAspects.MORTUUS, 100),
+                cost(TTAspects.PERDITIO, 50), cost(TTAspects.ALKIMIA, 20)).gate(gate("liquid_death", 0)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY)), TTIds.MODID + ":crucible/liquid_death");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.BUCKET_LIQUID_DEATH.get()), Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_EMPTY)))
-                .aspect(TTAspects.MORTUUS, 100).aspect(TTAspects.PERDITIO, 50).aspect(TTAspects.ALKIMIA, 20).gate(gate("liquid_death", 0)).unlockedBy("has", has(Tags.Items.BUCKETS_EMPTY))
-                .save(output, TTIds.MODID + ":crucible/liquid_death");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.INGOT_BRASS.get()), tagged(Tags.Items.INGOTS_COPPER)), cost(TTAspects.INSTRUMENTUM, 5)).gate(gate("metallurgy", 0))
+                .unlockedBy("has", has(Tags.Items.INGOTS_COPPER)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.INGOT_BRASS.get()), Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_COPPER)))
-                .aspect(TTAspects.INSTRUMENTUM, 5).gate(gate("metallurgy", 0)).unlockedBy("has", has(Tags.Items.INGOTS_COPPER)).save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.INGOT_THAUMIUM.get()), tagged(Tags.Items.INGOTS_IRON)), cost(TTAspects.PRAECANTATIO, 5), cost(TTAspects.TERRA, 5))
+                .gate(gate("metallurgy", 1)).unlockedBy("has", has(Tags.Items.INGOTS_IRON)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.INGOT_THAUMIUM.get()), Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON)))
-                .aspect(TTAspects.PRAECANTATIO, 5).aspect(TTAspects.TERRA, 5).gate(gate("metallurgy", 1)).unlockedBy("has", has(Tags.Items.INGOTS_IRON)).save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.NITORS.get(DyeColor.YELLOW).get()), tagged(Tags.Items.DUSTS_GLOWSTONE)).gate(gate("unlock_alchemy", 2)),
+                cost(TTAspects.POTENTIA, 10), cost(TTAspects.IGNIS, 10), cost(TTAspects.LUX, 10)).unlockedBy("has", has(Tags.Items.DUSTS_GLOWSTONE)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.NITORS.get(DyeColor.YELLOW).get()), Ingredient.of(items.getOrThrow(Tags.Items.DUSTS_GLOWSTONE)))
-                .gate(gate("unlock_alchemy", 2)).aspect(TTAspects.POTENTIA, 10).aspect(TTAspects.IGNIS, 10).aspect(TTAspects.LUX, 10).unlockedBy("has", has(Tags.Items.DUSTS_GLOWSTONE)).save(output);
+        registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(this::visCrystalRecipe);
 
-        registries.lookupOrThrow(IAspect.REGISTRY_KEY).listElements().forEach(aspect -> {
-            new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC,
-                    new ItemStackTemplate(TTItems.ESSENTIA_CRYSTAL, 1, DataComponentPatch.builder().set(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1)).build()),
-                    Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUARTZ))).gate(gate("base_alchemy")).aspect(aspect, 2).unlockedBy("has", has(TTItemTags.NUGGETS_QUARTZ))
-                    .save(output, TTIds.MODID + ":crucible/vis_crystal/" + aspect.getKey().identifier().getPath());
-        });
-
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.INGOT_VOID.get()), Ingredient.of(TTItems.VOID_SEED.get())).gate(gate("base_eldritch"))
-                .aspect(TTAspects.METALLUM, 10).aspect(TTAspects.VITIUM, 5).unlockedBy("has", has(TTItems.VOID_SEED.get())).save(output, TTIds.MODID + ":crucible/void_ingot");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.INGOT_VOID.get()), single(TTItems.VOID_SEED.get())).gate(gate("base_eldritch")), cost(TTAspects.METALLUM, 10),
+                cost(TTAspects.VITIUM, 5)).unlockedBy("has", has(TTItems.VOID_SEED.get())), TTIds.MODID + ":crucible/void_ingot");
 
         clusterRecipe(TTItems.CLUSTER_IRON, Tags.Items.RAW_MATERIALS_IRON);
         clusterRecipe(TTItems.CLUSTER_GOLD, Tags.Items.RAW_MATERIALS_GOLD);
@@ -798,103 +903,116 @@ public final class TTRecipeProvider extends RecipeProvider {
         clusterRecipe(TTItems.CLUSTER_CINNABAR, TTItemTags.RAW_MATERIALS_CINNABAR);
         clusterRecipe(TTItems.CLUSTER_QUARTZ, Tags.Items.ORES_QUARTZ);
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.IRON_NUGGET, 3), Ingredient.of(items.getOrThrow(Tags.Items.NUGGETS_IRON))).aspect(TTAspects.METALLUM, 2)
-                .gate(gate("metal_purification")).unlockedBy("has", has(Tags.Items.NUGGETS_IRON)).save(output, TTIds.MODID + ":crucible/iron_nugget_transmutation");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.IRON_NUGGET, 3), tagged(Tags.Items.NUGGETS_IRON)), cost(TTAspects.METALLUM, 2)).gate(gate("metal_purification"))
+                .unlockedBy("has", has(Tags.Items.NUGGETS_IRON)), TTIds.MODID + ":crucible/iron_nugget_transmutation");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(Items.GOLD_NUGGET, 3), Ingredient.of(items.getOrThrow(Tags.Items.NUGGETS_GOLD))).aspect(TTAspects.METALLUM, 2)
-                .aspect(TTAspects.DESIDERIUM, 1).gate(gate("metal_purification")).unlockedBy("has", has(Tags.Items.NUGGETS_GOLD)).save(output, TTIds.MODID + ":crucible/gold_nugget_transmutation");
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(Items.GOLD_NUGGET, 3), tagged(Tags.Items.NUGGETS_GOLD)), cost(TTAspects.METALLUM, 2), cost(TTAspects.DESIDERIUM, 1))
+                .gate(gate("metal_purification")).unlockedBy("has", has(Tags.Items.NUGGETS_GOLD)), TTIds.MODID + ":crucible/gold_nugget_transmutation");
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.ALUMENTUM), Ingredient.of(items.getOrThrow(ItemTags.COALS))).gate(gate("alumentum"))
-                .aspect(TTAspects.IGNIS, 10).aspect(TTAspects.POTENTIA, 10).aspect(TTAspects.PERDITIO, 5).unlockedBy("has", has(ItemTags.COALS)).save(output);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.ALUMENTUM), tagged(ItemTags.COALS)).gate(gate("alumentum")), cost(TTAspects.IGNIS, 10), cost(TTAspects.POTENTIA, 10),
+                cost(TTAspects.PERDITIO, 5)).unlockedBy("has", has(ItemTags.COALS)));
+    }
+
+    private void visCrystalRecipe(Holder.Reference<IAspect> aspect) {
+        DataComponentPatch crystalPatch = DataComponentPatch.builder().set(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(aspect, 1)).build();
+        CrucibleRecipeBuilder builder = crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.ESSENTIA_CRYSTAL, 1, crystalPatch), tagged(TTItemTags.NUGGETS_QUARTZ));
+        builder.gate(gate("base_alchemy")).aspect(aspect, 2);
+        commit(builder.unlockedBy("has", has(TTItemTags.NUGGETS_QUARTZ)), TTIds.MODID + ":crucible/vis_crystal/" + aspect.getKey().identifier().getPath());
     }
 
     private void clusterRecipe(ItemLike cluster, TagKey<Item> oreTag) {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(cluster.asItem()), Ingredient.of(items.getOrThrow(oreTag))).aspect(TTAspects.METALLUM, 5)
-                .aspect(TTAspects.ORDO, 5).gate(gate("metal_purification")).unlockedBy("has", has(oreTag)).save(output.withConditions(new NotCondition(new TagEmptyCondition<>(oreTag))));
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(cluster.asItem()), tagged(oreTag)), cost(TTAspects.METALLUM, 5), cost(TTAspects.ORDO, 5)).gate(gate("metal_purification"))
+                .unlockedBy("has", has(oreTag)), whenTagPresent(oreTag));
     }
 
     private void buildArcaneWorkbenchRecipes() {
-        arcaneShaped(new ItemStackTemplate(TTItems.THAUMOMETER), 20).allAspects().pattern(" G ").pattern("GPG").pattern(" G ").define('G', Tags.Items.INGOTS_GOLD).define('P', Tags.Items.GLASS_PANES)
-                .gate(gate("first_steps", 1)).unlockedBy("has", has(Tags.Items.INGOTS_GOLD)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.THAUMOMETER), 20).allAspects(), " G ", "GPG", " G ").define('G', Tags.Items.INGOTS_GOLD).define('P', Tags.Items.GLASS_PANES)
+                .gate(gate("first_steps", 1)).unlockedBy("has", has(Tags.Items.INGOTS_GOLD)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.VIS_RESONATOR), 50).aspect(TTAspects.AER).aspect(TTAspects.AQUA).requires(TTItemTags.PLATES_IRON).requires(Tags.Items.GEMS_QUARTZ)
-                .gate(gate("unlock_auromancy", 1)).unlockedBy("has", has(Tags.Items.GEMS_QUARTZ)).save(output);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.VIS_RESONATOR), 50), cost(TTAspects.AER, 1), cost(TTAspects.AQUA, 1)).requires(TTItemTags.PLATES_IRON)
+                .requires(Tags.Items.GEMS_QUARTZ).gate(gate("unlock_auromancy", 1)).unlockedBy("has", has(Tags.Items.GEMS_QUARTZ)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_WORKBENCH_CHARGER), 200).aspect(TTAspects.AER, 2).aspect(TTAspects.ORDO, 2).pattern(" R ").pattern("P P").pattern("I I")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_WORKBENCH_CHARGER), 200), cost(TTAspects.AER, 2), cost(TTAspects.ORDO, 2)), " R ", "P P", "I I")
                 .define('R', TTItems.VIS_RESONATOR).define('P', TTItemTags.PLANKS_GREATWOOD).define('I', Tags.Items.INGOTS_IRON).gate(gate("workbench_charger"))
-                .unlockedBy("has", has(TTItems.VIS_RESONATOR)).save(output);
+                .unlockedBy("has", has(TTItems.VIS_RESONATOR)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOGGLES_REVEALING), 50).pattern("LBL").pattern("L L").pattern("MBM").define('L', Tags.Items.LEATHERS).define('B', TTItemTags.INGOTS_BRASS)
-                .define('M', TTItems.THAUMOMETER).gate(gate("unlock_artifice")).unlockedBy("has", has(TTItems.THAUMOMETER)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.GOGGLES_REVEALING), 50), "LBL", "L L", "MBM").define('L', Tags.Items.LEATHERS).define('B', TTItemTags.INGOTS_BRASS)
+                .define('M', TTItems.THAUMOMETER).gate(gate("unlock_artifice")).unlockedBy("has", has(TTItems.THAUMOMETER)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ALEMBIC), 50).aspect(TTAspects.AQUA).pattern("GFG").pattern("PBP").pattern("GFG").define('G', TTItemTags.PLANKS_GREATWOOD)
-                .define('F', TTItems.FILTER).define('P', TTItemTags.PLATES_BRASS).define('B', Tags.Items.BUCKETS_EMPTY).gate(gate("essentia_smelter")).unlockedBy("has", has(TTItemTags.PLATES_BRASS))
-                .save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ALEMBIC), 50), cost(TTAspects.AQUA, 1)), "GFG", "PBP", "GFG").define('G', TTItemTags.PLANKS_GREATWOOD).define('F', TTItems.FILTER)
+                .define('P', TTItemTags.PLATES_BRASS).define('B', Tags.Items.BUCKETS_EMPTY).gate(gate("essentia_smelter")).unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_BASIC), 50).aspect(TTAspects.IGNIS).pattern("PRP").pattern("CFC").pattern("CCC").define('C', ItemTags.STONE_TOOL_MATERIALS)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_BASIC), 50), cost(TTAspects.IGNIS, 1)), "PRP", "CFC", "CCC").define('C', ItemTags.STONE_TOOL_MATERIALS)
                 .define('F', Tags.Items.PLAYER_WORKSTATIONS_FURNACES).define('P', TTItemTags.PLATES_BRASS).define('R', TTItems.CRUCIBLE).gate(gate("essentia_smelter", 1))
-                .unlockedBy("has", has(TTItems.CRUCIBLE)).save(output);
+                .unlockedBy("has", has(TTItems.CRUCIBLE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ESSENTIA_CRYSTALIZER), 125).aspect(TTAspects.AQUA, 1).aspect(TTAspects.TERRA, 3).aspect(TTAspects.ORDO, 1).pattern("IDI").pattern("QCQ")
-                .pattern("WTW").define('I', Tags.Items.INGOTS_IRON).define('D', Items.DIAMOND_BLOCK).define('Q', TTItems.SALIS_MUNDUS).define('C', TTItems.ALCHEMICAL_CONSTRUCT)
-                .define('W', ItemTags.PLANKS).define('T', TTItems.TUBE).gate(gate("essentia_crystalizer")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ESSENTIA_CRYSTALIZER), 125), cost(TTAspects.AQUA, 1), cost(TTAspects.TERRA, 3), cost(TTAspects.ORDO, 1)), "IDI", "QCQ", "WTW")
+                .define('I', Tags.Items.INGOTS_IRON).define('D', Items.DIAMOND_BLOCK).define('Q', TTItems.SALIS_MUNDUS).define('C', TTItems.ALCHEMICAL_CONSTRUCT).define('W', ItemTags.PLANKS)
+                .define('T', TTItems.TUBE).gate(gate("essentia_crystalizer")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_THAUMIUM), 250).aspect(TTAspects.IGNIS, 2).pattern("PRP").pattern("CFC").pattern("CCC").define('C', TTItemTags.PLATES_THAUMIUM)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_THAUMIUM), 250), cost(TTAspects.IGNIS, 2)), "PRP", "CFC", "CCC").define('C', TTItemTags.PLATES_THAUMIUM)
                 .define('F', TTItems.ALCHEMICAL_CONSTRUCT).define('P', TTItemTags.PLATES_BRASS).define('R', TTItems.SMELTER_BASIC).gate(gate("essentia_smelter_thaumium"))
-                .unlockedBy("has", has(TTItems.SMELTER_BASIC)).save(output);
+                .unlockedBy("has", has(TTItems.SMELTER_BASIC)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_VOID), 750).aspect(TTAspects.IGNIS, 3).pattern("PRP").pattern("CFC").pattern("CCC").define('C', TTItemTags.PLATES_VOID_METAL)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_VOID), 750), cost(TTAspects.IGNIS, 3)), "PRP", "CFC", "CCC").define('C', TTItemTags.PLATES_VOID_METAL)
                 .define('F', TTItems.ADVANCED_ALCHEMICAL_CONSTRUCT).define('P', TTItemTags.PLATES_BRASS).define('R', TTItems.SMELTER_THAUMIUM).gate(gate("essentia_smelter_void"))
-                .unlockedBy("has", has(TTItems.SMELTER_THAUMIUM)).save(output);
+                .unlockedBy("has", has(TTItems.SMELTER_THAUMIUM)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.JAR_NORMAL), 5).pattern("PRP").pattern("P P").pattern("PPP").define('P', Tags.Items.GLASS_PANES).define('R', ItemTags.WOODEN_SLABS)
-                .gate(gate("warded_jars")).unlockedBy("has", has(Tags.Items.GLASS_PANES)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.JAR_NORMAL), 5), "PRP", "P P", "PPP").define('P', Tags.Items.GLASS_PANES).define('R', ItemTags.WOODEN_SLABS).gate(gate("warded_jars"))
+                .unlockedBy("has", has(Tags.Items.GLASS_PANES)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.JAR_VOID), 50).aspect(TTAspects.PERDITIO).requires(TTItems.JAR_NORMAL).gate(gate("warded_jars")).unlockedBy("has", has(TTItems.JAR_NORMAL))
-                .save(output);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.JAR_VOID), 50), cost(TTAspects.PERDITIO, 1)).requires(TTItems.JAR_NORMAL).gate(gate("warded_jars")).unlockedBy("has",
+                has(TTItems.JAR_NORMAL)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.TUBE, 8), 10).pattern(" Q ").pattern("PGP").pattern(" B ").define('Q', TTItemTags.NUGGETS_QUICKSILVER).define('P', TTItemTags.PLATES_IRON)
-                .define('G', Tags.Items.GLASS_BLOCKS).define('B', TTItemTags.NUGGETS_BRASS).gate(gate("tubes")).unlockedBy("has", has(Tags.Items.GEMS_QUARTZ)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.TUBE, 8), 10), " Q ", "PGP", " B ").define('Q', TTItemTags.NUGGETS_QUICKSILVER).define('P', TTItemTags.PLATES_IRON)
+                .define('G', Tags.Items.GLASS_BLOCKS).define('B', TTItemTags.NUGGETS_BRASS).gate(gate("tubes")).unlockedBy("has", has(Tags.Items.GEMS_QUARTZ)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_RESTRICT), 10).aspect(TTAspects.TERRA).requires(TTItems.TUBE).requires(Tags.Items.STONES).gate(gate("tubes"))
-                .unlockedBy("has", has(TTItems.TUBE)).save(output);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_RESTRICT), 10), cost(TTAspects.TERRA, 1)).requires(TTItems.TUBE).requires(Tags.Items.STONES).gate(gate("tubes"))
+                .unlockedBy("has", has(TTItems.TUBE)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_ONEWAY), 10).aspect(TTAspects.AQUA).requires(TTItems.TUBE).requires(Tags.Items.DYES_BLUE).gate(gate("tubes"))
-                .unlockedBy("has", has(TTItems.TUBE)).save(output);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_ONEWAY), 10), cost(TTAspects.AQUA, 1)).requires(TTItems.TUBE).requires(Tags.Items.DYES_BLUE).gate(gate("tubes"))
+                .unlockedBy("has", has(TTItems.TUBE)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_FILTER), 10).requires(TTItems.TUBE).requires(TTItems.FILTER).gate(gate("tubes")).unlockedBy("has", has(TTItems.TUBE)).save(output);
+        commit(arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_FILTER), 10).requires(TTItems.TUBE).requires(TTItems.FILTER).gate(gate("tubes")).unlockedBy("has", has(TTItems.TUBE)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_VALVE), 10).requires(TTItems.TUBE).requires(Items.LEVER).gate(gate("tubes")).unlockedBy("has", has(TTItems.TUBE)).save(output);
+        commit(arcaneShapeless(new ItemStackTemplate(TTItems.TUBE_VALVE), 10).requires(TTItems.TUBE).requires(Items.LEVER).gate(gate("tubes")).unlockedBy("has", has(TTItems.TUBE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.TUBE_BUFFER), 25).pattern("PVP").pattern("TIT").pattern("PRP").define('P', TTItems.PHIAL).define('V', TTItems.TUBE_VALVE).define('T', TTItems.TUBE)
-                .define('I', TTItemTags.PLATES_IRON).define('R', TTItems.TUBE_RESTRICT).gate(gate("tubes")).unlockedBy("has", has(TTItems.TUBE)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.TUBE_BUFFER), 25), "PVP", "TIT", "PRP").define('P', TTItems.PHIAL).define('V', TTItems.TUBE_VALVE).define('T', TTItems.TUBE)
+                .define('I', TTItemTags.PLATES_IRON).define('R', TTItems.TUBE_RESTRICT).gate(gate("tubes")).unlockedBy("has", has(TTItems.TUBE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_AUX), 100).aspect(TTAspects.AER).aspect(TTAspects.TERRA).pattern("PVP").pattern("BCB").pattern("ILI")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_AUX), 100), cost(TTAspects.AER, 1), cost(TTAspects.TERRA, 1)), "PVP", "BCB", "ILI")
                 .define('P', TTItemTags.PLANKS_GREATWOOD).define('V', TTItems.TUBE_FILTER).define('B', TTItemTags.PLATES_BRASS).define('I', TTItemTags.PLATES_IRON)
-                .define('C', TTItems.ALCHEMICAL_CONSTRUCT).define('L', TTItems.BELLOWS).gate(gate("improved_smelting")).unlockedBy("has", has(TTItems.BELLOWS)).save(output);
+                .define('C', TTItems.ALCHEMICAL_CONSTRUCT).define('L', TTItems.BELLOWS).gate(gate("improved_smelting")).unlockedBy("has", has(TTItems.BELLOWS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_VENT), 150).aspect(TTAspects.AER).pattern("IBI").pattern("FCF").pattern("IBI").define('F', TTItems.FILTER)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SMELTER_VENT), 150), cost(TTAspects.AER, 1)), "IBI", "FCF", "IBI").define('F', TTItems.FILTER)
                 .define('B', TTItemTags.PLATES_BRASS).define('I', TTItemTags.PLATES_IRON).define('C', TTItems.ALCHEMICAL_CONSTRUCT).gate(gate("improved_smelting_2"))
-                .unlockedBy("has", has(TTItems.ALCHEMICAL_CONSTRUCT)).save(output);
+                .unlockedBy("has", has(TTItems.ALCHEMICAL_CONSTRUCT)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ALCHEMICAL_CONSTRUCT, 2), 75).aspect(TTAspects.AQUA).aspect(TTAspects.PERDITIO).aspect(TTAspects.ORDO).pattern("IAI").pattern("VPV").pattern("IAI")
-                .define('A', TTItems.TUBE_VALVE).define('V', TTItems.TUBE).define('I', TTItemTags.PLATES_IRON).define('P', TTItemTags.PLANKS_GREATWOOD).gate(gate("tubes"))
-                .unlockedBy("has", has(TTItemTags.PLATES_IRON)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ALCHEMICAL_CONSTRUCT, 2), 75), cost(TTAspects.AQUA, 1), cost(TTAspects.PERDITIO, 1), cost(TTAspects.ORDO, 1)), "IAI", "VPV",
+                "IAI").define('A', TTItems.TUBE_VALVE).define('V', TTItems.TUBE).define('I', TTItemTags.PLATES_IRON).define('P', TTItemTags.PLANKS_GREATWOOD).gate(gate("tubes"))
+                .unlockedBy("has", has(TTItemTags.PLATES_IRON)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ADVANCED_ALCHEMICAL_CONSTRUCT, 4), 50).aspect(TTAspects.AQUA, 10).aspect(TTAspects.ORDO, 30).aspect(TTAspects.TERRA, 10).pattern("VAV")
-                .pattern("APA").pattern("VAV").define('A', TTItems.ALCHEMICAL_CONSTRUCT).define('V', TTItems.INGOT_VOID).define('P', TTItems.PRIMORDIAL_PEARL).gate(gate("essentia_smelter_void", 0))
-                .unlockedBy("has", has(TTItems.ALCHEMICAL_CONSTRUCT)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ADVANCED_ALCHEMICAL_CONSTRUCT, 4), 50), cost(TTAspects.AQUA, 10), cost(TTAspects.ORDO, 30), cost(TTAspects.TERRA, 10)), "VAV",
+                "APA", "VAV").define('A', TTItems.ALCHEMICAL_CONSTRUCT).define('V', TTItems.INGOT_VOID).define('P', TTItems.PRIMORDIAL_PEARL).gate(gate("essentia_smelter_void", 0))
+                .unlockedBy("has", has(TTItems.ALCHEMICAL_CONSTRUCT)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.BELLOWS), 25).aspect(TTAspects.AER).pattern("PP ").pattern("LLI").pattern("PP ").define('P', ItemTags.PLANKS).define('L', Tags.Items.LEATHERS)
-                .define('I', Tags.Items.INGOTS_IRON).gate(gate("bellows")).unlockedBy("has", has(Tags.Items.LEATHERS)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.BELLOWS), 25), cost(TTAspects.AER, 1)), "PP ", "LLI", "PP ").define('P', ItemTags.PLANKS).define('L', Tags.Items.LEATHERS)
+                .define('I', Tags.Items.INGOTS_IRON).gate(gate("bellows")).unlockedBy("has", has(Tags.Items.LEATHERS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.FLUX_SCRUBBER), 200).aspect(TTAspects.AQUA, 2).aspect(TTAspects.ORDO, 2).aspect(TTAspects.AER, 1).pattern(" B ").pattern("GOG").pattern("STS")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.FLUX_SCRUBBER), 200), cost(TTAspects.AQUA, 2), cost(TTAspects.ORDO, 2), cost(TTAspects.AER, 1)), " B ", "GOG", "STS")
                 .define('B', TTItems.BELLOWS).define('G', Items.IRON_BARS).define('O', TTItems.FILTER).define('S', TTItems.STONE_ARCANE_BRICK).define('T', TTItems.TUBE).gate(gate("flux_scrubber"))
-                .unlockedBy("has", has(TTItems.BELLOWS)).save(output);
+                .unlockedBy("has", has(TTItems.BELLOWS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.THAUMONOMICON_SHARING), 500).allAspects().pattern(" B ").pattern("MQM").pattern(" B ").define('B', TTItems.BRAIN).define('M', TTItems.MIRROR)
-                .define('Q', Items.WRITABLE_BOOK).gate(gate("share_book", 1)).unlockedBy("has", has(TTItems.BRAIN)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.THAUMONOMICON_SHARING), 500).allAspects(), " B ", "MQM", " B ").define('B', TTItems.BRAIN).define('M', TTItems.MIRROR)
+                .define('Q', Items.WRITABLE_BOOK).gate(gate("share_book", 1)).unlockedBy("has", has(TTItems.BRAIN)));
+    }
+
+    private InfusionRecipeBuilder infusion(RecipeCategory category, ItemStackTemplate result, Ingredient catalyst) {
+        return new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), category, result, catalyst);
+    }
+
+    private CrucibleRecipeBuilder crucible(RecipeCategory category, ItemStackTemplate result, Ingredient catalyst) {
+        return new CrucibleRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), category, result, catalyst);
     }
 
     private Holder<IAspect> getAspect(ResourceKey<IAspect> key) {
@@ -902,203 +1020,206 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private void buildGolemancyRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        shaped(RecipeCategory.TOOLS, TTItems.GOLEM_BELL.get()).pattern(" QQ").pattern(" QQ").pattern("S  ").define('S', Tags.Items.RODS_WOODEN).define('Q', Tags.Items.GEMS_QUARTZ)
-                .unlockedBy("has", has(Tags.Items.GEMS_QUARTZ)).save(output);
+        commit(rows(shaped(RecipeCategory.TOOLS, TTItems.GOLEM_BELL.get()), " QQ", " QQ", "S  ").define('S', Tags.Items.RODS_WOODEN).define('Q', Tags.Items.GEMS_QUARTZ).unlockedBy("has",
+                has(Tags.Items.GEMS_QUARTZ)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_TOP_HAT), 16).aspect(TTAspects.ORDO, 1).aspect(TTAspects.IGNIS, 1).pattern(" C ").pattern(" G ").pattern("CCC").define('C', Items.BLACK_WOOL)
-                .define('G', Tags.Items.INGOTS_GOLD).gate(gate("golem_accessories")).unlockedBy("has", has(ItemTags.WOOL)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_TOP_HAT), 16), cost(TTAspects.ORDO, 1), cost(TTAspects.IGNIS, 1)), " C ", " G ", "CCC").define('C', Items.BLACK_WOOL)
+                .define('G', Tags.Items.INGOTS_GOLD).gate(gate("golem_accessories")).unlockedBy("has", has(ItemTags.WOOL)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_FEZ), 8).aspect(TTAspects.AQUA, 1).aspect(TTAspects.TERRA, 1).pattern("CCS").pattern("CCS").pattern("  S").define('C', Items.RED_WOOL)
-                .define('S', Tags.Items.STRINGS).gate(gate("golem_accessories")).unlockedBy("has", has(ItemTags.WOOL)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_FEZ), 8), cost(TTAspects.AQUA, 1), cost(TTAspects.TERRA, 1)), "CCS", "CCS", "  S").define('C', Items.RED_WOOL)
+                .define('S', Tags.Items.STRINGS).gate(gate("golem_accessories")).unlockedBy("has", has(ItemTags.WOOL)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_BOWTIE), 8).aspect(TTAspects.AER, 1).aspect(TTAspects.ORDO, 1).pattern("CSC").pattern("C C").define('C', Items.BLACK_WOOL)
-                .define('S', Tags.Items.STRINGS).gate(gate("golem_accessories")).unlockedBy("has", has(ItemTags.WOOL)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_BOWTIE), 8), cost(TTAspects.AER, 1), cost(TTAspects.ORDO, 1)), "CSC", "C C").define('C', Items.BLACK_WOOL)
+                .define('S', Tags.Items.STRINGS).gate(gate("golem_accessories")).unlockedBy("has", has(ItemTags.WOOL)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_GLASSES), 8).aspect(TTAspects.AER, 1).aspect(TTAspects.AQUA, 1).pattern("GIG").define('G', Tags.Items.GLASS_BLOCKS)
-                .define('I', Tags.Items.INGOTS_IRON).gate(gate("golem_accessories")).unlockedBy("has", has(Tags.Items.INGOTS_IRON)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_GLASSES), 8), cost(TTAspects.AER, 1), cost(TTAspects.AQUA, 1)), "GIG").define('G', Tags.Items.GLASS_BLOCKS)
+                .define('I', Tags.Items.INGOTS_IRON).gate(gate("golem_accessories")).unlockedBy("has", has(Tags.Items.INGOTS_IRON)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_VISOR), 8).aspect(TTAspects.TERRA, 1).aspect(TTAspects.AQUA, 1).pattern("IHI").define('I', Tags.Items.INGOTS_IRON)
-                .define('H', Items.IRON_HELMET).gate(gate("golem_accessories")).unlockedBy("has", has(Tags.Items.INGOTS_IRON)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_VISOR), 8), cost(TTAspects.TERRA, 1), cost(TTAspects.AQUA, 1)), "IHI").define('I', Tags.Items.INGOTS_IRON)
+                .define('H', Items.IRON_HELMET).gate(gate("golem_accessories")).unlockedBy("has", has(Tags.Items.INGOTS_IRON)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MIND_CLOCKWORK), 25).aspect(TTAspects.IGNIS, 1).aspect(TTAspects.ORDO, 1).pattern(" P ").pattern("PGP").pattern("BCB")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MIND_CLOCKWORK), 25), cost(TTAspects.IGNIS, 1), cost(TTAspects.ORDO, 1)), " P ", "PGP", "BCB")
                 .define('G', TTItems.MECHANISM_SIMPLE).define('B', TTItemTags.PLATES_BRASS).define('P', Tags.Items.GLASS_PANES).define('C', Items.COMPARATOR).gate(gate("mind_clockwork", 1))
-                .unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)).save(output);
+                .unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_FETTER), 10).aspect(TTAspects.TERRA, 5).aspect(TTAspects.ORDO, 5).pattern("SSS").pattern("IRI").pattern("BBB")
-                .define('S', TTItems.STONE_ARCANE).define('I', Tags.Items.INGOTS_IRON).define('R', Items.BEACON).define('B', TTItems.STONE_ARCANE_BRICK).gate(gate("golem_fetter"))
-                .unlockedBy("has", has(Items.BEACON)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.GOLEM_FETTER), 10), cost(TTAspects.TERRA, 5), cost(TTAspects.ORDO, 5)), "SSS", "IRI", "BBB").define('S', TTItems.STONE_ARCANE)
+                .define('I', Tags.Items.INGOTS_IRON).define('R', Items.BEACON).define('B', TTItems.STONE_ARCANE_BRICK).gate(gate("golem_fetter")).unlockedBy("has", has(Items.BEACON)));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.MIND_BIOTHAUMIC), Ingredient.of(TTItems.MIND_CLOCKWORK.get()))
-                .component(Ingredient.of(TTItems.BRAIN.get())).component(Ingredient.of(TTItems.MECHANISM_COMPLEX.get())).aspect(TTAspects.COGNITIO, 50).aspect(TTAspects.MACHINA, 25).instability(4)
-                .gate(gate("mind_biothaumic")).unlockedBy("has", has(TTItems.MIND_CLOCKWORK)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.MIND_BIOTHAUMIC), single(TTItems.MIND_CLOCKWORK.get())), single(TTItems.BRAIN.get()),
+                single(TTItems.MECHANISM_COMPLEX.get())), cost(TTAspects.COGNITIO, 50), cost(TTAspects.MACHINA, 25)).instability(4).gate(gate("mind_biothaumic"))
+                .unlockedBy("has", has(TTItems.MIND_CLOCKWORK)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MODULE_VISION), 50).aspect(TTAspects.AQUA, 1).pattern("B B").pattern("E E").pattern("PGP").define('B', Items.GLASS_BOTTLE)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MODULE_VISION), 50), cost(TTAspects.AQUA, 1)), "B B", "E E", "PGP").define('B', Items.GLASS_BOTTLE)
                 .define('E', Items.FERMENTED_SPIDER_EYE).define('P', TTItemTags.PLATES_BRASS).define('G', TTItems.MECHANISM_SIMPLE).gate(gate("golem_vision"))
-                .unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)).save(output);
+                .unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MODULE_AGGRESSION), 50).aspect(TTAspects.IGNIS, 1).pattern(" R ").pattern("RTR").pattern("PGP").define('R', Tags.Items.GLASS_PANES)
-                .define('T', Items.BLAZE_POWDER).define('P', TTItemTags.PLATES_BRASS).define('G', TTItems.MECHANISM_SIMPLE).gate(gate("seal_guard")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE))
-                .save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MODULE_AGGRESSION), 50), cost(TTAspects.IGNIS, 1)), " R ", "RTR", "PGP").define('R', Tags.Items.GLASS_PANES)
+                .define('T', Items.BLAZE_POWDER).define('P', TTItemTags.PLATES_BRASS).define('G', TTItems.MECHANISM_SIMPLE).gate(gate("seal_guard")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.LEVITATOR), 35).aspect(TTAspects.AER, 1).pattern("WIW").pattern("BNB").pattern("WGW").define('I', TTItemTags.PLATES_THAUMIUM)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.LEVITATOR), 35), cost(TTAspects.AER, 1)), "WIW", "BNB", "WGW").define('I', TTItemTags.PLATES_THAUMIUM)
                 .define('N', TTItemTags.NITORS).define('W', ItemTags.PLANKS).define('B', TTItemTags.PLATES_IRON).define('G', TTItems.MECHANISM_SIMPLE).gate(gate("levitator"))
-                .unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)).save(output);
+                .unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.SEAL_BLANK.get(), 3), 20).aspect(TTAspects.AER, 1).requires(Items.CLAY_BALL).requires(TTItems.TALLOW.get()).requires(Tags.Items.DYES_RED)
-                .requires(TTItemTags.NITORS).gate(gate("control_seals")).unlockedBy("has", has(TTItems.TALLOW)).save(output);
+        commit(priced(arcaneShapeless(new ItemStackTemplate(TTItems.SEAL_BLANK.get(), 3), 20), cost(TTAspects.AER, 1)).requires(Items.CLAY_BALL).requires(TTItems.TALLOW.get())
+                .requires(Tags.Items.DYES_RED).requires(TTItemTags.NITORS).gate(gate("control_seals")).unlockedBy("has", has(TTItems.TALLOW)));
 
-        sealCrucible(aspects, gate("seal_collect"), TTItems.SEAL_PICKUP, TTItems.SEAL_BLANK, builder -> builder.aspect(TTAspects.DESIDERIUM, 10));
-        sealCrucible(aspects, gate("seal_collect"), TTItems.SEAL_PICKUP_ADVANCED, TTItems.SEAL_PICKUP, builder -> builder.aspect(TTAspects.SENSUS, 10).aspect(TTAspects.COGNITIO, 10));
-        sealCrucible(aspects, gate("seal_store"), TTItems.SEAL_FILL, TTItems.SEAL_BLANK, builder -> builder.aspect(TTAspects.AVERSIO, 10));
-        sealCrucible(aspects, gate("seal_store"), TTItems.SEAL_FILL_ADVANCED, TTItems.SEAL_FILL, builder -> builder.aspect(TTAspects.SENSUS, 10).aspect(TTAspects.COGNITIO, 10));
-        sealCrucible(aspects, gate("seal_empty"), TTItems.SEAL_EMPTY, TTItems.SEAL_BLANK, builder -> builder.aspect(TTAspects.VACUOS, 10));
-        sealCrucible(aspects, gate("seal_empty"), TTItems.SEAL_EMPTY_ADVANCED, TTItems.SEAL_EMPTY, builder -> builder.aspect(TTAspects.SENSUS, 10).aspect(TTAspects.COGNITIO, 10));
-        sealCrucible(aspects, gate("seal_provide"), TTItems.SEAL_PROVIDER, TTItems.SEAL_EMPTY_ADVANCED, builder -> builder.aspect(TTAspects.PERMUTATIO, 10).aspect(TTAspects.DESIDERIUM, 10));
-        sealCrucible(aspects, gate("seal_stock"), TTItems.SEAL_STOCK, TTItems.SEAL_FILL, builder -> builder.aspect(TTAspects.COGNITIO, 10).aspect(TTAspects.DESIDERIUM, 10));
-        sealCrucible(aspects, gate("seal_guard"), TTItems.SEAL_GUARD, TTItems.SEAL_BLANK, builder -> builder.aspect(TTAspects.AVERSIO, 20).aspect(TTAspects.PRAEMUNIO, 20));
-        sealCrucible(aspects, gate("seal_guard"), TTItems.SEAL_GUARD_ADVANCED, TTItems.SEAL_GUARD, builder -> builder.aspect(TTAspects.SENSUS, 20).aspect(TTAspects.COGNITIO, 20));
-        sealCrucible(aspects, gate("seal_lumber"), TTItems.SEAL_LUMBER, TTItems.SEAL_BREAKER, builder -> builder.aspect(TTAspects.HERBA, 40).aspect(TTAspects.SENSUS, 20));
-        sealCrucible(aspects, gate("seal_use"), TTItems.SEAL_USE, TTItems.SEAL_BLANK, builder -> builder.aspect(TTAspects.FABRICO, 20).aspect(TTAspects.SENSUS, 10).aspect(TTAspects.COGNITIO, 20));
-        sealCrucible(aspects, gate("seal_break"), TTItems.SEAL_BREAKER_ADVANCED, TTItems.SEAL_BREAKER,
-                builder -> builder.aspect(TTAspects.SENSUS, 10).aspect(TTAspects.COGNITIO, 10).aspect(TTAspects.INSTRUMENTUM, 20));
+        for (SealStep step : sealSteps()) {
+            sealCrucible(step);
+        }
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.SEAL_HARVEST), Ingredient.of(TTItems.SEAL_BLANK.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.SEEDS_WHEAT))).component(Ingredient.of(items.getOrThrow(Tags.Items.SEEDS_PUMPKIN)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.SEEDS_MELON))).component(Ingredient.of(items.getOrThrow(Tags.Items.SEEDS_BEETROOT)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_SUGAR_CANE))).component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_CACTUS))).aspect(TTAspects.HERBA, 10)
-                .aspect(TTAspects.SENSUS, 10).aspect(TTAspects.HUMANUS, 10).instability(0).gate(gate("seal_harvest")).unlockedBy("has", has(TTItems.SEAL_BLANK)).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.SEAL_HARVEST), single(TTItems.SEAL_BLANK.get())), tagged(Tags.Items.SEEDS_WHEAT), tagged(Tags.Items.SEEDS_PUMPKIN),
+                        tagged(Tags.Items.SEEDS_MELON), tagged(Tags.Items.SEEDS_BEETROOT), tagged(Tags.Items.CROPS_SUGAR_CANE), tagged(Tags.Items.CROPS_CACTUS)),
+                cost(TTAspects.HERBA, 10), cost(TTAspects.SENSUS, 10), cost(TTAspects.HUMANUS, 10)).instability(0).gate(gate("seal_harvest")).unlockedBy("has", has(TTItems.SEAL_BLANK)));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.SEAL_BUTCHER), Ingredient.of(TTItems.SEAL_GUARD.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.LEATHERS))).component(tag(ItemTags.WOOL)).component(Ingredient.of(Items.RABBIT_HIDE)).component(Ingredient.of(Items.PORKCHOP))
-                .component(Ingredient.of(Items.MUTTON)).component(Ingredient.of(Items.BEEF)).aspect(TTAspects.BESTIA, 10).aspect(TTAspects.SENSUS, 10).aspect(TTAspects.HUMANUS, 10).instability(0)
-                .gate(gate("seal_butcher")).unlockedBy("has", has(TTItems.SEAL_GUARD)).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.SEAL_BUTCHER), single(TTItems.SEAL_GUARD.get())), tagged(Tags.Items.LEATHERS), tag(ItemTags.WOOL),
+                        single(Items.RABBIT_HIDE), single(Items.PORKCHOP), single(Items.MUTTON), single(Items.BEEF)),
+                cost(TTAspects.BESTIA, 10), cost(TTAspects.SENSUS, 10), cost(TTAspects.HUMANUS, 10)).instability(0).gate(gate("seal_butcher")).unlockedBy("has", has(TTItems.SEAL_GUARD)));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.SEAL_BREAKER), Ingredient.of(TTItems.SEAL_BLANK.get())).component(Ingredient.of(Items.GOLDEN_AXE))
-                .component(Ingredient.of(Items.GOLDEN_PICKAXE)).component(Ingredient.of(Items.GOLDEN_SHOVEL)).aspect(TTAspects.INSTRUMENTUM, 10).aspect(TTAspects.PERDITIO, 10)
-                .aspect(TTAspects.HUMANUS, 10).instability(1).gate(gate("seal_break")).unlockedBy("has", has(TTItems.SEAL_BLANK)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.SEAL_BREAKER), single(TTItems.SEAL_BLANK.get())), single(Items.GOLDEN_AXE), single(Items.GOLDEN_PICKAXE),
+                single(Items.GOLDEN_SHOVEL)), cost(TTAspects.INSTRUMENTUM, 10), cost(TTAspects.PERDITIO, 10), cost(TTAspects.HUMANUS, 10)).instability(1).gate(gate("seal_break"))
+                .unlockedBy("has", has(TTItems.SEAL_BLANK)));
     }
 
-    private void sealCrucible(HolderLookup<IAspect> aspects, ResearchGate gate, DeferredItem<ItemSealPlacer> result, DeferredItem<ItemSealPlacer> catalyst, UnaryOperator<CrucibleRecipeBuilder> configure) {
-        configure.apply(new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(result), Ingredient.of(catalyst.get())).gate(gate)).unlockedBy("has", has(catalyst)).save(output);
+    private record SealStep(String research, DeferredItem<ItemSealPlacer> result, DeferredItem<ItemSealPlacer> catalyst, List<AspectCost> costs) {
+    }
+
+    private static SealStep seal(String research, DeferredItem<ItemSealPlacer> result, DeferredItem<ItemSealPlacer> catalyst, AspectCost... costs) {
+        return new SealStep(research, result, catalyst, List.of(costs));
+    }
+
+    private static List<SealStep> sealSteps() {
+        return List.of(seal("seal_collect", TTItems.SEAL_PICKUP, TTItems.SEAL_BLANK, cost(TTAspects.DESIDERIUM, 10)),
+                seal("seal_collect", TTItems.SEAL_PICKUP_ADVANCED, TTItems.SEAL_PICKUP, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10)),
+                seal("seal_store", TTItems.SEAL_FILL, TTItems.SEAL_BLANK, cost(TTAspects.AVERSIO, 10)),
+                seal("seal_store", TTItems.SEAL_FILL_ADVANCED, TTItems.SEAL_FILL, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10)),
+                seal("seal_empty", TTItems.SEAL_EMPTY, TTItems.SEAL_BLANK, cost(TTAspects.VACUOS, 10)),
+                seal("seal_empty", TTItems.SEAL_EMPTY_ADVANCED, TTItems.SEAL_EMPTY, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10)),
+                seal("seal_provide", TTItems.SEAL_PROVIDER, TTItems.SEAL_EMPTY_ADVANCED, cost(TTAspects.PERMUTATIO, 10), cost(TTAspects.DESIDERIUM, 10)),
+                seal("seal_stock", TTItems.SEAL_STOCK, TTItems.SEAL_FILL, cost(TTAspects.COGNITIO, 10), cost(TTAspects.DESIDERIUM, 10)),
+                seal("seal_guard", TTItems.SEAL_GUARD, TTItems.SEAL_BLANK, cost(TTAspects.AVERSIO, 20), cost(TTAspects.PRAEMUNIO, 20)),
+                seal("seal_guard", TTItems.SEAL_GUARD_ADVANCED, TTItems.SEAL_GUARD, cost(TTAspects.SENSUS, 20), cost(TTAspects.COGNITIO, 20)),
+                seal("seal_lumber", TTItems.SEAL_LUMBER, TTItems.SEAL_BREAKER, cost(TTAspects.HERBA, 40), cost(TTAspects.SENSUS, 20)),
+                seal("seal_use", TTItems.SEAL_USE, TTItems.SEAL_BLANK, cost(TTAspects.FABRICO, 20), cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 20)),
+                seal("seal_break", TTItems.SEAL_BREAKER_ADVANCED, TTItems.SEAL_BREAKER, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10), cost(TTAspects.INSTRUMENTUM, 20)));
+    }
+
+    private void sealCrucible(SealStep step) {
+        CrucibleRecipeBuilder base = crucible(RecipeCategory.MISC, new ItemStackTemplate(step.result()), single(step.catalyst().get())).gate(gate(step.research()));
+        commit(priced(base, step.costs().toArray(AspectCost[]::new)).unlockedBy("has", has(step.catalyst())));
     }
 
     private void buildAuraDeviceRecipes() {
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.DECORATIONS, new ItemStackTemplate(TTItems.MIRROR), Ingredient.of(TTItems.MIRRORED_GLASS.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.ENDER_PEARLS))).aspect(TTAspects.MOTUS, 25)
-                .aspect(TTAspects.TENEBRAE, 25).aspect(TTAspects.PERMUTATIO, 25).instability(1).gate(gate("mirror")).unlockedBy("has", has(TTItems.MIRRORED_GLASS)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.DECORATIONS, new ItemStackTemplate(TTItems.MIRROR), single(TTItems.MIRRORED_GLASS.get())), tagged(Tags.Items.INGOTS_GOLD),
+                tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.ENDER_PEARLS)), cost(TTAspects.MOTUS, 25), cost(TTAspects.TENEBRAE, 25),
+                cost(TTAspects.PERMUTATIO, 25)).instability(1).gate(gate("mirror")).unlockedBy("has", has(TTItems.MIRRORED_GLASS)));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.HAND_MIRROR), Ingredient.of(TTItems.MIRROR.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.RODS_WOODEN))).component(Ingredient.of(Items.COMPASS)).component(Ingredient.of(Items.MAP)).aspect(TTAspects.INSTRUMENTUM, 50)
-                .aspect(TTAspects.MOTUS, 50).instability(5).gate(gate("mirror_hand")).unlockedBy("has", has(TTItems.MIRROR)).save(output);
+        commit(priced(parts(infusion(RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.HAND_MIRROR), single(TTItems.MIRROR.get())), tagged(Tags.Items.RODS_WOODEN), single(Items.COMPASS),
+                single(Items.MAP)), cost(TTAspects.INSTRUMENTUM, 50), cost(TTAspects.MOTUS, 50)).instability(5).gate(gate("mirror_hand")).unlockedBy("has", has(TTItems.MIRROR)));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.DECORATIONS, new ItemStackTemplate(TTItems.MIRROR_ESSENTIA),
-                Ingredient.of(TTItems.MIRRORED_GLASS.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON))).component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_IRON))).component(Ingredient.of(items.getOrThrow(Tags.Items.ENDER_PEARLS))).aspect(TTAspects.MOTUS, 25)
-                .aspect(TTAspects.AQUA, 25).aspect(TTAspects.PERMUTATIO, 25).instability(2).gate(gate("mirror_essentia")).unlockedBy("has", has(TTItems.MIRRORED_GLASS)).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.DECORATIONS, new ItemStackTemplate(TTItems.MIRROR_ESSENTIA), single(TTItems.MIRRORED_GLASS.get())), tagged(Tags.Items.INGOTS_IRON),
+                        tagged(Tags.Items.INGOTS_IRON), tagged(Tags.Items.INGOTS_IRON), tagged(Tags.Items.ENDER_PEARLS)),
+                cost(TTAspects.MOTUS, 25), cost(TTAspects.AQUA, 25), cost(TTAspects.PERMUTATIO, 25)).instability(2).gate(gate("mirror_essentia")).unlockedBy("has", has(TTItems.MIRRORED_GLASS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MATRIX_SPEED), 500).aspect(TTAspects.AER, 1).aspect(TTAspects.ORDO, 1).pattern("SNS").pattern("NGN").pattern("SNS").define('S', TTItems.STONE_ARCANE)
-                .define('N', TTItemTags.NITORS).define('G', Tags.Items.STORAGE_BLOCKS_DIAMOND).gate(gate("infusion_boost")).unlockedBy("has", has(TTItems.STONE_ARCANE)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MATRIX_SPEED), 500), cost(TTAspects.AER, 1), cost(TTAspects.ORDO, 1)), "SNS", "NGN", "SNS").define('S', TTItems.STONE_ARCANE)
+                .define('N', TTItemTags.NITORS).define('G', Tags.Items.STORAGE_BLOCKS_DIAMOND).gate(gate("infusion_boost")).unlockedBy("has", has(TTItems.STONE_ARCANE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.MATRIX_COST), 500).aspect(TTAspects.AER, 1).aspect(TTAspects.AQUA, 1).aspect(TTAspects.PERDITIO, 1).pattern("SAS").pattern("AGA").pattern("SAS")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.MATRIX_COST), 500), cost(TTAspects.AER, 1), cost(TTAspects.AQUA, 1), cost(TTAspects.PERDITIO, 1)), "SAS", "AGA", "SAS")
                 .define('S', TTItems.STONE_ARCANE).define('A', TTItems.ALUMENTUM).define('G', Tags.Items.STORAGE_BLOCKS_DIAMOND).gate(gate("infusion_boost"))
-                .unlockedBy("has", has(TTItems.STONE_ARCANE)).save(output);
+                .unlockedBy("has", has(TTItems.STONE_ARCANE)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.DIOPTRA), 50).aspect(TTAspects.AER, 1).aspect(TTAspects.AQUA, 1).pattern("APA").pattern("IGI").pattern("AAA").define('A', TTItems.STONE_ARCANE)
-                .define('P', TTItems.VIS_RESONATOR).define('G', TTItems.THAUMOMETER).define('I', TTItemTags.PLATES_IRON).gate(gate("dioptra")).unlockedBy("has", has(TTItems.THAUMOMETER)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.DIOPTRA), 50), cost(TTAspects.AER, 1), cost(TTAspects.AQUA, 1)), "APA", "IGI", "AAA").define('A', TTItems.STONE_ARCANE)
+                .define('P', TTItems.VIS_RESONATOR).define('G', TTItems.THAUMOMETER).define('I', TTItemTags.PLATES_IRON).gate(gate("dioptra")).unlockedBy("has", has(TTItems.THAUMOMETER)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.VIS_BATTERY), 50).aspect(TTAspects.AER, 2).aspect(TTAspects.TERRA, 2).aspect(TTAspects.AQUA, 2).aspect(TTAspects.IGNIS, 2).aspect(TTAspects.ORDO, 2)
-                .aspect(TTAspects.PERDITIO, 2).pattern("SSS").pattern("SRS").pattern("SSS").define('S', TTItems.SLAB_ARCANE_STONE).define('R', TTItems.VIS_RESONATOR).gate(gate("vis_battery"))
-                .unlockedBy("has", has(TTItems.VIS_RESONATOR)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.VIS_BATTERY), 50), cost(TTAspects.AER, 2), cost(TTAspects.TERRA, 2), cost(TTAspects.AQUA, 2), cost(TTAspects.IGNIS, 2),
+                cost(TTAspects.ORDO, 2), cost(TTAspects.PERDITIO, 2)), "SSS", "SRS", "SSS").define('S', TTItems.SLAB_ARCANE_STONE).define('R', TTItems.VIS_RESONATOR).gate(gate("vis_battery"))
+                .unlockedBy("has", has(TTItems.VIS_RESONATOR)));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.JAR_BRAIN), Ingredient.of(TTItems.JAR_NORMAL.get()))
-                .component(Ingredient.of(TTItems.BRAIN.get())).component(Ingredient.of(Items.SPIDER_EYE)).component(Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_WATER)))
-                .component(Ingredient.of(Items.SPIDER_EYE)).aspect(TTAspects.COGNITIO, 25).aspect(TTAspects.SENSUS, 25).aspect(TTAspects.EXANIMIS, 25).instability(4).gate(gate("jar_brain"))
-                .unlockedBy("has", has(TTItems.JAR_NORMAL.get())).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.JAR_BRAIN), single(TTItems.JAR_NORMAL.get())), single(TTItems.BRAIN.get()), single(Items.SPIDER_EYE),
+                tagged(Tags.Items.BUCKETS_WATER), single(Items.SPIDER_EYE)), cost(TTAspects.COGNITIO, 25), cost(TTAspects.SENSUS, 25), cost(TTAspects.EXANIMIS, 25)).instability(4)
+                .gate(gate("jar_brain")).unlockedBy("has", has(TTItems.JAR_NORMAL.get())));
     }
 
     private void buildNoiseDeviceRecipes() {
 
-        arcaneShaped(new ItemStackTemplate(TTItems.LAMP_ARCANE), 50).aspect(TTAspects.AER, 1).aspect(TTAspects.IGNIS, 1).pattern(" I ").pattern("IAI").pattern(" I ")
-                .define('A', TTItemTags.STORAGE_BLOCKS_AMBER).define('I', TTItemTags.PLATES_IRON).gate(gate("arcane_lamp")).unlockedBy("has", has(TTItemTags.PLATES_IRON)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.LAMP_ARCANE), 50), cost(TTAspects.AER, 1), cost(TTAspects.IGNIS, 1)), " I ", "IAI", " I ")
+                .define('A', TTItemTags.STORAGE_BLOCKS_AMBER).define('I', TTItemTags.PLATES_IRON).gate(gate("arcane_lamp")).unlockedBy("has", has(TTItemTags.PLATES_IRON)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_EAR), 15).aspect(TTAspects.AER, 1).pattern("P P").pattern(" G ").pattern("WRW").define('W', ItemTags.WOODEN_SLABS)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ARCANE_EAR), 15), cost(TTAspects.AER, 1)), "P P", " G ", "WRW").define('W', ItemTags.WOODEN_SLABS)
                 .define('R', Tags.Items.DUSTS_REDSTONE).define('G', TTItems.MECHANISM_SIMPLE).define('P', TTItemTags.PLATES_BRASS).gate(gate("arcane_ear"))
-                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)).save(output);
+                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
 
-        arcaneShapeless(new ItemStackTemplate(TTItems.ARCANE_EAR_TOGGLE), 5).requires(TTItems.ARCANE_EAR.get()).requires(Items.LEVER).gate(gate("arcane_ear"))
-                .unlockedBy("has", has(TTItems.ARCANE_EAR.get())).save(output, TTIds.MODID + ":arcane_ear_toggle");
+        commit(arcaneShapeless(new ItemStackTemplate(TTItems.ARCANE_EAR_TOGGLE), 5).requires(TTItems.ARCANE_EAR.get()).requires(Items.LEVER).gate(gate("arcane_ear")).unlockedBy("has",
+                has(TTItems.ARCANE_EAR.get())), TTIds.MODID + ":arcane_ear_toggle");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.HUNGRY_CHEST), 15).aspect(TTAspects.TERRA, 1).aspect(TTAspects.AQUA, 1).pattern("WTW").pattern("W W").pattern("WWW")
-                .define('W', TTItemTags.PLANKS_GREATWOOD).define('T', ItemTags.WOODEN_TRAPDOORS).gate(gate("hungry_chest")).unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.HUNGRY_CHEST), 15), cost(TTAspects.TERRA, 1), cost(TTAspects.AQUA, 1)), "WTW", "W W", "WWW")
+                .define('W', TTItemTags.PLANKS_GREATWOOD).define('T', ItemTags.WOODEN_TRAPDOORS).gate(gate("hungry_chest")).unlockedBy("has", has(TTItemTags.PLANKS_GREATWOOD)));
 
-        shaped(RecipeCategory.REDSTONE, TTItems.ITEM_GRATE).pattern("#").pattern("H").define('#', Items.IRON_BARS).define('H', Items.HOPPER).unlockedBy("has", has(Items.HOPPER)).save(output);
-        shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.TALLOW_BLOCK).pattern("TTT").pattern("TTT").pattern("TTT").define('T', TTItems.TALLOW).unlockedBy("has", has(TTItems.TALLOW)).save(output);
-        shapeless(RecipeCategory.MISC, TTItems.TALLOW, 9).requires(TTItems.TALLOW_BLOCK).unlockedBy("has", has(TTItems.TALLOW_BLOCK)).save(output, TTIds.MODID + ":tallow_from_tallow_block");
+        commit(rows(shaped(RecipeCategory.REDSTONE, TTItems.ITEM_GRATE), "#", "H").define('#', Items.IRON_BARS).define('H', Items.HOPPER).unlockedBy("has", has(Items.HOPPER)));
+        commit(rows(shaped(RecipeCategory.BUILDING_BLOCKS, TTItems.TALLOW_BLOCK), "TTT", "TTT", "TTT").define('T', TTItems.TALLOW).unlockedBy("has", has(TTItems.TALLOW)));
+        commit(shapeless(RecipeCategory.MISC, TTItems.TALLOW, 9).requires(TTItems.TALLOW_BLOCK).unlockedBy("has", has(TTItems.TALLOW_BLOCK)), TTIds.MODID + ":tallow_from_tallow_block");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.CENTRIFUGE), 100).aspect(TTAspects.ORDO, 1).aspect(TTAspects.PERDITIO, 1).pattern(" T ").pattern("RCP").pattern(" T ").define('T', TTItems.TUBE)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.CENTRIFUGE), 100), cost(TTAspects.ORDO, 1), cost(TTAspects.PERDITIO, 1)), " T ", "RCP", " T ").define('T', TTItems.TUBE)
                 .define('P', TTItems.MECHANISM_SIMPLE).define('R', TTItems.MORPHIC_RESONATOR).define('C', TTItems.ALCHEMICAL_CONSTRUCT).gate(gate("centrifuge"))
-                .unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)).save(output);
+                .unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.LAMP_GROWTH), Ingredient.of(TTItems.LAMP_ARCANE.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(Items.BONE_MEAL)).component(crystal(TTAspects.TERRA))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(Items.BONE_MEAL)).component(crystal(TTAspects.TERRA)).aspect(TTAspects.HERBA, 20)
-                .aspect(TTAspects.LUX, 15).aspect(TTAspects.VICTUS, 15).aspect(TTAspects.INSTRUMENTUM, 15).instability(4).gate(gate("lamp_growth")).unlockedBy("has", has(TTItems.LAMP_ARCANE.get()))
-                .save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.LAMP_GROWTH), single(TTItems.LAMP_ARCANE.get())), tagged(Tags.Items.INGOTS_GOLD), single(Items.BONE_MEAL),
+                        crystal(TTAspects.TERRA), tagged(Tags.Items.INGOTS_GOLD), single(Items.BONE_MEAL), crystal(TTAspects.TERRA)),
+                cost(TTAspects.HERBA, 20), cost(TTAspects.LUX, 15), cost(TTAspects.VICTUS, 15), cost(TTAspects.INSTRUMENTUM, 15)).instability(4).gate(gate("lamp_growth"))
+                .unlockedBy("has", has(TTItems.LAMP_ARCANE.get())));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.LAMP_FERTILITY), Ingredient.of(TTItems.LAMP_ARCANE.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_WHEAT))).component(crystal(TTAspects.IGNIS))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.CROPS_CARROT))).component(crystal(TTAspects.IGNIS))
-                .aspect(TTAspects.BESTIA, 20).aspect(TTAspects.LUX, 15).aspect(TTAspects.VICTUS, 15).aspect(TTAspects.DESIDERIUM, 15).instability(4).gate(gate("lamp_fertility"))
-                .unlockedBy("has", has(TTItems.LAMP_ARCANE.get())).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.LAMP_FERTILITY), single(TTItems.LAMP_ARCANE.get())), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.CROPS_WHEAT),
+                        crystal(TTAspects.IGNIS), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.CROPS_CARROT), crystal(TTAspects.IGNIS)),
+                cost(TTAspects.BESTIA, 20), cost(TTAspects.LUX, 15), cost(TTAspects.VICTUS, 15), cost(TTAspects.DESIDERIUM, 15)).instability(4).gate(gate("lamp_fertility"))
+                .unlockedBy("has", has(TTItems.LAMP_ARCANE.get())));
     }
 
     private void buildEssentiaMachineRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        commit(priced(crucible(RecipeCategory.MISC, new ItemStackTemplate(TTItems.EVERFULL_URN), single(Items.DECORATED_POT)), cost(TTAspects.AQUA, 30), cost(TTAspects.FABRICO, 10),
+                cost(TTAspects.TERRA, 10)).gate(gate("everfull_urn")).unlockedBy("has", has(Items.DECORATED_POT)));
 
-        new CrucibleRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.EVERFULL_URN), Ingredient.of(Items.DECORATED_POT)).aspect(TTAspects.AQUA, 30)
-                .aspect(TTAspects.FABRICO, 10).aspect(TTAspects.TERRA, 10).gate(gate("everfull_urn")).unlockedBy("has", has(Items.DECORATED_POT)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.VIS_GENERATOR), 25), cost(TTAspects.IGNIS, 1), cost(TTAspects.ORDO, 1)), "WSW", "EPE", "WRW").define('R', TTItems.VIS_RESONATOR)
+                .define('E', TTItemTags.NUGGETS_BRASS).define('S', Tags.Items.DUSTS_REDSTONE).define('P', Items.PISTON).define('W', ItemTags.PLANKS).gate(gate("vis_generator"))
+                .unlockedBy("has", has(TTItems.VIS_RESONATOR)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.VIS_GENERATOR), 25).aspect(TTAspects.IGNIS, 1).aspect(TTAspects.ORDO, 1).pattern("WSW").pattern("EPE").pattern("WRW")
-                .define('R', TTItems.VIS_RESONATOR).define('E', TTItemTags.NUGGETS_BRASS).define('S', Tags.Items.DUSTS_REDSTONE).define('P', Items.PISTON).define('W', ItemTags.PLANKS)
-                .gate(gate("vis_generator")).unlockedBy("has", has(TTItems.VIS_RESONATOR)).save(output);
-
-        arcaneShaped(new ItemStackTemplate(TTItems.ESSENTIA_INPUT), 100).aspect(TTAspects.AER, 1).aspect(TTAspects.AQUA, 1).pattern("BQB").pattern("IGI").define('I', TTItemTags.PLATES_IRON)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ESSENTIA_INPUT), 100), cost(TTAspects.AER, 1), cost(TTAspects.AQUA, 1)), "BQB", "IGI").define('I', TTItemTags.PLATES_IRON)
                 .define('B', TTItemTags.PLATES_BRASS).define('Q', Items.DISPENSER).define('G', TTItems.ALCHEMICAL_CONSTRUCT).gate(gate("essentia_transport"))
-                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)).save(output);
+                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.ESSENTIA_OUTPUT), 100).aspect(TTAspects.AER, 1).aspect(TTAspects.AQUA, 1).pattern("BQB").pattern("IGI").define('I', TTItemTags.PLATES_IRON)
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.ESSENTIA_OUTPUT), 100), cost(TTAspects.AER, 1), cost(TTAspects.AQUA, 1)), "BQB", "IGI").define('I', TTItemTags.PLATES_IRON)
                 .define('B', TTItemTags.PLATES_BRASS).define('Q', Items.HOPPER).define('G', TTItems.ALCHEMICAL_CONSTRUCT).gate(gate("essentia_transport"))
-                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)).save(output);
+                .unlockedBy("has", has(TTItemTags.PLATES_BRASS)));
     }
 
     private void buildFluxMachineRecipes() {
 
-        arcaneShaped(new ItemStackTemplate(TTItems.BRAIN_BOX), 50).aspect(TTAspects.TERRA, 1).aspect(TTAspects.ORDO, 1).pattern("IAI").pattern("ABA").pattern("IAI").define('B', TTItems.MIND_CLOCKWORK)
-                .define('A', TTItemTags.GEMS_AMBER).define('I', TTItemTags.PLATES_IRON).gate(gate("thaumatorium")).unlockedBy("has", has(TTItems.MIND_CLOCKWORK)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.BRAIN_BOX), 50), cost(TTAspects.TERRA, 1), cost(TTAspects.ORDO, 1)), "IAI", "ABA", "IAI").define('B', TTItems.MIND_CLOCKWORK)
+                .define('A', TTItemTags.GEMS_AMBER).define('I', TTItemTags.PLATES_IRON).gate(gate("thaumatorium")).unlockedBy("has", has(TTItems.MIND_CLOCKWORK)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.CONDENSER), 500).aspect(TTAspects.AER, 5).aspect(TTAspects.AQUA, 5).aspect(TTAspects.PERDITIO, 5).pattern("BCB").pattern("WMW").pattern("BTB")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.CONDENSER), 500), cost(TTAspects.AER, 5), cost(TTAspects.AQUA, 5), cost(TTAspects.PERDITIO, 5)), "BCB", "WMW", "BTB")
                 .define('T', TTItems.TUBE).define('C', TTItems.MORPHIC_RESONATOR).define('W', ItemTags.PLANKS).define('M', TTItems.MECHANISM_COMPLEX).define('B', TTItemTags.PLATES_BRASS)
-                .gate(gate("flux_cleanup")).unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)).save(output);
+                .gate(gate("flux_cleanup")).unlockedBy("has", has(TTItems.MORPHIC_RESONATOR)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.CONDENSER_LATTICE), 100).aspect(TTAspects.TERRA, 3).aspect(TTAspects.AER, 3).pattern("QTQ").pattern("QFQ").pattern("QTQ")
-                .define('T', TTItemTags.PLATES_THAUMIUM).define('F', TTItems.FILTER).define('Q', Tags.Items.GEMS_QUARTZ).gate(gate("flux_cleanup")).unlockedBy("has", has(TTItems.FILTER)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.CONDENSER_LATTICE), 100), cost(TTAspects.TERRA, 3), cost(TTAspects.AER, 3)), "QTQ", "QFQ", "QTQ")
+                .define('T', TTItemTags.PLATES_THAUMIUM).define('F', TTItems.FILTER).define('Q', Tags.Items.GEMS_QUARTZ).gate(gate("flux_cleanup")).unlockedBy("has", has(TTItems.FILTER)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.STABILIZER), 250).aspect(TTAspects.TERRA, 1).aspect(TTAspects.AQUA, 1).aspect(TTAspects.PERDITIO, 1).pattern("SRS").pattern("BVB").pattern("IMI")
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.STABILIZER), 250), cost(TTAspects.TERRA, 1), cost(TTAspects.AQUA, 1), cost(TTAspects.PERDITIO, 1)), "SRS", "BVB", "IMI")
                 .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE).define('S', TTItems.SLAB_ARCANE_STONE).define('B', TTItems.STONE_ARCANE).define('M', TTItems.MECHANISM_COMPLEX)
-                .define('V', TTItems.VIS_RESONATOR).define('I', TTItemTags.PLATES_IRON).gate(gate("infusion_stable")).unlockedBy("has", has(TTItems.VIS_RESONATOR)).save(output);
+                .define('V', TTItems.VIS_RESONATOR).define('I', TTItemTags.PLATES_IRON).gate(gate("infusion_stable")).unlockedBy("has", has(TTItems.VIS_RESONATOR)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.REDSTONE_RELAY), 10).aspect(TTAspects.ORDO, 1).pattern("TGT").pattern("SSS").define('T', Items.REDSTONE_TORCH).define('G', TTItems.MECHANISM_SIMPLE)
-                .define('S', Items.STONE_SLAB).gate(gate("redstone_relay")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)).save(output);
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.REDSTONE_RELAY), 10), cost(TTAspects.ORDO, 1)), "TGT", "SSS").define('T', Items.REDSTONE_TORCH)
+                .define('G', TTItems.MECHANISM_SIMPLE).define('S', Items.STONE_SLAB).gate(gate("redstone_relay")).unlockedBy("has", has(TTItems.MECHANISM_SIMPLE)));
 
-        new InfusionRecipeBuilder(registries.lookupOrThrow(IAspect.REGISTRY_KEY), RecipeCategory.MISC, new ItemStackTemplate(TTItems.VOID_SIPHON),
-                Ingredient.of(items.getOrThrow(TTItemTags.STORAGE_BLOCKS_VOID_METAL))).component(Ingredient.of(TTItems.STONE_ARCANE.get())).component(Ingredient.of(TTItems.STONE_ARCANE.get()))
-                .component(Ingredient.of(TTItems.MECHANISM_COMPLEX.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_BRASS)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_BRASS))).component(Ingredient.of(items.getOrThrow(Tags.Items.NETHER_STARS))).aspect(TTAspects.ALIENIS, 50)
-                .aspect(TTAspects.PERDITIO, 50).aspect(TTAspects.VACUOS, 100).aspect(TTAspects.FABRICO, 50).instability(7).gate(gate("void_siphon"))
-                .unlockedBy("has", has(TTItemTags.STORAGE_BLOCKS_VOID_METAL)).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.VOID_SIPHON), tagged(TTItemTags.STORAGE_BLOCKS_VOID_METAL)), single(TTItems.STONE_ARCANE.get()),
+                        single(TTItems.STONE_ARCANE.get()), single(TTItems.MECHANISM_COMPLEX.get()), tagged(TTItemTags.PLATES_BRASS), tagged(TTItemTags.PLATES_BRASS), tagged(Tags.Items.NETHER_STARS)),
+                cost(TTAspects.ALIENIS, 50), cost(TTAspects.PERDITIO, 50), cost(TTAspects.VACUOS, 100), cost(TTAspects.FABRICO, 50)).instability(7).gate(gate("void_siphon"))
+                .unlockedBy("has", has(TTItemTags.STORAGE_BLOCKS_VOID_METAL)));
     }
 
     private ArcaneWorkbenchShapedRecipeBuilder arcaneShaped(ItemStackTemplate result, int vis) {
@@ -1107,6 +1228,14 @@ public final class TTRecipeProvider extends RecipeProvider {
 
     private ArcaneWorkbenchShapelessRecipeBuilder arcaneShapeless(ItemStackTemplate result, int vis) {
         return new ArcaneWorkbenchShapelessRecipeBuilder(RecipeCategory.MISC, result, registries.lookupOrThrow(IAspect.REGISTRY_KEY), vis, items);
+    }
+
+    private Ingredient tagged(TagKey<Item> tag) {
+        return Ingredient.of(items.getOrThrow(tag));
+    }
+
+    private static Ingredient single(ItemLike item) {
+        return Ingredient.of(item);
     }
 
     private Ingredient crystal(ResourceKey<IAspect> aspect) {
@@ -1136,57 +1265,55 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private void buildWandRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-
-        ShapedRecipePattern starterPattern = ShapedRecipePattern.of(Map.of('I', Ingredient.of(TTItems.WAND_CAP_IRON.get()), 'S', Ingredient.of(items.getOrThrow(Tags.Items.RODS_WOODEN))),
-                List.of("  I", " S ", "I  "));
+        ShapedRecipePattern starterPattern = ShapedRecipePattern.of(Map.of('I', single(TTItems.WAND_CAP_IRON.get()), 'S', tagged(Tags.Items.RODS_WOODEN)), List.of("  I", " S ", "I  "));
         ShapedRecipe starter = new ShapedRecipe(RecipeBuilder.createCraftingCommonInfo(true), RecipeBuilder.createCraftingBookInfo(RecipeCategory.TOOLS, null), starterPattern,
                 wandResult(TTWandParts.CAP_IRON.get(), TTWandParts.ROD_WOOD.get(), false));
         output.accept(ResourceKey.create(Registries.RECIPE, TTIds.rl("wand/assembly/iron_wood")), starter, null);
 
-        shaped(RecipeCategory.MISC, TTItems.WAND_CAP_IRON).pattern("NNN").pattern("N N").define('N', Tags.Items.NUGGETS_IRON).unlockedBy("has", has(Tags.Items.NUGGETS_IRON)).save(output,
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.WAND_CAP_IRON), "NNN", "N N").define('N', Tags.Items.NUGGETS_IRON).unlockedBy("has", has(Tags.Items.NUGGETS_IRON)),
                 TTIds.MODID + ":wand/part/wand_cap_iron");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_GOLD.get()), WAND_CAP_GOLD_VIS).pattern("NNN").pattern("N N").define('N', Tags.Items.NUGGETS_GOLD).gate(gate("cap_gold"))
-                .unlockedBy("has", has(Tags.Items.NUGGETS_GOLD)).save(output, TTIds.MODID + ":wand/part/wand_cap_gold");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_GOLD.get()), WAND_CAP_GOLD_VIS), "NNN", "N N").define('N', Tags.Items.NUGGETS_GOLD).gate(gate("cap_gold")).unlockedBy("has",
+                has(Tags.Items.NUGGETS_GOLD)), TTIds.MODID + ":wand/part/wand_cap_gold");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_COPPER.get()), WAND_CAP_COPPER_VIS).pattern("NNN").pattern("N N").define('N', NUGGETS_COPPER).gate(gate("cap_copper"))
-                .unlockedBy("has", has(NUGGETS_COPPER)).save(output.withConditions(new NotCondition(new TagEmptyCondition<>(NUGGETS_COPPER))), TTIds.MODID + ":wand/part/wand_cap_copper");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_COPPER.get()), WAND_CAP_COPPER_VIS), "NNN", "N N").define('N', NUGGETS_COPPER).gate(gate("cap_copper")).unlockedBy("has",
+                has(NUGGETS_COPPER)), whenTagPresent(NUGGETS_COPPER), TTIds.MODID + ":wand/part/wand_cap_copper");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_SILVER_INERT.get()), WAND_CAP_SILVER_VIS).pattern("NNN").pattern("N N").define('N', NUGGETS_SILVER).gate(gate("cap_silver"))
-                .unlockedBy("has", has(NUGGETS_SILVER)).save(output.withConditions(new NotCondition(new TagEmptyCondition<>(NUGGETS_SILVER))), TTIds.MODID + ":wand/part/wand_cap_silver_inert");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_SILVER_INERT.get()), WAND_CAP_SILVER_VIS), "NNN", "N N").define('N', NUGGETS_SILVER).gate(gate("cap_silver")).unlockedBy("has",
+                has(NUGGETS_SILVER)), whenTagPresent(NUGGETS_SILVER), TTIds.MODID + ":wand/part/wand_cap_silver_inert");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_THAUMIUM_INERT.get()), WAND_CAP_THAUMIUM_VIS).pattern("NNN").pattern("N N").define('N', TTItemTags.NUGGETS_THAUMIUM)
-                .gate(gate("cap_thaumium")).unlockedBy("has", has(TTItemTags.NUGGETS_THAUMIUM)).save(output, TTIds.MODID + ":wand/part/wand_cap_thaumium_inert");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_THAUMIUM_INERT.get()), WAND_CAP_THAUMIUM_VIS), "NNN", "N N").define('N', TTItemTags.NUGGETS_THAUMIUM).gate(gate("cap_thaumium"))
+                .unlockedBy("has", has(TTItemTags.NUGGETS_THAUMIUM)), TTIds.MODID + ":wand/part/wand_cap_thaumium_inert");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_VOID_INERT.get()), WAND_CAP_VOID_VIS).pattern("NNN").pattern("N N").define('N', TTItemTags.NUGGETS_VOID_METAL).gate(gate("cap_void"))
-                .unlockedBy("has", has(TTItemTags.NUGGETS_VOID_METAL)).save(output, TTIds.MODID + ":wand/part/wand_cap_void_inert");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.WAND_CAP_VOID_INERT.get()), WAND_CAP_VOID_VIS), "NNN", "N N").define('N', TTItemTags.NUGGETS_VOID_METAL).gate(gate("cap_void"))
+                .unlockedBy("has", has(TTItemTags.NUGGETS_VOID_METAL)), TTIds.MODID + ":wand/part/wand_cap_void_inert");
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_CAP_SILVER.get()), Ingredient.of(TTItems.WAND_CAP_SILVER_INERT.get()))
-                .component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).aspect(TTAspects.POTENTIA, 8).aspect(TTAspects.AURAM, 4).instability(4)
-                .gate(gate("cap_silver")).unlockedBy("has", has(TTItems.WAND_CAP_SILVER_INERT.get())).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_CAP_SILVER.get()), single(TTItems.WAND_CAP_SILVER_INERT.get())), single(TTItems.SALIS_MUNDUS.get()),
+                single(TTItems.SALIS_MUNDUS.get())), cost(TTAspects.POTENTIA, 8), cost(TTAspects.AURAM, 4)).instability(4).gate(gate("cap_silver"))
+                .unlockedBy("has", has(TTItems.WAND_CAP_SILVER_INERT.get())));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_CAP_THAUMIUM.get()), Ingredient.of(TTItems.WAND_CAP_THAUMIUM_INERT.get()))
-                .component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.SALIS_MUNDUS.get()))
-                .aspect(TTAspects.POTENTIA, 12).aspect(TTAspects.AURAM, 6).instability(5).gate(gate("cap_thaumium")).unlockedBy("has", has(TTItems.WAND_CAP_THAUMIUM_INERT.get())).save(output);
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_CAP_THAUMIUM.get()), single(TTItems.WAND_CAP_THAUMIUM_INERT.get())), single(TTItems.SALIS_MUNDUS.get()),
+                single(TTItems.SALIS_MUNDUS.get()), single(TTItems.SALIS_MUNDUS.get())), cost(TTAspects.POTENTIA, 12), cost(TTAspects.AURAM, 6)).instability(5).gate(gate("cap_thaumium"))
+                .unlockedBy("has", has(TTItems.WAND_CAP_THAUMIUM_INERT.get())));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_CAP_VOID.get()), Ingredient.of(TTItems.WAND_CAP_VOID_INERT.get()))
-                .component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.SALIS_MUNDUS.get()))
-                .component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).aspect(TTAspects.POTENTIA, 18).aspect(TTAspects.VACUOS, 18).aspect(TTAspects.ALIENIS, 18).aspect(TTAspects.AURAM, 18)
-                .instability(8).gate(gate("cap_void")).unlockedBy("has", has(TTItems.WAND_CAP_VOID_INERT.get())).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_CAP_VOID.get()), single(TTItems.WAND_CAP_VOID_INERT.get())), single(TTItems.SALIS_MUNDUS.get()),
+                        single(TTItems.SALIS_MUNDUS.get()), single(TTItems.SALIS_MUNDUS.get()), single(TTItems.SALIS_MUNDUS.get())),
+                cost(TTAspects.POTENTIA, 18), cost(TTAspects.VACUOS, 18), cost(TTAspects.ALIENIS, 18), cost(TTAspects.AURAM, 18)).instability(8).gate(gate("cap_void"))
+                .unlockedBy("has", has(TTItems.WAND_CAP_VOID_INERT.get())));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.WAND_ROD_GREATWOOD.get()), WAND_ROD_GREATWOOD_VIS).pattern(" G").pattern("G ").define('G', TTItemTags.GREATWOOD_LOGS).gate(gate("rod_greatwood"))
-                .unlockedBy("has", has(TTItemTags.GREATWOOD_LOGS)).save(output, TTIds.MODID + ":wand/part/wand_rod_greatwood");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.WAND_ROD_GREATWOOD.get()), WAND_ROD_GREATWOOD_VIS), " G", "G ").define('G', TTItemTags.GREATWOOD_LOGS).gate(gate("rod_greatwood"))
+                .unlockedBy("has", has(TTItemTags.GREATWOOD_LOGS)), TTIds.MODID + ":wand/part/wand_rod_greatwood");
 
-        elementalRodInfusion(aspects, TTItems.WAND_ROD_OBSIDIAN, Ingredient.of(items.getOrThrow(Tags.Items.OBSIDIANS_NORMAL)), TTAspects.TERRA, TTAspects.TENEBRAE, "rod_obsidian");
-        elementalRodInfusion(aspects, TTItems.WAND_ROD_ICE, Ingredient.of(Blocks.ICE), TTAspects.AQUA, TTAspects.GELUM, "rod_ice");
-        elementalRodInfusion(aspects, TTItems.WAND_ROD_QUARTZ, Ingredient.of(Blocks.QUARTZ_BLOCK), TTAspects.ORDO, TTAspects.VITREUS, "rod_quartz");
-        elementalRodInfusion(aspects, TTItems.WAND_ROD_REED, Ingredient.of(items.getOrThrow(Tags.Items.CROPS_SUGAR_CANE)), TTAspects.AER, TTAspects.MOTUS, "rod_reed");
-        elementalRodInfusion(aspects, TTItems.WAND_ROD_BLAZE, Ingredient.of(items.getOrThrow(Tags.Items.RODS_BLAZE)), TTAspects.IGNIS, TTAspects.BESTIA, "rod_blaze");
-        elementalRodInfusion(aspects, TTItems.WAND_ROD_BONE, Ingredient.of(items.getOrThrow(Tags.Items.BONES)), TTAspects.PERDITIO, TTAspects.EXANIMIS, "rod_bone");
+        elementalRodInfusion(TTItems.WAND_ROD_OBSIDIAN, tagged(Tags.Items.OBSIDIANS_NORMAL), TTAspects.TERRA, TTAspects.TENEBRAE, "rod_obsidian");
+        elementalRodInfusion(TTItems.WAND_ROD_ICE, single(Blocks.ICE), TTAspects.AQUA, TTAspects.GELUM, "rod_ice");
+        elementalRodInfusion(TTItems.WAND_ROD_QUARTZ, single(Blocks.QUARTZ_BLOCK), TTAspects.ORDO, TTAspects.VITREUS, "rod_quartz");
+        elementalRodInfusion(TTItems.WAND_ROD_REED, tagged(Tags.Items.CROPS_SUGAR_CANE), TTAspects.AER, TTAspects.MOTUS, "rod_reed");
+        elementalRodInfusion(TTItems.WAND_ROD_BLAZE, tagged(Tags.Items.RODS_BLAZE), TTAspects.IGNIS, TTAspects.BESTIA, "rod_blaze");
+        elementalRodInfusion(TTItems.WAND_ROD_BONE, tagged(Tags.Items.BONES), TTAspects.PERDITIO, TTAspects.EXANIMIS, "rod_bone");
 
-        InfusionRecipeBuilder silverwoodRod = new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_ROD_SILVERWOOD.get()),
-                Ingredient.of(items.getOrThrow(TTItemTags.SILVERWOOD_LOGS))).component(Ingredient.of(TTItems.SALIS_MUNDUS.get()));
+        InfusionRecipeBuilder silverwoodRod = infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.WAND_ROD_SILVERWOOD.get()), tagged(TTItemTags.SILVERWOOD_LOGS))
+                .component(single(TTItems.SALIS_MUNDUS.get()));
         for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
             silverwoodRod.component(crystal(primal)).aspect(primal, 9);
         }
@@ -1201,163 +1328,165 @@ public final class TTRecipeProvider extends RecipeProvider {
         staffCoreRecipe(TTItems.STAFF_ROD_BONE, TTItems.WAND_ROD_BONE, STAFF_ELEMENTAL_VIS);
         staffCoreRecipe(TTItems.STAFF_ROD_SILVERWOOD, TTItems.WAND_ROD_SILVERWOOD, STAFF_SILVERWOOD_VIS);
 
-        InfusionRecipeBuilder primalStaff = new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.STAFF_ROD_PRIMAL.get()),
-                Ingredient.of(TTItems.WAND_ROD_SILVERWOOD.get())).component(Ingredient.of(TTItems.PRIMAL_CHARM.get())).component(Ingredient.of(TTItems.WAND_ROD_OBSIDIAN.get()))
-                .component(Ingredient.of(TTItems.WAND_ROD_ICE.get())).component(Ingredient.of(TTItems.WAND_ROD_QUARTZ.get())).component(Ingredient.of(TTItems.PRIMAL_CHARM.get()))
-                .component(Ingredient.of(TTItems.WAND_ROD_REED.get())).component(Ingredient.of(TTItems.WAND_ROD_BLAZE.get())).component(Ingredient.of(TTItems.WAND_ROD_BONE.get()));
+        InfusionRecipeBuilder primalStaff = infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.STAFF_ROD_PRIMAL.get()), single(TTItems.WAND_ROD_SILVERWOOD.get()))
+                .component(single(TTItems.PRIMAL_CHARM.get())).component(single(TTItems.WAND_ROD_OBSIDIAN.get())).component(single(TTItems.WAND_ROD_ICE.get()))
+                .component(single(TTItems.WAND_ROD_QUARTZ.get())).component(single(TTItems.PRIMAL_CHARM.get())).component(single(TTItems.WAND_ROD_REED.get()))
+                .component(single(TTItems.WAND_ROD_BLAZE.get())).component(single(TTItems.WAND_ROD_BONE.get()));
         for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
             primalStaff.aspect(primal, 32);
         }
         primalStaff.aspect(TTAspects.PRAECANTATIO, 64).instability(8).gate(gate("staff_primal")).unlockedBy("has", has(TTItems.WAND_ROD_SILVERWOOD.get())).save(output);
 
-        arcaneShaped(new ItemStackTemplate(TTItems.PRIMAL_CHARM.get()), PRIMAL_CHARM_VIS).pattern("123").pattern("ISI").pattern("456").define('1', crystal(TTAspects.AER))
-                .define('2', crystal(TTAspects.IGNIS)).define('3', crystal(TTAspects.AQUA)).define('4', crystal(TTAspects.TERRA)).define('5', crystal(TTAspects.ORDO))
-                .define('6', crystal(TTAspects.PERDITIO)).define('I', Tags.Items.INGOTS_GOLD).define('S', TTItems.SALIS_MUNDUS).gate(gate("unlock_artifice"))
-                .unlockedBy("has", has(TTItems.SALIS_MUNDUS)).save(output, TTIds.MODID + ":wand/part/primal_charm");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.PRIMAL_CHARM.get()), PRIMAL_CHARM_VIS), "123", "ISI", "456").define('1', crystal(TTAspects.AER)).define('2', crystal(TTAspects.IGNIS))
+                .define('3', crystal(TTAspects.AQUA)).define('4', crystal(TTAspects.TERRA)).define('5', crystal(TTAspects.ORDO)).define('6', crystal(TTAspects.PERDITIO))
+                .define('I', Tags.Items.INGOTS_GOLD).define('S', TTItems.SALIS_MUNDUS).gate(gate("unlock_artifice")).unlockedBy("has", has(TTItems.SALIS_MUNDUS)),
+                TTIds.MODID + ":wand/part/primal_charm");
     }
 
     private static final int NODE_STABILIZER_VIS = 96;
 
     private void buildNodeHusbandryRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.NODE_STABILIZER.get()), NODE_STABILIZER_VIS), " G ", "QPQ", "SNS").define('G', Tags.Items.INGOTS_GOLD).define('Q', Blocks.QUARTZ_BLOCK)
+                .define('P', Blocks.PISTON).define('S', TTItems.STONE_ARCANE_BRICK).define('N', TTItemTags.NITORS).gate(gate("node_stabilizer")).unlockedBy("has", has(TTItemTags.NITORS)),
+                TTIds.MODID + ":node_stabilizer");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.NODE_STABILIZER.get()), NODE_STABILIZER_VIS).pattern(" G ").pattern("QPQ").pattern("SNS").define('G', Tags.Items.INGOTS_GOLD)
-                .define('Q', Blocks.QUARTZ_BLOCK).define('P', Blocks.PISTON).define('S', TTItems.STONE_ARCANE_BRICK).define('N', TTItemTags.NITORS).gate(gate("node_stabilizer"))
-                .unlockedBy("has", has(TTItemTags.NITORS)).save(output, TTIds.MODID + ":node_stabilizer");
-
-        arcaneShaped(new ItemStackTemplate(TTItems.NODE_TRANSDUCER.get()), NODE_STABILIZER_VIS).pattern("RCR").pattern("ISI").pattern("RAR").define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.NODE_TRANSDUCER.get()), NODE_STABILIZER_VIS), "RCR", "ISI", "RAR").define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .define('C', Items.COMPARATOR).define('I', Tags.Items.INGOTS_IRON).define('S', TTItems.NODE_STABILIZER).define('A', TTItemTags.NITORS).gate(gate("node_transducer"))
-                .unlockedBy("has", has(TTItems.NODE_STABILIZER)).save(output, TTIds.MODID + ":node_transducer");
+                .unlockedBy("has", has(TTItems.NODE_STABILIZER)), TTIds.MODID + ":node_transducer");
 
-        arcaneShaped(new ItemStackTemplate(TTItems.VIS_RELAY.get()), NODE_STABILIZER_VIS).pattern(" A ").pattern("GNG").pattern(" S ").define('A', Tags.Items.GEMS_AMETHYST)
-                .define('G', Tags.Items.INGOTS_GOLD).define('N', TTItemTags.NITORS).define('S', TTItems.STONE_ARCANE).gate(gate("vis_relay")).unlockedBy("has", has(TTItemTags.NITORS))
-                .save(output, TTIds.MODID + ":vis_relay");
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.VIS_RELAY.get()), NODE_STABILIZER_VIS), " A ", "GNG", " S ").define('A', Tags.Items.GEMS_AMETHYST).define('G', Tags.Items.INGOTS_GOLD)
+                .define('N', TTItemTags.NITORS).define('S', TTItems.STONE_ARCANE).gate(gate("vis_relay")).unlockedBy("has", has(TTItemTags.NITORS)), TTIds.MODID + ":vis_relay");
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.NODE_STABILIZER_ADVANCED.get()), Ingredient.of(TTItems.NODE_STABILIZER.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NITORS))).component(Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE)))
-                .component(Ingredient.of(TTItems.ALUMENTUM.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NITORS))).component(Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE)))
-                .component(Ingredient.of(TTItems.ALUMENTUM.get())).component(Ingredient.of(items.getOrThrow(Tags.Items.STORAGE_BLOCKS_REDSTONE))).aspect(TTAspects.AURAM, 32)
-                .aspect(TTAspects.PRAECANTATIO, 16).aspect(TTAspects.ORDO, 16).aspect(TTAspects.POTENTIA, 16).instability(10).gate(gate("node_stabilizer_advanced"))
-                .unlockedBy("has", has(TTItems.NODE_STABILIZER.get())).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.NODE_STABILIZER_ADVANCED.get()), single(TTItems.NODE_STABILIZER.get())), tagged(TTItemTags.NITORS),
+                        tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), single(TTItems.ALUMENTUM.get()), tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), tagged(TTItemTags.NITORS),
+                        tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), single(TTItems.ALUMENTUM.get()), tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE)),
+                cost(TTAspects.AURAM, 32), cost(TTAspects.PRAECANTATIO, 16), cost(TTAspects.ORDO, 16), cost(TTAspects.POTENTIA, 16)).instability(10).gate(gate("node_stabilizer_advanced"))
+                .unlockedBy("has", has(TTItems.NODE_STABILIZER.get())));
     }
 
-    private void elementalRodInfusion(HolderLookup<IAspect> aspects, DeferredItem<? extends Item> rod, Ingredient catalyst, ResourceKey<IAspect> primal, ResourceKey<IAspect> flavor, String gateEntry) {
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(rod.get()), catalyst).component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(crystal(primal))
-                .aspect(primal, 12).aspect(TTAspects.PRAECANTATIO, 6).aspect(flavor, 6).instability(3).gate(gate(gateEntry)).unlockedBy("has", has(TTItems.SALIS_MUNDUS.get())).save(output);
+    private void elementalRodInfusion(DeferredItem<? extends Item> rod, Ingredient catalyst, ResourceKey<IAspect> primal, ResourceKey<IAspect> flavor, String gateEntry) {
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(rod.get()), catalyst), single(TTItems.SALIS_MUNDUS.get()), crystal(primal)).aspect(primal, 12),
+                cost(TTAspects.PRAECANTATIO, 6)).aspect(flavor, 6).instability(3).gate(gate(gateEntry)).unlockedBy("has", has(TTItems.SALIS_MUNDUS.get())));
     }
 
     private void staffCoreRecipe(DeferredItem<? extends Item> core, DeferredItem<? extends Item> rod, int vis) {
-        arcaneShaped(new ItemStackTemplate(core.get()), vis).pattern("  S").pattern(" G ").pattern("G  ").define('S', TTItems.PRIMAL_CHARM).define('G', rod).gate(gate("staves"))
-                .unlockedBy("has", has(TTItems.PRIMAL_CHARM)).save(output, TTIds.MODID + ":wand/part/" + core.getId().getPath());
+        commit(rows(arcaneShaped(new ItemStackTemplate(core.get()), vis), "  S", " G ", "G  ").define('S', TTItems.PRIMAL_CHARM).define('G', rod).gate(gate("staves")).unlockedBy("has",
+                has(TTItems.PRIMAL_CHARM)), TTIds.MODID + ":wand/part/" + core.getId().getPath());
     }
 
     private void buildBaubleRecipes() {
 
-        shaped(RecipeCategory.MISC, TTItems.AMULET_MUNDANE).pattern(" S ").pattern("S S").pattern(" I ").define('S', Tags.Items.STRINGS).define('I', TTItemTags.INGOTS_BRASS)
-                .unlockedBy("has", has(TTItemTags.INGOTS_BRASS)).save(output);
-        shaped(RecipeCategory.MISC, TTItems.RING_MUNDANE).pattern("NNN").pattern("N N").pattern("NNN").define('N', TTItemTags.NUGGETS_BRASS).unlockedBy("has", has(TTItemTags.NUGGETS_BRASS))
-                .save(output);
-        shaped(RecipeCategory.MISC, TTItems.GIRDLE_MUNDANE).pattern(" L ").pattern("L L").pattern(" I ").define('L', Tags.Items.LEATHERS).define('I', TTItemTags.INGOTS_BRASS)
-                .unlockedBy("has", has(TTItemTags.INGOTS_BRASS)).save(output);
-        shaped(RecipeCategory.MISC, TTItems.AMULET_FANCY).pattern(" S ").pattern("SGS").pattern(" I ").define('S', Tags.Items.STRINGS).define('G', Tags.Items.GEMS_DIAMOND)
-                .define('I', Tags.Items.INGOTS_GOLD).unlockedBy("has", has(Tags.Items.GEMS_DIAMOND)).save(output);
-        shaped(RecipeCategory.MISC, TTItems.RING_FANCY).pattern("NGN").pattern("N N").pattern("NNN").define('G', Tags.Items.GEMS_DIAMOND).define('N', Tags.Items.NUGGETS_GOLD)
-                .unlockedBy("has", has(Tags.Items.GEMS_DIAMOND)).save(output);
-        shaped(RecipeCategory.MISC, TTItems.GIRDLE_FANCY).pattern(" L ").pattern("LGL").pattern(" I ").define('L', Tags.Items.LEATHERS).define('G', Tags.Items.GEMS_DIAMOND)
-                .define('I', Tags.Items.INGOTS_GOLD).unlockedBy("has", has(Tags.Items.GEMS_DIAMOND)).save(output);
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.AMULET_MUNDANE), " S ", "S S", " I ").define('S', Tags.Items.STRINGS).define('I', TTItemTags.INGOTS_BRASS).unlockedBy("has",
+                has(TTItemTags.INGOTS_BRASS)));
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.RING_MUNDANE), "NNN", "N N", "NNN").define('N', TTItemTags.NUGGETS_BRASS).unlockedBy("has", has(TTItemTags.NUGGETS_BRASS)));
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.GIRDLE_MUNDANE), " L ", "L L", " I ").define('L', Tags.Items.LEATHERS).define('I', TTItemTags.INGOTS_BRASS).unlockedBy("has",
+                has(TTItemTags.INGOTS_BRASS)));
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.AMULET_FANCY), " S ", "SGS", " I ").define('S', Tags.Items.STRINGS).define('G', Tags.Items.GEMS_DIAMOND).define('I', Tags.Items.INGOTS_GOLD)
+                .unlockedBy("has", has(Tags.Items.GEMS_DIAMOND)));
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.RING_FANCY), "NGN", "N N", "NNN").define('G', Tags.Items.GEMS_DIAMOND).define('N', Tags.Items.NUGGETS_GOLD).unlockedBy("has",
+                has(Tags.Items.GEMS_DIAMOND)));
+        commit(rows(shaped(RecipeCategory.MISC, TTItems.GIRDLE_FANCY), " L ", "LGL", " I ").define('L', Tags.Items.LEATHERS).define('G', Tags.Items.GEMS_DIAMOND).define('I', Tags.Items.INGOTS_GOLD)
+                .unlockedBy("has", has(Tags.Items.GEMS_DIAMOND)));
 
-        arcaneShaped(new ItemStackTemplate(TTItems.FOCUS_POUCH), 25).pattern("LGL").pattern("LBL").pattern("LLL").define('B', TTItems.GIRDLE_MUNDANE).define('L', Tags.Items.LEATHERS)
-                .define('G', Tags.Items.INGOTS_GOLD).gate(gate("focus_pouch")).unlockedBy("has", has(Tags.Items.LEATHERS)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.SANITY_CHECKER), 20).aspect(TTAspects.ORDO, 1).aspect(TTAspects.PERDITIO, 1).pattern("BN ").pattern("M N").pattern("BN ")
-                .define('N', TTItemTags.NUGGETS_BRASS).define('B', TTItems.BRAIN).define('M', TTItems.MIRRORED_GLASS).gate(gate("warp")).unlockedBy("has", has(TTItems.MIRRORED_GLASS)).save(output);
-        arcaneShaped(new ItemStackTemplate(TTItems.RESONATOR), 50).pattern("I I").pattern("INI").pattern(" S ").define('I', TTItemTags.PLATES_IRON).define('N', Tags.Items.GEMS_QUARTZ)
-                .define('S', Tags.Items.RODS_WOODEN).gate(gate("tubes")).unlockedBy("has", has(TTItemTags.PLATES_IRON)).save(output);
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.FOCUS_POUCH), 25), "LGL", "LBL", "LLL").define('B', TTItems.GIRDLE_MUNDANE).define('L', Tags.Items.LEATHERS)
+                .define('G', Tags.Items.INGOTS_GOLD).gate(gate("focus_pouch")).unlockedBy("has", has(Tags.Items.LEATHERS)));
+        commit(rows(priced(arcaneShaped(new ItemStackTemplate(TTItems.SANITY_CHECKER), 20), cost(TTAspects.ORDO, 1), cost(TTAspects.PERDITIO, 1)), "BN ", "M N", "BN ")
+                .define('N', TTItemTags.NUGGETS_BRASS).define('B', TTItems.BRAIN).define('M', TTItems.MIRRORED_GLASS).gate(gate("warp")).unlockedBy("has", has(TTItems.MIRRORED_GLASS)));
+        commit(rows(arcaneShaped(new ItemStackTemplate(TTItems.RESONATOR), 50), "I I", "INI", " S ").define('I', TTItemTags.PLATES_IRON).define('N', Tags.Items.GEMS_QUARTZ)
+                .define('S', Tags.Items.RODS_WOODEN).gate(gate("tubes")).unlockedBy("has", has(TTItemTags.PLATES_IRON)));
     }
 
     private void buildWearableInfusionRecipes() {
-        HolderLookup<IAspect> aspects = registries.lookupOrThrow(IAspect.REGISTRY_KEY);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.AMULET_VIS_CRAFTED.get()), Ingredient.of(TTItems.AMULET_MUNDANE.get()))
-                .component(Ingredient.of(TTItems.VIS_RESONATOR.get())).component(crystal(TTAspects.AER)).component(crystal(TTAspects.IGNIS)).component(crystal(TTAspects.AQUA))
-                .component(crystal(TTAspects.TERRA)).component(crystal(TTAspects.ORDO)).aspect(TTAspects.AURAM, 50).aspect(TTAspects.POTENTIA, 100).aspect(TTAspects.VACUOS, 50).instability(6)
-                .gate(gate("vis_amulet")).unlockedBy("has", has(TTItems.AMULET_MUNDANE.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), Ingredient.of(TTItems.AMULET_FANCY.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.NUGGETS_QUICKSILVER))).component(crystal(TTAspects.VICTUS)).component(Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_MILK)))
-                .component(crystal(TTAspects.HERBA)).aspect(TTAspects.VICTUS, 60).aspect(TTAspects.ORDO, 30).aspect(TTAspects.HERBA, 60).instability(5).gate(gate("verdant_charms"))
-                .unlockedBy("has", has(TTItems.AMULET_FANCY.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), Ingredient.of(TTItems.VERDANT_CHARM.get()))
-                .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_LIFE).build()).component(Ingredient.of(Items.GOLDEN_APPLE))
-                .component(crystal(TTAspects.VICTUS)).component(potion(Potions.STRONG_HEALING)).component(crystal(TTAspects.HUMANUS)).aspect(TTAspects.VICTUS, 80).aspect(TTAspects.HUMANUS, 80)
-                .instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get())).save(output, TTIds.MODID + ":infusion/verdant_charm_life");
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), Ingredient.of(TTItems.VERDANT_CHARM.get()))
-                .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_SUSTAIN).build()).component(Ingredient.of(TTItems.TRIPLE_MEAT_TREAT.get()))
-                .component(crystal(TTAspects.DESIDERIUM)).component(potion(Potions.STRONG_REGENERATION)).component(crystal(TTAspects.AER)).aspect(TTAspects.DESIDERIUM, 80).aspect(TTAspects.AER, 80)
-                .instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get())).save(output, TTIds.MODID + ":infusion/verdant_charm_sustain");
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CLOUD_RING.get()), Ingredient.of(TTItems.RING_MUNDANE.get())).component(crystal(TTAspects.AER))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.FEATHERS))).aspect(TTAspects.AER, 50).instability(1).gate(gate("cloud_ring")).unlockedBy("has", has(TTItems.RING_MUNDANE.get()))
-                .save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CURIOSITY_BAND.get()), Ingredient.of(TTItems.GIRDLE_FANCY.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD))).component(Ingredient.of(Items.WRITABLE_BOOK)).component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD)))
-                .component(Ingredient.of(Items.WRITABLE_BOOK)).component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD))).component(Ingredient.of(Items.WRITABLE_BOOK))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD))).component(Ingredient.of(Items.WRITABLE_BOOK)).aspect(TTAspects.COGNITIO, 150).aspect(TTAspects.VACUOS, 50)
-                .aspect(TTAspects.VINCULUM, 100).instability(5).gate(gate("curiosity_band")).unlockedBy("has", has(TTItems.GIRDLE_FANCY.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.CHARM_UNDYING.get()), Ingredient.of(Items.TOTEM_OF_UNDYING))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_BRASS))).aspect(TTAspects.VICTUS, 25).instability(2).gate(gate("charm_undying"))
-                .unlockedBy("has", has(Items.TOTEM_OF_UNDYING)).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.MISC, new ItemStackTemplate(TTItems.VOIDSEER_CHARM.get()), Ingredient.of(TTItems.AMULET_FANCY.get()))
-                .component(Ingredient.of(TTItems.BRAIN.get())).component(Ingredient.of(TTItems.VOID_SEED.get())).component(Ingredient.of(TTItems.BRAIN.get()))
-                .component(Ingredient.of(TTItems.PRIMORDIAL_PEARL.get())).aspect(TTAspects.COGNITIO, 150).aspect(TTAspects.VACUOS, 150).aspect(TTAspects.PRAECANTATIO, 100).instability(8)
-                .gate(gate("voidseer_pearl")).unlockedBy("has", has(TTItems.PRIMORDIAL_PEARL.get())).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.AMULET_VIS_CRAFTED.get()), single(TTItems.AMULET_MUNDANE.get())), single(TTItems.VIS_RESONATOR.get()),
+                        crystal(TTAspects.AER), crystal(TTAspects.IGNIS), crystal(TTAspects.AQUA), crystal(TTAspects.TERRA), crystal(TTAspects.ORDO)),
+                cost(TTAspects.AURAM, 50), cost(TTAspects.POTENTIA, 100), cost(TTAspects.VACUOS, 50)).instability(6).gate(gate("vis_amulet")).unlockedBy("has", has(TTItems.AMULET_MUNDANE.get())));
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), single(TTItems.AMULET_FANCY.get())), tagged(TTItemTags.NUGGETS_QUICKSILVER),
+                crystal(TTAspects.VICTUS), tagged(Tags.Items.BUCKETS_MILK), crystal(TTAspects.HERBA)), cost(TTAspects.VICTUS, 60), cost(TTAspects.ORDO, 30), cost(TTAspects.HERBA, 60)).instability(5)
+                .gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.AMULET_FANCY.get())));
+        commit(priced(parts(
+                infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), single(TTItems.VERDANT_CHARM.get()))
+                        .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_LIFE).build()),
+                single(Items.GOLDEN_APPLE), crystal(TTAspects.VICTUS), potion(Potions.STRONG_HEALING), crystal(TTAspects.HUMANUS)), cost(TTAspects.VICTUS, 80), cost(TTAspects.HUMANUS, 80))
+                .instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get())), TTIds.MODID + ":infusion/verdant_charm_life");
+        commit(priced(parts(
+                infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.VERDANT_CHARM.get()), single(TTItems.VERDANT_CHARM.get()))
+                        .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.VERDANT_TYPE.get(), VerdantCharmItem.TYPE_SUSTAIN).build()),
+                single(TTItems.TRIPLE_MEAT_TREAT.get()), crystal(TTAspects.DESIDERIUM), potion(Potions.STRONG_REGENERATION), crystal(TTAspects.AER)), cost(TTAspects.DESIDERIUM, 80),
+                cost(TTAspects.AER, 80)).instability(5).gate(gate("verdant_charms")).unlockedBy("has", has(TTItems.VERDANT_CHARM.get())), TTIds.MODID + ":infusion/verdant_charm_sustain");
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.CLOUD_RING.get()), single(TTItems.RING_MUNDANE.get())), crystal(TTAspects.AER), tagged(Tags.Items.FEATHERS)),
+                cost(TTAspects.AER, 50)).instability(1).gate(gate("cloud_ring")).unlockedBy("has", has(TTItems.RING_MUNDANE.get())));
+        commit(priced(parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.CURIOSITY_BAND.get()), single(TTItems.GIRDLE_FANCY.get())), tagged(Tags.Items.GEMS_EMERALD),
+                single(Items.WRITABLE_BOOK), tagged(Tags.Items.GEMS_EMERALD), single(Items.WRITABLE_BOOK), tagged(Tags.Items.GEMS_EMERALD), single(Items.WRITABLE_BOOK),
+                tagged(Tags.Items.GEMS_EMERALD), single(Items.WRITABLE_BOOK)), cost(TTAspects.COGNITIO, 150), cost(TTAspects.VACUOS, 50), cost(TTAspects.VINCULUM, 100)).instability(5)
+                .gate(gate("curiosity_band")).unlockedBy("has", has(TTItems.GIRDLE_FANCY.get())));
+        commit(priced(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.CHARM_UNDYING.get()), single(Items.TOTEM_OF_UNDYING)).component(tagged(TTItemTags.PLATES_BRASS)),
+                cost(TTAspects.VICTUS, 25)).instability(2).gate(gate("charm_undying")).unlockedBy("has", has(Items.TOTEM_OF_UNDYING)));
+        commit(priced(
+                parts(infusion(RecipeCategory.MISC, new ItemStackTemplate(TTItems.VOIDSEER_CHARM.get()), single(TTItems.AMULET_FANCY.get())), single(TTItems.BRAIN.get()),
+                        single(TTItems.VOID_SEED.get()), single(TTItems.BRAIN.get()), single(TTItems.PRIMORDIAL_PEARL.get())),
+                cost(TTAspects.COGNITIO, 150), cost(TTAspects.VACUOS, 150), cost(TTAspects.PRAECANTATIO, 100)).instability(8).gate(gate("voidseer_pearl"))
+                .unlockedBy("has", has(TTItems.PRIMORDIAL_PEARL.get())));
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_HELM.get()), Ingredient.of(TTItems.THAUMIUM_HELM.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.GEMS_EMERALD))).aspect(TTAspects.METALLUM, 50).aspect(TTAspects.PRAEMUNIO, 20).aspect(TTAspects.POTENTIA, 25).instability(3)
-                .gate(gate("armor_fortress")).unlockedBy("has", has(TTItems.THAUMIUM_HELM.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_CHEST.get()), Ingredient.of(TTItems.THAUMIUM_CHEST.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD))).component(Ingredient.of(items.getOrThrow(Tags.Items.LEATHERS))).aspect(TTAspects.METALLUM, 50)
-                .aspect(TTAspects.PRAEMUNIO, 30).aspect(TTAspects.POTENTIA, 25).instability(3).gate(gate("armor_fortress")).unlockedBy("has", has(TTItems.THAUMIUM_CHEST.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_LEGS.get()), Ingredient.of(TTItems.THAUMIUM_LEGS.get()))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM))).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_THAUMIUM))).component(Ingredient.of(items.getOrThrow(Tags.Items.INGOTS_GOLD)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.LEATHERS))).aspect(TTAspects.METALLUM, 50).aspect(TTAspects.PRAEMUNIO, 25).aspect(TTAspects.POTENTIA, 25).instability(3)
-                .gate(gate("armor_fortress")).unlockedBy("has", has(TTItems.THAUMIUM_LEGS.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_HELM.get()), Ingredient.of(TTItems.FORTRESS_HELM.get()))
-                .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.GOGGLES_UPGRADE.get(), Unit.INSTANCE).build()).component(Ingredient.of(items.getOrThrow(Tags.Items.SLIME_BALLS)))
-                .component(Ingredient.of(TTItems.GOGGLES_REVEALING.get())).aspect(TTAspects.SENSUS, 40).aspect(TTAspects.AURAM, 20).aspect(TTAspects.PRAEMUNIO, 20).instability(5)
-                .gate(gate("fortress_mask")).unlockedBy("has", has(TTItems.FORTRESS_HELM.get())).save(output, TTIds.MODID + ":infusion/fortress_helm_goggles");
-        buildMaskRecipe(aspects, gate("fortress_mask"), 0, TTAspects.COGNITIO, TTAspects.VICTUS, Ingredient.of(Items.INK_SAC), Ingredient.of(TTItems.PLANT_SHIMMERLEAF.get()),
-                Ingredient.of(TTItems.BRAIN.get()));
-        buildMaskRecipe(aspects, gate("fortress_mask"), 1, TTAspects.PERDITIO, TTAspects.MORTUUS, Ingredient.of(Items.BONE_MEAL), Ingredient.of(Items.POISONOUS_POTATO),
-                Ingredient.of(Items.WITHER_SKELETON_SKULL));
-        buildMaskRecipe(aspects, gate("fortress_mask"), 2, TTAspects.EXANIMIS, TTAspects.VICTUS, Ingredient.of(items.getOrThrow(Tags.Items.DYES_RED)), Ingredient.of(Items.GHAST_TEAR),
-                Ingredient.of(items.getOrThrow(Tags.Items.BUCKETS_MILK)));
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_HELM.get()), single(TTItems.THAUMIUM_HELM.get())), tagged(TTItemTags.PLATES_THAUMIUM),
+                        tagged(TTItemTags.PLATES_THAUMIUM), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.GEMS_EMERALD)),
+                cost(TTAspects.METALLUM, 50), cost(TTAspects.PRAEMUNIO, 20), cost(TTAspects.POTENTIA, 25)).instability(3).gate(gate("armor_fortress"))
+                .unlockedBy("has", has(TTItems.THAUMIUM_HELM.get())));
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_CHEST.get()), single(TTItems.THAUMIUM_CHEST.get())), tagged(TTItemTags.PLATES_THAUMIUM),
+                        tagged(TTItemTags.PLATES_THAUMIUM), tagged(TTItemTags.PLATES_THAUMIUM), tagged(TTItemTags.PLATES_THAUMIUM), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.LEATHERS)),
+                cost(TTAspects.METALLUM, 50), cost(TTAspects.PRAEMUNIO, 30), cost(TTAspects.POTENTIA, 25)).instability(3).gate(gate("armor_fortress"))
+                .unlockedBy("has", has(TTItems.THAUMIUM_CHEST.get())));
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_LEGS.get()), single(TTItems.THAUMIUM_LEGS.get())), tagged(TTItemTags.PLATES_THAUMIUM),
+                        tagged(TTItemTags.PLATES_THAUMIUM), tagged(TTItemTags.PLATES_THAUMIUM), tagged(Tags.Items.INGOTS_GOLD), tagged(Tags.Items.LEATHERS)),
+                cost(TTAspects.METALLUM, 50), cost(TTAspects.PRAEMUNIO, 25), cost(TTAspects.POTENTIA, 25)).instability(3).gate(gate("armor_fortress"))
+                .unlockedBy("has", has(TTItems.THAUMIUM_LEGS.get())));
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_HELM.get()), single(TTItems.FORTRESS_HELM.get())).catalystPatch(
+                        DataComponentPatch.builder().set(TTDataComponents.GOGGLES_UPGRADE.get(), Unit.INSTANCE).build()), tagged(Tags.Items.SLIME_BALLS), single(TTItems.GOGGLES_REVEALING.get())),
+                cost(TTAspects.SENSUS, 40), cost(TTAspects.AURAM, 20), cost(TTAspects.PRAEMUNIO, 20)).instability(5).gate(gate("fortress_mask")).unlockedBy("has", has(TTItems.FORTRESS_HELM.get())),
+                TTIds.MODID + ":infusion/fortress_helm_goggles");
+        for (MaskVariant variant : maskVariants()) {
+            buildMaskRecipe(gate("fortress_mask"), variant);
+        }
 
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.VOID_ROBE_HELM.get()), Ingredient.of(TTItems.VOID_HELM.get()))
-                .component(Ingredient.of(TTItems.GOGGLES_REVEALING.get())).component(Ingredient.of(TTItems.FABRIC.get())).component(Ingredient.of(TTItems.FABRIC.get()))
-                .component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.FABRIC.get())).component(Ingredient.of(TTItems.FABRIC.get())).aspect(TTAspects.METALLUM, 25)
-                .aspect(TTAspects.SENSUS, 25).aspect(TTAspects.PRAEMUNIO, 25).aspect(TTAspects.POTENTIA, 25).aspect(TTAspects.ALIENIS, 25).aspect(TTAspects.VACUOS, 25).instability(6)
-                .gate(gate("void_robe_armor")).unlockedBy("has", has(TTItems.VOID_HELM.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.VOID_ROBE_CHEST.get()), Ingredient.of(TTItems.VOID_CHEST.get()))
-                .component(Ingredient.of(TTItems.CLOTH_CHEST.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_VOID_METAL)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_VOID_METAL))).component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.FABRIC.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.LEATHERS))).aspect(TTAspects.METALLUM, 35).aspect(TTAspects.PRAEMUNIO, 35).aspect(TTAspects.POTENTIA, 25)
-                .aspect(TTAspects.ALIENIS, 25).aspect(TTAspects.VACUOS, 35).instability(6).gate(gate("void_robe_armor")).unlockedBy("has", has(TTItems.VOID_CHEST.get())).save(output);
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.VOID_ROBE_LEGS.get()), Ingredient.of(TTItems.VOID_LEGS.get()))
-                .component(Ingredient.of(TTItems.CLOTH_LEGS.get())).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_VOID_METAL)))
-                .component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_VOID_METAL))).component(Ingredient.of(TTItems.SALIS_MUNDUS.get())).component(Ingredient.of(TTItems.FABRIC.get()))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.LEATHERS))).aspect(TTAspects.METALLUM, 30).aspect(TTAspects.PRAEMUNIO, 30).aspect(TTAspects.POTENTIA, 25)
-                .aspect(TTAspects.ALIENIS, 25).aspect(TTAspects.VACUOS, 30).instability(6).gate(gate("void_robe_armor")).unlockedBy("has", has(TTItems.VOID_LEGS.get())).save(output);
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.VOID_ROBE_HELM.get()), single(TTItems.VOID_HELM.get())), single(TTItems.GOGGLES_REVEALING.get()),
+                        single(TTItems.FABRIC.get()), single(TTItems.FABRIC.get()), single(TTItems.SALIS_MUNDUS.get()), single(TTItems.FABRIC.get()), single(TTItems.FABRIC.get())),
+                cost(TTAspects.METALLUM, 25), cost(TTAspects.SENSUS, 25), cost(TTAspects.PRAEMUNIO, 25), cost(TTAspects.POTENTIA, 25), cost(TTAspects.ALIENIS, 25), cost(TTAspects.VACUOS, 25))
+                .instability(6).gate(gate("void_robe_armor")).unlockedBy("has", has(TTItems.VOID_HELM.get())));
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.VOID_ROBE_CHEST.get()), single(TTItems.VOID_CHEST.get())), single(TTItems.CLOTH_CHEST.get()),
+                        tagged(TTItemTags.PLATES_VOID_METAL), tagged(TTItemTags.PLATES_VOID_METAL), single(TTItems.SALIS_MUNDUS.get()), single(TTItems.FABRIC.get()), tagged(Tags.Items.LEATHERS)),
+                cost(TTAspects.METALLUM, 35), cost(TTAspects.PRAEMUNIO, 35), cost(TTAspects.POTENTIA, 25), cost(TTAspects.ALIENIS, 25), cost(TTAspects.VACUOS, 35)).instability(6)
+                .gate(gate("void_robe_armor")).unlockedBy("has", has(TTItems.VOID_CHEST.get())));
+        commit(priced(
+                parts(infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.VOID_ROBE_LEGS.get()), single(TTItems.VOID_LEGS.get())), single(TTItems.CLOTH_LEGS.get()),
+                        tagged(TTItemTags.PLATES_VOID_METAL), tagged(TTItemTags.PLATES_VOID_METAL), single(TTItems.SALIS_MUNDUS.get()), single(TTItems.FABRIC.get()), tagged(Tags.Items.LEATHERS)),
+                cost(TTAspects.METALLUM, 30), cost(TTAspects.PRAEMUNIO, 30), cost(TTAspects.POTENTIA, 25), cost(TTAspects.ALIENIS, 25), cost(TTAspects.VACUOS, 30)).instability(6)
+                .gate(gate("void_robe_armor")).unlockedBy("has", has(TTItems.VOID_LEGS.get())));
     }
 
-    private void buildMaskRecipe(HolderLookup<IAspect> aspects, ResearchGate gate, int mask, ResourceKey<IAspect> first, ResourceKey<IAspect> second, Ingredient dye, Ingredient special1, Ingredient special2) {
-        new InfusionRecipeBuilder(aspects, RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_HELM.get()), Ingredient.of(TTItems.FORTRESS_HELM.get()))
-                .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.FORTRESS_MASK.get(), mask).build()).component(dye).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_IRON)))
-                .component(Ingredient.of(items.getOrThrow(Tags.Items.LEATHERS))).component(special1).component(special2).component(Ingredient.of(items.getOrThrow(TTItemTags.PLATES_IRON)))
-                .aspect(first, 80).aspect(second, 80).aspect(TTAspects.PRAEMUNIO, 20).instability(8).gate(gate).unlockedBy("has", has(TTItems.FORTRESS_HELM.get()))
-                .save(output, TTIds.MODID + ":infusion/fortress_helm_mask_" + mask);
+    private record MaskVariant(int mask, ResourceKey<IAspect> first, ResourceKey<IAspect> second, Ingredient dye, Ingredient special1, Ingredient special2) {
+    }
+
+    private List<MaskVariant> maskVariants() {
+        return List.of(new MaskVariant(0, TTAspects.COGNITIO, TTAspects.VICTUS, single(Items.INK_SAC), single(TTItems.PLANT_SHIMMERLEAF.get()), single(TTItems.BRAIN.get())),
+                new MaskVariant(1, TTAspects.PERDITIO, TTAspects.MORTUUS, single(Items.BONE_MEAL), single(Items.POISONOUS_POTATO), single(Items.WITHER_SKELETON_SKULL)),
+                new MaskVariant(2, TTAspects.EXANIMIS, TTAspects.VICTUS, tagged(Tags.Items.DYES_RED), single(Items.GHAST_TEAR), tagged(Tags.Items.BUCKETS_MILK)));
+    }
+
+    private void buildMaskRecipe(ResearchGate gate, MaskVariant variant) {
+        InfusionRecipeBuilder mask = infusion(RecipeCategory.COMBAT, new ItemStackTemplate(TTItems.FORTRESS_HELM.get()), single(TTItems.FORTRESS_HELM.get()))
+                .catalystPatch(DataComponentPatch.builder().set(TTDataComponents.FORTRESS_MASK.get(), variant.mask()).build());
+        Ingredient plates = tagged(TTItemTags.PLATES_IRON);
+        parts(mask, variant.dye(), plates, tagged(Tags.Items.LEATHERS), variant.special1(), variant.special2(), plates);
+        mask.aspect(variant.first(), 80).aspect(variant.second(), 80);
+        commit(priced(mask, cost(TTAspects.PRAEMUNIO, 20)).instability(8).gate(gate).unlockedBy("has", has(TTItems.FORTRESS_HELM.get())),
+                TTIds.MODID + ":infusion/fortress_helm_mask_" + variant.mask());
     }
 
     private Ingredient potion(Holder<Potion> potion) {
@@ -1385,17 +1514,17 @@ public final class TTRecipeProvider extends RecipeProvider {
         dustTrigger("crafting_tables_to_arcane_workbench",
                 new DustTriggerTagRecipe(Tags.Blocks.PLAYER_WORKSTATIONS_CRAFTING_TABLES, new ItemStackTemplate(TTBlocks.ARCANE_WORKBENCH.get().asItem()), Optional.of(gate("first_steps", 0))));
         dustTrigger("cauldron_to_crucible", new DustTriggerSimpleRecipe(Blocks.CAULDRON, new ItemStackTemplate(TTBlocks.CRUCIBLE.get().asItem()), Optional.of(gate("unlock_alchemy", 0))));
-        dustTrigger("golem_press", new DustTriggerMultiblockRecipe(TTIds.rl("golem_press"), new ItemStackTemplate(TTBlocks.GOLEM_BUILDER.get().asItem()), Optional.of(gate("mind_clockwork"))));
-        dustTrigger("advanced_alchemical_furnace", new DustTriggerMultiblockRecipe(TTIds.rl("advanced_alchemical_furnace"), new ItemStackTemplate(TTBlocks.ADVANCED_ALCHEMICAL_FURNACE.get().asItem()),
-                Optional.of(gate("advanced_alchemical_furnace"))));
-        dustTrigger("infernal_furnace",
-                new DustTriggerMultiblockRecipe(TTIds.rl("infernal_furnace"), new ItemStackTemplate(TTBlocks.INFERNAL_FURNACE.get().asItem()), Optional.of(gate("infernal_furnace"))));
-        dustTrigger("infusion_altar", new DustTriggerMultiblockRecipe(TTIds.rl("infusion_altar"), new ItemStackTemplate(TTBlocks.INFUSION_MATRIX.get().asItem()), Optional.of(gate("infusion"))));
-        dustTrigger("infusion_altar_ancient",
-                new DustTriggerMultiblockRecipe(TTIds.rl("infusion_altar_ancient"), new ItemStackTemplate(TTBlocks.INFUSION_MATRIX.get().asItem()), Optional.of(gate("infusion_ancient"))));
-        dustTrigger("infusion_altar_eldritch",
-                new DustTriggerMultiblockRecipe(TTIds.rl("infusion_altar_eldritch"), new ItemStackTemplate(TTBlocks.INFUSION_MATRIX.get().asItem()), Optional.of(gate("infusion_eldritch"))));
-        dustTrigger("thaumatorium", new DustTriggerMultiblockRecipe(TTIds.rl("thaumatorium"), new ItemStackTemplate(TTBlocks.THAUMATORIUM.get().asItem()), Optional.of(gate("thaumatorium"))));
+        multiblockTrigger("golem_press", TTBlocks.GOLEM_BUILDER.get(), "mind_clockwork");
+        multiblockTrigger("advanced_alchemical_furnace", TTBlocks.ADVANCED_ALCHEMICAL_FURNACE.get(), "advanced_alchemical_furnace");
+        multiblockTrigger("infernal_furnace", TTBlocks.INFERNAL_FURNACE.get(), "infernal_furnace");
+        multiblockTrigger("infusion_altar", TTBlocks.INFUSION_MATRIX.get(), "infusion");
+        multiblockTrigger("infusion_altar_ancient", TTBlocks.INFUSION_MATRIX.get(), "infusion_ancient");
+        multiblockTrigger("infusion_altar_eldritch", TTBlocks.INFUSION_MATRIX.get(), "infusion_eldritch");
+        multiblockTrigger("thaumatorium", TTBlocks.THAUMATORIUM.get(), "thaumatorium");
+    }
+
+    private void multiblockTrigger(String name, Block target, String research) {
+        dustTrigger(name, new DustTriggerMultiblockRecipe(TTIds.rl(name), new ItemStackTemplate(target.asItem()), Optional.of(gate(research))));
     }
 
     private void dustTrigger(String name, Recipe<?> recipe) {

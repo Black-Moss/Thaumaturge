@@ -29,6 +29,6 @@ public final class BlockTaintRock extends AbstractTaintBlock {
 
     @Override
     protected void subRandomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        TaintHelper.spreadFibres(level, pos, false);
+        TaintHelper.attemptFibreGrowth(level, pos, false);
     }
 }

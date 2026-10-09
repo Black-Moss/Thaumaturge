@@ -3,12 +3,10 @@ package com.leclowndu93150.thaumaturge.content.crucible;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.crucible.CrucibleEvent;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
-import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumaturge.content.recipe.ThaumaturgeCraftingManager;
 import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipe;
@@ -18,12 +16,12 @@ import com.leclowndu93150.thaumaturge.mixin.world.entity.item.ItemEntityAccessor
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.awt.Color;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -40,122 +38,112 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements ReadOnlyAspectContainer {
     public static final int TANK_CAPACITY = 1000;
     public static final int MAX_ASPECT = 100;
-    private static final long OVERFLOW_INTERVAL = 5L;
-    private static final int PHYSICAL_SPILL_CHANCE = 4;
-    private static final float OVERFLOW_FLUX = 1.0F;
+
+    static final int BOIL_HEAT = 150;
+
+    private static final String KEY_ASPECTS = "Aspects";
+    private static final String KEY_TANK = "Tank";
+    private static final String KEY_HEAT = "Heat";
+
+    private static final int TANK_SLOTS = 1;
+    private static final int TANK_SLOT = 0;
+    private static final int CRAFT_WATER_COST = 50;
+    private static final int MAX_HEAT = 200;
+    private static final int HEAT_SYNC_RISE = BOIL_HEAT + 1;
+    private static final int HEAT_SYNC_FALL = BOIL_HEAT - 1;
+
+    private static final int COUNTER_START = -100;
+    private static final int COUNTER_DISSOLVE = -150;
+    private static final int COUNTER_CRAFT = -250;
+    private static final int LEAK_THRESHOLD = 100;
+    private static final int OVERFLOW_INTERVAL = 5;
+    private static final int LEAK_SPILL_CHANCE_NUMERATOR = 3;
+    private static final int LEAK_SPILL_CHANCE_DENOMINATOR = 4;
+    private static final int OVERFLOW_SPILL_ODDS = 4;
+    private static final int POINT_SPILL_ODDS = 4;
     private static final float LEAK_FLUX = 0.25F;
+    private static final float OVERFLOW_FLUX = 1.0F;
 
-    private final FluidStacksResourceHandler tank = new FluidStacksResourceHandler(1, TANK_CAPACITY) {
-        @Override
-        protected void onContentsChanged(int index, FluidStack previousContents) {
-            super.onContentsChanged(index, previousContents);
-            setChanged();
-            syncToClient();
-        }
-    };
+    private static final int EVENT_BOIL_BURST = 10;
+    private static final int EVENT_CRAFT_COMPLETE = 11;
+    private static final int DISSOLVE_BURST_INTENSITY = 1;
+    private static final int SPILL_BURST_INTENSITY = 5;
+
+    private static final float FLUID_BASE = 0.3F;
+    private static final float FLUID_TANK_SPAN = 0.5F;
+    private static final float FLUID_OVERFLOW_HEIGHT = 1.001F;
+    private static final float FLUID_EXACT_HEIGHT = 0.9999F;
+
+    private static final float BUBBLE_VOLUME = 0.2F;
+    private static final float BUBBLE_PITCH_BASE = 1.0F;
+    private static final float BUBBLE_PITCH_SPREAD = 0.4F;
+    private static final float SPILL_VOLUME = 0.2F;
+    private static final float SPILL_PITCH = 1.0F;
+    private static final double BLOCK_CENTER = 0.5;
+
+    private static final double EJECT_Y = 0.71;
+    private static final double EJECT_LIFT = 0.075;
+    private static final float EJECT_SCATTER = 0.01F;
+
+    private final FluidStacksResourceHandler tank = new CrucibleTank();
+    private final BlockPos.MutableBlockPos belowPos = new BlockPos.MutableBlockPos();
     private AspectList aspects = AspectList.EMPTY;
-    private short heat = 0;
-    private long counter = -100;
+    private int heat;
+    private int leakCounter = COUNTER_START;
 
-    int prevcolor = 0;
-    int prevx = 0;
-    int prevy = 0;
-    int bellows = -1;
-    private int delay = 0;
-
-    public BlockEntityCrucible(BlockPos worldPosition, BlockState blockState) {
-        super(TTBlockEntities.CRUCIBLE.get(), worldPosition, blockState);
-    }
-
-    private void tick() {
-        if (level == null)
-            return;
-        counter++;
-        int prevHeat = heat;
-        if (!level.isClientSide()) {
-            if (tank.getAmountAsInt(0) > 0) {
-                BlockState below = level.getBlockState(getBlockPos().below());
-                boolean hasHeatBelow = below.is(TTBlockTags.CRUCIBLE_HEAT_SOURCES);
-                if (!hasHeatBelow) {
-                    if (heat > 0) {
-                        heat--;
-                        if (heat == 149) {
-                            setChanged();
-                            syncToClient();
-                        }
-                    }
-                } else if (heat < 200) {
-                    heat++;
-                    if (prevHeat < 151 && heat >= 151) {
-                        setChanged();
-                        syncToClient();
-                    }
-                }
-            } else if (heat > 0) {
-                heat--;
-            }
-
-            if (aspects.totalAmount() > MAX_ASPECT && counter % OVERFLOW_INTERVAL == 0L)
-                spillOverflow();
-
-            if (counter >= 100L) {
-                spillRandom();
-                counter = 0L;
-            }
-
-            if (tank.getAmountAsInt(0) > 0) {
-                this.sendEffects();
-            }
-        }
-
-        if (level.isClientSide() && prevHeat < 151 && this.heat >= 151) {
-            this.heat++;
-        }
+    public BlockEntityCrucible(BlockPos pos, BlockState state) {
+        super(TTBlockEntities.CRUCIBLE.get(), pos, state);
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        emptyOut();
         super.preRemoveSideEffects(pos, state);
-        if (level instanceof ServerLevel)
-            spillRemnants();
     }
 
-    private void sendEffects() {
-        if (level == null || level.isClientSide())
-            return;
-        ServerLevel level = (ServerLevel) this.level;
-        if (this.heat > 150) {
-            Effects.crucibleFroth(level, new Vec3(getBlockPos().getX() + 0.2F + level.getRandom().nextFloat() * 0.6F, getBlockPos().getY() + getFluidHeight(),
-                    getBlockPos().getZ() + 0.2F + level.getRandom().nextFloat() * 0.6F)).send();
-            if (this.aspects.totalAmount() > MAX_ASPECT) {
-                for (int a = 0; a < 2; a++) {
-                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ() + level.getRandom().nextFloat())).send();
-                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + level.getRandom().nextFloat())).send();
-                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + level.getRandom().nextFloat(), getBlockPos().getY() + 1, getBlockPos().getZ())).send();
-                    Effects.crucibleFrothDown(level, new Vec3(getBlockPos().getX() + level.getRandom().nextFloat(), getBlockPos().getY() + 1, getBlockPos().getZ() + 1)).send();
-                }
-            }
-        }
+    @Override
+    protected void saveAdditional(ValueOutput view) {
+        super.saveAdditional(view);
+        view.putShort(KEY_HEAT, getHeat());
+        tank.serialize(view.child(KEY_TANK));
+        view.store(KEY_ASPECTS, AspectList.CODEC, aspects);
+    }
 
-        if (level.getRandom().nextInt(6) == 0 && !this.aspects.isEmpty()) {
-            int color = this.aspects.entries().get(level.getRandom().nextInt(aspects.size())).aspect().value().color() + -16777216;
-            int x = 5 + level.getRandom().nextInt(22);
-            int y = 5 + level.getRandom().nextInt(22);
-            this.delay = level.getRandom().nextInt(10);
-            this.prevcolor = color;
-            this.prevx = x;
-            this.prevy = y;
-            Color c = new Color(color);
-            float r = c.getRed() / 255.0F;
-            float g = c.getGreen() / 255.0F;
-            float b = c.getBlue() / 255.0F;
-            Effects.crucibleBubble(level, new Vec3(getBlockPos().getX() + x / 32.0F + 1 / 64F, getBlockPos().getY() + 0.05F + getFluidHeight(), getBlockPos().getZ() + y / 32.0F + 1 / 64F))
-                    .color(r, g, b).send();
+    @Override
+    protected void loadAdditional(ValueInput view) {
+        super.loadAdditional(view);
+        restoreContents(view);
+    }
+
+    private void restoreContents(ValueInput view) {
+        heat = readHeat(view);
+        view.child(KEY_TANK).ifPresent(tank::deserialize);
+        aspects = view.read(KEY_ASPECTS, AspectList.CODEC).orElse(AspectList.EMPTY);
+    }
+
+    private static int readHeat(ValueInput view) {
+        return Mth.clamp(view.getShortOr(KEY_HEAT, (short) 0), 0, MAX_HEAT);
+    }
+
+    public FluidStacksResourceHandler getTank() {
+        return tank;
+    }
+
+    public float surfaceLevel() {
+        float filled = (float) tank.getAmountAsInt(TANK_SLOT) / TANK_CAPACITY;
+        float floor = FLUID_BASE + FLUID_TANK_SPAN * filled;
+        float aspectShare = (float) aspects.totalAmount() / MAX_ASPECT;
+        float height = floor + aspectShare * (1.0F - floor);
+        int order = Float.compare(height, 1.0F);
+        if (order > 0) {
+            return FLUID_OVERFLOW_HEIGHT;
         }
+        return order == 0 ? FLUID_EXACT_HEIGHT : height;
     }
 
     @Override
@@ -163,216 +151,275 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         return aspects;
     }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.store("Aspects", AspectList.CODEC, aspects);
-        tank.serialize(output.child("Tank"));
-        output.putShort("Heat", heat);
-    }
-
-    @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        input.child("Tank").ifPresent(tank::deserialize);
-        aspects = input.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
-        heat = (short) input.getShortOr("Heat", (short) 0);
-    }
-
-    public FluidStacksResourceHandler getTank() {
-        return tank;
-    }
-
-    public float getFluidHeight() {
-        float base = 0.3F + 0.5F * ((float) this.tank.getAmountAsInt(0) / TANK_CAPACITY);
-        float out = base + (float) this.aspects.totalAmount() / MAX_ASPECT * (1.0F - base);
-        if (out > 1.0F) {
-            out = 1.001F;
-        }
-
-        if (out == 1.0F) {
-            out = 0.9999F;
-        }
-
-        return out;
-    }
-
-    public void spillRemnants() {
-        if (!(level instanceof ServerLevel serverLevel))
-            return;
-        int total = aspects.totalAmount();
-        if (tank.getAmountAsInt(0) > 0 || total > 0) {
-            tank.set(0, FluidResource.EMPTY, 0);
-            int physicalSpills = 0;
-            for (int i = 0; i < total; i++) {
-                if (serverLevel.getRandom().nextInt(PHYSICAL_SPILL_CHANCE) == 0 && PhysicalFlux.spill(serverLevel, getBlockPos(), serverLevel.getRandom()))
-                    physicalSpills++;
-            }
-            if (total > physicalSpills)
-                AuraHelper.polluteAura(serverLevel, getBlockPos(), total - physicalSpills, true);
-            this.aspects = AspectList.EMPTY;
-            serverLevel.blockEvent(getBlockPos(), getBlockState().getBlock(), 2, 5);
-            setChanged();
-            syncToClient();
-        }
-    }
-
-    private void spillOverflow() {
-        if (!(level instanceof ServerLevel serverLevel) || aspects.isEmpty())
-            return;
-        Holder<IAspect> randAspect = aspects.entries().get(serverLevel.getRandom().nextInt(aspects.size())).aspect();
-        aspects = aspects.reduce(randAspect, 1);
-        boolean physical = serverLevel.getRandom().nextInt(PHYSICAL_SPILL_CHANCE) == 0 && PhysicalFlux.spill(serverLevel, getBlockPos(), serverLevel.getRandom());
-        if (!physical)
-            AuraHelper.polluteAura(serverLevel, getBlockPos(), OVERFLOW_FLUX, true);
-        setChanged();
-        syncToClient();
-    }
-
-    public void spillRandom() {
-        if (!(level instanceof ServerLevel serverLevel))
-            return;
-        if (!aspects.isEmpty()) {
-            Holder<IAspect> randAspect = aspects.entries().get(serverLevel.getRandom().nextInt(aspects.size())).aspect();
-            aspects = aspects.reduce(randAspect, 1);
-            if (serverLevel.getRandom().nextInt(PHYSICAL_SPILL_CHANCE) != 0 && PhysicalFlux.spill(serverLevel, getBlockPos(), serverLevel.getRandom()))
-                AuraHelper.polluteAura(serverLevel, getBlockPos(), LEAK_FLUX, true);
-        }
-        setChanged();
-        syncToClient();
-    }
-
     public short getHeat() {
-        return heat;
+        return (short) heat;
+    }
+
+    boolean isBoiling() {
+        return heat > BOIL_HEAT && hasWater();
     }
 
     public static void staticTick(Level level, BlockPos pos, BlockState state, BlockEntityCrucible crucible) {
-        crucible.tick();
+        crucible.leakCounter++;
+        if (level instanceof ServerLevel serverLevel) {
+            crucible.tickServer(serverLevel);
+        }
+    }
+
+    private void tickServer(ServerLevel serverLevel) {
+        updateHeat(serverLevel);
+        emitParticles(serverLevel);
+        runLeaks(serverLevel);
+    }
+
+    private void runLeaks(ServerLevel serverLevel) {
+        if (isOverfilled() && leakCounter % OVERFLOW_INTERVAL == 0) {
+            shedOverflow(serverLevel);
+        }
+        if (leakCounter >= LEAK_THRESHOLD) {
+            leakCounter = 0;
+            leakDrop();
+        }
+    }
+
+    private boolean hasWater() {
+        return tank.getAmountAsInt(TANK_SLOT) > 0;
+    }
+
+    private boolean isOverfilled() {
+        return aspects.totalAmount() > MAX_ASPECT;
+    }
+
+    private void updateHeat(ServerLevel serverLevel) {
+        if (!hasWater()) {
+            heat = Math.max(heat - 1, 0);
+            return;
+        }
+        belowPos.setWithOffset(worldPosition, Direction.DOWN);
+        boolean heated = serverLevel.getBlockState(belowPos).is(TTBlockTags.CRUCIBLE_HEAT_SOURCES);
+        int previous = heat;
+        heat = heated ? Math.min(heat + 1, MAX_HEAT) : Math.max(heat - 1, 0);
+        boolean crossedUp = heat > previous && heat == HEAT_SYNC_RISE;
+        boolean crossedDown = heat < previous && heat == HEAT_SYNC_FALL;
+        if (crossedUp || crossedDown) {
+            setChangedAndSync();
+        }
+    }
+
+    private void emitParticles(ServerLevel serverLevel) {
+        if (!hasWater()) {
+            return;
+        }
+        float height = surfaceLevel();
+        if (heat > BOIL_HEAT) {
+            CrucibleFx.froth(serverLevel, worldPosition, height, isOverfilled());
+        }
+        CrucibleFx.bubble(serverLevel, worldPosition, height, aspects);
+    }
+
+    private void takeOnePoint(RandomSource random) {
+        AspectInstance picked = aspects.entries().get(random.nextInt(aspects.size()));
+        aspects = aspects.remove(picked.aspect(), 1);
+    }
+
+    private void shedOverflow(ServerLevel serverLevel) {
+        if (aspects.isEmpty()) {
+            return;
+        }
+        RandomSource random = serverLevel.getRandom();
+        takeOnePoint(random);
+        if (random.nextInt(OVERFLOW_SPILL_ODDS) != 0 || !PhysicalFlux.spill(serverLevel, worldPosition, random)) {
+            AuraHelper.polluteAura(serverLevel, worldPosition, OVERFLOW_FLUX, true);
+        }
+        setChangedAndSync();
+    }
+
+    public void leakDrop() {
+        if (level instanceof ServerLevel serverLevel && !aspects.isEmpty()) {
+            RandomSource random = serverLevel.getRandom();
+            takeOnePoint(random);
+            boolean attempt = random.nextInt(LEAK_SPILL_CHANCE_DENOMINATOR) < LEAK_SPILL_CHANCE_NUMERATOR;
+            if (attempt && PhysicalFlux.spill(serverLevel, worldPosition, random)) {
+                AuraHelper.polluteAura(serverLevel, worldPosition, LEAK_FLUX, true);
+            }
+        }
+        if (level instanceof ServerLevel) {
+            setChangedAndSync();
+        }
+    }
+
+    public void emptyOut() {
+        if (level instanceof ServerLevel serverLevel) {
+            spillEverything(serverLevel);
+        }
+    }
+
+    private void spillEverything(ServerLevel serverLevel) {
+        int points = aspects.totalAmount();
+        if (points <= 0 && !hasWater()) {
+            return;
+        }
+        tank.set(TANK_SLOT, FluidResource.EMPTY, 0);
+        aspects = AspectList.EMPTY;
+        int lost = points - spillPoints(serverLevel, points);
+        if (lost > 0) {
+            AuraHelper.polluteAura(serverLevel, worldPosition, lost, true);
+        }
+        serverLevel.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_BOIL_BURST, SPILL_BURST_INTENSITY);
+        setChangedAndSync();
+    }
+
+    private int spillPoints(ServerLevel serverLevel, int points) {
+        RandomSource random = serverLevel.getRandom();
+        int placed = 0;
+        for (int point = 0; point < points; point++) {
+            boolean attempt = random.nextInt(POINT_SPILL_ODDS) == 0;
+            if (attempt && PhysicalFlux.spill(serverLevel, worldPosition, random)) {
+                placed++;
+            }
+        }
+        return placed;
     }
 
     @Override
-    public boolean triggerEvent(int event, int data) {
-        if (level == null)
+    public boolean triggerEvent(int id, int data) {
+        boolean known = id == EVENT_BOIL_BURST || id == EVENT_CRAFT_COMPLETE;
+        if (level == null || !known) {
             return false;
-        if (event == 99) {
-            level.playLocalSound(getBlockPos().getX() + 0.5f, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, TTSounds.SPILL.get(), SoundSource.BLOCKS, 0.2f, 1.0F, false);
-            if (!level.isClientSide()) {
-                Effects.bamf((ServerLevel) level, Vec3.atCenterOf(getBlockPos()).add(0F, 0.75F, 0F)).withSound().fancy().side(Direction.UP).send();
-            }
-            return true;
-        } else if (event != 2) {
-            return super.triggerEvent(event, data);
+        }
+        if (level instanceof ServerLevel serverLevel) {
+            runServerFx(serverLevel, id, data);
         } else {
-            level.playLocalSound(getBlockPos().getX() + 0.5f, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5, TTSounds.SPILL.get(), SoundSource.BLOCKS, 0.2f, 1.0F, false);
-            if (!level.isClientSide()) {
-                for (int q = 0; q < 10; q++) {
-                    Color color;
-                    if (aspects.isEmpty()) {
-                        color = new Color(1.0F, 1.0F, 1.0F);
-                    } else {
-                        color = new Color(aspects.entries().get(level.getRandom().nextInt(aspects.size())).aspect().value().color());
-                    }
-                    Effects.crucibleBoil((ServerLevel) level,
-                            new Vec3(getBlockPos().getX() + 0.2F - level.getRandom().nextFloat() * 0.6F, getBlockPos().getY() + 0.1F + getFluidHeight(),
-                                    getBlockPos().getZ() + 0.2F - level.getRandom().nextFloat() * 0.6F))
-                            .heat(data).color(color.getRed() / 255f, color.getGreen() / 255F, color.getBlue() / 255F).send();
-                }
-            }
-            return true;
+            playSpillSound();
+        }
+        return true;
+    }
+
+    private void runServerFx(ServerLevel serverLevel, int id, int data) {
+        if (id == EVENT_BOIL_BURST) {
+            CrucibleFx.boilBurst(serverLevel, worldPosition, surfaceLevel(), aspects, data);
+        } else {
+            CrucibleFx.craftComplete(serverLevel, worldPosition);
         }
     }
 
-    public void ejectItem(ItemStack items) {
-        if (level == null || level.isClientSide())
-            return;
-        boolean first = true;
-
-        do {
-            ItemStack spitout = items.copy();
-            if (spitout.getCount() > spitout.getMaxStackSize()) {
-                spitout.setCount(spitout.getMaxStackSize());
-            }
-
-            items.shrink(spitout.getCount());
-            EntitySpecialItem entityitem = new EntitySpecialItem(level, getBlockPos().getX() + 0.5F, getBlockPos().getY() + 0.71F, getBlockPos().getZ() + 0.5F, spitout);
-            entityitem.setDeltaMovement(first ? 0.0 : (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.01F, 0.075F,
-                    first ? 0.0 : (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.01F);
-            level.addFreshEntity(entityitem);
-            first = false;
-        } while (items.getCount() > 0);
+    private void playSpillSound() {
+        Vec3 center = Vec3.atCenterOf(worldPosition);
+        level.playLocalSound(center.x, center.y, center.z, TTSounds.SPILL.get(), SoundSource.BLOCKS, SPILL_VOLUME, SPILL_PITCH, false);
     }
 
-    public ItemStack attemptSmelt(ItemStack stack, Player owner) {
-        if (level == null || level.isClientSide())
-            return stack;
-        if (owner == null || owner.isDeadOrDying())
-            return stack;
-        if (tank.getAmountAsInt(0) <= 0)
-            return stack;
-        boolean bubble = false;
-        boolean craftDone = false;
-        int count = stack.getCount();
-
-        for (int i = 0; i < count; i++) {
-            CrucibleRecipe recipe = ThaumaturgeCraftingManager.findMatchingCrucibleRecipe((ServerLevel) level, owner, this.aspects, stack);
-            if (recipe != null) {
-                ItemStack out = recipe.assemble(new CrucibleRecipeInput(stack, this.aspects));
-                this.aspects = recipe.removeMatching(aspects);
-                try (Transaction ctx = Transaction.openRoot()) {
-                    tank.extract(FluidResource.of(Fluids.WATER), 50, ctx);
-                    ctx.commit();
-                }
-                ejectItem(out.copy());
-                NeoForge.EVENT_BUS.post(new CrucibleEvent.Crafted(owner, getBlockPos(), getBlockState(), this, out.copy(), recipe.aspects()));
-                craftDone = true;
-                count--;
-                this.counter = -250L;
+    public void popOut(ItemStack stack) {
+        if (!(level instanceof ServerLevel serverLevel) || stack.isEmpty()) {
+            return;
+        }
+        RandomSource random = serverLevel.getRandom();
+        int pieceSize = stack.getMaxStackSize();
+        for (int offset = 0; offset < stack.getCount(); offset += pieceSize) {
+            int count = Math.min(pieceSize, stack.getCount() - offset);
+            EntitySpecialItem entity = new EntitySpecialItem(serverLevel, worldPosition.getX() + BLOCK_CENTER, worldPosition.getY() + EJECT_Y, worldPosition.getZ() + BLOCK_CENTER,
+                    stack.copyWithCount(count));
+            if (offset == 0) {
+                entity.setDeltaMovement(0.0, EJECT_LIFT, 0.0);
             } else {
-                AspectList aspects = AspectIndexAccess.index().of(stack);
-                CrucibleEvent.Dissolve event = new CrucibleEvent.Dissolve(owner, getBlockPos(), getBlockState(), this, stack, aspects);
-                NeoForge.EVENT_BUS.post(event);
-                aspects = event.getAspects();
-                if (!aspects.isEmpty() && !event.isCanceled()) {
-                    for (AspectInstance aspect : aspects.entries()) {
-                        this.aspects = this.aspects.add(aspect);
-                    }
-                    bubble = true;
-                    count--;
-                    this.counter = -150L;
-                }
+                double driftX = (random.nextFloat() - random.nextFloat()) * EJECT_SCATTER;
+                double driftZ = (random.nextFloat() - random.nextFloat()) * EJECT_SCATTER;
+                entity.setDeltaMovement(driftX, EJECT_LIFT, driftZ);
             }
+            serverLevel.addFreshEntity(entity);
         }
-
-        if (bubble) {
-            level.playSound(null, getBlockPos(), TTSounds.BUBBLE.get(), SoundSource.BLOCKS, 0.2F, 1.0F + level.getRandom().nextFloat() * 0.4F);
-            syncToClient();
-            level.blockEvent(getBlockPos(), getBlockState().getBlock(), 2, 1);
-        }
-
-        if (craftDone) {
-            syncToClient();
-            level.blockEvent(getBlockPos(), getBlockState().getBlock(), 99, 0);
-        }
-
-        setChanged();
-        if (count <= 0)
-            return null;
-        return stack.copyWithCount(count);
     }
 
-    public void attemptSmelt(ItemEntity entity) {
-        if (entity.level().isClientSide())
+    public @Nullable ItemStack dropIn(ItemStack stack, @Nullable Player player) {
+        if (!(level instanceof ServerLevel serverLevel) || player == null || player.isDeadOrDying() || stack.isEmpty() || !hasWater()) {
+            return stack;
+        }
+        int budget = (stack.getCount() + 1) / 2;
+        int consumed = 0;
+        while (consumed < budget) {
+            if (!smeltOne(serverLevel, stack.copyWithCount(1), player)) {
+                break;
+            }
+            consumed++;
+        }
+        setChanged();
+        int left = stack.getCount() - consumed;
+        return left > 0 ? stack.copyWithCount(left) : null;
+    }
+
+    public void absorbThrown(ItemEntity itemEntity) {
+        Entity thrower = EntityReference.getEntity(((ItemEntityAccessor) itemEntity).thaumaturge$getThrower(), itemEntity.level());
+        if (thrower instanceof Player player && player.isAlive()) {
+            settleThrown(itemEntity, player);
+        }
+    }
+
+    private void settleThrown(ItemEntity itemEntity, Player player) {
+        ItemStack held = itemEntity.getItem();
+        ItemStack remainder = dropIn(held, player);
+        if (remainder == null || remainder.isEmpty()) {
+            itemEntity.discard();
             return;
-        ItemStack stack = entity.getItem();
-        Entity throwerRef = EntityReference.getEntity(((ItemEntityAccessor) entity).thaumaturge$getThrower(), entity.level());
-        if (!(throwerRef instanceof Player player))
-            return;
-        ItemStack res = attemptSmelt(stack, player);
-        if (res != null && res.count() > 0) {
-            stack.setCount(res.getCount());
-            entity.setItem(stack);
-        } else {
-            entity.discard();
+        }
+        if (remainder != held) {
+            itemEntity.setItem(remainder);
+        }
+    }
+
+    private boolean smeltOne(ServerLevel serverLevel, ItemStack single, Player player) {
+        CrucibleRecipe recipe = ThaumaturgeCraftingManager.findMatchingCrucibleRecipe(serverLevel, player, aspects, single);
+        boolean consumed = recipe == null ? dissolve(serverLevel, single, player) : craft(serverLevel, recipe, single, player);
+        if (consumed) {
+            setChangedAndSync();
+        }
+        return consumed;
+    }
+
+    private boolean craft(ServerLevel serverLevel, CrucibleRecipe recipe, ItemStack single, Player player) {
+        ItemStack result = recipe.assemble(new CrucibleRecipeInput(single, aspects));
+        popOut(result);
+        aspects = recipe.removeMatching(aspects);
+        drawWater();
+        NeoForge.EVENT_BUS.post(new CrucibleEvent.Crafted(player, worldPosition, getBlockState(), this, result.copy(), recipe.aspects()));
+        leakCounter = COUNTER_CRAFT;
+        serverLevel.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_CRAFT_COMPLETE, 0);
+        return true;
+    }
+
+    private void drawWater() {
+        try (Transaction tx = Transaction.openRoot()) {
+            FluidResource water = FluidResource.of(Fluids.WATER);
+            tank.extract(TANK_SLOT, water, CRAFT_WATER_COST, tx);
+            tx.commit();
+        }
+    }
+
+    private boolean dissolve(ServerLevel serverLevel, ItemStack single, Player player) {
+        AspectList gained = collectDissolved(single, player);
+        if (gained.isEmpty()) {
+            return false;
+        }
+        aspects = aspects.add(gained);
+        leakCounter = COUNTER_DISSOLVE;
+        float pitch = BUBBLE_PITCH_BASE + serverLevel.getRandom().nextFloat() * BUBBLE_PITCH_SPREAD;
+        serverLevel.playSound(null, worldPosition, TTSounds.BUBBLE.get(), SoundSource.BLOCKS, BUBBLE_VOLUME, pitch);
+        serverLevel.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_BOIL_BURST, DISSOLVE_BURST_INTENSITY);
+        return true;
+    }
+
+    private AspectList collectDissolved(ItemStack single, Player player) {
+        AspectList natural = AspectIndexAccess.of(single);
+        CrucibleEvent.Dissolve event = NeoForge.EVENT_BUS.post(new CrucibleEvent.Dissolve(player, worldPosition, getBlockState(), this, single, natural));
+        return event.isCanceled() ? AspectList.EMPTY : event.getAspects();
+    }
+
+    private final class CrucibleTank extends FluidStacksResourceHandler {
+        private CrucibleTank() {
+            super(TANK_SLOTS, TANK_CAPACITY);
+        }
+
+        @Override
+        protected void onContentsChanged(int index, FluidStack previousContents) {
+            setChangedAndSync();
         }
     }
 }

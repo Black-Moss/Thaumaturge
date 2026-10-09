@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,8 +22,9 @@ import org.jspecify.annotations.Nullable;
 public final class BlockDioptra extends BaseEntityBlock {
     public static final MapCodec<BlockDioptra> CODEC = simpleCodec(BlockDioptra::new);
 
-    private static final int GRID_CENTER_INDEX = 84;
-    private static final float GRID_MAX = 64.0F;
+    private static final int CENTER_INDEX = BlockEntityDioptra.GRID_SIZE * (BlockEntityDioptra.GRID_SIZE / 2) + BlockEntityDioptra.GRID_SIZE / 2;
+    private static final float SAMPLE_MAX = 64.0F;
+    private static final float SIGNAL_SPAN = 14.0F;
 
     public BlockDioptra(BlockBehaviour.Properties properties) {
         super(properties);
@@ -48,8 +48,7 @@ public final class BlockDioptra extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        boolean enabled = state.getValue(BlockStateProperties.ENABLED);
-        level.setBlock(pos, state.setValue(BlockStateProperties.ENABLED, !enabled), Block.UPDATE_ALL);
+        level.setBlock(pos, state.cycle(BlockStateProperties.ENABLED), Block.UPDATE_ALL);
         return InteractionResult.SUCCESS;
     }
 
@@ -63,8 +62,8 @@ public final class BlockDioptra extends BaseEntityBlock {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityDioptra dioptra)) {
             return 0;
         }
-        float ratio = dioptra.gridValue(GRID_CENTER_INDEX) / GRID_MAX;
-        return Mth.floor(ratio * 14.0F) + (ratio > 0.0F ? 1 : 0);
+        float ratio = dioptra.gridValue(CENTER_INDEX) / SAMPLE_MAX;
+        return ratio > 0.0F ? (int) (ratio * SIGNAL_SPAN) + 1 : 0;
     }
 
     @Override

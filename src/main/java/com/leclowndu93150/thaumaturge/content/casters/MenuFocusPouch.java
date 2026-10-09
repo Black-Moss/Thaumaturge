@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.casters;
 
 import com.leclowndu93150.thaumaturge.content.menu.AbstractHeldItemMenu;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
+import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,15 +16,13 @@ import net.minecraft.world.item.ItemStack;
 
 public final class MenuFocusPouch extends AbstractHeldItemMenu {
     private static final int POUCH_COLUMNS = 6;
-    private static final int POUCH_SLOT_X = 40;
-    private static final int POUCH_SLOT_Y = 51;
-    private static final int SLOT_SIZE = 18;
-    private static final int SLOT_X_SPACING = -1;
-    private static final int SLOT_Y_SPACING = -1;
+    private static final int POUCH_ORIGIN_X = 40;
+    private static final int POUCH_ORIGIN_Y = 51;
+    private static final int POUCH_PITCH = 17;
     private static final int PLAYER_INV_X = 8;
     private static final int PLAYER_INV_Y = 151;
 
-    private final SimpleContainer pouchInventory = new SimpleContainer(FocusPouchItem.SIZE);
+    private final SimpleContainer pouchContainer = new SimpleContainer(FocusPouchItem.SIZE);
 
     public MenuFocusPouch(int containerId, Inventory inventory, RegistryFriendlyByteBuf buf) {
         this(containerId, inventory, buf.readBoolean() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
@@ -31,25 +30,24 @@ public final class MenuFocusPouch extends AbstractHeldItemMenu {
 
     public MenuFocusPouch(int containerId, Inventory inventory, InteractionHand hand) {
         super(TTMenus.FOCUS_POUCH.get(), containerId, inventory, hand);
-        NonNullList<ItemStack> stored = FocusPouchItem.getInventory(held());
-        for (int slot = 0; slot < stored.size(); slot++) {
-            pouchInventory.setItem(slot, stored.get(slot));
-        }
+        NonNullList<ItemStack> contents = FocusPouchItem.getInventory(held());
         for (int slot = 0; slot < FocusPouchItem.SIZE; slot++) {
-            addSlot(new FocusSlot(pouchInventory, slot, POUCH_SLOT_X + slot % POUCH_COLUMNS * (SLOT_SIZE + SLOT_X_SPACING), POUCH_SLOT_Y + slot / POUCH_COLUMNS * (SLOT_SIZE + SLOT_Y_SPACING)));
+            pouchContainer.setItem(slot, contents.get(slot));
+            addSlot(new FocusSlot(pouchContainer, slot, POUCH_ORIGIN_X + slot % POUCH_COLUMNS * POUCH_PITCH, POUCH_ORIGIN_Y + slot / POUCH_COLUMNS * POUCH_PITCH));
         }
         addStandardInventorySlots(inventory, PLAYER_INV_X, PLAYER_INV_Y);
     }
 
     @Override
     protected void writeBack(ItemStack pouch) {
-        if (pouch.getItem() instanceof FocusPouchItem) {
-            NonNullList<ItemStack> list = NonNullList.withSize(FocusPouchItem.SIZE, ItemStack.EMPTY);
-            for (int slot = 0; slot < list.size(); slot++) {
-                list.set(slot, pouchInventory.getItem(slot));
-            }
-            FocusPouchItem.setInventory(pouch, list);
+        if (!pouch.is(TTItems.FOCUS_POUCH.get())) {
+            return;
         }
+        NonNullList<ItemStack> contents = NonNullList.withSize(FocusPouchItem.SIZE, ItemStack.EMPTY);
+        for (int slot = 0; slot < FocusPouchItem.SIZE; slot++) {
+            contents.set(slot, pouchContainer.getItem(slot));
+        }
+        FocusPouchItem.setInventory(pouch, contents);
     }
 
     @Override

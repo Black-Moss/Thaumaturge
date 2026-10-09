@@ -3,10 +3,12 @@ package com.leclowndu93150.thaumaturge.client.screen;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
+import com.leclowndu93150.thaumaturge.client.screen.widget.TTGauge;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatorium;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.MenuThaumatorium;
-import com.leclowndu93150.thaumaturge.network.ClientboundThaumatoriumRecipesPayload;
+import com.leclowndu93150.thaumaturge.network.ClientboundThaumatoriumRecipesPayload.Entry;
 import com.leclowndu93150.thaumaturge.network.ServerboundThaumatoriumTogglePayload;
+import java.time.Instant;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -14,170 +16,203 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThaumatorium> {
-    private static final Identifier TEXTURE = TTIds.rl("textures/gui/gui_thaumatorium.png");
+    private static final Identifier SHEET = TTIds.rl("textures/gui/gui_thaumatorium.png");
+    private static final int SHEET_SIZE = 256;
+    private static final int IMAGE_WIDTH = 175;
+    private static final int IMAGE_HEIGHT = 216;
+
+    private static final int GRID_COLUMNS = 2;
+    private static final int GRID_ROWS = 3;
+    private static final int GRID_VISIBLE = GRID_COLUMNS * GRID_ROWS;
     private static final int GRID_X = 48;
     private static final int GRID_Y = 56;
-    private static final int CELL = 16;
-    private static final int COLS = 2;
-    private static final int ROWS = 3;
-    private static final int VISIBLE = COLS * ROWS;
+    private static final int CELL_SIZE = 16;
+
+    private static final TTGauge HIGHLIGHT = new TTGauge(SHEET, SHEET_SIZE, 176, 8, CELL_SIZE, CELL_SIZE);
+
     private static final int ARROW_X = 82;
     private static final int ARROW_UP_Y = 56;
     private static final int ARROW_DOWN_Y = 93;
-    private static final int ARROW_W = 8;
-    private static final int ARROW_H = 11;
-    private static final int QUEUED_U = 176;
-    private static final int QUEUED_V = 8;
-    private static final int BAR_X = 98;
-    private static final int BAR_Y = 40;
-    private static final int TAG_X = 96;
-    private static final int TAG_Y = 24;
-    private static final int BAR_SPACING_X = 16;
-    private static final int BAR_SPACING_Y = 20;
-    private static final int BAR_U = 176;
-    private static final int BAR_BACK_V = 4;
-    private static final int BAR_FILL_V = 0;
-    private static final int BAR_WIDTH = 12;
-    private static final int BAR_HEIGHT = 3;
-    private static final int COUNT_X = 64;
-    private static final int COUNT_Y = 48;
-    private static final int ASPECTS_PER_ROW = 2;
-    private static final int MAX_ASPECTS = 8;
+    private static final int ARROW_WIDTH = 8;
+    private static final int ARROW_HEIGHT = 11;
+    private static final TTGauge ARROW_UP = new TTGauge(SHEET, SHEET_SIZE, 176, ARROW_UP_Y, ARROW_WIDTH, ARROW_HEIGHT);
+    private static final TTGauge ARROW_DOWN = new TTGauge(SHEET, SHEET_SIZE, 176, ARROW_DOWN_Y, ARROW_WIDTH, ARROW_HEIGHT);
 
-    private int index;
+    private static final int COUNTER_X = 64;
+    private static final int COUNTER_Y = 48;
+    private static final float COUNTER_SCALE = 0.5F;
+    private static final int NO_TINT = 0xFFFFFFFF;
+    private static final int COUNTER_COLOR = NO_TINT;
+    private static final int COUNTER_MIN_QUEUE = 1;
 
-    public ThaumatoriumScreen(MenuThaumatorium menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, TEXTURE, 175, 216);
+    private static final int PANEL_MAX_ASPECTS = 8;
+    private static final int PANEL_COLUMNS = 2;
+    private static final int PANEL_BAR_X = 98;
+    private static final int PANEL_BAR_Y = 40;
+    private static final int PANEL_BAR_PITCH_X = 16;
+    private static final int PANEL_BAR_PITCH_Y = 20;
+    private static final int PANEL_BAR_WIDTH = 12;
+    private static final int PANEL_BAR_HEIGHT = 3;
+    private static final int PANEL_BAR_BACK_U = 176;
+    private static final int PANEL_BAR_BACK_V = 4;
+    private static final int PANEL_BAR_FILL_U = 176;
+    private static final int PANEL_BAR_FILL_V = 0;
+    private static final int PANEL_CHIP_X = 96;
+    private static final int PANEL_CHIP_Y = 24;
+
+    private int scrollIndex;
+
+    public ThaumatoriumScreen(MenuThaumatorium menu, Inventory inventory, Component title) {
+        super(menu, inventory, title, SHEET, IMAGE_WIDTH, IMAGE_HEIGHT);
     }
 
     @Override
-    protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {}
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
 
     @Override
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        List<ClientboundThaumatoriumRecipesPayload.Entry> recipes = menu.clientRecipes;
-        int k = leftPos;
-        int l = topPos;
-        if (index > recipes.size() / COLS) {
-            index = recipes.size() / COLS;
-        }
-        if (index < 0 || recipes.size() <= VISIBLE) {
-            index = 0;
-        }
-        if (recipes.size() > VISIBLE) {
-            if (index > 0) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, k + ARROW_X, l + ARROW_UP_Y, 176, 56, ARROW_W, ARROW_H, 256, 256);
+        List<Entry> recipes = menu.clientRecipes;
+        clampScroll(recipes.size());
+        if (showsScrollArrows(recipes.size())) {
+            if (canScrollUp()) {
+                ARROW_UP.extractFull(graphics, leftPos + ARROW_X, topPos + ARROW_UP_Y);
             }
-            if (index < recipes.size() / (float) COLS - ROWS) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, k + ARROW_X, l + ARROW_DOWN_Y, 176, 93, ARROW_W, ARROW_H, 256, 256);
+            if (canScrollDown(recipes.size())) {
+                ARROW_DOWN.extractFull(graphics, leftPos + ARROW_X, topPos + ARROW_DOWN_Y);
             }
         }
-        int cell = 0;
-        for (int i = index * COLS; i < recipes.size() && cell < VISIBLE; i++, cell++) {
-            int px = cell % COLS;
-            int py = cell / COLS;
-            int x = k + GRID_X + px * CELL;
-            int y = l + GRID_Y + py * CELL;
-            ClientboundThaumatoriumRecipesPayload.Entry entry = recipes.get(i);
-            if (entry.queued()) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, QUEUED_U, QUEUED_V, CELL, CELL, 256, 256);
-            }
-            graphics.item(entry.output(), x, y);
-            if (mouseX >= x && mouseY >= y && mouseX < x + CELL && mouseY < y + CELL) {
-                graphics.setTooltipForNextFrame(font, entry.output(), mouseX, mouseY);
+        for (int cell = 0; cell < GRID_VISIBLE; cell++) {
+            int position = scrollIndex * GRID_COLUMNS + cell;
+            if (position < recipes.size()) {
+                extractCell(graphics, recipes.get(position), cellX(cell), cellY(cell), mouseX, mouseY);
             }
         }
-        BlockEntityThaumatorium machine = menu.blockEntity;
+        BlockEntityThaumatorium machine = menu.blockEntity();
         if (machine != null) {
-            if (machine.maxRecipes() > 1) {
-                Component text = Component.translatable("gui.thaumaturge.fraction", machine.queue().size(), machine.maxRecipes());
-                graphics.pose().pushMatrix();
-                graphics.pose().translate(k + COUNT_X, l + COUNT_Y);
-                graphics.pose().scale(0.5F, 0.5F);
-                graphics.text(font, text, -font.width(text) / 2, 0, 0xFFFFFFFF, false);
-                graphics.pose().popMatrix();
-            }
-            drawAspectBars(graphics, machine, k, l);
-        }
-    }
-
-    private void drawAspectBars(GuiGraphicsExtractor graphics, BlockEntityThaumatorium machine, int k, int l) {
-        List<Identifier> queue = machine.queue();
-        if (queue.isEmpty()) {
-            return;
-        }
-        Identifier shownId = queue.get((int) (System.currentTimeMillis() / 1000L % queue.size()));
-        ClientboundThaumatoriumRecipesPayload.Entry shown = null;
-        for (ClientboundThaumatoriumRecipesPayload.Entry entry : menu.clientRecipes) {
-            if (entry.id().equals(shownId)) {
-                shown = entry;
-                break;
-            }
-        }
-        if (shown == null) {
-            return;
-        }
-        int count = 0;
-        for (AspectInstance entry : shown.aspects().sortedByTag()) {
-            if (count >= MAX_ASPECTS) {
-                break;
-            }
-            int px = count % ASPECTS_PER_ROW;
-            int py = count / ASPECTS_PER_ROW;
-            int x = k + BAR_X + BAR_SPACING_X * px;
-            int y = l + BAR_Y + BAR_SPACING_Y * py;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_BACK_V, BAR_WIDTH, BAR_HEIGHT, 256, 256);
-            int fill = (int) (machine.essentia().amountOf(entry.aspect()) / (float) entry.amount() * BAR_WIDTH);
-            if (fill > 0) {
-                int color = ARGB.opaque(entry.aspect().value().color());
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, BAR_U, BAR_FILL_V, Math.min(fill, BAR_WIDTH), BAR_HEIGHT, 256, 256, color);
-            }
-            count++;
-        }
-        count = 0;
-        for (AspectInstance entry : shown.aspects().sortedByTag()) {
-            if (count >= MAX_ASPECTS) {
-                break;
-            }
-            int px = count % ASPECTS_PER_ROW;
-            int py = count / ASPECTS_PER_ROW;
-            AspectTagRenderer.render(graphics, font, k + TAG_X + BAR_SPACING_X * px, l + TAG_Y + BAR_SPACING_Y * py, entry.aspect(), entry.amount());
-            count++;
+            extractQueueCounter(graphics, machine);
+            extractAspectPanel(graphics, machine, recipes);
         }
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
-        int mx = (int) event.x();
-        int my = (int) event.y();
-        List<ClientboundThaumatoriumRecipesPayload.Entry> recipes = menu.clientRecipes;
-        int cell = 0;
-        for (int i = index * COLS; i < recipes.size() && cell < VISIBLE; i++, cell++) {
-            int px = cell % COLS;
-            int py = cell / COLS;
-            int x = leftPos + GRID_X + px * CELL;
-            int y = topPos + GRID_Y + py * CELL;
-            if (mx >= x && my >= y && mx < x + CELL && my < y + CELL) {
-                if (menu.blockEntity != null) {
-                    ClientPacketDistributor.sendToServer(new ServerboundThaumatoriumTogglePayload(menu.blockEntity.getBlockPos(), recipes.get(i).id()));
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        List<Entry> recipes = menu.clientRecipes;
+        clampScroll(recipes.size());
+        for (int cell = 0; cell < GRID_VISIBLE; cell++) {
+            int position = scrollIndex * GRID_COLUMNS + cell;
+            if (position < recipes.size() && inside(event.x(), event.y(), cellX(cell), cellY(cell), CELL_SIZE, CELL_SIZE)) {
+                BlockEntityThaumatorium machine = menu.blockEntity();
+                if (machine != null) {
+                    ClientPacketDistributor.sendToServer(new ServerboundThaumatoriumTogglePayload(machine.getBlockPos(), recipes.get(position).id()));
                 }
                 return true;
             }
         }
-        if (recipes.size() > VISIBLE) {
-            if (index > 0 && mx >= leftPos + ARROW_X && my >= topPos + ARROW_UP_Y && mx < leftPos + ARROW_X + ARROW_W && my < topPos + ARROW_UP_Y + ARROW_H) {
-                index--;
+        if (showsScrollArrows(recipes.size())) {
+            if (canScrollUp() && inside(event.x(), event.y(), leftPos + ARROW_X, topPos + ARROW_UP_Y, ARROW_WIDTH, ARROW_HEIGHT)) {
+                scrollIndex--;
                 return true;
             }
-            if (index < recipes.size() / (float) COLS - ROWS && mx >= leftPos + ARROW_X && my >= topPos + ARROW_DOWN_Y && mx < leftPos + ARROW_X + ARROW_W && my < topPos + ARROW_DOWN_Y + ARROW_H) {
-                index++;
+            if (canScrollDown(recipes.size()) && inside(event.x(), event.y(), leftPos + ARROW_X, topPos + ARROW_DOWN_Y, ARROW_WIDTH, ARROW_HEIGHT)) {
+                scrollIndex++;
                 return true;
             }
         }
-        return super.mouseClicked(event, doubled);
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    private void extractCell(GuiGraphicsExtractor graphics, Entry recipe, int x, int y, int mouseX, int mouseY) {
+        if (recipe.queued()) {
+            HIGHLIGHT.extractFull(graphics, x, y);
+        }
+        graphics.item(recipe.output(), x, y);
+        if (inside(mouseX, mouseY, x, y, CELL_SIZE, CELL_SIZE)) {
+            graphics.setTooltipForNextFrame(font, recipe.output(), mouseX, mouseY);
+        }
+    }
+
+    private void extractQueueCounter(GuiGraphicsExtractor graphics, BlockEntityThaumatorium machine) {
+        int maximum = machine.maxRecipes();
+        if (maximum <= COUNTER_MIN_QUEUE) {
+            return;
+        }
+        Component counter = Component.translatable("gui.thaumaturge.fraction", machine.queue().size(), maximum);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) (leftPos + COUNTER_X), (float) (topPos + COUNTER_Y));
+        graphics.pose().scale(COUNTER_SCALE, COUNTER_SCALE);
+        graphics.text(font, counter, -font.width(counter) / 2, 0, COUNTER_COLOR, false);
+        graphics.pose().popMatrix();
+    }
+
+    private void extractAspectPanel(GuiGraphicsExtractor graphics, BlockEntityThaumatorium machine, List<Entry> recipes) {
+        List<Identifier> queue = machine.queue();
+        if (queue.isEmpty()) {
+            return;
+        }
+        Identifier shown = queue.get((int) Math.floorMod(Instant.now().getEpochSecond(), (long) queue.size()));
+        Entry displayed = null;
+        for (Entry recipe : recipes) {
+            if (recipe.id().equals(shown)) {
+                displayed = recipe;
+                break;
+            }
+        }
+        if (displayed == null) {
+            return;
+        }
+        List<AspectInstance> aspects = displayed.aspects().sortedByTag();
+        int count = Math.min(aspects.size(), PANEL_MAX_ASPECTS);
+        for (int n = 0; n < count; n++) {
+            AspectInstance entry = aspects.get(n);
+            int x = leftPos + PANEL_BAR_X + PANEL_BAR_PITCH_X * (n % PANEL_COLUMNS);
+            int y = topPos + PANEL_BAR_Y + PANEL_BAR_PITCH_Y * (n / PANEL_COLUMNS);
+            blit(graphics, x, y, PANEL_BAR_BACK_U, PANEL_BAR_BACK_V, PANEL_BAR_WIDTH, PANEL_BAR_HEIGHT, NO_TINT);
+            int width = Math.min(PANEL_BAR_WIDTH, (int) ((float) machine.essentia().amountOf(entry.aspect()) / entry.amount() * PANEL_BAR_WIDTH));
+            if (width > 0) {
+                blit(graphics, x, y, PANEL_BAR_FILL_U, PANEL_BAR_FILL_V, width, PANEL_BAR_HEIGHT, ARGB.opaque(entry.aspect().value().color()));
+            }
+        }
+        for (int n = 0; n < count; n++) {
+            AspectInstance entry = aspects.get(n);
+            AspectTagRenderer.render(graphics, font, leftPos + PANEL_CHIP_X + PANEL_BAR_PITCH_X * (n % PANEL_COLUMNS), topPos + PANEL_CHIP_Y + PANEL_BAR_PITCH_Y * (n / PANEL_COLUMNS), entry.aspect(),
+                    entry.amount());
+        }
+    }
+
+    private void clampScroll(int recipeCount) {
+        scrollIndex = recipeCount <= GRID_VISIBLE ? 0 : Mth.clamp(scrollIndex, 0, recipeCount / GRID_COLUMNS);
+    }
+
+    private static boolean showsScrollArrows(int recipeCount) {
+        return recipeCount > GRID_VISIBLE;
+    }
+
+    private boolean canScrollUp() {
+        return scrollIndex > 0;
+    }
+
+    private boolean canScrollDown(int recipeCount) {
+        return scrollIndex < (float) recipeCount / GRID_COLUMNS - GRID_ROWS;
+    }
+
+    private int cellX(int cell) {
+        return leftPos + GRID_X + CELL_SIZE * (cell % GRID_COLUMNS);
+    }
+
+    private int cellY(int cell) {
+        return topPos + GRID_Y + CELL_SIZE * (cell / GRID_COLUMNS);
+    }
+
+    private static boolean inside(double mouseX, double mouseY, int x, int y, int width, int height) {
+        return mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
+    }
+
+    private static void blit(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int width, int height, int color) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, SHEET, x, y, (float) u, (float) v, width, height, width, height, SHEET_SIZE, SHEET_SIZE, color);
     }
 }

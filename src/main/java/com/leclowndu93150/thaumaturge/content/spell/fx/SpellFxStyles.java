@@ -1,102 +1,100 @@
 package com.leclowndu93150.thaumaturge.content.spell.fx;
 
-import com.leclowndu93150.thaumaturge.content.particle.AirGustParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.BubbleParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.CrackShardParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.EarthPebbleParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.FlameFanParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.FluxSwirlParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.FrostFlakeParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.RiftShardParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.SparkleParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.WispyMoteParticleOptions;
-import com.leclowndu93150.thaumaturge.registry.TTParticles;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public final class SpellFxStyles {
-    private static final int CRACK_VARIANTS = 4;
-    private static final int MOTE_AGE = 14;
-    private static final int SPARKLE_AGE = 6;
+    private static final double PASS_MOTION = 1.0;
+    private static final double NO_MOTION = 0.0;
+    private static final double HALF_MOTION = 0.5;
+    private static final int CRACK_COLOR = 0xFFFFFF;
+
+    private static final FxStyle SPARKLE = new FxStyle(FxFamilies::sparkle, FxParams.defaults().scale(0.7F, 0.4F).age(6, 4).decay(1.0F).vertical(0.0F).toggle(true), PASS_MOTION);
+    private static final FxStyle MOTE = new FxStyle(FxFamilies::mote, FxParams.defaults().age(14, 6).vertical(0.0F).toggle(true), PASS_MOTION);
+    private static final FxStyle FLAME = new FxStyle(FxFamilies::flame, FxParams.defaults().scale(1.4F, 0.2F).vertical(-0.2F).alpha(0.7F), NO_MOTION);
+    private static final FxStyle FROST = new FxStyle(FxFamilies::frost, FxParams.defaults().scale(0.7F, 0.25F), NO_MOTION);
+    private static final FxStyle GUST = new FxStyle(FxFamilies::gust, FxParams.defaults().scale(1.8F, 0.4F), NO_MOTION);
+    private static final FxStyle PEBBLE = new FxStyle(FxFamilies::pebble, FxParams.defaults().scale(1.0F, 0.2F), NO_MOTION);
+    private static final FxStyle FLUX = new FxStyle(FxFamilies::flux, FxParams.defaults().shade(0.3F, 0.25F).scale(1.8F, 1.0F).endScale(0.2F, 0.3F), NO_MOTION);
+    private static final FxStyle HEAL = new FxStyle(FxFamilies::heal, FxParams.defaults(), NO_MOTION);
+    private static final FxStyle CURSE = new FxStyle(FxFamilies::curse, FxParams.defaults(), NO_MOTION);
+    private static final FxStyle CRACK = new FxStyle(FxFamilies::crack, FxParams.defaults().fixedColor(CRACK_COLOR).variant(0, 4).scale(1.6F, 0.3F).age(6, 6), NO_MOTION);
+    private static final FxStyle RIFT = new FxStyle(FxFamilies::rift, FxParams.defaults().scale(0.7F, 0.25F), NO_MOTION);
+    private static final FxStyle PRIMAL = new FxStyle(FxFamilies::primal, FxParams.defaults(), NO_MOTION);
+    private static final FxStyle WARD = new FxStyle(FxFamilies::ward, FxParams.defaults().alpha(0.9F).scale(0.6F, 0.4F).age(6, 6).delay(0, 6).toggle(true), PASS_MOTION);
+    private static final FxStyle BUBBLE = new FxStyle(FxFamilies::bubble, FxParams.defaults().alpha(0.9F).scale(0.3F, 0.3F).age(14, 8).vertical(0.01F).toggle(false), PASS_MOTION);
+    private static final FxStyle SPARK = new FxStyle(FxFamilies::spark, FxParams.defaults().alpha(0.9F).scale(0.3F, 0.2F), NO_MOTION);
+    private static final FxStyle LEAF = new FxStyle(FxFamilies::leaf, FxParams.defaults(), PASS_MOTION);
+    private static final FxStyle SMOKE = new FxStyle(FxFamilies::smoke, FxParams.defaults(), HALF_MOTION);
 
     private SpellFxStyles() {}
 
     public static void sparkle(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new SparkleParticleOptions(ARGB.opaque(color), 0.7F + random.nextFloat() * 0.4F, 0, 1.0F, 0.0F, SPARKLE_AGE + random.nextInt(4), true), at, motion);
+        SPARKLE.spawn(level, at, motion, color, random);
     }
 
     public static void mote(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new WispyMoteParticleOptions(ARGB.opaque(color), MOTE_AGE + random.nextInt(6), 0.0F, WispyMoteParticleOptions.NO_ENTITY, true), at, motion);
+        MOTE.spawn(level, at, motion, color, random);
     }
 
     public static void flame(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new FlameFanParticleOptions((float) (1.4 + random.nextGaussian() * 0.2), -0.2F, 0.7F), at, Vec3.ZERO);
+        FLAME.spawn(level, at, motion, color, random);
     }
 
     public static void frost(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new FrostFlakeParticleOptions((float) (0.7 + random.nextGaussian() * 0.25)), at, Vec3.ZERO);
+        FROST.spawn(level, at, motion, color, random);
     }
 
     public static void gust(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new AirGustParticleOptions((float) (1.8 + random.nextGaussian() * 0.4)), at, Vec3.ZERO);
+        GUST.spawn(level, at, motion, color, random);
     }
 
     public static void pebble(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new EarthPebbleParticleOptions((float) (1.0 + random.nextGaussian() * 0.2)), at, Vec3.ZERO);
+        PEBBLE.spawn(level, at, motion, color, random);
     }
 
     public static void flux(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        float shade = 0.3F + random.nextFloat() * 0.25F;
-        add(level, new FluxSwirlParticleOptions(ARGB.colorFromFloat(1.0F, shade, 0.0F, shade), 1.8F + random.nextFloat(), 0.2F + random.nextFloat() * 0.3F), at, Vec3.ZERO);
+        FLUX.spawn(level, at, motion, color, random);
     }
 
     public static void heal(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, TTParticles.HEAL_FLASH.get(), at, Vec3.ZERO);
+        HEAL.spawn(level, at, motion, color, random);
     }
 
     public static void curse(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, TTParticles.CURSE_SMOKE.get(), at, Vec3.ZERO);
+        CURSE.spawn(level, at, motion, color, random);
     }
 
     public static void crack(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new CrackShardParticleOptions(0xFFFFFF, random.nextInt(CRACK_VARIANTS), (float) (1.6 + random.nextGaussian() * 0.3), 6 + random.nextInt(6)), at, Vec3.ZERO);
+        CRACK.spawn(level, at, motion, color, random);
     }
 
     public static void rift(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new RiftShardParticleOptions((float) (0.7 + random.nextGaussian() * 0.25)), at, Vec3.ZERO);
+        RIFT.spawn(level, at, motion, color, random);
     }
 
     public static void primal(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, TTParticles.PRIMAL_FLARE.get(), at, Vec3.ZERO);
+        PRIMAL.spawn(level, at, motion, color, random);
     }
 
     public static void ward(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new ShieldSparkParticleOptions(ARGB.opaque(color), 0.9F, 0.6F + random.nextFloat() * 0.4F, 6 + random.nextInt(6), random.nextInt(6), true), at, motion);
+        WARD.spawn(level, at, motion, color, random);
     }
 
     public static void bubble(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new BubbleParticleOptions(ARGB.opaque(color), 0.9F, 0.3F + random.nextFloat() * 0.3F, 14 + random.nextInt(8), 0.01F, false), at, motion);
+        BUBBLE.spawn(level, at, motion, color, random);
     }
 
     public static void spark(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, new SparkParticleOptions(ARGB.opaque(color), 0.9F, 0.3F + random.nextFloat() * 0.2F), at, Vec3.ZERO);
+        SPARK.spawn(level, at, motion, color, random);
     }
 
     public static void leaf(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, TTParticles.colorOf(TTParticles.LEAF_MOTE, color), at, motion);
+        LEAF.spawn(level, at, motion, color, random);
     }
 
     public static void smoke(Level level, Vec3 at, Vec3 motion, int color, RandomSource random) {
-        add(level, ParticleTypes.LARGE_SMOKE, at, motion.scale(0.5));
-    }
-
-    private static void add(Level level, ParticleOptions options, Vec3 at, Vec3 motion) {
-        level.addParticle(options, at.x, at.y, at.z, motion.x, motion.y, motion.z);
+        SMOKE.spawn(level, at, motion, color, random);
     }
 }

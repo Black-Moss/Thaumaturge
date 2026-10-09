@@ -9,14 +9,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.AgeableWaterCreature;
 import net.minecraft.world.entity.animal.fish.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 
 public final class GuardBehavior extends HuntBehavior {
-    public static final SealSetting MONSTERS = new SealSetting("pmob", "gui.thaumaturge.seal.setting.mob", true);
-    public static final SealSetting ANIMALS = new SealSetting("panimal", "gui.thaumaturge.seal.setting.animal", false);
-    public static final SealSetting PLAYERS = new SealSetting("pplayer", "gui.thaumaturge.seal.setting.player", false);
+    public static final SealSetting MONSTERS = new SealSetting("target_monsters", "gui.thaumaturge.seal.setting.mob", true);
+    public static final SealSetting ANIMALS = new SealSetting("target_animals", "gui.thaumaturge.seal.setting.animal", false);
+    public static final SealSetting PLAYERS = new SealSetting("target_players", "gui.thaumaturge.seal.setting.player", false);
 
     private static final int STAGGER = 22;
     private static final int SCAN_PERIOD = 20;
@@ -28,9 +29,9 @@ public final class GuardBehavior extends HuntBehavior {
         if (clock.advance() % SCAN_PERIOD != 0) {
             return;
         }
-        for (LivingEntity intruder : level.getEntitiesOfClass(LivingEntity.class, SealArea.bounds(seal))) {
-            if (isQuarry(level, seal, intruder)) {
-                mark(level, seal, intruder);
+        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, SealArea.bounds(seal))) {
+            if (isQuarry(level, seal, target)) {
+                mark(level, seal, target);
             }
         }
     }
@@ -40,7 +41,7 @@ public final class GuardBehavior extends HuntBehavior {
         if (seal.setting(MONSTERS) && target instanceof Enemy) {
             return true;
         }
-        if (seal.setting(ANIMALS) && (target instanceof Animal || target instanceof WaterAnimal)) {
+        if (seal.setting(ANIMALS) && isAnimal(target)) {
             return true;
         }
         return seal.setting(PLAYERS) && level.isPvpAllowed() && target instanceof Player;
@@ -50,5 +51,9 @@ public final class GuardBehavior extends HuntBehavior {
     public boolean canPerform(ISealEntity seal, IGolemAPI golem, Task task) {
         Entity target = task.entity();
         return target != null && !golem.asEntity().isAlliedTo(target);
+    }
+
+    private static boolean isAnimal(LivingEntity target) {
+        return target instanceof Animal || target instanceof WaterAnimal || target instanceof AgeableWaterCreature;
     }
 }

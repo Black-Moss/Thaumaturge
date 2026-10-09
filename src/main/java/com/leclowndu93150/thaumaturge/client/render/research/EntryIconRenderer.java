@@ -1,243 +1,257 @@
 package com.leclowndu93150.thaumaturge.client.render.research;
 
-import net.minecraft.resources.ResourceKey;
-import com.leclowndu93150.thaumaturge.client.screen.casters.SpellPartIcons;
-import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.ResearchEntryMeta;
 import com.leclowndu93150.thaumaturge.api.research.ResearchIcon;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
+import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
+import com.leclowndu93150.thaumaturge.client.screen.casters.SpellPartIcons;
+import com.mojang.blaze3d.textures.GpuTexture;
 import java.util.List;
-import java.util.Set;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public final class EntryIconRenderer {
     public static final int ICON_REFERENCE_SIZE = 16;
     public static final int HIT_PADDING = 2;
-
     public static final Identifier NODE_TEXTURE = TTIds.rl("textures/misc/auranodes.png");
-    private static final int NODE_TEXTURE_SIZE = 2048;
-    private static final int NODE_GRID = 32;
-    private static final int NODE_FRAME_SIZE = NODE_TEXTURE_SIZE / NODE_GRID;
-    private static final int NODE_BASE_FRAME = 160;
-    private static final int NODE_FRAME_COUNT = 32;
-    private static final float NODE_VISIBLE_SCALE = 90.0F;
-    private static final int NODE_TINT = 0xE5540070;
 
+    private static final int OPAQUE = 0xFF;
+    private static final int ALPHA_SHIFT = 24;
+    private static final int RED_SHIFT = 16;
+    private static final int GREEN_SHIFT = 8;
+    private static final int COMPLETE_COLOR = 0xFFFFFFFF;
+    private static final int UNKNOWN_COLOR = 0xFF4D4D4D;
+    private static final int LOCKED_TEXTURE_TINT = 0xFF333333;
+    private static final int WHITE = 0xFFFFFFFF;
+    private static final int LOCKED_ITEM_OVERLAY = 0x7F000000;
+    private static final int WARP_TINT = 0xE5540070;
+    private static final long PULSE_PERIOD_MILLIS = 600L;
+    private static final float PULSE_BASE = 0.75F;
+    private static final float PULSE_AMPLITUDE = 0.25F;
+    private static final float CHANNEL_MAX = 255.0F;
     private static final int FRAME_SIZE = 32;
     private static final int FRAME_OFFSET = 8;
-
-    private static final int FRAME_NORMAL_U = 80;
-    private static final int FRAME_HEX_U = 112;
-    private static final int FRAME_ROUND_U = 144;
-    private static final int FRAME_SPIKY_U = 176;
-    private static final int FRAME_VISIBLE_V = 48;
-    private static final int FRAME_HIDDEN_V = 80;
-
-    private static final int FLAG_BADGE_SIZE = 32;
-    private static final float FLAG_BADGE_SCALE = 0.5F;
-    private static final int FLAG_BADGE_OFFSET_X = -9;
-    private static final int FLAG_BADGE_TOP_OFFSET_Y = -9;
-    private static final int FLAG_BADGE_BOTTOM_OFFSET_Y = 9;
-    private static final int FLAG_RESEARCH_U = 176;
-    private static final int FLAG_PAGE_U = 208;
-    private static final int FLAG_BADGE_V = 16;
-
-    private static final int COLOR_COMPLETE = 0xFFFFFFFF;
-    private static final int COLOR_UNKNOWN_LOCKED_FRAME = 0xFF4D4D4D;
-    private static final int COLOR_UNKNOWN_LOCKED_ICON = 0xFF333333;
-    private static final int LOCKED_ICON_OVERLAY = 0x7F000000;
-    private static final int ICON_TEX_SIZE = 16;
-    private static final long FLIPBOOK_FRAME_MS = 150L;
-
-    private static final float FOCUS_PART_SCALE = 24.0F;
-    private static final int FOCUS_GLYPH_ALPHA = 220;
-    private static final int FOCUS_GLYPH_LOCKED_ALPHA = 50;
-
-    private static final long PULSE_PERIOD_MS = 600L;
-    private static final float PULSE_AMPLITUDE = 0.25F;
-    private static final float PULSE_OFFSET = 0.75F;
+    private static final int FRAME_U_NORMAL = 80;
+    private static final int FRAME_U_HEX = 112;
+    private static final int FRAME_U_ROUND = 144;
+    private static final int FRAME_U_SPIKY = 176;
+    private static final int FRAME_V_VISIBLE = 48;
+    private static final int FRAME_V_HIDDEN = 80;
+    private static final int BADGE_SIZE = 32;
+    private static final float BADGE_SCALE = 0.5F;
+    private static final int BADGE_OFFSET = 9;
+    private static final int BADGE_V = 16;
+    private static final int BADGE_RESEARCH_U = 176;
+    private static final int BADGE_PAGE_U = 208;
+    private static final int ICON_CENTER_OFFSET = 8;
+    private static final int AURA_SIZE = 90;
+    private static final int AURA_FRAME = 64;
+    private static final int AURA_SHEET = 2048;
+    private static final int AURA_GRID = 32;
+    private static final int AURA_FIRST_FRAME = 160;
+    private static final long ICON_CYCLE_TICKS = 20L;
+    private static final int LOCKED_FOCUS_ALPHA = 50;
+    private static final int FOCUS_ALPHA = 220;
+    private static final int FOCUS_BASE_SIZE = 24;
+    private static final float FOCUS_BACK_SCALE = 0.9F;
+    private static final int FOCUS_GLYPH_DIVISOR = 2;
+    private static final long TEXTURE_FRAME_MILLIS = 150L;
 
     public enum Status {
         UNKNOWN, IN_PROGRESS, COMPLETE
+    }
+
+    public record FocusIcon(Identifier elementId) {
     }
 
     private EntryIconRenderer() {}
 
     public static int colorForStatus(Status status) {
         return switch (status) {
-            case COMPLETE -> COLOR_COMPLETE;
+            case COMPLETE -> COMPLETE_COLOR;
+            case UNKNOWN -> UNKNOWN_COLOR;
             case IN_PROGRESS -> pulseColor();
-            case UNKNOWN -> COLOR_UNKNOWN_LOCKED_FRAME;
         };
     }
 
     public static int pulseColor() {
-        double phase = (System.currentTimeMillis() % PULSE_PERIOD_MS) / (double) PULSE_PERIOD_MS;
-        float v = (float) (Math.sin(phase * Math.PI * 2.0) * PULSE_AMPLITUDE + PULSE_OFFSET);
-        int channel = Math.max(0, Math.min(255, Math.round(v * 255.0F)));
-        return 0xFF000000 | (channel << 16) | (channel << 8) | channel;
+        int grey = greyLevel(pulsePhase());
+        return grey | grey << GREEN_SHIFT | grey << RED_SHIFT | OPAQUE << ALPHA_SHIFT;
     }
 
-    public static void render(GuiGraphicsExtractor graphics, int iconX, int iconY, IResearchEntry entry, Status status, ItemStack icon, boolean hasWarp, boolean hasNewResearchFlag, boolean hasNewPageFlag, int tickCount) {
-        render(graphics, iconX, iconY, entry, status, (Object) icon, hasWarp, hasNewResearchFlag, hasNewPageFlag);
+    private static float pulsePhase() {
+        long elapsed = Util.getMillis() % PULSE_PERIOD_MILLIS;
+        return elapsed / (float) PULSE_PERIOD_MILLIS;
     }
 
-    public static void render(GuiGraphicsExtractor graphics, int iconX, int iconY, IResearchEntry entry, Status status, Object icon, boolean hasWarp, boolean hasNewResearchFlag, boolean hasNewPageFlag) {
-        Set<ResearchEntryMeta> meta = entry.meta();
+    private static int greyLevel(float phase) {
+        float brightness = PULSE_AMPLITUDE * Mth.sin((float) (2.0 * Math.PI * phase)) + PULSE_BASE;
+        return Mth.clamp(Math.round(brightness * CHANNEL_MAX), 0, OPAQUE);
+    }
+
+    public static void render(GuiGraphicsExtractor graphics, int x, int y, IResearchEntry entry, Status status, ItemStack stack, boolean hasWarp, boolean newResearch, boolean newPage, int ticks) {
+        render(graphics, x, y, entry, status, (Object) stack, hasWarp, newResearch, newPage);
+    }
+
+    public static void render(GuiGraphicsExtractor graphics, int x, int y, IResearchEntry entry, Status status, Object icon, boolean hasWarp, boolean newResearch, boolean newPage) {
         if (hasWarp) {
-            drawForbidden(graphics, iconX + 8, iconY + 8);
+            drawForbidden(graphics, x, y);
         }
-        int frameColor = colorForStatus(status);
-        int frameV = meta.contains(ResearchEntryMeta.HIDDEN) ? FRAME_HIDDEN_V : FRAME_VISIBLE_V;
-        int baseU;
-        if (meta.contains(ResearchEntryMeta.ROUND)) {
-            baseU = FRAME_ROUND_U;
-        } else if (meta.contains(ResearchEntryMeta.HEX)) {
-            baseU = FRAME_HEX_U;
-        } else {
-            baseU = FRAME_NORMAL_U;
+        int tint = colorForStatus(status);
+        int frameV = entry.hasMeta(ResearchEntryMeta.HIDDEN) ? FRAME_V_HIDDEN : FRAME_V_VISIBLE;
+        int frameU = entry.hasMeta(ResearchEntryMeta.ROUND) ? FRAME_U_ROUND : entry.hasMeta(ResearchEntryMeta.HEX) ? FRAME_U_HEX : FRAME_U_NORMAL;
+        blitFrame(graphics, x - FRAME_OFFSET, y - FRAME_OFFSET, frameU, frameV, tint);
+        if (entry.hasMeta(ResearchEntryMeta.SPIKY)) {
+            blitFrame(graphics, x - FRAME_OFFSET, y - FRAME_OFFSET, FRAME_U_SPIKY, frameV, tint);
         }
-        blitFrame(graphics, iconX - FRAME_OFFSET, iconY - FRAME_OFFSET, baseU, frameV, frameColor);
-        if (meta.contains(ResearchEntryMeta.SPIKY)) {
-            blitFrame(graphics, iconX - FRAME_OFFSET, iconY - FRAME_OFFSET, FRAME_SPIKY_U, frameV, frameColor);
+        drawResearchIcon(graphics, x, y, icon, status == Status.UNKNOWN);
+        if (newResearch) {
+            blitBadge(graphics, x - BADGE_OFFSET, y - BADGE_OFFSET, BADGE_RESEARCH_U);
         }
-        boolean lockedIcon = status == Status.UNKNOWN;
-        drawResearchIcon(graphics, iconX, iconY, icon, lockedIcon);
-        if (hasNewResearchFlag) {
-            drawBadge(graphics, iconX + FLAG_BADGE_OFFSET_X, iconY + FLAG_BADGE_TOP_OFFSET_Y, FLAG_RESEARCH_U);
-        }
-        if (hasNewPageFlag) {
-            drawBadge(graphics, iconX + FLAG_BADGE_OFFSET_X, iconY + FLAG_BADGE_BOTTOM_OFFSET_Y, FLAG_PAGE_U);
+        if (newPage) {
+            blitBadge(graphics, x - BADGE_OFFSET, y + BADGE_OFFSET, BADGE_PAGE_U);
         }
     }
 
     public static Object resolveIcon(IResearchEntry entry, long ticks) {
+        long cycle = ticks / ICON_CYCLE_TICKS;
         List<ResearchIcon> icons = entry.icons();
         if (!icons.isEmpty()) {
-            ResearchIcon icon = icons.get((int) (ticks / 20L % icons.size()));
-            if (icon.kind() == ResearchIcon.Kind.FOCUS) {
-                return new FocusIcon(icon.id());
-            }
-            if (icon.texture()) {
-                return icon.id();
-            }
-            return new ItemStack(BuiltInRegistries.ITEM.getValue(icon.id()));
+            ResearchIcon icon = icons.get((int) Math.floorMod(cycle, (long) icons.size()));
+            return switch (icon.kind()) {
+                case FOCUS -> new FocusIcon(icon.id());
+                case TEXTURE -> icon.id();
+                case ITEM -> BuiltInRegistries.ITEM.getOptional(icon.id()).map(ItemStack::new).orElse(ItemStack.EMPTY);
+            };
         }
-        for (IResearchStage stage : entry.stages()) {
-            for (List<ResearchRequirement> reqs : List.of(stage.obtain(), stage.craft())) {
-                if (reqs.isEmpty()) {
-                    continue;
-                }
-                List<Holder<Item>> items = reqs.get(0).items().stream().toList();
-                if (!items.isEmpty()) {
-                    return new ItemStack(items.get((int) (ticks / 20L % items.size())));
-                }
-            }
+        ResearchRequirement lead = leadingRequirement(entry);
+        if (lead == null) {
+            return ItemStack.EMPTY;
         }
-        return ItemStack.EMPTY;
+        HolderSet<Item> pool = lead.items();
+        if (pool.size() == 0) {
+            return ItemStack.EMPTY;
+        }
+        return new ItemStack(pool.get((int) Math.floorMod(cycle, (long) pool.size())));
     }
 
-    public static void drawResearchIcon(GuiGraphicsExtractor graphics, int iconX, int iconY, Object icon, boolean locked) {
-        if (icon instanceof ItemStack stack) {
-            if (stack.isEmpty())
-                return;
-            graphics.item(stack, iconX, iconY);
-            if (locked) {
-                graphics.fill(iconX, iconY, iconX + ICON_TEX_SIZE, iconY + ICON_TEX_SIZE, LOCKED_ICON_OVERLAY);
-            }
-            return;
-        }
+    public static void drawResearchIcon(GuiGraphicsExtractor graphics, int x, int y, Object icon, boolean locked) {
         if (icon instanceof FocusIcon focus) {
-            drawFocusIcon(graphics, iconX + ICON_TEX_SIZE / 2, iconY + ICON_TEX_SIZE / 2, focus.elementId(), locked);
+            drawFocusIcon(graphics, x, y, focus.elementId(), locked);
             return;
         }
         if (icon instanceof Identifier texture) {
-            drawTextureIcon(graphics, iconX, iconY, texture, locked);
-        }
-    }
-
-    public record FocusIcon(Identifier elementId) {
-    }
-
-    public static void drawFocusIcon(GuiGraphicsExtractor graphics, int centerX, int centerY, Identifier partId, boolean locked) {
-        if (Minecraft.getInstance().level == null) {
+            drawTextureIcon(graphics, x, y, texture, locked);
             return;
         }
-        float alpha = (locked ? FOCUS_GLYPH_LOCKED_ALPHA : FOCUS_GLYPH_ALPHA) / 255.0F;
-        SpellPartIcons.draw(graphics, Minecraft.getInstance().level.registryAccess(), ResourceKey.create(SpellPart.REGISTRY_KEY, partId), centerX, centerY, Math.round(FOCUS_PART_SCALE * 0.9F),
-                Math.round(FOCUS_PART_SCALE / 2.0F), Math.round(FOCUS_PART_SCALE), alpha);
-    }
-
-    private static void drawTextureIcon(GuiGraphicsExtractor graphics, int iconX, int iconY, Identifier texture, boolean locked) {
-        Minecraft mc = Minecraft.getInstance();
-        AbstractTexture tex = mc.getTextureManager().getTexture(texture);
-        int tint = locked ? COLOR_UNKNOWN_LOCKED_ICON : COLOR_COMPLETE;
-        int w;
-        int h;
-        try {
-            w = tex.getTexture().getWidth(0);
-            h = tex.getTexture().getHeight(0);
-        } catch (IllegalStateException unInit) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, texture, iconX, iconY, 0.0F, 0.0F, ICON_TEX_SIZE, ICON_TEX_SIZE, ICON_TEX_SIZE, ICON_TEX_SIZE, ICON_TEX_SIZE, ICON_TEX_SIZE, tint);
-            return;
-        }
-        if (h > w && h % w == 0) {
-            int frames = h / w;
-            int frameIdx = (int) (System.currentTimeMillis() / FLIPBOOK_FRAME_MS % frames);
-            float v = (float) frameIdx * (float) w;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, texture, iconX, iconY, 0.0F, v, ICON_TEX_SIZE, ICON_TEX_SIZE, w, w, w, h, tint);
-        } else if (w > h && w % h == 0) {
-            int frames = w / h;
-            int frameIdx = (int) (System.currentTimeMillis() / FLIPBOOK_FRAME_MS % frames);
-            float u = (float) frameIdx * (float) h;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, texture, iconX, iconY, u, 0.0F, ICON_TEX_SIZE, ICON_TEX_SIZE, h, h, w, h, tint);
-        } else {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, texture, iconX, iconY, 0.0F, 0.0F, ICON_TEX_SIZE, ICON_TEX_SIZE, w, h, w, h, tint);
+        if (icon instanceof ItemStack stack && !stack.isEmpty()) {
+            graphics.item(stack, x, y);
+            if (locked) {
+                graphics.fill(x, y, x + ICON_REFERENCE_SIZE, y + ICON_REFERENCE_SIZE, LOCKED_ITEM_OVERLAY);
+            }
         }
     }
 
-    private static void drawBadge(GuiGraphicsExtractor graphics, int x, int y, int u) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(x, y);
-        graphics.pose().scale(FLAG_BADGE_SCALE, FLAG_BADGE_SCALE);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BROWSER, 0, 0, (float) u, (float) FLAG_BADGE_V, FLAG_BADGE_SIZE, FLAG_BADGE_SIZE, FLAG_BADGE_SIZE, FLAG_BADGE_SIZE,
-                TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
-        graphics.pose().popMatrix();
-    }
-
-    public static void drawForbidden(GuiGraphicsExtractor graphics, int centerX, int centerY) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null)
+    public static void drawFocusIcon(GuiGraphicsExtractor graphics, int x, int y, Identifier elementId, boolean locked) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
             return;
-        int count = mc.player.tickCount;
-        int frame = NODE_BASE_FRAME + count % NODE_FRAME_COUNT;
-        int frameCol = frame % NODE_GRID;
-        int frameRow = frame / NODE_GRID;
-        int u = frameCol * NODE_FRAME_SIZE;
-        int v = frameRow * NODE_FRAME_SIZE;
-        int half = Math.round(NODE_VISIBLE_SCALE * 0.5F);
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(centerX, centerY);
-        graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, NODE_TEXTURE, -half, -half, (float) u, (float) v, Math.round(NODE_VISIBLE_SCALE), Math.round(NODE_VISIBLE_SCALE), NODE_FRAME_SIZE,
-                NODE_FRAME_SIZE, NODE_TEXTURE_SIZE, NODE_TEXTURE_SIZE, NODE_TINT);
-        graphics.pose().popMatrix();
+        }
+        int back = Math.round(FOCUS_BASE_SIZE * FOCUS_BACK_SCALE);
+        int glyph = Math.round(FOCUS_BASE_SIZE / (float) FOCUS_GLYPH_DIVISOR);
+        float alpha = (locked ? LOCKED_FOCUS_ALPHA : FOCUS_ALPHA) / CHANNEL_MAX;
+        ResourceKey<SpellPart> key = ResourceKey.create(SpellPart.REGISTRY_KEY, elementId);
+        SpellPartIcons.draw(graphics, level.registryAccess(), key, x + ICON_CENTER_OFFSET, y + ICON_CENTER_OFFSET, back, glyph, FOCUS_BASE_SIZE, alpha);
     }
 
-    private static void blitFrame(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int color) {
+    public static void drawForbidden(GuiGraphicsExtractor graphics, int x, int y) {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+        int frame = AURA_FIRST_FRAME + player.tickCount % AURA_GRID;
+        float u = (frame % AURA_GRID) * AURA_FRAME;
+        float v = (frame / AURA_GRID) * AURA_FRAME;
+        int half = AURA_SIZE / 2;
+        graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, NODE_TEXTURE, x + ICON_CENTER_OFFSET - half, y + ICON_CENTER_OFFSET - half, u, v, AURA_SIZE, AURA_SIZE, AURA_FRAME, AURA_FRAME,
+                AURA_SHEET, AURA_SHEET, WARP_TINT);
+    }
+
+    private static @Nullable ResearchRequirement leadingRequirement(IResearchEntry entry) {
+        for (IResearchStage stage : entry.stages()) {
+            List<ResearchRequirement> source = stage.obtain().isEmpty() ? stage.craft() : stage.obtain();
+            if (!source.isEmpty()) {
+                return source.get(0);
+            }
+        }
+        return null;
+    }
+
+    private static void blitFrame(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int tint) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BROWSER, x, y, (float) u, (float) v, FRAME_SIZE, FRAME_SIZE, FRAME_SIZE, FRAME_SIZE, TTScreenTextures.TEX_SIZE,
-                TTScreenTextures.TEX_SIZE, color);
+                TTScreenTextures.TEX_SIZE, tint);
+    }
+
+    private static void blitBadge(GuiGraphicsExtractor graphics, int x, int y, int u) {
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) x, (float) y);
+        graphics.pose().scale(BADGE_SCALE, BADGE_SCALE);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BROWSER, 0, 0, (float) u, (float) BADGE_V, BADGE_SIZE, BADGE_SIZE, BADGE_SIZE, BADGE_SIZE, TTScreenTextures.TEX_SIZE,
+                TTScreenTextures.TEX_SIZE);
+        graphics.pose().popMatrix();
+    }
+
+    private static void drawTextureIcon(GuiGraphicsExtractor graphics, int x, int y, Identifier texture, boolean locked) {
+        TextureSize size = textureSize(texture);
+        Region region = size.width() > 0 && size.height() > 0 ? Region.animated(size, (int) (Util.getMillis() / TEXTURE_FRAME_MILLIS)) : Region.WHOLE;
+        int tint = locked ? LOCKED_TEXTURE_TINT : WHITE;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, region.u, region.v, ICON_REFERENCE_SIZE, ICON_REFERENCE_SIZE, region.w, region.h, region.sheetW, region.sheetH, tint);
+    }
+
+    private static TextureSize textureSize(Identifier texture) {
+        GpuTexture gpu;
+        try {
+            gpu = Minecraft.getInstance().getTextureManager().getTexture(texture).getTexture();
+        } catch (IllegalStateException notReady) {
+            return TextureSize.NOT_READY;
+        }
+        return new TextureSize(gpu.getWidth(0), gpu.getHeight(0));
+    }
+
+    private record TextureSize(int width, int height) {
+        static final TextureSize NOT_READY = new TextureSize(0, 0);
+    }
+
+    private record Region(float u, float v, int w, int h, int sheetW, int sheetH) {
+        static final Region WHOLE = new Region(0.0F, 0.0F, 1, 1, 1, 1);
+
+        static Region animated(TextureSize size, int frameIndex) {
+            int shortSide = Math.min(size.width(), size.height());
+            int longSide = Math.max(size.width(), size.height());
+            boolean strip = longSide > shortSide && longSide % shortSide == 0;
+            if (!strip) {
+                return new Region(0.0F, 0.0F, size.width(), size.height(), size.width(), size.height());
+            }
+            float offset = (float) (frameIndex % (longSide / shortSide)) * shortSide;
+            boolean vertical = size.height() > size.width();
+            return new Region(vertical ? 0.0F : offset, vertical ? offset : 0.0F, shortSide, shortSide, size.width(), size.height());
+        }
     }
 }

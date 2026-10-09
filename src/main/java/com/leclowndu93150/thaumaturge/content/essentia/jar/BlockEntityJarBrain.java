@@ -4,15 +4,16 @@ import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEnt
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -23,22 +24,35 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityJarBrain extends AbstractSyncedBlockEntity {
     public static final int XP_MAX = 2000;
-    private static final double PULL_RANGE = 8.0;
-    private static final double EAT_INFLATE = 0.1;
-    private static final double SIGH_RANGE = 6.0;
-    private static final long SIGH_INITIAL_DELAY = 30L;
-    private static final long SIGH_DELAY_BASE = 100L;
-    private static final int SIGH_DELAY_SPREAD = 500;
 
-    private int xp;
-    private int eatDelay;
+    private static final String XP_KEY = "XP";
+    private static final double PULL_RANGE = 8.0;
+    private static final double PULL_FALLOFF_RANGE = 25.0;
+    private static final double PULL_HORIZONTAL_STRENGTH = 0.3;
+    private static final double PULL_VERTICAL_STRENGTH = 0.5;
+    private static final double COLLECT_MARGIN = 0.1;
+    private static final float EAT_VOLUME = 0.1F;
+    private static final float EAT_BASE_PITCH = 1.0F;
+    private static final float EAT_PITCH_SPREAD = 0.2F;
+    private static final double PLAYER_RANGE = 6.0;
+    private static final long SIGH_FIRST_DELAY = 30L;
+    private static final long SIGH_MIN_DELAY = 100L;
+    private static final int SIGH_DELAY_SPREAD = 500;
+    private static final long UNSCHEDULED = -1L;
+    private static final float SIGH_VOLUME = 0.15F;
+    private static final float SIGH_BASE_PITCH = 0.8F;
+    private static final float SIGH_PITCH_SPREAD = 0.4F;
+    private static final float IDLE_SPIN = 0.01F;
+    private static final float TURN_RATE = 0.04F;
+    private static final float TWO_PI = (float) (Math.PI * 2.0);
 
     public float rota;
     public float rotb;
-    private float targetRot;
-    private float wander;
-    private float wanderStep;
-    private long nextSigh = Long.MIN_VALUE;
+
+    private int xp;
+    private int eatDelay;
+    private float targetYaw;
+    private long nextSigh = UNSCHEDULED;
 
     public BlockEntityJarBrain(BlockPos pos, BlockState state) {
         super(TTBlockEntities.JAR_BRAIN.get(), pos, state);
@@ -48,142 +62,122 @@ public final class BlockEntityJarBrain extends AbstractSyncedBlockEntity {
         return xp;
     }
 
-    public void setXp(int xp) {
-        this.xp = Mth.clamp(xp, 0, XP_MAX);
+    public void setXp(int newXp) {
+        xp = Mth.clamp(newXp, 0, XP_MAX);
+        setChangedAndSync();
     }
 
-    public void setEatDelay(int eatDelay) {
-        this.eatDelay = eatDelay;
+    public void setEatDelay(int ticks) {
+        eatDelay = ticks;
     }
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityJarBrain jar) {
-        if (jar.xp > XP_MAX) {
-            jar.xp = XP_MAX;
+    public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityJarBrain brain) {
+        if (brain.xp > XP_MAX) {
+            brain.xp = XP_MAX;
         }
-        if (jar.xp < XP_MAX) {
-            jar.pullClosestOrb(level, pos);
-        }
-        if (jar.eatDelay > 0) {
-            jar.eatDelay--;
+        if (brain.eatDelay > 0) {
+            brain.eatDelay--;
             return;
         }
-        if (jar.xp >= XP_MAX) {
-            return;
+        if (brain.xp < XP_MAX) {
+            brain.attractOrbs(level);
+            brain.collectOrbs(level);
         }
-        List<ExperienceOrb> orbs = level.getEntitiesOfClass(ExperienceOrb.class,
-                new AABB(pos.getX() - EAT_INFLATE, pos.getY() - EAT_INFLATE, pos.getZ() - EAT_INFLATE, pos.getX() + 1 + EAT_INFLATE, pos.getY() + 1 + EAT_INFLATE, pos.getZ() + 1 + EAT_INFLATE));
-        if (orbs.isEmpty()) {
-            return;
-        }
-        for (ExperienceOrb orb : orbs) {
-            jar.xp += orb.getValue();
-            orb.playSound(SoundEvents.GENERIC_EAT.value(), 0.1F, (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.2F + 1.0F);
-            orb.discard();
-        }
-        jar.setChanged();
-        jar.syncToClient();
     }
 
-    public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityJarBrain jar) {
-        Entity focus = null;
-        if (jar.xp < XP_MAX) {
-            focus = jar.pullClosestOrb(level, pos);
+    public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityJarBrain brain) {
+        brain.rotb = brain.rota;
+        if (brain.eatDelay > 0) {
+            brain.eatDelay--;
         }
-        jar.rotb = jar.rota;
+        ExperienceOrb orb = brain.xp < XP_MAX && brain.eatDelay <= 0 ? brain.attractOrbs(level) : null;
+        Vec3 center = Vec3.atCenterOf(pos);
+        Player player = orb == null ? level.getNearestPlayer(center.x, center.y, center.z, PLAYER_RANGE, EntitySelector.NO_SPECTATORS) : null;
+        if (player != null) {
+            brain.sigh(level, center);
+        }
+        Vec3 focus = orb != null ? orb.position() : player != null ? player.position() : null;
         if (focus == null) {
-            focus = level.getNearestPlayer(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SIGH_RANGE, false);
-            if (focus != null) {
-                long time = level.getGameTime();
-                if (jar.nextSigh == Long.MIN_VALUE) {
-                    jar.nextSigh = time + SIGH_INITIAL_DELAY;
-                } else if (time >= jar.nextSigh) {
-                    level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.BRAIN.get(), SoundSource.AMBIENT, 0.15F, 0.8F + level.getRandom().nextFloat() * 0.4F, false);
-                    jar.nextSigh = time + SIGH_DELAY_BASE + level.getRandom().nextInt(SIGH_DELAY_SPREAD);
-                }
-            }
-        }
-        if (focus != null) {
-            double dx = focus.getX() - (pos.getX() + 0.5F);
-            double dz = focus.getZ() - (pos.getZ() + 0.5F);
-            jar.targetRot = (float) Math.atan2(dz, dx);
-            jar.wanderStep += 0.1F;
-            if (jar.wanderStep < 0.5F || level.getRandom().nextInt(40) == 0) {
-                float previous = jar.wander;
-                do {
-                    jar.wander = jar.wander + (level.getRandom().nextInt(4) - level.getRandom().nextInt(4));
-                } while (previous == jar.wander);
-            }
+            brain.targetYaw += IDLE_SPIN;
         } else {
-            jar.targetRot += 0.01F;
+            brain.targetYaw = (float) Mth.atan2(focus.z - center.z, focus.x - center.x);
         }
-        jar.rota = wrapRadians(jar.rota);
-        jar.targetRot = wrapRadians(jar.targetRot);
-        float delta = wrapRadians(jar.targetRot - jar.rota);
-        jar.rota += delta * 0.04F;
-        if (jar.eatDelay > 0) {
-            jar.eatDelay--;
+        float difference = brain.targetYaw - brain.rota;
+        difference -= TWO_PI * (float) Math.floor((difference + Math.PI) / TWO_PI);
+        brain.rota += difference * TURN_RATE;
+    }
+
+    private @Nullable ExperienceOrb attractOrbs(Level level) {
+        Vec3 center = Vec3.atCenterOf(worldPosition);
+        ExperienceOrb nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, new AABB(worldPosition).inflate(PULL_RANGE))) {
+            double distance = center.distanceTo(orb.position());
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = orb;
+            }
+        }
+        if (nearest != null && nearestDistance > 0.0) {
+            Vec3 direction = center.subtract(nearest.position()).scale(1.0 / nearestDistance);
+            double falloff = 1.0 - nearestDistance / PULL_FALLOFF_RANGE;
+            double scale = falloff * falloff;
+            nearest.setDeltaMovement(
+                    nearest.getDeltaMovement().add(direction.x * PULL_HORIZONTAL_STRENGTH * scale, direction.y * PULL_VERTICAL_STRENGTH * scale, direction.z * PULL_HORIZONTAL_STRENGTH * scale));
+        }
+        return nearest;
+    }
+
+    private void collectOrbs(Level level) {
+        boolean collected = false;
+        RandomSource random = level.getRandom();
+        for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, new AABB(worldPosition).inflate(COLLECT_MARGIN))) {
+            xp += orb.getValue();
+            level.playSound(null, orb.getX(), orb.getY(), orb.getZ(), SoundEvents.GENERIC_EAT, SoundSource.BLOCKS, EAT_VOLUME,
+                    EAT_BASE_PITCH + (random.nextFloat() - random.nextFloat()) * EAT_PITCH_SPREAD);
+            orb.discard();
+            collected = true;
+        }
+        if (collected) {
+            setChangedAndSync();
         }
     }
 
-    private static float wrapRadians(float angle) {
-        while (angle >= (float) Math.PI) {
-            angle -= (float) (Math.PI * 2);
+    private void sigh(Level level, Vec3 center) {
+        long now = level.getGameTime();
+        if (nextSigh == UNSCHEDULED) {
+            nextSigh = now + SIGH_FIRST_DELAY;
+        } else if (now >= nextSigh) {
+            RandomSource random = level.getRandom();
+            level.playLocalSound(center.x, center.y, center.z, TTSounds.BRAIN.get(), SoundSource.AMBIENT, SIGH_VOLUME, SIGH_BASE_PITCH + random.nextFloat() * SIGH_PITCH_SPREAD, false);
+            nextSigh = now + SIGH_MIN_DELAY + random.nextInt(SIGH_DELAY_SPREAD);
         }
-        while (angle < -(float) Math.PI) {
-            angle += (float) (Math.PI * 2);
-        }
-        return angle;
-    }
-
-    private @Nullable Entity pullClosestOrb(Level level, BlockPos pos) {
-        ExperienceOrb closest = null;
-        double closestDist = Double.MAX_VALUE;
-        for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1).inflate(PULL_RANGE))) {
-            double dist = orb.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-            if (dist < closestDist) {
-                closest = orb;
-                closestDist = dist;
-            }
-        }
-        if (closest != null && eatDelay == 0) {
-            double dx = (pos.getX() + 0.5 - closest.getX()) / 25.0;
-            double dy = (pos.getY() + 0.5 - closest.getY()) / 25.0;
-            double dz = (pos.getZ() + 0.5 - closest.getZ()) / 25.0;
-            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            double strength = 1.0 - dist;
-            if (strength > 0.0) {
-                strength *= strength;
-                Vec3 motion = closest.getDeltaMovement();
-                closest.setDeltaMovement(motion.x + dx / dist * strength * 0.3, motion.y + dy / dist * strength * 0.5, motion.z + dz / dist * strength * 0.3);
-            }
-        }
-        return closest;
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        xp = input.getIntOr("XP", 0);
+        xp = input.getIntOr(XP_KEY, 0);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("XP", xp);
+        output.putInt(XP_KEY, xp);
     }
 
     @Override
-    public void collectImplicitComponents(DataComponentMap.Builder builder) {
-        super.collectImplicitComponents(builder);
+    public void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
         if (xp > 0) {
-            builder.set(TTDataComponents.STORED_XP.get(), xp);
+            components.set(TTDataComponents.STORED_XP.get(), xp);
         }
     }
 
     @Override
-    protected void applyImplicitComponents(DataComponentGetter input) {
-        super.applyImplicitComponents(input);
-        Integer stored = input.get(TTDataComponents.STORED_XP.get());
+    protected void applyImplicitComponents(DataComponentGetter components) {
+        super.applyImplicitComponents(components);
+        Integer stored = components.get(TTDataComponents.STORED_XP.get());
         if (stored != null) {
             setXp(stored);
         }

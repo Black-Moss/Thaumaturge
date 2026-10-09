@@ -36,7 +36,7 @@ public final class EldritchWardenRenderer extends MobRenderer<EntityEldritchWard
         state.armLiftR = entity.arms().rightLift();
         EldritchGuardianRenderer.extractCombat(entity, state, partialTicks);
         state.alpha = 1.0F;
-        state.spawnFraction = entity.getSpawnTimer() / SPAWN_TICKS;
+        state.spawnFraction = entity.emergenceTicks() / SPAWN_TICKS;
         state.height = entity.getBbHeight();
     }
 

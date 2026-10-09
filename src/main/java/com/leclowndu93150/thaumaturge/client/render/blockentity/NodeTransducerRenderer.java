@@ -14,6 +14,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class NodeTransducerRenderer implements BlockEntityRenderer<BlockEntityNodeTransducer, NodeTransducerRenderState> {
+    private static final float ANCHOR_X = 0.5F;
+    private static final float ANCHOR_Y = 1.0F;
+    private static final float ANCHOR_Z = 0.5F;
+    private static final float QUARTER_TURN = 90.0F;
 
     public NodeTransducerRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -35,8 +39,8 @@ public final class NodeTransducerRenderer implements BlockEntityRenderer<BlockEn
     @Override
     public void submit(NodeTransducerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, 1.0F, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+        poseStack.translate(ANCHOR_X, ANCHOR_Y, ANCHOR_Z);
+        poseStack.mulPose(Axis.XP.rotationDegrees(QUARTER_TURN));
         NodeStabilizerRenderer.submitTransducerParts(state.count, state.status, state.ticks, poseStack, collector, state.light);
         poseStack.popPose();
     }

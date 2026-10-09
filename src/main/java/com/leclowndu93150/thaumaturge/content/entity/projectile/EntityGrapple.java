@@ -10,6 +10,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -18,45 +19,49 @@ import net.minecraft.world.phys.Vec3;
 public final class EntityGrapple extends ThrowableProjectile {
     private static final EntityDataAccessor<Boolean> PULLING = SynchedEntityData.defineId(EntityGrapple.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> MAIN_HAND = SynchedEntityData.defineId(EntityGrapple.class, EntityDataSerializers.BOOLEAN);
+    private static final double FLIGHT_GRAVITY = 0.03;
+    private static final double PULLING_GRAVITY = 0.0;
+    private static final int MAX_FLIGHT_TICKS = 30;
+    private static final int NO_GRAPPLE = -1;
+    private static final double START_HEIGHT_DROP = 0.1;
+    private static final double NEAR_RANGE = 8.0;
+    private static final double MIN_DIVISOR = 1.0E-9;
+    private static final double PULL_SCALE = 5.0;
+    private static final double MAX_PULL = 0.25;
+    private static final double LIFT = 0.033;
+    private static final double BOOST = 0.4;
+    private static final float AMPLITUDE_GROWTH = 0.02F;
+    private static final float AMPLITUDE_DECAY = 0.66F;
 
-    private static final int FLIGHT_TIMEOUT = 30;
-    private static final double PULL_DIVISOR = 5.0;
-    private static final double PULL_CAP = 0.25;
-    private static final double LIFT_BONUS = 0.033;
-    private static final float LAUNCH_BOOST = 0.4F;
-    private static final float FALLING_GRAVITY = 0.03F;
-
-    private boolean boost;
-    private boolean added;
     public float ampl;
+
+    private boolean claimed;
+    private boolean boosted;
 
     public EntityGrapple(EntityType<? extends EntityGrapple> type, Level level) {
         super(type, level);
     }
 
     public EntityGrapple(EntityType<? extends EntityGrapple> type, Level level, LivingEntity thrower, InteractionHand hand) {
-        super(type, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), level);
+        super(type, level);
         setOwner(thrower);
+        setPos(thrower.getX(), thrower.getEyeY() - START_HEIGHT_DROP, thrower.getZ());
         entityData.set(MAIN_HAND, hand == InteractionHand.MAIN_HAND);
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        entityData.define(PULLING, false);
-        entityData.define(MAIN_HAND, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(PULLING, false);
+        builder.define(MAIN_HAND, true);
     }
 
     @Override
     protected double getDefaultGravity() {
-        return isPulling() ? 0.0 : FALLING_GRAVITY;
+        return isPulling() ? PULLING_GRAVITY : FLIGHT_GRAVITY;
     }
 
     public boolean isPulling() {
         return entityData.get(PULLING);
-    }
-
-    private void setPulling() {
-        entityData.set(PULLING, true);
     }
 
     public InteractionHand getHand() {
@@ -66,91 +71,89 @@ public final class EntityGrapple extends ThrowableProjectile {
     @Override
     public void tick() {
         super.tick();
-        Entity thrower = getOwner();
-        if (!isPulling() && !isRemoved() && (tickCount > FLIGHT_TIMEOUT || thrower == null)) {
-            releaseTracker(thrower);
-            discard();
+        Entity owner = getOwner();
+        if (!isPulling() && !isRemoved() && (tickCount > MAX_FLIGHT_TICKS || owner == null)) {
+            remove(Entity.RemovalReason.DISCARDED);
             return;
         }
-        if (thrower == null) {
+        if (owner == null) {
             return;
-        }
-        if (!level().isClientSide()) {
-            if (!added) {
-                int tracked = thrower.getData(TTAttachments.GRAPPLE_ID.get());
-                if (tracked >= 0 && tracked != getId() && level().getEntity(tracked) instanceof EntityGrapple previous) {
-                    previous.discard();
-                }
-                thrower.setData(TTAttachments.GRAPPLE_ID.get(), getId());
-                added = true;
-            } else if (thrower.getData(TTAttachments.GRAPPLE_ID.get()) != getId()) {
-                discard();
-                return;
-            }
-        }
-        if (thrower instanceof LivingEntity living && isPulling() && !isRemoved()) {
-            if (living.isShiftKeyDown()) {
-                if (!level().isClientSide()) {
-                    releaseTracker(living);
-                    discard();
-                }
-                return;
-            }
-            if (!level().isClientSide() && living instanceof ServerPlayer serverPlayer) {
-                ((ServerGamePacketListenerImplAccessor) serverPlayer.connection).setAboveGroundTickCount(0);
-            }
-            living.resetFallDistance();
-            double dis = living.distanceTo(this);
-            double mx = getX() - living.getX();
-            double my = getY() - living.getY();
-            double mz = getZ() - living.getZ();
-            double dd = dis;
-            if (dis < 8.0) {
-                dd = dis * (8.0 - dis);
-            }
-            dd = Math.max(1.0E-9, dd);
-            mx /= dd * PULL_DIVISOR;
-            my /= dd * PULL_DIVISOR;
-            mz /= dd * PULL_DIVISOR;
-            Vec3 pull = new Vec3(mx, my, mz);
-            if (pull.length() > PULL_CAP) {
-                pull = pull.normalize().scale(0.25);
-            }
-            living.setDeltaMovement(living.getDeltaMovement().add(pull.x, pull.y + LIFT_BONUS, pull.z));
-            if (!boost) {
-                living.setDeltaMovement(living.getDeltaMovement().add(0.0, LAUNCH_BOOST, 0.0));
-                boost = true;
-            }
         }
         if (level().isClientSide()) {
-            if (!isPulling()) {
-                ampl += 0.02F;
-            } else {
-                ampl *= 0.66F;
-            }
+            ampl = isPulling() ? ampl * AMPLITUDE_DECAY : ampl + AMPLITUDE_GROWTH;
+        } else if (!claim(owner)) {
+            return;
+        }
+        if (isPulling() && isAlive() && owner instanceof LivingEntity living) {
+            pull(living);
         }
     }
 
-    private void releaseTracker(Entity thrower) {
-        if (!level().isClientSide() && thrower != null && thrower.getData(TTAttachments.GRAPPLE_ID.get()) == getId()) {
-            thrower.setData(TTAttachments.GRAPPLE_ID.get(), -1);
+    private boolean claim(Entity owner) {
+        int stored = owner.getData(TTAttachments.GRAPPLE_ID);
+        if (!claimed) {
+            if (stored >= 0 && stored != getId() && level().getEntity(stored) instanceof EntityGrapple previous) {
+                previous.remove(Entity.RemovalReason.DISCARDED);
+            }
+            owner.setData(TTAttachments.GRAPPLE_ID, getId());
+            claimed = true;
+            return true;
         }
+        if (stored != getId()) {
+            remove(Entity.RemovalReason.DISCARDED);
+            return false;
+        }
+        return true;
+    }
+
+    private void pull(LivingEntity owner) {
+        if (owner.isShiftKeyDown()) {
+            if (!level().isClientSide()) {
+                remove(Entity.RemovalReason.DISCARDED);
+            }
+            return;
+        }
+        if (owner instanceof ServerPlayer serverPlayer) {
+            ((ServerGamePacketListenerImplAccessor) serverPlayer.connection).setAboveGroundTickCount(0);
+        }
+        owner.resetFallDistance();
+        if (level().isClientSide() && !(owner instanceof Player player && player.isLocalPlayer())) {
+            return;
+        }
+        Vec3 toHook = position().subtract(owner.position());
+        double distance = toHook.length();
+        double divisor = Math.max(distance < NEAR_RANGE ? distance * (NEAR_RANGE - distance) : distance, MIN_DIVISOR);
+        Vec3 pull = toHook.scale(1.0 / (divisor * PULL_SCALE));
+        double length = pull.length();
+        if (length > MAX_PULL) {
+            pull = pull.scale(MAX_PULL / length);
+        }
+        double lift = LIFT;
+        if (!boosted) {
+            boosted = true;
+            lift += BOOST;
+        }
+        owner.setDeltaMovement(owner.getDeltaMovement().add(pull.x, pull.y + lift, pull.z));
     }
 
     @Override
-    public void remove(RemovalReason reason) {
+    public void remove(Entity.RemovalReason reason) {
         if (!level().isClientSide()) {
-            releaseTracker(getOwner());
+            Entity owner = getOwner();
+            if (owner != null && owner.hasData(TTAttachments.GRAPPLE_ID) && owner.getData(TTAttachments.GRAPPLE_ID) == getId()) {
+                owner.setData(TTAttachments.GRAPPLE_ID, NO_GRAPPLE);
+            }
         }
         super.remove(reason);
     }
 
     @Override
-    protected void onHitBlock(BlockHitResult hit) {
-        if (!level().isClientSide()) {
-            setPulling();
+    protected void onHitBlock(BlockHitResult hitResult) {
+        super.onHitBlock(hitResult);
+        if (!level().isClientSide() && !isPulling()) {
+            entityData.set(PULLING, true);
             setDeltaMovement(Vec3.ZERO);
-            setPos(hit.getLocation());
+            setPos(hitResult.getLocation());
         }
     }
 }

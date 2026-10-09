@@ -11,25 +11,22 @@ import net.minecraft.world.item.ItemStack;
 public final class SlotCrystalEssentia extends Slot {
     private final ResourceKey<IAspect> required;
 
-    public SlotCrystalEssentia(Container container, int index, int x, int y, ResourceKey<IAspect> required) {
-        super(container, index, x, y);
-        this.required = required;
+    public SlotCrystalEssentia(Container inventory, int index, int xPos, int yPos, ResourceKey<IAspect> aspectKey) {
+        super(inventory, index, xPos, yPos);
+        required = aspectKey;
     }
 
-    @Override
-    public boolean mayPlace(ItemStack stack) {
-        return isValidCrystal(stack, required);
+    public static boolean isValidCrystal(ItemStack stack, ResourceKey<IAspect> required) {
+        Holder<IAspect> aspect = stack.getItem() instanceof ItemEssentiaCrystal ? ItemEssentiaCrystal.aspectOf(stack) : null;
+        return aspect != null && aspect.is(required);
     }
 
     public ResourceKey<IAspect> getRequired() {
         return required;
     }
 
-    public static boolean isValidCrystal(ItemStack stack, ResourceKey<IAspect> required) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof ItemEssentiaCrystal)) {
-            return false;
-        }
-        Holder<IAspect> holder = ItemEssentiaCrystal.aspectOf(stack);
-        return holder != null && holder.is(required);
+    @Override
+    public boolean mayPlace(ItemStack stack) {
+        return isValidCrystal(stack, required);
     }
 }

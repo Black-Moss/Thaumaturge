@@ -19,89 +19,91 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import org.jspecify.annotations.Nullable;
 
 public class EntityTaintacleGiant extends AbstractTaintacle {
-    private static final EntityDataAccessor<Integer> DATA_AGGRO = SynchedEntityData.defineId(EntityTaintacleGiant.class, EntityDataSerializers.INT);
-
-    private static final int GIANT_XP = 20;
+    private static final EntityDataAccessor<Integer> DATA_ANGER = SynchedEntityData.defineId(EntityTaintacleGiant.class, EntityDataSerializers.INT);
+    private static final int CALM = 0;
+    private static final double MAX_HEALTH = 175.0;
+    private static final double ATTACK_DAMAGE = 9.0;
+    private static final int KILL_EXPERIENCE = 20;
     private static final int HEAL_INTERVAL = 30;
+    private static final float HEAL_AMOUNT = 1.0F;
 
     private final BossBar bossBar = new BossBar(this);
-    private final BossRage rage = new BossRage(this, DATA_AGGRO);
+    private final BossRage rage = new BossRage(this, DATA_ANGER);
 
     public EntityTaintacleGiant(EntityType<? extends EntityTaintacleGiant> type, Level level) {
         super(type, level);
-        this.xpReward = GIANT_XP;
+        this.xpReward = KILL_EXPERIENCE;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createTaintacleAttributes(175.0, 9.0);
+        return createTaintacleAttributes(MAX_HEALTH, ATTACK_DAMAGE);
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        super.defineSynchedData(entityData);
-        entityData.define(DATA_AGGRO, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_ANGER, CALM);
     }
 
     public int getAnger() {
-        return this.rage.anger();
+        return rage.anger();
     }
 
     public void setAnger(int anger) {
-        this.rage.setAnger(anger);
+        rage.setAnger(anger);
     }
 
     @Override
     public float enrage() {
-        return this.getAnger() > 0 ? 1.0F : 0.0F;
+        return rage.anger() > 0 ? 1.0F : 0.0F;
     }
 
     @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData data) {
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
         ChampionHelper.makeChampion(this, true);
-        return data;
+        return super.finalizeSpawn(level, difficulty, reason, groupData);
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.rage.tick();
-        if (!this.level().isClientSide() && this.tickCount % HEAL_INTERVAL == 0) {
-            this.heal(1.0F);
-        }
+        rage.tick();
     }
 
     @Override
     protected void customServerAiStep(ServerLevel level) {
         super.customServerAiStep(level);
-        this.bossBar.update();
+        if (tickCount % HEAL_INTERVAL == 0) {
+            heal(HEAL_AMOUNT);
+        }
+        bossBar.update();
     }
 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
-        this.bossBar.show(player);
+        bossBar.show(player);
     }
 
     @Override
     public void stopSeenByPlayer(ServerPlayer player) {
         super.stopSeenByPlayer(player);
-        this.bossBar.hide(player);
+        bossBar.hide(player);
     }
 
     @Override
     public void setCustomName(@Nullable Component name) {
         super.setCustomName(name);
-        this.bossBar.rename();
+        bossBar.rename();
     }
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        damage = this.rage.absorb(source, damage);
-        return super.hurtServer(level, source, damage);
+        return super.hurtServer(level, source, rage.absorb(source, damage));
     }
 
     @Override
-    public boolean removeWhenFarAway(double distance) {
+    public boolean removeWhenFarAway(double distanceSqr) {
         return false;
     }
 }

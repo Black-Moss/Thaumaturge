@@ -75,7 +75,7 @@ public final class GolemSealTests {
                 helper.fail("Seal placement on a chest was rejected: " + result);
                 return;
             }
-            if (SealHandler.getSealEntity(helper.getLevel(), new SealPos(absolute, Direction.UP)) == null) {
+            if (SealHandler.lookup(helper.getLevel(), new SealPos(absolute, Direction.UP)) == null) {
                 helper.fail("No seal entity registered on the chest after placement");
                 return;
             }

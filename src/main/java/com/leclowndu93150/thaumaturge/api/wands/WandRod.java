@@ -4,182 +4,212 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import org.jspecify.annotations.Nullable;
 
 /**
- * A wand rod (or staff core) type. Rods determine how much primal vis a wand can store, and
- * optionally self-charge through an {@link IWandRodOnUpdate} callback. Staff cores are rods
- * flagged as staves: they hold more vis and cast, but cannot be used for arcane crafting.
+ * Immutable description of a wand rod or staff core type. A rod sets the vis capacity per primal
+ * pool, the cost factor used to price assembly recipes, the model texture and optional behaviour hooks.
+ *
+ * <p>Instances carry no identifier. The id is the key under which the instance is registered in the
+ * registry identified by {@link #REGISTRY_KEY}. Equality is identity. All state is final, so
+ * instances are safe to read from any thread. The tick callback, assembly callback and storage override
+ * are invoked on the server thread, and the storage override may also be read from client code.
  *
  * @since 1.0.0
  */
 public final class WandRod {
-    /** The registry key for wand rods. */
+    /**
+     * Key of the rod registry. The registry is not synchronised to clients, so both sides must hold
+     * identical content.
+     *
+     * @since 1.0.0
+     */
     public static final ResourceKey<Registry<WandRod>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("wand_rod"));
 
     private final int capacity;
     private final int craftCost;
     private final Identifier texture;
-    private final @Nullable IWandRodOnUpdate onUpdate;
-    private final boolean glow;
-    private final boolean staff;
-    private final boolean runes;
-    private final @Nullable Identifier assemblyResearch;
-    private final @Nullable IWandVisStorage visStorage;
-    private final @Nullable IWandRodOnAssemble onAssemble;
+    private final Identifier assemblyResearch;
+    private final Flags flags;
+    private final Hooks hooks;
 
     /**
-     * @param capacity  vis stored per primal pool, in whole vis
-     * @param craftCost the crafting cost factor of this rod, multiplied with the cap's factor
-     *                  to price wand assembly
-     * @param texture   the texture rendered on wand models built with this rod
-     * @param onUpdate  inventory tick callback, or null for none
-     * @param glow      whether wand models built with this rod render fullbright
-     * @param staff     whether this rod is a staff core
-     * @param runes     whether this rod bears runes, granting a free potency level to any
-     *                  socketed focus
+     * Creates a rod without assembly research, storage override or assembly callback.
+     *
+     * @param capacity  vis capacity per primal pool, in whole vis
+     * @param craftCost cost factor used to price assembly recipes
+     * @param texture   model texture identifier
+     * @param onUpdate  inventory tick callback, null for none
+     * @param glow      whether the rod model renders fullbright
+     * @param staff     whether the rod is a staff core
+     * @param runes     whether the rod bears runes
+     * @since 1.0.0
      */
-    public WandRod(int capacity, int craftCost, Identifier texture, @Nullable IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes) {
+    public WandRod(int capacity, int craftCost, Identifier texture, IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes) {
         this(capacity, craftCost, texture, onUpdate, glow, staff, runes, null);
     }
 
     /**
-     * @param capacity         vis stored per primal pool, in whole vis
-     * @param craftCost        the crafting cost factor of this rod
-     * @param texture          the texture rendered on wand models built with this rod
-     * @param onUpdate         inventory tick callback, or null for none
-     * @param glow             whether wand models built with this rod render fullbright
-     * @param staff            whether this rod is a staff core
-     * @param runes            whether this rod bears runes
-     * @param assemblyResearch the research entry gating wand assembly recipes built around
-     *                         this rod, or null for the base auromancy gate
+     * Creates a rod with an assembly research gate.
+     *
+     * @param capacity         vis capacity per primal pool, in whole vis
+     * @param craftCost        cost factor used to price assembly recipes
+     * @param texture          model texture identifier
+     * @param onUpdate         inventory tick callback, null for none
+     * @param glow             whether the rod model renders fullbright
+     * @param staff            whether the rod is a staff core
+     * @param runes            whether the rod bears runes
+     * @param assemblyResearch research required to assemble, null for the base auromancy research
+     * @since 1.0.0
      */
-    public WandRod(int capacity, int craftCost, Identifier texture, @Nullable IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes, @Nullable Identifier assemblyResearch) {
-        this(capacity, craftCost, texture, onUpdate, glow, staff, runes, assemblyResearch, null, null);
+    public WandRod(int capacity, int craftCost, Identifier texture, IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes, Identifier assemblyResearch) {
+        this(capacity, craftCost, texture, onUpdate, glow, staff, runes, assemblyResearch, null);
     }
 
     /**
-     * @param capacity         vis stored per primal pool, in whole vis
-     * @param craftCost        the crafting cost factor of this rod
-     * @param texture          the texture rendered on wand models built with this rod
-     * @param onUpdate         inventory tick callback, or null for none
-     * @param glow             whether wand models built with this rod render fullbright
-     * @param staff            whether this rod is a staff core
-     * @param runes            whether this rod bears runes
-     * @param assemblyResearch the research entry gating wand assembly recipes built around
-     *                         this rod, or null for the base auromancy gate
-     * @param visStorage       where wands built with this rod keep their vis, or null for the
-     *                         {@code thaumaturge:wand_vis} data component
+     * Creates a rod with an assembly research gate and a vis storage override.
+     *
+     * @param capacity         vis capacity per primal pool, in whole vis
+     * @param craftCost        cost factor used to price assembly recipes
+     * @param texture          model texture identifier
+     * @param onUpdate         inventory tick callback, null for none
+     * @param glow             whether the rod model renders fullbright
+     * @param staff            whether the rod is a staff core
+     * @param runes            whether the rod bears runes
+     * @param assemblyResearch research required to assemble, null for the base auromancy research
+     * @param visStorage       vis storage override, null to use the wand vis data component
      * @since 1.0.0
      */
-    public WandRod(int capacity, int craftCost, Identifier texture, @Nullable IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes, @Nullable Identifier assemblyResearch, @Nullable IWandVisStorage visStorage) {
+    public WandRod(int capacity, int craftCost, Identifier texture, IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes, Identifier assemblyResearch, IWandVisStorage visStorage) {
         this(capacity, craftCost, texture, onUpdate, glow, staff, runes, assemblyResearch, visStorage, null);
     }
 
     /**
-     * @param capacity         vis stored per primal pool, in whole vis
-     * @param craftCost        the crafting cost factor of this rod
-     * @param texture          the texture rendered on wand models built with this rod
-     * @param onUpdate         inventory tick callback, or null for none
-     * @param glow             whether wand models built with this rod render fullbright
-     * @param staff            whether this rod is a staff core
-     * @param runes            whether this rod bears runes
-     * @param assemblyResearch the research entry gating wand assembly recipes built around
-     *                         this rod, or null for the base auromancy gate
-     * @param visStorage       where wands built with this rod keep their vis, or null for the
-     *                         {@code thaumaturge:wand_vis} data component
-     * @param onAssemble       arcane workbench assembly callback, or null for none
+     * Creates a rod with every option.
+     *
+     * @param capacity         vis capacity per primal pool, in whole vis
+     * @param craftCost        cost factor used to price assembly recipes
+     * @param texture          model texture identifier
+     * @param onUpdate         inventory tick callback, null for none
+     * @param glow             whether the rod model renders fullbright
+     * @param staff            whether the rod is a staff core
+     * @param runes            whether the rod bears runes
+     * @param assemblyResearch research required to assemble, null for the base auromancy research
+     * @param visStorage       vis storage override, null to use the wand vis data component
+     * @param onAssemble       callback run on the freshly assembled wand, null for none
      * @since 1.0.0
      */
-    public WandRod(int capacity, int craftCost, Identifier texture, @Nullable IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes, @Nullable Identifier assemblyResearch, @Nullable IWandVisStorage visStorage, @Nullable IWandRodOnAssemble onAssemble) {
+    public WandRod(int capacity, int craftCost, Identifier texture, IWandRodOnUpdate onUpdate, boolean glow, boolean staff, boolean runes, Identifier assemblyResearch, IWandVisStorage visStorage, IWandRodOnAssemble onAssemble) {
         this.capacity = capacity;
         this.craftCost = craftCost;
         this.texture = texture;
-        this.onUpdate = onUpdate;
-        this.glow = glow;
-        this.staff = staff;
-        this.runes = runes;
         this.assemblyResearch = assemblyResearch;
-        this.visStorage = visStorage;
-        this.onAssemble = onAssemble;
+        this.flags = new Flags(glow, staff, runes);
+        this.hooks = new Hooks(onUpdate, onAssemble, visStorage);
     }
 
     /**
-     * The storage override for wands built with this rod.
+     * Returns the vis storage override.
      *
-     * @return the storage, or null when vis is kept in the {@code thaumaturge:wand_vis} data
-     *         component
+     * @return the override, or null when the wand vis data component is used
      * @since 1.0.0
      */
-    public @Nullable IWandVisStorage visStorage() {
-        return visStorage;
+    public IWandVisStorage visStorage() {
+        return hooks.visStorage;
     }
 
     /**
-     * The callback run when the arcane workbench assembles a wand from this rod.
+     * Returns the callback run once on a freshly assembled wand.
      *
-     * @return the callback, or null when assembly copies nothing extra onto the wand
+     * @return the callback, or null for none
      * @since 1.0.0
      */
-    public @Nullable IWandRodOnAssemble onAssemble() {
-        return onAssemble;
+    public IWandRodOnAssemble onAssemble() {
+        return hooks.onAssemble;
     }
 
     /**
-     * The research entry gating assembly recipes that use this rod.
+     * Returns the research that gates assembly of wands with this rod.
      *
-     * @return the research entry id, or null to gate on base auromancy
+     * @return the research id, or null to fall back to the base auromancy research
+     * @since 1.0.0
      */
-    public @Nullable Identifier assemblyResearch() {
+    public Identifier assemblyResearch() {
         return assemblyResearch;
     }
 
     /**
-     * @return vis stored per primal pool, in whole vis
+     * Returns the vis capacity per primal pool.
+     *
+     * @return the capacity in whole vis
+     * @since 1.0.0
      */
     public int capacity() {
         return capacity;
     }
 
     /**
-     * @return the crafting cost factor used to price wand assembly recipes
+     * Returns the cost factor that is multiplied with the cap factor to price assembly recipes.
+     *
+     * @return the craft cost factor
+     * @since 1.0.0
      */
     public int craftCost() {
         return craftCost;
     }
 
     /**
-     * @return the texture rendered on wand models built with this rod
+     * Returns the model texture.
+     *
+     * @return the texture identifier, never null
+     * @since 1.0.0
      */
     public Identifier texture() {
         return texture;
     }
 
     /**
-     * @return the inventory tick callback, or null when this rod does not self-charge
+     * Returns the inventory tick callback.
+     *
+     * @return the callback, or null when the rod does not self-charge
+     * @since 1.0.0
      */
-    public @Nullable IWandRodOnUpdate onUpdate() {
-        return onUpdate;
+    public IWandRodOnUpdate onUpdate() {
+        return hooks.onUpdate;
     }
 
     /**
-     * @return whether wand models built with this rod render fullbright
+     * Returns whether the rod model renders at a pulsing fullbright light.
+     *
+     * @return true when the rod glows
+     * @since 1.0.0
      */
     public boolean glow() {
-        return glow;
+        return flags.glow;
     }
 
     /**
-     * @return whether this rod is a staff core
+     * Returns whether the rod is a staff core.
+     *
+     * @return true for staves
+     * @since 1.0.0
      */
     public boolean staff() {
-        return staff;
+        return flags.staff;
     }
 
     /**
-     * @return whether this rod bears runes
+     * Returns whether the rod bears runes.
+     *
+     * @return true when runes are drawn and granted
+     * @since 1.0.0
      */
     public boolean runes() {
-        return runes;
+        return flags.runes;
+    }
+
+    private record Flags(boolean glow, boolean staff, boolean runes) {
+    }
+
+    private record Hooks(IWandRodOnUpdate onUpdate, IWandRodOnAssemble onAssemble, IWandVisStorage visStorage) {
     }
 }

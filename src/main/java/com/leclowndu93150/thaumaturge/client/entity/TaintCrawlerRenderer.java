@@ -19,8 +19,8 @@ public final class TaintCrawlerRenderer extends MobRenderer<EntityTaintCrawler, 
     }
 
     @Override
-    public Identifier getTextureLocation(LivingEntityRenderState state) {
-        return TEXTURE;
+    protected void scale(LivingEntityRenderState renderState, PoseStack poseStack) {
+        poseStack.scale(CRAWLER_SCALE, CRAWLER_SCALE, CRAWLER_SCALE);
     }
 
     @Override
@@ -29,7 +29,7 @@ public final class TaintCrawlerRenderer extends MobRenderer<EntityTaintCrawler, 
     }
 
     @Override
-    protected void scale(LivingEntityRenderState state, PoseStack poseStack) {
-        poseStack.scale(CRAWLER_SCALE, CRAWLER_SCALE, CRAWLER_SCALE);
+    public Identifier getTextureLocation(LivingEntityRenderState renderState) {
+        return TEXTURE;
     }
 }

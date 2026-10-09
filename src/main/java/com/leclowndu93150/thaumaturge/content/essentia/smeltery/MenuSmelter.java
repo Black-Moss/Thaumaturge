@@ -6,49 +6,47 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
+import org.jspecify.annotations.Nullable;
 
 public final class MenuSmelter extends AbstractTTMenu {
     public static final int ITEM_X = 80;
     public static final int ITEM_Y = 7;
     public static final int FUEL_X = 80;
     public static final int FUEL_Y = 47;
-
     public static final int PLAYER_GRID_X = 8;
     public static final int PLAYER_GRID_Y = 84;
+    public static final int SLOT_COUNT = BlockEntitySmelter.SLOT_COUNT;
 
-    public static final int SLOT_COUNT = 2;
-    private static final double INTERACTION_RANGE = 4.0;
+    private static final int HOTBAR_GAP = 4;
+    private static final int PLAYER_GRID_HEIGHT = 54;
+    private static final int HOTBAR_Y = PLAYER_GRID_Y + PLAYER_GRID_HEIGHT + HOTBAR_GAP;
+    private static final double INTERACTION_BUFFER = 4.0;
 
-    private final ItemStacksResourceHandler items;
-    private final ContainerLevelAccess access;
+    private final Player player;
     private final BlockPos pos;
+    private final ItemStacksResourceHandler items;
 
     public MenuSmelter(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        BlockPos pos = buf.readBlockPos();
-        this(containerId, playerInventory, new ItemStacksResourceHandler(SLOT_COUNT), ContainerLevelAccess.create(playerInventory.player.level(), pos), pos);
+        this(containerId, playerInventory, buf.readBlockPos(), new ItemStacksResourceHandler(SLOT_COUNT));
     }
 
     public MenuSmelter(int containerId, Inventory playerInventory, BlockEntitySmelter blockEntity) {
-        this(containerId, playerInventory, blockEntity.getInventory(), ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos()), blockEntity.getBlockPos());
+        this(containerId, playerInventory, blockEntity.getBlockPos(), blockEntity.itemSlots());
     }
 
-    private MenuSmelter(int containerId, Inventory playerInventory, ItemStacksResourceHandler items, ContainerLevelAccess access, BlockPos pos) {
+    private MenuSmelter(int containerId, Inventory playerInventory, BlockPos pos, ItemStacksResourceHandler items) {
         super(TTMenus.SMELTER.get(), containerId);
-        this.items = items;
-        this.access = access;
+        this.player = playerInventory.player;
         this.pos = pos;
-
-        addSlot(new ResourceHandlerSlot(items, items::set, 0, ITEM_X, ITEM_Y));
-        addSlot(new ResourceHandlerSlot(items, items::set, 1, FUEL_X, FUEL_Y));
-
+        this.items = items;
+        addSlot(new InputSlot(items, BlockEntitySmelter.INPUT_SLOT, ITEM_X, ITEM_Y));
+        addSlot(new FuelSlot(items, BlockEntitySmelter.FUEL_SLOT, FUEL_X, FUEL_Y, player.level()));
         addInventoryExtendedSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y);
-        addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y + 3 * 18 + 4);
+        addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, HOTBAR_Y);
     }
 
     public BlockPos pos() {
@@ -59,17 +57,43 @@ public final class MenuSmelter extends AbstractTTMenu {
         return items;
     }
 
-    public BlockEntitySmelter blockEntity() {
-        return (BlockEntitySmelter) access.evaluate(Level::getBlockEntity).filter(be -> be instanceof BlockEntitySmelter).orElse(null);
+    public @Nullable BlockEntitySmelter blockEntity() {
+        return player.level().getBlockEntity(pos) instanceof BlockEntitySmelter smelter ? smelter : null;
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return access.evaluate((level, pos) -> level.getBlockState(pos).getBlock() instanceof BlockSmelter && player.isWithinBlockInteractionRange(pos, INTERACTION_RANGE), true);
+        return player.level().getBlockState(pos).getBlock() instanceof BlockSmelter && player.isWithinBlockInteractionRange(pos, INTERACTION_BUFFER);
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slotIndex) {
-        return quickMoveBetween(slotIndex, SLOT_COUNT, stack -> true);
+    public ItemStack quickMoveStack(Player player, int index) {
+        Level level = player.level();
+        return quickMoveBetween(index, SLOT_COUNT, stack -> BlockEntitySmelter.isInputValid(stack) || BlockEntitySmelter.isFuelValid(level, stack));
+    }
+
+    private static final class InputSlot extends ResourceHandlerSlot {
+        InputSlot(ItemStacksResourceHandler items, int index, int x, int y) {
+            super(items, items::set, index, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return BlockEntitySmelter.isInputValid(stack);
+        }
+    }
+
+    private static final class FuelSlot extends ResourceHandlerSlot {
+        private final Level level;
+
+        FuelSlot(ItemStacksResourceHandler items, int index, int x, int y, Level level) {
+            super(items, items::set, index, x, y);
+            this.level = level;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return BlockEntitySmelter.isFuelValid(level, stack);
+        }
     }
 }

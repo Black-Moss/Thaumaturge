@@ -19,8 +19,8 @@ public class BlockEntityNodeStabilizer extends BlockEntity {
         return getBlockState().getBlock() instanceof BlockNodeStabilizer stabilizer && stabilizer.isAdvanced();
     }
 
-    public void clientTick(Level clientLevel, BlockPos pos) {
-        boolean active = clientLevel.getBlockEntity(pos.above()) instanceof BlockEntityNode node && !(node instanceof BlockEntityJarNode) && !clientLevel.hasNeighborSignal(pos);
+    public void clientTick(Level level, BlockPos pos) {
+        boolean active = level.getBlockEntity(pos.above()) instanceof BlockEntityNode node && !(node instanceof BlockEntityJarNode) && !level.hasNeighborSignal(pos);
         if (active) {
             if (count < MAX_COUNT) {
                 count++;

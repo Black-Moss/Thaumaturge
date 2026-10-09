@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -25,26 +26,30 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class BlockTaintSporeStalk extends Block implements ITaintBlock {
     public static final MapCodec<BlockTaintSporeStalk> CODEC = simpleCodec(BlockTaintSporeStalk::new);
     public static final BooleanProperty MATURE = BooleanProperty.create("mature");
 
-    private static final VoxelShape SHAPE = Shapes.box(0.25, 0.0, 0.25, 0.75, 0.875, 0.75);
+    private static final double SHAPE_MIN_XZ = 4.0;
+    private static final double SHAPE_MAX_XZ = 12.0;
+    private static final double SHAPE_HEIGHT = 14.0;
+    private static final VoxelShape SHAPE = Block.box(SHAPE_MIN_XZ, 0.0, SHAPE_MIN_XZ, SHAPE_MAX_XZ, SHAPE_HEIGHT, SHAPE_MAX_XZ);
     private static final double OCCUPANCY_INFLATE = 0.25;
-    private static final int SPORE_CHANCE = 10;
-    private static final double SPORE_CROWD_RANGE = 24.0;
+    private static final int PRODUCE_ONE_IN = 10;
+    private static final int SPORE_CROWD_RADIUS = 24;
     private static final int SPORE_CROWD_LIMIT = 6;
-    private static final float SWARMER_MIN_PRESSURE = 0.85F;
-    private static final int SWARMER_CHANCE = 20;
-    private static final double SWARMER_SPACING = 16.0;
-    private static final float SPORE_PRESSURE = 0.03F;
+    private static final float SWARMER_MIN_SATURATION = 0.85F;
+    private static final int SWARMER_ONE_IN = 20;
+    private static final int SWARMER_SPACING = 16;
+    private static final double SPORE_HEIGHT = 1.0;
+    private static final double CELL_CENTRE = 0.5;
+    private static final float PRODUCE_PRESSURE = 0.03F;
 
     public BlockTaintSporeStalk(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(MATURE, false));
+        registerDefaultState(stateDefinition.any().setValue(MATURE, false));
     }
 
     @Override
@@ -70,7 +75,10 @@ public final class BlockTaintSporeStalk extends Block implements ITaintBlock {
 
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
-        return direction == Direction.DOWN && !state.canSurvive(level, pos) ? Blocks.AIR.defaultBlockState() : state;
+        if (!canSurvive(state, level, pos)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
@@ -80,7 +88,7 @@ public final class BlockTaintSporeStalk extends Block implements ITaintBlock {
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || level.getDifficulty() == Difficulty.PEACEFUL || TaintBlooms.isProtected(level, pos) || !TaintEcology.isTainted(level, pos)) {
+        if (!mayProduce(level, pos)) {
             return;
         }
         boolean occupied = !level.getEntitiesOfClass(AbstractTaintSpore.class, new AABB(pos.above()).inflate(OCCUPANCY_INFLATE)).isEmpty();
@@ -90,20 +98,34 @@ public final class BlockTaintSporeStalk extends Block implements ITaintBlock {
             }
             return;
         }
-        if (occupied || random.nextInt(SPORE_CHANCE) != 0 || !level.getBlockState(pos.above()).isAir()
-                || level.getEntitiesOfClass(AbstractTaintSpore.class, new AABB(pos).inflate(SPORE_CROWD_RANGE)).size() >= SPORE_CROWD_LIMIT) {
+        if (occupied || random.nextInt(PRODUCE_ONE_IN) != 0 || !level.getBlockState(pos.above()).isAir()) {
             return;
         }
-        boolean swarmer = TaintEcology.getSaturation(level, pos) >= SWARMER_MIN_PRESSURE && random.nextInt(SWARMER_CHANCE) == 0
+        if (level.getEntitiesOfClass(AbstractTaintSpore.class, new AABB(pos).inflate(SPORE_CROWD_RADIUS)).size() >= SPORE_CROWD_LIMIT) {
+            return;
+        }
+        produce(state, level, pos, random);
+    }
+
+    private static boolean mayProduce(ServerLevel level, BlockPos pos) {
+        return !ThaumaturgeCommonConfig.WUSS_MODE.get() && level.getDifficulty() != Difficulty.PEACEFUL && !TaintBlooms.isProtected(level, pos) && TaintEcology.isTainted(level, pos);
+    }
+
+    private static boolean wantsSwarmer(ServerLevel level, BlockPos pos, RandomSource random) {
+        return TaintEcology.getSaturation(level, pos) >= SWARMER_MIN_SATURATION && random.nextInt(SWARMER_ONE_IN) == 0
                 && level.getEntitiesOfClass(EntityTaintSporeSwarmer.class, new AABB(pos).inflate(SWARMER_SPACING)).isEmpty();
-        AbstractTaintSpore spore = swarmer ? TTEntities.TAINT_SPORE_SWARMER.get().create(level, EntitySpawnReason.NATURAL) : TTEntities.TAINT_SPORE.get().create(level, EntitySpawnReason.NATURAL);
+    }
+
+    private static void produce(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        EntityType<? extends AbstractTaintSpore> type = wantsSwarmer(level, pos, random) ? TTEntities.TAINT_SPORE_SWARMER.get() : TTEntities.TAINT_SPORE.get();
+        AbstractTaintSpore spore = type.create(level, EntitySpawnReason.NATURAL);
         if (spore == null) {
             return;
         }
-        spore.snapTo(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 0.0F, 0.0F);
+        spore.snapTo(pos.getX() + CELL_CENTRE, pos.getY() + SPORE_HEIGHT, pos.getZ() + CELL_CENTRE, 0.0F, 0.0F);
         level.addFreshEntity(spore);
         level.setBlock(pos, state.setValue(MATURE, true), Block.UPDATE_CLIENTS);
-        TaintEcology.addPressure(level, pos, SPORE_PRESSURE);
+        TaintEcology.addPressure(level, pos, PRODUCE_PRESSURE);
     }
 
     @Override

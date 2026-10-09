@@ -42,8 +42,8 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe {
 
     public ArcaneShapedCraftingRecipe(Recipe.CommonInfo commonInfo, int vis, Optional<ResearchGate> researchGate, AspectList aspects, ArcaneShapedRecipePattern pattern, ItemStackTemplate result) {
         super(commonInfo, vis, researchGate, aspects);
-        this.pattern = pattern;
         this.result = result;
+        this.pattern = pattern;
     }
 
     public RecipeSerializer<? extends ArcaneCraftingRecipe> getSerializer() {
@@ -53,10 +53,6 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe {
     @VisibleForTesting
     public List<Optional<Ingredient>> getIngredients() {
         return this.pattern.ingredients();
-    }
-
-    public ItemStackTemplate result() {
-        return this.result;
     }
 
     protected PlacementInfo createPlacementInfo() {
@@ -69,6 +65,10 @@ public class ArcaneShapedCraftingRecipe extends ArcaneCraftingRecipe {
 
     public ItemStack assemble(IArcaneCraftingInput input) {
         return assembleResult(this.result, input);
+    }
+
+    public ItemStackTemplate result() {
+        return result;
     }
 
     public int getWidth() {

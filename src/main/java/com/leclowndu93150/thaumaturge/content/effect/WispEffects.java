@@ -6,6 +6,7 @@ import net.minecraft.util.RandomSource;
 
 public final class WispEffects {
     private static final float MOTE_ALPHA = 0.5F;
+    private static final float MOTE_SCALE_BASE = 1.0F;
     private static final float MOTE_SCALE_SPREAD = 0.25F;
     private static final float MOTE_END_SCALE = 0.05F;
 
@@ -16,6 +17,6 @@ public final class WispEffects {
     }
 
     public static WispFlameParticleOptions mote(RandomSource random, int color) {
-        return new WispFlameParticleOptions(color, MOTE_ALPHA, 1.0F + random.nextFloat() * MOTE_SCALE_SPREAD, MOTE_END_SCALE, 0);
+        return new WispFlameParticleOptions(color, MOTE_ALPHA, MOTE_SCALE_BASE + random.nextFloat() * MOTE_SCALE_SPREAD, MOTE_END_SCALE, 0);
     }
 }

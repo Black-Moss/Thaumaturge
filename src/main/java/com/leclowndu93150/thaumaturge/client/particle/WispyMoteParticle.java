@@ -1,5 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.particle;
 
+import com.leclowndu93150.thaumaturge.client.particle.support.HomingPhase;
+import com.leclowndu93150.thaumaturge.client.particle.support.HomingSteering;
+import com.leclowndu93150.thaumaturge.client.particle.support.HomingTuning;
+import com.leclowndu93150.thaumaturge.client.particle.support.TargetEntityResolver;
 import com.leclowndu93150.thaumaturge.content.particle.WispyMoteParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
@@ -8,33 +12,39 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class WispyMoteParticle extends TTParticle {
     private static final int EMISSIVE_LIGHT = 0x00F000F0;
+    private static final double WIND_SCALE = 0.001;
+    private static final float DRIFT = 0.0025F;
     private static final int FRAME_COUNT = 16;
     private static final float PEAK_ALPHA = 0.6F;
-    private static final float START_SIZE = 0.1F;
-    private static final float END_SIZE = 0.05F;
-    private static final float DRIFT = 0.0025F;
-    private static final double WIND_SCALE = 0.001;
-    private static final double SEEK_ACCEL = 0.3;
-    private static final double SEEK_ACCEL_NEAR = 0.6;
+    private static final float SIZE_START = 0.1F;
+    private static final float SIZE_END = 0.05F;
+    private static final float LIFETIME_JITTER = 0.5F;
+    private static final float NEAR_TARGET_SHRINK = 0.9F;
+    private static final double ARRIVAL_DISTANCE = 0.25;
     private static final double NEAR_DISTANCE = 4.0;
-    private static final double ARRIVE_DISTANCE = 0.25;
-    private static final double SPEED_LIMIT = 0.35;
+    private static final double PUSH = 0.3;
+    private static final double PUSH_NEAR = 0.6;
+    private static final double MAX_SPEED = 0.35;
+    private static final HomingTuning HOMING = new HomingTuning(ARRIVAL_DISTANCE, NEAR_DISTANCE, PUSH, PUSH_NEAR, MAX_SPEED);
 
-    private final int targetEntityId;
+    private final @Nullable TargetEntityResolver targetResolver;
+    private final HomingSteering homing = new HomingSteering(HOMING);
     private final boolean emissive;
-    private Entity target;
+    private float proximityScale = 1.0F;
 
     private WispyMoteParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, WispyMoteParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         setColor(options.color());
-        this.lifetime = (int) (options.age() + options.age() / 2.0F * this.random.nextFloat());
-        this.gravity = options.gravity();
-        this.targetEntityId = options.targetEntityId();
-        this.emissive = options.emissive();
         this.alpha = 0.0F;
+        this.quadSize = SIZE_START;
+        this.lifetime = (int) (options.age() + options.age() * LIFETIME_JITTER * this.random.nextFloat());
+        this.gravity = options.gravity();
+        this.targetResolver = options.targetEntityId() == WispyMoteParticleOptions.NO_ENTITY ? null : new TargetEntityResolver(options.targetEntityId());
+        this.emissive = options.emissive();
         setMoonWind(WIND_SCALE);
     }
 
@@ -42,45 +52,43 @@ public final class WispyMoteParticle extends TTParticle {
     protected void update() {
         drift(DRIFT, 0.0F, DRIFT);
         frame(this.age % FRAME_COUNT);
-        float t = progress();
-        this.alpha = PEAK_ALPHA * Keyframes.sample(t, 0.0F, 1.0F, 1.0F, 0.0F);
-        this.quadSize = Keyframes.sample(t, START_SIZE, END_SIZE);
-        if (this.targetEntityId != WispyMoteParticleOptions.NO_ENTITY) {
-            seekTarget();
+        if (this.targetResolver != null) {
+            homeOnTarget(this.targetResolver);
+        }
+        applyLifetimeCurve(progress());
+    }
+
+    private void applyLifetimeCurve(float progress) {
+        this.alpha = PEAK_ALPHA * Keyframes.sample(progress, 0.0F, 1.0F, 1.0F, 0.0F);
+        this.quadSize = Mth.lerp(progress, SIZE_START, SIZE_END) * this.proximityScale;
+    }
+
+    private void homeOnTarget(TargetEntityResolver resolver) {
+        Entity target = resolver.resolve(this.level);
+        if (target == null) {
+            return;
+        }
+        if (!target.isAlive()) {
+            remove();
+            return;
+        }
+        Vec3 position = target.position();
+        HomingPhase phase = this.homing.step(this.x, this.y, this.z, position.x, position.y, position.z, this.xd, this.yd, this.zd);
+        if (phase == HomingPhase.ARRIVED) {
+            remove();
+            return;
+        }
+        this.xd = this.homing.velocityX();
+        this.yd = this.homing.velocityY();
+        this.zd = this.homing.velocityZ();
+        if (phase == HomingPhase.NEAR) {
+            this.proximityScale *= NEAR_TARGET_SHRINK;
         }
     }
 
     @Override
     protected int getLightCoords(float partialTick) {
         return this.emissive ? EMISSIVE_LIGHT : super.getLightCoords(partialTick);
-    }
-
-    private void seekTarget() {
-        if (this.target == null) {
-            this.target = this.level.getEntity(this.targetEntityId);
-            if (this.target == null) {
-                return;
-            }
-        }
-        if (!this.target.isAlive()) {
-            remove();
-            return;
-        }
-        Vec3 toTarget = this.target.position().subtract(this.x, this.y, this.z);
-        double distance = toTarget.length();
-        if (distance < ARRIVE_DISTANCE) {
-            remove();
-            return;
-        }
-        double accel = SEEK_ACCEL;
-        if (distance < NEAR_DISTANCE) {
-            accel = SEEK_ACCEL_NEAR;
-            this.quadSize *= 0.9F;
-        }
-        Vec3 steer = toTarget.scale(accel / distance);
-        this.xd = Mth.clamp(this.xd + steer.x, -SPEED_LIMIT, SPEED_LIMIT);
-        this.yd = Mth.clamp(this.yd + steer.y, -SPEED_LIMIT, SPEED_LIMIT);
-        this.zd = Mth.clamp(this.zd + steer.z, -SPEED_LIMIT, SPEED_LIMIT);
     }
 
     public static final class Provider implements ParticleProvider<WispyMoteParticleOptions> {

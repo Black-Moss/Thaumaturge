@@ -1,7 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.infusion;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -10,87 +12,78 @@ import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import org.jspecify.annotations.Nullable;
 
 public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float costMult, float stabilityReplenish) {
-    private static final int SCAN_RADIUS = 8;
-    private static final int SCAN_UP = 3;
-    private static final int SCAN_DOWN = 7;
     private static final int BASE_CYCLE_TIME = 10;
-    private static final int PILLAR_DEPTH = 2;
+    private static final float BASE_COST_MULTIPLIER = 1.0F;
+    private static final int ALTAR_DEPTH = 2;
     private static final int UPGRADE_DEPTH = 3;
-    private static final int[][] CORNERS = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
+    private static final List<BlockPos> CORNERS = List.of(new BlockPos(-1, 0, -1), new BlockPos(-1, 0, 1), new BlockPos(1, 0, -1), new BlockPos(1, 0, 1));
+    private static final List<BlockPos> UPGRADE_OFFSETS = CORNERS.stream().map(corner -> corner.below(UPGRADE_DEPTH)).toList();
+    private static final List<BlockPos> SCAN_OFFSETS = scanOffsets();
 
-    public static MatrixEnvironment survey(Level level, BlockPos matrixPos) {
-        Totals totals = new Totals(InfusionStabilitySurvey.survey(level, matrixPos).stabilityReplenish());
-        List<BlockPos> pedestals = new ArrayList<>();
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (int xx = -SCAN_RADIUS; xx <= SCAN_RADIUS; xx++) {
-            for (int zz = -SCAN_RADIUS; zz <= SCAN_RADIUS; zz++) {
-                if (xx == 0 && zz == 0) {
-                    continue;
-                }
-                for (int yy = -SCAN_UP; yy <= SCAN_DOWN; yy++) {
-                    cursor.set(matrixPos.getX() + xx, matrixPos.getY() - yy, matrixPos.getZ() + zz);
-                    BlockState state = level.getBlockState(cursor);
-                    if (state.getBlock() instanceof BlockPedestal) {
-                        pedestals.add(cursor.immutable());
-                        totals.apply(modifier(state, InfusionDataMaps.PEDESTAL));
-                    }
-                }
-            }
-        }
-        Block pillars = matchingPillars(level, matrixPos);
-        if (pillars != null) {
-            totals.apply(modifier(pillars.defaultBlockState(), InfusionDataMaps.PILLAR_SET));
-        }
-        for (int[] corner : CORNERS) {
-            totals.apply(modifier(level.getBlockState(matrixPos.offset(corner[0], -UPGRADE_DEPTH, corner[1])), InfusionDataMaps.MATRIX_UPGRADE));
-        }
-        return new MatrixEnvironment(List.copyOf(pedestals), totals.cycleTime, totals.costMult, totals.stabilityReplenish);
+    public MatrixEnvironment {
+        pedestals = List.copyOf(pedestals);
     }
 
-    private static @Nullable InfusionModifier modifier(BlockState state, DataMapType<Block, InfusionModifier> map) {
-        return state.typeHolder().getData(map);
+    public static MatrixEnvironment survey(Level level, BlockPos matrix) {
+        List<BlockPos> spots = scanPedestals(level, matrix);
+        Stream<InfusionModifier> fromPedestals = spots.stream().map(spot -> modifier(level.getBlockState(spot), InfusionDataMaps.PEDESTAL));
+        Stream<InfusionModifier> fromPillars = Stream.of(pillarModifier(level, altarOf(matrix)));
+        Stream<InfusionModifier> fromUpgrades = UPGRADE_OFFSETS.stream().map(offset -> modifier(level.getBlockState(matrix.offset(offset)), InfusionDataMaps.MATRIX_UPGRADE));
+        List<InfusionModifier> modifiers = Stream.of(fromPedestals, fromPillars, fromUpgrades).flatMap(stream -> stream).filter(Objects::nonNull).toList();
+        int cycle = BASE_CYCLE_TIME;
+        float cost = BASE_COST_MULTIPLIER;
+        float stability = InfusionStabilitySurvey.survey(level, matrix).stabilityReplenish();
+        for (InfusionModifier entry : modifiers) {
+            cycle += entry.cycleTime();
+            cost += entry.cost();
+            stability += entry.stability();
+        }
+        return new MatrixEnvironment(spots, cycle, cost, stability);
     }
 
-    private static @Nullable Block matchingPillars(Level level, BlockPos matrixPos) {
-        Block first = null;
-        for (int[] corner : CORNERS) {
-            Block block = level.getBlockState(matrixPos.offset(corner[0], -PILLAR_DEPTH, corner[1])).getBlock();
-            if (!(block instanceof BlockPillar) || (first != null && block != first)) {
-                return null;
-            }
-            first = block;
-        }
-        return first;
+    public static boolean validLocation(Level level, BlockPos matrix) {
+        BlockPos altar = altarOf(matrix);
+        boolean pedestalBelow = level.getBlockState(altar).getBlock() instanceof BlockPedestal;
+        return pedestalBelow && cornerBlocks(level, altar).stream().allMatch(BlockPillar.class::isInstance);
     }
 
-    public static boolean validLocation(Level level, BlockPos matrixPos) {
-        if (!(level.getBlockState(matrixPos.below(PILLAR_DEPTH)).getBlock() instanceof BlockPedestal)) {
-            return false;
-        }
-        for (int[] corner : CORNERS) {
-            if (!(level.getBlockState(matrixPos.offset(corner[0], -PILLAR_DEPTH, corner[1])).getBlock() instanceof BlockPillar)) {
-                return false;
-            }
-        }
-        return true;
+    private static BlockPos altarOf(BlockPos matrix) {
+        return matrix.offset(0, -ALTAR_DEPTH, 0);
     }
 
-    private static final class Totals {
-        private int cycleTime = BASE_CYCLE_TIME;
-        private float costMult = 1.0F;
-        private float stabilityReplenish;
+    private static List<BlockPos> scanOffsets() {
+        int half = InfusionStabilitySurvey.HALF_WIDTH;
+        return IntStream.rangeClosed(-half, half).boxed()
+                .flatMap(dx -> IntStream.rangeClosed(-half, half).filter(dz -> dx != 0 || dz != 0).boxed().flatMap(
+                        dz -> IntStream.iterate(InfusionStabilitySurvey.HEIGHT_ABOVE, dy -> dy >= -InfusionStabilitySurvey.DEPTH_BELOW, dy -> dy - 1).mapToObj(dy -> new BlockPos(dx, dy, dz))))
+                .toList();
+    }
 
-        private Totals(float stabilityReplenish) {
-            this.stabilityReplenish = stabilityReplenish;
-        }
+    private static List<Block> cornerBlocks(Level level, BlockPos base) {
+        return CORNERS.stream().map(corner -> level.getBlockState(base.offset(corner)).getBlock()).toList();
+    }
 
-        private void apply(@Nullable InfusionModifier modifier) {
-            if (modifier == null) {
-                return;
-            }
-            cycleTime += modifier.cycleTime();
-            costMult += modifier.cost();
-            stabilityReplenish += modifier.stability();
-        }
+    private static List<BlockPos> scanPedestals(Level level, BlockPos matrix) {
+        BlockPos.MutableBlockPos probe = new BlockPos.MutableBlockPos();
+        return SCAN_OFFSETS.stream().filter(offset -> isLoadedPedestal(level, probe.setWithOffset(matrix, offset))).map(matrix::offset).toList();
+    }
+
+    private static boolean isLoadedPedestal(Level level, BlockPos pos) {
+        return level.hasChunkAt(pos) && level.getBlockState(pos).getBlock() instanceof BlockPedestal;
+    }
+
+    private static @Nullable InfusionModifier pillarModifier(Level level, BlockPos base) {
+        Block pillar = uniformPillar(level, base);
+        return pillar == null ? null : pillar.defaultBlockState().typeHolder().getData(InfusionDataMaps.PILLAR_SET);
+    }
+
+    private static @Nullable Block uniformPillar(Level level, BlockPos base) {
+        List<Block> blocks = cornerBlocks(level, base);
+        Block head = blocks.getFirst();
+        return blocks.stream().allMatch(block -> block == head) ? head : null;
+    }
+
+    private static @Nullable InfusionModifier modifier(BlockState state, DataMapType<Block, InfusionModifier> type) {
+        return state.typeHolder().getData(type);
     }
 }

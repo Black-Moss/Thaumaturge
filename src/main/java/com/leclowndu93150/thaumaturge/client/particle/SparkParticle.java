@@ -7,28 +7,29 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.util.RandomSource;
 
 public final class SparkParticle extends TTParticle {
-    private static final int ROW_COUNT = 3;
+    private static final int ROWS = 3;
     private static final int FRAMES_PER_ROW = 8;
-    private static final int TOTAL_FRAMES = ROW_COUNT * FRAMES_PER_ROW;
-    private static final int BASE_LIFETIME = 5;
+    private static final int LIFETIME_BASE = 5;
+    private static final int LIFETIME_RANGE = 5;
+    private static final float SIZE_UNIT = 0.1F;
 
-    private final int rowOffset;
+    private final int rowStart;
     private final boolean mirrored;
 
     private SparkParticle(ClientLevel level, double x, double y, double z, SparkParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         setColor(options.color());
         this.alpha = options.alpha();
-        this.lifetime = BASE_LIFETIME + this.random.nextInt(5);
-        this.quadSize = options.scale() * 0.1F;
-        this.rowOffset = this.random.nextInt(ROW_COUNT) * FRAMES_PER_ROW;
+        this.quadSize = options.scale() * SIZE_UNIT;
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
+        this.rowStart = this.random.nextInt(ROWS) * FRAMES_PER_ROW;
         this.mirrored = this.random.nextBoolean();
-        frame(this.rowOffset);
+        frame(this.rowStart);
     }
 
     @Override
     protected void update() {
-        frame(this.rowOffset + this.age % FRAMES_PER_ROW);
+        frame(this.rowStart + this.age % FRAMES_PER_ROW);
     }
 
     @Override

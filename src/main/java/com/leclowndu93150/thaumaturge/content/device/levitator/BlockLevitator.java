@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -29,29 +30,18 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockLevitator extends BaseEntityBlock {
+    private static final float KEY_VOLUME = 0.5F;
+    private static final float KEY_PITCH = 1.0F;
+    private static final double INSET = 2.0;
+    private static final double FULL = 16.0;
+    private static final Map<Direction, VoxelShape> SHAPES = buildShapes();
+
     public static final MapCodec<BlockLevitator> CODEC = simpleCodec(BlockLevitator::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
-    private static final int BACK_INSET_PX = 2;
-    private static final Map<Direction, VoxelShape> SHAPES = buildShapes();
-
-    public BlockLevitator(Properties properties) {
+    public BlockLevitator(BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP).setValue(BlockStateProperties.ENABLED, true));
-    }
-
-    private static Map<Direction, VoxelShape> buildShapes() {
-        Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
-        for (Direction facing : Direction.values()) {
-            double minX = facing.getStepX() > 0 ? BACK_INSET_PX : 0;
-            double maxX = 16 - (facing.getStepX() < 0 ? BACK_INSET_PX : 0);
-            double minY = facing.getStepY() > 0 ? BACK_INSET_PX : 0;
-            double maxY = 16 - (facing.getStepY() < 0 ? BACK_INSET_PX : 0);
-            double minZ = facing.getStepZ() > 0 ? BACK_INSET_PX : 0;
-            double maxZ = 16 - (facing.getStepZ() < 0 ? BACK_INSET_PX : 0);
-            shapes.put(facing, Block.box(minX, minY, minZ, maxX, maxY, maxZ));
-        }
-        return shapes;
     }
 
     @Override
@@ -66,18 +56,22 @@ public final class BlockLevitator extends BaseEntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getNearestLookingDirection().getOpposite();
-        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
-            facing = facing.getOpposite();
-        }
+        Direction looking = context.getNearestLookingDirection();
+        Direction facing = context.isSecondaryUseActive() ? looking : looking.getOpposite();
         return defaultBlockState().setValue(FACING, facing).setValue(BlockStateProperties.ENABLED, !context.getLevel().hasNeighborSignal(context.getClickedPos()));
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityLevitator levitator) {
+            levitator.markClearanceStale();
+        }
+        if (level.isClientSide()) {
+            return;
+        }
         boolean enabled = !level.hasNeighborSignal(pos);
         if (enabled != state.getValue(BlockStateProperties.ENABLED)) {
-            level.setBlock(pos, state.setValue(BlockStateProperties.ENABLED, enabled), 3);
+            level.setBlock(pos, state.setValue(BlockStateProperties.ENABLED, enabled), Block.UPDATE_ALL);
         }
     }
 
@@ -92,7 +86,9 @@ public final class BlockLevitator extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
         levitator.cycleReach(player);
-        level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.KEY.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+        if (!level.isClientSide()) {
+            level.playSound(null, pos, TTSounds.KEY.get(), SoundSource.BLOCKS, KEY_VOLUME, KEY_PITCH);
+        }
         return InteractionResult.SUCCESS;
     }
 
@@ -104,5 +100,16 @@ public final class BlockLevitator extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return createTickerHelper(type, TTBlockEntities.LEVITATOR.get(), BlockEntityLevitator::tick);
+    }
+
+    private static Map<Direction, VoxelShape> buildShapes() {
+        Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
+        shapes.put(Direction.UP, box(0.0, INSET, 0.0, FULL, FULL, FULL));
+        shapes.put(Direction.DOWN, box(0.0, 0.0, 0.0, FULL, FULL - INSET, FULL));
+        shapes.put(Direction.EAST, box(INSET, 0.0, 0.0, FULL, FULL, FULL));
+        shapes.put(Direction.WEST, box(0.0, 0.0, 0.0, FULL - INSET, FULL, FULL));
+        shapes.put(Direction.SOUTH, box(0.0, 0.0, INSET, FULL, FULL, FULL));
+        shapes.put(Direction.NORTH, box(0.0, 0.0, 0.0, FULL, FULL, FULL - INSET));
+        return shapes;
     }
 }

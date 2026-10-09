@@ -13,45 +13,54 @@ import net.minecraft.util.RandomSource;
 import org.joml.Quaternionf;
 
 public final class WardFlashParticle extends TTParticle {
-    private static final int FRAME_COUNT = 16;
-    private static final int BASE_AGE = 12;
-    private static final int AGE_JITTER = 5;
-    private static final float BASE_SCALE = 1.4F;
-    private static final float SCALE_JITTER = 0.3F;
-    private static final float FACE_OFFSET = 0.005F;
+    private static final float CENTRE = 0.5F;
+    private static final float JITTER = 0.1F;
+    private static final float EDGE_LIMIT = 0.4F;
+    private static final double NORMAL_NUDGE = 0.005;
+    private static final int LIFETIME_BASE = 12;
+    private static final int LIFETIME_RANGE = 5;
+    private static final float SIZE_MEAN = 1.4F;
+    private static final float SIZE_DEVIATION = 0.3F;
     private static final float HALF = 0.5F;
-    private static final float HIT_JITTER = 0.2F;
-    private static final float HIT_CLAMP = 0.4F;
-    private static final float RAMP_PORTION = 5.0F;
+    private static final int DEGREES_RANGE = 360;
+    private static final float RAMP_DIVISOR = 5.0F;
+    private static final float ALPHA_SCALE = 0.5F;
+    private static final int FRAME_COUNT = 16;
+    private static final float HITBOX = 0.01F;
 
-    private final Quaternionf faceRotation;
+    private final Quaternionf orientation;
 
     private WardFlashParticle(ClientLevel level, double x, double y, double z, WardFlashParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         Direction face = options.face();
-        float sx = face.getStepX() != 0 ? options.hitX() - HALF : jitter(options.hitX());
-        float sy = face.getStepY() != 0 ? options.hitY() - HALF : jitter(options.hitY());
-        float sz = face.getStepZ() != 0 ? options.hitZ() - HALF : jitter(options.hitZ());
-        setPos(x + sx + face.getStepX() * FACE_OFFSET, y + sy + face.getStepY() * FACE_OFFSET, z + sz + face.getStepZ() * FACE_OFFSET);
-        this.xo = this.x;
-        this.yo = this.y;
-        this.zo = this.z;
-        this.lifetime = BASE_AGE + this.random.nextInt(AGE_JITTER);
-        this.quadSize = 0.5F * (float) (BASE_SCALE + this.random.nextGaussian() * SCALE_JITTER);
+        double px = x + offset(options.hitX(), face.getStepX() != 0) + NORMAL_NUDGE * face.getStepX();
+        double py = y + offset(options.hitY(), face.getStepY() != 0) + NORMAL_NUDGE * face.getStepY();
+        double pz = z + offset(options.hitZ(), face.getStepZ() != 0) + NORMAL_NUDGE * face.getStepZ();
+        setSize(HITBOX, HITBOX);
+        setPos(px, py, pz);
+        this.xo = px;
+        this.yo = py;
+        this.zo = pz;
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
+        this.quadSize = (SIZE_MEAN + (float) this.random.nextGaussian() * SIZE_DEVIATION) * HALF;
         this.alpha = 0.0F;
-        this.setSize(0.01F, 0.01F);
-        this.faceRotation = new Quaternionf().rotationTo(0.0F, 0.0F, 1.0F, face.getStepX(), face.getStepY(), face.getStepZ()).rotateZ((float) Math.toRadians(this.random.nextInt(360)));
+        this.orientation = new Quaternionf().rotateTo(0.0F, 0.0F, 1.0F, face.getStepX(), face.getStepY(), face.getStepZ()).rotateZ((float) Math.toRadians(this.random.nextInt(DEGREES_RANGE)));
     }
 
-    private float jitter(float hit) {
-        return Mth.clamp(hit - HALF + (this.random.nextFloat() - HALF) * HIT_JITTER, -HIT_CLAMP, HIT_CLAMP);
+    private double offset(float hit, boolean onFaceAxis) {
+        float centred = hit - CENTRE;
+        if (onFaceAxis) {
+            return centred;
+        }
+        float jitter = (this.random.nextFloat() * 2.0F - 1.0F) * JITTER;
+        return Mth.clamp(centred + jitter, -EDGE_LIMIT, EDGE_LIMIT);
     }
 
     @Override
     protected void update() {
-        float threshold = this.lifetime / RAMP_PORTION;
-        float raw = this.age <= threshold ? this.age / threshold : (float) (this.lifetime - this.age) / this.lifetime;
-        this.alpha = raw / 2.0F;
+        float ramp = this.lifetime / RAMP_DIVISOR;
+        float raw = this.age <= ramp ? this.age / ramp : (float) (this.lifetime - this.age) / this.lifetime;
+        this.alpha = Mth.clamp(raw, 0.0F, 1.0F) * ALPHA_SCALE;
         frame(Math.min(FRAME_COUNT - 1, (int) (FRAME_COUNT * progress())));
     }
 
@@ -61,8 +70,8 @@ public final class WardFlashParticle extends TTParticle {
     }
 
     @Override
-    public void extract(QuadParticleRenderState renderState, Camera camera, float partialTickTime) {
-        extractRotatedQuad(renderState, camera, new Quaternionf(this.faceRotation), partialTickTime);
+    public void extract(QuadParticleRenderState state, Camera camera, float partialTick) {
+        extractRotatedQuad(state, camera, this.orientation, partialTick);
     }
 
     public static final class Provider implements ParticleProvider<WardFlashParticleOptions> {

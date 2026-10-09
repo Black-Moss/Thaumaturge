@@ -10,127 +10,118 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 /**
- * A research entry. Entries are the nodes shown in a Thaumonomicon category; each entry contains
- * one or more {@link IResearchStage stages} that the player completes in order.
+ * One research node of the Thaumonomicon.
  *
- * <p>Entries are loaded from the {@link #REGISTRY_KEY} datapack registry under
- * {@code data/<namespace>/thaumaturge/research_entry/}.
+ * <p>Implementations are immutable and safe to read from any thread. Callers compare entries by
+ * registry holder or registry key, not by value. Stage access is by position and the stage list is
+ * never empty.
  *
  * @since 1.0.0
  */
 public interface IResearchEntry {
-    /** Datapack registry key for research entries. */
+    /** The datapack registry key for entries. */
     ResourceKey<Registry<IResearchEntry>> REGISTRY_KEY = ResourceKey.createRegistryKey(TTIds.rl("research_entry"));
 
     /**
-     * Category this entry belongs to.
+     * The category owning this entry.
      *
-     * @return the owning category holder
+     * @return the resolved category holder
      */
     Holder<IResearchCategory> category();
 
     /**
-     * Translation key used to display this entry's name.
+     * The translation key of the entry name.
      *
-     * @return the translation key, e.g. {@code research.thaumaturge.unlocking_secrets.title}
+     * @return the name key
      */
     String nameKey();
 
     /**
-     * Parent references that must be satisfied before this entry becomes available. A parent may
-     * be referenced from another category and may require only a partial stage of its progress.
+     * The references that must be satisfied before the entry becomes available.
      *
-     * @return the parent references, never null; may be empty
+     * @return the parent references in insertion order
      */
     Set<ResearchParent> parents();
 
     /**
-     * Sibling entries displayed in the Thaumonomicon as decorative connectors next to this entry,
-     * with no progression effect.
+     * The decorative connector targets and cascade-completion entries, possibly in other categories.
      *
-     * @return the sibling identifiers, never null
+     * @return the sibling entry identifiers in insertion order
      */
     Set<Identifier> siblings();
 
     /**
-     * Column position in the Thaumonomicon grid.
+     * The grid column.
      *
-     * @return the column
+     * @return the column, any sign
      */
     int column();
 
     /**
-     * Row position in the Thaumonomicon grid.
+     * The grid row.
      *
-     * @return the row
+     * @return the row, any sign
      */
     int row();
 
     /**
-     * Stages of this entry in order. The player advances through them as research progresses.
+     * The stages of the entry, in completion order.
      *
-     * @return the stages; never empty
+     * @return the stages, never empty
      */
     List<IResearchStage> stages();
 
     /**
-     * Meta flags that affect display and progression behaviour.
+     * The display and unlock flags.
      *
-     * @return the meta flag set
+     * @return the flags in enum order
      */
     Set<ResearchEntryMeta> meta();
 
     /**
-     * Whether this entry has the given meta flag.
+     * Tests whether a flag is set.
      *
      * @param flag the flag to test
-     * @return {@code true} when set
+     * @return {@code true} when {@link #meta()} contains the flag
      */
     default boolean hasMeta(ResearchEntryMeta flag) {
         return meta().contains(flag);
     }
 
     /**
-     * Icons displayed on this entry's node in the Thaumonomicon. The browser cycles through the
-     * list over time; when empty, the node falls back to an icon derived from the first stage's
-     * item requirements.
+     * The icons cycled over time by the browser.
      *
-     * @return the icons, never null, possibly empty
+     * @return the icons, empty by default; an empty list falls back to a stage-derived icon
      */
     default List<ResearchIcon> icons() {
         return List.of();
     }
 
     /**
-     * Extra pages shown once this entry is complete and each page's own research requirements are
-     * met.
+     * The extra pages unlocked on completion.
      *
-     * @return the addenda, never null, possibly empty
+     * @return the addenda in page order, empty by default
      */
     default List<ResearchAddendum> addenda() {
         return List.of();
     }
 
     /**
-     * Returns the hand-authored aspect cost of this entry. The distinct aspects seed the anchor
-     * ring of research-note puzzles generated for theory gates; the amounts are the point price
-     * paid from the player's aspect pool for observation gates.
+     * The hand-authored aspect cost seeding research-note puzzles.
      *
-     * @return the aspect cost, or the empty list when the entry has no knowledge gates
-     * @since 1.0.0
+     * @return the note aspects, the empty list by default
      */
     default AspectList noteAspects() {
         return AspectList.EMPTY;
     }
 
     /**
-     * Returns the research-note puzzle complexity of this entry, clamped to {@code [1, 3]}.
-     * Drives the hex grid radius and the number of holes punched into the sheet.
+     * The puzzle complexity, driving the hex grid radius and the number of holes.
      *
-     * @return the puzzle complexity
-     * @since 1.0.0
+     * @return the complexity from 1 to 3, 1 by default
      */
     default int complexity() {
-        return 1;
+        final int defaultComplexity = 1;
+        return defaultComplexity;
     }
 }

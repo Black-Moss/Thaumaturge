@@ -10,7 +10,11 @@ import com.leclowndu93150.thaumaturge.content.golem.logistics.MenuGolemLogistics
 import com.leclowndu93150.thaumaturge.network.ServerboundLogisticsRequestPayload;
 import com.leclowndu93150.thaumaturge.network.ServerboundLogisticsSearchPayload;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -71,48 +75,90 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
     private static final int MIN_REQUEST = 1;
     private static final float CLACK_VOLUME = 0.66F;
 
-    private @Nullable TTSlider scrollbar;
-    private @Nullable TTSlider countbar;
-    private @Nullable TTPlusMinusButton countDown;
-    private @Nullable TTPlusMinusButton countUp;
-    private @Nullable TTLabelButton requestButton;
-    private @Nullable EditBox searchField;
+    private record PagingSpec(int x, int y, TTScrollButton.Direction direction, String name, int buttonId) {
+    }
 
-    private int selectedSlot = -1;
-    private ItemStack selectedStack = ItemStack.EMPTY;
-    private int requestCount = MIN_REQUEST;
-    private int lastScrollPage;
-    private long nextRefresh;
+    private static final List<PagingSpec> PAGING_BUTTONS = List.of(new PagingSpec(SCROLL_UP_X, SCROLL_UP_Y, TTScrollButton.Direction.UP, "scroll_up", MenuGolemLogistics.BUTTON_PAGE_UP),
+            new PagingSpec(SCROLL_DOWN_X, SCROLL_DOWN_Y, TTScrollButton.Direction.DOWN, "scroll_down", MenuGolemLogistics.BUTTON_PAGE_DOWN));
 
     public GolemLogisticsScreen(MenuGolemLogistics menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TTScreenTextures.GUI_LOGISTICS, IMAGE_SIZE, IMAGE_SIZE);
     }
 
+    private final List<AbstractWidget> selectionWidgets = new ArrayList<>();
+
+    private @Nullable TTSlider scrollbar;
+    private @Nullable TTSlider countbar;
+    private @Nullable EditBox searchField;
+
+    private int selectedSlot = -1;
+    private ItemStack selectedStack = ItemStack.EMPTY;
+    private int requestCount = MIN_REQUEST;
+    private int shownPage;
+    private long refreshAt;
+
     @Override
     protected void init() {
         super.init();
-        addRenderableWidget(TTScrollButton.of(leftPos + SCROLL_UP_X, topPos + SCROLL_UP_Y, TTScrollButton.Direction.UP, Component.translatable("gui.thaumaturge.logistics.scroll_up"),
-                () -> clickButton(MenuGolemLogistics.BUTTON_PAGE_UP)));
-        addRenderableWidget(TTScrollButton.of(leftPos + SCROLL_DOWN_X, topPos + SCROLL_DOWN_Y, TTScrollButton.Direction.DOWN, Component.translatable("gui.thaumaturge.logistics.scroll_down"),
-                () -> clickButton(MenuGolemLogistics.BUTTON_PAGE_DOWN)));
-        countDown = TTPlusMinusButton.minus(leftPos + COUNT_MINUS_X, topPos + COUNT_BUTTON_Y, Component.translatable("gui.thaumaturge.logistics.count_down"), () -> adjustCount(-1));
-        countUp = TTPlusMinusButton.plus(leftPos + COUNT_PLUS_X, topPos + COUNT_BUTTON_Y, Component.translatable("gui.thaumaturge.logistics.count_up"), () -> adjustCount(1));
-        addRenderableWidget(countDown);
-        addRenderableWidget(countUp);
-        scrollbar = new TTSlider(leftPos + SCROLLBAR_X, topPos + SCROLLBAR_Y, SCROLLBAR_W, SCROLLBAR_H, true, 0.0F, menu.end(), menu.start(), this::onScroll);
-        countbar = new TTSlider(leftPos + COUNTBAR_X, topPos + COUNTBAR_Y, COUNTBAR_W, COUNTBAR_H, false, MIN_REQUEST, selectedCount(), requestCount, this::onCountChanged);
-        addRenderableWidget(scrollbar);
-        addRenderableWidget(countbar);
-        requestButton = TTLabelButton.centered(leftPos + REQUEST_X, topPos + REQUEST_Y, REQUEST_W, REQUEST_H, TTScreenTextures.GUI_BASE, REQUEST_U, REQUEST_V, REQUEST_W, REQUEST_H, ATLAS, ATLAS,
-                Component.translatable("gui.thaumaturge.logistics.request"), this::sendRequest);
-        addRenderableWidget(requestButton);
-        searchField = new EditBox(font, leftPos + SEARCH_X, topPos + SEARCH_Y, SEARCH_W, font.lineHeight, Component.empty());
-        searchField.setMaxLength(MenuGolemLogistics.SEARCH_MAX_LENGTH);
-        searchField.setBordered(true);
-        searchField.setTextColor(-1);
-        searchField.setResponder(this::onSearchChanged);
-        addRenderableWidget(searchField);
-        syncWidgets();
+        selectionWidgets.clear();
+        addPagingButtons();
+        addCountSteppers();
+        addSliders();
+        addBottomRow();
+        syncVisibility();
+    }
+
+    private void addPagingButtons() {
+        PAGING_BUTTONS.stream().map(this::pagingButton).forEach(this::addRenderableWidget);
+    }
+
+    private AbstractWidget pagingButton(PagingSpec spec) {
+        Component label = Component.translatable("gui.thaumaturge.logistics." + spec.name());
+        return TTScrollButton.of(leftPos + spec.x(), topPos + spec.y(), spec.direction(), label, () -> clickButton(spec.buttonId()));
+    }
+
+    private void addCountSteppers() {
+        Component lessLabel = Component.translatable("gui.thaumaturge.logistics.count_down");
+        Component moreLabel = Component.translatable("gui.thaumaturge.logistics.count_up");
+        TTPlusMinusButton less = TTPlusMinusButton.minus(leftPos + COUNT_MINUS_X, topPos + COUNT_BUTTON_Y, lessLabel, () -> adjustCount(-1));
+        TTPlusMinusButton more = TTPlusMinusButton.plus(leftPos + COUNT_PLUS_X, topPos + COUNT_BUTTON_Y, moreLabel, () -> adjustCount(1));
+        selectionWidgets.add(less);
+        selectionWidgets.add(more);
+        addRenderableWidget(less);
+        addRenderableWidget(more);
+    }
+
+    private void addSliders() {
+        TTSlider pages = new TTSlider(leftPos + SCROLLBAR_X, topPos + SCROLLBAR_Y, SCROLLBAR_W, SCROLLBAR_H, true, 0.0F, menu.end(), menu.start(), this::onScroll);
+        TTSlider amount = new TTSlider(leftPos + COUNTBAR_X, topPos + COUNTBAR_Y, COUNTBAR_W, COUNTBAR_H, false, MIN_REQUEST, selectedCount(), requestCount, this::onCountChanged);
+        scrollbar = pages;
+        countbar = amount;
+        selectionWidgets.add(amount);
+        addRenderableWidget(pages);
+        addRenderableWidget(amount);
+    }
+
+    private void addBottomRow() {
+        addRequestButton();
+        addSearchField();
+    }
+
+    private void addRequestButton() {
+        Component label = Component.translatable("gui.thaumaturge.logistics.request");
+        TTLabelButton button = TTLabelButton.centered(leftPos + REQUEST_X, topPos + REQUEST_Y, REQUEST_W, REQUEST_H, TTScreenTextures.GUI_BASE, REQUEST_U, REQUEST_V, REQUEST_W, REQUEST_H, ATLAS,
+                ATLAS, label, this::sendRequest);
+        selectionWidgets.add(button);
+        addRenderableWidget(button);
+    }
+
+    private void addSearchField() {
+        EditBox field = new EditBox(font, leftPos + SEARCH_X, topPos + SEARCH_Y, SEARCH_W, font.lineHeight, Component.empty());
+        field.setMaxLength(MenuGolemLogistics.SEARCH_MAX_LENGTH);
+        field.setBordered(true);
+        field.setTextColor(-1);
+        field.setResponder(this::onSearchChanged);
+        searchField = field;
+        addRenderableWidget(field);
     }
 
     private void clickButton(int id) {
@@ -123,10 +169,11 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
 
     private void onScroll(float value) {
         int page = Math.round(value);
-        if (page != lastScrollPage) {
-            lastScrollPage = page;
-            clickButton(MenuGolemLogistics.BUTTON_SET_PAGE + page);
+        if (page == shownPage) {
+            return;
         }
+        shownPage = page;
+        clickButton(MenuGolemLogistics.BUTTON_SET_PAGE + page);
     }
 
     private void onCountChanged(float value) {
@@ -146,13 +193,15 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
 
     private void sendRequest() {
         ItemStack stack = selectedStack();
-        if (!stack.isEmpty()) {
-            ClientPacketDistributor.sendToServer(new ServerboundLogisticsRequestPayload(stack.copyWithCount(1), requestCount));
+        if (stack.isEmpty()) {
+            return;
         }
+        ClientPacketDistributor.sendToServer(new ServerboundLogisticsRequestPayload(stack.copyWithCount(1), requestCount));
     }
 
     private ItemStack selectedStack() {
-        return selectedSlot < 0 || selectedSlot >= menu.slots.size() ? ItemStack.EMPTY : menu.getSlot(selectedSlot).getItem();
+        boolean inRange = selectedSlot >= 0 && selectedSlot < menu.slots.size();
+        return inRange ? menu.getSlot(selectedSlot).getItem() : ItemStack.EMPTY;
     }
 
     private int selectedCount() {
@@ -163,13 +212,20 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
     @Override
     protected void containerTick() {
         super.containerTick();
+        refreshIfDue();
+        syncSelection();
+        syncVisibility();
+        syncCountRange();
+        syncPageRange();
+    }
+
+    private void refreshIfDue() {
         long now = System.currentTimeMillis();
-        if (now >= nextRefresh) {
-            nextRefresh = now + REFRESH_INTERVAL_MS;
+        boolean due = now >= refreshAt;
+        if (due) {
+            refreshAt = now + REFRESH_INTERVAL_MS;
             clickButton(MenuGolemLogistics.BUTTON_REFRESH);
         }
-        syncSelection();
-        syncWidgets();
     }
 
     private void syncSelection() {
@@ -185,108 +241,126 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
         if (ItemStack.isSameItemSameComponents(current, selectedStack)) {
             return;
         }
-        selectedSlot = -1;
-        for (Slot slot : menu.slots) {
-            if (ItemStack.isSameItemSameComponents(selectedStack, slot.getItem())) {
-                selectedSlot = slot.index;
-                return;
-            }
+        selectedSlot = findSlotHolding(selectedStack);
+        if (selectedSlot < 0) {
+            selectedStack = ItemStack.EMPTY;
         }
-        selectedStack = ItemStack.EMPTY;
     }
 
-    private void syncWidgets() {
-        boolean hasSelection = selectedSlot >= 0;
-        if (countbar != null) {
-            countbar.visible = hasSelection;
-            if (hasSelection && countbar.max() != selectedCount()) {
-                countbar.setMax(selectedCount());
-                requestCount = MIN_REQUEST;
-                countbar.setValue(requestCount);
-            }
+    private int findSlotHolding(ItemStack wanted) {
+        return menu.slots.stream().filter(slot -> ItemStack.isSameItemSameComponents(wanted, slot.getItem())).map(slot -> slot.index).findFirst().orElse(-1);
+    }
+
+    private void syncVisibility() {
+        boolean shown = selectedSlot >= 0;
+        selectionWidgets.forEach(widget -> widget.visible = shown);
+    }
+
+    private void syncCountRange() {
+        int available = selectedCount();
+        if (countbar == null || selectedSlot < 0 || countbar.max() == available) {
+            return;
         }
-        if (countDown != null) {
-            countDown.visible = hasSelection;
+        countbar.setMax(available);
+        requestCount = MIN_REQUEST;
+        countbar.setValue(requestCount);
+    }
+
+    private void syncPageRange() {
+        if (scrollbar == null || scrollbar.max() == menu.end()) {
+            return;
         }
-        if (countUp != null) {
-            countUp.visible = hasSelection;
-        }
-        if (requestButton != null) {
-            requestButton.visible = hasSelection;
-        }
-        if (scrollbar != null && scrollbar.max() != menu.end()) {
-            scrollbar.setMax(menu.end());
-            lastScrollPage = menu.start();
-            scrollbar.setValue(menu.start());
-        }
+        int firstPage = menu.start();
+        scrollbar.setMax(menu.end());
+        shownPage = firstPage;
+        scrollbar.setValue(firstPage);
     }
 
     @Override
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        if (selectedSlot >= 0) {
-            int x = leftPos + SELECTION_ORIGIN_X + selectedSlot % MenuGolemLogistics.COLUMNS * MenuGolemLogistics.SLOT_STRIDE;
-            int y = topPos + SELECTION_ORIGIN_Y + selectedSlot / MenuGolemLogistics.COLUMNS * MenuGolemLogistics.SLOT_STRIDE;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, background(), x, y, SELECTION_U, SELECTION_V, SELECTION_SIZE, SELECTION_SIZE, ATLAS, ATLAS);
+        if (selectedSlot < 0) {
+            return;
         }
+        int column = selectedSlot % MenuGolemLogistics.COLUMNS;
+        int row = selectedSlot / MenuGolemLogistics.COLUMNS;
+        int x = leftPos + SELECTION_ORIGIN_X + column * MenuGolemLogistics.SLOT_STRIDE;
+        int y = topPos + SELECTION_ORIGIN_Y + row * MenuGolemLogistics.SLOT_STRIDE;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, background(), x, y, SELECTION_U, SELECTION_V, SELECTION_SIZE, SELECTION_SIZE, ATLAS, ATLAS);
     }
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (selectedSlot >= 0) {
-            String text = String.valueOf(requestCount);
-            graphics.text(font, text, COUNT_LABEL_X - font.width(text) / 2, COUNT_LABEL_Y, COUNT_LABEL_COLOR, false);
+            String amount = String.valueOf(requestCount);
+            graphics.text(font, amount, COUNT_LABEL_X - font.width(amount) / 2, COUNT_LABEL_Y, COUNT_LABEL_COLOR, false);
         }
-        if (searchField != null && !searchField.isFocused() && searchField.getValue().isEmpty()) {
+        if (isSearchHintShown()) {
             graphics.text(font, Component.translatable("gui.thaumaturge.logistics.search"), SEARCH_HINT_X, SEARCH_HINT_Y, SEARCH_HINT_COLOR, false);
         }
     }
 
+    private boolean isSearchHintShown() {
+        return searchField != null && searchField.getValue().isEmpty() && !searchField.isFocused();
+    }
+
     @Override
     protected void slotClicked(Slot slot, int slotId, int button, ContainerInput containerInput) {
-        if (slot != null && slot.hasItem()) {
-            if (minecraft != null && minecraft.player != null) {
-                minecraft.player.playSound(TTSounds.CLACK.get(), CLACK_VOLUME, 1.0F);
-            }
-            selectedSlot = slotId;
-            selectedStack = slot.getItem().copy();
-            requestCount = MIN_REQUEST;
-            if (countbar != null) {
-                countbar.setMax(selectedCount());
-                countbar.setValue(requestCount);
-            }
-            return;
+        if (slot == null || !slot.hasItem()) {
+            super.slotClicked(slot, slotId, button, containerInput);
+        } else {
+            pickSlot(slotId, slot);
         }
-        super.slotClicked(slot, slotId, button, containerInput);
+    }
+
+    private void pickSlot(int slotId, Slot slot) {
+        playClack();
+        selectedStack = slot.getItem().copy();
+        selectedSlot = slotId;
+        requestCount = MIN_REQUEST;
+        Optional.ofNullable(countbar).ifPresent(this::resetCountSlider);
+    }
+
+    private void resetCountSlider(TTSlider slider) {
+        slider.setMax(selectedCount());
+        slider.setValue(requestCount);
+    }
+
+    private void playClack() {
+        if (minecraft != null && minecraft.player != null) {
+            minecraft.player.playSound(TTSounds.CLACK.get(), CLACK_VOLUME, 1.0F);
+        }
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (scrollY != 0.0) {
+        boolean scrolled = scrollY != 0.0;
+        if (scrolled) {
             clickButton(scrollY < 0.0 ? MenuGolemLogistics.BUTTON_PAGE_DOWN : MenuGolemLogistics.BUTTON_PAGE_UP);
-            return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return scrolled || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (searchField != null && !searchField.isMouseOver(event.x(), event.y())) {
-            searchField.setFocused(false);
-        }
+        Optional.ofNullable(searchField).filter(field -> !field.isMouseOver(event.x(), event.y())).ifPresent(field -> field.setFocused(false));
         return super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (event.isEscape()) {
-            if (minecraft != null && minecraft.player != null) {
-                minecraft.player.closeContainer();
-            }
-            return true;
+        if (!event.isEscape()) {
+            return searchConsumes(event) || super.keyPressed(event);
         }
-        if (searchField != null && searchField.isFocused() && (searchField.keyPressed(event) || searchField.canConsumeInput())) {
-            return true;
+        if (minecraft != null && minecraft.player != null) {
+            minecraft.player.closeContainer();
         }
-        return super.keyPressed(event);
+        return true;
+    }
+
+    private boolean searchConsumes(KeyEvent event) {
+        if (searchField == null || !searchField.isFocused()) {
+            return false;
+        }
+        return searchField.keyPressed(event) || searchField.canConsumeInput();
     }
 }

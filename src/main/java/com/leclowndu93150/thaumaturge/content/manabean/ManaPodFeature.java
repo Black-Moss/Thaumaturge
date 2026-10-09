@@ -6,18 +6,22 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 public final class ManaPodFeature extends Feature<NoneFeatureConfiguration> {
-    private static final int TREE_SCAN_BELOW_SURFACE = 32;
-    private static final int TREE_SCAN_ABOVE_SURFACE = 16;
-    private static final int CAVE_SCAN_RANGE = 8;
-    private static final int DRIFT = 4;
-    private static final int MIN_START_AGE = 2;
-    private static final int START_AGE_SPREAD = 5;
+    private static final int CAVE_SCAN_BELOW = 8;
+    private static final int CAVE_SCAN_ABOVE = 8;
+    private static final int SURFACE_SCAN_BELOW = 32;
+    private static final int SURFACE_SCAN_ABOVE = 16;
+    private static final int SURFACE_CENTRE_OFFSET = 1;
+    private static final int MIN_START_ABOVE_FLOOR = 1;
+    private static final int DRIFT_BOUND = 4;
+    private static final int MIN_POD_AGE = 2;
+    private static final int POD_AGE_SPREAD = 5;
 
     public ManaPodFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
@@ -26,30 +30,45 @@ public final class ManaPodFeature extends Feature<NoneFeatureConfiguration> {
     @Override
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
+        BlockPos origin = context.origin();
         RandomSource random = context.random();
-        int baseX = context.origin().getX();
-        int baseZ = context.origin().getZ();
-        boolean cave = level.getBiome(context.origin()).is(TTBiomes.MAGICAL_FOREST_CAVES);
-        int centerY = cave ? context.origin().getY() : level.getHeight(Heightmap.Types.MOTION_BLOCKING, baseX, baseZ) - 1;
-        int y = Math.max(level.getMinY() + 1, centerY - (cave ? CAVE_SCAN_RANGE : TREE_SCAN_BELOW_SURFACE));
-        int maxY = Math.min(level.getMaxY(), centerY + (cave ? CAVE_SCAN_RANGE : TREE_SCAN_ABOVE_SURFACE));
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(baseX, y, baseZ);
-        while (cursor.getY() <= maxY) {
-            if (level.isEmptyBlock(cursor) && level.isEmptyBlock(cursor.below())) {
-                if (BlockManaPod.canGrowAt(level, cursor)) {
-                    int age = MIN_START_AGE + random.nextInt(START_AGE_SPREAD);
-                    level.setBlock(cursor, TTBlocks.MANA_POD.get().defaultBlockState().setValue(BlockManaPod.AGE, age), 2);
-                    if (level.getBlockEntity(cursor) instanceof BlockEntityManaPod pod) {
-                        pod.assignWildAspect(level.registryAccess(), random);
-                    }
+        int centre;
+        int below;
+        int above;
+        if (level.getBiome(origin).is(TTBiomes.MAGICAL_FOREST_CAVES)) {
+            centre = origin.getY();
+            below = CAVE_SCAN_BELOW;
+            above = CAVE_SCAN_ABOVE;
+        } else {
+            centre = level.getHeight(Heightmap.Types.MOTION_BLOCKING, origin.getX(), origin.getZ()) - SURFACE_CENTRE_OFFSET;
+            below = SURFACE_SCAN_BELOW;
+            above = SURFACE_SCAN_ABOVE;
+        }
+        int start = Math.max(centre - below, level.getMinY() + MIN_START_ABOVE_FLOOR);
+        int end = Math.min(centre + above, level.getMaxY());
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        int x = origin.getX();
+        int z = origin.getZ();
+        for (int y = start; y <= end; y++) {
+            pos.set(x, y, z);
+            if (level.isEmptyBlock(pos) && level.isEmptyBlock(pos.below())) {
+                if (BlockManaPod.canGrowAt(level, pos)) {
+                    placePod(level, pos, random);
                     return true;
                 }
             } else {
-                cursor.setX(baseX + random.nextInt(DRIFT) - random.nextInt(DRIFT));
-                cursor.setZ(baseZ + random.nextInt(DRIFT) - random.nextInt(DRIFT));
+                x = origin.getX() + random.nextInt(DRIFT_BOUND) - random.nextInt(DRIFT_BOUND);
+                z = origin.getZ() + random.nextInt(DRIFT_BOUND) - random.nextInt(DRIFT_BOUND);
             }
-            cursor.setY(cursor.getY() + 1);
         }
         return true;
+    }
+
+    private static void placePod(WorldGenLevel level, BlockPos pos, RandomSource random) {
+        int age = MIN_POD_AGE + random.nextInt(POD_AGE_SPREAD);
+        level.setBlock(pos, TTBlocks.MANA_POD.get().defaultBlockState().setValue(BlockManaPod.AGE, age), Block.UPDATE_CLIENTS);
+        if (level.getBlockEntity(pos) instanceof BlockEntityManaPod pod) {
+            pod.assignWildAspect(level.registryAccess(), random);
+        }
     }
 }

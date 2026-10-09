@@ -2,32 +2,41 @@ package com.leclowndu93150.thaumaturge.content.device.bore;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
-import com.leclowndu93150.thaumaturge.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityLampArcane;
+import com.leclowndu93150.thaumaturge.content.device.BlockLamp;
 import com.leclowndu93150.thaumaturge.content.equipment.RefiningResults;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jspecify.annotations.Nullable;
 
@@ -37,35 +46,47 @@ public final class ArcaneBoreCore {
     public static final float IDLE_PITCH_STEP = 33.0F;
     public static final float DIG_PITCH_STEP = 90.0F;
 
+    private static final int LEVEL_EVENT_BLOCK_BREAK = 2001;
     private static final int RECHARGE_INTERVAL = 10;
     private static final float DIG_COST = 0.25F;
-    private static final int DURABILITY_PER_BREAKS = 50;
-    private static final long SOUND_DELAY_TICKS = 24;
-    private static final double DROP_COLLECT_RANGE = 1.5;
-    private static final float REFINING_CHANCE_STEP = 0.125F;
-    private static final int MIN_DIG_DELAY = 1;
-    private static final int BASE_DIG_DELAY = 10;
-    private static final float HARDNESS_TO_DELAY = 2.0F;
-    private static final float SPIRAL_BASE_STEP = 3.0F;
-    private static final float SPIRAL_INNER_BOOST = 10.0F;
-    private static final int FULL_TURN = 360;
-    private static final int TUNNEL_LIGHT_SIDEWAYS = 3;
-    private static final int TUNNEL_LIGHT_DROP = 2;
-    private static final int MAX_TUNNEL_LIGHT = 15;
+    private static final int WEAR_INTERVAL = 50;
+    private static final int SOUND_SPACING = 24;
+    private static final int SOUND_JITTER_RANGE = 2;
+    private static final float SOUND_VOLUME = 0.25F;
+    private static final float SOUND_PITCH_MIN = 0.9F;
+    private static final float SOUND_PITCH_SPREAD = 0.2F;
+    private static final double DROP_RANGE = 1.5;
+    private static final float REFINE_CHANCE_PER_STEP = 0.125F;
+    private static final int INACTIVE_AIM_DISTANCE = 1;
+    private static final int ACTIVE_AIM_DISTANCE = 2;
+    private static final double TARGET_CENTER = 0.5;
+    private static final int BASE_DELAY = 10;
+    private static final int HARDNESS_DELAY_FACTOR = 2;
+    private static final int SPEED_DELAY_FACTOR = 2;
+    private static final int MIN_DELAY = 1;
+    private static final float UNBREAKABLE = -1.0F;
+    private static final int MAX_DUPLICATE_SKIPS = 4;
+    private static final int FULL_LIGHT = 15;
+    private static final int LIGHT_PHASES = 4;
+    private static final int LIGHT_PHASE_SPAN = 2;
+    private static final int LIGHT_MAX_SPREAD = 3;
+    private static final int LIGHT_LOWERING = 2;
+    private static final int LIGHT_PHASE_LOWERED = 3;
+    private static final int LIGHT_PHASE_RIGHT = 0;
+    private static final int LIGHT_PHASE_LEFT = 2;
+    private static final Direction[] DIRECTIONS = Direction.values();
 
-    private @Nullable BlockPos digTarget;
-    private @Nullable BlockPos digTargetPrev;
-    private long soundDelay;
-    private int breakCounter;
-    private int digDelay;
-    private int digDelayMax;
-    private float radInc;
-    private int spiral;
-    private float currentRadius;
     private float charge;
+    private @Nullable BlockPos target;
+    private int delay;
+    private int ring;
+    private int step;
+    private @Nullable BlockPos lastCell;
+    private int nextSoundTick;
+    private int wear;
 
     public @Nullable BlockPos digTarget() {
-        return digTarget;
+        return target;
     }
 
     public float charge() {
@@ -77,250 +98,264 @@ public final class ArcaneBoreCore {
     }
 
     public void serverTick(ArcaneBoreHost host, ServerLevel level, int tickCount) {
-        if (tickCount % RECHARGE_INTERVAL == 0 && charge < MAX_CHARGE) {
+        recharge(host, level, tickCount);
+        ItemStack tool = host.boreTool();
+        if (!host.boreActive() || !ArcaneBoreTool.valid(tool)) {
+            target = null;
+            host.setBoreDigging(false);
+            aimIdle(host);
+            return;
+        }
+        if (charge < DIG_COST) {
+            return;
+        }
+        if (target == null) {
+            findTarget(host, level, tool);
+        }
+        BlockPos aimed = target;
+        if (aimed == null) {
+            aimIdle(host);
+            return;
+        }
+        host.aimBore(aimed.getX() + TARGET_CENTER, aimed.getY(), aimed.getZ() + TARGET_CENTER, IDLE_YAW_STEP, DIG_PITCH_STEP);
+        if (--delay <= 0) {
+            dig(host, level, tool, aimed, tickCount);
+        }
+    }
+
+    private void recharge(ArcaneBoreHost host, ServerLevel level, int tickCount) {
+        boolean due = tickCount % RECHARGE_INTERVAL == 0;
+        if (due && charge < MAX_CHARGE) {
             charge += AuraHelper.drainVis(level, host.borePos(), MAX_CHARGE, false);
         }
+    }
+
+    private void aimIdle(ArcaneBoreHost host) {
         Direction facing = host.boreFacing();
         Vec3 position = host.borePosition();
-        if (!host.boreActive()) {
-            digTarget = null;
-            host.aimBore(position.x + facing.getStepX(), position.y, position.z + facing.getStepZ(), IDLE_YAW_STEP, IDLE_PITCH_STEP);
-        }
-        if (digTarget != null && charge >= DIG_COST) {
-            host.aimBore(digTarget.getX() + 0.5, digTarget.getY(), digTarget.getZ() + 0.5, IDLE_YAW_STEP, DIG_PITCH_STEP);
-            if (digDelay-- <= 0 && dig(host, level)) {
-                charge -= DIG_COST;
-                if (soundDelay < level.getGameTime()) {
-                    soundDelay = level.getGameTime() + SOUND_DELAY_TICKS + host.boreRandom().nextInt(2);
-                    host.playBoreSound(TTSounds.RUMBLE.get(), 0.25F, 0.9F + host.boreRandom().nextFloat() * 0.2F);
-                }
-            }
-        }
-        if (digTarget != null) {
-            return;
-        }
-        if (!host.boreActive() || !ArcaneBoreTool.valid(host.boreTool())) {
-            host.setBoreDigging(false);
-            return;
-        }
-        findNextBlockToDig(host);
-        if (digTarget != null) {
-            host.setBoreDigging(true);
-            host.showBoreDig(level, digTarget, digDelayMax);
+        if (host.boreActive()) {
+            Vec3 eye = host.boreEye();
+            host.aimBore(eye.x + facing.getStepX() * ACTIVE_AIM_DISTANCE, eye.y + facing.getStepY() * ACTIVE_AIM_DISTANCE, eye.z + facing.getStepZ() * ACTIVE_AIM_DISTANCE, IDLE_YAW_STEP,
+                    IDLE_PITCH_STEP);
         } else {
+            host.aimBore(position.x + facing.getStepX() * INACTIVE_AIM_DISTANCE, position.y, position.z + facing.getStepZ() * INACTIVE_AIM_DISTANCE, IDLE_YAW_STEP, IDLE_PITCH_STEP);
+        }
+    }
+
+    private void findTarget(ArcaneBoreHost host, ServerLevel level, ItemStack tool) {
+        BlockPos candidate = probe(host, level, tool);
+        if (candidate == null) {
             host.setBoreDigging(false);
-            host.aimBore(position.x + facing.getStepX() * 2, position.y + facing.getStepY() * 2 + host.boreEyeHeight(), position.z + facing.getStepZ() * 2, IDLE_YAW_STEP, IDLE_PITCH_STEP);
-        }
-    }
-
-    private boolean dig(ArcaneBoreHost host, ServerLevel level) {
-        boolean dug = false;
-        if (digTarget != null && !level.isEmptyBlock(digTarget)) {
-            BlockState state = level.getBlockState(digTarget);
-            Set<ItemEntity> lying = new HashSet<>(itemsAround(level, digTarget));
-            dug = breakAsFakePlayer(host, level, digTarget);
-            if (dug) {
-                collectAndEjectDrops(host, level, digTarget, state, lying);
-                damageTool(host);
-                lightTunnel(host, level);
-            }
-        }
-        digTarget = null;
-        return dug;
-    }
-
-    private boolean breakAsFakePlayer(ArcaneBoreHost host, ServerLevel level, BlockPos target) {
-        FakePlayer digger = host.boreDigger(level);
-        digger.setItemInHand(InteractionHand.MAIN_HAND, host.boreTool().copy());
-        try {
-            BlockBreakerEngine.harvestBlock(level, digger, target, ArcaneBoreTool.silkTouch(level, host.boreTool()), ArcaneBoreTool.fortune(level, host.boreTool()));
-            return level.getBlockState(target).isAir();
-        } finally {
-            digger.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        }
-    }
-
-    private static List<ItemEntity> itemsAround(ServerLevel level, BlockPos target) {
-        return level.getEntitiesOfClass(ItemEntity.class, new AABB(target).inflate(DROP_COLLECT_RANGE));
-    }
-
-    private void collectAndEjectDrops(ArcaneBoreHost host, ServerLevel level, BlockPos target, BlockState state, Set<ItemEntity> lying) {
-        int refining = ArcaneBoreTool.refining(host.boreTool());
-        boolean silk = ArcaneBoreTool.silkTouch(level, host.boreTool());
-        for (ItemEntity item : itemsAround(level, target)) {
-            if (lying.contains(item)) {
-                continue;
-            }
-            ItemStack drop = item.getItem().copy();
-            item.discard();
-            ItemStack ejected = drop;
-            if (!silk && refining > 0 && host.boreRandom().nextFloat() < (refining + 1) * REFINING_CHANCE_STEP) {
-                Item cluster = RefiningResults.clusterFor(state);
-                if (cluster != null) {
-                    ejected = new ItemStack(cluster, drop.getCount());
-                }
-            }
-            ejectStack(host, level, ejected);
-        }
-    }
-
-    private void damageTool(ArcaneBoreHost host) {
-        ItemStack held = host.boreTool();
-        breakCounter++;
-        if (held.isEmpty()) {
-            breakCounter = 0;
             return;
         }
-        if (breakCounter >= DURABILITY_PER_BREAKS) {
-            breakCounter -= DURABILITY_PER_BREAKS;
+        BlockState state = level.getBlockState(candidate);
+        int speed = ArcaneBoreTool.digSpeed(level, tool, state);
+        int hardnessDelay = (int) (HARDNESS_DELAY_FACTOR * state.getDestroySpeed(level, candidate)) - SPEED_DELAY_FACTOR * speed;
+        delay = Math.max(MIN_DELAY, Math.max(BASE_DELAY - speed, hardnessDelay));
+        target = candidate;
+        host.setBoreDigging(true);
+        host.showBoreDig(level, candidate, delay);
+    }
+
+    private @Nullable BlockPos probe(ArcaneBoreHost host, ServerLevel level, ItemStack tool) {
+        int radius = ArcaneBoreTool.digRadius(tool);
+        if (ring > radius || step >= ringSamples(ring)) {
+            ring = 0;
+            step = 0;
+        }
+        Direction facing = host.boreFacing();
+        Vec3 start = samplePoint(host.borePos(), facing, ring, step);
+        BlockPos cell = BlockPos.containing(start);
+        for (int skips = 0; skips < MAX_DUPLICATE_SKIPS && cell.equals(lastCell); skips++) {
+            advance(radius);
+            start = samplePoint(host.borePos(), facing, ring, step);
+            cell = BlockPos.containing(start);
+        }
+        lastCell = cell;
+        advance(radius);
+        int depth = ArcaneBoreTool.digDepth(tool);
+        Vec3 end = start.add(facing.getStepX() * (double) depth, facing.getStepY() * (double) depth, facing.getStepZ() * (double) depth);
+        if (!level.hasChunkAt(cell) || !level.hasChunkAt(BlockPos.containing(end))) {
+            return null;
+        }
+        BlockHitResult hit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, host.boreCollisionContext()));
+        if (hit.getType() != HitResult.Type.BLOCK) {
+            return null;
+        }
+        BlockPos hitPos = hit.getBlockPos();
+        if (hitPos.equals(host.borePos()) || hitPos.equals(host.borePos().below())) {
+            return null;
+        }
+        BlockState state = level.getBlockState(hitPos);
+        if (state.isAir() || state.getCollisionShape(level, hitPos).isEmpty() || state.getDestroySpeed(level, hitPos) <= UNBREAKABLE) {
+            return null;
+        }
+        return hitPos;
+    }
+
+    private void advance(int radius) {
+        step++;
+        if (step >= ringSamples(ring)) {
+            step = 0;
+            ring = ring >= radius ? 0 : ring + 1;
+        }
+    }
+
+    private static int ringSamples(int ringIndex) {
+        return ringIndex == 0 ? 1 : Math.max(1, (int) Math.ceil(2.0 * Math.PI * ringIndex));
+    }
+
+    private static Vec3 samplePoint(BlockPos origin, Direction facing, int ringIndex, int stepIndex) {
+        double angle = 2.0 * Math.PI * stepIndex / ringSamples(ringIndex);
+        double first = ringIndex * Math.cos(angle);
+        double second = ringIndex * Math.sin(angle);
+        Vec3 front = Vec3.atCenterOf(origin).add(facing.getStepX(), facing.getStepY(), facing.getStepZ());
+        return switch (facing.getAxis()) {
+            case X -> front.add(0.0, first, second);
+            case Y -> front.add(first, 0.0, second);
+            case Z -> front.add(first, second, 0.0);
+        };
+    }
+
+    private void dig(ArcaneBoreHost host, ServerLevel level, ItemStack tool, BlockPos pos, int tickCount) {
+        target = null;
+        delay = 0;
+        BlockState broken = level.getBlockState(pos);
+        if (broken.isAir()) {
+            return;
+        }
+        AABB area = dropArea(pos);
+        Set<ItemEntity> preexisting = new HashSet<>(level.getEntitiesOfClass(ItemEntity.class, area));
+        if (!breakAsPlayer(host, level, tool, pos)) {
+            return;
+        }
+        List<ItemStack> drops = collectDrops(level, area, preexisting);
+        refine(drops, broken, tool, level, host.boreRandom());
+        for (ItemStack drop : drops) {
+            deliver(host, level, drop);
+        }
+        charge -= DIG_COST;
+        wear(host);
+        lightTunnel(host, level, tool);
+        playSound(host, tickCount);
+    }
+
+    private boolean breakAsPlayer(ArcaneBoreHost host, ServerLevel level, ItemStack tool, BlockPos pos) {
+        FakePlayer digger = host.boreDigger(level);
+        ItemStack held = tool.copy();
+        int fortune = ArcaneBoreTool.fortune(level, tool);
+        if (fortune > 0) {
+            Holder<Enchantment> holder = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+            if (fortune > EnchantmentHelper.getItemEnchantmentLevel(holder, held)) {
+                EnchantmentHelper.updateEnchantments(held, enchantments -> enchantments.set(holder, fortune));
+            }
+        }
+        digger.setItemInHand(InteractionHand.MAIN_HAND, held);
+        BlockState state = level.getBlockState(pos);
+        boolean removed = false;
+        if (!CommonHooks.fireBlockBreak(level, digger.gameMode.getGameModeForPlayer(), digger, pos, state).isCanceled()) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            level.levelEvent(null, LEVEL_EVENT_BLOCK_BREAK, pos, Block.getId(state));
+            removed = level.removeBlock(pos, false);
+            if (removed) {
+                Block.dropResources(state, level, pos, blockEntity, digger, held);
+            }
+        }
+        digger.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        return removed;
+    }
+
+    private static AABB dropArea(BlockPos pos) {
+        Vec3 lower = Vec3.atLowerCornerOf(pos);
+        return new AABB(lower.subtract(DROP_RANGE, DROP_RANGE, DROP_RANGE), lower.add(1.0 + DROP_RANGE, 1.0 + DROP_RANGE, 1.0 + DROP_RANGE));
+    }
+
+    private static List<ItemStack> collectDrops(ServerLevel level, AABB area, Set<ItemEntity> preexisting) {
+        List<ItemEntity> fresh = level.getEntitiesOfClass(ItemEntity.class, area, candidate -> !preexisting.contains(candidate));
+        List<ItemStack> drops = fresh.stream().map(entity -> entity.getItem().copy()).collect(Collectors.toCollection(ArrayList::new));
+        fresh.forEach(ItemEntity::discard);
+        return drops;
+    }
+
+    private static void refine(List<ItemStack> drops, BlockState broken, ItemStack tool, ServerLevel level, RandomSource random) {
+        int refining = ArcaneBoreTool.refining(tool);
+        if (refining <= 0 || ArcaneBoreTool.silkTouch(level, tool)) {
+            return;
+        }
+        Item cluster = RefiningResults.clusterFor(broken);
+        if (cluster == null) {
+            return;
+        }
+        for (int i = 0; i < drops.size(); i++) {
+            if (random.nextFloat() < (refining + 1) * REFINE_CHANCE_PER_STEP) {
+                drops.set(i, new ItemStack(cluster, drops.get(i).getCount()));
+            }
+        }
+    }
+
+    private static void deliver(ArcaneBoreHost host, ServerLevel level, ItemStack drop) {
+        ItemStack rest = drop;
+        for (Direction direction : DIRECTIONS) {
+            if (rest.isEmpty()) {
+                return;
+            }
+            BlockPos neighbor = host.borePos().relative(direction);
+            if (level.hasChunkAt(neighbor)) {
+                rest = InvHelper.insertStackAt(level, neighbor, direction.getOpposite(), rest, false);
+            }
+        }
+        if (!rest.isEmpty()) {
+            host.dropBoreOutput(level, rest);
+        }
+    }
+
+    private void wear(ArcaneBoreHost host) {
+        if (!host.boreTool().isEmpty() && ++wear >= WEAR_INTERVAL) {
+            wear = 0;
             host.hurtBoreTool();
         }
     }
 
-    private void ejectStack(ArcaneBoreHost host, ServerLevel level, ItemStack stack) {
-        if (stack.isEmpty()) {
+    private void playSound(ArcaneBoreHost host, int tickCount) {
+        if (tickCount < nextSoundTick) {
             return;
         }
-        for (Direction face : Direction.values()) {
-            BlockPos side = host.borePos().relative(face);
-            if (InvHelper.getItemHandlerAt(level, side, face.getOpposite()) != null) {
-                ItemStack remainder = InvHelper.insertStackAt(level, side, face.getOpposite(), stack, false);
-                if (remainder.isEmpty()) {
-                    return;
-                }
-                stack = remainder;
-            }
-        }
-        host.dropBoreOutput(level, stack);
+        RandomSource random = host.boreRandom();
+        host.playBoreSound(TTSounds.RUMBLE.get(), SOUND_VOLUME, SOUND_PITCH_MIN + random.nextFloat() * SOUND_PITCH_SPREAD);
+        nextSoundTick = tickCount + SOUND_SPACING + random.nextInt(SOUND_JITTER_RANGE);
     }
 
-    private void lightTunnel(ArcaneBoreHost host, ServerLevel level) {
-        if (!hasAdjacentLamp(host, level)) {
+    private void lightTunnel(ArcaneBoreHost host, ServerLevel level, ItemStack tool) {
+        if (!hasLitArcaneLamp(level, host.borePos())) {
             return;
         }
-        Direction facing = host.boreFacing();
-        ItemStack tool = host.boreTool();
-        int distance = host.boreRandom().nextInt(Math.max(1, ArcaneBoreTool.digDepth(tool) / 2)) * 2;
-        int phase = distance / 2 % 4;
-        int spread = Math.min(TUNNEL_LIGHT_SIDEWAYS, ArcaneBoreTool.digRadius(tool));
-        int sideways = phase == 0 ? spread : phase == 2 ? -spread : 0;
-        BlockPos origin = host.borePos().relative(facing, 1 + distance);
-        int x = origin.getX() + (facing.getStepX() != 0 ? 0 : sideways);
-        int y = origin.getY() - (phase == 3 && facing.getStepY() == 0 ? TUNNEL_LIGHT_DROP : 0);
-        int z = origin.getZ() + (facing.getStepX() != 0 ? sideways : 0);
-        BlockPos target = new BlockPos(x, y, z);
-        if (level.getBlockState(target).isAir() && level.getBrightness(LightLayer.BLOCK, target) < MAX_TUNNEL_LIGHT) {
-            level.setBlock(target, TTBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
-        }
-    }
-
-    private static boolean hasAdjacentLamp(ArcaneBoreHost host, ServerLevel level) {
-        BlockPos pos = host.borePos();
-        for (Direction side : Direction.values()) {
-            BlockPos lamp = pos.relative(side);
-            BlockState state = level.getBlockState(lamp);
-            if (state.hasProperty(BlockStateProperties.ENABLED) && state.getValue(BlockStateProperties.ENABLED) && level.getBlockEntity(lamp) instanceof BlockEntityLampArcane) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void findNextBlockToDig(ArcaneBoreHost host) {
-        int digRadius = ArcaneBoreTool.digRadius(host.boreTool());
-        if (digTargetPrev == null || digTargetPrev.distToCenterSqr(host.borePosition()) > (digRadius + 1) * (digRadius + 1)) {
-            digTargetPrev = host.borePos();
-        }
-        if (radInc == 0.0F) {
-            radInc = 1.0F;
-        }
-        if (acquireTargetThrough(host, digTargetPrev)) {
+        BlockPos anchor = pickGlimmerSpot(host, tool);
+        if (!level.hasChunkAt(anchor)) {
             return;
         }
-        digTargetPrev = advanceSpiral(host, digRadius);
+        boolean dark = level.getBrightness(LightLayer.BLOCK, anchor) < FULL_LIGHT;
+        if (dark && level.getBlockState(anchor).isAir()) {
+            level.setBlock(anchor, TTBlocks.EFFECT_GLIMMER.get().defaultBlockState(), Block.UPDATE_ALL);
+        }
     }
 
-    private boolean acquireTargetThrough(ArcaneBoreHost host, BlockPos scanPoint) {
-        Level level = host.boreLevel();
+    private BlockPos pickGlimmerSpot(ArcaneBoreHost host, ItemStack tool) {
         Direction facing = host.boreFacing();
-        ItemStack tool = host.boreTool();
-        BlockPos end = scanPoint.relative(facing, ArcaneBoreTool.digDepth(tool));
-        BlockHitResult hit = level.clip(new ClipContext(Vec3.atCenterOf(scanPoint), Vec3.atCenterOf(end), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, host.boreCollisionContext()));
-        if (hit.getType() == HitResult.Type.MISS) {
-            return false;
-        }
-        Vec3 eye = host.boreEye();
-        Vec3 digger = new Vec3(eye.x + facing.getStepX(), eye.y + facing.getStepY(), eye.z + facing.getStepZ());
-        hit = level.clip(new ClipContext(digger, Vec3.atCenterOf(hit.getBlockPos()), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, host.boreCollisionContext()));
-        if (hit.getType() == HitResult.Type.MISS) {
-            return false;
-        }
-        BlockPos target = hit.getBlockPos();
-        BlockState state = level.getBlockState(target);
-        if (state.getDestroySpeed(level, target) <= -1.0F || state.getCollisionShape(level, target).isEmpty()) {
-            return false;
-        }
-        int speed = ArcaneBoreTool.digSpeed(level, tool, state);
-        digDelay = Math.max(MIN_DIG_DELAY, Math.max(BASE_DIG_DELAY - speed, (int) (state.getDestroySpeed(level, target) * HARDNESS_TO_DELAY) - speed * 2));
-        digDelayMax = digDelay;
-        if (target.equals(host.borePos()) || target.equals(host.borePos().below())) {
-            return false;
-        }
-        digTarget = target;
-        return true;
+        int distance = LIGHT_PHASE_SPAN * host.boreRandom().nextInt(Math.max(1, ArcaneBoreTool.digDepth(tool) / LIGHT_PHASE_SPAN));
+        int phase = (distance / LIGHT_PHASE_SPAN) % LIGHT_PHASES;
+        int spread = Math.min(LIGHT_MAX_SPREAD, ArcaneBoreTool.digRadius(tool));
+        int sideways = phase == LIGHT_PHASE_RIGHT ? spread : phase == LIGHT_PHASE_LEFT ? -spread : 0;
+        BlockPos spot = host.borePos().relative(facing, 1 + distance);
+        spot = facing.getStepX() != 0 ? spot.offset(0, 0, sideways) : spot.offset(sideways, 0, 0);
+        return phase == LIGHT_PHASE_LOWERED && !facing.getAxis().isVertical() ? spot.below(LIGHT_LOWERING) : spot;
     }
 
-    private BlockPos advanceSpiral(ArcaneBoreHost host, int digRadius) {
-        Direction facing = host.boreFacing();
-        int x = digTargetPrev.getX();
-        int y = digTargetPrev.getY();
-        int z = digTargetPrev.getZ();
-        while (x == digTargetPrev.getX() && z == digTargetPrev.getZ() && y == digTargetPrev.getY()) {
-            if (Math.abs(currentRadius) > digRadius) {
-                currentRadius = digRadius;
-            }
-            spiral = (int) (spiral + (SPIRAL_BASE_STEP + Math.max(0.0F, (SPIRAL_INNER_BOOST - Math.abs(currentRadius)) * 2.0F)));
-            if (spiral >= FULL_TURN) {
-                spiral -= FULL_TURN;
-                currentRadius += radInc;
-                if (currentRadius > digRadius || currentRadius < -digRadius) {
-                    currentRadius = 0.0F;
-                }
-            }
-            Vec3 scan = spiralScanPoint(host, facing);
-            x = Mth.floor(scan.x);
-            y = Mth.floor(scan.y);
-            z = Mth.floor(scan.z);
-        }
-        return new BlockPos(x, y, z);
+    private static boolean hasLitArcaneLamp(ServerLevel level, BlockPos origin) {
+        return Arrays.stream(DIRECTIONS).map(origin::relative).filter(level::hasChunkAt).anyMatch(pos -> isLitArcaneLamp(level, pos));
     }
 
-    private Vec3 spiralScanPoint(ArcaneBoreHost host, Direction facing) {
-        BlockPos pos = host.borePos();
-        Vec3 position = host.borePosition();
-        Vec3 source = new Vec3(pos.getX() + 0.5 + facing.getStepX(), position.y + facing.getStepY() + host.boreEyeHeight(), pos.getZ() + 0.5 + facing.getStepZ());
-        Vec3 offset = new Vec3(0.0, currentRadius, 0.0);
-        offset = rotateAroundZ(offset, spiral / 180.0F * (float) Math.PI);
-        offset = rotateAroundY(offset, (float) (Math.PI / 2) * facing.getStepX());
-        offset = rotateAroundX(offset, (float) (Math.PI / 2) * facing.getStepY());
-        return source.add(offset);
-    }
-
-    private static Vec3 rotateAroundX(Vec3 vec, float angle) {
-        float cos = Mth.cos(angle);
-        float sin = Mth.sin(angle);
-        return new Vec3(vec.x, vec.y * cos - vec.z * sin, vec.y * sin + vec.z * cos);
-    }
-
-    private static Vec3 rotateAroundY(Vec3 vec, float angle) {
-        float cos = Mth.cos(angle);
-        float sin = Mth.sin(angle);
-        return new Vec3(vec.x * cos + vec.z * sin, vec.y, vec.z * cos - vec.x * sin);
-    }
-
-    private static Vec3 rotateAroundZ(Vec3 vec, float angle) {
-        float cos = Mth.cos(angle);
-        float sin = Mth.sin(angle);
-        return new Vec3(vec.x * cos - vec.y * sin, vec.x * sin + vec.y * cos, vec.z);
+    private static boolean isLitArcaneLamp(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return state.getBlock() instanceof BlockLamp && state.getValue(BlockStateProperties.ENABLED) && level.getBlockEntity(pos) instanceof BlockEntityLampArcane;
     }
 }

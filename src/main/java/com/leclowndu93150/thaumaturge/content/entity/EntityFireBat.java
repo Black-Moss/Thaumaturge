@@ -22,6 +22,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -34,53 +35,42 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class EntityFireBat extends Monster {
-    private static final int SPAWN_LIGHT_CAP = 7;
-    private static final EntityDataAccessor<Boolean> DATA_HANGING = SynchedEntityData.defineId(EntityFireBat.class, EntityDataSerializers.BOOLEAN);
-
-    private static final int BAT_TAKEOFF_LEVEL_EVENT = 1025;
-    private static final double WAKE_PLAYER_RANGE = 4.0;
-    private static final int HANG_ONE_IN = 100;
+    private static final EntityDataAccessor<Boolean> HANGING = SynchedEntityData.defineId(EntityFireBat.class, EntityDataSerializers.BOOLEAN);
+    private static final TargetingConditions HANG_DISTURBANCE = TargetingConditions.forNonCombat().range(4.0);
+    private static final String HANG_KEY = "hang";
+    private static final String DAMAGE_BONUS_KEY = "damBonus";
+    private static final String LIFETIME_KEY = "SummonLife";
+    private static final double MAX_HEALTH = 5.0;
+    private static final double ATTACK_DAMAGE = 1.0;
+    private static final double FOLLOW_RANGE = 12.0;
+    private static final double FLYING_SPEED = 0.1;
+    private static final float RELATIVE_FLYING_SPEED = 0.02F;
+    private static final int ATTACK_PRIORITY = 4;
+    private static final int WANDER_PRIORITY = 5;
+    private static final int LOOK_PRIORITY = 7;
+    private static final int RETALIATE_PRIORITY = 1;
+    private static final int PLAYER_PRIORITY = 2;
+    private static final int PLAYER_SCAN_INTERVAL = 10;
+    private static final int SPAWN_LIGHT_BOUND = 7;
+    private static final int SUMMON_LIFETIME = 600;
+    private static final int FLAP_INTERVAL = 10;
+    private static final float SOUND_VOLUME = 0.1F;
+    private static final float VOICE_PITCH_FACTOR = 0.95F;
+    private static final int HANGING_AMBIENT_ONE_IN = 4;
+    private static final float DROWN_DAMAGE = 1.0F;
+    private static final int TAKEOFF_EVENT = 1025;
+    private static final int EXPIRY_EVENT = 2004;
     private static final int HEAD_TURN_ONE_IN = 200;
-    private static final float VERTICAL_DRAG = 0.6F;
-    private static final float FLYING_FRICTION_IMPULSE = 0.02F;
-    private static final float BAT_VOLUME = 0.1F;
-    private static final float BAT_PITCH_FACTOR = 0.95F;
-
-    private static final float TICKS_PER_FLAP = 10.0F;
+    private static final int HEAD_TURN_RANGE = 360;
+    private static final int START_HANGING_ONE_IN = 100;
+    private static final double FLIGHT_VERTICAL_DAMPING = 0.6;
 
     public final AnimationState flyAnimationState = new AnimationState();
     public final AnimationState restAnimationState = new AnimationState();
-
     public @Nullable LivingEntity owner;
     public int damBonus;
-    private int summonLife;
 
-    private static final int SUMMON_LIFESPAN_TICKS = 600;
-
-    public boolean isFlapping() {
-        return !isHanging() && (float) this.tickCount % TICKS_PER_FLAP == 0.0F;
-    }
-
-    public void summon(@Nullable LivingEntity summoner, @Nullable LivingEntity target, int bonus) {
-        this.owner = summoner;
-        this.damBonus = bonus;
-        this.summonLife = SUMMON_LIFESPAN_TICKS;
-        this.setHanging(false);
-        if (target != null) {
-            this.setTarget(target);
-        }
-    }
-
-    public boolean isSummoned() {
-        return summonLife > 0;
-    }
-
-    public static boolean checkFireBatSpawnRules(EntityType<EntityFireBat> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
-        if (level.getMaxLocalRawBrightness(pos) > random.nextInt(SPAWN_LIGHT_CAP)) {
-            return false;
-        }
-        return Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
-    }
+    private int lifetime;
 
     public EntityFireBat(EntityType<? extends EntityFireBat> type, Level level) {
         super(type, level);
@@ -89,47 +79,82 @@ public final class EntityFireBat extends Monster {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 5.0).add(Attributes.ATTACK_DAMAGE, 1.0).add(Attributes.FOLLOW_RANGE, 12.0).add(Attributes.FLYING_SPEED, 0.1);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE).add(Attributes.FOLLOW_RANGE, FOLLOW_RANGE)
+                .add(Attributes.FLYING_SPEED, FLYING_SPEED);
+    }
+
+    public static boolean checkFireBatSpawnRules(EntityType<EntityFireBat> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
+        return level.getMaxLocalRawBrightness(pos) <= random.nextInt(SPAWN_LIGHT_BOUND) && Monster.checkMonsterSpawnRules(type, level, reason, pos, random);
+    }
+
+    public boolean isFlapping() {
+        return !this.isHanging() && this.tickCount % FLAP_INTERVAL == 0;
+    }
+
+    public void summon(LivingEntity owner, @Nullable LivingEntity target, int damageBonus) {
+        this.owner = owner;
+        this.damBonus = damageBonus;
+        this.lifetime = SUMMON_LIFETIME;
+        this.setHanging(false);
+        if (target != null) {
+            this.setTarget(target);
+        }
+    }
+
+    public boolean isSummoned() {
+        return this.lifetime > 0;
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(4, new FireBatAttackGoal(this));
-        this.goalSelector.addGoal(5, new FlyingWanderGoal(this, false, () -> !isHanging()));
-        this.goalSelector.addGoal(7, new Ghast.GhastLookGoal(this));
-        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, false, false, (target, level) -> target != this.owner));
+        this.goalSelector.addGoal(ATTACK_PRIORITY, new FireBatAttackGoal(this));
+        this.goalSelector.addGoal(WANDER_PRIORITY, new FlyingWanderGoal(this, false, this::isFlying));
+        this.goalSelector.addGoal(LOOK_PRIORITY, new Ghast.GhastLookGoal(this));
+        this.targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(PLAYER_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, PLAYER_SCAN_INTERVAL, false, false, this::isNotOwner));
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        super.defineSynchedData(entityData);
-        entityData.define(DATA_HANGING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HANGING, false);
     }
 
     public boolean isHanging() {
-        return this.entityData.get(DATA_HANGING);
+        return this.entityData.get(HANGING);
     }
 
     public void setHanging(boolean hanging) {
-        this.entityData.set(DATA_HANGING, hanging);
+        this.entityData.set(HANGING, hanging);
     }
 
     @Override
-    public void travel(Vec3 input) {
-        this.travelFlying(input, FLYING_FRICTION_IMPULSE);
+    public void tick() {
+        super.tick();
+        steadyBody();
+        updateAnimations();
+        if (this.level() instanceof ServerLevel level && this.lifetime > 0 && --this.lifetime == 0) {
+            level.levelEvent(null, EXPIRY_EVENT, this.blockPosition(), 0);
+            this.discard();
+        }
     }
 
-    @Override
-    public boolean isPushable() {
-        return false;
+    private void steadyBody() {
+        if (this.isHanging()) {
+            clingToCeiling();
+        } else {
+            dampVerticalSpeed();
+        }
     }
 
-    @Override
-    protected void doPush(Entity entity) {}
+    private void clingToCeiling() {
+        this.setDeltaMovement(Vec3.ZERO);
+        this.setPosRaw(this.getX(), Mth.floor(this.getY()) + 1.0 - this.getBbHeight(), this.getZ());
+    }
 
-    @Override
-    protected void checkFallDamage(double ya, boolean onGround, BlockState onState, BlockPos pos) {}
+    private void dampVerticalSpeed() {
+        this.setDeltaMovement(this.getDeltaMovement().multiply(1.0, FLIGHT_VERTICAL_DAMPING, 1.0));
+    }
 
     @Override
     public boolean isIgnoringBlockTriggers() {
@@ -138,17 +163,99 @@ public final class EntityFireBat extends Monster {
 
     @Override
     protected float getSoundVolume() {
-        return BAT_VOLUME;
+        return SOUND_VOLUME;
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        this.setHanging(false);
+        return super.hurtServer(level, source, amount);
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.level() instanceof ServerLevel level) {
+            douse(level);
+            roost(level, hasSolidCeiling(level));
+        }
+    }
+
+    private void douse(ServerLevel level) {
+        if (this.isInWaterOrRain()) {
+            this.hurtServer(level, level.damageSources().drown(), DROWN_DAMAGE);
+        }
+    }
+
+    private void takeOff(ServerLevel level) {
+        level.levelEvent(null, TAKEOFF_EVENT, this.blockPosition(), 0);
+        this.setHanging(false);
+    }
+
+    private boolean hasSolidCeiling(ServerLevel level) {
+        BlockPos above = this.blockPosition().above();
+        return level.getBlockState(above).isRedstoneConductor(level, above);
+    }
+
+    private void roost(ServerLevel level, boolean ceiling) {
+        if (this.isHanging()) {
+            hangOrLeave(level, ceiling);
+        } else if (ceiling && this.getTarget() == null && this.getRandom().nextInt(START_HANGING_ONE_IN) == 0) {
+            this.setHanging(true);
+        }
+    }
+
+    private void hangOrLeave(ServerLevel level, boolean ceiling) {
+        if (!ceiling || level.getNearestPlayer(HANG_DISTURBANCE, this) != null) {
+            takeOff(level);
+            return;
+        }
+        if (this.getRandom().nextInt(HEAD_TURN_ONE_IN) == 0) {
+            this.setYHeadRot(this.getRandom().nextInt(HEAD_TURN_RANGE));
+        }
+    }
+
+    @Override
+    public void travel(Vec3 input) {
+        this.travelFlying(input, RELATIVE_FLYING_SPEED);
+    }
+
+    @Override
+    public boolean isPushable() {
+        return false;
     }
 
     @Override
     public float getVoicePitch() {
-        return super.getVoicePitch() * BAT_PITCH_FACTOR;
+        return super.getVoicePitch() * VOICE_PITCH_FACTOR;
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        writeBatState(output);
+    }
+
+    private void writeBatState(ValueOutput output) {
+        output.putInt(LIFETIME_KEY, this.lifetime);
+        output.putByte(DAMAGE_BONUS_KEY, (byte) this.damBonus);
+        output.putBoolean(HANG_KEY, this.isHanging());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.lifetime = input.getIntOr(LIFETIME_KEY, 0);
+        this.damBonus = input.getByteOr(DAMAGE_BONUS_KEY, (byte) 0);
+        this.setHanging(input.getBooleanOr(HANG_KEY, false));
     }
 
     @Override
     protected @Nullable SoundEvent getAmbientSound() {
-        return isHanging() && this.random.nextInt(4) != 0 ? null : SoundEvents.BAT_AMBIENT;
+        if (!this.isHanging()) {
+            return SoundEvents.BAT_AMBIENT;
+        }
+        return this.getRandom().nextInt(HANGING_AMBIENT_ONE_IN) == 0 ? SoundEvents.BAT_AMBIENT : null;
     }
 
     @Override
@@ -158,8 +265,12 @@ public final class EntityFireBat extends Monster {
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.BAT_DEATH;
+        SoundEvent cry = SoundEvents.BAT_DEATH;
+        return cry;
     }
+
+    @Override
+    protected void doPush(Entity entity) {}
 
     @Override
     public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
@@ -167,78 +278,23 @@ public final class EntityFireBat extends Monster {
     }
 
     @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if (isHanging()) {
-            setHanging(false);
-        }
-        return super.hurtServer(level, source, damage);
+    protected void checkFallDamage(double heightDifference, boolean onGround, BlockState state, BlockPos pos) {}
+
+    private boolean isFlying() {
+        return !this.isHanging();
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        if (!this.level().isClientSide() && this.summonLife > 0 && --this.summonLife == 0) {
-            this.level().levelEvent(2004, this.blockPosition(), 0);
-            this.discard();
-            return;
-        }
-        if (isHanging()) {
-            this.setDeltaMovement(Vec3.ZERO);
-            this.setPosRaw(this.getX(), Mth.floor(this.getY()) + 1.0 - this.getBbHeight(), this.getZ());
-        } else {
-            Vec3 movement = this.getDeltaMovement();
-            this.setDeltaMovement(movement.x, movement.y * VERTICAL_DRAG, movement.z);
-        }
-        this.setupAnimationStates();
+    private boolean isNotOwner(LivingEntity candidate, ServerLevel level) {
+        return candidate != this.owner;
     }
 
-    private void setupAnimationStates() {
-        if (isHanging()) {
+    private void updateAnimations() {
+        if (this.isHanging()) {
             this.flyAnimationState.stop();
             this.restAnimationState.startIfStopped(this.tickCount);
         } else {
             this.restAnimationState.stop();
             this.flyAnimationState.startIfStopped(this.tickCount);
         }
-    }
-
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        if (!(this.level() instanceof ServerLevel server)) {
-            return;
-        }
-        if (this.isInWaterOrRain()) {
-            this.hurtServer(server, this.damageSources().drown(), 1.0F);
-        }
-        BlockPos pos = this.blockPosition();
-        BlockPos above = pos.above();
-        if (isHanging()) {
-            boolean canKeepHanging = this.level().getBlockState(above).isRedstoneConductor(this.level(), above);
-            if (!canKeepHanging || this.level().getNearestPlayer(this, WAKE_PLAYER_RANGE) != null) {
-                setHanging(false);
-                this.level().levelEvent(null, BAT_TAKEOFF_LEVEL_EVENT, pos, 0);
-            } else if (this.random.nextInt(HEAD_TURN_ONE_IN) == 0) {
-                this.yHeadRot = this.random.nextInt(360);
-            }
-        } else if (this.getTarget() == null && this.random.nextInt(HANG_ONE_IN) == 0 && this.level().getBlockState(above).isRedstoneConductor(this.level(), above)) {
-            setHanging(true);
-        }
-    }
-
-    @Override
-    protected void addAdditionalSaveData(ValueOutput output) {
-        super.addAdditionalSaveData(output);
-        output.putBoolean("hang", isHanging());
-        output.putByte("damBonus", (byte) this.damBonus);
-        output.putInt("SummonLife", this.summonLife);
-    }
-
-    @Override
-    protected void readAdditionalSaveData(ValueInput input) {
-        super.readAdditionalSaveData(input);
-        setHanging(input.getBooleanOr("hang", false));
-        this.damBonus = input.getByteOr("damBonus", (byte) 0);
-        this.summonLife = input.getIntOr("SummonLife", 0);
     }
 }

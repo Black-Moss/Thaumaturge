@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.client.entity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.golem.GolemMeshes;
-import com.leclowndu93150.thaumaturge.client.model.mesh.TTMesh;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMeshPart;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -10,7 +9,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
@@ -20,23 +19,34 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 
 public final class TurretCrossbowAdvancedRenderer extends EntityRenderer<EntityTurretCrossbowAdvanced, TurretCrossbowAdvancedRenderer.State> {
-    public static final class State extends TurretCrossbowRenderState {
-        public float headYaw;
-        public float headPitch;
-    }
-
-    private static final Identifier MODEL = TTIds.rl("models/mesh/crossbow_advanced.ttmesh");
+    private static final Identifier MESH = TTIds.rl("models/mesh/crossbow_advanced.ttmesh");
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/crossbow_advanced.png");
-    private static final float BASE_LIFT = 0.75F;
-    private static final float SHADOW = 0.5F;
+    private static final String PART_LEGS = "legs";
+    private static final String PART_MECH = "mech";
+    private static final String PART_BOX = "box";
+    private static final String PART_SHIELD = "shield";
+    private static final String PART_BRAIN = "brain";
+    private static final String PART_LOADER = "loader";
+    private static final String PART_BOW_FIRST = "bow1";
+    private static final String PART_BOW_SECOND = "bow2";
+    private static final float SHADOW_RADIUS = 0.5F;
+    private static final float MODEL_LIFT = 0.75F;
+    private static final float MINECART_SCALE_XZ = 0.66F;
+    private static final float MINECART_SCALE_Y = 0.75F;
+    private static final float HURT_GREEN = 0.5F;
+    private static final float HURT_BLUE = 0.5F;
     private static final float HURT_JIGGLE_DIVISOR = 500.0F;
-    private static final int HURT_TINT = ARGB.colorFromFloat(1.0F, 1.0F, 0.5F, 0.5F);
+    private static final float LOADER_TRAVEL_DIVISOR = 12.0F;
+    private static final float BOW_PIVOT_FORWARD = 0.375F;
+    private static final float BOW_MAX_ANGLE = 20.0F;
+    private static final int WHITE = ARGB.white(1.0F);
+    private static final int HURT_TINT = ARGB.colorFromFloat(1.0F, 1.0F, HURT_GREEN, HURT_BLUE);
 
-    private final RandomSource jiggleRandom = RandomSource.create();
+    private final RandomSource jiggle = RandomSource.create();
 
     public TurretCrossbowAdvancedRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.shadowRadius = SHADOW;
+        this.shadowRadius = SHADOW_RADIUS;
     }
 
     @Override
@@ -58,53 +68,70 @@ public final class TurretCrossbowAdvancedRenderer extends EntityRenderer<EntityT
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        TTMesh mesh = GolemMeshes.get(MODEL);
-        int color = -1;
         poseStack.pushPose();
-        poseStack.translate(0.0F, BASE_LIFT, 0.0F);
+        poseStack.translate(0.0F, MODEL_LIFT, 0.0F);
+        submitLegs(state, poseStack, collector);
+        submitHead(state, poseStack, collector);
+        poseStack.popPose();
+    }
+
+    private void submitLegs(State state, PoseStack poseStack, SubmitNodeCollector collector) {
         poseStack.pushPose();
         if (state.ridingMinecart) {
-            poseStack.scale(0.66F, 0.75F, 0.66F);
+            poseStack.scale(MINECART_SCALE_XZ, MINECART_SCALE_Y, MINECART_SCALE_XZ);
         }
-        submitPart(mesh, "legs", poseStack, collector, color, state);
+        submitPart(PART_LEGS, poseStack, collector, state.lightCoords, WHITE);
         poseStack.popPose();
+    }
+
+    private void submitHead(State state, PoseStack poseStack, SubmitNodeCollector collector) {
+        int light = state.lightCoords;
+        boolean hurt = state.hurtTime > 0;
+        int color = hurt ? HURT_TINT : WHITE;
         poseStack.pushPose();
-        if (state.hurtTime > 0) {
-            color = HURT_TINT;
-            float jiggle = state.hurtTime / HURT_JIGGLE_DIVISOR;
-            poseStack.translate(jiggleRandom.nextGaussian() * jiggle, jiggleRandom.nextGaussian() * jiggle, jiggleRandom.nextGaussian() * jiggle);
+        if (hurt) {
+            float amplitude = state.hurtTime / HURT_JIGGLE_DIVISOR;
+            poseStack.translate((float) jiggle.nextGaussian() * amplitude, (float) jiggle.nextGaussian() * amplitude, (float) jiggle.nextGaussian() * amplitude);
         }
-        poseStack.mulPose(Axis.YN.rotationDegrees(state.headYaw));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-state.headYaw));
         poseStack.mulPose(Axis.XP.rotationDegrees(state.headPitch));
-        submitPart(mesh, "mech", poseStack, collector, color, state);
-        submitPart(mesh, "box", poseStack, collector, color, state);
-        submitPart(mesh, "shield", poseStack, collector, color, state);
-        submitPart(mesh, "brain", poseStack, collector, color, state);
+        submitPart(PART_MECH, poseStack, collector, light, color);
+        submitPart(PART_BOX, poseStack, collector, light, color);
+        submitPart(PART_SHIELD, poseStack, collector, light, color);
+        submitPart(PART_BRAIN, poseStack, collector, light, color);
         poseStack.pushPose();
-        poseStack.translate(0.0, 0.0, Mth.sin(Mth.sqrt(state.loadProgress) * Mth.TWO_PI) / 12.0F);
-        submitPart(mesh, "loader", poseStack, collector, color, state);
-        poseStack.popPose();
-        float bowSwing = Mth.sin(Mth.sqrt(state.swingAnim) * Mth.TWO_PI) * 20.0F;
-        poseStack.translate(0.0, 0.0, 0.375);
-        poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(bowSwing));
-        submitPart(mesh, "bow1", poseStack, collector, color, state);
+        poseStack.translate(0.0F, 0.0F, Mth.sin(Mth.TWO_PI * Mth.sqrt(state.loadProgress)) / LOADER_TRAVEL_DIVISOR);
+        submitPart(PART_LOADER, poseStack, collector, light, color);
         poseStack.popPose();
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YN.rotationDegrees(bowSwing));
-        submitPart(mesh, "bow2", poseStack, collector, color, state);
-        poseStack.popPose();
+        poseStack.translate(0.0F, 0.0F, BOW_PIVOT_FORWARD);
+        float angle = Mth.sin(Mth.TWO_PI * Mth.sqrt(state.swingAnim)) * BOW_MAX_ANGLE;
+        submitBow(PART_BOW_FIRST, angle, poseStack, collector, light, color);
+        submitBow(PART_BOW_SECOND, -angle, poseStack, collector, light, color);
         poseStack.popPose();
         poseStack.popPose();
     }
 
-    private static void submitPart(TTMesh mesh, String name, PoseStack poseStack, SubmitNodeCollector collector, int color, State state) {
-        RenderType type = RenderTypes.entityCutout(TEXTURE);
-        int light = state.lightCoords;
-        for (TTMeshPart part : mesh.parts()) {
-            if (name.equals(part.name())) {
-                collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
+    private void submitBow(String name, float angle, PoseStack poseStack, SubmitNodeCollector collector, int light, int color) {
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees(angle));
+        submitPart(name, poseStack, collector, light, color);
+        poseStack.popPose();
+    }
+
+    private void submitPart(String name, PoseStack poseStack, SubmitNodeCollector collector, int light, int color) {
+        for (TTMeshPart part : GolemMeshes.get(MESH).parts()) {
+            if (part.name().equals(name)) {
+                collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
+                return;
             }
         }
+    }
+
+    public static final class State extends TurretCrossbowRenderState {
+        public float headYaw;
+        public float headPitch;
+
+        public State() {}
     }
 }

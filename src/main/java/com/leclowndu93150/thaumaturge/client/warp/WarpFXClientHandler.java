@@ -8,21 +8,30 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class WarpFXClientHandler {
+    private static final float HEARTBEAT_VOLUME = 1.0F;
+    private static final float HEARTBEAT_PITCH = 1.0F;
+
     private WarpFXClientHandler() {}
 
-    public static void handle(ClientboundWarpFXPayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            switch (payload.kind()) {
-                case ClientboundWarpFXPayload.KIND_HEARTBEAT -> {
-                    if (!ThaumaturgeCommonConfig.NO_STRESS.get()) {
-                        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(TTSounds.HEARTBEAT.get(), 1.0F, 1.0F));
-                    }
-                }
-                case ClientboundWarpFXPayload.KIND_MIST -> WarpFogState.startMist();
-                case ClientboundWarpFXPayload.KIND_MIST_SHORT -> WarpFogState.startShortMist();
-                default -> {
-                }
+    public static void handle(ClientboundWarpFXPayload payload, IPayloadContext context) {
+        byte kind = payload.kind();
+        context.enqueueWork(() -> react(kind));
+    }
+
+    private static void react(byte kind) {
+        switch (kind) {
+            case ClientboundWarpFXPayload.KIND_HEARTBEAT -> playHeartbeat();
+            case ClientboundWarpFXPayload.KIND_MIST -> WarpFogState.startMist();
+            case ClientboundWarpFXPayload.KIND_MIST_SHORT -> WarpFogState.startShortMist();
+            default -> {
             }
-        });
+        }
+    }
+
+    private static void playHeartbeat() {
+        if (ThaumaturgeCommonConfig.NO_STRESS.get()) {
+            return;
+        }
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(TTSounds.HEARTBEAT.get(), HEARTBEAT_PITCH, HEARTBEAT_VOLUME));
     }
 }

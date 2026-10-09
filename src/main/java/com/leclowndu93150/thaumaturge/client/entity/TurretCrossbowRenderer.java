@@ -18,6 +18,11 @@ public final class TurretCrossbowRenderer extends MobRenderer<EntityTurretCrossb
     }
 
     @Override
+    public Identifier getTextureLocation(TurretCrossbowRenderState renderState) {
+        return TEXTURE;
+    }
+
+    @Override
     public TurretCrossbowRenderState createRenderState() {
         return new TurretCrossbowRenderState();
     }
@@ -25,16 +30,11 @@ public final class TurretCrossbowRenderer extends MobRenderer<EntityTurretCrossb
     @Override
     public void extractRenderState(EntityTurretCrossbow entity, TurretCrossbowRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
-        state.yRot = Mth.wrapDegrees(Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot));
         state.bodyRot = 0.0F;
-        state.swingAnim = entity.swingAnim;
+        state.yRot = Mth.wrapDegrees(Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot));
         state.loadProgress = entity.getLoadProgress(partialTicks);
-        state.ridingMinecart = entity.getVehicle() instanceof AbstractMinecart;
+        state.swingAnim = entity.swingAnim;
         state.hurtTime = entity.hurtTime;
-    }
-
-    @Override
-    public Identifier getTextureLocation(TurretCrossbowRenderState state) {
-        return TEXTURE;
+        state.ridingMinecart = entity.getVehicle() instanceof AbstractMinecart;
     }
 }

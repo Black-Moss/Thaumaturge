@@ -14,6 +14,7 @@ import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -32,359 +33,403 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public final class MenuArcaneWorkbench extends AbstractContainerMenu {
-    private static final int RESULT_SLOT = 0;
-    private static final int CRAFT_START = 1;
-    private static final int CRYSTAL_START = 10;
-    private static final int WAND_SLOT = 16;
-    private static final int PLAYER_INV_START = 17;
-    private static final int PLAYER_INV_END = 44;
-    private static final int HOTBAR_START = 44;
-    private static final int HOTBAR_END = 53;
-
-    private static final int RESULT_X = 160;
-    private static final int RESULT_Y = 64;
-    private static final int CRAFT_ORIGIN_X = 41;
-    private static final int CRAFT_ORIGIN_Y = 41;
-    private static final int CRAFT_SPACING = 23;
-    public static final int CRYSTAL_SLOT_START = 9;
-    public static final int[] CRYSTAL_X = {64, 16, 112, 16, 112, 64};
-    public static final int[] CRYSTAL_Y = {13, 35, 35, 94, 94, 116};
+    public static final List<ResourceKey<IAspect>> PRIMAL_ORDER = List.of(TTAspects.AER, TTAspects.IGNIS, TTAspects.AQUA, TTAspects.TERRA, TTAspects.ORDO, TTAspects.PERDITIO);
     public static final int WAND_X = 160;
     public static final int WAND_Y = 100;
-    private static final int PLAYER_INV_X = 16;
-    private static final int PLAYER_INV_Y = 151;
-    private static final int HOTBAR_Y = 209;
-    private static final int SLOT_SPACING = 18;
+    public static final int[] CRYSTAL_Y = {13, 35, 35, 94, 94, 116};
+    public static final int[] CRYSTAL_X = {64, 16, 112, 16, 112, 64};
+    public static final int CRYSTAL_SLOT_START = InventoryArcaneWorkbench.CRAFTING_SLOTS;
 
-    public static final List<ResourceKey<IAspect>> PRIMAL_ORDER = List.of(TTAspects.AER, TTAspects.IGNIS, TTAspects.AQUA, TTAspects.TERRA, TTAspects.ORDO, TTAspects.PERDITIO);
-
-    private static final int AURA_DATA_INDEX = 0;
     private static final int AURA_REFRESH_INTERVAL = 10;
+    private static final double VALID_DISTANCE_SQUARED = 64.0;
+    private static final int GRID_SIZE = 3;
+    private static final int GRID_ORIGIN = 41;
+    private static final int GRID_SPACING = 23;
+    private static final int RESULT_X = 160;
+    private static final int RESULT_Y = 64;
+    private static final int SLOT_SPACING = 18;
+    private static final int INVENTORY_X = 16;
+    private static final int INVENTORY_Y = 151;
+    private static final int HOTBAR_Y = 209;
+    private static final int INVENTORY_ROWS = 3;
+    private static final int INVENTORY_COLUMNS = 9;
+    private static final int RESULT_SLOT = 0;
+    private static final int GRID_START = 1;
+    private static final int GRID_END = GRID_START + InventoryArcaneWorkbench.CRAFTING_SLOTS;
+    private static final int CRYSTAL_MENU_START = GRID_END;
+    private static final int WAND_MENU_SLOT = CRYSTAL_MENU_START + InventoryArcaneWorkbench.CRYSTAL_SLOTS;
+    private static final int PLAYER_START = WAND_MENU_SLOT + 1;
+    private static final int MAIN_END = PLAYER_START + INVENTORY_ROWS * INVENTORY_COLUMNS;
+    private static final int PLAYER_END = MAIN_END + INVENTORY_COLUMNS;
+    private static final int PLAYER_MAIN_FIRST = INVENTORY_COLUMNS;
+    private static final int HOTBAR_LAST_KEY = 8;
+    private static final int OFFHAND_KEY = 40;
+    private static final int AURA_DATA_SLOT = 0;
+    private static final String STAFF_MESSAGE = "message.thaumaturge.arcane_workbench.staff";
 
-    private final InventoryArcaneWorkbench craftingInventory;
-    private final ResultContainer resultContainer = new ResultContainer();
-    private final SimpleContainerData containerData = new SimpleContainerData(1);
+    private final InventoryArcaneWorkbench inventory;
     private final ContainerLevelAccess access;
-    private final Player player;
-    private final @Nullable BlockEntityArcaneWorkbench tile;
-    private final Runnable onChange;
+    private final ResultContainer result = new ResultContainer();
+    private final SimpleContainerData auraData = new SimpleContainerData(1);
     private final SlotArcaneResult resultSlot;
-    private long lastAuraRefresh = Long.MIN_VALUE;
-    private int lastVis = -1;
-    private boolean displayingArcane;
+    private final Player player;
+    private final @Nullable BlockEntityArcaneWorkbench workbench;
+    private final @Nullable ServerPlayer serverPlayer;
+    private final @Nullable ServerLevel serverLevel;
+    private final Runnable changeListener = this::inventoryChanged;
+    private @Nullable RecipeHolder<CraftingRecipe> usedRecipe;
+    private boolean arcaneResult;
+    private boolean auraRead;
+    private long lastAuraRefresh;
 
-    public MenuArcaneWorkbench(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, new InventoryArcaneWorkbench(), ContainerLevelAccess.create(playerInventory.player.level(), buf.readBlockPos()), null);
+    public MenuArcaneWorkbench(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
+        this(containerId, playerInventory, new InventoryArcaneWorkbench(), ContainerLevelAccess.create(playerInventory.player.level(), buffer.readBlockPos()), null);
     }
 
-    public MenuArcaneWorkbench(int containerId, Inventory playerInventory, BlockEntityArcaneWorkbench tile) {
-        this(containerId, playerInventory, tile.getInventory(), ContainerLevelAccess.create(tile.getLevel(), tile.getBlockPos()), tile);
+    public MenuArcaneWorkbench(int containerId, Inventory playerInventory, BlockEntityArcaneWorkbench workbench) {
+        this(containerId, playerInventory, workbench.getInventory(), accessFor(workbench), workbench);
     }
 
-    private MenuArcaneWorkbench(int containerId, Inventory playerInventory, InventoryArcaneWorkbench craftingInventory, ContainerLevelAccess access, @Nullable BlockEntityArcaneWorkbench tile) {
+    private MenuArcaneWorkbench(int containerId, Inventory playerInventory, InventoryArcaneWorkbench inventory, ContainerLevelAccess access, @Nullable BlockEntityArcaneWorkbench workbench) {
         super(TTMenus.ARCANE_WORKBENCH.get(), containerId);
-        this.craftingInventory = craftingInventory;
+        this.inventory = inventory;
         this.access = access;
+        this.workbench = workbench;
         this.player = playerInventory.player;
-        this.tile = tile;
-        this.onChange = () -> slotsChanged(craftingInventory);
-        this.resultSlot = new SlotArcaneResult(resultContainer, this, RESULT_X, RESULT_Y);
-
-        craftingInventory.addChangedListener(onChange);
-        addSlots(playerInventory);
-        addDataSlots(containerData);
-        slotsChanged(craftingInventory);
+        this.serverPlayer = player instanceof ServerPlayer sp ? sp : null;
+        this.serverLevel = workbench != null && workbench.getLevel() instanceof ServerLevel sl ? sl : null;
+        this.resultSlot = new SlotArcaneResult(result, this, RESULT_X, RESULT_Y);
+        addSlot(resultSlot);
+        addCraftingGrid();
+        addCrystalSlots();
+        addSlot(new SlotWorkbenchWand(inventory, InventoryArcaneWorkbench.WAND_SLOT, WAND_X, WAND_Y));
+        addPlayerSlots(playerInventory);
+        addDataSlots(auraData);
+        if (craftsOnServer()) {
+            inventory.addChangedListener(changeListener);
+            refreshResult();
+        }
     }
 
-    private void addSlots(Inventory playerInventory) {
-        addSlot(resultSlot);
-
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                addSlot(new Slot(craftingInventory, col + row * 3, CRAFT_ORIGIN_X + col * CRAFT_SPACING, CRAFT_ORIGIN_Y + row * CRAFT_SPACING));
-            }
+    private void addCraftingGrid() {
+        for (int cell = 0; cell < GRID_SIZE * GRID_SIZE; cell++) {
+            addSlot(new Slot(inventory, cell, GRID_ORIGIN + cell % GRID_SIZE * GRID_SPACING, GRID_ORIGIN + cell / GRID_SIZE * GRID_SPACING));
         }
+    }
 
-        for (int i = 0; i < PRIMAL_ORDER.size(); i++) {
-            addSlot(new SlotCrystalEssentia(craftingInventory, CRYSTAL_SLOT_START + i, CRYSTAL_X[i], CRYSTAL_Y[i], PRIMAL_ORDER.get(i)));
+    private void addCrystalSlots() {
+        int index = 0;
+        for (ResourceKey<IAspect> primal : PRIMAL_ORDER) {
+            addSlot(new SlotCrystalEssentia(inventory, CRYSTAL_SLOT_START + index, CRYSTAL_X[index], CRYSTAL_Y[index], primal));
+            index++;
         }
+    }
 
-        addSlot(new SlotWorkbenchWand(craftingInventory, InventoryArcaneWorkbench.WAND_SLOT, WAND_X, WAND_Y));
-
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, PLAYER_INV_X + col * SLOT_SPACING, PLAYER_INV_Y + row * SLOT_SPACING));
-            }
+    private void addPlayerSlots(Inventory playerInventory) {
+        for (int cell = 0; cell < INVENTORY_ROWS * INVENTORY_COLUMNS; cell++) {
+            int x = INVENTORY_X + cell % INVENTORY_COLUMNS * SLOT_SPACING;
+            int y = INVENTORY_Y + cell / INVENTORY_COLUMNS * SLOT_SPACING;
+            addSlot(new Slot(playerInventory, PLAYER_MAIN_FIRST + cell, x, y));
         }
-
-        for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInventory, col, PLAYER_INV_X + col * SLOT_SPACING, HOTBAR_Y));
+        for (int hotbar = 0; hotbar < INVENTORY_COLUMNS; hotbar++) {
+            addSlot(new Slot(playerInventory, hotbar, INVENTORY_X + hotbar * SLOT_SPACING, HOTBAR_Y));
         }
+    }
+
+    private static ContainerLevelAccess accessFor(BlockEntityArcaneWorkbench workbench) {
+        Level level = workbench.getLevel();
+        return level == null ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(level, workbench.getBlockPos());
+    }
+
+    boolean craftsOnServer() {
+        return workbench != null && serverPlayer != null && serverLevel != null;
+    }
+
+    private void inventoryChanged() {
+        slotsChanged(inventory);
     }
 
     @Override
     public void slotsChanged(Container container) {
-        if (container != craftingInventory)
-            return;
-        if (tile == null)
-            return;
-        if (!(tile.getLevel() instanceof ServerLevel serverLevel))
-            return;
-        updateResult((ServerPlayer) player, serverLevel);
+        if (container == inventory) {
+            refreshResult();
+        }
     }
 
-    private void updateResult(ServerPlayer sp, ServerLevel level) {
-        ItemStack result = ItemStack.EMPTY;
-        RecipeHolder<?> recipeToStore = null;
-        displayingArcane = false;
+    private ArcaneWorkbenchContext context() {
+        return ArcaneWorkbenchContext.placed(serverPlayer, workbench.getBlockPos(), workbench.hostIdentity(), null);
+    }
 
-        ArcaneCraftingTransaction.Result arcane = ArcaneCraftingTransaction.preview(context(sp), sp, craftingInventory.asArcaneCraftInput());
-        if (arcane.successful()) {
-            result = arcane.output();
-            displayingArcane = true;
+    private void refreshResult() {
+        if (!craftsOnServer()) {
+            return;
         }
-
-        CraftingInput vanillaInput = craftingInventory.asCraftInput();
-        if (result.isEmpty()) {
-            Optional<RecipeHolder<CraftingRecipe>> vanilla = findVanillaRecipe(level, vanillaInput);
-            if (vanilla.isPresent()) {
-                result = vanilla.get().value().assemble(vanillaInput);
-                recipeToStore = vanilla.get();
+        arcaneResult = false;
+        usedRecipe = null;
+        ItemStack output = ItemStack.EMPTY;
+        ArcaneCraftingInput arcaneInput = inventory.asPositionedArcaneCraftInput().input();
+        if (arcaneInput.width() > 0) {
+            ArcaneCraftingTransaction.Result preview = ArcaneCraftingTransaction.preview(context(), serverPlayer, arcaneInput.withPlayer(serverPlayer));
+            if (preview.successful() && !preview.output().isEmpty()) {
+                arcaneResult = true;
+                output = preview.output();
             }
         }
-
-        resultContainer.setRecipeUsed(recipeToStore);
-        resultContainer.setItem(0, result);
-    }
-
-    boolean craftsOnServer() {
-        return tile != null && player instanceof ServerPlayer && tile.getLevel() instanceof ServerLevel;
+        if (!arcaneResult) {
+            CraftingInput craftingInput = inventory.asPositionedCraftInput().input();
+            if (craftingInput.width() > 0) {
+                Optional<RecipeHolder<CraftingRecipe>> match = serverLevel.recipeAccess().getRecipeFor(RecipeType.CRAFTING, craftingInput, serverLevel);
+                if (match.isPresent()) {
+                    usedRecipe = match.get();
+                    output = usedRecipe.value().assemble(craftingInput);
+                }
+            }
+        }
+        result.setItem(0, output);
     }
 
     ItemStack takeCraft() {
-        ServerPlayer serverPlayer = (ServerPlayer) player;
-        ServerLevel level = (ServerLevel) tile.getLevel();
-        ItemStack crafted = ItemStack.EMPTY;
+        if (!craftsOnServer()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack crafted;
         try (Transaction transaction = Transaction.openRoot()) {
-            crafted = craft(serverPlayer, level, transaction);
+            crafted = craft(transaction);
             if (!crafted.isEmpty()) {
                 transaction.commit();
             }
         }
         if (crafted.isEmpty()) {
-            updateResult(serverPlayer, level);
+            refreshResult();
         }
         return crafted;
     }
 
-    private ItemStack craft(ServerPlayer serverPlayer, ServerLevel level, TransactionContext transaction) {
-        ItemStack displayed = resultContainer.getItem(0);
-        if (displayed.isEmpty()) {
+    private ItemStack craft(TransactionContext transaction) {
+        ItemStack shown = result.getItem(0).copy();
+        if (shown.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        ItemStack crafted = displayingArcane ? craftArcane(serverPlayer, transaction) : craftVanilla(serverPlayer, level, transaction);
-        return ItemStack.matches(crafted, displayed) ? crafted : ItemStack.EMPTY;
+        ItemStack crafted = arcaneResult ? craftArcane(transaction) : craftVanilla(transaction);
+        return !crafted.isEmpty() && ItemStack.matches(crafted, shown) ? crafted : ItemStack.EMPTY;
     }
 
-    private ItemStack craftArcane(ServerPlayer serverPlayer, TransactionContext transaction) {
-        ArcaneCraftingInput.Positioned positioned = craftingInventory.asPositionedArcaneCraftInput();
-        ArcaneCraftingInput input = positioned.input();
-        WorkbenchCraftingStore store = new WorkbenchCraftingStore(craftingInventory, serverPlayer, positioned.left(), positioned.top(), input.width(), input.height());
-        ArcaneCraftingTransaction.Result result = ArcaneCraftingTransaction.craft(context(serverPlayer), serverPlayer, input, store, transaction);
-        return result.successful() ? result.output() : ItemStack.EMPTY;
-    }
-
-    private ItemStack craftVanilla(ServerPlayer serverPlayer, ServerLevel level, TransactionContext transaction) {
-        RecipeHolder<?> used = resultContainer.getRecipeUsed();
-        if (used == null || !(used.value() instanceof CraftingRecipe recipe)) {
+    private ItemStack craftArcane(TransactionContext transaction) {
+        ArcaneCraftingInput.Positioned positioned = inventory.asPositionedArcaneCraftInput();
+        ArcaneCraftingInput input = positioned.input().withPlayer(serverPlayer);
+        if (input.width() == 0) {
             return ItemStack.EMPTY;
         }
-        CraftingInput.Positioned positioned = craftingInventory.asPositionedCraftInput();
+        WorkbenchCraftingStore store = new WorkbenchCraftingStore(inventory, serverPlayer, positioned.left(), positioned.top(), input.width(), input.height());
+        ArcaneCraftingTransaction.Result crafted = ArcaneCraftingTransaction.craft(context(), serverPlayer, input, store, transaction);
+        return crafted.successful() ? crafted.output() : ItemStack.EMPTY;
+    }
+
+    private ItemStack craftVanilla(TransactionContext transaction) {
+        if (usedRecipe == null) {
+            return ItemStack.EMPTY;
+        }
+        CraftingInput.Positioned positioned = inventory.asPositionedCraftInput();
         CraftingInput input = positioned.input();
-        if (!recipe.matches(input, level)) {
+        CraftingRecipe recipe = usedRecipe.value();
+        if (input.width() == 0 || !recipe.matches(input, serverLevel)) {
             return ItemStack.EMPTY;
         }
-        WorkbenchCraftingStore store = new WorkbenchCraftingStore(craftingInventory, serverPlayer, positioned.left(), positioned.top(), input.width(), input.height());
-        IArcaneCraftingStore.Consumption consumption = new IArcaneCraftingStore.Consumption(input.items(), recipe.getRemainingItems(input), AspectList.EMPTY, craftingInventory.wandStack());
         ItemStack output = recipe.assemble(input);
+        WorkbenchCraftingStore store = new WorkbenchCraftingStore(inventory, serverPlayer, positioned.left(), positioned.top(), input.width(), input.height());
+        IArcaneCraftingStore.Consumption consumption = new IArcaneCraftingStore.Consumption(input.items(), recipe.getRemainingItems(input), AspectList.EMPTY, inventory.wandStack());
         if (!store.consume(consumption, transaction)) {
             return ItemStack.EMPTY;
         }
-        ItemStack crafted = output.copy();
-        new RootCommitJournal(() -> ResearchProgressionEvents.recordCrafted(serverPlayer, crafted)).updateSnapshots(transaction);
+        ItemStack recorded = output.copy();
+        ServerPlayer crafter = serverPlayer;
+        new RootCommitJournal(() -> ResearchProgressionEvents.recordCrafted(crafter, recorded)).updateSnapshots(transaction);
         return output;
-    }
-
-    private ArcaneWorkbenchContext context(ServerPlayer serverPlayer) {
-        return ArcaneWorkbenchContext.placed(serverPlayer, tile.getBlockPos(), tile.hostIdentity(), null);
-    }
-
-    private Optional<RecipeHolder<CraftingRecipe>> findVanillaRecipe(ServerLevel level, CraftingInput input) {
-        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level);
     }
 
     @Override
     public void broadcastChanges() {
-        if (tile != null && tile.getLevel() != null) {
-            long gameTime = tile.getLevel().getGameTime();
-            if (gameTime >= lastAuraRefresh + AURA_REFRESH_INTERVAL) {
-                lastAuraRefresh = gameTime;
-                tile.refreshAura();
-            }
-            if (lastVis != tile.auraVis) {
-                slotsChanged(craftingInventory);
-                containerData.set(AURA_DATA_INDEX, tile.auraVis);
-                lastVis = tile.auraVis;
+        if (craftsOnServer()) {
+            long time = serverLevel.getGameTime();
+            if (!auraRead || time < lastAuraRefresh || time - lastAuraRefresh >= AURA_REFRESH_INTERVAL) {
+                workbench.refreshAura();
+                boolean first = !auraRead;
+                auraRead = true;
+                lastAuraRefresh = time;
+                if (first || workbench.auraVis != auraData.get(AURA_DATA_SLOT)) {
+                    auraData.set(AURA_DATA_SLOT, workbench.auraVis);
+                    refreshResult();
+                }
             }
         }
         super.broadcastChanges();
     }
 
     public int getCachedVis() {
-        return containerData.get(AURA_DATA_INDEX);
+        return auraData.get(AURA_DATA_SLOT);
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return access.evaluate((level, pos) -> level.getBlockState(pos).is(TTBlocks.ARCANE_WORKBENCH.get()) && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0,
-                true);
+        return access.evaluate((level, pos) -> isReachable(player, level, pos), true);
+    }
+
+    private static boolean isReachable(Player user, Level level, BlockPos pos) {
+        if (!level.getBlockState(pos).is(TTBlocks.ARCANE_WORKBENCH)) {
+            return false;
+        }
+        return user.distanceToSqr(pos.getCenter()) <= VALID_DISTANCE_SQUARED;
     }
 
     @Override
     public void removed(Player player) {
         super.removed(player);
-        craftingInventory.removeChangedListener(onChange);
+        inventory.removeChangedListener(changeListener);
     }
 
     @Override
-    public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
-        return slot.container != resultContainer && super.canTakeItemForPickAll(stack, slot);
+    public boolean canTakeItemForPickAll(ItemStack carried, Slot slot) {
+        return slot.container != result && super.canTakeItemForPickAll(carried, slot);
     }
 
     @Override
-    public void clicked(int slotId, int button, ContainerInput containerInput, Player player) {
-        if (slotId == WAND_SLOT && getCarried().getItem() instanceof ItemWand wand && wand.isStaff(getCarried())) {
-            TTActionBar.sendPurple(player, "message.thaumaturge.arcane_workbench.staff");
+    public void clicked(int slotIndex, int button, ContainerInput input, Player clicker) {
+        if (slotIndex == WAND_MENU_SLOT && clicker instanceof ServerPlayer && isStaff(getCarried())) {
+            TTActionBar.sendPurple(clicker, STAFF_MESSAGE);
         }
-        if (slotId == RESULT_SLOT && containerInput == ContainerInput.SWAP && craftsOnServer()) {
-            swapCraft(button);
+        if (input == ContainerInput.SWAP && slotIndex == RESULT_SLOT && craftsOnServer()) {
+            swapCraft(button, clicker);
             return;
         }
-        super.clicked(slotId, button, containerInput, player);
+        super.clicked(slotIndex, button, input, clicker);
     }
 
-    private void swapCraft(int button) {
-        if (!Inventory.isHotbarSlot(button) && button != Inventory.SLOT_OFFHAND) {
-            return;
-        }
-        Inventory inventory = player.getInventory();
-        if (!inventory.getItem(button).isEmpty() || !resultSlot.hasItem()) {
-            return;
-        }
-        ItemStack crafted = takeCraft();
+    private static boolean isStaff(ItemStack stack) {
+        return stack.getItem() instanceof ItemWand wand && wand.usesStaffRod(stack);
+    }
+
+    private void swapCraft(int key, Player clicker) {
+        Inventory carrier = clicker.getInventory();
+        ItemStack crafted = canSwapInto(carrier, key) ? takeCraft() : ItemStack.EMPTY;
         if (crafted.isEmpty()) {
             return;
         }
-        inventory.setItem(button, crafted);
+        carrier.setItem(key, crafted);
         resultSlot.onSwapCraft(crafted.getCount());
-        resultSlot.onTake(player, crafted);
+        resultSlot.onTake(clicker, crafted);
+    }
+
+    private boolean canSwapInto(Inventory carrier, int key) {
+        boolean hotbarKey = key >= 0 && key <= HOTBAR_LAST_KEY;
+        if (!hotbarKey && key != OFFHAND_KEY) {
+            return false;
+        }
+        return carrier.getItem(key).isEmpty() && resultSlot.hasItem();
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slotIndex) {
-        Slot slot = this.slots.get(slotIndex);
-        if (!slot.hasItem())
+    public ItemStack quickMoveStack(Player clicker, int index) {
+        Slot slot = slots.get(index);
+        if (!slot.hasItem()) {
             return ItemStack.EMPTY;
-
-        if (slotIndex == RESULT_SLOT && craftsOnServer()) {
-            return quickMoveCraft();
         }
-
+        if (index == RESULT_SLOT) {
+            return craftsOnServer() ? quickCraft(clicker) : quickCraftPrediction(clicker, slot);
+        }
         ItemStack stack = slot.getItem();
-        ItemStack copy = stack.copy();
-
-        if (slotIndex == RESULT_SLOT) {
-            if (!this.moveItemStackTo(stack, PLAYER_INV_START, HOTBAR_END, true)) {
-                return ItemStack.EMPTY;
-            }
-            slot.onQuickCraft(stack, copy);
-        } else if (slotIndex >= PLAYER_INV_START && slotIndex < HOTBAR_END) {
-            if (SlotWorkbenchWand.isUsableWand(stack) && !this.slots.get(WAND_SLOT).hasItem() && !this.moveItemStackTo(stack, WAND_SLOT, WAND_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-            for (int i = 0; i < PRIMAL_ORDER.size(); i++) {
-                if (SlotCrystalEssentia.isValidCrystal(stack, PRIMAL_ORDER.get(i))) {
-                    if (!this.moveItemStackTo(stack, CRYSTAL_START + i, CRYSTAL_START + i + 1, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                    if (stack.isEmpty())
-                        break;
-                }
-            }
-            if (!stack.isEmpty() && !this.moveItemStackTo(stack, CRAFT_START, CRYSTAL_START, false)) {
-                if (slotIndex < PLAYER_INV_END) {
-                    if (!this.moveItemStackTo(stack, HOTBAR_START, HOTBAR_END, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else {
-                    if (!this.moveItemStackTo(stack, PLAYER_INV_START, PLAYER_INV_END, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-            }
-        } else {
-            if (!this.moveItemStackTo(stack, PLAYER_INV_START, HOTBAR_END, false)) {
-                return ItemStack.EMPTY;
-            }
-        }
-
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-
-        if (stack.getCount() == copy.getCount()) {
+        ItemStack original = stack.copy();
+        boolean moved = index >= PLAYER_START ? moveFromPlayer(stack, index) : moveItemStackTo(stack, PLAYER_START, PLAYER_END, false);
+        if (!moved) {
             return ItemStack.EMPTY;
         }
-
-        slot.onTake(player, stack);
-        return copy;
+        return finishMove(clicker, slot, stack, original);
     }
 
-    private ItemStack quickMoveCraft() {
-        ServerPlayer serverPlayer = (ServerPlayer) player;
-        ServerLevel level = (ServerLevel) tile.getLevel();
-        ItemStack crafted = ItemStack.EMPTY;
-        ItemStack overflow = ItemStack.EMPTY;
+    private boolean moveFromPlayer(ItemStack stack, int index) {
+        boolean moved = SlotWorkbenchWand.isUsableWand(stack) && moveItemStackTo(stack, WAND_MENU_SLOT, PLAYER_START, false);
+        moved |= routeCrystals(stack);
+        moved |= !stack.isEmpty() && moveItemStackTo(stack, GRID_START, GRID_END, false);
+        if (moved) {
+            return true;
+        }
+        boolean inMain = index < MAIN_END;
+        return inMain ? moveItemStackTo(stack, MAIN_END, PLAYER_END, false) : moveItemStackTo(stack, PLAYER_START, MAIN_END, false);
+    }
+
+    private boolean routeCrystals(ItemStack stack) {
+        boolean moved = false;
+        int target = CRYSTAL_MENU_START;
+        for (ResourceKey<IAspect> primal : PRIMAL_ORDER) {
+            if (stack.isEmpty()) {
+                break;
+            }
+            if (SlotCrystalEssentia.isValidCrystal(stack, primal)) {
+                moved |= moveItemStackTo(stack, target, target + 1, false);
+            }
+            target++;
+        }
+        return moved;
+    }
+
+    private ItemStack finishMove(Player clicker, Slot slot, ItemStack stack, ItemStack original) {
+        settle(slot, stack);
+        if (stack.getCount() != original.getCount()) {
+            slot.onTake(clicker, stack);
+            return original;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static void settle(Slot slot, ItemStack remaining) {
+        if (!remaining.isEmpty()) {
+            slot.setChanged();
+            return;
+        }
+        slot.setByPlayer(ItemStack.EMPTY);
+    }
+
+    private ItemStack quickCraftPrediction(Player clicker, Slot slot) {
+        ItemStack stack = slot.getItem();
+        ItemStack original = stack.copy();
+        if (!moveItemStackTo(stack, PLAYER_START, PLAYER_END, true)) {
+            return ItemStack.EMPTY;
+        }
+        slot.onQuickCraft(stack, original);
+        return finishMove(clicker, slot, stack, original);
+    }
+
+    private ItemStack quickCraft(Player clicker) {
+        ItemStack crafted;
+        ItemStack remainder;
         try (Transaction transaction = Transaction.openRoot()) {
-            ItemStack output = craft(serverPlayer, level, transaction);
-            ItemStack moving = output.copy();
-            if (!output.isEmpty() && moveItemStackTo(moving, PLAYER_INV_START, HOTBAR_END, true)) {
+            crafted = craft(transaction);
+            remainder = crafted.copy();
+            if (!crafted.isEmpty() && moveItemStackTo(remainder, PLAYER_START, PLAYER_END, true)) {
                 transaction.commit();
-                crafted = output;
-                overflow = moving;
+            } else {
+                crafted = ItemStack.EMPTY;
             }
         }
         if (crafted.isEmpty()) {
-            updateResult(serverPlayer, level);
+            refreshResult();
             return ItemStack.EMPTY;
         }
-        resultSlot.onQuickCraft(overflow, crafted);
-        if (!overflow.isEmpty()) {
-            player.drop(overflow, false);
+        resultSlot.onQuickCraft(remainder, crafted);
+        if (!remainder.isEmpty()) {
+            clicker.drop(remainder, false);
         }
-        resultSlot.onTake(player, crafted);
-        return crafted;
+        resultSlot.onTake(clicker, crafted);
+        return crafted.copy();
     }
 
     public InventoryArcaneWorkbench getCraftingInventory() {
-        return craftingInventory;
+        return inventory;
     }
 }

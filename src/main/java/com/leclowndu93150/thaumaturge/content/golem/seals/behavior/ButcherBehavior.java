@@ -4,53 +4,63 @@ import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealArea;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
+import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.AgeableWaterCreature;
 import net.minecraft.world.entity.animal.fish.WaterAnimal;
-import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.phys.AABB;
+import org.jspecify.annotations.Nullable;
 
 public final class ButcherBehavior extends HuntBehavior {
-    private static final int STAGGER = 200;
     private static final int SCAN_PERIOD = 200;
-    private static final int HERD_SIZE = 3;
+    private static final int MIN_HERD = 3;
 
-    private final SealClock clock = new SealClock(STAGGER);
+    private final SealClock clock = new SealClock(SCAN_PERIOD);
     private boolean hunting;
 
     @Override
     public void tick(ServerLevel level, ISealEntity seal) {
-        if (clock.advance() % SCAN_PERIOD != 0 || hunting) {
+        boolean due = clock.advance() % SCAN_PERIOD == 0;
+        if (hunting || !due) {
             return;
         }
-        AABB pasture = SealArea.bounds(seal);
-        for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, pasture)) {
-            if (isLivestock(candidate) && herdSize(level, pasture, candidate) >= HERD_SIZE) {
-                mark(level, seal, candidate);
-                hunting = true;
-                return;
-            }
+        List<LivingEntity> stock = level.getEntitiesOfClass(LivingEntity.class, SealArea.bounds(seal), ButcherBehavior::isLivestock);
+        LivingEntity chosen = firstInHerd(stock);
+        if (chosen != null) {
+            mark(level, seal, chosen);
+            hunting = true;
         }
     }
 
-    private static int herdSize(ServerLevel level, AABB pasture, LivingEntity member) {
-        int count = 0;
-        for (LivingEntity kin : level.getEntitiesOfClass(member.getClass(), pasture)) {
-            if (isLivestock(kin) && ++count >= HERD_SIZE) {
-                break;
+    private static @Nullable LivingEntity firstInHerd(List<LivingEntity> stock) {
+        for (LivingEntity animal : stock) {
+            if (herdSize(stock, animal) >= MIN_HERD) {
+                return animal;
             }
         }
-        return count;
+        return null;
+    }
+
+    private static int herdSize(List<LivingEntity> stock, LivingEntity member) {
+        Class<?> kind = member.getClass();
+        int size = 0;
+        for (LivingEntity other : stock) {
+            size += kind.isInstance(other) ? 1 : 0;
+        }
+        return size;
     }
 
     private static boolean isLivestock(LivingEntity entity) {
-        if (!(entity instanceof Animal || entity instanceof WaterAnimal) || entity instanceof Enemy || entity instanceof AbstractGolem) {
+        if (entity.isBaby() || entity instanceof Enemy || entity instanceof IGolemAPI) {
             return false;
         }
-        return !(entity instanceof TamableAnimal pet && pet.isTame()) && !entity.isBaby();
+        if (entity instanceof OwnableEntity pet && pet.getOwnerReference() != null) {
+            return false;
+        }
+        return entity instanceof Animal || entity instanceof WaterAnimal || entity instanceof AgeableWaterCreature;
     }
 
     @Override

@@ -1,10 +1,13 @@
 package com.leclowndu93150.thaumaturge.api.casters;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.TagKey;
@@ -15,152 +18,165 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Registry of block states that react to being right-clicked with an {@link ICaster} item,
- * such as crafting-structure formation triggers. Triggers are grouped by the registering
- * mod id and looked up by exact block state.
+ * Static registry mapping block states and block tags to {@link ICasterTriggerManager}
+ * handlers that run when a caster is used on a matching block.
  *
- * @apiNote Registration is write-at-init: mods register their triggers during mod
- *          construction or common setup and never mutate the registry afterwards. Lookups
- *          happen from gameplay threads and rely on that discipline; there is no internal
- *          synchronization.
+ * <p>State triggers match by equality of the complete block state and carry a group name. Tag triggers match every state whose block belongs to the tag, resolved at click
+ * time against the currently loaded tags, and belong to no group.
+ *
+ * <p>Registration is intended for mod construction or common setup and is never removed or
+ * replaced. The registry performs no synchronisation, so registering concurrently with lookups
+ * is unsupported. Lookups run on both the logical client and the logical server.
+ *
  * @since 1.0.0
  */
 public final class CasterTriggerRegistry {
-    private static final Map<String, LinkedHashMap<BlockState, List<Trigger>>> TRIGGERS = new HashMap<>();
-    private static final Map<TagKey<Block>, List<Trigger>> TAG_TRIGGERS = new LinkedHashMap<>();
-    private static final String DEFAULT = "default";
+    private static final String DEFAULT_GROUP = "thaumaturge";
+
+    private static final Index<BlockState> STATES = Index.empty();
+    private static final Index<TagKey<Block>> TAGS = Index.empty();
 
     private CasterTriggerRegistry() {}
 
     /**
-     * Registers a trigger for every block state of every block in a tag.
+     * Registers a trigger for every block state whose block belongs to a tag. Triggers for the
+     * same tag keep registration order, duplicates are kept, and tags are consulted in the order
+     * they were first registered.
      *
-     * @param manager the manager invoked when a matching state is caster-clicked
-     * @param event   the event number handed back to the manager
-     * @param tag     the block tag whose members activate the trigger
+     * @param handler the manager that performs the trigger
+     * @param eventId the opaque event number handed back to the manager
+     * @param blockTag the block tag to match
      */
-    public static void registerCasterBlockTagTrigger(ICasterTriggerManager manager, int event, TagKey<Block> tag) {
-        TAG_TRIGGERS.computeIfAbsent(tag, key -> new ArrayList<>()).add(new Trigger(manager, event));
+    public static void registerCasterBlockTagTrigger(ICasterTriggerManager handler, int eventId, TagKey<Block> blockTag) {
+        TAGS.put(blockTag, new Entry(null, handler, eventId));
     }
 
     /**
-     * Registers a trigger under an explicit mod id group.
+     * Registers a trigger for one exact block state inside a named group. The group exists once
+     * a trigger is registered under its name. Triggers for the same group and state keep
+     * registration order and duplicates are kept.
      *
-     * @param manager the manager invoked when the state is caster-clicked
-     * @param event   the event number handed back to the manager
-     * @param state   the exact block state that activates the trigger
-     * @param modid   the mod id group to register under
+     * @param handler the manager that performs the trigger
+     * @param eventId the opaque event number handed back to the manager
+     * @param target  the exact block state to match
+     * @param groupName the group name, typically the registering mod id
      */
-    public static void registerCasterBlockTrigger(ICasterTriggerManager manager, int event, BlockState state, String modid) {
-        LinkedHashMap<BlockState, List<Trigger>> group = TRIGGERS.computeIfAbsent(modid, key -> new LinkedHashMap<>());
-        group.computeIfAbsent(state, key -> new ArrayList<>()).add(new Trigger(manager, event));
+    public static void registerCasterBlockTrigger(ICasterTriggerManager handler, int eventId, BlockState target, String groupName) {
+        STATES.put(target, new Entry(groupName, handler, eventId));
     }
 
     /**
-     * Registers a trigger under the default group.
+     * Registers a trigger for one exact block state in the group named {@code thaumaturge}.
      *
-     * @param manager the manager invoked when the state is caster-clicked
-     * @param event   the event number handed back to the manager
-     * @param state   the exact block state that activates the trigger
+     * @param handler the manager that performs the trigger
+     * @param eventId the opaque event number handed back to the manager
+     * @param target  the exact block state to match
      */
-    public static void registerCasterBlockTrigger(ICasterTriggerManager manager, int event, BlockState state) {
-        registerCasterBlockTrigger(manager, event, state, DEFAULT);
+    public static void registerCasterBlockTrigger(ICasterTriggerManager handler, int eventId, BlockState target) {
+        STATES.put(target, new Entry(DEFAULT_GROUP, handler, eventId));
     }
 
     /**
-     * Whether any group holds a trigger for a block state.
+     * Tests whether anything is registered for a state in any group or through any tag the
+     * state's block belongs to. A true result does not guarantee that a trigger would succeed.
      *
-     * @param state the block state to test
-     * @return true when at least one trigger is registered for {@code state}
+     * @param candidate the block state to test
+     * @return true when an exact state trigger or a matching tag trigger exists
      */
-    public static boolean hasTrigger(BlockState state) {
-        for (LinkedHashMap<BlockState, List<Trigger>> group : TRIGGERS.values()) {
-            if (group.containsKey(state)) {
-                return true;
-            }
-        }
-        for (TagKey<Block> tag : TAG_TRIGGERS.keySet()) {
-            if (state.is(tag)) {
-                return true;
-            }
-        }
-        return false;
+    public static boolean hasTrigger(BlockState candidate) {
+        return TAGS.matching(candidate::is).findAny().isPresent() || STATES.contains(candidate);
     }
 
     /**
-     * Whether a specific group holds a trigger for a block state.
+     * Tests whether an exact state is registered in one group. Tag triggers are never considered.
      *
-     * @param state the block state to test
-     * @param modid the mod id group to look in
-     * @return true when the group has a trigger registered for {@code state}
+     * @param candidate the block state to test
+     * @param groupName the group name
+     * @return true when the group exists and contains the exact state
      */
-    public static boolean hasTrigger(BlockState state, String modid) {
-        LinkedHashMap<BlockState, List<Trigger>> group = TRIGGERS.get(modid);
-        return group != null && group.containsKey(state);
+    public static boolean hasTrigger(BlockState candidate, String groupName) {
+        return STATES.at(candidate).stream().map(Entry::group).anyMatch(found -> Objects.equals(found, groupName));
     }
 
     /**
-     * Runs the triggers registered for a block state across every group, stopping at the
-     * first one that reports success.
+     * Runs the triggers matching a state until one reports success. Exact state triggers of every
+     * group run first, in overall registration order, followed by tag triggers for each tag
+     * containing the state. Exceptions thrown by a manager propagate to the caller, and a manager
+     * reporting failure may still have caused side effects.
      *
-     * @param level       the level the click happened in
+     * @param world       the level of the click
      * @param casterStack the caster stack used
-     * @param player      the clicking player
-     * @param pos         the clicked position
-     * @param side        the clicked face
-     * @param state       the clicked block state
-     * @return true when a trigger handled the click
+     * @param user        the clicking player
+     * @param clicked     the clicked position
+     * @param face        the clicked face
+     * @param hit         the clicked block state
+     * @return true when a trigger reported success, false when none matched or succeeded
      */
-    public static boolean performTrigger(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, BlockState state) {
-        for (LinkedHashMap<BlockState, List<Trigger>> group : TRIGGERS.values()) {
-            if (run(group, level, casterStack, player, pos, side, state)) {
-                return true;
-            }
-        }
-        for (Map.Entry<TagKey<Block>, List<Trigger>> entry : TAG_TRIGGERS.entrySet()) {
-            if (!state.is(entry.getKey())) {
-                continue;
-            }
-            for (Trigger trigger : entry.getValue()) {
-                if (trigger.manager().performTrigger(level, casterStack, player, pos, side, trigger.event())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public static boolean performTrigger(Level world, ItemStack casterStack, Player user, BlockPos clicked, Direction face, BlockState hit) {
+        Click click = new Click(world, casterStack, user, clicked, face);
+        return Stream.concat(Stream.of(STATES.at(hit)), TAGS.matching(hit::is)).anyMatch(click::runAny);
     }
 
     /**
-     * Runs the triggers registered for a block state within one group, stopping at the
-     * first one that reports success.
+     * Runs the exact state triggers of one group until one reports success. Tag triggers are
+     * never run.
      *
-     * @param level       the level the click happened in
+     * @param world       the level of the click
      * @param casterStack the caster stack used
-     * @param player      the clicking player
-     * @param pos         the clicked position
-     * @param side        the clicked face
-     * @param state       the clicked block state
-     * @param modid       the mod id group to run
-     * @return true when a trigger in the group handled the click
+     * @param user        the clicking player
+     * @param clicked     the clicked position
+     * @param face        the clicked face
+     * @param hit         the clicked block state
+     * @param groupName   the group name
+     * @return true when a trigger reported success, false for an unknown group, a state without
+     *         triggers or when none succeeded
      */
-    public static boolean performTrigger(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, BlockState state, String modid) {
-        LinkedHashMap<BlockState, List<Trigger>> group = TRIGGERS.get(modid);
-        return group != null && run(group, level, casterStack, player, pos, side, state);
+    public static boolean performTrigger(Level world, ItemStack casterStack, Player user, BlockPos clicked, Direction face, BlockState hit, String groupName) {
+        Click click = new Click(world, casterStack, user, clicked, face);
+        return click.runAny(STATES.at(hit).stream().filter(entry -> entry.inGroup(groupName)).toList());
     }
 
-    private static boolean run(LinkedHashMap<BlockState, List<Trigger>> group, Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, BlockState state) {
-        List<Trigger> list = group.get(state);
-        if (list == null) {
-            return false;
+    private record Entry(String group, ICasterTriggerManager manager, int event) {
+        boolean fireOn(Click click) {
+            return manager.performTrigger(click.level(), click.casterStack(), click.player(), click.pos(), click.side(), event);
         }
-        for (Trigger trigger : list) {
-            if (trigger.manager().performTrigger(level, casterStack, player, pos, side, trigger.event())) {
-                return true;
-            }
+
+        boolean inGroup(String other) {
+            return Objects.equals(group, other);
         }
-        return false;
     }
 
-    private record Trigger(ICasterTriggerManager manager, int event) {
+    private static final class Index<K> {
+        private final Map<K, List<Entry>> lists = new LinkedHashMap<>();
+
+        static <T> Index<T> empty() {
+            return new Index<>();
+        }
+
+        void put(K key, Entry entry) {
+            lists.computeIfAbsent(key, unused -> new ArrayList<>()).add(entry);
+        }
+
+        boolean contains(K key) {
+            return lists.containsKey(key);
+        }
+
+        List<Entry> at(K key) {
+            return lists.getOrDefault(key, Collections.emptyList());
+        }
+
+        Stream<List<Entry>> matching(Predicate<K> test) {
+            return lists.keySet().stream().filter(test).map(lists::get);
+        }
+    }
+
+    private record Click(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side) {
+        boolean runAny(List<Entry> entries) {
+            return entries.stream().anyMatch(this::run);
+        }
+
+        private boolean run(Entry entry) {
+            return entry.fireOn(this);
+        }
     }
 }

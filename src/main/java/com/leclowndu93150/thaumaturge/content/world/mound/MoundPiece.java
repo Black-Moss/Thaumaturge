@@ -1,18 +1,15 @@
 package com.leclowndu93150.thaumaturge.content.world.mound;
 
-import net.neoforged.neoforge.event.EventHooks;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTStructures;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
@@ -20,10 +17,10 @@ import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.LadderBlock;
-import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Half;
@@ -34,148 +31,168 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 
 public class MoundPiece extends ScatteredFeaturePiece {
-    private static final int SURFACE_OFFSET = -10;
-    private static final float RARE_CHANCE = 0.1F;
-    private static final float UNCOMMON_CHANCE = 0.33F;
-    private static final float CRATE_CHANCE = 0.3F;
+    private static final String PORTAL_KEY = "Portal";
+    private static final int INITIAL_Y = 64;
+    private static final int GROUND_OFFSET = -10;
+    private static final int URN_A_X = 9;
+    private static final int URN_A_Y = 2;
+    private static final int URN_A_Z = 7;
+    private static final int URN_B_X = 9;
+    private static final int URN_B_Y = 2;
+    private static final int URN_B_Z = 11;
+    private static final int CHEST_X = 10;
+    private static final int CHEST_Y = 2;
+    private static final int CHEST_Z = 9;
+    private static final int SKELETON_SPAWNER_X = 4;
+    private static final int SKELETON_SPAWNER_Y = 6;
+    private static final int SKELETON_SPAWNER_Z = 4;
+    private static final int ZOMBIE_SPAWNER_X = 4;
+    private static final int ZOMBIE_SPAWNER_Y = 6;
+    private static final int ZOMBIE_SPAWNER_Z = 14;
+    private static final int PORTAL_X = 9;
+    private static final int PORTAL_Y = 2;
+    private static final int PORTAL_Z = 9;
+    private static final int NODE_X = 9;
+    private static final int NODE_Y = 8;
+    private static final int NODE_Z = 9;
+    private static final int RARE_PERCENT = 10;
+    private static final int UNCOMMON_PERCENT = 23;
+    private static final int CRATE_PERCENT = 30;
+    private static final int PERCENT_ROLL = 100;
     private static final int TRAPPED_CHEST_ONE_IN = 3;
-    private static final BlockPos URN_A = new BlockPos(9, 2, 7);
-    private static final BlockPos URN_B = new BlockPos(9, 2, 11);
-    private static final BlockPos CHEST = new BlockPos(10, 2, 9);
-    private static final BlockPos SPAWNER_A = new BlockPos(4, 6, 4);
-    private static final BlockPos SPAWNER_B = new BlockPos(4, 6, 14);
-    private static final BlockPos PORTAL = new BlockPos(9, 2, 9);
-    private static final BlockPos NODE = new BlockPos(9, 8, 9);
+    private static final int TNT_DEPTH = 2;
+    private static final int BLOCK_FLAGS = 2;
+    private static final int NO_COLUMN_HEIGHT = -1;
+    private static final int CHAR_BASE = 'A';
 
-    private boolean spawnedPortal;
+    private boolean portalSpawned;
 
     public MoundPiece(RandomSource random, int west, int north) {
-        super(TTStructures.MOUND_PIECE.get(), west, 64, north, MoundLayout.SIZE_X, MoundLayout.SIZE_Y, MoundLayout.SIZE_Z, Direction.SOUTH);
+        super(TTStructures.MOUND_PIECE.get(), west, INITIAL_Y, north, MoundLayout.SIZE_X, MoundLayout.SIZE_Y, MoundLayout.SIZE_Z, Direction.SOUTH);
     }
 
     public MoundPiece(CompoundTag tag) {
         super(TTStructures.MOUND_PIECE.get(), tag);
-        this.spawnedPortal = tag.getBooleanOr("Portal", false);
+        this.portalSpawned = tag.getBooleanOr(PORTAL_KEY, false);
     }
 
     @Override
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
         super.addAdditionalSaveData(context, tag);
-        tag.putBoolean("Portal", this.spawnedPortal);
+        tag.putBoolean(PORTAL_KEY, portalSpawned);
     }
 
     @Override
     public void postProcess(WorldGenLevel level, StructureManager structureManager, ChunkGenerator generator, RandomSource random, BoundingBox chunkBB, ChunkPos chunkPos, BlockPos referencePos) {
-        if (!this.updateAverageGroundHeight(level, chunkBB, SURFACE_OFFSET)) {
+        if (!updateAverageGroundHeight(level, chunkBB, GROUND_OFFSET)) {
             return;
         }
-        String data = MoundLayout.DATA;
-        for (int i = 0; i < data.length(); i += MoundLayout.ENTRY_CHARS) {
-            int x = data.charAt(i) - 'A';
-            int y = data.charAt(i + 1) - 'A';
-            int z = data.charAt(i + 2) - 'A';
-            int id = data.charAt(i + 3) - 'A';
-            this.placeBlock(level, stateFor(id).mirror(Mirror.LEFT_RIGHT), x, y, z, chunkBB);
-        }
-        fillFoundation(level, chunkBB);
-        this.placeBlock(level, lootContainer(random), URN_A.getX(), URN_A.getY(), URN_A.getZ(), chunkBB);
-        this.placeBlock(level, lootContainer(random), URN_B.getX(), URN_B.getY(), URN_B.getZ(), chunkBB);
+        int[] lowestSolid = stampLayout(level, chunkBB);
+        buildFoundation(level, chunkBB, lowestSolid);
+        placeLoot(level, random, chunkBB, URN_A_X, URN_A_Y, URN_A_Z);
+        placeLoot(level, random, chunkBB, URN_B_X, URN_B_Y, URN_B_Z);
         placeChest(level, random, chunkBB);
-        placeSpawner(level, chunkBB, SPAWNER_A, EntityType.SKELETON, random);
-        placeSpawner(level, chunkBB, SPAWNER_B, EntityType.ZOMBIE, random);
+        placeSpawner(level, random, chunkBB, SKELETON_SPAWNER_X, SKELETON_SPAWNER_Y, SKELETON_SPAWNER_Z, EntityType.SKELETON);
+        placeSpawner(level, random, chunkBB, ZOMBIE_SPAWNER_X, ZOMBIE_SPAWNER_Y, ZOMBIE_SPAWNER_Z, EntityType.ZOMBIE);
         spawnPortal(level, chunkBB);
         placeNode(level, random, chunkBB);
     }
 
-    private void fillFoundation(WorldGenLevel level, BoundingBox chunkBB) {
+    private int[] stampLayout(WorldGenLevel level, BoundingBox chunkBB) {
+        int[] lowestSolid = new int[MoundLayout.SIZE_X * MoundLayout.SIZE_Z];
+        Arrays.fill(lowestSolid, NO_COLUMN_HEIGHT);
         String data = MoundLayout.DATA;
-        Map<Integer, Integer> columnMinY = new HashMap<>();
-        for (int i = 0; i < data.length(); i += MoundLayout.ENTRY_CHARS) {
-            int x = data.charAt(i) - 'A';
-            int y = data.charAt(i + 1) - 'A';
-            int z = data.charAt(i + 2) - 'A';
-            int id = data.charAt(i + 3) - 'A';
-            if (!stateFor(id).blocksMotion()) {
-                continue;
+        for (int index = 0; index + MoundLayout.ENTRY_CHARS <= data.length(); index += MoundLayout.ENTRY_CHARS) {
+            int x = data.charAt(index) - CHAR_BASE;
+            int y = data.charAt(index + 1) - CHAR_BASE;
+            int z = data.charAt(index + 2) - CHAR_BASE;
+            BlockState state = stateFor(data.charAt(index + 3) - CHAR_BASE);
+            placeBlock(level, state.mirror(getMirror()), x, y, z, chunkBB);
+            int column = x * MoundLayout.SIZE_Z + z;
+            if (state.blocksMotion() && (lowestSolid[column] == NO_COLUMN_HEIGHT || y < lowestSolid[column])) {
+                lowestSolid[column] = y;
             }
-            columnMinY.merge(x << 8 | z, y, Math::min);
         }
-        for (Map.Entry<Integer, Integer> column : columnMinY.entrySet()) {
-            int x = column.getKey() >> 8;
-            int z = column.getKey() & 0xFF;
-            int below = column.getValue() - 1;
-            BlockPos worldPos = this.getWorldPos(x, below, z);
-            if (!chunkBB.isInside(worldPos)) {
-                continue;
+        return lowestSolid;
+    }
+
+    private void buildFoundation(WorldGenLevel level, BoundingBox chunkBB, int[] lowestSolid) {
+        BlockState dirt = Blocks.DIRT.defaultBlockState();
+        BlockState stone = Blocks.STONE.defaultBlockState();
+        for (int x = 0; x < MoundLayout.SIZE_X; x++) {
+            for (int z = 0; z < MoundLayout.SIZE_Z; z++) {
+                int lowest = lowestSolid[x * MoundLayout.SIZE_Z + z];
+                if (lowest == NO_COLUMN_HEIGHT) {
+                    continue;
+                }
+                BlockPos below = getWorldPos(x, lowest - 1, z);
+                if (chunkBB.isInside(below) && isReplaceableByStructures(level.getBlockState(below))) {
+                    placeBlock(level, dirt, x, lowest - 1, z, chunkBB);
+                    fillColumnDown(level, stone, x, lowest - 2, z, chunkBB);
+                }
             }
-            if (!this.isReplaceableByStructures(level.getBlockState(worldPos))) {
-                continue;
-            }
-            this.placeBlock(level, Blocks.DIRT.defaultBlockState(), x, below, z, chunkBB);
-            this.fillColumnDown(level, Blocks.STONE.defaultBlockState(), x, below - 1, z, chunkBB);
         }
     }
 
-    private void placeNode(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {
-        BlockPos pos = this.getWorldPos(NODE.getX(), NODE.getY(), NODE.getZ());
-        if (chunkBB.isInside(pos)) {
-            NodeGenerator.createRandomNodeAt(level, pos, random, false, true, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+    private void placeLoot(WorldGenLevel level, RandomSource random, BoundingBox chunkBB, int x, int y, int z) {
+        int tierRoll = random.nextInt(PERCENT_ROLL);
+        boolean crate = random.nextInt(PERCENT_ROLL) < CRATE_PERCENT;
+        Block block;
+        if (tierRoll < RARE_PERCENT) {
+            block = (crate ? TTBlocks.LOOT_CRATE_RARE : TTBlocks.LOOT_URN_RARE).get();
+        } else if (tierRoll < RARE_PERCENT + UNCOMMON_PERCENT) {
+            block = (crate ? TTBlocks.LOOT_CRATE_UNCOMMON : TTBlocks.LOOT_URN_UNCOMMON).get();
+        } else {
+            block = (crate ? TTBlocks.LOOT_CRATE_COMMON : TTBlocks.LOOT_URN_COMMON).get();
         }
+        placeBlock(level, block.defaultBlockState().mirror(getMirror()), x, y, z, chunkBB);
     }
 
     private void placeChest(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {
-        BlockPos pos = this.getWorldPos(CHEST.getX(), CHEST.getY(), CHEST.getZ());
+        BlockPos pos = getWorldPos(CHEST_X, CHEST_Y, CHEST_Z).immutable();
         if (!chunkBB.isInside(pos)) {
             return;
         }
         boolean trapped = random.nextInt(TRAPPED_CHEST_ONE_IN) == 0;
-        Block chestBlock = trapped ? Blocks.TRAPPED_CHEST : Blocks.CHEST;
-        level.setBlock(pos, chestBlock.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, Direction.WEST), 2);
-        RandomizableContainer.setBlockEntityLootTable(level, random, pos, BuiltInLootTables.SIMPLE_DUNGEON);
-        if (trapped) {
-            level.setBlock(pos.below(2), Blocks.TNT.defaultBlockState(), 2);
+        BlockState chest = (trapped ? Blocks.TRAPPED_CHEST : Blocks.CHEST).defaultBlockState().setValue(ChestBlock.FACING, Direction.WEST);
+        if (createChest(level, chunkBB, random, pos, BuiltInLootTables.SIMPLE_DUNGEON, chest) && trapped) {
+            level.setBlock(pos.below(TNT_DEPTH), Blocks.TNT.defaultBlockState(), BLOCK_FLAGS);
         }
     }
 
-    private void placeSpawner(WorldGenLevel level, BoundingBox chunkBB, BlockPos local, EntityType<?> entityType, RandomSource random) {
-        BlockPos pos = this.getWorldPos(local.getX(), local.getY(), local.getZ());
+    private void placeSpawner(WorldGenLevel level, RandomSource random, BoundingBox chunkBB, int x, int y, int z, EntityType<?> type) {
+        BlockPos pos = getWorldPos(x, y, z);
         if (!chunkBB.isInside(pos)) {
             return;
         }
-        level.setBlock(pos, Blocks.SPAWNER.defaultBlockState(), 2);
-        if (level.getBlockEntity(pos) instanceof SpawnerBlockEntity spawner) {
-            spawner.setEntityId(entityType, random);
+        level.setBlock(pos, Blocks.SPAWNER.defaultBlockState(), BLOCK_FLAGS);
+        BlockEntity entity = level.getBlockEntity(pos);
+        if (entity instanceof SpawnerBlockEntity spawner) {
+            spawner.setEntityId(type, random);
         }
     }
 
     private void spawnPortal(WorldGenLevel level, BoundingBox chunkBB) {
-        if (this.spawnedPortal) {
+        BlockPos pos = getWorldPos(PORTAL_X, PORTAL_Y, PORTAL_Z);
+        if (portalSpawned || !chunkBB.isInside(pos)) {
             return;
         }
-        BlockPos pos = this.getWorldPos(PORTAL.getX(), PORTAL.getY(), PORTAL.getZ());
-        if (!chunkBB.isInside(pos)) {
-            return;
-        }
-        this.spawnedPortal = true;
+        portalSpawned = true;
         EntityCultistPortalLesser portal = TTEntities.CULTIST_PORTAL_LESSER.get().create(level.getLevel(), EntitySpawnReason.STRUCTURE);
-        if (portal != null) {
-            portal.setPersistenceRequired();
-            portal.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
-            EventHooks.finalizeMobSpawn(portal, level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.STRUCTURE, null);
-            level.addFreshEntityWithPassengers(portal);
+        if (portal == null) {
+            return;
         }
+        portal.setPersistenceRequired();
+        portal.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
+        portal.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.STRUCTURE, null);
+        level.addFreshEntityWithPassengers(portal);
     }
 
-    private static BlockState lootContainer(RandomSource random) {
-        float roll = random.nextFloat();
-        boolean crate = random.nextFloat() < CRATE_CHANCE;
-        if (roll < RARE_CHANCE) {
-            return (crate ? TTBlocks.LOOT_CRATE_RARE : TTBlocks.LOOT_URN_RARE).get().defaultBlockState();
+    private void placeNode(WorldGenLevel level, RandomSource random, BoundingBox chunkBB) {
+        BlockPos pos = getWorldPos(NODE_X, NODE_Y, NODE_Z).immutable();
+        if (chunkBB.isInside(pos)) {
+            NodeGenerator.createRandomNodeAt(level, pos, random, false, true, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
         }
-        if (roll < UNCOMMON_CHANCE) {
-            return (crate ? TTBlocks.LOOT_CRATE_UNCOMMON : TTBlocks.LOOT_URN_UNCOMMON).get().defaultBlockState();
-        }
-        return (crate ? TTBlocks.LOOT_CRATE_COMMON : TTBlocks.LOOT_URN_COMMON).get().defaultBlockState();
     }
 
     private static BlockState stateFor(int id) {

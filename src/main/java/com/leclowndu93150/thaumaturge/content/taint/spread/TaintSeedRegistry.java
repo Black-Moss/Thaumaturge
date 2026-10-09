@@ -46,22 +46,11 @@ public final class TaintSeedRegistry extends SavedData {
     }
 
     public boolean isNear(BlockPos pos, double radiusSq) {
-        for (BlockPos seed : seeds) {
-            if (seed.distSqr(pos) <= radiusSq) {
-                return true;
-            }
-        }
-        return false;
+        return isAtEdge(pos, Double.NEGATIVE_INFINITY, radiusSq);
     }
 
     public boolean isAtEdge(BlockPos pos, double fringeSq, double radiusSq) {
-        for (BlockPos seed : seeds) {
-            double d = seed.distSqr(pos);
-            if (d >= fringeSq && d <= radiusSq) {
-                return true;
-            }
-        }
-        return false;
+        return seeds.stream().mapToDouble(seed -> seed.distSqr(pos)).anyMatch(distSq -> distSq >= fringeSq && distSq <= radiusSq);
     }
 
     public List<BlockPos> all() {

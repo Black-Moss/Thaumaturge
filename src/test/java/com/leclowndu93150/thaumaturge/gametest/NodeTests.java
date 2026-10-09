@@ -70,8 +70,8 @@ public final class NodeTests {
             }
             node.setEnergized(true);
             node.setEnergized(false);
-            if (node.getAspectsBase().amountOf(vitium(helper)) != VITIUM_AMOUNT) {
-                helper.fail("De-energized node did not restore its vitium base: " + node.getAspectsBase());
+            if (node.capacity().amountOf(vitium(helper)) != VITIUM_AMOUNT) {
+                helper.fail("De-energized node did not restore its vitium base: " + node.capacity());
                 return;
             }
             if (node.getAspectsBaseOriginal() != null) {
@@ -121,6 +121,7 @@ public final class NodeTests {
                 }
                 AuraHelper.addFlux(helper.getLevel(), helper.absolutePos(NODE_POS), REFILL_VIS);
                 helper.runAfterDelay(REFILL_WAIT_TICKS, () -> {
+                    AuraHelper.drainFlux(helper.getLevel(), helper.absolutePos(NODE_POS), REFILL_VIS, false);
                     if (node.getAspects().totalAmount() <= 0) {
                         helper.fail("Tainted energized node did not refill from flux");
                         return;

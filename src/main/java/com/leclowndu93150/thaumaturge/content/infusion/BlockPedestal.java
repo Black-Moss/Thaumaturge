@@ -7,6 +7,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -19,7 +21,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -28,13 +29,25 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockPedestal extends BaseEntityBlock {
+    private static final int MAX_CHARGE = 15;
+    private static final String CHARGE_NAME = "charge";
+    private static final String VARIANT_FIELD = "variant";
+    private static final float SOUND_VOLUME = 0.2F;
+    private static final float PITCH_CENTER = 1.0F;
+    private static final float PITCH_DEVIATION = 0.7F;
+    private static final float PITCH_INSERT_SCALE = 1.6F;
+    private static final float PITCH_TAKE_SCALE = 1.5F;
+    private static final double FULL = 16.0;
+    private static final double FOOT_TOP = 4.0;
+    private static final double INSET_LOW = 2.0;
+    private static final double INSET_HIGH = 14.0;
+    private static final double NARROW_LOW = 4.0;
+    private static final double NARROW_HIGH = 12.0;
+    private static final double STEP_TOP = 8.0;
+
     public static final MapCodec<BlockPedestal> CODEC = RecordCodecBuilder
-            .mapCodec(instance -> instance.group(Variant.CODEC.fieldOf("variant").forGetter(block -> block.variant), propertiesCodec()).apply(instance, BlockPedestal::new));
-    public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, 15);
-    private static final float PICKUP_VOLUME = 0.2F;
-    private static final float PICKUP_PITCH_VARIATION = 0.7F;
-    private static final float INSERT_PITCH = 1.6F;
-    private static final float REMOVE_PITCH = 1.5F;
+            .mapCodec(instance -> instance.group(Variant.CODEC.fieldOf(VARIANT_FIELD).forGetter(block -> block.variant), propertiesCodec()).apply(instance, BlockPedestal::new));
+    public static final IntegerProperty CHARGE = IntegerProperty.create(CHARGE_NAME, 0, MAX_CHARGE);
 
     private final Variant variant;
 
@@ -50,7 +63,7 @@ public final class BlockPedestal extends BaseEntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
         if (!level.isClientSide()) {
             BlockInlay.updateNetwork(level, pos);
         }
@@ -62,7 +75,7 @@ public final class BlockPedestal extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new BlockEntityPedestal(pos, state);
     }
 
@@ -73,45 +86,57 @@ public final class BlockPedestal extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        return swap(level, pos, player, InteractionHand.MAIN_HAND);
+        return exchange(level, pos, player, InteractionHand.MAIN_HAND, ItemStack.EMPTY, InteractionResult.PASS);
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        return swap(level, pos, player, hand);
+        if (stack.isEmpty()) {
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        return exchange(level, pos, player, hand, stack, InteractionResult.TRY_WITH_EMPTY_HAND);
     }
 
-    private InteractionResult swap(Level level, BlockPos pos, Player player, InteractionHand hand) {
+    private InteractionResult exchange(Level level, BlockPos pos, Player player, InteractionHand hand, ItemStack held, InteractionResult noEntityResult) {
         if (!(level.getBlockEntity(pos) instanceof BlockEntityPedestal pedestal)) {
-            return InteractionResult.PASS;
+            return noEntityResult;
         }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        ItemStack held = player.getItemInHand(hand);
         ItemStack current = pedestal.getItem();
-        if (current.isEmpty() && held.isEmpty()) {
+        boolean loaded = !current.isEmpty();
+        if (!loaded && held.isEmpty()) {
             return InteractionResult.PASS;
         }
-        boolean wasEmpty = current.isEmpty();
-        if (!current.isEmpty()) {
-            if (!player.getInventory().add(current)) {
-                player.drop(current, false);
-            }
+        if (loaded) {
+            giveToPlayer(player, current);
             pedestal.setItem(ItemStack.EMPTY);
         }
         if (!held.isEmpty()) {
-            pedestal.setItem(held.copyWithCount(1));
-            held.consume(1, player);
+            ItemStack source = player.getItemInHand(hand);
+            pedestal.setItem(source.copyWithCount(1));
+            source.consume(1, player);
         }
-        float pitch = (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * PICKUP_PITCH_VARIATION + 1.0F;
-        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, PICKUP_VOLUME, pitch * (wasEmpty ? INSERT_PITCH : REMOVE_PITCH));
+        RandomSource random = level.getRandom();
+        float pitch = (float) random.triangle(PITCH_CENTER, PITCH_DEVIATION) * (loaded ? PITCH_TAKE_SCALE : PITCH_INSERT_SCALE);
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, SOUND_VOLUME, pitch);
         return InteractionResult.SUCCESS;
     }
 
+    private static void giveToPlayer(Player player, ItemStack stack) {
+        player.getInventory().add(stack);
+        if (!stack.isEmpty()) {
+            player.drop(stack, false);
+        }
+    }
+
     public enum Variant implements StringRepresentable {
-        ARCANE("arcane", Shapes.or(Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0), Block.box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0), Block.box(2.0, 12.0, 2.0, 14.0, 16.0, 14.0))), ELDRITCH("eldritch",
-                Shapes.or(Block.box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0), Block.box(2.0, 4.0, 2.0, 14.0, 8.0, 14.0), Block.box(4.0, 8.0, 4.0, 12.0, 12.0, 12.0)));
+        ARCANE("arcane",
+                Shapes.or(Block.box(0.0, 0.0, 0.0, FULL, FOOT_TOP, FULL), Block.box(NARROW_LOW, FOOT_TOP, NARROW_LOW, NARROW_HIGH, NARROW_HIGH, NARROW_HIGH),
+                        Block.box(INSET_LOW, NARROW_HIGH, INSET_LOW, INSET_HIGH, FULL, INSET_HIGH))), ELDRITCH("eldritch",
+                                Shapes.or(Block.box(0.0, 0.0, 0.0, FULL, FOOT_TOP, FULL), Block.box(INSET_LOW, FOOT_TOP, INSET_LOW, INSET_HIGH, STEP_TOP, INSET_HIGH),
+                                        Block.box(NARROW_LOW, STEP_TOP, NARROW_LOW, NARROW_HIGH, NARROW_HIGH, NARROW_HIGH)));
 
         public static final Codec<Variant> CODEC = StringRepresentable.fromEnum(Variant::values);
 

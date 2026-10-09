@@ -14,10 +14,10 @@ import net.minecraft.util.Mth;
 
 public final class ArcaneBoreRenderer extends MobRenderer<EntityArcaneBore, ArcaneBoreRenderState, ArcaneBoreModel> {
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/arcanebore.png");
-    private static final float SHADOW = 0.5F;
+    private static final float SHADOW_RADIUS = 0.5F;
 
     public ArcaneBoreRenderer(EntityRendererProvider.Context context) {
-        super(context, new ArcaneBoreModel(context.bakeLayer(TTModelLayers.ARCANE_BORE)), SHADOW);
+        super(context, new ArcaneBoreModel(context.bakeLayer(TTModelLayers.ARCANE_BORE)), SHADOW_RADIUS);
     }
 
     @Override
@@ -28,13 +28,16 @@ public final class ArcaneBoreRenderer extends MobRenderer<EntityArcaneBore, Arca
     @Override
     public void extractRenderState(EntityArcaneBore entity, ArcaneBoreRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
-        state.yRot = Mth.wrapDegrees(Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot));
+        float headYaw = Mth.wrapDegrees(Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot));
+        float headPitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
         state.bodyRot = 0.0F;
-        state.digging = entity.clientDiggingSmoothed() && entity.isActive() && entity.validInventory();
-        state.headPitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
-        state.beamUvScroll = BoreDrillFx.beamUvScroll(entity.tickCount + partialTicks);
+        state.yRot = headYaw;
+        state.xRot = headPitch;
+        state.headPitch = headPitch;
+        state.digging = entity.clientDiggingSmoothed() && entity.isActive() && entity.holdsValidTool();
+        state.beamUvScroll = BoreDrillFx.beamUvScroll(state.ageInTicks);
         state.beamSpin = BoreDrillFx.beamSpin(entity.level().getGameTime(), partialTicks);
-        state.tip = BoreDrillFx.tipOffset(state.yRot, state.headPitch, entity.getEyeHeight());
+        state.tip = BoreDrillFx.tipOffset(headYaw, headPitch, state.eyeHeight);
         state.tipFrame = BoreDrillFx.tipFrame(entity.tickCount);
     }
 

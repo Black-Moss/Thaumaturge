@@ -1,14 +1,16 @@
 package com.leclowndu93150.thaumaturge.client.item;
 
-import com.leclowndu93150.thaumaturge.api.research.scan.ScannedSky;
-import com.leclowndu93150.thaumaturge.api.research.scan.ScannedEntity;
-import com.leclowndu93150.thaumaturge.api.research.scan.ScannedBlock;
-import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScannedBlock;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScannedEntity;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScannedSky;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.client.render.TTFlatRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagWorldRenderer;
@@ -18,141 +20,215 @@ import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.content.research.scan.ScanNode;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.List;
+import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 public final class ThaumometerLensRenderer {
-    private static final float NAME_Y = -0.25F;
-    private static final float NAME_SCALE = 0.005F;
-    private static final int NAME_SHRINK_WIDTH = 90;
-    private static final float NAME_SHRINK_PER_PX = 0.000025F;
+    private static final String NODE_KEY = "gui.thaumaturge.thaumometer.node";
+    private static final String ENERGIZED_NODE_KEY = "gui.thaumaturge.thaumometer.node_energized";
+    private static final String NODE_TYPE_KEY_PREFIX = "nodetype.thaumaturge.";
+    private static final String NODE_MODIFIER_KEY_PREFIX = "nodemod.thaumaturge.";
+    private static final String TYPE_MODIFIER_KEY = "tooltip.thaumaturge.node.type_modifier";
+    private static final String FALLBACK_NAME = "?";
     private static final int NAME_COLOR = 0xFFFFFFFF;
-    private static final float NODE_LINE_SCALE = 0.004F;
-    private static final int NODE_LINE_TEXT_Y = -40;
     private static final int NODE_LINE_COLOR = 0xFFEEAE16;
-    private static final float TAG_SPACE_SCALE = 0.0075F;
+    private static final int AMOUNT_COLOR = 0xFFFFFFFF;
+    private static final int NO_BACKGROUND = 0;
+    private static final int NO_OUTLINE = 0;
+    private static final float NODE_LINE_SCALE = 0.004F;
+    private static final float NODE_LINE_Y = -40.0F;
+    private static final float NAME_Y = -0.25F;
+    private static final float NAME_FRONT_Z = 0.0005F;
+    private static final float NAME_BASE_SCALE = 0.005F;
+    private static final float NAME_SCALE_STEP = 0.000025F;
+    private static final int NAME_FULL_SCALE_WIDTH = 90;
+    private static final float GRID_SCALE = 0.0075F;
     private static final int TAG_SIZE = 16;
-    private static final int TAG_BASE_Y = -8;
+    private static final float TAG_HALF = 8.0F;
+    private static final float TAG_FIRST_ROW_Y = -8.0F;
+    private static final int GRID_ROWS = 5;
+    private static final float AMOUNT_FRONT_Z = 0.01F;
+    private static final float AMOUNT_SCALE = 0.5F;
+    private static final float AMOUNT_GAP = 1.0F;
     private static final float TAG_ALPHA = 1.0F;
-    private static final float TAG_AMOUNT_TEXT_SCALE = 0.5F;
-    private static final int TAG_TEXT_COLOR = 0xFFFFFFFF;
-    private static final int TAGS_PER_ROW = 5;
 
     private ThaumometerLensRenderer() {}
 
-    public static void submitReadout(Minecraft mc, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector) {
-        if (mc.level == null) {
+    public static void submitReadout(Minecraft minecraft, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector) {
+        ClientLevel level = minecraft.level;
+        if (level == null) {
             return;
         }
-        ScanTarget target = ThaumometerItem.resolveTarget(mc.level, player);
+        ScanTarget target = ThaumometerItem.resolveTarget(level, player);
         if (target instanceof ScannedSky) {
             return;
         }
-        Component name = null;
-        Component nodeLine = null;
-        AspectList aspects = null;
-        if (target instanceof ScannedBlock(var pos)) {
-            if (mc.level.getBlockEntity(pos) instanceof BlockEntityNode node) {
-                name = Component.translatable(node.isEnergized() ? "gui.thaumaturge.thaumometer.node_energized" : "gui.thaumaturge.thaumometer.node");
-                if (KnowledgeAccess.of(player).isResearchKnown(ScanNode.researchKey(mc.level, pos))) {
-                    Component type = Component.translatable("nodetype.thaumaturge." + node.getNodeType().getSerializedName());
-                    nodeLine = node.getNodeModifier() == null
-                            ? type
-                            : Component.translatable("tooltip.thaumaturge.node.type_modifier", type, Component.translatable("nodemod.thaumaturge." + node.getNodeModifier().getSerializedName()));
-                    aspects = node.getAspects();
-                }
-            } else {
-                BlockState state = mc.level.getBlockState(pos);
-                ItemStack pick = ScanningManager.stackOf(player, ScanTarget.block(pos));
-                name = state.getFluidState().isEmpty() && !pick.isEmpty() ? pick.getHoverName() : state.getBlock().getName();
-                if (!pick.isEmpty() && KnowledgeAccess.of(player).isResearchKnown(ScanKeys.item(pick.getItem()))) {
-                    aspects = AspectIndexAccess.index().of(pick);
-                }
-            }
-        } else if (target instanceof ScannedEntity(var scanned) && scanned instanceof ItemEntity itemEntity) {
-            ItemStack stack = itemEntity.getItem();
-            name = stack.getHoverName();
-            if (KnowledgeAccess.of(player).isResearchKnown(ScanKeys.item(stack.getItem()))) {
-                aspects = AspectIndexAccess.index().of(stack);
-            }
-        } else if (target instanceof ScannedEntity(var entity)) {
-            name = entity.getName();
-            if (KnowledgeAccess.of(player).isResearchKnown(ScanKeys.entity(entity.getType()))) {
-                aspects = EntityAspects.of(entity);
-            }
-        }
-        if (name == null) {
-            name = Component.literal("?");
-        }
-
-        Font font = mc.font;
+        Readout readout = readoutOf(level, player, target);
+        Font font = minecraft.font;
+        Component nodeLine = readout.nodeLine();
         if (nodeLine != null) {
-            poseStack.pushPose();
-            poseStack.scale(NODE_LINE_SCALE, NODE_LINE_SCALE, NODE_LINE_SCALE);
-            collector.submitText(poseStack, -font.width(nodeLine) / 2.0F, NODE_LINE_TEXT_Y, nodeLine.getVisualOrderText(), false, Font.DisplayMode.NORMAL, LightCoordsUtil.FULL_BRIGHT, NODE_LINE_COLOR,
-                    0, 0);
-            poseStack.popPose();
+            submitNodeLine(font, poseStack, collector, nodeLine);
         }
-        if (aspects != null && !aspects.isEmpty()) {
-            submitAspectGrid(poseStack, collector, font, player, aspects);
+        if (!readout.aspects().isEmpty()) {
+            submitGrid(font, player, poseStack, collector, readout.aspects().entries());
         }
+        submitName(font, poseStack, collector, readout.name());
+    }
+
+    private static Readout readoutOf(ClientLevel level, AbstractClientPlayer player, ScanTarget target) {
+        if (target instanceof ScannedBlock(BlockPos pos)) {
+            return blockReadout(level, player, target, pos);
+        }
+        if (target instanceof ScannedEntity(Entity entity)) {
+            return entityReadout(player, entity);
+        }
+        return Readout.plain(Component.literal(FALLBACK_NAME), AspectList.EMPTY);
+    }
+
+    private static AspectList knownOrEmpty(AbstractClientPlayer player, Identifier researchKey, Supplier<AspectList> aspects) {
+        return KnowledgeAccess.of(player).isResearchKnown(researchKey) ? aspects.get() : AspectList.EMPTY;
+    }
+
+    private static Readout blockReadout(ClientLevel level, AbstractClientPlayer player, ScanTarget target, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityNode node) {
+            return nodeReadout(level, player, pos, node);
+        }
+        BlockState state = level.getBlockState(pos);
+        ItemStack pick = ScanningManager.stackOf(player, target);
+        if (pick.isEmpty()) {
+            return Readout.plain(state.getBlock().getName(), AspectList.EMPTY);
+        }
+        Component name = state.getFluidState().isEmpty() ? pick.getHoverName() : state.getBlock().getName();
+        return Readout.plain(name, knownOrEmpty(player, ScanKeys.item(pick.getItem()), () -> AspectIndexAccess.index().of(pick)));
+    }
+
+    private static Readout nodeReadout(ClientLevel level, AbstractClientPlayer player, BlockPos pos, BlockEntityNode node) {
+        Component name = Component.translatable(node.isEnergized() ? ENERGIZED_NODE_KEY : NODE_KEY);
+        if (KnowledgeAccess.of(player).isResearchKnown(ScanNode.researchKey(level, pos))) {
+            return new Readout(name, nodeLine(node), node.getAspects());
+        }
+        return Readout.plain(name, AspectList.EMPTY);
+    }
+
+    private static Readout entityReadout(AbstractClientPlayer player, Entity entity) {
+        if (entity instanceof ItemEntity itemEntity) {
+            ItemStack stack = itemEntity.getItem();
+            return Readout.plain(stack.getHoverName(), knownOrEmpty(player, ScanKeys.item(stack.getItem()), () -> AspectIndexAccess.index().of(stack)));
+        }
+        return Readout.plain(entity.getDisplayName(), knownOrEmpty(player, ScanKeys.entity(entity.getType()), () -> EntityAspects.of(entity)));
+    }
+
+    private static Component nodeLine(BlockEntityNode node) {
+        Component type = Component.translatable(NODE_TYPE_KEY_PREFIX + node.kind().getSerializedName());
+        NodeModifier modifier = node.trait();
+        if (modifier == null) {
+            return type;
+        }
+        Component modifierName = Component.translatable(NODE_MODIFIER_KEY_PREFIX + modifier.getSerializedName());
+        return Component.translatable(TYPE_MODIFIER_KEY, type, modifierName);
+    }
+
+    private static void drawText(SubmitNodeCollector collector, PoseStack poseStack, Component text, float x, float y, boolean shadow, int color) {
+        collector.submitText(poseStack, x, y, text.getVisualOrderText(), shadow, Font.DisplayMode.NORMAL, LightCoordsUtil.FULL_BRIGHT, color, NO_BACKGROUND, NO_OUTLINE);
+    }
+
+    private static void submitNodeLine(Font font, PoseStack poseStack, SubmitNodeCollector collector, Component line) {
         poseStack.pushPose();
-        poseStack.translate(0.0F, NAME_Y, 0.0F);
-        float scale = nameScale(font, name);
-        poseStack.scale(scale, scale, scale);
-        collector.submitText(poseStack, -font.width(name) / 2.0F, 0.0F, name.getVisualOrderText(), false, Font.DisplayMode.NORMAL, LightCoordsUtil.FULL_BRIGHT, NAME_COLOR, 0, 0);
+        poseStack.scale(NODE_LINE_SCALE, NODE_LINE_SCALE, NODE_LINE_SCALE);
+        drawText(collector, poseStack, line, -font.width(line) / 2.0F, NODE_LINE_Y, false, NODE_LINE_COLOR);
         poseStack.popPose();
     }
 
-    private static float nameScale(Font font, Component name) {
+    private static float nameScale(int width) {
+        if (width <= NAME_FULL_SCALE_WIDTH) {
+            return NAME_BASE_SCALE;
+        }
+        return NAME_BASE_SCALE - NAME_SCALE_STEP * (width - NAME_FULL_SCALE_WIDTH);
+    }
+
+    private static void submitName(Font font, PoseStack poseStack, SubmitNodeCollector collector, Component name) {
         int width = font.width(name);
-        return width > NAME_SHRINK_WIDTH ? NAME_SCALE - NAME_SHRINK_PER_PX * (width - NAME_SHRINK_WIDTH) : NAME_SCALE;
+        drawPlaced(collector, poseStack, name, new Vector3f(0.0F, NAME_Y, NAME_FRONT_Z), nameScale(width), -width / 2.0F, 0.0F, false, NAME_COLOR);
     }
 
-    private static void submitAspectGrid(PoseStack poseStack, SubmitNodeCollector collector, Font font, AbstractClientPlayer player, AspectList aspects) {
+    private static void submitGrid(Font font, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector, List<AspectInstance> entries) {
         poseStack.pushPose();
-        poseStack.scale(TAG_SPACE_SCALE, TAG_SPACE_SCALE, TAG_SPACE_SCALE);
-        int column = 0;
+        poseStack.scale(GRID_SCALE, GRID_SCALE, GRID_SCALE);
         int row = 0;
-        int remaining = aspects.size();
-        int baseX = Math.min(TAGS_PER_ROW, remaining) * TAG_SIZE / 2;
-        for (AspectInstance entry : aspects.entries()) {
-            int x = -baseX + column * TAG_SIZE;
-            int y = TAG_BASE_Y + row * TAG_SIZE;
-            boolean known = AspectPools.isDiscovered(player, entry.aspect());
-            poseStack.pushPose();
-            poseStack.translate(x + TAG_SIZE / 2.0F, y + TAG_SIZE / 2.0F, 0.0F);
-            poseStack.pushPose();
-            poseStack.scale(TAG_SIZE, -TAG_SIZE, TAG_SIZE);
-            PoseStack.Pose tagPose = poseStack.last().copy();
-            collector.submitCustomGeometry(poseStack, TTFlatRenderTypes.entityTranslucentFlat(known ? entry.aspect().value().texture() : AspectTagWorldRenderer.UNKNOWN_TEXTURE),
-                    (pose, buffer) -> AspectTagWorldRenderer.renderQuad(tagPose, buffer, entry.aspect(), TAG_ALPHA, !known, LightCoordsUtil.FULL_BRIGHT));
-            poseStack.popPose();
-            if (known) {
-                String amount = Integer.toString(entry.amount());
-                poseStack.pushPose();
-                poseStack.translate(TAG_SIZE / 2.0F, TAG_SIZE / 2.0F, -0.01F);
-                poseStack.scale(TAG_AMOUNT_TEXT_SCALE, TAG_AMOUNT_TEXT_SCALE, TAG_AMOUNT_TEXT_SCALE);
-                collector.submitText(poseStack, -font.width(amount) - 1, -font.lineHeight, Component.literal(amount).getVisualOrderText(), true, Font.DisplayMode.NORMAL, LightCoordsUtil.FULL_BRIGHT,
-                        TAG_TEXT_COLOR, 0, 0);
-                poseStack.popPose();
-            }
-            poseStack.popPose();
-            column++;
-            if (column >= TAGS_PER_ROW - row) {
-                column = 0;
-                row++;
-                remaining -= TAGS_PER_ROW - row;
-                baseX = Math.min(TAGS_PER_ROW - row, Math.max(remaining, 1)) * TAG_SIZE / 2;
-            }
+        int placed = 0;
+        while (row < GRID_ROWS && placed < entries.size()) {
+            int count = Math.min(GRID_ROWS - row, entries.size() - placed);
+            submitRow(font, player, poseStack, collector, entries.subList(placed, placed + count), row);
+            placed += count;
+            row++;
         }
         poseStack.popPose();
+    }
+
+    private static void submitRow(Font font, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector, List<AspectInstance> rowEntries, int row) {
+        float left = -(rowEntries.size() * TAG_SIZE / 2.0F);
+        float top = TAG_FIRST_ROW_Y + TAG_SIZE * row;
+        for (int column = 0; column < rowEntries.size(); column++) {
+            submitTag(font, player, poseStack, collector, rowEntries.get(column), left + TAG_SIZE * column, top);
+        }
+    }
+
+    private static void submitTag(Font font, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector, AspectInstance entry, float x, float y) {
+        Holder<IAspect> aspect = entry.aspect();
+        boolean discovered = aspect.value().isPrimal() || AspectPools.isDiscovered(player, aspect);
+        Identifier texture = discovered ? aspect.value().texture() : AspectTagWorldRenderer.UNKNOWN_TEXTURE;
+        poseStack.pushPose();
+        poseStack.translate(x + TAG_HALF, y + TAG_HALF, 0.0F);
+        poseStack.pushPose();
+        poseStack.scale(TAG_SIZE, -TAG_SIZE, TAG_SIZE);
+        collector.submitCustomGeometry(poseStack, TTFlatRenderTypes.entityTranslucentFlat(texture), new TagQuad(aspect, !discovered));
+        poseStack.popPose();
+        if (discovered) {
+            submitAmount(font, poseStack, collector, entry.amount());
+        }
+        poseStack.popPose();
+    }
+
+    private static void submitAmount(Font font, PoseStack poseStack, SubmitNodeCollector collector, int amount) {
+        Component text = Component.literal(Integer.toString(amount));
+        drawPlaced(collector, poseStack, text, new Vector3f(TAG_HALF, TAG_HALF, AMOUNT_FRONT_Z), AMOUNT_SCALE, -font.width(text) - AMOUNT_GAP, -font.lineHeight, true, AMOUNT_COLOR);
+    }
+
+    private static void drawPlaced(SubmitNodeCollector collector, PoseStack poseStack, Component text, Vector3f offset, float scale, float x, float y, boolean shadow, int color) {
+        poseStack.pushPose();
+        poseStack.translate(offset.x(), offset.y(), offset.z());
+        poseStack.scale(scale, scale, scale);
+        drawText(collector, poseStack, text, x, y, shadow, color);
+        poseStack.popPose();
+    }
+
+    private record Readout(Component name, @Nullable Component nodeLine, AspectList aspects) {
+        static Readout plain(Component name, AspectList aspects) {
+            return new Readout(name, null, aspects);
+        }
+    }
+
+    private record TagQuad(Holder<IAspect> aspect, boolean blackAndWhite) implements SubmitNodeCollector.CustomGeometryRenderer {
+        @Override
+        public void render(PoseStack.Pose pose, VertexConsumer buffer) {
+            AspectTagWorldRenderer.renderQuad(pose, buffer, aspect, TAG_ALPHA, blackAndWhite, LightCoordsUtil.FULL_BRIGHT);
+        }
     }
 }

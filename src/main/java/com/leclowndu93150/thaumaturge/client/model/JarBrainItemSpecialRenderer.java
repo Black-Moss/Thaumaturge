@@ -8,7 +8,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.mojang.serialization.MapCodec;
 import java.util.function.Consumer;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.special.NoDataSpecialModelRenderer;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
@@ -16,13 +19,18 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.jspecify.annotations.Nullable;
 
 public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRenderer {
-    private static final Identifier TEX_BRAIN = TTIds.rl("textures/entity/brain2.png");
-    private static final Identifier TEX_BRINE = TTIds.rl("textures/entity/jarbrine.png");
+    private static final Identifier BRAIN_TEXTURE = TTIds.rl("textures/entity/brain2.png");
+    private static final Identifier BRINE_TEXTURE = TTIds.rl("textures/entity/jarbrine.png");
+    private static final float CENTER = 0.5F;
+    private static final float FRAME_Y = 0.01F;
+    private static final float FLIP_DEGREES = 180.0F;
+    private static final float BRAIN_Y = -0.77F;
+    private static final float BRAIN_YAW_DEGREES = -90.0F;
     private static final float BRAIN_SCALE = 0.4F;
-    private static final float BRAIN_LIFT = -0.77F;
+    private static final int BRINE_ORDER = 1;
+    private static final float[][] EXTENT_CORNERS = {{0.1875F, 0.0625F, 0.1875F}, {0.8125F, 0.6875F, 0.8125F}};
 
     private final BrainModel brain;
     private final JarBrineModel brine;
@@ -35,33 +43,45 @@ public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRend
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.01F, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        poseStack.translate(CENTER, FRAME_Y, CENTER);
+        poseStack.mulPose(Axis.XP.rotationDegrees(FLIP_DEGREES));
+        submitBrain(poseStack, collector, lightCoords);
+        submitBrine(poseStack, collector, lightCoords);
+        poseStack.popPose();
+    }
 
+    private void submitBrain(PoseStack poseStack, SubmitNodeCollector collector, int light) {
         poseStack.pushPose();
-        poseStack.translate(0.0F, BRAIN_LIFT, 0.0F);
-        poseStack.mulPose(Axis.YN.rotationDegrees(90.0F));
+        poseStack.translate(0.0F, BRAIN_Y, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(BRAIN_YAW_DEGREES));
         poseStack.scale(BRAIN_SCALE, BRAIN_SCALE, BRAIN_SCALE);
-        collector.submitModelPart(brain.root(), poseStack, RenderTypes.entityCutout(TEX_BRAIN), lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
+        RenderType type = RenderTypes.entityCutout(BRAIN_TEXTURE);
+        collector.submitModelPart(brain.root(), poseStack, type, light, OverlayTexture.NO_OVERLAY, null);
         poseStack.popPose();
+    }
 
-        collector.submitModelPart(brine.root, poseStack, RenderTypes.entityTranslucent(TEX_BRINE), lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
-        poseStack.popPose();
+    private void submitBrine(PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        RenderType type = RenderTypes.entityTranslucent(BRINE_TEXTURE);
+        OrderedSubmitNodeCollector ordered = collector.order(BRINE_ORDER);
+        ordered.submitModelPart(brine.root, poseStack, type, light, OverlayTexture.NO_OVERLAY, null);
     }
 
     @Override
     public void getExtents(Consumer<Vector3fc> consumer) {
-        consumer.accept(new Vector3f(0.1875F, 0.0625F, 0.1875F));
-        consumer.accept(new Vector3f(0.8125F, 0.6875F, 0.8125F));
+        for (float[] corner : EXTENT_CORNERS) {
+            consumer.accept(new Vector3f(corner[0], corner[1], corner[2]));
+        }
     }
 
     public record Unbaked() implements NoDataSpecialModelRenderer.Unbaked {
         public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(Unbaked::new);
 
         @Override
-        public @Nullable SpecialModelRenderer<Void> bake(SpecialModelRenderer.BakingContext context) {
-            return new JarBrainItemSpecialRenderer(new BrainModel(context.entityModelSet().bakeLayer(TTModelLayers.BRAIN)),
-                    new JarBrineModel(context.entityModelSet().bakeLayer(TTModelLayers.JAR_BRINE)));
+        public SpecialModelRenderer<Void> bake(SpecialModelRenderer.BakingContext context) {
+            EntityModelSet models = context.entityModelSet();
+            BrainModel brainModel = new BrainModel(models.bakeLayer(TTModelLayers.BRAIN));
+            JarBrineModel brineModel = new JarBrineModel(models.bakeLayer(TTModelLayers.JAR_BRINE));
+            return new JarBrainItemSpecialRenderer(brainModel, brineModel);
         }
 
         @Override

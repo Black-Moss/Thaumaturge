@@ -9,6 +9,7 @@ import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.content.essentia.item.ComponentEssentia;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.JarItem;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -20,6 +21,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -30,6 +32,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class ThaumostaticHarnessItem extends Item implements IHoverGear, IVisDiscountGear {
     private static final int VIS_DISCOUNT = 2;
+    private static final int FUEL_PER_TICK = 1;
 
     public ThaumostaticHarnessItem(Properties properties) {
         super(properties);
@@ -65,9 +68,32 @@ public final class ThaumostaticHarnessItem extends Item implements IHoverGear, I
     }
 
     @Override
-    public int getHoverFuel(ItemStack stack) {
-        AspectInstance fuel = potentia(getJar(stack));
-        return fuel == null ? 0 : fuel.amount();
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (!level.isClientSide() && player instanceof ServerPlayer opener) {
+            openHarness(opener, hand);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    private static void openHarness(ServerPlayer player, InteractionHand hand) {
+        Component title = player.getItemInHand(hand).getHoverName();
+        MenuConstructor factory = (containerId, inventory, viewer) -> new MenuThaumostaticHarness(containerId, inventory, hand);
+        boolean mainHand = hand == InteractionHand.MAIN_HAND;
+        player.openMenu(new SimpleMenuProvider(factory, title), buf -> buf.writeBoolean(mainHand));
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
+        super.inventoryTick(stack, level, entity, slot);
+        if (slot == EquipmentSlot.CHEST) {
+            tickHover(entity, stack);
+        }
+    }
+
+    private void tickHover(Entity wearer, ItemStack stack) {
+        if (wearer instanceof ServerPlayer player) {
+            HoverManager.tick(player, stack, this);
+        }
     }
 
     @Override
@@ -76,37 +102,27 @@ public final class ThaumostaticHarnessItem extends Item implements IHoverGear, I
     }
 
     @Override
+    public int getHoverFuel(ItemStack stack) {
+        return Optional.ofNullable(potentia(getJar(stack))).map(AspectInstance::amount).orElse(0);
+    }
+
+    @Override
     public void consumeHoverFuel(ItemStack stack) {
         ItemStack jar = getJar(stack);
-        AspectInstance fuel = potentia(jar);
-        if (fuel == null || !(jar.getItem() instanceof JarItem)) {
-            return;
-        }
+        Optional.ofNullable(potentia(jar)).ifPresent(fuel -> {
+            drainOne(jar, fuel);
+            setJar(stack, jar);
+        });
+    }
+
+    private static void drainOne(ItemStack jar, AspectInstance fuel) {
         ComponentEssentia<?> contents = ComponentEssentia.jar(jar);
-        contents.setAspects(contents.getAspects().remove(fuel.aspect(), 1));
-        setJar(stack, jar);
+        contents.setAspects(contents.getAspects().remove(fuel.aspect(), FUEL_PER_TICK));
     }
 
     @Override
     public int getVisDiscount(ItemStack stack) {
         return VIS_DISCOUNT;
-    }
-
-    @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new SimpleMenuProvider((containerId, inventory, menuPlayer) -> new MenuThaumostaticHarness(containerId, inventory, hand), player.getItemInHand(hand).getHoverName()),
-                    buf -> buf.writeBoolean(hand == InteractionHand.MAIN_HAND));
-        }
-        return InteractionResult.SUCCESS;
-    }
-
-    @Override
-    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
-        super.inventoryTick(stack, level, entity, slot);
-        if (slot == EquipmentSlot.CHEST && entity instanceof ServerPlayer player) {
-            HoverManager.tick(player, stack, this);
-        }
     }
 
     @Override

@@ -5,174 +5,219 @@ import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     public static final int PATTERN_COUNT = 10;
+
+    private static final String TYPE_KEY = "Type";
+    private static final String POWER_KEY = "Power";
+    private static final int GRID_SIZE = 3;
+    private static final int GRID_CELLS = GRID_SIZE * GRID_SIZE;
+    private static final int[][] PATTERNS = {{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0}, {0, 1}, {0, 3}, {0, 1, 3, 4}, {0, 1, 2}, {0, 3, 6}, {0, 1, 2, 3, 4, 5}, {0, 1, 3, 4, 6, 7}, {0, 1, 2, 3, 5, 6, 7, 8}};
     private static final int WORK_INTERVAL = 20;
-    private static final float VIS_DRAIN = 5.0F;
+    private static final float DRAIN_AMOUNT = 5.0F;
+    private static final float CRAFT_COST = 1.0F;
     private static final int SPIN_EVENT = 1;
-    private static final int SPIN_TICKS = 10;
-    private static final int[] PATTERN_INPUT_COUNTS = {9, 1, 2, 2, 4, 3, 3, 6, 6, 8};
-    private static final int[][] PATTERN_SLOTS = {{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0}, {0, 1}, {0, 3}, {0, 1, 3, 4}, {0, 1, 2}, {0, 3, 6}, {0, 1, 2, 3, 4, 5}, {0, 1, 3, 4, 6, 7},
-            {0, 1, 2, 3, 5, 6, 7, 8}};
+    private static final int SPIN_DURATION = 10;
+    private static final float SPIN_ACCELERATION = 1.0F;
+    private static final float SPIN_DECAY = 0.8F;
+    private static final float SPIN_REST_SPEED = 0.5F;
+    private static final float CLACK_PITCH = 1.7F;
+    private static final float CLACK_VOLUME = 0.2F;
+    private static final Direction TAKE_FACE = Direction.DOWN;
+    private static final Direction GIVE_FACE = Direction.UP;
 
-    private byte patternType;
-    private float power;
-    private int counter;
-
-    public float rot;
-    public float rotSpeed;
     public int rotTicks;
+    public float rotSpeed;
+    public float rot;
+
+    private int clackTimer;
+    private int workTimer;
+    private float power;
+    private byte type;
 
     public BlockEntityPatternCrafter(BlockPos pos, BlockState state) {
         super(TTBlockEntities.PATTERN_CRAFTER.get(), pos, state);
     }
 
     public byte patternType() {
-        return patternType;
+        return type;
     }
 
     public void cycle() {
-        patternType++;
-        if (patternType >= PATTERN_COUNT) {
-            patternType = 0;
-        }
-        setChanged();
-        syncToClient();
+        type = (byte) ((type + 1) % PATTERN_COUNT);
+        setChangedAndSync();
     }
 
     void tick(Level level, BlockPos pos, BlockState state) {
         if (level.isClientSide()) {
-            if (rotTicks > 0) {
-                rotTicks--;
-                if (rotTicks % Math.floor(Math.max(1.0F, rotSpeed)) == 0.0) {
-                    level.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.CLACK.get(), SoundSource.BLOCKS, 0.2F, 1.7F, false);
-                }
-                rotSpeed++;
-            } else {
-                rotSpeed *= 0.8F;
-            }
-            rot += rotSpeed;
+            animate(level, pos);
             return;
         }
-        if (counter++ % WORK_INTERVAL != 0 || !state.getValue(BlockStateProperties.ENABLED)) {
-            return;
-        }
-        ServerLevel server = (ServerLevel) level;
-        if (power <= 0.0F) {
-            power += AuraHelper.drainVis(server, pos, VIS_DRAIN, false);
-        }
-        int inputCount = PATTERN_INPUT_COUNTS[patternType];
-        ResourceHandler<ItemResource> above = InvHelper.getItemHandlerAt(server, pos.above(), Direction.DOWN);
-        ResourceHandler<ItemResource> below = InvHelper.getItemHandlerAt(server, pos.below(), Direction.UP);
-        if (above == null || below == null) {
-            return;
-        }
-        for (int slot = 0; slot < above.size(); slot++) {
-            ItemResource resource = above.getResource(slot);
-            if (resource.isEmpty())
-                continue;
-            ItemStack testStack = resource.toStack(inputCount);
-            ItemStack removed = InvHelper.removeStackFrom(server, pos.above(), Direction.DOWN, testStack.copy(), InvHelper.InvFilter.STRICT, true);
-            if (removed.getCount() != inputCount)
-                continue;
-            CraftResult result = craft(server, testStack);
-            if (result == null || power < 1.0F)
-                continue;
-            if (!InvHelper.insertStack(below, result.output.copy(), true).isEmpty())
-                continue;
-            boolean remaindersFit = true;
-            for (ItemStack remainder : result.remainders) {
-                if (!InvHelper.insertStack(below, remainder.copy(), true).isEmpty()) {
-                    remaindersFit = false;
-                    break;
-                }
-            }
-            if (!remaindersFit)
-                continue;
-            InvHelper.insertStack(below, result.output.copy(), false);
-            for (ItemStack remainder : result.remainders) {
-                InvHelper.insertStack(below, remainder.copy(), false);
-            }
-            InvHelper.removeStackFrom(server, pos.above(), Direction.DOWN, testStack, InvHelper.InvFilter.STRICT, false);
-            server.blockEvent(pos, state.getBlock(), SPIN_EVENT, 0);
-            power--;
-            setChanged();
-            break;
+        boolean due = workTimer == 0;
+        workTimer = (workTimer + 1) % WORK_INTERVAL;
+        if (due && state.getValue(BlockStateProperties.ENABLED) && level instanceof ServerLevel serverLevel) {
+            work(serverLevel, pos);
         }
     }
 
-    private CraftResult craft(ServerLevel server, ItemStack input) {
-        List<ItemStack> grid = new ArrayList<>(9);
-        for (int i = 0; i < 9; i++) {
-            grid.add(ItemStack.EMPTY);
+    private void animate(Level level, BlockPos pos) {
+        advanceSpin();
+        if (rotSpeed <= 0.0F) {
+            clackTimer = 0;
+            return;
         }
-        for (int slot : PATTERN_SLOTS[patternType]) {
-            grid.set(slot, input.copyWithCount(1));
+        rot += rotSpeed;
+        if (++clackTimer >= Math.max(1, (int) rotSpeed)) {
+            clackTimer = 0;
+            Vec3 center = Vec3.atCenterOf(pos);
+            level.playLocalSound(center.x, center.y, center.z, TTSounds.CLACK.get(), SoundSource.BLOCKS, CLACK_VOLUME, CLACK_PITCH, false);
         }
-        CraftingInput craftingInput = CraftingInput.of(3, 3, grid);
-        Optional<RecipeHolder<CraftingRecipe>> match = server.recipeAccess().getRecipeFor(RecipeType.CRAFTING, craftingInput, server);
-        if (match.isEmpty()) {
-            return null;
+    }
+
+    private void advanceSpin() {
+        if (rotTicks > 0) {
+            rotTicks--;
+            rotSpeed += SPIN_ACCELERATION;
+            return;
         }
-        CraftingRecipe recipe = match.get().value();
-        ItemStack output = recipe.assemble(craftingInput);
-        if (output.isEmpty()) {
-            return null;
-        }
-        List<ItemStack> remainders = new ArrayList<>();
-        for (ItemStack remainder : recipe.getRemainingItems(craftingInput)) {
-            if (!remainder.isEmpty()) {
-                remainders.add(remainder);
+        if (rotSpeed > 0.0F) {
+            rotSpeed *= SPIN_DECAY;
+            if (rotSpeed < SPIN_REST_SPEED) {
+                rotSpeed = 0.0F;
             }
         }
-        return new CraftResult(output, remainders);
+    }
+
+    private void work(ServerLevel level, BlockPos pos) {
+        ResourceHandler<ItemResource> input = InvHelper.getItemHandlerAt(level, pos.above(), TAKE_FACE);
+        ResourceHandler<ItemResource> output = InvHelper.getItemHandlerAt(level, pos.below(), GIVE_FACE);
+        if (input == null || output == null) {
+            return;
+        }
+        refillPower(level, pos);
+        if (power < CRAFT_COST) {
+            return;
+        }
+        int slots = input.size();
+        int slot = 0;
+        boolean crafted = false;
+        while (!crafted && slot < slots) {
+            ItemResource resource = input.getResource(slot++);
+            crafted = !resource.isEmpty() && craft(level, pos, input, output, resource.toStack());
+        }
+    }
+
+    private void refillPower(ServerLevel level, BlockPos pos) {
+        if (power > 0.0F) {
+            return;
+        }
+        power = AuraHelper.drainVis(level, pos, DRAIN_AMOUNT, false);
+        if (power > 0.0F) {
+            setChanged();
+        }
+    }
+
+    private static CraftingInput gridFor(int[] cells, ItemStack sample) {
+        NonNullList<ItemStack> stacks = NonNullList.withSize(GRID_CELLS, ItemStack.EMPTY);
+        for (int cell : cells) {
+            stacks.set(cell, sample.copy());
+        }
+        return CraftingInput.of(GRID_SIZE, GRID_SIZE, stacks);
+    }
+
+    private static boolean canStoreAll(ResourceHandler<ItemResource> output, ItemStack result, NonNullList<ItemStack> leftovers) {
+        if (result.isEmpty() || !InvHelper.insertStack(output, result, true).isEmpty()) {
+            return false;
+        }
+        for (ItemStack leftover : leftovers) {
+            if (!leftover.isEmpty() && !InvHelper.insertStack(output, leftover, true).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean craft(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> input, ResourceHandler<ItemResource> output, ItemStack sample) {
+        int[] cells = PATTERNS[type];
+        ItemStack required = sample.copyWithCount(cells.length);
+        if (InvHelper.removeStackFrom(input, required, InvHelper.InvFilter.STRICT, true).getCount() < cells.length) {
+            return false;
+        }
+        CraftingInput grid = gridFor(cells, sample);
+        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid, level).map(holder -> finishCraft(level, pos, input, output, required, holder.value(), grid)).orElse(false);
+    }
+
+    private boolean finishCraft(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> input, ResourceHandler<ItemResource> output, ItemStack required, CraftingRecipe recipe, CraftingInput grid) {
+        ItemStack result = recipe.assemble(grid);
+        NonNullList<ItemStack> leftovers = recipe.getRemainingItems(grid);
+        if (!canStoreAll(output, result, leftovers)) {
+            return false;
+        }
+        InvHelper.removeStackFrom(input, required, InvHelper.InvFilter.STRICT, false);
+        store(level, pos, output, result);
+        for (ItemStack leftover : leftovers) {
+            if (!leftover.isEmpty()) {
+                store(level, pos, output, leftover);
+            }
+        }
+        power -= CRAFT_COST;
+        setChanged();
+        level.blockEvent(pos, getBlockState().getBlock(), SPIN_EVENT, 0);
+        return true;
+    }
+
+    private static void store(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> output, ItemStack stack) {
+        ItemStack overflow = InvHelper.insertStack(output, stack, false);
+        if (!overflow.isEmpty()) {
+            InvHelper.ejectStackAt(level, pos, Direction.DOWN, overflow);
+        }
     }
 
     @Override
-    public boolean triggerEvent(int event, int param) {
-        if (event == SPIN_EVENT) {
-            if (level != null && level.isClientSide()) {
-                rotTicks = SPIN_TICKS;
-            }
-            return true;
+    public boolean triggerEvent(int id, int param) {
+        if (id != SPIN_EVENT) {
+            return super.triggerEvent(id, param);
         }
-        return super.triggerEvent(event, param);
+        startSpin();
+        return true;
+    }
+
+    private void startSpin() {
+        if (level != null && level.isClientSide()) {
+            rotTicks = SPIN_DURATION;
+        }
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putByte("Type", patternType);
-        output.putFloat("Power", power);
+        output.putByte(TYPE_KEY, type);
+        output.putFloat(POWER_KEY, power);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        patternType = input.getByteOr("Type", (byte) 0);
-        power = input.getFloatOr("Power", 0.0F);
-    }
-
-    private record CraftResult(ItemStack output, List<ItemStack> remainders) {
+        byte stored = input.getByteOr(TYPE_KEY, (byte) 0);
+        type = stored >= 0 && stored < PATTERN_COUNT ? stored : 0;
+        power = input.getFloatOr(POWER_KEY, 0.0F);
     }
 }

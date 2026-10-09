@@ -23,7 +23,7 @@ public final class GolemBindings implements GolemHelper.Bindings {
 
     @Override
     public @Nullable ISealEntity getSealEntity(Level level, @Nullable SealPos pos) {
-        return SealHandler.getSealEntity(level, pos);
+        return SealHandler.lookup(level, pos);
     }
 
     @Override

@@ -8,11 +8,11 @@ public final class WandAccessBindings implements WandAccess.Bindings {
 
     @Override
     public WandVis getAllVis(ItemStack wand) {
-        return WandVisHelper.getAllVis(wand);
+        return WandVisHelper.chargeOf(wand);
     }
 
     @Override
     public void setAllVis(ItemStack wand, WandVis vis) {
-        WandVisHelper.setAllVis(wand, vis);
+        WandVisHelper.writeCharge(wand, vis);
     }
 }

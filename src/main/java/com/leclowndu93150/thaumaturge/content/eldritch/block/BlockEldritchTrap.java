@@ -18,7 +18,15 @@ import org.jspecify.annotations.Nullable;
 public final class BlockEldritchTrap extends BaseEntityBlock {
     public static final MapCodec<BlockEldritchTrap> CODEC = simpleCodec(BlockEldritchTrap::new);
 
-    private static final int RUNE_DURATION_BASE = 16;
+    private static final float CELL_CENTER = 0.5F;
+    private static final float RED_BASE = 0.5F;
+    private static final float RED_SPREAD = 0.5F;
+    private static final float GREEN_SPREAD = 0.3F;
+    private static final float BLUE_BASE = 0.9F;
+    private static final float BLUE_SPREAD = 0.1F;
+    private static final int DURATION_BASE = 16;
+    private static final int DURATION_SPREAD = 4;
+    private static final float NO_GRAVITY = 0.0F;
 
     public BlockEldritchTrap(BlockBehaviour.Properties properties) {
         super(properties);
@@ -49,13 +57,16 @@ public final class BlockEldritchTrap extends BaseEntityBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        int x = pos.getX() + random.nextInt(2) - random.nextInt(2);
-        int y = pos.getY() + random.nextInt(2) - random.nextInt(2);
-        int z = pos.getZ() + random.nextInt(2) - random.nextInt(2);
-        if (level.isEmptyBlock(new BlockPos(x, y, z))) {
-            level.addParticle(
-                    new BlockRunesParticleOptions(0.5F + random.nextFloat() * 0.5F, random.nextFloat() * 0.3F, 0.9F + random.nextFloat() * 0.1F, RUNE_DURATION_BASE + random.nextInt(4), 0.0F, false),
-                    x + 0.5, y + 0.5, z + 0.5, 0.0, 0.0, 0.0);
+        BlockPos cell = pos.offset(offset(random), offset(random), offset(random));
+        if (!level.getBlockState(cell).isAir()) {
+            return;
         }
+        BlockRunesParticleOptions options = new BlockRunesParticleOptions(RED_BASE + random.nextFloat() * RED_SPREAD, random.nextFloat() * GREEN_SPREAD, BLUE_BASE + random.nextFloat() * BLUE_SPREAD,
+                DURATION_BASE + random.nextInt(DURATION_SPREAD), NO_GRAVITY, false);
+        level.addParticle(options, cell.getX() + CELL_CENTER, cell.getY() + CELL_CENTER, cell.getZ() + CELL_CENTER, 0.0, 0.0, 0.0);
+    }
+
+    private static int offset(RandomSource random) {
+        return random.nextInt(2) + random.nextInt(2) - 1;
     }
 }

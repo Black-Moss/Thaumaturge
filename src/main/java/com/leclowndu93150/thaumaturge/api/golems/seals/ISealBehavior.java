@@ -5,69 +5,68 @@ import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import net.minecraft.server.level.ServerLevel;
 
 /**
- * The job of a placed seal: which tasks it posts and what happens when a golem arrives.
+ * The job of one placed seal.
  *
- * <p>Each placed seal owns one behaviour instance, created by its {@link SealType}, so a behaviour may keep per-placement state such
- * as task caches. State that must survive a restart goes through the type's behaviour codec. Every callback runs on the server
- * thread and receives the placed seal, through which the behaviour reads its filter and settings.
+ * <p>One instance exists per placement and may hold per-placement state. Every callback except
+ * {@link #canPerform} runs on the server thread.
  *
  * @since 1.0.0
  */
 public interface ISealBehavior {
     /**
-     * Runs every server tick while the seal's chunk is loaded and no redstone signal stops it.
+     * Called once per server tick for each seal whose chunk is loaded and that redstone has not stopped.
      *
      * @param level the level
-     * @param seal  the placed seal
+     * @param seal  the seal this behaviour belongs to
      */
     void tick(ServerLevel level, ISealEntity seal);
 
     /**
-     * Runs when a golem claims one of this seal's tasks, before it starts walking.
+     * Called when a golem claims one of the seal's tasks, before the golem walks. Does nothing by default.
      *
      * @param level the level
-     * @param seal  the placed seal
-     * @param golem the golem
+     * @param seal  the seal this behaviour belongs to
+     * @param golem the golem that claimed the task
      * @param task  the claimed task
      */
     default void onTaskStarted(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task) {}
 
     /**
-     * Runs when the golem reaches the task target. Return false to have the golem stay and try again a moment later, which is how
-     * multi-step work such as block breaking advances.
+     * Called when the golem has reached the task's target.
      *
      * @param level the level
-     * @param seal  the placed seal
-     * @param golem the golem
-     * @param task  the task
-     * @return whether the work is finished
+     * @param seal  the seal this behaviour belongs to
+     * @param golem the working golem
+     * @param task  the task being worked
+     * @return true when the task is finished; false to make the golem stay and call again a moment later
      */
     boolean completeTask(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task);
 
     /**
-     * Asked before a golem claims a task and while it works on it. Trait and ownership gates are already checked by then.
+     * Asked before a golem claims a task and while it works on it. The golem's own lock and trait rules are already checked.
+     * Receives no level, so the implementation must rely only on what the golem exposes.
      *
-     * @param seal  the placed seal
+     * @param seal  the seal this behaviour belongs to
      * @param golem the golem asking
      * @param task  the task
-     * @return whether this golem may do the task now
+     * @return whether the golem may do this task
      */
     boolean canPerform(ISealEntity seal, IGolemAPI golem, Task task);
 
     /**
-     * Runs when the task board drops one of this seal's tasks because it was suspended or expired.
+     * Called when the task board drops one of the seal's tasks because it ended or ran out of life. Does nothing by default.
      *
      * @param level the level
-     * @param seal  the placed seal
+     * @param seal  the seal this behaviour belongs to
      * @param task  the dropped task
      */
     default void onTaskSuspended(ServerLevel level, ISealEntity seal, Task task) {}
 
     /**
-     * Runs once when the seal is removed from the world.
+     * Called once when the seal is removed from the world. Does nothing by default.
      *
      * @param level the level
-     * @param seal  the seal being removed
+     * @param seal  the seal this behaviour belongs to
      */
     default void onRemoved(ServerLevel level, ISealEntity seal) {}
 }

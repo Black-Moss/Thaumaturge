@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.aura.node;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
@@ -13,35 +12,67 @@ import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTDataMaps;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.biome.Biome;
 import org.jspecify.annotations.Nullable;
 
 public final class NodeGenerator {
     public static final int DEFAULT_SPECIAL_RARITY = 18;
     public static final int DEFAULT_BASE_AURA = 100;
 
-    private static final int EXTRA_ASPECT_ROLLS = 3;
-    private static final int ENV_SCAN_RANGE = 5;
-    private static final int ENV_WATER_THRESHOLD = 100;
-    private static final int ENV_LAVA_THRESHOLD = 100;
-    private static final int ENV_STONE_THRESHOLD = 500;
-    private static final int ENV_FOLIAGE_THRESHOLD = 100;
-    private static final int PLACE_FLAGS = 3;
-    private static final int GUARANTEED_NODE_ATTEMPTS = 64;
-    private static final float TAINTED_LANDS_AURA_BOOST = 1.5F;
+    private static final int GUARANTEED_ROLLS = 64;
+    private static final double PERCENT_TOTAL = 100.0;
+    private static final int MODIFIER_RARITY_DIVISOR = 2;
+    private static final float TAINTED_BIOME_FACTOR = 1.5F;
+    private static final float SMALL_NODE_DIVISOR = 4.0F;
+    private static final int MINIMUM_AURA = 8;
+    private static final int BONUS_ASPECT_ROLLS = 3;
+    private static final int HUNGRY_DESIDERIUM = 2;
+    private static final int PURE_FLAVOUR_POINTS = 2;
+    private static final float WEIGHT_FLOOR = 0.05F;
+    private static final int SURROUNDING_RADIUS = 5;
+    private static final int LARGE_BLOCK_COUNT = 100;
+    private static final int VERY_LARGE_BLOCK_COUNT = 500;
+    private static final double BONUS_NONE_WEIGHT = 0.5;
+    private static final int[] FACTORIALS = {1, 1, 2, 6};
+    private static final NodeModifier[] MODIFIERS = NodeModifier.values();
+    private static final List<TerrainRule> TERRAIN_RULES = List.of(new TerrainRule(state -> state.getFluidState().is(FluidTags.WATER), LARGE_BLOCK_COUNT, List.of(TTAspects.AQUA)),
+            new TerrainRule(state -> state.getFluidState().is(FluidTags.LAVA), LARGE_BLOCK_COUNT, List.of(TTAspects.IGNIS, TTAspects.TERRA)),
+            new TerrainRule(state -> state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE), VERY_LARGE_BLOCK_COUNT, List.of(TTAspects.TERRA)),
+            new TerrainRule(state -> state.is(BlockTags.LEAVES), LARGE_BLOCK_COUNT, List.of(TTAspects.HERBA)));
+    private static final List<ResourceKey<IAspect>> DARK_ASPECTS = List.of(TTAspects.MORTUUS, TTAspects.EXANIMIS, TTAspects.PERDITIO, TTAspects.TENEBRAE);
+    private static final TypeFlavour NO_FLAVOUR = (into, registry, random) -> {
+    };
+    private static final Map<NodeType, TypeFlavour> TYPE_FLAVOURS = Map.of(NodeType.HUNGRY, (into, registry, random) -> into.putAll(hungryFlavour(registry, random)), NodeType.PURE,
+            (into, registry, random) -> put(into, registry, random.nextBoolean() ? TTAspects.VICTUS : TTAspects.ORDO, PURE_FLAVOUR_POINTS), NodeType.DARK, (into, registry, random) -> {
+                for (ResourceKey<IAspect> key : DARK_ASPECTS) {
+                    if (random.nextBoolean()) {
+                        put(into, registry, key, 1);
+                    }
+                }
+            });
+    private static final List<RollStage> PIPELINE = List.of(new TypeSelectionStage(), new AuraScalingStage(), new SurroundingsTallyStage(), new AspectSourcingStage(), new TerrainFlavourStage(),
+            new BudgetStage());
 
     private NodeGenerator() {}
 
@@ -51,269 +82,367 @@ public final class NodeGenerator {
             return false;
         }
         boolean placed = createNodeAt(level, pos, data.type(), data.modifier().orElse(null), data.aspects());
-        if (placed && data.type() == NodeType.TAINTED && !(level instanceof ServerLevel) && level.getBlockEntity(pos) instanceof BlockEntityNode node) {
-            node.markNaturalTaintBootstrap();
+        if (placed && data.type() == NodeType.TAINTED && !(level instanceof ServerLevel)) {
+            markBootstrap(level, pos);
         }
         return placed;
     }
 
     public static boolean createGuaranteedTaintedNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random) {
-        return createGuaranteedTaintedLandsNodeAt(level, pos, random, NodeType.TAINTED);
+        return createGuaranteed(level, pos, random, NodeType.TAINTED);
     }
 
     public static boolean createGuaranteedHungryNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random) {
-        return createGuaranteedTaintedLandsNodeAt(level, pos, random, NodeType.HUNGRY);
+        return createGuaranteed(level, pos, random, NodeType.HUNGRY);
     }
 
-    private static boolean createGuaranteedTaintedLandsNodeAt(ServerLevelAccessor level, BlockPos pos, RandomSource random, NodeType requiredType) {
-        if (ThaumaturgeCommonConfig.WUSS_MODE.get() || !level.getBiome(pos).is(TTBiomeTags.IS_TAINTED)) {
+    private static boolean createGuaranteed(ServerLevelAccessor level, BlockPos pos, RandomSource random, NodeType wanted) {
+        if (!guaranteedSpawnAllowed(level, pos)) {
             return false;
         }
-        NodeType rolledType = requiredType == NodeType.HUNGRY ? NodeType.NORMAL : requiredType;
-        for (int attempt = 0; attempt < GUARANTEED_NODE_ATTEMPTS; attempt++) {
-            NodeData data = rollRandomNodeData(level, pos, random, false, false, false, DEFAULT_SPECIAL_RARITY, DEFAULT_BASE_AURA, rolledType);
-            if (data == null || data.type() != rolledType) {
-                continue;
-            }
-            AspectList aspects = data.aspects();
-            if (requiredType == NodeType.HUNGRY) {
-                aspects = addTypeFlavor(level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY), aspects, NodeType.HUNGRY, random);
-            }
-            if (!createNodeAt(level, pos, requiredType, data.modifier().orElse(null), aspects)) {
-                return false;
-            }
-            if (level.getBlockEntity(pos) instanceof BlockEntityNode node) {
-                node.markNaturalTaintBootstrap();
-            }
-            return true;
+        NodeType rollType = wanted == NodeType.HUNGRY ? NodeType.NORMAL : wanted;
+        Optional<NodeData> rolled = firstRollOfType(level, pos, random, rollType);
+        if (rolled.isEmpty()) {
+            return false;
         }
-        return false;
+        AspectList aspects = guaranteedAspects(level, rolled.get(), wanted, random);
+        if (!createNodeAt(level, pos, wanted, rolled.get().modifier().orElse(null), aspects)) {
+            return false;
+        }
+        markBootstrap(level, pos);
+        return true;
+    }
+
+    private static boolean guaranteedSpawnAllowed(ServerLevelAccessor level, BlockPos pos) {
+        return !ThaumaturgeCommonConfig.WUSS_MODE.get() && level.getBiome(pos).is(TTBiomeTags.IS_TAINTED);
+    }
+
+    private static AspectList guaranteedAspects(ServerLevelAccessor level, NodeData rolled, NodeType wanted, RandomSource random) {
+        if (wanted != NodeType.HUNGRY) {
+            return rolled.aspects();
+        }
+        return rolled.aspects().add(NodeRules.fromMap(hungryFlavour(aspectRegistry(level), random)));
+    }
+
+    private static Optional<NodeData> firstRollOfType(ServerLevelAccessor level, BlockPos pos, RandomSource random, NodeType required) {
+        return Stream.generate(() -> rollRandomNodeData(level, pos, random, false, false, false, DEFAULT_SPECIAL_RARITY, DEFAULT_BASE_AURA)).limit(GUARANTEED_ROLLS)
+                .filter(candidate -> candidate != null && candidate.type() == required).findFirst();
+    }
+
+    public static boolean createNodeAt(ServerLevelAccessor level, BlockPos pos, NodeType type, @Nullable NodeModifier modifier, AspectList aspects) {
+        BlockEntityNode target = level.getBlockEntity(pos) instanceof BlockEntityNode existing ? existing : placeNodeBlock(level, pos);
+        if (target == null) {
+            return false;
+        }
+        configure(target, type, modifier, aspects);
+        return true;
+    }
+
+    private static @Nullable BlockEntityNode placeNodeBlock(ServerLevelAccessor level, BlockPos pos) {
+        BlockState current = level.getBlockState(pos);
+        boolean free = current.isAir() || current.canBeReplaced() || current.is(BlockTags.LEAVES);
+        if (!free || !level.setBlock(pos, TTBlocks.NODE.get().defaultBlockState(), Block.UPDATE_ALL)) {
+            return null;
+        }
+        return level.getBlockEntity(pos) instanceof BlockEntityNode placed ? placed : null;
+    }
+
+    private static void configure(BlockEntityNode node, NodeType type, @Nullable NodeModifier modifier, AspectList aspects) {
+        node.applyNodeData(new NodeData(type, Optional.ofNullable(modifier), aspects, aspects));
+        node.setChanged();
+    }
+
+    private static void markBootstrap(ServerLevelAccessor level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityNode node) {
+            node.markNaturalTaintBootstrap();
+        }
+    }
+
+    private static HolderLookup.RegistryLookup<IAspect> aspectRegistry(ServerLevelAccessor level) {
+        return level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
     }
 
     public static @Nullable NodeData rollRandomNodeData(ServerLevelAccessor level, BlockPos pos, RandomSource random, boolean silverwood, boolean eerie, boolean small, int specialRarity, int baseAura) {
-        return rollRandomNodeData(level, pos, random, silverwood, eerie, small, specialRarity, baseAura, null);
-    }
-
-    private static @Nullable NodeData rollRandomNodeData(ServerLevelAccessor level, BlockPos pos, RandomSource random, boolean silverwood, boolean eerie, boolean small, int specialRarity, int baseAura, @Nullable NodeType requiredType) {
-        NodeType type = NodeType.NORMAL;
-        if (silverwood) {
-            type = NodeType.PURE;
-        } else if (eerie) {
-            type = NodeType.DARK;
-        } else {
-            type = rollConfiguredType(random, specialRarity);
+        HolderLookup.RegistryLookup<IAspect> registry = aspectRegistry(level);
+        Map<Boolean, List<Holder<IAspect>>> split = registry.listElements().collect(Collectors.partitioningBy(entry -> entry.value().isPrimal(), Collectors.<Holder<IAspect>>toList()));
+        List<Holder<IAspect>> primals = split.get(Boolean.TRUE);
+        List<Holder<IAspect>> compounds = split.get(Boolean.FALSE);
+        if (primals.isEmpty() || compounds.isEmpty()) {
+            return null;
         }
-
-        NodeModifier modifier = null;
-        if (random.nextInt(Math.max(1, specialRarity / 2)) == 0) {
-            modifier = switch (random.nextInt(3)) {
-                case 0 -> NodeModifier.BRIGHT;
-                case 1 -> NodeModifier.PALE;
-                default -> NodeModifier.FADING;
-            };
-        }
-
         Holder<Biome> biome = level.getBiome(pos);
         BiomeAuraModifier auraModifier = biome.getData(TTDataMaps.BIOME_AURA_MODIFIER);
-        int biomeAura = (int) (baseAura * (auraModifier == null ? 1.0F : auraModifier.value()));
-        if (type != NodeType.PURE && biome.is(TTBiomeTags.IS_TAINTED)) {
-            biomeAura = Math.round(biomeAura * TAINTED_LANDS_AURA_BOOST);
-            if (!ThaumaturgeCommonConfig.WUSS_MODE.get() && random.nextBoolean()) {
-                type = NodeType.TAINTED;
-                biomeAura = Math.round(biomeAura * TAINTED_LANDS_AURA_BOOST);
-            }
+        float biomeStrength = baseAura * (auraModifier == null ? 1.0F : auraModifier.value());
+        AspectPools pools = new AspectPools(registry, primals, compounds, biomeAspectHolders(registry, biome));
+        RollContext context = new RollContext(level, pos, random, biome, biomeStrength, pools, silverwood, eerie, small, specialRarity);
+        RollState state = new RollState();
+        for (RollStage stage : PIPELINE) {
+            stage.apply(context, state);
         }
-        if (requiredType != null && type != requiredType) {
-            return null;
-        }
-
-        HolderLookup.RegistryLookup<IAspect> aspectRegistry = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
-        List<Holder<IAspect>> basicAspects = new ArrayList<>();
-        List<Holder<IAspect>> complexAspects = new ArrayList<>();
-        aspectRegistry.listElements().forEach(holder -> {
-            if (holder.value().isPrimal()) {
-                basicAspects.add(holder);
-            } else {
-                complexAspects.add(holder);
-            }
-        });
-        if (basicAspects.isEmpty() || complexAspects.isEmpty()) {
-            return null;
-        }
-        if (silverwood || small) {
-            biomeAura /= 4;
-        }
-        biomeAura = Math.max(8, biomeAura);
-        int value = random.nextInt(biomeAura / 2) + biomeAura / 2;
-
-        AspectList list = AspectList.EMPTY;
-        Holder<IAspect> biomeAspect = randomBiomeAspect(aspectRegistry, biome, random);
-        if (biomeAspect != null) {
-            list = list.add(biomeAspect, 2);
-        } else {
-            list = list.add(complexAspects.get(random.nextInt(complexAspects.size())), 1);
-            list = list.add(basicAspects.get(random.nextInt(basicAspects.size())), 1);
-        }
-        for (int roll = 0; roll < EXTRA_ASPECT_ROLLS; roll++) {
-            if (random.nextBoolean()) {
-                if (random.nextInt(specialRarity) == 0) {
-                    list = list.add(complexAspects.get(random.nextInt(complexAspects.size())), 1);
-                } else {
-                    list = list.add(basicAspects.get(random.nextInt(basicAspects.size())), 1);
-                }
-            }
-        }
-
-        list = addTypeFlavor(aspectRegistry, list, type, random);
-        list = addEnvironmentFlavor(aspectRegistry, level, pos, list);
-
-        List<AspectInstance> entries = list.entries();
-        int[] spread = new int[entries.size()];
-        float total = 0.0F;
-        for (int i = 0; i < entries.size(); i++) {
-            if (entries.get(i).amount() == 2) {
-                spread[i] = 50 + random.nextInt(25);
-            } else {
-                spread[i] = 25 + random.nextInt(50);
-            }
-            total += spread[i];
-        }
-        AspectList distributed = list;
-        for (int i = 0; i < entries.size(); i++) {
-            int amount = (int) (spread[i] / total * value);
-            if (amount > 0) {
-                distributed = distributed.add(entries.get(i).aspect(), amount);
-            }
-        }
-
-        return new NodeData(type, Optional.ofNullable(modifier), distributed, distributed);
+        AspectList list = NodeRules.fromMap(state.tally);
+        return new NodeData(state.type, Optional.ofNullable(state.modifier), list, list);
     }
 
-    private static NodeType rollConfiguredType(RandomSource random, int specialRarity) {
+    private static NodeType rollType(RandomSource random, int specialRarity) {
         double scale = (double) DEFAULT_SPECIAL_RARITY / specialRarity;
         double dark = ThaumaturgeCommonConfig.DARK_NODE_CHANCE.get() * scale;
         double unstable = ThaumaturgeCommonConfig.UNSTABLE_NODE_CHANCE.get() * scale;
         double pure = ThaumaturgeCommonConfig.PURE_NODE_CHANCE.get() * scale;
         double tainted = ThaumaturgeCommonConfig.WUSS_MODE.get() ? 0.0 : ThaumaturgeCommonConfig.TAINTED_NODE_CHANCE.get() * scale;
         double hungry = ThaumaturgeCommonConfig.HUNGRY_NODE_CHANCE.get() * scale;
-        double specialTotal = dark + unstable + pure + tainted + hungry;
-        double roll = random.nextDouble() * Math.max(100.0, specialTotal);
-        if ((roll -= dark) < 0.0) {
+        double roll = random.nextDouble() * Math.max(PERCENT_TOTAL, dark + unstable + pure + tainted + hungry);
+        if (roll < dark) {
             return NodeType.DARK;
         }
-        if ((roll -= unstable) < 0.0) {
+        roll -= dark;
+        if (roll < unstable) {
             return NodeType.UNSTABLE;
         }
-        if ((roll -= pure) < 0.0) {
+        roll -= unstable;
+        if (roll < pure) {
             return NodeType.PURE;
         }
-        if ((roll -= tainted) < 0.0) {
+        roll -= pure;
+        if (roll < tainted) {
             return NodeType.TAINTED;
         }
-        if (roll < hungry) {
-            return NodeType.HUNGRY;
-        }
-        return NodeType.NORMAL;
+        roll -= tainted;
+        return roll < hungry ? NodeType.HUNGRY : NodeType.NORMAL;
     }
 
-    public static boolean createNodeAt(ServerLevelAccessor level, BlockPos pos, NodeType type, @Nullable NodeModifier modifier, AspectList aspects) {
-        if (level.getBlockEntity(pos) instanceof BlockEntityNode existing) {
-            return configureNode(existing, type, modifier, aspects);
-        }
-        BlockState current = level.getBlockState(pos);
-        if (!current.isAir() && !current.canBeReplaced() && !current.is(BlockTags.LEAVES)) {
-            return false;
-        }
-        level.setBlock(pos, TTBlocks.NODE.get().defaultBlockState(), PLACE_FLAGS);
-        if (level.getBlockEntity(pos) instanceof BlockEntityNode node) {
-            return configureNode(node, type, modifier, aspects);
-        }
-        return false;
-    }
-
-    private static boolean configureNode(BlockEntityNode node, NodeType type, @Nullable NodeModifier modifier, AspectList aspects) {
-        node.setNodeType(type);
-        node.setNodeModifier(modifier);
-        node.setAspects(aspects);
-        node.setChanged();
-        return true;
-    }
-
-    private static @Nullable Holder<IAspect> randomBiomeAspect(HolderLookup.RegistryLookup<IAspect> registry, Holder<Biome> biome, RandomSource random) {
-        BiomeAspects aspects = biome.getData(TTDataMaps.BIOME_ASPECTS);
-        if (aspects == null || aspects.aspects().isEmpty()) {
-            return null;
-        }
-        ResourceKey<IAspect> key = aspects.aspects().get(random.nextInt(aspects.aspects().size()));
-        return registry.get(key).orElse(null);
-    }
-
-    private static AspectList addTypeFlavor(HolderLookup.RegistryLookup<IAspect> registry, AspectList list, NodeType type, RandomSource random) {
-        switch (type) {
-            case HUNGRY -> {
-                list = list.add(registry.getOrThrow(TTAspects.DESIDERIUM), 2);
-                if (random.nextBoolean()) {
-                    list = list.add(registry.getOrThrow(TTAspects.VACUOS), 1);
+    private static BonusDraw drawBonus(RandomSource random, int specialRarity) {
+        double none = BONUS_NONE_WEIGHT;
+        double compound = BONUS_NONE_WEIGHT / Math.max(1, specialRarity);
+        double primal = BONUS_NONE_WEIGHT - compound;
+        double roll = random.nextDouble();
+        BonusDraw last = new BonusDraw(0, 0);
+        for (int compounds = 0; compounds <= BONUS_ASPECT_ROLLS; compounds++) {
+            for (int primals = 0; primals + compounds <= BONUS_ASPECT_ROLLS; primals++) {
+                int empty = BONUS_ASPECT_ROLLS - primals - compounds;
+                double arrangements = FACTORIALS[BONUS_ASPECT_ROLLS] / (FACTORIALS[primals] * FACTORIALS[compounds] * FACTORIALS[empty]);
+                double weight = arrangements * Math.pow(primal, primals) * Math.pow(compound, compounds) * Math.pow(none, empty);
+                last = new BonusDraw(primals, compounds);
+                if (roll < weight) {
+                    return last;
                 }
-            }
-            case PURE -> list = list.add(registry.getOrThrow(random.nextBoolean() ? TTAspects.VICTUS : TTAspects.ORDO), 2);
-            case DARK -> {
-                if (random.nextBoolean()) {
-                    list = list.add(registry.getOrThrow(TTAspects.MORTUUS), 1);
-                }
-                if (random.nextBoolean()) {
-                    list = list.add(registry.getOrThrow(TTAspects.EXANIMIS), 1);
-                }
-                if (random.nextBoolean()) {
-                    list = list.add(registry.getOrThrow(TTAspects.PERDITIO), 1);
-                }
-                if (random.nextBoolean()) {
-                    list = list.add(registry.getOrThrow(TTAspects.TENEBRAE), 1);
-                }
-            }
-            default -> {
+                roll -= weight;
             }
         }
-        return list;
+        return last;
     }
 
-    private static AspectList addEnvironmentFlavor(HolderLookup.RegistryLookup<IAspect> registry, ServerLevelAccessor level, BlockPos pos, AspectList list) {
-        int water = 0;
-        int lava = 0;
-        int stone = 0;
-        int foliage = 0;
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (int xx = -ENV_SCAN_RANGE; xx <= ENV_SCAN_RANGE; xx++) {
-            for (int yy = -ENV_SCAN_RANGE; yy <= ENV_SCAN_RANGE; yy++) {
-                for (int zz = -ENV_SCAN_RANGE; zz <= ENV_SCAN_RANGE; zz++) {
-                    cursor.setWithOffset(pos, xx, yy, zz);
-                    BlockState state = level.getBlockState(cursor);
-                    if (state.getFluidState().is(Fluids.WATER)) {
-                        water++;
-                    } else if (state.getFluidState().is(Fluids.LAVA)) {
-                        lava++;
-                    } else if (state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE)) {
-                        stone++;
+    private static List<Holder<IAspect>> biomeAspectHolders(HolderLookup.RegistryLookup<IAspect> registry, Holder<Biome> biome) {
+        BiomeAspects biomeAspects = biome.getData(TTDataMaps.BIOME_ASPECTS);
+        if (biomeAspects == null) {
+            return new ArrayList<>();
+        }
+        List<Holder<IAspect>> holders = new ArrayList<>();
+        biomeAspects.aspects().stream().map(key -> registry.get(key)).flatMap(Optional::stream).forEach(holders::add);
+        return holders;
+    }
+
+    private static Holder<IAspect> pickFrom(List<Holder<IAspect>> pool, RandomSource random) {
+        return pool.get(random.nextInt(pool.size()));
+    }
+
+    private static void tally(Map<Holder<IAspect>, Integer> target, Holder<IAspect> aspect) {
+        target.merge(aspect, 1, Integer::sum);
+    }
+
+    private static void tallyPicks(Map<Holder<IAspect>, Integer> target, List<Holder<IAspect>> pool, int count, RandomSource random) {
+        for (int pick = 0; pick < count; pick++) {
+            tally(target, pickFrom(pool, random));
+        }
+    }
+
+    private static Map<Holder<IAspect>, Integer> typeFlavour(HolderLookup.RegistryLookup<IAspect> registry, NodeType type, RandomSource random) {
+        Map<Holder<IAspect>, Integer> flavour = new LinkedHashMap<>();
+        TYPE_FLAVOURS.getOrDefault(type, NO_FLAVOUR).contribute(flavour, registry, random);
+        return flavour;
+    }
+
+    private static Map<Holder<IAspect>, Integer> hungryFlavour(HolderLookup.RegistryLookup<IAspect> registry, RandomSource random) {
+        boolean withVacuos = random.nextBoolean();
+        Map<Holder<IAspect>, Integer> flavour = new LinkedHashMap<>();
+        put(flavour, registry, TTAspects.DESIDERIUM, HUNGRY_DESIDERIUM);
+        if (withVacuos) {
+            put(flavour, registry, TTAspects.VACUOS, 1);
+        }
+        return flavour;
+    }
+
+    private static void put(Map<Holder<IAspect>, Integer> target, HolderLookup.RegistryLookup<IAspect> registry, ResourceKey<IAspect> key, int amount) {
+        registry.get(key).ifPresent(aspect -> target.merge(aspect, amount, Integer::sum));
+    }
+
+    private static void add(Map<Holder<IAspect>, Integer> target, Map<Holder<IAspect>, Integer> extra) {
+        for (Map.Entry<Holder<IAspect>, Integer> entry : extra.entrySet()) {
+            target.merge(entry.getKey(), entry.getValue(), Integer::sum);
+        }
+    }
+
+    private static void allocateBudget(Map<Holder<IAspect>, Integer> target, int budget, RandomSource random) {
+        int committed = target.values().stream().mapToInt(Integer::intValue).sum();
+        int extra = Math.max(0, budget - committed);
+        List<Holder<IAspect>> keys = new ArrayList<>(target.keySet());
+        int count = keys.size();
+        double[] weights = new double[count];
+        double weightSum = 0.0;
+        for (int slot = 0; slot < count; slot++) {
+            weights[slot] = random.nextFloat() + WEIGHT_FLOOR;
+            weightSum += weights[slot];
+        }
+        int[] shares = new int[count];
+        double[] remainders = new double[count];
+        int assigned = 0;
+        for (int slot = 0; slot < count; slot++) {
+            double quota = extra * weights[slot] / weightSum;
+            shares[slot] = (int) quota;
+            remainders[slot] = quota - shares[slot];
+            assigned += shares[slot];
+        }
+        List<Integer> byRemainder = new ArrayList<>(count);
+        for (int slot = 0; slot < count; slot++) {
+            byRemainder.add(slot);
+        }
+        byRemainder.sort(Comparator.comparingDouble((Integer slot) -> remainders[slot]).reversed());
+        int leftover = extra - assigned;
+        for (int rank = 0; rank < leftover; rank++) {
+            shares[byRemainder.get(rank % count)]++;
+        }
+        for (int slot = 0; slot < count; slot++) {
+            target.merge(keys.get(slot), shares[slot], Integer::sum);
+        }
+    }
+
+    private interface TypeFlavour {
+        void contribute(Map<Holder<IAspect>, Integer> into, HolderLookup.RegistryLookup<IAspect> registry, RandomSource random);
+    }
+
+    private interface RollStage {
+        void apply(RollContext context, RollState state);
+    }
+
+    private record AspectPools(HolderLookup.RegistryLookup<IAspect> registry, List<Holder<IAspect>> primals, List<Holder<IAspect>> compounds, List<Holder<IAspect>> biomeSpecific) {
+    }
+
+    private record RollContext(ServerLevelAccessor level, BlockPos pos, RandomSource random, Holder<Biome> biome, float biomeStrength, AspectPools pools, boolean silverwood, boolean eerie,
+            boolean small, int specialRarity) {
+    }
+
+    private record BonusDraw(int primals, int compounds) {
+    }
+
+    private record TerrainRule(Predicate<BlockState> matcher, int threshold, List<ResourceKey<IAspect>> aspects) {
+    }
+
+    private static final class RollState {
+        private final int[] terrainCounts = new int[TERRAIN_RULES.size()];
+        private final Map<Holder<IAspect>, Integer> tally = new LinkedHashMap<>();
+        private NodeType type = NodeType.NORMAL;
+        private @Nullable NodeModifier modifier;
+        private int budget;
+    }
+
+    private static final class TypeSelectionStage implements RollStage {
+        @Override
+        public void apply(RollContext context, RollState state) {
+            RandomSource random = context.random();
+            int specialRarity = context.specialRarity();
+            state.type = context.silverwood() ? NodeType.PURE : context.eerie() ? NodeType.DARK : rollType(random, specialRarity);
+            state.modifier = random.nextInt(Math.max(1, specialRarity / MODIFIER_RARITY_DIVISOR)) == 0 ? MODIFIERS[random.nextInt(MODIFIERS.length)] : null;
+        }
+    }
+
+    private static final class AuraScalingStage implements RollStage {
+        @Override
+        public void apply(RollContext context, RollState state) {
+            RandomSource random = context.random();
+            float strength = context.biomeStrength();
+            if (state.type != NodeType.PURE && context.biome().is(TTBiomeTags.IS_TAINTED)) {
+                strength *= TAINTED_BIOME_FACTOR;
+                if (!ThaumaturgeCommonConfig.WUSS_MODE.get() && random.nextBoolean()) {
+                    state.type = NodeType.TAINTED;
+                    strength *= TAINTED_BIOME_FACTOR;
+                }
+            }
+            if (context.silverwood() || context.small()) {
+                strength /= SMALL_NODE_DIVISOR;
+            }
+            int aura = Math.max(MINIMUM_AURA, (int) strength);
+            int floor = aura / 2;
+            state.budget = floor + random.nextInt(Math.max(1, aura - floor));
+        }
+    }
+
+    private static final class SurroundingsTallyStage implements RollStage {
+        @Override
+        public void apply(RollContext context, RollState state) {
+            ServerLevelAccessor level = context.level();
+            BlockPos origin = context.pos();
+            Iterable<BlockPos> volume = BlockPos.betweenClosed(origin.offset(-SURROUNDING_RADIUS, -SURROUNDING_RADIUS, -SURROUNDING_RADIUS),
+                    origin.offset(SURROUNDING_RADIUS, SURROUNDING_RADIUS, SURROUNDING_RADIUS));
+            for (BlockPos cell : volume) {
+                if (isLoaded(level, cell)) {
+                    int ruleIndex = firstMatchingRule(level.getBlockState(cell));
+                    if (ruleIndex >= 0) {
+                        state.terrainCounts[ruleIndex]++;
                     }
-                    if (state.is(BlockTags.LEAVES)) {
-                        foliage++;
-                    }
                 }
             }
         }
-        if (water > ENV_WATER_THRESHOLD) {
-            list = list.add(registry.getOrThrow(TTAspects.AQUA), 1);
+
+        private static boolean isLoaded(ServerLevelAccessor level, BlockPos cell) {
+            return level.hasChunk(SectionPos.blockToSectionCoord(cell.getX()), SectionPos.blockToSectionCoord(cell.getZ()));
         }
-        if (lava > ENV_LAVA_THRESHOLD) {
-            list = list.add(registry.getOrThrow(TTAspects.IGNIS), 1);
-            list = list.add(registry.getOrThrow(TTAspects.TERRA), 1);
+
+        private static int firstMatchingRule(BlockState block) {
+            for (int index = 0; index < TERRAIN_RULES.size(); index++) {
+                if (TERRAIN_RULES.get(index).matcher().test(block)) {
+                    return index;
+                }
+            }
+            return -1;
         }
-        if (stone > ENV_STONE_THRESHOLD) {
-            list = list.add(registry.getOrThrow(TTAspects.TERRA), 1);
+    }
+
+    private static final class AspectSourcingStage implements RollStage {
+        @Override
+        public void apply(RollContext context, RollState state) {
+            RandomSource random = context.random();
+            AspectPools pools = context.pools();
+            List<Holder<IAspect>> fromBiome = pools.biomeSpecific();
+            if (fromBiome.isEmpty()) {
+                tally(state.tally, pickFrom(pools.primals(), random));
+                tally(state.tally, pickFrom(pools.compounds(), random));
+            } else {
+                fromBiome.forEach(aspect -> tally(state.tally, aspect));
+                tally(state.tally, pickFrom(fromBiome, random));
+            }
+            BonusDraw bonus = drawBonus(random, context.specialRarity());
+            tallyPicks(state.tally, pools.primals(), bonus.primals(), random);
+            tallyPicks(state.tally, pools.compounds(), bonus.compounds(), random);
+            add(state.tally, typeFlavour(pools.registry(), state.type, random));
         }
-        if (foliage > ENV_FOLIAGE_THRESHOLD) {
-            list = list.add(registry.getOrThrow(TTAspects.HERBA), 1);
+    }
+
+    private static final class TerrainFlavourStage implements RollStage {
+        @Override
+        public void apply(RollContext context, RollState state) {
+            List<TerrainRule> rules = TERRAIN_RULES;
+            for (int index = 0; index < rules.size(); index++) {
+                TerrainRule rule = rules.get(index);
+                if (state.terrainCounts[index] > rule.threshold()) {
+                    rule.aspects().forEach(key -> put(state.tally, context.pools().registry(), key, 1));
+                }
+            }
         }
-        return list;
+    }
+
+    private static final class BudgetStage implements RollStage {
+        @Override
+        public void apply(RollContext context, RollState state) {
+            allocateBudget(state.tally, state.budget, context.random());
+        }
     }
 }

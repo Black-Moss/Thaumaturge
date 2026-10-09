@@ -5,42 +5,56 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
+import org.joml.Quaternionf;
 
 public final class PechCurseParticle extends TTParticle {
     private static final int FRAME_COUNT = 4;
-    private static final int BASE_LIFETIME = 50;
-    private static final float START_ALPHA = 0.75F;
-    private static final float DEG_TO_RAD = (float) (Math.PI / 180.0);
+    private static final int LIFETIME_BASE = 50;
+    private static final int LIFETIME_RANGE = 50;
+    private static final float START_RED = 0.9F;
+    private static final float START_GREEN = 0.1F;
+    private static final float START_BLUE = 0.5F;
+    private static final float END_RED_BASE = 0.1F;
+    private static final float END_GREEN = 0.0F;
+    private static final float END_BLUE_BASE = 0.5F;
+    private static final float END_COLOR_JITTER = 0.1F;
+    private static final float START_SIZE = 0.3F;
+    private static final float END_SIZE_BASE = 5.0F;
+    private static final float END_SIZE_RANGE = 2.0F;
+    private static final float SIZE_UNIT = 0.1F;
+    private static final float ALPHA_SCALE = 0.75F;
+    private static final float SPIN_BASE = 3.0F;
+    private static final float SPIN_RANGE = 3.0F;
+    private static final double TILT_DEVIATION_DEGREES = 90.0;
 
-    private final float endR;
-    private final float endB;
-    private final float startSize;
+    private final float endRed;
+    private final float endBlue;
     private final float endSize;
     private final FacingCameraMode facing;
 
     private PechCurseParticle(ClientLevel level, double x, double y, double z, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
-        setColor(0.9F, 0.1F, 0.5F);
-        this.endR = 0.1F + this.random.nextFloat() * 0.1F;
-        this.endB = 0.5F + this.random.nextFloat() * 0.1F;
-        this.lifetime = BASE_LIFETIME + this.random.nextInt(50);
-        this.startSize = 0.3F;
-        this.endSize = (5.0F + this.random.nextFloat() * 2.0F) * 0.1F;
-        this.quadSize = this.startSize;
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
+        this.endRed = END_RED_BASE + this.random.nextFloat() * END_COLOR_JITTER;
+        this.endBlue = END_BLUE_BASE + this.random.nextFloat() * END_COLOR_JITTER;
+        this.endSize = (END_SIZE_BASE + this.random.nextFloat() * END_SIZE_RANGE) * SIZE_UNIT;
+        setColor(START_RED, START_GREEN, START_BLUE);
+        this.quadSize = START_SIZE;
         frame(this.random.nextInt(FRAME_COUNT));
-        float spinSpeed = 3.0F + this.random.nextFloat() * 3.0F;
-        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? -spinSpeed : spinSpeed);
-        float yaw = 90.0F * (float) this.random.nextGaussian() * DEG_TO_RAD;
-        float pitch = 90.0F * (float) this.random.nextGaussian() * DEG_TO_RAD;
-        this.facing = (target, camera, partialTick) -> target.rotationYXZ(-yaw, pitch, 0.0F);
+        float spin = SPIN_BASE + this.random.nextFloat() * SPIN_RANGE;
+        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? spin : -spin);
+        float tiltYaw = (float) Math.toRadians(this.random.nextGaussian() * TILT_DEVIATION_DEGREES);
+        float tiltPitch = (float) Math.toRadians(this.random.nextGaussian() * TILT_DEVIATION_DEGREES);
+        Quaternionf tilt = new Quaternionf().rotationYXZ(tiltYaw, tiltPitch, 0.0F);
+        this.facing = (target, camera, partialTick) -> target.set(tilt);
     }
 
     @Override
     protected void update() {
         float t = progress();
-        this.alpha = START_ALPHA * (1.0F - t);
-        this.quadSize = Keyframes.sample(t, this.startSize, this.endSize);
-        lerpColor(t, 0.9F, 0.1F, 0.5F, this.endR, 0.0F, this.endB);
+        lerpColor(t, START_RED, START_GREEN, START_BLUE, this.endRed, END_GREEN, this.endBlue);
+        this.quadSize = Keyframes.sample(t, START_SIZE, this.endSize);
+        this.alpha = ALPHA_SCALE * (1.0F - t);
     }
 
     @Override

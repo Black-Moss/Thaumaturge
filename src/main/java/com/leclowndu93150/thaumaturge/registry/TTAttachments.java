@@ -24,7 +24,7 @@ import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintPressure;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxSamples;
 import com.leclowndu93150.thaumaturge.content.warding.ArcaneLockChunkData;
 import com.leclowndu93150.thaumaturge.content.warding.WardChunkData;
-import com.leclowndu93150.thaumaturge.content.warp.WarpData;
+import com.leclowndu93150.thaumaturge.content.warp.PlayerWarpState;
 import com.mojang.serialization.Codec;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,8 +48,8 @@ public final class TTAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AspectPoolData>> ASPECT_POOL = register("aspect_pool",
             () -> AttachmentType.builder(AspectPoolData::new).serialize(AspectPoolData.CODEC).sync((holder, to) -> holder == to, AspectPoolData.STREAM_CODEC).copyOnDeath().build());
 
-    public static final DeferredHolder<AttachmentType<?>, AttachmentType<WarpData>> WARP = register("warp",
-            () -> AttachmentType.builder(WarpData::new).serialize(WarpData.CODEC).sync((holder, to) -> holder == to, WarpData.STREAM_CODEC).copyOnDeath().build());
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<PlayerWarpState>> WARP = register("warp",
+            () -> AttachmentType.builder(PlayerWarpState::new).serialize(PlayerWarpState.CODEC).sync((holder, to) -> holder == to, PlayerWarpState.STREAM_CODEC).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<DustTriggerSwapQueue>> DUST_TRIGGER_QUEUE = register("dust_trigger_queue",
             () -> AttachmentType.builder(DustTriggerSwapQueue::new).serialize(DustTriggerSwapQueue.CODEC).build());

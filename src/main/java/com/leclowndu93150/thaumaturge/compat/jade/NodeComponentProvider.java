@@ -43,10 +43,10 @@ public enum NodeComponentProvider implements IBlockComponentProvider {
         if (!GogglesAccess.wearsRevealingGear(player) && !(player.getMainHandItem().getItem() instanceof ThaumometerItem) && !(player.getOffhandItem().getItem() instanceof ThaumometerItem)) {
             return;
         }
-        if (node instanceof BlockEntityJarNode || node.getNodeType() != NodeType.NORMAL || node.getNodeModifier() != null) {
-            MutableComponent type = Component.translatable("jade.thaumaturge.node.type." + node.getNodeType().getSerializedName());
-            if (node.getNodeModifier() != null) {
-                type = Component.translatable("jade.thaumaturge.node.modified", Component.translatable("jade.thaumaturge.node.modifier." + node.getNodeModifier().getSerializedName()), type);
+        if (node instanceof BlockEntityJarNode || node.kind() != NodeType.NORMAL || node.trait() != null) {
+            MutableComponent type = Component.translatable("jade.thaumaturge.node.type." + node.kind().getSerializedName());
+            if (node.trait() != null) {
+                type = Component.translatable("jade.thaumaturge.node.modified", Component.translatable("jade.thaumaturge.node.modifier." + node.trait().getSerializedName()), type);
             }
             tooltip.add(type);
         }
@@ -58,7 +58,7 @@ public enum NodeComponentProvider implements IBlockComponentProvider {
             tooltip.add(Component.translatable("jade.thaumaturge.node.energized").withStyle(ChatFormatting.AQUA));
             if (!accessor.showDetails())
                 return;
-            tooltip.add(Component.translatable(node.getNodeType() == NodeType.TAINTED ? "jade.thaumaturge.node.feeds_flux" : "jade.thaumaturge.node.feeds_aura"));
+            tooltip.add(Component.translatable(node.kind() == NodeType.TAINTED ? "jade.thaumaturge.node.feeds_flux" : "jade.thaumaturge.node.feeds_aura"));
             AspectList original = node.getAspectsBaseOriginal();
             if (original != null && !original.isEmpty()) {
                 JadeComponents.addAspectLines(tooltip, "jade.thaumaturge.node.reverts_to", original);

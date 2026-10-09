@@ -11,33 +11,44 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 public final class WandRodPrimalOnUpdate implements IWandRodOnUpdate {
-    private final @Nullable ResourceKey<IAspect> aspect;
+    private final @Nullable ResourceKey<IAspect> fixedAspect;
+    private final int periodTicks;
+
+    private WandRodPrimalOnUpdate(@Nullable ResourceKey<IAspect> fixedAspect, int periodTicks) {
+        this.fixedAspect = fixedAspect;
+        this.periodTicks = periodTicks;
+    }
 
     public WandRodPrimalOnUpdate(ResourceKey<IAspect> aspect) {
-        this.aspect = aspect;
+        this(aspect, WandEconomy.ROD_SELF_CHARGE_INTERVAL_TICKS);
     }
 
     public WandRodPrimalOnUpdate() {
-        this.aspect = null;
+        this(null, WandEconomy.PRIMAL_SELF_CHARGE_INTERVAL_TICKS);
     }
 
     @Override
     public void onUpdate(ItemStack wand, Player player) {
-        int chargeCap = WandVisHelper.getMaxVis(wand) / WandEconomy.ROD_SELF_CHARGE_CAP_DIVISOR;
-        if (aspect != null) {
-            if (player.tickCount % WandEconomy.ROD_SELF_CHARGE_INTERVAL_TICKS == 0 && WandVisHelper.getVis(wand, aspect) < chargeCap) {
-                WandVisHelper.addVis(wand, aspect, 1, true);
-            }
-        } else if (player.tickCount % WandEconomy.PRIMAL_SELF_CHARGE_INTERVAL_TICKS == 0) {
-            List<ResourceKey<IAspect>> depleted = new ArrayList<>();
-            for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
-                if (WandVisHelper.getVis(wand, primal) < chargeCap) {
-                    depleted.add(primal);
-                }
-            }
-            if (!depleted.isEmpty()) {
-                WandVisHelper.addVis(wand, depleted.get(player.getRandom().nextInt(depleted.size())), 1, true);
-            }
+        if (player.level().getGameTime() % periodTicks == 0) {
+            recharge(wand, player);
         }
+    }
+
+    private void recharge(ItemStack wand, Player player) {
+        int ceiling = WandVisHelper.capacityOf(wand) / WandEconomy.ROD_SELF_CHARGE_CAP_DIVISOR;
+        ResourceKey<IAspect> chosen = fixedAspect == null ? randomBelow(wand, player, ceiling) : fixedAspect;
+        if (chosen == null || WandVisHelper.storedIn(wand, chosen) >= ceiling) {
+            return;
+        }
+        WandVisHelper.topUpCentivis(wand, chosen, WandEconomy.CENTIVIS_PER_VIS, true);
+    }
+
+    private static @Nullable ResourceKey<IAspect> randomBelow(ItemStack wand, Player player, int ceiling) {
+        List<ResourceKey<IAspect>> candidates = new ArrayList<>(WandEconomy.PRIMAL_COUNT);
+        TTAspects.PRIMALS.stream().filter(primal -> WandVisHelper.storedIn(wand, primal) < ceiling).forEach(candidates::add);
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        return candidates.get(player.getRandom().nextInt(candidates.size()));
     }
 }

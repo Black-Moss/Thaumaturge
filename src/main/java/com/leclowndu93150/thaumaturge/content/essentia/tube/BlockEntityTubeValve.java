@@ -1,6 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.content.essentia.cadence.CadencePhase;
+import com.leclowndu93150.thaumaturge.content.essentia.cadence.TickCadence;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.facing.SideRanking;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.facing.SideRotation;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.valve.ValveSpinAnimator;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.valve.ValveState;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.core.BlockPos;
@@ -11,143 +17,149 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityTubeValve extends BlockEntityTube {
-    private static final float ROTATION_MAX = 360.0F;
-    private static final float ROTATION_STEP = 20.0F;
+    private static final String ALLOW_FLOW_KEY = "AllowFlow";
+    private static final String HAD_POWER_KEY = "HadPower";
+    private static final CadencePhase POWER_SAMPLE = CadencePhase.every(5);
+    private static final int ACCEPTABLE_HEAD_SIDE = 0;
+    private static final float SQUEAK_VOLUME = 0.7F;
+    private static final float SQUEAK_PITCH_BASE = 0.9F;
+    private static final float SQUEAK_PITCH_SPREAD = 0.2F;
 
-    private boolean allowFlow = true;
-    private boolean wasPoweredLastTick;
-    private float previousRotation;
-    private float rotation;
+    private final TickCadence sampler;
+    private final ValveSpinAnimator spin = new ValveSpinAnimator();
+    private ValveState valve = ValveState.OPEN;
 
     public BlockEntityTubeValve(BlockPos pos, BlockState state) {
         super(TTBlockEntities.TUBE_VALVE.get(), pos, state);
+        this.sampler = TickCadence.staggered(pos);
     }
 
     public boolean allowFlow() {
-        return allowFlow;
+        return valve.allowsFlow();
     }
 
     public float rotation() {
-        return rotation;
+        return spin.angle();
     }
 
     public float rotation(float partialTick) {
-        return previousRotation + (rotation - previousRotation) * partialTick;
+        return spin.angle(partialTick);
     }
 
     public void setAllowFlow(boolean allow) {
-        this.allowFlow = allow;
-        if (!allow) {
-            super.setSuction(null, 0);
-        }
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-        }
+        transitionTo(valve.withFlow(allow), false);
     }
 
     @Override
     public void tickServer(Level level, BlockPos pos, BlockState state) {
-        if (tickCount % 5 == 0) {
+        sampler.advance();
+        if (sampler.isDue(POWER_SAMPLE)) {
             boolean powered = level.hasNeighborSignal(pos);
-            if (wasPoweredLastTick && !powered && !allowFlow) {
-                allowFlow = true;
-                level.playSound(null, pos, TTSounds.SQUEEK.get(), SoundSource.BLOCKS, 0.7F, 0.9F + level.getRandom().nextFloat() * 0.2F);
-                setChanged();
-                level.sendBlockUpdated(pos, state, state, 3);
+            if (valve.isEdge(powered)) {
+                transitionTo(valve.afterSample(powered), true);
             }
-            if (!wasPoweredLastTick && powered && allowFlow) {
-                allowFlow = false;
-                super.setSuction(null, 0);
-                level.playSound(null, pos, TTSounds.SQUEEK.get(), SoundSource.BLOCKS, 0.7F, 0.9F + level.getRandom().nextFloat() * 0.2F);
-                setChanged();
-                level.sendBlockUpdated(pos, state, state, 3);
-            }
-            wasPoweredLastTick = powered;
         }
         super.tickServer(level, pos, state);
     }
 
-    public void tickClient(Level level, BlockPos pos, BlockState state) {
-        previousRotation = rotation;
-        if (!allowFlow && rotation < ROTATION_MAX) {
-            rotation += ROTATION_STEP;
-        } else if (allowFlow && rotation > 0.0F) {
-            rotation -= ROTATION_STEP;
+    private void transitionTo(ValveState next, boolean audible) {
+        valve = next;
+        if (!next.allowsFlow()) {
+            clearSuction();
         }
+        if (level != null && audible) {
+            level.playSound(null, worldPosition, TTSounds.SQUEEK.get(), SoundSource.BLOCKS, SQUEAK_VOLUME, SQUEAK_PITCH_BASE + level.getRandom().nextFloat() * SQUEAK_PITCH_SPREAD);
+        }
+        setChangedAndSync();
     }
 
-    @Override
-    public boolean rotateFacing() {
-        if (level == null)
-            return false;
-        Direction[] directions = Direction.values();
-        int start = facing().ordinal();
-        for (int offset = 1; offset < directions.length; offset++) {
-            Direction candidate = directions[(start + offset) % directions.length];
-            if (hasTransportNeighbour(candidate))
-                continue;
-            setFacing(candidate);
-            BlockEssentiaTransport.refreshConnectionsAround(level, getBlockPos());
-            return true;
-        }
-        return false;
+    public void tickClient(Level level, BlockPos pos, BlockState state) {
+        spin.aim(allowFlow());
+        spin.tick();
     }
 
     @Override
     public boolean isConnectable(Direction face) {
-        if (face == null)
-            return false;
-        Direction f = facing();
-        if (f != null && face == f)
-            return false;
-        return super.isConnectable(face);
+        return super.isConnectable(face) && face != flowSide();
+    }
+    @Override
+    public boolean rotateFacing() {
+        Direction target = SideRotation.next(flowSide(), this::rankHeadCandidate);
+        if (target != null) {
+            assignFlowSide(target);
+            pushUpdate(this);
+            refreshAroundIfLoaded();
+        }
+        return target != null;
+    }
+
+    private void refreshAroundIfLoaded() {
+        if (level != null) {
+            BlockEssentiaTransport.refreshConnectionsAround(level, worldPosition);
+        }
+    }
+
+    private int rankHeadCandidate(Direction side) {
+        int rank = ACCEPTABLE_HEAD_SIDE;
+        if (hasTransportNeighbour(side)) {
+            rank = SideRanking.UNACCEPTABLE;
+        }
+        return rank;
     }
 
     @Override
     public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!allowFlow)
+        if (!allowFlow()) {
             return 0;
+        }
         return super.addEssentia(aspect, amount, face);
     }
 
     @Override
     public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!allowFlow)
+        if (!allowFlow()) {
             return 0;
+        }
         return super.takeEssentia(aspect, amount, face);
     }
 
     @Override
-    public void setSuction(Holder<IAspect> aspect, int amount) {
-        if (allowFlow || amount <= 0) {
-            super.setSuction(aspect, amount);
+    public void setSuction(@Nullable Holder<IAspect> type, int strength) {
+        boolean flowing = allowFlow();
+        if (flowing) {
+            super.setSuction(type, strength);
+        }
+        if (!flowing && strength < 1) {
+            clearSuction();
         }
     }
 
     @Override
-    public Holder<IAspect> getSuctionType(Direction face) {
-        return allowFlow ? super.getSuctionType(face) : null;
+    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
+        return allowFlow() ? super.getSuctionType(face) : null;
     }
 
     @Override
-    public int getSuctionAmount(Direction face) {
-        return allowFlow ? super.getSuctionAmount(face) : 0;
-    }
-
-    @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        allowFlow = input.getBooleanOr("AllowFlow", true);
-        wasPoweredLastTick = input.getBooleanOr("HadPower", false);
+    public int getSuctionAmount(@Nullable Direction face) {
+        if (!allowFlow()) {
+            return 0;
+        }
+        return super.getSuctionAmount(face);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putBoolean("AllowFlow", allowFlow);
-        output.putBoolean("HadPower", wasPoweredLastTick);
+        output.putBoolean(ALLOW_FLOW_KEY, valve.allowsFlow());
+        output.putBoolean(HAD_POWER_KEY, valve.poweredAtLastSample());
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        valve = ValveState.of(input.getBooleanOr(ALLOW_FLOW_KEY, true), input.getBooleanOr(HAD_POWER_KEY, false));
     }
 }

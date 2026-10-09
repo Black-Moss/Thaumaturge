@@ -48,10 +48,10 @@ final class LocateSubcommand implements AdminSubcommand {
             }
             BlockState candidateState = level.getBlockState(candidate);
             if ((candidateState.is(TTBlocks.NODE.get()) || candidateState.is(TTBlocks.SILVERWOOD_NODE_LOG.get())) && level.getBlockEntity(candidate) instanceof BlockEntityNode node) {
-                if (node.getNodeType() == type) {
+                if (node.kind() == type) {
                     break;
                 }
-                index.register(candidate, node.getNodeType());
+                index.register(candidate, node.kind());
             } else {
                 index.remove(candidate);
             }

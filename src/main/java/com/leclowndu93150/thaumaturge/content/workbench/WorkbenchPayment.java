@@ -67,7 +67,7 @@ public final class WorkbenchPayment {
             int centivis = entry.amount() * WandEconomy.CRYSTAL_SUBSTITUTE_VIS * WandEconomy.CENTIVIS_PER_VIS;
             Map<ResourceKey<IAspect>, Integer> single = new LinkedHashMap<>();
             single.put(primal, centivis);
-            if (hasWand && WandVisHelper.consumeAllVisRaw(wand, single, true)) {
+            if (hasWand && WandVisHelper.payExact(wand, single, true)) {
                 wandCentivis.put(primal, centivis);
             } else if (canSupplyFromSources(context, player, inventory, entry.aspect(), centivis, outer)) {
                 sourceCentivis.put(primal, centivis);
@@ -99,7 +99,7 @@ public final class WorkbenchPayment {
         if (plan.wandCentivis().isEmpty()) {
             return paid;
         }
-        return WandVisHelper.consumeAllVisRaw(paid, plan.wandCentivis(), false) ? paid : null;
+        return WandVisHelper.payExact(paid, plan.wandCentivis(), false) ? paid : null;
     }
 
     public static boolean paySources(Plan plan, ArcaneWorkbenchContext context, ServerPlayer player, IArcaneWorkbench inventory, TransactionContext transaction) {
@@ -165,13 +165,13 @@ public final class WorkbenchPayment {
     private static float averageCraftModifier(ItemStack wand, Player player) {
         float total = 0.0F;
         for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
-            total += WandVisHelper.getConsumptionModifier(wand, player, primal, true);
+            total += WandVisHelper.costFactor(wand, player, primal, true);
         }
         return total / WandEconomy.PRIMAL_COUNT;
     }
 
     private static float gearModifier(Player player) {
-        return Math.max(1.0F - CasterManager.getTotalVisDiscount(player), WandEconomy.MIN_CONSUMPTION_MODIFIER);
+        return Math.max(1.0F - CasterManager.visDiscountOf(player), WandEconomy.MIN_CONSUMPTION_MODIFIER);
     }
 
     private static boolean hasCrystals(IArcaneWorkbench inventory, AspectList needs) {

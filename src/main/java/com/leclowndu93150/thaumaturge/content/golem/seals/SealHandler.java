@@ -8,8 +8,12 @@ import com.leclowndu93150.thaumaturge.network.ClientboundSealPayload;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -18,125 +22,144 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 public final class SealHandler {
-    private static final float DROP_OFFSET = 1.7F;
+    private static final int VALIDATION_INTERVAL_TICKS = 20;
+    private static final double BLOCK_CENTER = 0.5;
+    private static final double DROP_OFFSET = 1.0 / 1.7;
 
     private SealHandler() {}
 
-    private static SealWorldIndex index(ServerLevel level) {
-        return level.getData(TTAttachments.SEAL_INDEX);
-    }
-
-    public static @Nullable SealEntity getSealEntity(Level level, @Nullable SealPos pos) {
-        if (pos == null) {
-            return null;
-        }
-        if (level.isClientSide()) {
-            return ClientSealHolder.get(pos);
-        }
-        if (level instanceof ServerLevel serverLevel) {
-            return index(serverLevel).seals().get(pos);
+    public static @Nullable SealEntity lookup(Level level, @Nullable SealPos pos) {
+        if (pos != null) {
+            if (level instanceof ServerLevel serverLevel) {
+                return index(serverLevel).seals().get(pos);
+            }
+            if (level.isClientSide()) {
+                return ClientSealHolder.get(pos);
+            }
         }
         return null;
     }
 
-    public static List<SealEntity> getSealsInRange(ServerLevel level, BlockPos source, int range) {
-        List<SealEntity> out = new ArrayList<>();
-        for (SealEntity seal : index(level).seals().values()) {
-            if (seal.pos().pos().distSqr(source) <= (double) range * range) {
-                out.add(seal);
-            }
+    public static void withdraw(ServerLevel level, SealPos pos, boolean quiet) {
+        SealEntity seal = index(level).seals().remove(pos);
+        if (seal == null) {
+            return;
         }
-        return out;
+        BlockPos block = pos.pos();
+        LevelChunk chunk = loadedChunk(level, block);
+        if (chunk != null) {
+            chunkSeals(chunk).remove(seal);
+            chunk.markUnsaved();
+        }
+        seal.behavior().onRemoved(level, seal);
+        TaskBoard.of(level).endAllFrom(pos);
+        PacketDistributor.sendToPlayersTrackingChunk(level, ChunkPos.containing(block), ClientboundSealPayload.remove(pos));
+        if (!quiet) {
+            dropPlacer(level, pos, seal);
+        }
     }
 
-    public static List<SealEntity> getSealsInChunk(LevelChunk chunk) {
+    private static void dropPlacer(ServerLevel level, SealPos pos, SealEntity seal) {
+        BlockPos block = pos.pos();
+        Direction face = pos.face();
+        ItemEntity item = new ItemEntity(level, block.getX() + BLOCK_CENTER + face.getStepX() * DROP_OFFSET, block.getY() + BLOCK_CENTER + face.getStepY() * DROP_OFFSET,
+                block.getZ() + BLOCK_CENTER + face.getStepZ() * DROP_OFFSET, new ItemStack(seal.type().placer()));
+        item.setDefaultPickUpDelay();
+        level.addFreshEntity(item);
+    }
+
+    public static List<SealEntity> chunkSeals(LevelChunk chunk) {
         return chunk.getData(TTAttachments.SEALS).seals();
     }
 
-    public static boolean place(ServerLevel level, SealPos pos, Identifier typeId, SealType type, Player player) {
-        return !index(level).seals().containsKey(pos) && addSealEntity(level, SealEntity.place(pos, typeId, type, player.getUUID()));
-    }
-
-    public static boolean addSealEntity(ServerLevel level, SealEntity seal) {
-        SealWorldIndex index = index(level);
-        if (index.seals().containsKey(seal.pos())) {
+    public static boolean register(ServerLevel level, SealEntity seal) {
+        Map<SealPos, SealEntity> registry = index(level).seals();
+        if (registry.containsKey(seal.pos())) {
             return false;
         }
-        index.seals().put(seal.pos(), seal);
+        registry.put(seal.pos(), seal);
         LevelChunk chunk = level.getChunkAt(seal.pos().pos());
-        SealsChunkData data = chunk.getData(TTAttachments.SEALS);
-        if (!data.seals().contains(seal)) {
-            data.seals().add(seal);
-        }
+        attachToChunk(chunk, seal);
         chunk.markUnsaved();
         seal.markChanged(level);
         return true;
     }
 
-    public static void removeSealEntity(ServerLevel level, SealPos pos, boolean quiet) {
-        SealEntity seal = index(level).seals().remove(pos);
-        if (seal == null) {
-            return;
+    private static void attachToChunk(LevelChunk chunk, SealEntity seal) {
+        List<SealEntity> held = chunkSeals(chunk);
+        if (held.stream().noneMatch(existing -> existing == seal)) {
+            held.add(seal);
         }
-        seal.behavior().onRemoved(level, seal);
-        if (level.hasChunkAt(pos.pos())) {
-            LevelChunk chunk = level.getChunkAt(pos.pos());
-            chunk.getData(TTAttachments.SEALS).seals().remove(seal);
-            chunk.markUnsaved();
-        }
-        if (!quiet) {
-            Vec3 spot = Vec3.atCenterOf(pos.pos()).relative(pos.face(), 1.0 / DROP_OFFSET);
-            level.addFreshEntity(new ItemEntity(level, spot.x, spot.y, spot.z, new ItemStack(seal.type().placer())));
-        }
-        TaskBoard.of(level).endAllFrom(pos);
-        PacketDistributor.sendToPlayersTrackingChunk(level, ChunkPos.containing(pos.pos()), ClientboundSealPayload.remove(pos));
+    }
+
+    public static boolean place(ServerLevel level, SealPos pos, Identifier typeId, SealType type, Player player) {
+        boolean free = lookup(level, pos) == null;
+        return free && register(level, SealEntity.place(pos, typeId, type, player.getUUID()));
     }
 
     public static void loadChunkSeals(ServerLevel level, LevelChunk chunk) {
         SealWorldIndex index = index(level);
-        for (SealEntity seal : chunk.getData(TTAttachments.SEALS).seals()) {
+        for (SealEntity seal : chunkSeals(chunk)) {
             index.seals().putIfAbsent(seal.pos(), seal);
         }
     }
 
     public static void unloadChunkSeals(ServerLevel level, LevelChunk chunk) {
         SealWorldIndex index = index(level);
-        for (SealEntity seal : chunk.getData(TTAttachments.SEALS).seals()) {
+        for (SealEntity seal : chunkSeals(chunk)) {
             index.seals().remove(seal.pos(), seal);
         }
     }
 
-    public static void tickSealEntities(ServerLevel level) {
-        boolean validate = level.getGameTime() % 20 == 0;
+    public static void runTicks(ServerLevel level) {
+        boolean validate = level.getGameTime() % VALIDATION_INTERVAL_TICKS == 0;
         for (SealEntity seal : index(level).seals().values()) {
-            if (!level.hasChunkAt(seal.pos().pos())) {
+            SealPos pos = seal.pos();
+            if (!level.hasChunkAt(pos.pos())) {
                 continue;
             }
             try {
-                if (validate && !seal.type().placement().allows(level, seal.pos().pos(), seal.pos().face())) {
-                    removeSealEntity(level, seal.pos(), false);
+                if (validate && !seal.type().placement().allows(level, pos.pos(), pos.face())) {
+                    withdraw(level, pos, false);
                     continue;
                 }
                 seal.tick(level);
-            } catch (Exception e) {
-                Thaumaturge.LOGGER.error("Removing seal at {} after tick failure", seal.pos().pos(), e);
-                removeSealEntity(level, seal.pos(), false);
+            } catch (RuntimeException exception) {
+                Thaumaturge.LOGGER.error("Seal at {} failed and was removed", pos, exception);
+                withdraw(level, pos, false);
             }
         }
     }
 
-    public static void markDirty(ServerLevel level, BlockPos pos) {
-        if (level.hasChunkAt(pos)) {
-            level.getChunkAt(pos).markUnsaved();
-        }
+    public static List<SealEntity> within(ServerLevel level, BlockPos origin, int range) {
+        long limitSqr = (long) range * range;
+        List<SealEntity> found = new ArrayList<>();
+        index(level).seals().forEach((key, candidate) -> {
+            if (key.pos().distSqr(origin) <= limitSqr) {
+                found.add(candidate);
+            }
+        });
+        return found;
     }
 
-    public static boolean isSealOwner(SealEntity seal, UUID player) {
-        return player.equals(seal.owner());
+    public static void flagUnsaved(ServerLevel level, BlockPos pos) {
+        Optional.ofNullable(loadedChunk(level, pos)).ifPresent(LevelChunk::markUnsaved);
+    }
+
+    public static boolean isSealOwner(SealEntity seal, UUID id) {
+        UUID owner = seal.owner();
+        return owner != null && owner.equals(id);
+    }
+
+    private static SealWorldIndex index(ServerLevel level) {
+        return level.getData(TTAttachments.SEAL_INDEX);
+    }
+
+    private static @Nullable LevelChunk loadedChunk(ServerLevel level, BlockPos pos) {
+        return level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
     }
 }

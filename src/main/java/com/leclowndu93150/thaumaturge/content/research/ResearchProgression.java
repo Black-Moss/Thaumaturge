@@ -15,7 +15,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
@@ -32,43 +35,29 @@ public final class ResearchProgression {
     }
 
     public static int grant(ServerPlayer player, Identifier research) {
-        Set<Identifier> ordered = new LinkedHashSet<>();
-        collect(entries(player), research, new HashSet<>(), ordered);
-        return completeAll(player, ordered);
+        return completeAll(player, prerequisiteClosure(player, research));
     }
 
     public static int prepare(ServerPlayer player, Identifier research) {
-        Set<Identifier> ordered = new LinkedHashSet<>();
-        collect(entries(player), research, new HashSet<>(), ordered);
-        ordered.remove(research);
-        int completed = completeAll(player, ordered);
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        if (knowledge.removeResearch(research)) {
-            knowledge.sync(player);
-        }
+        Set<Identifier> prerequisites = prerequisiteClosure(player, research);
+        prerequisites.remove(research);
+        int completed = completeAll(player, prerequisites);
+        forgetAndResync(player, research);
         ResearchManager.unlock(player, research);
         return completed;
     }
 
     public static int revoke(ServerPlayer player, Identifier research) {
         Map<Identifier, List<Identifier>> dependents = new HashMap<>();
-        entries(player).listElements().forEach(entry -> {
-            for (Identifier requirement : requirements(entry.value())) {
-                dependents.computeIfAbsent(requirement, key -> new ArrayList<>()).add(entry.key().identifier());
-            }
-        });
-        Set<Identifier> affected = new LinkedHashSet<>();
-        Deque<Identifier> queue = new ArrayDeque<>();
-        queue.add(research);
-        while (!queue.isEmpty()) {
-            Identifier next = queue.poll();
-            if (affected.add(next)) {
-                queue.addAll(dependents.getOrDefault(next, List.of()));
+        for (Holder.Reference<IResearchEntry> holder : entries(player).listElements().toList()) {
+            Identifier dependent = holder.key().identifier();
+            for (Identifier requirement : requirements(holder.value())) {
+                dependents.computeIfAbsent(requirement, key -> new ArrayList<>()).add(dependent);
             }
         }
         IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
         int removed = 0;
-        for (Identifier id : affected) {
+        for (Identifier id : transitiveDependents(research, dependents)) {
             if (knowledge.removeResearch(id) && !id.equals(research)) {
                 removed++;
             }
@@ -77,60 +66,76 @@ public final class ResearchProgression {
         return removed;
     }
 
+    private static void forgetAndResync(ServerPlayer player, Identifier research) {
+        Optional.of(KnowledgeAccess.of(player)).filter(knowledge -> knowledge.removeResearch(research)).ifPresent(knowledge -> knowledge.sync(player));
+    }
+
     public static int completeCategory(ServerPlayer player, ResourceKey<IResearchCategory> category) {
-        HolderLookup.RegistryLookup<IResearchEntry> entries = entries(player);
-        Set<Identifier> visited = new HashSet<>();
-        Set<Identifier> ordered = new LinkedHashSet<>();
-        entries.listElements().filter(entry -> entry.value().category().is(category)).forEach(entry -> collect(entries, entry.key().identifier(), visited, ordered));
-        return completeAll(player, ordered);
+        return completeAll(player, closureOfMatching(player, entry -> entry.category().is(category), List.of()));
     }
 
     public static int setStage(ServerPlayer player, Holder<IResearchCategory> stage) {
         reset(player);
-        HolderLookup.RegistryLookup<IResearchEntry> entries = entries(player);
-        Set<Identifier> visited = new HashSet<>();
-        Set<Identifier> ordered = new LinkedHashSet<>();
         int index = stage.value().index();
-        entries.listElements().filter(entry -> entry.value().category().value().index() < index).forEach(entry -> collect(entries, entry.key().identifier(), visited, ordered));
-        stage.value().requiredResearch().ifPresent(gate -> collect(entries, gate, visited, ordered));
-        return completeAll(player, ordered);
+        List<Identifier> gate = stage.value().requiredResearch().stream().toList();
+        return completeAll(player, closureOfMatching(player, entry -> entry.category().value().index() < index, gate));
     }
 
     private static HolderLookup.RegistryLookup<IResearchEntry> entries(ServerPlayer player) {
         return player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY);
     }
 
-    private static void collect(HolderLookup.RegistryLookup<IResearchEntry> entries, Identifier research, Set<Identifier> visited, Set<Identifier> ordered) {
-        if (!visited.add(research)) {
-            return;
-        }
-        entries.get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research)).ifPresent(entry -> {
-            for (Identifier requirement : requirements(entry.value())) {
-                collect(entries, requirement, visited, ordered);
+    private static Set<Identifier> prerequisiteClosure(ServerPlayer player, Identifier research) {
+        DependencyWalk walk = new DependencyWalk(entries(player));
+        walk.visit(research);
+        return walk.ordered;
+    }
+
+    private static Set<Identifier> closureOfMatching(ServerPlayer player, Predicate<IResearchEntry> filter, List<Identifier> extraRoots) {
+        HolderLookup.RegistryLookup<IResearchEntry> entries = entries(player);
+        List<Identifier> roots = entries.listElements().filter(holder -> filter.test(holder.value())).map(holder -> holder.key().identifier()).toList();
+        DependencyWalk walk = new DependencyWalk(entries);
+        Stream.concat(roots.stream(), extraRoots.stream()).forEach(walk::visit);
+        return walk.ordered;
+    }
+
+    private static Set<Identifier> transitiveDependents(Identifier root, Map<Identifier, List<Identifier>> dependents) {
+        Set<Identifier> found = new LinkedHashSet<>();
+        Deque<Identifier> pending = new ArrayDeque<>(List.of(root));
+        while (!pending.isEmpty()) {
+            Identifier current = pending.removeLast();
+            if (found.add(current)) {
+                pending.addAll(dependents.getOrDefault(current, List.of()));
             }
-        });
-        ordered.add(research);
+        }
+        return found;
     }
 
     private static List<Identifier> requirements(IResearchEntry entry) {
-        List<Identifier> requirements = new ArrayList<>();
-        entry.category().value().requiredResearch().ifPresent(requirements::add);
-        for (ResearchParent parent : entry.parents()) {
-            requirements.add(parent.id());
-        }
-        for (IResearchStage stage : entry.stages()) {
-            requirements.addAll(stage.requiredResearch());
-        }
-        return requirements;
+        Stream<Identifier> category = entry.category().value().requiredResearch().stream();
+        Stream<Identifier> parents = entry.parents().stream().map(ResearchParent::id);
+        Stream<Identifier> stages = entry.stages().stream().map(IResearchStage::requiredResearch).flatMap(Collection::stream);
+        return Stream.of(category, parents, stages).flatMap(part -> part).toList();
     }
 
     private static int completeAll(ServerPlayer player, Collection<Identifier> research) {
-        int completed = 0;
-        for (Identifier id : research) {
-            if (ResearchManager.complete(player, id)) {
-                completed++;
+        return research.stream().mapToInt(id -> ResearchManager.complete(player, id) ? 1 : 0).sum();
+    }
+
+    private static final class DependencyWalk {
+        private final Set<Identifier> ordered = new LinkedHashSet<>();
+        private final Set<Identifier> seen = new HashSet<>();
+        private final HolderLookup.RegistryLookup<IResearchEntry> entries;
+
+        private DependencyWalk(HolderLookup.RegistryLookup<IResearchEntry> entries) {
+            this.entries = entries;
+        }
+
+        private void visit(Identifier research) {
+            if (seen.add(research)) {
+                entries.get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research)).ifPresent(entry -> requirements(entry.value()).forEach(this::visit));
+                ordered.add(research);
             }
         }
-        return completed;
     }
 }

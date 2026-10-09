@@ -20,13 +20,18 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.jspecify.annotations.Nullable;
 
 public final class DeconTableItemSpecialRenderer implements NoDataSpecialModelRenderer {
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/decontable.png");
+    private static final float CENTER = 0.5F;
+    private static final float BODY_Y = 1.0F;
     private static final float BOOK_Y = 1.02F;
-    private static final float BOOK_SCALE = 0.8F;
-    private static final float IN_FRAME_SCALE = 0.5128205F;
+    private static final float FLIP_DEGREES = 180.0F;
+    private static final float BOOK_PITCH_DEGREES = -90.0F;
+    private static final float BOOK_YAW_DEGREES = 180.0F;
+    private static final float BOOK_SCALE = 0.8F * 0.5128205F;
+    private static final int NO_OUTLINE = 0;
+    private static final int BOOK_SEED = 0;
 
     private final DeconTableModel model;
 
@@ -37,20 +42,23 @@ public final class DeconTableItemSpecialRenderer implements NoDataSpecialModelRe
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, 1.0F, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(TEXTURE), lightCoords, OverlayTexture.NO_OVERLAY, null, -1, null);
+        poseStack.translate(CENTER, BODY_Y, CENTER);
+        poseStack.mulPose(Axis.XP.rotationDegrees(FLIP_DEGREES));
+        collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(TEXTURE), lightCoords, OverlayTexture.NO_OVERLAY, null);
         poseStack.popPose();
+        submitBook(poseStack, collector, lightCoords);
+    }
 
-        ItemStackRenderState book = new ItemStackRenderState();
-        Minecraft.getInstance().getItemModelResolver().updateForTopItem(book, new ItemStack(TTItems.THAUMOMETER.get()), ItemDisplayContext.FIXED, null, null, 0);
+    private static void submitBook(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ItemStackRenderState bookState = new ItemStackRenderState();
+        minecraft.getItemModelResolver().updateForTopItem(bookState, new ItemStack(TTItems.THAUMOMETER.get()), ItemDisplayContext.FIXED, minecraft.level, null, BOOK_SEED);
         poseStack.pushPose();
-        poseStack.translate(0.5F, BOOK_Y, 0.5F);
-        poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
+        poseStack.translate(CENTER, BOOK_Y, CENTER);
+        poseStack.mulPose(Axis.XP.rotationDegrees(BOOK_PITCH_DEGREES));
+        poseStack.mulPose(Axis.YP.rotationDegrees(BOOK_YAW_DEGREES));
         poseStack.scale(BOOK_SCALE, BOOK_SCALE, BOOK_SCALE);
-        poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        book.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        bookState.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY, NO_OUTLINE);
         poseStack.popPose();
     }
 
@@ -64,7 +72,7 @@ public final class DeconTableItemSpecialRenderer implements NoDataSpecialModelRe
         public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(Unbaked::new);
 
         @Override
-        public @Nullable SpecialModelRenderer<Void> bake(SpecialModelRenderer.BakingContext context) {
+        public SpecialModelRenderer<Void> bake(SpecialModelRenderer.BakingContext context) {
             return new DeconTableItemSpecialRenderer(new DeconTableModel(context.entityModelSet().bakeLayer(TTModelLayers.DECONSTRUCTION_TABLE)));
         }
 

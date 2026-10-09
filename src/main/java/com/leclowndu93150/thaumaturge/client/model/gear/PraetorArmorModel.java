@@ -16,6 +16,14 @@ public final class PraetorArmorModel extends AbstractTTArmorModel {
     private static final int TEXTURE_HEIGHT = 128;
     private static final float DEGREES_TO_RADIANS = (float) (Math.PI / 180.0);
     private static final float SEATED_CLOTH_LIFT = 0.3F;
+    private static final float SEATED_CLOTH_WIDTH = 0.4F;
+    private static final float TRAILING_LIFT = 0.65F;
+    private static final float PADDING = 0.03125F;
+    private static final float CLOTH_REST = -8.0F * DEGREES_TO_RADIANS;
+    private static final float HEM_REST = -4.0F * DEGREES_TO_RADIANS;
+    private static final float CAPE_REST = 8.0F * DEGREES_TO_RADIANS;
+    private static final float CAPE_HEM_REST = 6.0F * DEGREES_TO_RADIANS;
+    private static final String[] SIDES = {"right", "left"};
 
     private final ModelPart rightCloth;
     private final ModelPart rightHem;
@@ -40,102 +48,116 @@ public final class PraetorArmorModel extends AbstractTTArmorModel {
         if (state instanceof ArmorStandRenderState) {
             return;
         }
-        float speed = Mth.clamp(state.walkAnimationSpeed, 0.0F, 1.0F);
-        float phase = state.walkAnimationPos * 0.6662F;
-        float stride = Math.abs(Mth.cos(phase)) * speed;
-        float crouch = state.isCrouching ? 1.0F : 0.0F;
-        float flutter = Mth.sin(state.ageInTicks * 0.16F) * (0.012F + speed * 0.028F);
-        float trailing = state.isFallFlying || state.isVisuallySwimming ? 0.65F : 0.0F;
-        animateCloth(rightCloth, rightHem, rightLeg, state, stride, speed, crouch, flutter);
-        animateCloth(leftCloth, leftHem, leftLeg, state, stride, speed, crouch, -flutter);
-        cape.xRot = 8.0F * DEGREES_TO_RADIANS + stride * 0.32F + flutter + crouch * 0.16F + trailing;
-        capeHem.xRot = 6.0F * DEGREES_TO_RADIANS + stride * 0.12F + flutter * 1.5F;
+        Gait gait = Gait.sample(state);
+        float trailing = state.isFallFlying || state.isVisuallySwimming ? TRAILING_LIFT : 0.0F;
+        swayCloth(rightCloth, rightHem, rightLeg, state, gait, gait.flutter());
+        swayCloth(leftCloth, leftHem, leftLeg, state, gait, -gait.flutter());
+        cape.xRot = CAPE_REST + gait.stride() * 0.32F + gait.flutter() + gait.crouch() * 0.16F + trailing;
+        capeHem.xRot = CAPE_HEM_REST + gait.stride() * 0.12F + gait.flutter() * 1.5F;
     }
 
-    private void animateCloth(ModelPart cloth, ModelPart hem, ModelPart leg, HumanoidRenderState state, float stride, float speed, float crouch, float flutter) {
-        float forwardLeg = Math.min(0.0F, leg.xRot - body.xRot);
-        cloth.xRot = -8.0F * DEGREES_TO_RADIANS + forwardLeg - stride * 0.3F - Math.abs(body.yRot) - speed * 0.08F - crouch - (state.isPassenger ? SEATED_CLOTH_LIFT : 0.0F);
-        cloth.y -= crouch;
-        cloth.xScale = state.isPassenger ? 0.4F : 1.0F;
-        hem.xRot = -4.0F * DEGREES_TO_RADIANS - stride * 0.12F - flutter + crouch;
+    private void swayCloth(ModelPart cloth, ModelPart hem, ModelPart leg, HumanoidRenderState state, Gait gait, float flutter) {
+        float lift = state.isPassenger ? SEATED_CLOTH_LIFT : 0.0F;
+        float swing = Math.min(0.0F, leg.xRot - body.xRot);
+        cloth.xRot = CLOTH_REST + swing - gait.stride() * 0.3F - Math.abs(body.yRot) - gait.speed() * 0.08F - gait.crouch() - lift;
+        cloth.y -= gait.crouch();
+        cloth.xScale = state.isPassenger ? SEATED_CLOTH_WIDTH : 1.0F;
+        hem.xRot = HEM_REST - gait.stride() * 0.12F - flutter + gait.crouch();
+    }
+
+    private record Gait(float speed, float stride, float crouch, float flutter) {
+        static Gait sample(HumanoidRenderState state) {
+            float speed = Mth.clamp(state.walkAnimationSpeed, 0.0F, 1.0F);
+            float stride = Math.abs(Mth.cos(state.walkAnimationPos * 0.6662F)) * speed;
+            float crouch = state.isCrouching ? 1.0F : 0.0F;
+            float flutter = Mth.sin(state.ageInTicks * 0.16F) * (0.012F + speed * 0.028F);
+            return new Gait(speed, stride, crouch, flutter);
+        }
+    }
+
+    private record Cube(int u, int v, float x, float y, float z, float w, float h, float d, float grow) {
+        static Cube of(int u, int v, float x, float y, float z, float w, float h, float d) {
+            return new Cube(u, v, x, y, z, w, h, d, 0.0F);
+        }
+
+        static Cube padded(int u, int v, float x, float y, float z, float w, float h, float d) {
+            return new Cube(u, v, x, y, z, w, h, d, PADDING);
+        }
+
+        void addTo(CubeListBuilder builder) {
+            builder.texOffs(u, v).addBox(x, y, z, w, h, d, new CubeDeformation(grow));
+        }
+    }
+
+    private static PartDefinition part(PartDefinition parent, String name, PartPose pose, Cube... cubes) {
+        CubeListBuilder builder = CubeListBuilder.create();
+        for (Cube cube : cubes) {
+            cube.addTo(builder);
+        }
+        return parent.addOrReplaceChild(name, builder, pose);
+    }
+
+    private static PartPose at(float x, float y, float z) {
+        return PartPose.offset(x, y, z);
+    }
+
+    private static PartPose tilted(float x, float y, float z, float rx, float ry, float rz) {
+        return PartPose.offsetAndRotation(x, y, z, rx, ry, rz);
     }
 
     public static LayerDefinition createHead() {
         MeshDefinition mesh = createMesh();
-        PartDefinition root = mesh.getRoot();
-        PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create().texOffs(108, 1).addBox(-4.25F, -8.75F, -4.9375F, 8.5F, 8.5F, 0.5F, new CubeDeformation(0.03125F)).texOffs(1, 17)
-                .addBox(-4.25F, -9.375F, -4.375F, 8.5F, 1.0F, 8.5F, new CubeDeformation(0.03125F)).texOffs(36, 17).addBox(-4.125F, -8.375F, 4.25F, 8.5F, 8.0F, 0.5F, new CubeDeformation(0.03125F))
-                .texOffs(55, 17).addBox(-4.75F, -8.125F, -4.1875F, 0.5F, 8.0F, 8.5F, new CubeDeformation(0.03125F)).texOffs(74, 17)
-                .addBox(4.25F, -8.125F, -4.1875F, 0.5F, 8.0F, 8.5F, new CubeDeformation(0.03125F)), PartPose.offset(0.0F, 0.0F, 0.0F));
-        head.addOrReplaceChild("swept_cheek_-1", CubeListBuilder.create().texOffs(93, 17).addBox(-0.625F, -0.25F, -2.0F, 1.0F, 4.5F, 4.0F),
-                PartPose.offsetAndRotation(-4.25F, -4.5F, -2.5F, 0.0F, -0.2094395F, 0.0698132F));
-        head.addOrReplaceChild("swept_cheek_1", CubeListBuilder.create().texOffs(104, 17).addBox(-0.375F, -0.25F, -2.0F, 1.0F, 4.5F, 4.0F),
-                PartPose.offsetAndRotation(4.25F, -4.5F, -2.5F, 0.0F, 0.2094395F, -0.0698132F));
+        PartDefinition head = part(mesh.getRoot(), "head", at(0.0F, 0.0F, 0.0F), Cube.padded(108, 1, -4.25F, -8.75F, -4.9375F, 8.5F, 8.5F, 0.5F),
+                Cube.padded(1, 17, -4.25F, -9.375F, -4.375F, 8.5F, 1.0F, 8.5F), Cube.padded(36, 17, -4.125F, -8.375F, 4.25F, 8.5F, 8.0F, 0.5F),
+                Cube.padded(55, 17, -4.75F, -8.125F, -4.1875F, 0.5F, 8.0F, 8.5F), Cube.padded(74, 17, 4.25F, -8.125F, -4.1875F, 0.5F, 8.0F, 8.5F));
+        part(head, "swept_cheek_-1", tilted(-4.25F, -4.5F, -2.5F, 0.0F, -0.2094395F, 0.0698132F), Cube.of(93, 17, -0.625F, -0.25F, -2.0F, 1.0F, 4.5F, 4.0F));
+        part(head, "swept_cheek_1", tilted(4.25F, -4.5F, -2.5F, 0.0F, 0.2094395F, -0.0698132F), Cube.of(104, 17, -0.375F, -0.25F, -2.0F, 1.0F, 4.5F, 4.0F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
     public static LayerDefinition createChest() {
         MeshDefinition mesh = createMesh();
         PartDefinition root = mesh.getRoot();
-        PartDefinition body = root.addOrReplaceChild("body",
-                CubeListBuilder.create().texOffs(1, 1).addBox(-4.25F, 0.75F, -2.5F, 8.5F, 10.0F, 5.0F, new CubeDeformation(0.03125F)).texOffs(29, 1).addBox(-4.25F, 1.0F, -3.875F, 8.5F, 7.0F, 1.0F)
-                        .texOffs(49, 1).addBox(-2.5F, 2.625F, -4.875F, 5.0F, 5.0F, 0.5F).texOffs(61, 1).addBox(-4.5F, 10.375F, -2.875F, 9.0F, 1.5F, 6.0F).texOffs(92, 1)
-                        .addBox(-4.5F, 0.875F, -4.375F, 3.0F, 9.5F, 0.5F).texOffs(100, 1).addBox(1.5F, 0.875F, -4.375F, 3.0F, 9.5F, 0.5F).texOffs(1, 35).addBox(-5.0F, -0.25F, -5.5F, 10.0F, 2.5F, 0.5F)
-                        .texOffs(23, 35).addBox(-4.75F, -1.875F, 4.875F, 9.5F, 4.0F, 0.5F).texOffs(101, 35).addBox(-4.0F, 0.5F, 3.75F, 1.0F, 1.0F, 1.5F).texOffs(122, 35)
-                        .addBox(3.0F, 0.5F, 3.75F, 1.0F, 1.0F, 1.5F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        body.addOrReplaceChild("gorget_side_-1", CubeListBuilder.create().texOffs(44, 35).addBox(-0.25F, -1.5F, -4.875F, 0.5F, 2.5F, 9.5F),
-                PartPose.offsetAndRotation(-5.0F, 1.0F, 0.0F, 0.1396263F, 0.0F, 0.0698132F));
-        body.addOrReplaceChild("gorget_side_1", CubeListBuilder.create().texOffs(65, 35).addBox(-0.25F, -1.5F, -4.875F, 0.5F, 2.5F, 9.5F),
-                PartPose.offsetAndRotation(5.0F, 1.0F, 0.0F, 0.1396263F, 0.0F, -0.0698132F));
-        PartDefinition tabardRightUpper = body.addOrReplaceChild("tabard_right_upper", CubeListBuilder.create().texOffs(86, 35).addBox(-1.5F, 0.0F, -0.25F, 3.0F, 5.5F, 0.5F),
-                PartPose.offsetAndRotation(-2.875F, 10.5F, -4.375F, -0.1396263F, 0.0F, 0.0F));
-        tabardRightUpper.addOrReplaceChild("tabard_right_lower", CubeListBuilder.create().texOffs(94, 35).addBox(-1.25F, -0.125F, -0.1875F, 2.5F, 4.0F, 0.5F),
-                PartPose.offsetAndRotation(0.0F, 5.5F, 0.0F, -0.0698132F, 0.0F, 0.0F));
-        PartDefinition tabardLeftUpper = body.addOrReplaceChild("tabard_left_upper", CubeListBuilder.create().texOffs(107, 35).addBox(-1.5F, 0.0F, -0.25F, 3.0F, 4.0F, 0.5F),
-                PartPose.offsetAndRotation(2.875F, 10.5F, -4.375F, -0.1396263F, 0.0F, 0.0F));
-        tabardLeftUpper.addOrReplaceChild("tabard_left_lower", CubeListBuilder.create().texOffs(115, 35).addBox(-1.25F, -0.125F, -0.1875F, 2.5F, 2.5F, 0.5F),
-                PartPose.offsetAndRotation(0.0F, 4.0F, 0.0F, -0.0698132F, 0.0F, 0.0F));
-        PartDefinition capeMantleUpper = body.addOrReplaceChild("cape_mantle_upper", CubeListBuilder.create().texOffs(1, 48).addBox(-4.5F, 0.0F, 0.0F, 9.0F, 12.0F, 0.5F),
-                PartPose.offsetAndRotation(-1.0F, 0.75F, 4.375F, 0.1396263F, 0.0F, 0.0F));
-        capeMantleUpper.addOrReplaceChild("cape_mantle_lower", CubeListBuilder.create().texOffs(21, 48).addBox(-4.25F, -0.125F, 0.0625F, 8.5F, 3.5F, 0.5F),
-                PartPose.offsetAndRotation(0.0F, 12.0F, 0.0F, 0.1047198F, 0.0F, 0.0F));
-        PartDefinition rightArm = root.addOrReplaceChild("right_arm",
-                CubeListBuilder.create().texOffs(40, 48).addBox(-3.25F, -1.875F, -2.375F, 4.5F, 3.5F, 4.5F, new CubeDeformation(0.03125F)).texOffs(82, 48)
-                        .addBox(-3.25F, 4.625F, -2.625F, 4.5F, 5.0F, 5.0F, new CubeDeformation(0.03125F)).texOffs(102, 48).addBox(-3.375F, 8.1875F, -2.6875F, 4.5F, 0.5F, 5.5F).texOffs(1, 62)
-                        .addBox(-3.375F, 5.6875F, -2.6875F, 4.5F, 0.5F, 5.5F),
-                PartPose.offset(-5.0F, 2.0F, 0.0F));
-        rightArm.addOrReplaceChild("legate_pauldron_right", CubeListBuilder.create().texOffs(59, 48).addBox(-2.75F, -0.25F, -2.875F, 5.5F, 3.0F, 5.5F),
-                PartPose.offsetAndRotation(-1.0F, -1.75F, 0.0F, 0.0F, 0.0F, 0.0872665F));
-        PartDefinition leftArm = root.addOrReplaceChild("left_arm",
-                CubeListBuilder.create().texOffs(60, 62).addBox(-1.25F, -1.875F, -2.375F, 4.5F, 3.5F, 4.5F, new CubeDeformation(0.03125F)).texOffs(102, 62)
-                        .addBox(3.75F, -4.5F, -2.625F, 0.5F, 4.0F, 5.0F).texOffs(1, 73).addBox(-1.25F, 4.625F, -2.625F, 4.5F, 5.0F, 5.0F, new CubeDeformation(0.03125F)).texOffs(21, 73)
-                        .addBox(-1.375F, 8.1875F, -2.6875F, 4.5F, 0.5F, 5.5F).texOffs(42, 73).addBox(-1.375F, 5.6875F, -2.6875F, 4.5F, 0.5F, 5.5F),
-                PartPose.offset(5.0F, 2.0F, 0.0F));
-        leftArm.addOrReplaceChild("legate_pauldron_left", CubeListBuilder.create().texOffs(79, 62).addBox(-2.75F, -0.75F, -2.875F, 5.5F, 4.5F, 5.5F),
-                PartPose.offsetAndRotation(1.0F, -1.75F, 0.0F, 0.0F, 0.0F, -0.2094395F));
+        PartDefinition torso = part(root, "body", at(0.0F, 0.0F, 0.0F), Cube.padded(1, 1, -4.25F, 0.75F, -2.5F, 8.5F, 10.0F, 5.0F), Cube.of(29, 1, -4.25F, 1.0F, -3.875F, 8.5F, 7.0F, 1.0F),
+                Cube.of(49, 1, -2.5F, 2.625F, -4.875F, 5.0F, 5.0F, 0.5F), Cube.of(61, 1, -4.5F, 10.375F, -2.875F, 9.0F, 1.5F, 6.0F), Cube.of(92, 1, -4.5F, 0.875F, -4.375F, 3.0F, 9.5F, 0.5F),
+                Cube.of(100, 1, 1.5F, 0.875F, -4.375F, 3.0F, 9.5F, 0.5F), Cube.of(1, 35, -5.0F, -0.25F, -5.5F, 10.0F, 2.5F, 0.5F), Cube.of(23, 35, -4.75F, -1.875F, 4.875F, 9.5F, 4.0F, 0.5F),
+                Cube.of(101, 35, -4.0F, 0.5F, 3.75F, 1.0F, 1.0F, 1.5F), Cube.of(122, 35, 3.0F, 0.5F, 3.75F, 1.0F, 1.0F, 1.5F));
+        part(torso, "gorget_side_-1", tilted(-5.0F, 1.0F, 0.0F, 0.1396263F, 0.0F, 0.0698132F), Cube.of(44, 35, -0.25F, -1.5F, -4.875F, 0.5F, 2.5F, 9.5F));
+        part(torso, "gorget_side_1", tilted(5.0F, 1.0F, 0.0F, 0.1396263F, 0.0F, -0.0698132F), Cube.of(65, 35, -0.25F, -1.5F, -4.875F, 0.5F, 2.5F, 9.5F));
+        PartDefinition rightFlap = part(torso, "tabard_right_upper", tilted(-2.875F, 10.5F, -4.375F, -0.1396263F, 0.0F, 0.0F), Cube.of(86, 35, -1.5F, 0.0F, -0.25F, 3.0F, 5.5F, 0.5F));
+        part(rightFlap, "tabard_right_lower", tilted(0.0F, 5.5F, 0.0F, -0.0698132F, 0.0F, 0.0F), Cube.of(94, 35, -1.25F, -0.125F, -0.1875F, 2.5F, 4.0F, 0.5F));
+        PartDefinition leftFlap = part(torso, "tabard_left_upper", tilted(2.875F, 10.5F, -4.375F, -0.1396263F, 0.0F, 0.0F), Cube.of(107, 35, -1.5F, 0.0F, -0.25F, 3.0F, 4.0F, 0.5F));
+        part(leftFlap, "tabard_left_lower", tilted(0.0F, 4.0F, 0.0F, -0.0698132F, 0.0F, 0.0F), Cube.of(115, 35, -1.25F, -0.125F, -0.1875F, 2.5F, 2.5F, 0.5F));
+        PartDefinition mantle = part(torso, "cape_mantle_upper", tilted(-1.0F, 0.75F, 4.375F, 0.1396263F, 0.0F, 0.0F), Cube.of(1, 48, -4.5F, 0.0F, 0.0F, 9.0F, 12.0F, 0.5F));
+        part(mantle, "cape_mantle_lower", tilted(0.0F, 12.0F, 0.0F, 0.1047198F, 0.0F, 0.0F), Cube.of(21, 48, -4.25F, -0.125F, 0.0625F, 8.5F, 3.5F, 0.5F));
+        PartDefinition rightShoulder = part(root, "right_arm", at(-5.0F, 2.0F, 0.0F), Cube.padded(40, 48, -3.25F, -1.875F, -2.375F, 4.5F, 3.5F, 4.5F),
+                Cube.padded(82, 48, -3.25F, 4.625F, -2.625F, 4.5F, 5.0F, 5.0F), Cube.of(102, 48, -3.375F, 8.1875F, -2.6875F, 4.5F, 0.5F, 5.5F),
+                Cube.of(1, 62, -3.375F, 5.6875F, -2.6875F, 4.5F, 0.5F, 5.5F));
+        part(rightShoulder, "legate_pauldron_right", tilted(-1.0F, -1.75F, 0.0F, 0.0F, 0.0F, 0.0872665F), Cube.of(59, 48, -2.75F, -0.25F, -2.875F, 5.5F, 3.0F, 5.5F));
+        PartDefinition leftShoulder = part(root, "left_arm", at(5.0F, 2.0F, 0.0F), Cube.padded(60, 62, -1.25F, -1.875F, -2.375F, 4.5F, 3.5F, 4.5F),
+                Cube.of(102, 62, 3.75F, -4.5F, -2.625F, 0.5F, 4.0F, 5.0F), Cube.padded(1, 73, -1.25F, 4.625F, -2.625F, 4.5F, 5.0F, 5.0F), Cube.of(21, 73, -1.375F, 8.1875F, -2.6875F, 4.5F, 0.5F, 5.5F),
+                Cube.of(42, 73, -1.375F, 5.6875F, -2.6875F, 4.5F, 0.5F, 5.5F));
+        part(leftShoulder, "legate_pauldron_left", tilted(1.0F, -1.75F, 0.0F, 0.0F, 0.0F, -0.2094395F), Cube.of(79, 62, -2.75F, -0.75F, -2.875F, 5.5F, 4.5F, 5.5F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
     public static LayerDefinition createLegs() {
         MeshDefinition mesh = createMesh();
         PartDefinition root = mesh.getRoot();
-        root.addOrReplaceChild("right_leg", CubeListBuilder.create().texOffs(22, 62).addBox(-1.75F, 0.375F, -3.125F, 3.5F, 3.0F, 6.0F).texOffs(42, 62).addBox(-1.5F, 2.375F, -2.875F, 3.0F, 3.0F, 5.5F),
-                PartPose.offset(-1.9F, 12.0F, 0.0F));
-        root.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(63, 73).addBox(-1.75F, 0.375F, -3.125F, 3.5F, 3.0F, 6.0F).texOffs(83, 73).addBox(-1.5F, 2.375F, -2.875F, 3.0F, 3.0F, 5.5F),
-                PartPose.offset(1.9F, 12.0F, 0.0F));
+        part(root, "right_leg", at(-1.9F, 12.0F, 0.0F), Cube.of(22, 62, -1.75F, 0.375F, -3.125F, 3.5F, 3.0F, 6.0F), Cube.of(42, 62, -1.5F, 2.375F, -2.875F, 3.0F, 3.0F, 5.5F));
+        part(root, "left_leg", at(1.9F, 12.0F, 0.0F), Cube.of(63, 73, -1.75F, 0.375F, -3.125F, 3.5F, 3.0F, 6.0F), Cube.of(83, 73, -1.5F, 2.375F, -2.875F, 3.0F, 3.0F, 5.5F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
     private static MeshDefinition createMesh() {
         MeshDefinition mesh = KnightArmorModel.emptyMesh();
-        PartDefinition body = mesh.getRoot().getChild("body");
-        for (String side : new String[]{"right", "left"}) {
-            PartDefinition cloth = KnightArmorModel.emptyChild(body, "tabard_" + side + "_upper");
-            KnightArmorModel.emptyChild(cloth, "tabard_" + side + "_lower");
+        PartDefinition torso = mesh.getRoot().getChild("body");
+        for (String side : SIDES) {
+            String flap = "tabard_" + side;
+            KnightArmorModel.emptyChild(KnightArmorModel.emptyChild(torso, flap + "_upper"), flap + "_lower");
         }
-        PartDefinition cape = KnightArmorModel.emptyChild(body, "cape_mantle_upper");
-        KnightArmorModel.emptyChild(cape, "cape_mantle_lower");
+        PartDefinition mantle = KnightArmorModel.emptyChild(torso, "cape_mantle_upper");
+        KnightArmorModel.emptyChild(mantle, "cape_mantle_lower");
         return mesh;
     }
 }

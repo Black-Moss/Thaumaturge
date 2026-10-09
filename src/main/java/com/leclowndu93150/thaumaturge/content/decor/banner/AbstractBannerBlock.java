@@ -1,9 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.decor.banner;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.essentia.item.ComponentEssentia;
 import com.leclowndu93150.thaumaturge.content.item.PhialItem;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -20,6 +23,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractBannerBlock extends Block implements EntityBlock {
+    private static final float EDIT_VOLUME = 1.0F;
+    private static final float EDIT_PITCH = 1.0F;
+
     private final @Nullable DyeColor dye;
 
     protected AbstractBannerBlock(@Nullable DyeColor dye, Properties properties) {
@@ -38,31 +44,41 @@ public abstract class AbstractBannerBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (dye == null) {
-            return InteractionResult.PASS;
+        if (dye == null || !(level.getBlockEntity(pos) instanceof BlockEntityBanner banner)) {
+            return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
-        boolean clearing = player.isShiftKeyDown();
-        boolean settingFromPhial = stack.getItem() instanceof PhialItem;
-        if (!clearing && !settingFromPhial) {
-            return InteractionResult.PASS;
-        }
-        if (level.isClientSide()) {
+        if (player.isShiftKeyDown()) {
+            if (!level.isClientSide()) {
+                banner.setAspect(null);
+                playEditSound(level, pos);
+            }
             return InteractionResult.SUCCESS;
         }
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityBanner banner)) {
-            return InteractionResult.PASS;
+        ResourceKey<IAspect> phialAspect = phialAspect(stack);
+        if (phialAspect == null) {
+            return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
-        if (clearing) {
-            banner.setAspect(null);
-        } else {
-            AspectList aspects = ComponentEssentia.phial(stack).getAspects();
-            if (aspects.isEmpty()) {
-                return InteractionResult.PASS;
-            }
-            banner.setAspect(aspects.entries().get(0).aspect().unwrapKey().orElse(null));
+        if (!level.isClientSide()) {
+            banner.setAspect(phialAspect);
             stack.shrink(1);
+            playEditSound(level, pos);
         }
-        level.playSound(null, pos, SoundEvents.WOOL_HIT, SoundSource.BLOCKS, 1.0F, 1.0F);
         return InteractionResult.SUCCESS;
+    }
+
+    private static @Nullable ResourceKey<IAspect> phialAspect(ItemStack stack) {
+        if (!(stack.getItem() instanceof PhialItem)) {
+            return null;
+        }
+        AspectList aspects = ComponentEssentia.phial(stack).getAspects();
+        if (aspects.isEmpty()) {
+            return null;
+        }
+        AspectInstance first = aspects.entries().getFirst();
+        return first.aspect().getKey();
+    }
+
+    private static void playEditSound(Level level, BlockPos pos) {
+        level.playSound(null, pos, SoundEvents.WOOL_HIT, SoundSource.BLOCKS, EDIT_VOLUME, EDIT_PITCH);
     }
 }

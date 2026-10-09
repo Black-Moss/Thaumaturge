@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
-import net.minecraft.core.Holder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,20 +25,48 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public class EntityAspectOrb extends Entity {
-    private static final EntityDataAccessor<String> DATA_ASPECT = SynchedEntityData.defineId(EntityAspectOrb.class, EntityDataSerializers.STRING);
     public static final int MAX_AGE = 150;
-    private static final int DEFAULT_HEALTH = 5;
-    private static final int PLAYER_SCAN_PERIOD = 5;
-    private static final double FOLLOW_RANGE = 8.0;
-    private static final float GROUND_BOUNCE = 0.9F;
-    private static final float FRICTION = 0.98F;
 
-    private int age;
+    private static final EntityDataAccessor<String> DATA_ASPECT = SynchedEntityData.defineId(EntityAspectOrb.class, EntityDataSerializers.STRING);
+    private static final short DEFAULT_HEALTH = 5;
+    private static final short DEFAULT_AGE = 0;
+    private static final short DEFAULT_VALUE = 1;
+    private static final String KEY_HEALTH = "Health";
+    private static final String KEY_AGE = "Age";
+    private static final String KEY_VALUE = "Value";
+    private static final String KEY_ASPECT = "Aspect";
+    private static final double FOLLOW_RANGE = 8.0;
+    private static final int PLAYER_SCAN_PERIOD = 5;
+    private static final double FOLLOW_STRENGTH = 0.1;
+    private static final double GRAVITY = 0.03;
+    private static final double BOUNCE_FACTOR = 0.9;
+    private static final float FRICTION = 0.98F;
+    private static final double UNDERWATER_DRAG = 0.99;
+    private static final double UNDERWATER_LIFT = 0.0005;
+    private static final double UNDERWATER_MAX_RISE = 0.06;
+    private static final double LAVA_SPREAD = 0.2;
+    private static final double LAVA_RISE = 0.2;
+    private static final float LAVA_HISS_VOLUME = 0.4F;
+    private static final float LAVA_HISS_PITCH_BASE = 2.0F;
+    private static final float LAVA_HISS_PITCH_SPREAD = 0.4F;
+    private static final double SPAWN_HORIZONTAL_SPEED = 0.4;
+    private static final double SPAWN_HORIZONTAL_OFFSET = 0.2;
+    private static final double SPAWN_VERTICAL_SPEED = 0.4;
+    private static final float FULL_TURN_DEGREES = 360.0F;
+    private static final int PICKUP_DELAY_TICKS = 2;
+    private static final float PICKUP_VOLUME = 0.1F;
+    private static final float PICKUP_PITCH_FACTOR = 0.5F;
+    private static final float PICKUP_PITCH_SPREAD = 0.7F;
+    private static final float PICKUP_PITCH_BASE = 1.8F;
+    private static final int PICKUP_ITEM_COUNT = 1;
+
+    private int age = DEFAULT_AGE;
     private int health = DEFAULT_HEALTH;
-    private int aspectValue = 1;
-    private Player followingPlayer;
+    private int value = DEFAULT_VALUE;
+    private @Nullable Player followTarget;
 
     public EntityAspectOrb(EntityType<? extends EntityAspectOrb> type, Level level) {
         super(type, level);
@@ -47,20 +75,21 @@ public class EntityAspectOrb extends Entity {
     public EntityAspectOrb(Level level, double x, double y, double z, ResourceKey<IAspect> aspect, int value) {
         this(TTEntities.ASPECT_ORB.get(), level);
         setPos(x, y, z);
-        setYRot(random.nextFloat() * 360.0F);
-        setDeltaMovement((random.nextDouble() * 0.2 - 0.1) * 2.0, random.nextDouble() * 0.2 * 2.0, (random.nextDouble() * 0.2 - 0.1) * 2.0);
-        this.aspectValue = value;
+        setYRot(random.nextFloat() * FULL_TURN_DEGREES);
+        setDeltaMovement((random.nextDouble() * SPAWN_HORIZONTAL_SPEED) - SPAWN_HORIZONTAL_OFFSET, random.nextDouble() * SPAWN_VERTICAL_SPEED,
+                (random.nextDouble() * SPAWN_HORIZONTAL_SPEED) - SPAWN_HORIZONTAL_OFFSET);
         setAspect(aspect);
+        this.value = value;
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        entityData.define(DATA_ASPECT, TTAspects.AER.identifier().toString());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_ASPECT, TTAspects.AER.identifier().toString());
     }
 
     public ResourceKey<IAspect> getAspect() {
-        String stored = entityData.get(DATA_ASPECT);
-        Identifier id = stored.indexOf(':') >= 0 ? Identifier.tryParse(stored) : Identifier.tryBuild(TTIds.MODID, stored);
+        String text = entityData.get(DATA_ASPECT);
+        Identifier id = Identifier.tryParse(text.indexOf(':') >= 0 ? text : TTIds.MODID + ":" + text);
         return id == null ? TTAspects.AER : ResourceKey.create(IAspect.REGISTRY_KEY, id);
     }
 
@@ -73,8 +102,7 @@ public class EntityAspectOrb extends Entity {
     }
 
     public int getAspectColor() {
-        Holder<IAspect> holder = level().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(getAspect()).orElse(null);
-        return holder == null ? 0xFFFFFF : holder.value().color();
+        return WandVisHelper.colorOf(level().registryAccess(), getAspect());
     }
 
     @Override
@@ -84,33 +112,38 @@ public class EntityAspectOrb extends Entity {
 
     @Override
     protected double getDefaultGravity() {
-        return 0.03;
+        return GRAVITY;
     }
 
     @Override
     public void tick() {
         super.tick();
         if (isEyeInFluid(FluidTags.WATER)) {
-            Vec3 movement = getDeltaMovement();
-            setDeltaMovement(movement.x * 0.99, Math.min(movement.y + 5.0E-4, 0.06), movement.z * 0.99);
+            Vec3 motion = getDeltaMovement();
+            setDeltaMovement(motion.x * UNDERWATER_DRAG, Math.min(motion.y + UNDERWATER_LIFT, UNDERWATER_MAX_RISE), motion.z * UNDERWATER_DRAG);
         } else {
             applyGravity();
         }
         if (level().getFluidState(blockPosition()).is(FluidTags.LAVA)) {
-            setDeltaMovement((random.nextFloat() - random.nextFloat()) * 0.2F, 0.2, (random.nextFloat() - random.nextFloat()) * 0.2F);
-            playSound(SoundEvents.GENERIC_EXTINGUISH_FIRE, 0.4F, 2.0F + random.nextFloat() * 0.4F);
+            setDeltaMovement((random.nextFloat() - random.nextFloat()) * LAVA_SPREAD, LAVA_RISE, (random.nextFloat() - random.nextFloat()) * LAVA_SPREAD);
+            playSound(SoundEvents.GENERIC_EXTINGUISH_FIRE, LAVA_HISS_VOLUME, LAVA_HISS_PITCH_BASE + random.nextFloat() * LAVA_HISS_PITCH_SPREAD);
         }
-        followNearbyPlayer();
+        if (level() instanceof ServerLevel) {
+            followPlayer();
+        }
         double fallSpeed = getDeltaMovement().y;
         move(MoverType.SELF, getDeltaMovement());
         applyEffectsFromBlocks();
-        float friction = FRICTION;
+        float horizontalFriction = FRICTION;
         if (onGround()) {
-            friction = level().getBlockState(getBlockPosBelowThatAffectsMyMovement()).getBlock().getFriction() * FRICTION;
+            BlockPos below = getBlockPosBelowThatAffectsMyMovement();
+            horizontalFriction = level().getBlockState(below).getBlock().getFriction() * FRICTION;
         }
-        setDeltaMovement(getDeltaMovement().multiply(friction, FRICTION, friction));
-        if (verticalCollisionBelow && fallSpeed < -getGravity()) {
-            setDeltaMovement(new Vec3(getDeltaMovement().x, -fallSpeed * GROUND_BOUNCE, getDeltaMovement().z));
+        Vec3 motion = getDeltaMovement();
+        setDeltaMovement(motion.x * horizontalFriction, motion.y * FRICTION, motion.z * horizontalFriction);
+        if (verticalCollisionBelow && fallSpeed < -GRAVITY) {
+            Vec3 damped = getDeltaMovement();
+            setDeltaMovement(damped.x, -fallSpeed * BOUNCE_FACTOR, damped.z);
         }
         age++;
         if (age >= MAX_AGE) {
@@ -118,44 +151,47 @@ public class EntityAspectOrb extends Entity {
         }
     }
 
-    private void followNearbyPlayer() {
-        if (level().isClientSide()) {
+    private void followPlayer() {
+        if (followTarget != null && (followTarget.isRemoved() || followTarget.distanceToSqr(this) > FOLLOW_RANGE * FOLLOW_RANGE)) {
+            followTarget = null;
+        }
+        if (followTarget == null && tickCount % PLAYER_SCAN_PERIOD == 0) {
+            followTarget = level().getNearestPlayer(getX(), getY(), getZ(), FOLLOW_RANGE, this::canAttract);
+        }
+        if (followTarget == null) {
             return;
         }
-        if (tickCount % PLAYER_SCAN_PERIOD == 0 && (followingPlayer == null || followingPlayer.distanceToSqr(this) > FOLLOW_RANGE * FOLLOW_RANGE)) {
-            followingPlayer = null;
-            double closest = Double.MAX_VALUE;
-            for (Player player : level().getEntitiesOfClass(Player.class, getBoundingBox().inflate(FOLLOW_RANGE))) {
-                double distance = player.distanceToSqr(this);
-                if (distance < closest && !player.isSpectator() && !WandVisHelper.findWandInHotbarWithRoom(player, getAspect(), aspectValue).isEmpty()) {
-                    closest = distance;
-                    followingPlayer = player;
-                }
-            }
+        Vec3 offset = followTarget.getEyePosition().subtract(position());
+        double distance = offset.length();
+        if (distance >= FOLLOW_RANGE || distance <= 0.0) {
+            return;
         }
-        if (followingPlayer != null) {
-            Vec3 delta = new Vec3(followingPlayer.getX() - getX(), followingPlayer.getY() + followingPlayer.getEyeHeight() - getY(), followingPlayer.getZ() - getZ());
-            double distance = delta.length();
-            double power = 1.0 - distance / FOLLOW_RANGE;
-            if (power > 0.0) {
-                power *= power;
-                setDeltaMovement(getDeltaMovement().add(delta.normalize().scale(power * 0.1)));
-            }
-        }
+        double pull = 1.0 - distance / FOLLOW_RANGE;
+        setDeltaMovement(getDeltaMovement().add(offset.scale(1.0 / distance).scale(pull * pull * FOLLOW_STRENGTH)));
+    }
+
+    private boolean canAttract(Entity candidate) {
+        return candidate instanceof Player player && !player.isSpectator() && !findWand(player).isEmpty();
+    }
+
+    private ItemStack findWand(Player player) {
+        return WandVisHelper.findWandInHotbarWithRoom(player, getAspect(), value);
     }
 
     @Override
     public void playerTouch(Player player) {
-        if (player instanceof ServerPlayer && player.takeXpDelay == 0) {
-            ItemStack wand = WandVisHelper.findWandInHotbarWithRoom(player, getAspect(), aspectValue);
-            if (!wand.isEmpty() && TTAspects.PRIMALS.contains(getAspect())) {
-                WandVisHelper.addVis(wand, getAspect(), aspectValue, true);
-                player.takeXpDelay = 2;
-                player.take(this, 1);
-                playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.1F, 0.5F * ((random.nextFloat() - random.nextFloat()) * 0.7F + 1.8F));
-                discard();
-            }
+        if (!(player instanceof ServerPlayer) || player.takeXpDelay != 0 || !TTAspects.PRIMALS.contains(getAspect())) {
+            return;
         }
+        ItemStack wand = findWand(player);
+        if (wand.isEmpty()) {
+            return;
+        }
+        WandVisHelper.topUp(wand, getAspect(), value, true);
+        player.takeXpDelay = PICKUP_DELAY_TICKS;
+        player.take(this, PICKUP_ITEM_COUNT);
+        playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, PICKUP_VOLUME, PICKUP_PITCH_FACTOR * ((random.nextFloat() - random.nextFloat()) * PICKUP_PITCH_SPREAD + PICKUP_PITCH_BASE));
+        discard();
     }
 
     @Override
@@ -178,18 +214,18 @@ public class EntityAspectOrb extends Entity {
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
-        output.putShort("Health", (short) health);
-        output.putShort("Age", (short) age);
-        output.putShort("Value", (short) aspectValue);
-        output.putString("Aspect", entityData.get(DATA_ASPECT));
+        output.putShort(KEY_HEALTH, (short) health);
+        output.putShort(KEY_AGE, (short) age);
+        output.putShort(KEY_VALUE, (short) value);
+        output.putString(KEY_ASPECT, entityData.get(DATA_ASPECT));
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-        health = input.getShortOr("Health", (short) DEFAULT_HEALTH);
-        age = input.getShortOr("Age", (short) 0);
-        aspectValue = input.getShortOr("Value", (short) 1);
-        entityData.set(DATA_ASPECT, input.getStringOr("Aspect", TTAspects.AER.identifier().toString()));
+        health = input.getShortOr(KEY_HEALTH, DEFAULT_HEALTH);
+        age = input.getShortOr(KEY_AGE, DEFAULT_AGE);
+        value = input.getShortOr(KEY_VALUE, DEFAULT_VALUE);
+        entityData.set(DATA_ASPECT, input.getStringOr(KEY_ASPECT, TTAspects.AER.identifier().toString()));
     }
 
     @Override

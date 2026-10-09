@@ -19,30 +19,22 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public final class CultistClericRenderer extends HumanoidMobRenderer<EntityCultistCleric, CultistClericRenderer.State, HumanoidModel<CultistClericRenderer.State>> {
-    public static final class State extends HumanoidRenderState {
-        public boolean ritualist;
-        public float bob;
-        public float lineStartY;
-        public Vec3 lineTo = Vec3.ZERO;
-        public float time;
-        public float lineFade;
-    }
-
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/cultist.png");
-    private static final float SHADOW = 0.5F;
-    private static final int BOB_PHASE_RANGE = 1000;
-    private static final float BOB_PERIOD = 9.0F;
-    private static final float BOB_AMPLITUDE = 0.1F;
+    private static final float SHADOW_RADIUS = 0.5F;
+    private static final int PHASE_MODULUS = 1000;
     private static final float BOB_BASE = 0.21F;
-    private static final float LINE_START_EYE_SCALE = 1.2F;
-    private static final double LINE_END_HEIGHT = 1.5;
+    private static final float BOB_AMPLITUDE = 0.1F;
+    private static final float BOB_RATE_DIVISOR = 9.0F;
+    private static final float LINE_START_EYE_FACTOR = 1.2F;
+    private static final double ANCHOR_CENTER = 0.5;
+    private static final double ANCHOR_LIFT = 1.5;
+    private static final float FADE_TICKS = 10.0F;
     private static final int LINE_COLOR = 0x110011;
     private static final float LINE_SPEED = -0.03F;
     private static final float LINE_WIDTH = 0.25F;
-    private static final float LINE_FADE_IN_TICKS = 10.0F;
 
     public CultistClericRenderer(EntityRendererProvider.Context context) {
-        super(context, new HumanoidModel<>(context.bakeLayer(TTModelLayers.CULTIST)), SHADOW);
+        super(context, new HumanoidModel<>(context.bakeLayer(TTModelLayers.CULTIST)), SHADOW_RADIUS);
         this.addLayer(new HumanoidArmorLayer<>(this, ArmorModelSet.bake(ModelLayers.PLAYER_ARMOR, context.getModelSet(), HumanoidModel::new), context.getEquipmentRenderer()));
     }
 
@@ -58,15 +50,13 @@ public final class CultistClericRenderer extends HumanoidMobRenderer<EntityCulti
         if (!state.ritualist) {
             return;
         }
-        int phase = Math.floorMod(entity.getId(), BOB_PHASE_RANGE);
-        float cycle = entity.tickCount + partialTicks + phase;
-        state.bob = Mth.sin(cycle / BOB_PERIOD) * BOB_AMPLITUDE + BOB_BASE;
-        state.lineStartY = entity.getEyeHeight() * LINE_START_EYE_SCALE;
+        float cycle = state.ageInTicks + entity.getId() % PHASE_MODULUS;
+        state.bob = BOB_BASE + BOB_AMPLITUDE * Mth.sin(cycle / BOB_RATE_DIVISOR);
+        state.lineStartY = state.eyeHeight * LINE_START_EYE_FACTOR;
         BlockPos anchor = entity.ritualAnchor();
-        Vec3 position = entity.getPosition(partialTicks);
-        state.lineTo = new Vec3(anchor.getX() + 0.5 - position.x, anchor.getY() + LINE_END_HEIGHT - state.bob - (position.y + state.lineStartY), anchor.getZ() + 0.5 - position.z);
+        state.lineTo = new Vec3(anchor.getX() + ANCHOR_CENTER - state.x, anchor.getY() + ANCHOR_LIFT - (state.y + state.bob + state.lineStartY), anchor.getZ() + ANCHOR_CENTER - state.z);
         state.time = FloatyLineRenderer.time(entity.level().getGameTime(), partialTicks);
-        state.lineFade = Math.min(entity.tickCount, LINE_FADE_IN_TICKS) / LINE_FADE_IN_TICKS;
+        state.lineFade = Math.min(entity.tickCount, FADE_TICKS) / FADE_TICKS;
     }
 
     @Override
@@ -86,5 +76,14 @@ public final class CultistClericRenderer extends HumanoidMobRenderer<EntityCulti
     @Override
     public Identifier getTextureLocation(State state) {
         return TEXTURE;
+    }
+
+    public static final class State extends HumanoidRenderState {
+        public boolean ritualist;
+        public float bob;
+        public float lineStartY;
+        public Vec3 lineTo = Vec3.ZERO;
+        public float time;
+        public float lineFade;
     }
 }

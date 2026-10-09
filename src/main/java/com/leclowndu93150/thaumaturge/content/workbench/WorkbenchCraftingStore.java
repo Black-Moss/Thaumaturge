@@ -14,21 +14,34 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public final class WorkbenchCraftingStore implements IArcaneCraftingStore {
     private static final int GRID_WIDTH = 3;
+    private static final int CRYSTAL_FIRST = InventoryArcaneWorkbench.CRAFTING_SLOTS;
+    private static final int CRYSTAL_END = InventoryArcaneWorkbench.WAND_SLOT;
 
     private final InventoryArcaneWorkbench inventory;
     private final Player player;
-    private final int left;
-    private final int top;
-    private final int width;
-    private final int height;
+    private final Window window;
 
     public WorkbenchCraftingStore(InventoryArcaneWorkbench inventory, Player player, int left, int top, int width, int height) {
         this.inventory = inventory;
         this.player = player;
-        this.left = left;
-        this.top = top;
-        this.width = width;
-        this.height = height;
+        this.window = new Window(left, top, width, height);
+    }
+
+    private record Window(int left, int top, int width, int height) {
+        int cells() {
+            return width * height;
+        }
+
+        int slotOf(int cell) {
+            return left + cell % width + (top + cell / width) * GRID_WIDTH;
+        }
+
+        int cellAt(int slot) {
+            int x = slot % GRID_WIDTH - left;
+            int y = slot / GRID_WIDTH - top;
+            boolean inside = x >= 0 && x < width && y >= 0 && y < height;
+            return inside ? x + y * width : -1;
+        }
     }
 
     @Override
@@ -36,82 +49,104 @@ public final class WorkbenchCraftingStore implements IArcaneCraftingStore {
         if (!gridMatches(consumption.grid())) {
             return false;
         }
-        List<ItemStack> overflow = new ArrayList<>();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int compact = x + y * width;
-                int slot = x + left + (y + top) * GRID_WIDTH;
-                ItemStack remainder = compact < consumption.remainders().size() ? consumption.remainders().get(compact).copy() : ItemStack.EMPTY;
-                inventory.setItem(slot, consumeOne(inventory.getItem(slot), remainder, overflow), transaction);
-            }
-        }
-        if (!consumeCrystals(consumption, transaction)) {
+        List<ItemStack> spill = new ArrayList<>();
+        spendGrid(consumption.remainders(), spill, transaction);
+        if (!payCrystals(consumption, transaction)) {
             return false;
         }
-        if (!ItemStack.matches(inventory.wandStack(), consumption.wand())) {
-            inventory.setItem(InventoryArcaneWorkbench.WAND_SLOT, consumption.wand().copy(), transaction);
-        }
-        if (!overflow.isEmpty()) {
-            new RootCommitJournal(() -> overflow.forEach(stack -> player.getInventory().placeItemBackInInventory(stack))).updateSnapshots(transaction);
+        replaceWand(consumption.wand(), transaction);
+        if (!spill.isEmpty()) {
+            new RootCommitJournal(() -> giveBack(spill)).updateSnapshots(transaction);
         }
         return true;
+    }
+
+    private void spendGrid(List<ItemStack> remainders, List<ItemStack> spill, TransactionContext transaction) {
+        for (int cell = 0; cell < window.cells(); cell++) {
+            int slot = window.slotOf(cell);
+            ItemStack leftover = cell < remainders.size() ? remainders.get(cell).copy() : ItemStack.EMPTY;
+            ItemStack result = takeOneInto(inventory.getItem(slot), leftover, spill);
+            inventory.setItem(slot, result, transaction);
+        }
+    }
+
+    private void replaceWand(ItemStack target, TransactionContext transaction) {
+        if (ItemStack.matches(inventory.wandStack(), target)) {
+            return;
+        }
+        inventory.setItem(InventoryArcaneWorkbench.WAND_SLOT, target.copy(), transaction);
+    }
+
+    private void giveBack(List<ItemStack> stacks) {
+        for (ItemStack stack : stacks) {
+            player.getInventory().placeItemBackInInventory(stack);
+        }
     }
 
     private boolean gridMatches(List<ItemStack> grid) {
-        if (grid.size() != width * height) {
+        if (grid.size() != window.cells()) {
             return false;
         }
         for (int slot = 0; slot < InventoryArcaneWorkbench.CRAFTING_SLOTS; slot++) {
-            int x = slot % GRID_WIDTH - left;
-            int y = slot / GRID_WIDTH - top;
-            boolean inside = x >= 0 && x < width && y >= 0 && y < height;
-            ItemStack expected = inside ? grid.get(x + y * width) : ItemStack.EMPTY;
-            if (!ItemStack.matches(inventory.getItem(slot), expected)) {
+            int cell = window.cellAt(slot);
+            ItemStack wanted = cell < 0 ? ItemStack.EMPTY : grid.get(cell);
+            if (!ItemStack.matches(inventory.getItem(slot), wanted)) {
                 return false;
             }
         }
         return true;
     }
 
-    private static ItemStack consumeOne(ItemStack current, ItemStack remainder, List<ItemStack> overflow) {
-        ItemStack left = shrunk(current, 1);
-        if (remainder.isEmpty()) {
-            return left;
+    private static ItemStack takeOneInto(ItemStack current, ItemStack leftover, List<ItemStack> spill) {
+        ItemStack kept = shrunk(current, 1);
+        if (kept.isEmpty()) {
+            return leftover;
         }
-        if (left.isEmpty()) {
-            return remainder;
+        if (leftover.isEmpty()) {
+            return kept;
         }
-        if (ItemStack.isSameItemSameComponents(left, remainder)) {
-            remainder.grow(left.getCount());
-            return remainder;
+        if (!ItemStack.isSameItemSameComponents(kept, leftover)) {
+            spill.add(leftover);
+            return kept;
         }
-        overflow.add(remainder);
-        return left;
+        leftover.grow(kept.getCount());
+        return leftover;
     }
 
-    private boolean consumeCrystals(Consumption consumption, TransactionContext transaction) {
+    private boolean payCrystals(Consumption consumption, TransactionContext transaction) {
         for (AspectInstance entry : consumption.crystals().entries()) {
-            int needed = entry.amount();
-            for (int slot = InventoryArcaneWorkbench.CRAFTING_SLOTS; slot < InventoryArcaneWorkbench.WAND_SLOT && needed > 0; slot++) {
-                ItemStack crystal = inventory.getItem(slot);
-                if (crystal.isEmpty() || !(crystal.getItem() instanceof ItemEssentiaCrystal)) {
-                    continue;
-                }
-                Holder<IAspect> aspect = ItemEssentiaCrystal.aspectOf(crystal);
-                if (aspect != null && aspect.value().tag().equals(entry.aspect().value().tag())) {
-                    int removed = Math.min(needed, crystal.getCount());
-                    inventory.setItem(slot, shrunk(crystal, removed), transaction);
-                    needed -= removed;
-                }
-            }
-            if (needed > 0) {
+            if (drainAspect(entry, transaction) > 0) {
                 return false;
             }
         }
         return true;
+    }
+
+    private int drainAspect(AspectInstance entry, TransactionContext transaction) {
+        int owed = entry.amount();
+        int slot = CRYSTAL_FIRST;
+        while (owed > 0 && slot < CRYSTAL_END) {
+            ItemStack stack = inventory.getItem(slot);
+            if (carriesAspect(stack, entry)) {
+                int taken = Math.min(owed, stack.getCount());
+                inventory.setItem(slot, shrunk(stack, taken), transaction);
+                owed -= taken;
+            }
+            slot++;
+        }
+        return owed;
+    }
+
+    private static boolean carriesAspect(ItemStack stack, AspectInstance entry) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof ItemEssentiaCrystal)) {
+            return false;
+        }
+        Holder<IAspect> held = ItemEssentiaCrystal.aspectOf(stack);
+        return held != null && held.value().tag().equals(entry.aspect().value().tag());
     }
 
     private static ItemStack shrunk(ItemStack stack, int amount) {
-        return stack.getCount() <= amount ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - amount);
+        int remaining = stack.getCount() - amount;
+        return remaining > 0 ? stack.copyWithCount(remaining) : ItemStack.EMPTY;
     }
 }

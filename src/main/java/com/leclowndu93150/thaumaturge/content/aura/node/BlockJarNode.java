@@ -50,7 +50,7 @@ public final class BlockJarNode extends Block implements EntityBlock {
                 return InteractionResult.SUCCESS;
             }
             if (serverLevel.getBlockEntity(pos) instanceof BlockEntityJarNode jar) {
-                NodeData data = new NodeData(jar.getNodeType(), Optional.ofNullable(jar.getNodeModifier()), jar.getAspects(), jar.getAspectsBase());
+                NodeData data = new NodeData(jar.kind(), Optional.ofNullable(jar.trait()), jar.getAspects(), jar.capacity());
                 serverLevel.removeBlockEntity(pos);
                 serverLevel.setBlock(pos, TTBlocks.NODE.get().defaultBlockState(), Block.UPDATE_ALL);
                 if (serverLevel.getBlockEntity(pos) instanceof BlockEntityNode node) {

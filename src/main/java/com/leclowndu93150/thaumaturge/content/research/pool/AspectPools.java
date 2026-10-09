@@ -11,27 +11,38 @@ import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import org.jspecify.annotations.Nullable;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public final class AspectPools {
     public static final int SOFT_CAP = 100;
-    private static final float HARD_CAP_FACTOR = 1.25F;
-    private static final int DISCOVERY_BONUS = 2;
-    private static final int PRIMAL_SEED_BASE = 15;
-    private static final int PRIMAL_SEED_SPREAD = 5;
 
-    private static final List<ResourceKey<IAspect>> PRIMALS = List.of(TTAspects.AER, TTAspects.TERRA, TTAspects.IGNIS, TTAspects.AQUA, TTAspects.ORDO, TTAspects.PERDITIO);
+    private static final double HARD_CAP_THRESHOLD = SOFT_CAP * 1.25;
+    private static final int FIRST_DISCOVERY_BONUS = 2;
+    private static final String MESSAGE_PREFIX = "message.thaumaturge.research.";
+    private static final String DISCOVERY_ERROR_KEY = MESSAGE_PREFIX + "discovery_error";
+    private static final String DISCOVERY_DERIVE_KEY = DISCOVERY_ERROR_KEY + ".derive";
+    private static final String ASPECT_DISCOVERED_KEY = MESSAGE_PREFIX + "aspect_discovered";
+    private static final int STARTING_LOW = 15;
+    private static final int STARTING_HIGH = 19;
+    private static final float PICKUP_VOLUME = 0.2F;
+    private static final float PICKUP_PITCH_FLOOR = 0.9F;
+    private static final float PICKUP_PITCH_RANGE = 0.2F;
+    private static final float LEARN_VOLUME = 0.5F;
+    private static final float LEARN_PITCH = 1.0F;
+    private static final List<ResourceKey<IAspect>> STARTING_PRIMALS = List.of(TTAspects.AER, TTAspects.TERRA, TTAspects.IGNIS, TTAspects.AQUA, TTAspects.ORDO, TTAspects.PERDITIO);
 
     private AspectPools() {}
 
@@ -44,21 +55,23 @@ public final class AspectPools {
     }
 
     public static void flush(ServerPlayer player) {
-        if (data(player).takeSyncPending()) {
-            player.syncData(TTAttachments.ASPECT_POOL);
-            PacketDistributor.sendToPlayer(player, ClientboundUpdateJEIAspectListPayload.INSTANCE);
+        if (!data(player).takeSyncPending()) {
+            return;
         }
+        player.syncData(TTAttachments.ASPECT_POOL);
+        PacketDistributor.sendToPlayer(player, ClientboundUpdateJEIAspectListPayload.INSTANCE);
     }
 
     public static void seedIfNew(ServerPlayer player) {
-        AspectPoolData data = data(player);
-        if (!data.isEmpty()) {
-            return;
+        AspectPoolData pool = data(player);
+        if (pool.isEmpty()) {
+            STARTING_PRIMALS.forEach(primal -> pool.add(primal.identifier(), rollStartingAmount(player)));
+            sync(player);
         }
-        for (ResourceKey<IAspect> primal : PRIMALS) {
-            data.add(primal.identifier(), PRIMAL_SEED_BASE + player.getRandom().nextInt(PRIMAL_SEED_SPREAD));
-        }
-        sync(player);
+    }
+
+    private static int rollStartingAmount(ServerPlayer player) {
+        return player.getRandom().nextIntBetweenInclusive(STARTING_LOW, STARTING_HIGH);
     }
 
     public static boolean isDiscovered(Player player, Holder<IAspect> aspect) {
@@ -70,110 +83,84 @@ public final class AspectPools {
     }
 
     public static boolean hasDiscoveredComponents(Player player, Holder<IAspect> aspect) {
-        if (aspect.value().isPrimal()) {
-            return true;
-        }
-        for (Holder<IAspect> component : aspect.value().components()) {
-            if (!isDiscovered(player, component)) {
-                return false;
-            }
-        }
-        return true;
+        return aspect.value().components().stream().allMatch(component -> isDiscovered(player, component));
     }
 
     public static int grant(ServerPlayer player, Holder<IAspect> aspect, int amount) {
-        AspectPoolData data = data(player);
+        AspectPoolData pool = data(player);
         Identifier id = idOf(aspect);
-        boolean discovery = !data.isDiscovered(id);
-        int granted = amount;
-        if (discovery) {
-            granted += DISCOVERY_BONUS;
-            player.sendSystemMessage(Component.translatable("message.thaumaturge.research.aspect_discovered", AspectComponents.trueName(aspect)).withStyle(ChatFormatting.DARK_PURPLE));
-        }
-        int current = data.amount(id);
-        if (current >= SOFT_CAP) {
-            granted = (int) Math.sqrt(granted);
-        }
-        if (granted > 1 && current >= SOFT_CAP * HARD_CAP_FACTOR) {
-            granted = 1;
-        }
-        if (granted <= 0 && !discovery) {
+        boolean isNew = !isDiscovered(player, aspect);
+        int requested = isNew ? amount + FIRST_DISCOVERY_BONUS : amount;
+        int applied = reduceForCap(pool.amount(id), requested);
+        if (applied <= 0 && !isNew) {
             return 0;
         }
-        data.add(id, Math.max(0, granted));
-        data.discover(id);
+        credit(pool, id, Math.max(applied, 0));
         sync(player);
-        if (granted > 0) {
-            if (data.tryClaimGrantSound(player.level().getGameTime())) {
-                player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F, 0.9F + player.getRandom().nextFloat() * 0.2F);
-            }
-            PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, granted));
+        if (isNew) {
+            Component announcement = Component.translatable(ASPECT_DISCOVERED_KEY, AspectComponents.trueName(aspect)).withStyle(ChatFormatting.DARK_PURPLE);
+            player.sendSystemMessage(announcement);
         }
-        return granted;
+        if (applied > 0) {
+            if (pool.tryClaimGrantSound(player.level().getGameTime())) {
+                playPickup(player);
+            }
+            sendGain(player, id, applied);
+        }
+        return applied;
+    }
+
+    private static int reduceForCap(int stored, int wanted) {
+        if (stored >= HARD_CAP_THRESHOLD) {
+            return Math.sqrt(wanted) >= 1 ? 1 : 0;
+        }
+        return stored >= SOFT_CAP ? (int) Math.sqrt(Math.max(wanted, 0)) : wanted;
     }
 
     public static void grantAll(ServerPlayer player, AspectList aspects) {
-        for (AspectInstance entry : aspects.entries()) {
-            if (hasDiscoveredComponents(player, entry.aspect())) {
-                grant(player, entry.aspect(), entry.amount());
+        for (AspectInstance instance : aspects.entries()) {
+            Holder<IAspect> aspect = instance.aspect();
+            if (hasDiscoveredComponents(player, aspect)) {
+                grant(player, aspect, instance.amount());
             } else {
-                notifyMissingComponent(player, entry.aspect());
+                notifyMissingComponent(player, aspect);
             }
         }
     }
 
     public static void notifyMissingComponent(ServerPlayer player, Holder<IAspect> aspect) {
-        MutableComponent message = missingComponentHint(player, aspect);
-        if (message != null) {
-            player.sendSystemMessage(message.withStyle(ChatFormatting.DARK_PURPLE));
+        MutableComponent hint = missingComponentHint(player, aspect);
+        if (hint != null) {
+            player.sendSystemMessage(hint.withStyle(ChatFormatting.DARK_PURPLE));
         }
     }
 
     public static @Nullable MutableComponent missingComponentHint(Player player, Holder<IAspect> aspect) {
-        for (Holder<IAspect> component : aspect.value().components()) {
-            if (!isDiscovered(player, component)) {
-                return missingComponentMessage(player, component);
-            }
-        }
-        return null;
+        return aspect.value().components().stream().filter(component -> !isDiscovered(player, component)).findFirst().map(component -> missingComponentMessage(player, component)).orElse(null);
     }
 
     public static MutableComponent missingComponentMessage(Player player, Holder<IAspect> component) {
-        if (!component.value().isPrimal() && hasDiscoveredComponents(player, component)) {
-            return Component.translatable("message.thaumaturge.research.discovery_error.derive", AspectComponents.composition(component));
-        }
-        return Component.translatable("message.thaumaturge.research.discovery_error", AspectComponents.help(component));
+        boolean derivable = !component.value().isPrimal() && hasDiscoveredComponents(player, component);
+        return derivable ? Component.translatable(DISCOVERY_DERIVE_KEY, AspectComponents.composition(component)) : Component.translatable(DISCOVERY_ERROR_KEY, AspectComponents.help(component));
     }
 
     public static boolean spend(ServerPlayer player, Holder<IAspect> aspect, int amount) {
-        AspectPoolData data = data(player);
-        Identifier id = idOf(aspect);
-        if (data.amount(id) < amount) {
+        if (amount(player, aspect) < amount) {
             return false;
         }
-        data.add(id, -amount);
-        sync(player);
+        takeFromPool(player, aspect, amount);
         return true;
     }
 
     public static boolean canAfford(Player player, AspectList cost) {
-        AspectPoolData data = data(player);
-        for (AspectInstance entry : cost.entries()) {
-            if (data.amount(idOf(entry.aspect())) < entry.amount()) {
-                return false;
-            }
-        }
-        return true;
+        return cost.entries().stream().noneMatch(entry -> amount(player, entry.aspect()) < entry.amount());
     }
 
     public static boolean spendAll(ServerPlayer player, AspectList cost) {
         if (!canAfford(player, cost)) {
             return false;
         }
-        AspectPoolData data = data(player);
-        for (AspectInstance entry : cost.entries()) {
-            data.add(idOf(entry.aspect()), -entry.amount());
-        }
+        cost.entries().forEach(entry -> data(player).add(idOf(entry.aspect()), -entry.amount()));
         sync(player);
         return true;
     }
@@ -181,57 +168,38 @@ public final class AspectPools {
     public static void refund(ServerPlayer player, Holder<IAspect> aspect, int amount) {
         data(player).add(idOf(aspect), amount);
         sync(player);
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.2F, 0.9F + player.getRandom().nextFloat() * 0.2F);
+        playPickup(player);
     }
 
     public static int grantAllForCommand(ServerPlayer player, int amount) {
-        AspectPoolData data = data(player);
-        List<Holder.Reference<IAspect>> aspects = player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList();
-        for (Holder.Reference<IAspect> aspect : aspects) {
-            Identifier id = aspect.key().identifier();
-            data.add(id, amount);
-            data.discover(id);
-        }
-        sync(player);
-        PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(aspects.getFirst().key().identifier(), 0));
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
-        return aspects.size();
+        AspectPoolData pool = data(player);
+        List<Holder.Reference<IAspect>> everyAspect = player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList();
+        applyAndSync(player, everyAspect, id -> credit(pool, id, amount));
+        everyAspect.stream().map(reference -> reference.key().identifier()).findFirst().ifPresent(lead -> sendGain(player, lead, 0));
+        playLearn(player);
+        return everyAspect.size();
     }
 
     public static void grantForCommand(ServerPlayer player, Holder<IAspect> aspect, int amount) {
-        AspectPoolData data = data(player);
         Identifier id = idOf(aspect);
-        data.add(id, amount);
-        data.discover(id);
+        credit(data(player), id, amount);
         sync(player);
-        PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, amount));
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.LEARN.get(), SoundSource.PLAYERS, 0.5F, 1.0F);
+        sendGain(player, id, amount);
+        playLearn(player);
     }
 
     public static void setForCommand(ServerPlayer player, Collection<? extends Holder<IAspect>> aspects, int amount) {
-        AspectPoolData data = data(player);
-        for (Holder<IAspect> aspect : aspects) {
-            Identifier id = idOf(aspect);
-            data.discover(id);
-            data.add(id, amount - data.amount(id));
-        }
-        sync(player);
+        AspectPoolData pool = data(player);
+        applyAndSync(player, aspects, id -> assign(pool, id, amount));
     }
 
     public static void takeForCommand(ServerPlayer player, Collection<? extends Holder<IAspect>> aspects, int amount) {
-        AspectPoolData data = data(player);
-        for (Holder<IAspect> aspect : aspects) {
-            data.add(idOf(aspect), -amount);
-        }
-        sync(player);
+        AspectPoolData pool = data(player);
+        applyAndSync(player, aspects, id -> pool.add(id, -amount));
     }
 
     public static void discoverForCommand(ServerPlayer player, Collection<? extends Holder<IAspect>> aspects) {
-        AspectPoolData data = data(player);
-        for (Holder<IAspect> aspect : aspects) {
-            data.discover(idOf(aspect));
-        }
-        sync(player);
+        applyAndSync(player, aspects, data(player)::discover);
     }
 
     public static void resetForCommand(ServerPlayer player) {
@@ -240,6 +208,49 @@ public final class AspectPools {
     }
 
     public static Identifier idOf(Holder<IAspect> aspect) {
-        return aspect.getKey().identifier();
+        return keyId(aspect);
+    }
+
+    private static Identifier keyId(Holder<?> holder) {
+        return holder.unwrapKey().orElseThrow().identifier();
+    }
+
+    private static void takeFromPool(ServerPlayer player, Holder<IAspect> aspect, int amount) {
+        data(player).add(idOf(aspect), -amount);
+        sync(player);
+    }
+
+    private static void sendGain(ServerPlayer player, Identifier id, int amount) {
+        PacketDistributor.sendToPlayer(player, new ClientboundAspectGainPayload(id, amount));
+    }
+
+    private static void assign(AspectPoolData pool, Identifier id, int target) {
+        pool.discover(id);
+        pool.add(id, target - pool.amount(id));
+    }
+
+    private static void credit(AspectPoolData pool, Identifier id, int amount) {
+        pool.add(id, amount);
+        pool.discover(id);
+    }
+
+    private static void applyAndSync(ServerPlayer player, Collection<? extends Holder<?>> aspects, Consumer<Identifier> action) {
+        for (Holder<?> aspect : aspects) {
+            action.accept(keyId(aspect));
+        }
+        sync(player);
+    }
+
+    private static void playPickup(ServerPlayer player) {
+        float pitch = PICKUP_PITCH_FLOOR + player.getRandom().nextFloat() * PICKUP_PITCH_RANGE;
+        emit(player, SoundEvents.EXPERIENCE_ORB_PICKUP, PICKUP_VOLUME, pitch);
+    }
+
+    private static void playLearn(ServerPlayer player) {
+        emit(player, TTSounds.LEARN.get(), LEARN_VOLUME, LEARN_PITCH);
+    }
+
+    private static void emit(ServerPlayer player, SoundEvent sound, float volume, float pitch) {
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, volume, pitch);
     }
 }

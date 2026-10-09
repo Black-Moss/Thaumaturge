@@ -4,12 +4,10 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
-import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -28,21 +26,23 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityEssentiaReservoir extends BlockEntity implements IEssentiaTransport {
     public static final int CAPACITY = 256;
+
+    private static final String ESSENTIA_KEY = "Essentia";
     private static final int SUCTION = 24;
-    private static final int DRAW_INTERVAL = 5;
-    private static final int CREAK_RANGE = 500;
-    private static final float CREAK_PITCH = 1.4F;
+    private static final int PULL_INTERVAL = 5;
+    private static final int CREAK_BASE = 500;
+    private static final float CREAK_VOLUME = 1.0F;
+    private static final float CREAK_PITCH_BASE = 1.4F;
     private static final float CREAK_PITCH_SPREAD = 0.2F;
-    private static final float RUPTURE_FLUX_PER_ESSENTIA = 0.25F;
+    private static final float FLUX_PER_ESSENTIA = 0.25F;
     private static final float MAX_RUPTURE_FLUX = 64.0F;
     private static final int ESSENTIA_PER_POCKET = 16;
-    private static final float RUPTURE_BLAST = 1.0F;
-    private static final int RUPTURE_ATTEMPTS = 50;
-    private static final int RUPTURE_SPREAD = 5;
+    private static final float RUPTURE_EXPLOSION_RADIUS = 1.0F;
 
     private AspectList contents = AspectList.EMPTY;
 
@@ -59,12 +59,76 @@ public final class BlockEntityEssentiaReservoir extends BlockEntity implements I
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityEssentiaReservoir reservoir) {
-        int stored = reservoir.getStoredAmount();
-        if (stored > 0 && level.getRandom().nextInt(CREAK_RANGE - stored) == 0) {
-            level.playSound(null, pos, TTSounds.CREAK.get(), SoundSource.BLOCKS, 1.0F, CREAK_PITCH + level.getRandom().nextFloat() * CREAK_PITCH_SPREAD);
+        int total = reservoir.getStoredAmount();
+        if (total > 0) {
+            RandomSource random = level.getRandom();
+            if (random.nextInt(CREAK_BASE - total) == 0) {
+                level.playSound(null, pos, TTSounds.CREAK.get(), SoundSource.BLOCKS, CREAK_VOLUME, CREAK_PITCH_BASE + random.nextFloat() * CREAK_PITCH_SPREAD);
+            }
         }
-        if (level.getGameTime() % DRAW_INTERVAL == 0 && stored < CAPACITY) {
-            reservoir.pullOne(level, pos, reservoir.facing());
+        if (total < CAPACITY && level.getGameTime() % PULL_INTERVAL == 0) {
+            reservoir.pullFromNeighbour(level, pos, state.getValue(BlockStateProperties.FACING));
+        }
+    }
+
+    private void pullFromNeighbour(Level level, BlockPos pos, Direction facing) {
+        BlockPos neighbourPos = pos.relative(facing);
+        if (!level.hasChunkAt(neighbourPos)) {
+            return;
+        }
+        Direction face = facing.getOpposite();
+        IEssentiaTransport source = EssentiaAccess.transport(level, neighbourPos, face);
+        if (source == null || !canYield(source, face)) {
+            return;
+        }
+        Holder<IAspect> type = source.getEssentiaType(face);
+        if (type != null && source.takeEssentia(type, 1, face) == 1) {
+            store(type, 1);
+        }
+    }
+
+    private static boolean canYield(IEssentiaTransport source, Direction face) {
+        return sourceCanOutput(source, face) && sourceHasStock(source, face) && withinSuctionWindow(source, face);
+    }
+
+    private static boolean sourceCanOutput(IEssentiaTransport source, Direction face) {
+        return source.canOutputTo(face);
+    }
+
+    private static boolean sourceHasStock(IEssentiaTransport source, Direction face) {
+        return source.getEssentiaAmount(face) > 0;
+    }
+
+    private static boolean withinSuctionWindow(IEssentiaTransport source, Direction face) {
+        return source.getSuctionAmount(face) < SUCTION && source.getMinimumSuction() <= SUCTION;
+    }
+
+    private void store(Holder<IAspect> aspect, int amount) {
+        contents = contents.add(aspect, amount);
+        notifyChanged();
+    }
+
+    private void withdraw(Holder<IAspect> aspect, int amount) {
+        contents = contents.remove(aspect, amount);
+        notifyChanged();
+    }
+
+    private @Nullable AspectInstance leadingStock(@Nullable Direction face) {
+        if (!isOutlet(face) || contents.isEmpty()) {
+            return null;
+        }
+        return contents.entries().getFirst();
+    }
+
+    private boolean isOutlet(@Nullable Direction face) {
+        return face != null && face == facing();
+    }
+
+    private void notifyChanged() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+            level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         }
     }
 
@@ -72,20 +136,12 @@ public final class BlockEntityEssentiaReservoir extends BlockEntity implements I
         return getBlockState().getValue(BlockStateProperties.FACING);
     }
 
-    private void pullOne(Level level, BlockPos pos, Direction face) {
-        Direction remoteFace = face.getOpposite();
-        IEssentiaTransport remote = EssentiaFlowHandler.transport(level, pos.relative(face), remoteFace);
-        if (remote == null || !remote.canOutputTo(remoteFace) || remote.getEssentiaAmount(remoteFace) <= 0) {
-            return;
-        }
-        if (remote.getSuctionAmount(remoteFace) >= SUCTION || SUCTION < remote.getMinimumSuction()) {
-            return;
-        }
-        Holder<IAspect> aspect = remote.getEssentiaType(remoteFace);
-        if (aspect != null && remote.takeEssentia(aspect, 1, remoteFace) == 1) {
-            contents = contents.add(new AspectInstance(aspect, 1));
-            changedAndSync();
-        }
+    @Override
+    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
+
+    @Override
+    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
+        return null;
     }
 
     @Override
@@ -95,64 +151,12 @@ public final class BlockEntityEssentiaReservoir extends BlockEntity implements I
 
     @Override
     public boolean canInputFrom(Direction face) {
-        return isConnectable(face);
+        return face == facing();
     }
 
     @Override
     public boolean canOutputTo(Direction face) {
-        return isConnectable(face);
-    }
-
-    @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(Direction face) {
-        return null;
-    }
-
-    @Override
-    public int getSuctionAmount(Direction face) {
-        return isConnectable(face) && getStoredAmount() < CAPACITY ? SUCTION : 0;
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getEssentiaType(Direction face) {
-        if (!canOutputTo(face)) {
-            return null;
-        }
-        List<AspectInstance> entries = contents.entries();
-        return entries.isEmpty() ? null : entries.getFirst().aspect();
-    }
-
-    @Override
-    public int getEssentiaAmount(Direction face) {
-        Holder<IAspect> aspect = getEssentiaType(face);
-        return aspect == null ? 0 : contents.amountOf(aspect);
-    }
-
-    @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canOutputTo(face) || aspect == null || amount <= 0 || contents.amountOf(aspect) < amount) {
-            return 0;
-        }
-        contents = contents.remove(aspect, amount);
-        changedAndSync();
-        return amount;
-    }
-
-    @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canInputFrom(face) || aspect == null || amount <= 0) {
-            return 0;
-        }
-        int accepted = Math.min(amount, CAPACITY - getStoredAmount());
-        if (accepted <= 0) {
-            return 0;
-        }
-        contents = contents.add(new AspectInstance(aspect, accepted));
-        changedAndSync();
-        return accepted;
+        return face == facing();
     }
 
     @Override
@@ -162,66 +166,90 @@ public final class BlockEntityEssentiaReservoir extends BlockEntity implements I
 
     @Override
     public int spaceFor(Holder<IAspect> aspect, Direction face) {
-        return canInputFrom(face) && aspect != null ? Math.max(0, CAPACITY - getStoredAmount()) : 0;
+        if (!canInputFrom(face)) {
+            return 0;
+        }
+        return Math.max(0, CAPACITY - getStoredAmount());
     }
 
-    private void changedAndSync() {
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
-            level.updateNeighbourForOutputSignal(getBlockPos(), state.getBlock());
+    @Override
+    public int getSuctionAmount(@Nullable Direction face) {
+        if (!isOutlet(face) || getStoredAmount() >= CAPACITY) {
+            return 0;
         }
+        return SUCTION;
+    }
+
+    @Override
+    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+        AspectInstance lead = leadingStock(face);
+        return lead == null ? null : lead.aspect();
+    }
+
+    @Override
+    public int getEssentiaAmount(@Nullable Direction face) {
+        AspectInstance lead = leadingStock(face);
+        return lead == null ? 0 : lead.amount();
+    }
+
+    @Override
+    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+        int room = isOutlet(face) ? spaceFor(aspect, face) : 0;
+        int accepted = Math.clamp(amount, 0, room);
+        if (accepted > 0) {
+            store(aspect, accepted);
+        }
+        return accepted;
+    }
+
+    @Override
+    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+        boolean available = isOutlet(face) && amount > 0 && contents.amountOf(aspect) >= amount;
+        if (available) {
+            withdraw(aspect, amount);
+        }
+        return available ? amount : 0;
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        if (level instanceof ServerLevel server) {
-            rupture(server, pos, getStoredAmount());
+        int total = getStoredAmount();
+        if (total > 0 && level instanceof ServerLevel server) {
+            rupture(server, pos, total);
         }
     }
 
-    private static void rupture(ServerLevel level, BlockPos pos, int stored) {
-        if (stored <= 0) {
-            return;
+    private static void rupture(ServerLevel server, BlockPos pos, int total) {
+        releaseFlux(server, pos, total);
+        int pockets = total / ESSENTIA_PER_POCKET;
+        if (pockets > 0) {
+            burst(server, pos, pockets);
         }
-        AuraHelper.polluteAura(level, pos, Math.min(stored * RUPTURE_FLUX_PER_ESSENTIA, MAX_RUPTURE_FLUX), true);
-        int pockets = stored / ESSENTIA_PER_POCKET;
-        if (pockets <= 0) {
-            return;
-        }
-        level.explode(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, RUPTURE_BLAST, Level.ExplosionInteraction.NONE);
-        RandomSource random = level.getRandom();
-        int placed = 0;
-        for (int attempt = 0; attempt < RUPTURE_ATTEMPTS && placed <= pockets; attempt++) {
-            BlockPos target = pos.offset(random.nextInt(RUPTURE_SPREAD) - random.nextInt(RUPTURE_SPREAD), random.nextInt(RUPTURE_SPREAD) - random.nextInt(RUPTURE_SPREAD),
-                    random.nextInt(RUPTURE_SPREAD) - random.nextInt(RUPTURE_SPREAD));
-            if (!level.isEmptyBlock(target)) {
-                continue;
-            }
-            if (target.getY() < pos.getY()) {
-                PhysicalFlux.placeGoo(level, target, PhysicalFlux.MAX_QUANTA);
-            } else {
-                PhysicalFlux.placeGas(level, target, PhysicalFlux.MAX_QUANTA);
-            }
-            placed++;
-        }
+    }
+
+    private static void releaseFlux(ServerLevel server, BlockPos pos, int total) {
+        float flux = Math.min(total * FLUX_PER_ESSENTIA, MAX_RUPTURE_FLUX);
+        AuraHelper.polluteAura(server, pos, flux, true);
+    }
+
+    private static void burst(ServerLevel server, BlockPos pos, int pockets) {
+        Vec3 centre = Vec3.atCenterOf(pos);
+        server.explode(null, centre.x(), centre.y(), centre.z(), RUPTURE_EXPLOSION_RADIUS, Level.ExplosionInteraction.NONE);
+        ReservoirPockets.scatter(server, pos, pockets + 1);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        contents = input.read("Essentia", AspectList.CODEC).orElse(AspectList.EMPTY);
-        if (contents.totalAmount() > CAPACITY) {
-            contents = AspectList.EMPTY;
-        }
+        AspectList loaded = input.read(ESSENTIA_KEY, AspectList.CODEC).orElse(AspectList.EMPTY);
+        contents = loaded.totalAmount() > CAPACITY ? AspectList.EMPTY : loaded;
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("Essentia", AspectList.CODEC, contents);
+        output.store(ESSENTIA_KEY, AspectList.CODEC, contents);
     }
 
     @Override

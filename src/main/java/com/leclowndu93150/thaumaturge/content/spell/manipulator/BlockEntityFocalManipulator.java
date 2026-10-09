@@ -7,6 +7,7 @@ import com.leclowndu93150.thaumaturge.api.spell.FocusTier;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellSummary;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
+import com.leclowndu93150.thaumaturge.api.spell.event.SpellInscribeEvent;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.particle.ShieldSparkParticleOptions;
@@ -15,64 +16,93 @@ import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
-import com.leclowndu93150.thaumaturge.api.spell.event.SpellInscribeEvent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.StringUtil;
-import net.neoforged.neoforge.common.NeoForge;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity implements MenuProvider {
     public static final int SLOT_FOCUS = 0;
     public static final int MAX_NAME_LENGTH = 50;
-    private static final int DRAIN_INTERVAL = 20;
-    private static final float DRAIN_PER_CYCLE = 20.0F;
-    private static final int VIS_PER_COMPLEXITY = 10;
-    private static final int VIS_PER_BUDGET_DIVISOR = 5;
-    private static final int CHARGER_REACH = 1;
-    private static final int CHUNK = 16;
-    private static final int SPARKLE_SPREAD = 3;
-    private static final Component TITLE = Component.translatable("block.thaumaturge.focal_manipulator");
 
-    private final Drawer drawer = new Drawer();
+    private static final String DRAFT_KEY = "Draft";
+    private static final String NAME_KEY = "Name";
+    private static final String VIS_KEY = "Vis";
+    private static final String VIS_TOTAL_KEY = "VisTotal";
+    private static final String CRYSTALS_KEY = "Crystals";
+    private static final int SLOT_COUNT = 1;
+    private static final int COMPLEXITY_VIS = 10;
+    private static final float TIER_VIS_DIVISOR = 5.0F;
+    private static final int WORK_INTERVAL = 20;
+    private static final float VIS_PER_SECOND = 20.0F;
+    private static final float MIN_ANCHOR_REQUEST = 1.0F;
+    private static final float DRAIN_EPSILON = 0.01F;
+    private static final int CHARGER_RADIUS_CHUNKS = 1;
+    private static final double SPARKLE_SPREAD = 2.0;
+    private static final double SPARKLE_RISE = 2.0;
+    private static final double BLOCK_CENTRE = 0.5;
+    private static final double DROP_HEIGHT = 1.0;
+    private static final float START_VOLUME = 1.0F;
+    private static final float DONE_VOLUME = 1.0F;
+    private static final float ABORT_VOLUME = 0.33F;
+    private static final float SOUND_PITCH = 1.0F;
+    private static final float SHIMMER_ALPHA = 0.8F;
+    private static final float SHIMMER_COLOR_ALPHA = 1.0F;
+    private static final float SHIMMER_RED_BASE = 0.5F;
+    private static final float SHIMMER_RED_RANGE = 0.4F;
+    private static final float SHIMMER_CHANNEL_BASE = 1.0F;
+    private static final float SHIMMER_CHANNEL_DROP = 0.4F;
+    private static final float SHIMMER_BASE_SCALE = 0.3F;
+    private static final float SHIMMER_SCALE_RANGE = 0.3F;
+    private static final int SHIMMER_BASE_AGE = 6;
+    private static final int SHIMMER_AGE_RANGE = 5;
+    private static final int SHIMMER_DELAY = 0;
+    private static final double SHIMMER_HEIGHT = 1.4;
+    private static final double SHIMMER_SPREAD = 0.3;
+
+    private final FocusSlot items = new FocusSlot();
     private Spell draft = Spell.empty();
     private String name = "";
     private float vis;
     private float visTotal;
     private AspectList crystals = AspectList.EMPTY;
-    private int ticks;
+    private int pulse;
 
     public BlockEntityFocalManipulator(BlockPos pos, BlockState state) {
         super(TTBlockEntities.FOCAL_MANIPULATOR.get(), pos, state);
     }
 
     public ItemStacksResourceHandler items() {
-        return drawer;
+        return items;
     }
 
     public ItemStack focusStack() {
-        ItemResource resource = drawer.getResource(SLOT_FOCUS);
-        int amount = drawer.getAmountAsInt(SLOT_FOCUS);
+        ItemResource resource = items.getResource(SLOT_FOCUS);
+        int amount = items.getAmountAsInt(SLOT_FOCUS);
         return resource.isEmpty() || amount <= 0 ? ItemStack.EMPTY : resource.toStack(amount);
     }
 
@@ -100,146 +130,176 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
         return crystals;
     }
 
-    public void acceptDraft(Spell spell, String newName) {
+    public void acceptDraft(Spell spell, String text) {
         if (inscribing()) {
             return;
         }
         draft = spell;
-        name = StringUtil.filterText(newName).strip();
+        name = StringUtil.filterText(text).strip();
         setChangedAndSync();
     }
 
     public boolean startInscribing(Player player) {
+        Level world = level;
         ItemStack focus = focusStack();
         Optional<FocusTier> tier = Spells.tierOf(focus);
-        if (inscribing() || tier.isEmpty() || level == null) {
+        if (world == null || inscribing() || tier.isEmpty()) {
             return false;
         }
-        SpellSummary summary = Spells.analyze(draft, tier.get(), level.registryAccess(), player);
-        AspectList cost = FocusItems.aspects(summary, level.registryAccess());
-        if (!InscriptionCheck.of(player, true, false, summary, cost).ready()) {
+        SpellSummary summary = Spells.analyze(draft, tier.get(), world.registryAccess(), player);
+        AspectList cost = FocusItems.aspects(summary, world.registryAccess());
+        if (!InscriptionCheck.of(player, true, false, summary, cost).ready() || NeoForge.EVENT_BUS.post(new SpellInscribeEvent(player, worldPosition, focus, draft, summary)).isCanceled()) {
             return false;
         }
-        boolean creative = player.getAbilities().instabuild;
-        if (NeoForge.EVENT_BUS.post(new SpellInscribeEvent(player, worldPosition, focus, draft, summary)).isCanceled()) {
-            return false;
-        }
-        if (!creative) {
+        if (!player.getAbilities().instabuild) {
             player.giveExperienceLevels(-summary.xp());
             for (AspectInstance instance : cost.entries()) {
                 take(player, EssentiaCrystalFactory.of(instance.aspect(), instance.amount()));
             }
         }
-        crystals = cost;
-        visTotal = summary.complexity() * VIS_PER_COMPLEXITY + (float) tier.get().complexity() / VIS_PER_BUDGET_DIVISOR;
+        visTotal = summary.complexity() * COMPLEXITY_VIS + tier.get().complexity() / TIER_VIS_DIVISOR;
         vis = visTotal;
+        crystals = cost;
+        play(world, TTSounds.CRAFTSTART.get(), START_VOLUME);
         setChangedAndSync();
-        level.playSound(null, worldPosition, TTSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         return true;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityFocalManipulator table) {
-        if (level instanceof ServerLevel server) {
-            table.tickServer(server);
+        if (!(level instanceof ServerLevel server) || ++table.pulse < WORK_INTERVAL) {
+            return;
+        }
+        table.pulse = 0;
+        if (table.inscribing()) {
+            table.work(server, pos);
         }
     }
 
     public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityFocalManipulator table) {
-        if (table.inscribing()) {
-            table.shimmer(level);
+        if (!table.inscribing()) {
+            return;
         }
+        RandomSource random = level.getRandom();
+        int color = ARGB.colorFromFloat(SHIMMER_COLOR_ALPHA, SHIMMER_RED_BASE + SHIMMER_RED_RANGE * random.nextFloat(), SHIMMER_CHANNEL_BASE - SHIMMER_CHANNEL_DROP * random.nextFloat(),
+                SHIMMER_CHANNEL_BASE - SHIMMER_CHANNEL_DROP * random.nextFloat());
+        float scale = SHIMMER_BASE_SCALE + SHIMMER_SCALE_RANGE * random.nextFloat();
+        int age = SHIMMER_BASE_AGE + random.nextInt(SHIMMER_AGE_RANGE);
+        double x = pos.getX() + BLOCK_CENTRE + (random.nextDouble() - random.nextDouble()) * SHIMMER_SPREAD;
+        double y = pos.getY() + SHIMMER_HEIGHT + (random.nextDouble() - random.nextDouble()) * SHIMMER_SPREAD;
+        double z = pos.getZ() + BLOCK_CENTRE + (random.nextDouble() - random.nextDouble()) * SHIMMER_SPREAD;
+        level.addParticle(new ShieldSparkParticleOptions(color, SHIMMER_ALPHA, scale, age, SHIMMER_DELAY, true), x, y, z, 0.0, 0.0, 0.0);
     }
 
-    private void tickServer(ServerLevel server) {
-        if (!inscribing() || ++ticks % DRAIN_INTERVAL != 0) {
+    private void work(ServerLevel server, BlockPos pos) {
+        if (focusStack().isEmpty()) {
+            clearInscription();
+            play(server, TTSounds.WANDFAIL.get(), ABORT_VOLUME);
+            setChangedAndSync();
             return;
         }
-        if (!FocusItems.isFocus(focusStack())) {
-            abort(server);
-            return;
-        }
-        float drained = drain(server, Math.min(DRAIN_PER_CYCLE, vis));
-        if (drained > 0.0F) {
+        float drawn = drawAura(server, Math.min(VIS_PER_SECOND, vis));
+        if (drawn > 0.0F) {
+            vis -= drawn;
             RandomSource random = server.getRandom();
-            Vec3 from = new Vec3(worldPosition.getX() + random.nextInt(SPARKLE_SPREAD) - random.nextInt(SPARKLE_SPREAD), worldPosition.getY() + random.nextInt(SPARKLE_SPREAD),
-                    worldPosition.getZ() + random.nextInt(SPARKLE_SPREAD) - random.nextInt(SPARKLE_SPREAD));
-            EffectDispatch.spawnVisSparkle(server, from, Vec3.atBottomCenterOf(worldPosition.above()));
-            vis -= drained;
+            Vec3 from = new Vec3(pos.getX() + BLOCK_CENTRE + (random.nextDouble() * 2.0 - 1.0) * SPARKLE_SPREAD, pos.getY() + random.nextDouble() * SPARKLE_RISE,
+                    pos.getZ() + BLOCK_CENTRE + (random.nextDouble() * 2.0 - 1.0) * SPARKLE_SPREAD);
+            EffectDispatch.spawnVisSparkle(server, from, new Vec3(pos.getX() + BLOCK_CENTRE, pos.getY() + DROP_HEIGHT, pos.getZ() + BLOCK_CENTRE));
             setChangedAndSync();
         }
         if (vis <= 0.0F) {
-            finish(server);
+            complete(server);
         }
     }
 
-    private float drain(ServerLevel server, float amount) {
-        if (!server.getBlockState(worldPosition.above()).is(TTBlocks.ARCANE_WORKBENCH_CHARGER.get())) {
-            return AuraHelper.drainVis(server, worldPosition, amount, false);
+    private float drawAura(ServerLevel server, float wanted) {
+        List<BlockPos> anchors = anchors(server);
+        if (anchors.isEmpty()) {
+            return 0.0F;
         }
-        int chunks = (CHARGER_REACH * 2 + 1) * (CHARGER_REACH * 2 + 1);
-        float remaining = amount;
-        for (int dx = -CHARGER_REACH; dx <= CHARGER_REACH && remaining > 0.0F; dx++) {
-            for (int dz = -CHARGER_REACH; dz <= CHARGER_REACH && remaining > 0.0F; dz++) {
-                remaining -= AuraHelper.drainVis(server, worldPosition.offset(dx * CHUNK, 0, dz * CHUNK), Math.min(amount / chunks, remaining), false);
+        float share = Math.max(MIN_ANCHOR_REQUEST, wanted / anchors.size());
+        float owed = wanted;
+        boolean progressed = true;
+        while (owed > DRAIN_EPSILON && progressed) {
+            progressed = false;
+            for (BlockPos anchor : anchors) {
+                if (owed <= DRAIN_EPSILON) {
+                    break;
+                }
+                float drained = AuraHelper.drainVis(server, anchor, Math.min(owed, share), false);
+                owed -= drained;
+                progressed |= drained > DRAIN_EPSILON;
             }
         }
-        return amount - remaining;
+        return wanted - owed;
     }
 
-    private void finish(ServerLevel server) {
+    private List<BlockPos> anchors(ServerLevel server) {
+        List<BlockPos> anchors = new ArrayList<>();
+        if (server.getBlockState(worldPosition.above()).is(TTBlocks.ARCANE_WORKBENCH_CHARGER.get())) {
+            int y = worldPosition.getY();
+            ChunkPos.rangeClosed(ChunkPos.containing(worldPosition), CHARGER_RADIUS_CHUNKS).forEach(chunk -> anchors.add(chunk.getMiddleBlockPosition(y)));
+        } else {
+            anchors.add(worldPosition);
+        }
+        anchors.removeIf(anchor -> !server.hasChunkAt(anchor));
+        anchors.sort(Comparator.comparingLong(BlockPos::asLong));
+        return anchors;
+    }
+
+    private void complete(ServerLevel server) {
         ItemStack focus = focusStack();
-        vis = 0.0F;
-        visTotal = 0.0F;
-        crystals = AspectList.EMPTY;
-        if (FocusItems.isFocus(focus)) {
-            Spells.setSpell(focus, draft);
-            if (name.isBlank()) {
-                focus.remove(DataComponents.CUSTOM_NAME);
-            } else {
-                focus.set(DataComponents.CUSTOM_NAME, Component.literal(name));
-            }
-            drawer.place(focus);
-            server.playSound(null, worldPosition, TTSounds.WAND.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        Spell keptDraft = draft;
+        String keptName = name;
+        Spells.setSpell(focus, draft);
+        if (name.isBlank()) {
+            focus.remove(DataComponents.CUSTOM_NAME);
+        } else {
+            focus.set(DataComponents.CUSTOM_NAME, Component.literal(name));
         }
+        clearInscription();
+        items.set(SLOT_FOCUS, ItemResource.of(focus), focus.getCount());
+        draft = keptDraft;
+        name = keptName;
+        play(server, TTSounds.WAND.get(), DONE_VOLUME);
         setChangedAndSync();
     }
 
-    private void abort(ServerLevel server) {
+    private void clearInscription() {
         vis = 0.0F;
         visTotal = 0.0F;
         crystals = AspectList.EMPTY;
-        server.playSound(null, worldPosition, TTSounds.WANDFAIL.get(), SoundSource.BLOCKS, 0.33F, 1.0F);
-        setChangedAndSync();
     }
 
-    private void shimmer(Level clientLevel) {
-        RandomSource random = clientLevel.getRandom();
-        ShieldSparkParticleOptions spark = new ShieldSparkParticleOptions(
-                ARGB.colorFromFloat(1.0F, 0.5F + random.nextFloat() * 0.4F, 1.0F - random.nextFloat() * 0.4F, 1.0F - random.nextFloat() * 0.4F), 0.8F, 0.3F + random.nextFloat() * 0.3F,
-                6 + random.nextInt(5), 0, true);
-        clientLevel.addParticle(spark, worldPosition.getX() + 0.5 + (random.nextFloat() - random.nextFloat()) * 0.3F, worldPosition.getY() + 1.4 + (random.nextFloat() - random.nextFloat()) * 0.3F,
-                worldPosition.getZ() + 0.5 + (random.nextFloat() - random.nextFloat()) * 0.3F, 0.0, 0.0, 0.0);
-    }
-
-    private void loadFocusDesign() {
-        ItemStack focus = focusStack();
-        Spell spell = Spells.spellOf(focus);
-        if (spell != null) {
-            draft = spell;
-            name = focus.has(DataComponents.CUSTOM_NAME) ? focus.getHoverName().getString() : "";
-        }
+    private void play(Level world, SoundEvent sound, float volume) {
+        world.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, SOUND_PITCH);
     }
 
     private static void take(Player player, ItemStack wanted) {
-        int remaining = wanted.getCount();
+        int owed = wanted.getCount();
         Inventory inventory = player.getInventory();
-        for (int slot = 0; slot < inventory.getContainerSize() && remaining > 0; slot++) {
+        for (int slot = 0; slot < inventory.getContainerSize() && owed > 0; slot++) {
             ItemStack stack = inventory.getItem(slot);
             if (ItemStack.isSameItemSameComponents(stack, wanted)) {
-                int taken = Math.min(remaining, stack.getCount());
-                stack.shrink(taken);
-                remaining -= taken;
+                int removed = Math.min(owed, stack.getCount());
+                stack.shrink(removed);
+                owed -= removed;
             }
+        }
+    }
+
+    private void onFocusChanged(ItemStack previous) {
+        ItemStack current = focusStack();
+        if (!ItemStack.isSameItemSameComponents(previous, current)) {
+            clearInscription();
+            Spell carried = current.isEmpty() ? null : Spells.spellOf(current);
+            if (carried != null) {
+                Component custom = current.get(DataComponents.CUSTOM_NAME);
+                draft = carried;
+                name = custom != null ? custom.getString() : "";
+            }
+        }
+        if (level != null && !level.isClientSide()) {
+            setChangedAndSync();
         }
     }
 
@@ -247,70 +307,56 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
         ItemStack focus = focusStack();
-        if (level != null && !level.isClientSide() && !focus.isEmpty()) {
-            Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, focus);
+        if (level instanceof ServerLevel server && !focus.isEmpty()) {
+            Containers.dropItemStack(server, pos.getX() + BLOCK_CENTRE, pos.getY() + DROP_HEIGHT, pos.getZ() + BLOCK_CENTRE, focus);
         }
     }
 
     @Override
     public Component getDisplayName() {
-        return TITLE;
+        return getBlockState().getBlock().getName();
     }
 
     @Override
-    public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-        return new MenuFocalManipulator(containerId, inventory, this);
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new MenuFocalManipulator(containerId, playerInventory, this);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        drawer.serialize(output);
-        output.store("Draft", Spell.CODEC, draft);
-        output.putString("Name", name);
-        output.putFloat("Vis", vis);
-        output.putFloat("VisTotal", visTotal);
-        output.store("Crystals", AspectList.CODEC, crystals);
+        items.serialize(output);
+        output.store(DRAFT_KEY, Spell.CODEC, draft);
+        output.putString(NAME_KEY, name);
+        output.putFloat(VIS_KEY, vis);
+        output.putFloat(VIS_TOTAL_KEY, visTotal);
+        output.store(CRYSTALS_KEY, AspectList.CODEC, crystals);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        drawer.deserialize(input);
-        draft = input.read("Draft", Spell.CODEC).orElse(Spell.empty());
-        name = input.getStringOr("Name", "");
-        vis = input.getFloatOr("Vis", 0.0F);
-        visTotal = input.getFloatOr("VisTotal", 0.0F);
-        crystals = input.read("Crystals", AspectList.CODEC).orElse(AspectList.EMPTY);
+        items.deserialize(input);
+        draft = input.read(DRAFT_KEY, Spell.CODEC).orElse(Spell.empty());
+        name = input.getStringOr(NAME_KEY, "");
+        vis = input.getFloatOr(VIS_KEY, 0.0F);
+        visTotal = input.getFloatOr(VIS_TOTAL_KEY, 0.0F);
+        crystals = input.read(CRYSTALS_KEY, AspectList.CODEC).orElse(AspectList.EMPTY);
     }
 
-    private final class Drawer extends ItemStacksResourceHandler {
-        Drawer() {
-            super(NonNullList.withSize(1, ItemStack.EMPTY));
-        }
-
-        void place(ItemStack stack) {
-            set(SLOT_FOCUS, ItemResource.of(stack), stack.getCount());
-        }
-
-        @Override
-        protected void onContentsChanged(int index, ItemStack previousContents) {
-            if (level != null && !level.isClientSide()) {
-                if (inscribing() && !ItemStack.isSameItemSameComponents(previousContents, focusStack())) {
-                    vis = 0.0F;
-                    visTotal = 0.0F;
-                    crystals = AspectList.EMPTY;
-                }
-                if (!inscribing()) {
-                    loadFocusDesign();
-                }
-            }
-            setChangedAndSync();
+    private final class FocusSlot extends ItemStacksResourceHandler {
+        FocusSlot() {
+            super(SLOT_COUNT);
         }
 
         @Override
         public boolean isValid(int index, ItemResource resource) {
-            return Spells.tierOf(resource.toStack(1)).isPresent();
+            return FocusItems.isFocus(resource.toStack(1));
+        }
+
+        @Override
+        protected void onContentsChanged(int index, ItemStack previousContents) {
+            onFocusChanged(previousContents);
         }
     }
 }

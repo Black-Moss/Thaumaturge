@@ -16,9 +16,18 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 public final class ElementalHoeItem extends HoeItem {
-    private static final int BONEMEAL_DAMAGE = 3;
-    private static final int LEVEL_EVENT_BONEMEAL = 1505;
-    private static final int BONEMEAL_EVENT_DATA = 15;
+    private static final int TILL_RADIUS = 1;
+    private static final int GRID_SIDE = TILL_RADIUS * 2 + 1;
+    private static final int GRID_CELLS = GRID_SIDE * GRID_SIDE;
+    private static final int GRID_CENTRE_INDEX = GRID_CELLS / 2;
+    private static final int GROWTH_WEAR = 3;
+    private static final int LEVEL_EVENT_BONE_MEAL = 1505;
+    private static final int BONE_MEAL_PARTICLES = 15;
+    private static final double PUFF_HEIGHT = 1.01;
+    private static final double CELL_CENTER = 0.5;
+    private static final float PUFF_RED = 0.3F;
+    private static final float PUFF_GREEN = 0.12F;
+    private static final float PUFF_BLUE = 0.1F;
 
     public ElementalHoeItem(ToolMaterial material, float attackDamageBaseline, float attackSpeedBaseline, Properties properties) {
         super(material, attackDamageBaseline, attackSpeedBaseline, properties);
@@ -31,34 +40,45 @@ public final class ElementalHoeItem extends HoeItem {
             return super.useOn(context);
         }
         Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        boolean did = false;
-        for (int xx = -1; xx <= 1; xx++) {
-            for (int zz = -1; zz <= 1; zz++) {
-                BlockPos pp = pos.offset(xx, 0, zz);
-                UseOnContext offset = new UseOnContext(player, context.getHand(), new BlockHitResult(Vec3.atCenterOf(pp), context.getClickedFace(), pp, false));
-                if (super.useOn(offset).consumesAction()) {
-                    if (level instanceof ServerLevel serverLevel) {
-                        Effects.Bamf bamf = Effects.bamf(serverLevel, new Vec3(pp.getX() + 0.5, pp.getY() + 1.01, pp.getZ() + 0.5)).color(0.3F, 0.12F, 0.1F);
-                        if (xx == 0 && zz == 0) {
-                            bamf.withSound();
-                        }
-                        bamf.send();
-                    }
-                    did = true;
-                }
-            }
+        BlockPos origin = context.getClickedPos();
+        ItemStack stack = context.getItemInHand();
+        boolean tilled = false;
+        for (int index = 0; index < GRID_CELLS && !stack.isEmpty(); index++) {
+            int dx = index / GRID_SIDE - TILL_RADIUS;
+            int dz = index % GRID_SIDE - TILL_RADIUS;
+            tilled |= tillCell(context, origin.offset(dx, 0, dz), index == GRID_CENTRE_INDEX);
         }
-        if (did) {
+        if (tilled) {
             return InteractionResult.SUCCESS;
         }
-        if (!BoneMealItem.applyBonemeal(new ItemStack(Items.BONE_MEAL), level, pos, player)) {
+        if (!BoneMealItem.growCrop(new ItemStack(Items.BONE_MEAL), level, origin)) {
             return InteractionResult.PASS;
         }
-        context.getItemInHand().hurtAndBreak(BONEMEAL_DAMAGE, player, context.getHand().asEquipmentSlot());
         if (!level.isClientSide()) {
-            level.levelEvent(LEVEL_EVENT_BONEMEAL, pos, BONEMEAL_EVENT_DATA);
+            stack.hurtAndBreak(GROWTH_WEAR, player, context.getHand().asEquipmentSlot());
+            level.levelEvent(LEVEL_EVENT_BONE_MEAL, origin, BONE_MEAL_PARTICLES);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    private boolean tillCell(UseOnContext context, BlockPos cell, boolean centre) {
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(cell), context.getClickedFace(), cell, false);
+        UseOnContext shifted = new UseOnContext(context.getLevel(), context.getPlayer(), context.getHand(), context.getItemInHand(), hit);
+        if (!super.useOn(shifted).consumesAction()) {
+            return false;
+        }
+        if (context.getLevel() instanceof ServerLevel server) {
+            broadcastPuff(server, cell, centre);
+        }
+        return true;
+    }
+
+    private static void broadcastPuff(ServerLevel level, BlockPos cell, boolean withSound) {
+        Vec3 at = new Vec3(cell.getX() + CELL_CENTER, cell.getY() + PUFF_HEIGHT, cell.getZ() + CELL_CENTER);
+        Effects.Bamf puff = Effects.bamf(level, at).color(PUFF_RED, PUFF_GREEN, PUFF_BLUE);
+        if (withSound) {
+            puff.withSound();
+        }
+        puff.send();
     }
 }

@@ -1,16 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
-import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
-import com.leclowndu93150.thaumaturge.content.effect.Effects;
-import java.util.Arrays;
-import java.util.function.Function;
+import com.leclowndu93150.thaumaturge.content.essentia.spill.EssentiaSpill;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -28,15 +23,13 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public abstract class BlockEssentiaTransport extends BaseEntityBlock {
-    private static final int FLUX_VENT_COUNT = 5;
-    private static final float FLUX_VENT_SCALE = 1.0F;
-
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty EAST = BlockStateProperties.EAST;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -44,141 +37,153 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     public static final BooleanProperty UP = BlockStateProperties.UP;
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
 
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final BooleanProperty[] DECLARED_PROPERTIES = {NORTH, EAST, SOUTH, WEST, UP, DOWN};
+    private static final BooleanProperty[] BY_ORDINAL = {DOWN, UP, NORTH, SOUTH, WEST, EAST};
+    private static final float LOOK_PARTIAL_TICK = 1.0F;
+
     private final TubeGeometry geometry;
-    private final Function<BlockState, VoxelShape> shapes;
 
     protected BlockEssentiaTransport(BlockBehaviour.Properties properties, TubeGeometry geometry) {
         super(properties);
         this.geometry = geometry;
-        this.shapes = getShapeForEachState(geometry::shape);
-        registerDefaultState(stateDefinition.any().setValue(NORTH, false).setValue(EAST, false).setValue(SOUTH, false).setValue(WEST, false).setValue(UP, false).setValue(DOWN, false));
+        BlockState unconnected = stateDefinition.any();
+        for (BooleanProperty property : DECLARED_PROPERTIES) {
+            unconnected = unconnected.setValue(property, false);
+        }
+        registerDefaultState(unconnected);
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapes.apply(state);
+    protected VoxelShape getShape(BlockState state, BlockGetter getter, BlockPos at, CollisionContext ctx) {
+        return geometry.shape(state);
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return getShape(state, level, pos, context);
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter getter, BlockPos at, CollisionContext ctx) {
+        return getShape(state, getter, at, ctx);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN);
+        builder.add(DECLARED_PROPERTIES);
     }
 
-    public static int resolveSubHit(BlockState state, BlockHitResult hit, BlockPos pos) {
-        TubeGeometry tube = state.getBlock() instanceof BlockEssentiaTransport transport ? transport.geometry : TubeGeometry.PIPE;
-        return tube.subHit(hit.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ()));
+    public static int resolveSubHit(BlockState owner, BlockHitResult result, BlockPos origin) {
+        Vec3 local = result.getLocation().subtract(origin.getX(), origin.getY(), origin.getZ());
+        return geometryOf(owner).subHit(local);
+    }
+
+    static @Nullable BlockHitResult traceLook(Level level, Player player, BlockPos pos) {
+        HitResult hit = player.pick(player.blockInteractionRange(), LOOK_PARTIAL_TICK, false);
+        return hit instanceof BlockHitResult block && block.getType() == HitResult.Type.BLOCK && block.getBlockPos().equals(pos) ? block : null;
+    }
+
+    private static TubeGeometry geometryOf(BlockState state) {
+        return state.getBlock() instanceof BlockEssentiaTransport transport ? transport.geometry : TubeGeometry.PIPE;
     }
 
     public static BooleanProperty propertyFor(Direction direction) {
-        return switch (direction) {
-            case NORTH -> NORTH;
-            case EAST -> EAST;
-            case SOUTH -> SOUTH;
-            case WEST -> WEST;
-            case UP -> UP;
-            case DOWN -> DOWN;
-        };
+        return BY_ORDINAL[direction.ordinal()];
     }
 
-    public static BlockState recomputeConnections(BlockState state, LevelReader level, BlockPos pos, Direction... ignored) {
-        BlockState next = state;
-        if (!(level instanceof Level lvl)) {
-            return next;
-        }
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (Direction direction : Direction.values()) {
-            if (Arrays.stream(ignored).anyMatch(d -> d == direction))
-                continue;
-            cursor.setWithOffset(pos, direction);
-            boolean connect = canConnectFrom(lvl, pos, direction) && canConnectTo(lvl, cursor.immutable(), direction.getOpposite());
-            next = next.setValue(propertyFor(direction), connect);
-        }
-        return next;
-    }
-
-    private static boolean canConnectFrom(Level level, BlockPos pos, Direction face) {
-        IEssentiaTransport local = level.getCapability(EssentiaCapabilities.TRANSPORT, pos, face);
-        return local == null || local.isConnectable(face);
-    }
-
-    public static boolean canConnectTo(Level level, BlockPos neighbourPos, Direction faceFromNeighbour) {
-        IEssentiaTransport remote = level.getCapability(EssentiaCapabilities.TRANSPORT, neighbourPos, faceFromNeighbour);
-        return remote != null && remote.isConnectable(faceFromNeighbour);
-    }
-
-    @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (level instanceof Level lvl) {
-            boolean connect = canConnectFrom(lvl, pos, directionToNeighbour) && canConnectTo(lvl, neighbourPos, directionToNeighbour.getOpposite());
-            return state.setValue(propertyFor(directionToNeighbour), connect);
+    public static BlockState recomputeConnections(BlockState state, LevelReader level, BlockPos pos, Direction... skipped) {
+        if (level instanceof Level full) {
+            BlockState result = state;
+            for (Direction side : DIRECTIONS) {
+                if (!isSkipped(skipped, side)) {
+                    result = result.setValue(propertyFor(side), connects(full, pos, side));
+                }
+            }
+            return result;
         }
         return state;
     }
 
-    @Override
-    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        if (state == null)
-            return null;
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        return recomputeConnections(state, level, pos);
+    public static boolean canConnectTo(Level level, BlockPos neighbourPos, Direction faceFromNeighbour) {
+        IEssentiaTransport peer = level.getCapability(EssentiaCapabilities.TRANSPORT, neighbourPos, faceFromNeighbour);
+        return peer != null && peer.isConnectable(faceFromNeighbour);
     }
 
     @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
-        return false;
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+        if (!(level instanceof Level full)) {
+            return state;
+        }
+        boolean linked = connects(full, pos, directionToNeighbour);
+        return state.setValue(propertyFor(directionToNeighbour), linked);
     }
 
     @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        spillEssentiaOnBreak(level, pos);
-        return super.playerWillDestroy(level, pos, state, player);
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext placement) {
+        BlockPos placedAt = placement.getClickedPos();
+        return recomputeConnections(defaultBlockState(), placement.getLevel(), placedAt);
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level world, BlockPos at, BlockState broken, Player breaker) {
+        spillEssentiaOnBreak(world, at);
+        return super.playerWillDestroy(world, at, broken, breaker);
     }
 
     protected static void spillEssentiaOnBreak(Level level, BlockPos pos) {
-        BlockEntity te = level.getBlockEntity(pos);
-        if (!(te instanceof IEssentiaTransport transport))
-            return;
-        int amount = transport.getEssentiaAmount(Direction.UP);
-        if (amount <= 0)
-            return;
-        if (!(level instanceof ServerLevel server))
-            return;
-        AuraHelper.addFlux(server, pos, amount);
-        RandomSource rand = server.getRandom();
-        server.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 1.0F + rand.nextFloat() * 0.1F);
-        for (int i = 0; i < FLUX_VENT_COUNT; i++) {
-            double ox = pos.getX() + 0.33 + rand.nextFloat() * 0.33;
-            double oy = pos.getY() + 0.33 + rand.nextFloat() * 0.33;
-            double oz = pos.getZ() + 0.33 + rand.nextFloat() * 0.33;
-            Effects.vent2(server, new Vec3(ox, oy, oz)).motion(0.0, 0.1 + rand.nextFloat() * 0.2, 0.0).color(0x800080).scale(FLUX_VENT_SCALE).withFlame().send();
+        if (level instanceof ServerLevel server && level.getBlockEntity(pos) instanceof IEssentiaTransport transport) {
+            EssentiaSpill.PIPE.release(server, pos, transport.getEssentiaAmount(null));
         }
     }
 
     public static void refreshConnectionsAround(LevelAccessor level, BlockPos pos) {
         refreshConnections(level, pos);
-        for (Direction direction : Direction.values()) {
-            refreshConnections(level, pos.relative(direction));
+        for (Direction side : DIRECTIONS) {
+            refreshConnections(level, pos.relative(side));
         }
     }
 
-    public static @Nullable BlockState refreshConnections(LevelAccessor level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        if (!(state.getBlock() instanceof BlockEssentiaTransport tube))
+    public static @Nullable BlockState refreshConnections(LevelAccessor accessor, BlockPos pos) {
+        BlockState current = accessor.getBlockState(pos);
+        if (!(current.getBlock() instanceof BlockEssentiaTransport)) {
             return null;
-        if (level instanceof LevelReader reader) {
-            BlockState next = tube.recomputeConnections(state, reader, pos);
-            if (!next.equals(state)) {
-                level.setBlock(pos, next, Block.UPDATE_ALL);
-            }
-            return next;
         }
-        return state;
+        BlockState refreshed = accessor instanceof Level ? recomputeConnections(current, accessor, pos) : current;
+        if (!refreshed.equals(current)) {
+            accessor.setBlock(pos, refreshed, Block.UPDATE_ALL);
+        }
+        return refreshed;
+    }
+
+    static void syncNeighbourSide(Level world, BlockPos origin, Direction side, boolean open) {
+        BlockPos neighbourPos = origin.relative(side);
+        Direction back = side.getOpposite();
+        switch (world.getBlockEntity(neighbourPos)) {
+            case BlockEntityTube tube -> {
+                tube.setOpenSide(back, open);
+                BlockEntityTube.pushUpdate(tube);
+            }
+            case BlockEntityTubeBuffer buffer -> buffer.setOpenSide(back, open);
+            case null, default -> {
+            }
+        }
+        refreshConnections(world, origin);
+        refreshConnections(world, neighbourPos);
+    }
+
+    static Direction directionOrNorth(int ordinal) {
+        return ordinal >= 0 && ordinal < DIRECTIONS.length ? DIRECTIONS[ordinal] : Direction.NORTH;
+    }
+
+    private static boolean connects(Level level, BlockPos pos, Direction side) {
+        if (level.getBlockEntity(pos) instanceof IEssentiaTransport transport && !transport.isConnectable(side)) {
+            return false;
+        }
+        return canConnectTo(level, pos.relative(side), side.getOpposite());
+    }
+
+    private static boolean isSkipped(Direction[] skipped, Direction side) {
+        for (Direction candidate : skipped) {
+            if (candidate == side) {
+                return true;
+            }
+        }
+        return false;
     }
 }

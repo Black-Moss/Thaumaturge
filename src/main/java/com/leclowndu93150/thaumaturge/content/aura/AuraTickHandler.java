@@ -5,15 +5,18 @@ import com.leclowndu93150.thaumaturge.content.aura.pressure.FluxPressureEvents;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxAuraFloor;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFluxOutbreaks;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.ToDoubleFunction;
+import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Util;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.MoonPhase;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -23,170 +26,167 @@ import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class AuraTickHandler {
-    private static final int TICK_INTERVAL = 20;
-
-    private static final float[] PHASE_VIS_TABLE = new float[]{0.25F, 0.15F, 0.1F, 0.05F, 0.0F, 0.05F, 0.1F, 0.15F};
-    private static final float[] PHASE_MAX_TABLE = new float[]{0.15F, 0.05F, 0.0F, -0.05F, -0.15F, -0.05F, 0.0F, 0.05F};
-    private static final float BASE_FLUX_RATE = 0.25F;
-
-    private static final float TRANSFER_CAP = 1.0F;
-    private static final float VIS_EQUALIZE_RATIO = 0.75F;
-    private static final float FLUX_SPREAD_MIN = 5.0F;
-    private static final float FLUX_SPREAD_BASE_DIVISOR = 10.0F;
-    private static final float FLUX_EQUALIZE_RATIO = 1.75F;
-    private static final float OVERCHARGE_RATIO = 1.25F;
-    private static final float LOW_VIS_RATIO = 0.1F;
-    private static final float DEGRADE_CHANCE = 0.1F;
-    private static final float RIFT_FLUX_RATIO = 0.75F;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final int NEIGHBOUR_COUNT = 4;
+    private static final MoonProfile[] MOON_PROFILES = {new MoonProfile(0.25F, 0.00F, 1.15F), new MoonProfile(0.15F, 0.10F, 1.05F), new MoonProfile(0.10F, 0.15F, 1.00F),
+            new MoonProfile(0.05F, 0.20F, 0.95F), new MoonProfile(0.00F, 0.25F, 0.85F), new MoonProfile(0.05F, 0.20F, 0.95F), new MoonProfile(0.10F, 0.15F, 1.00F),
+            new MoonProfile(0.15F, 0.10F, 1.05F)};
+    private static final float FLOOR_RAISE_PER_SECOND = 0.5F;
+    private static final float TRANSFER_PER_SECOND = 1.0F;
+    private static final float VIS_TRANSFER_RATIO = 0.75F;
+    private static final float FLUX_TRANSFER_DIVISOR = 1.75F;
+    private static final float FLUX_TRANSFER_MIN_FLUX = 5.0F;
+    private static final float FLUX_TRANSFER_BASE_DIVISOR = 10.0F;
+    private static final float OVERFLOW_VIS_RATIO = 1.25F;
+    private static final float DEPLETED_VIS_RATIO = 0.1F;
+    private static final float DEGRADATION_CHANCE = 0.1F;
+    private static final float EVENT_FLUX_RATIO = 0.75F;
     private static final float RIFT_CHANCE_DIVISOR = 5000.0F;
-    private static final float PRESSURE_EVENT_CHANCE_SCALE = 100.0F;
-    private static final float PHYSICAL_FLUX_SEEP_CAP = 0.5F;
+    private static final float PRESSURE_CHANCE_DIVISOR = 100.0F;
 
     private AuraTickHandler() {}
 
-    private record MoonFactors(float vis, float flux, float max) {
-        static MoonFactors of(ServerLevel level) {
-            MoonPhase moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, Vec3.ZERO);
-            float vis = PHASE_VIS_TABLE[moonPhase.index()];
-            return new MoonFactors(vis, BASE_FLUX_RATE - vis, 1.0F + PHASE_MAX_TABLE[moonPhase.index()]);
-        }
-    }
-
-    private record Sink(AuraData data, LevelChunk chunk) {
-    }
-
-    private record Neighbours(@Nullable Sink visSink, @Nullable Sink fluxSink) {
-    }
-
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
-        MinecraftServer server = event.getServer();
-        for (ServerLevel level : server.getAllLevels()) {
-            if (level.getGameTime() % TICK_INTERVAL == 0 && level.tickRateManager().runsNormally()) {
-                tickLevel(level);
-            }
-        }
+        event.getServer().getAllLevels().forEach(AuraTickHandler::tickLevel);
     }
 
     private static void tickLevel(ServerLevel level) {
-        MoonFactors factors = MoonFactors.of(level);
-        RandomSource rand = level.getRandom();
-        Set<ChunkPos> loaded = AuraManager.loadedChunksSnapshot(level);
-        for (ChunkPos pos : loaded) {
-            LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
-            if (chunk == null) {
-                continue;
-            }
-            AuraData data = chunk.getData(TTAttachments.AURA.get());
-            AuraGenHandler.initializeIfNeeded(level, chunk, data);
-            PhysicalFluxOutbreaks.tryOutbreak(level, chunk, rand);
-            if (data.getBase() == 0) {
-                continue;
-            }
-            data.setChunkPos(pos);
-            processAuraChunk(level, chunk, data, factors, rand);
-        }
-    }
-
-    private static void processAuraChunk(ServerLevel level, LevelChunk chunk, AuraData aura, MoonFactors factors, RandomSource rand) {
-        Neighbours neighbours = scanNeighbours(level, aura, factors, rand);
-        float base = aura.getBase() * factors.max();
-        float vis = aura.getVis();
-        float flux = aura.getFlux();
-        boolean dirty = false;
-
-        float physicalFluxFloor = PhysicalFluxAuraFloor.target(chunk, aura.getBase());
-        if (flux < physicalFluxFloor) {
-            flux += Math.min(PHYSICAL_FLUX_SEEP_CAP, physicalFluxFloor - flux);
-            dirty = true;
-        }
-
-        Sink visSink = neighbours.visSink();
-        if (visSink != null) {
-            float sinkVis = visSink.data().getVis();
-            if (sinkVis < vis && sinkVis / vis < VIS_EQUALIZE_RATIO) {
-                float transfer = Math.min(vis - sinkVis, TRANSFER_CAP);
-                vis -= transfer;
-                visSink.data().setVis(sinkVis + transfer);
-                visSink.chunk().markUnsaved();
-                dirty = true;
-            }
-        }
-
-        Sink fluxSink = neighbours.fluxSink();
-        if (fluxSink != null) {
-            float sinkFlux = fluxSink.data().getFlux();
-            if (flux > Math.max(FLUX_SPREAD_MIN, aura.getBase() / FLUX_SPREAD_BASE_DIVISOR) && sinkFlux < flux / FLUX_EQUALIZE_RATIO) {
-                float transfer = Math.min(flux - sinkFlux, TRANSFER_CAP);
-                flux -= transfer;
-                fluxSink.data().setFlux(sinkFlux + transfer);
-                fluxSink.chunk().markUnsaved();
-                dirty = true;
-            }
-        }
-
-        if (vis + flux < base) {
-            vis += Math.min(base - (vis + flux), factors.vis());
-            dirty = true;
-        } else if (vis > base * OVERCHARGE_RATIO && rand.nextFloat() < DEGRADE_CHANCE) {
-            flux += factors.flux();
-            vis -= factors.flux();
-            dirty = true;
-        } else if (vis <= base * LOW_VIS_RATIO && vis >= flux && rand.nextFloat() < DEGRADE_CHANCE) {
-            flux += factors.flux();
-            dirty = true;
-        }
-
-        if (dirty) {
-            aura.setVis(vis);
-            aura.setFlux(flux);
-            chunk.markUnsaved();
-        }
-
-        if (flux <= base * RIFT_FLUX_RATIO) {
+        if (level.getGameTime() % TICKS_PER_SECOND != 0 || !level.tickRateManager().runsNormally()) {
             return;
         }
-        if (rand.nextFloat() < flux / RIFT_CHANCE_DIVISOR) {
-            ChunkPos pos = aura.getChunkPos();
-            AuraManager.queueRiftTrigger(level, new BlockPos(pos.x() * 16, 0, pos.z() * 16));
-        } else if (rand.nextFloat() < flux / (Math.max(1.0F, base) * PRESSURE_EVENT_CHANCE_SCALE)) {
-            FluxPressureEvents.queue(level, aura.getChunkPos());
+        int phase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, Vec3.ZERO).index();
+        MoonProfile profile = MOON_PROFILES[Math.floorMod(phase, MOON_PROFILES.length)];
+        RandomSource random = level.getRandom();
+        for (ChunkPos pos : AuraManager.loadedChunksSnapshot(level)) {
+            LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x(), pos.z());
+            if (chunk != null) {
+                balanceChunk(level, chunk, pos, profile, random);
+            }
         }
     }
 
-    private static Neighbours scanNeighbours(ServerLevel level, AuraData aura, MoonFactors factors, RandomSource rand) {
-        Direction[] directions = new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-        for (int i = directions.length - 1; i > 0; i--) {
-            int j = rand.nextInt(i + 1);
-            Direction tmp = directions[i];
-            directions[i] = directions[j];
-            directions[j] = tmp;
+    private static void balanceChunk(ServerLevel level, LevelChunk chunk, ChunkPos pos, MoonProfile profile, RandomSource random) {
+        AuraData data = chunk.getData(TTAttachments.AURA.get());
+        AuraGenHandler.initializeIfNeeded(level, chunk, data);
+        PhysicalFluxOutbreaks.tryOutbreak(level, chunk, random);
+        data.setChunkPos(pos);
+        if (data.getBase() == 0) {
+            return;
         }
-        Sink visSink = null;
-        Sink fluxSink = null;
-        float lowestVis = Float.MAX_VALUE;
-        float lowestFlux = Float.MAX_VALUE;
-        for (Direction dir : directions) {
-            int nx = aura.getChunkPos().x() + dir.getStepX();
-            int nz = aura.getChunkPos().z() + dir.getStepZ();
-            LevelChunk neighbourChunk = level.getChunkSource().getChunkNow(nx, nz);
-            if (neighbourChunk == null) {
-                continue;
-            }
-            AuraData neighbour = neighbourChunk.getData(TTAttachments.AURA.get());
-            if (neighbour.getBase() == 0) {
-                continue;
-            }
-            neighbour.setChunkPos(new ChunkPos(nx, nz));
-            if ((visSink == null || lowestVis > neighbour.getVis()) && neighbour.getVis() + neighbour.getFlux() < neighbour.getBase() * factors.max()) {
-                visSink = new Sink(neighbour, neighbourChunk);
-                lowestVis = neighbour.getVis();
-            }
-            if (fluxSink == null || lowestFlux > neighbour.getFlux()) {
-                fluxSink = new Sink(neighbour, neighbourChunk);
-                lowestFlux = neighbour.getFlux();
-            }
+        List<AuraData> neighbours = adjacentAuras(level, pos);
+        AuraData visReceiver = pickVisReceiver(neighbours, profile.capacity(), random);
+        AuraData fluxReceiver = pickFluxReceiver(neighbours, random);
+
+        float originalVis = data.getVis();
+        float originalFlux = data.getFlux();
+        Balance balance = new Balance(originalVis, originalFlux);
+        float scaledBase = data.getBase() * profile.capacity();
+
+        float floor = PhysicalFluxAuraFloor.target(chunk, data.getBase());
+        if (balance.flux < floor) {
+            balance.flux += Math.min(FLOOR_RAISE_PER_SECOND, floor - balance.flux);
         }
-        return new Neighbours(visSink, fluxSink);
+        if (visReceiver != null) {
+            shareVis(level, balance, visReceiver);
+        }
+        if (fluxReceiver != null) {
+            shareFlux(level, balance, fluxReceiver, data.getBase());
+        }
+        settle(balance, profile, scaledBase, random);
+
+        data.setVis(balance.vis);
+        data.setFlux(balance.flux);
+        if (data.getVis() != originalVis || data.getFlux() != originalFlux) {
+            chunk.markUnsaved();
+        }
+        rollEvents(level, pos, data.getFlux(), scaledBase, random);
+    }
+
+    private static void shareVis(ServerLevel level, Balance balance, AuraData receiver) {
+        float theirs = receiver.getVis();
+        if (theirs >= balance.vis || theirs / balance.vis >= VIS_TRANSFER_RATIO) {
+            return;
+        }
+        float moved = Math.min(balance.vis - theirs, TRANSFER_PER_SECOND);
+        receiver.setVis(theirs + moved);
+        balance.vis -= moved;
+        AuraManager.markChunkDirty(level, receiver.getChunkPos());
+    }
+
+    private static void shareFlux(ServerLevel level, Balance balance, AuraData receiver, int base) {
+        float threshold = Math.max(FLUX_TRANSFER_MIN_FLUX, base / FLUX_TRANSFER_BASE_DIVISOR);
+        if (balance.flux <= threshold || receiver.getFlux() >= balance.flux / FLUX_TRANSFER_DIVISOR) {
+            return;
+        }
+        float moved = Math.min(balance.flux - receiver.getFlux(), TRANSFER_PER_SECOND);
+        receiver.setFlux(receiver.getFlux() + moved);
+        balance.flux -= moved;
+        AuraManager.markChunkDirty(level, receiver.getChunkPos());
+    }
+
+    private static void settle(Balance balance, MoonProfile profile, float scaledBase, RandomSource random) {
+        float total = balance.vis + balance.flux;
+        if (total < scaledBase) {
+            balance.vis += Math.min(scaledBase - total, profile.visRegeneration());
+            return;
+        }
+        if (balance.vis > OVERFLOW_VIS_RATIO * scaledBase) {
+            if (random.nextFloat() < DEGRADATION_CHANCE) {
+                balance.flux += profile.fluxStep();
+                balance.vis -= profile.fluxStep();
+            }
+            return;
+        }
+        boolean depleted = balance.vis <= DEPLETED_VIS_RATIO * scaledBase && balance.vis >= balance.flux;
+        if (depleted && random.nextFloat() < DEGRADATION_CHANCE) {
+            balance.flux += profile.fluxStep();
+        }
+    }
+
+    private static List<AuraData> adjacentAuras(ServerLevel level, ChunkPos pos) {
+        return Direction.Plane.HORIZONTAL.stream().map(direction -> AuraManager.chunkAt(level, new ChunkPos(pos.x() + direction.getStepX(), pos.z() + direction.getStepZ())))
+                .filter(neighbour -> neighbour != null && neighbour.getBase() != 0).collect(Collectors.toCollection(() -> new ArrayList<>(NEIGHBOUR_COUNT)));
+    }
+
+    private static void rollEvents(ServerLevel level, ChunkPos pos, float flux, float scaledBase, RandomSource random) {
+        if (flux <= EVENT_FLUX_RATIO * scaledBase) {
+            return;
+        }
+        if (random.nextFloat() < flux / RIFT_CHANCE_DIVISOR) {
+            AuraManager.queueRiftTrigger(level, new BlockPos(pos.getMinBlockX(), 0, pos.getMinBlockZ()));
+            return;
+        }
+        if (random.nextFloat() < flux / (PRESSURE_CHANCE_DIVISOR * Math.max(1.0F, scaledBase))) {
+            FluxPressureEvents.queue(level, pos);
+        }
+    }
+
+    private static @Nullable AuraData pickVisReceiver(List<AuraData> neighbours, float capacityMultiplier, RandomSource random) {
+        List<AuraData> roomy = neighbours.stream().filter(neighbour -> neighbour.getVis() + neighbour.getFlux() < neighbour.getBase() * capacityMultiplier)
+                .collect(Collectors.toCollection(ArrayList::new));
+        return pickLowest(roomy, AuraData::getVis, random);
+    }
+
+    private static @Nullable AuraData pickFluxReceiver(List<AuraData> neighbours, RandomSource random) {
+        return pickLowest(new ArrayList<>(neighbours), AuraData::getFlux, random);
+    }
+
+    private static @Nullable AuraData pickLowest(List<AuraData> candidates, ToDoubleFunction<AuraData> pool, RandomSource random) {
+        Util.shuffle(candidates, random);
+        return candidates.stream().min(Comparator.comparingDouble(pool)).orElse(null);
+    }
+
+    private record MoonProfile(float visRegeneration, float fluxStep, float capacity) {
+    }
+
+    private static final class Balance {
+        private float vis;
+        private float flux;
+
+        private Balance(float vis, float flux) {
+            this.vis = vis;
+            this.flux = flux;
+        }
     }
 }

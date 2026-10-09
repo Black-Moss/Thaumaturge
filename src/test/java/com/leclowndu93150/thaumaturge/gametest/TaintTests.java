@@ -15,19 +15,21 @@ public final class TaintTests {
     private static final int SETTLE_TICKS = 10;
     private static final int SPREAD_ATTEMPTS = 500;
     private static final int SCAN_RADIUS = 3;
+    private static final float SEED_FLUX = 50.0F;
 
     private TaintTests() {}
 
     public static void register(TTTestRegistrar r) {
         r.add("taint/seed_enables_spread", 80, helper -> {
             buildPlatform(helper);
-            AuraHelper.addFlux(helper.getLevel(), helper.absolutePos(SEED_POS), 50.0F);
             EntityTaintSeed seed = helper.spawn(TTEntities.TAINT_SEED.get(), SEED_POS);
             helper.runAfterDelay(SETTLE_TICKS, () -> {
                 BlockPos center = helper.absolutePos(SEED_POS);
+                AuraHelper.addFlux(helper.getLevel(), center, SEED_FLUX);
                 for (int i = 0; i < SPREAD_ATTEMPTS; i++) {
-                    TaintHelper.spreadFibres(helper.getLevel(), center, true);
+                    TaintHelper.attemptFibreGrowth(helper.getLevel(), center, true);
                 }
+                AuraHelper.drainFlux(helper.getLevel(), center, SEED_FLUX, false);
                 if (countFibres(helper) == 0) {
                     helper.fail("No taint fibres appeared after " + SPREAD_ATTEMPTS + " forced spread attempts");
                     return;

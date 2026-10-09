@@ -16,15 +16,17 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Static facade for golem seals, the task board and provisioning. The mod binds it during construction through {@link #bind}; calls
- * made before that throw {@link IllegalStateException}.
+ * Static facade for the golem system: seal lookup, task posting and the provisioning queue.
  *
- * <p>Task and provisioning methods are server-side and must run on the server thread.
+ * <p>The mod binds the implementation once during construction. Calls made before that throw
+ * {@link IllegalStateException}. Posting tasks and provisioning requests is server side and must run on the server thread;
+ * only {@link #getSealEntity} also works on the client.
  *
  * @since 1.0.0
  */
 public final class GolemHelper {
-    private static final int PROVISION_QUEUE_LIMIT = 1000;
+    private static final int QUEUE_LIMIT = 1000;
+    private static final int DEFAULT_BATCH = 0;
     private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("GolemHelper");
 
     private GolemHelper() {}
@@ -32,149 +34,153 @@ public final class GolemHelper {
     /**
      * Installs the implementation. Called once by the mod.
      *
-     * @param impl the implementation
+     * @param bindings the implementation
      * @throws IllegalStateException when an implementation is already bound
      */
-    public static void bind(Bindings impl) {
-        BINDING.bind(impl);
+    public static void bind(Bindings bindings) {
+        BINDING.bind(bindings);
     }
 
     /**
      * @param id a seal type id
-     * @return the registered seal type, or empty
+     * @return the seal type, or empty for an unknown id
      */
     public static Optional<SealType> sealType(Identifier id) {
-        return BINDING.get().sealType(id);
+        return bound().sealType(id);
     }
 
     /**
      * @param id a seal type id
-     * @return a stack of the type's placer item, or an empty stack for an unknown id
+     * @return one placer item of the type, or the empty stack for an unknown id
      */
     public static ItemStack getSealStack(Identifier id) {
         return sealType(id).map(type -> new ItemStack(type.placer())).orElse(ItemStack.EMPTY);
     }
 
     /**
-     * Looks a placed seal up. Works on both sides; the client sees the synced mirror.
+     * Looks up a placed seal. Works on both logical sides; the client answers from the mirror the server sends.
      *
      * @param level the level
-     * @param pos   the seal position, or null
-     * @return the seal, or null when there is none at that position
+     * @param pos   the seal placement, or null
+     * @return the seal, or null when there is none or {@code pos} is null
      */
     public static @Nullable ISealEntity getSealEntity(Level level, @Nullable SealPos pos) {
-        return BINDING.get().getSealEntity(level, pos);
+        return bound().getSealEntity(level, pos);
     }
 
     /**
-     * Posts a task to the level's task board and assigns its id.
+     * Posts a task to the level's task board, which gives it a fresh id.
      *
      * @param level the level
      * @param task  the task
      */
     public static void addGolemTask(Level level, Task task) {
-        BINDING.get().addGolemTask(level, task);
+        bound().addGolemTask(level, task);
     }
 
     /**
-     * Asks provider seals to bring items to a seal.
+     * Asks provider seals to bring a copy of the stack to a seal. A request equal to a queued one is not added.
      *
      * @param level the level
      * @param seal  the seal that needs the items
-     * @param stack the items, copied
+     * @param stack the stack; copied
      */
     public static void requestProvisioning(Level level, ISealEntity seal, ItemStack stack) {
-        queue(level, new ProvisionRequest(level, seal, stack));
+        submit(level, DEFAULT_BATCH, new ProvisionRequest(level, seal, stack));
     }
 
     /**
-     * Asks provider seals to bring items to a block face, usually an inventory.
+     * Asks provider seals to bring a copy of the stack to a block face. A request equal to a queued one is not added.
      *
      * @param level the level
-     * @param pos   the block
-     * @param side  the face to deliver into
-     * @param stack the items, copied
+     * @param pos   the target block
+     * @param side  the face the stack is inserted through
+     * @param stack the stack; copied
      */
     public static void requestProvisioning(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        queue(level, new ProvisionRequest(level, pos, side, stack));
+        requestProvisioning(level, pos, side, stack, DEFAULT_BATCH);
     }
 
     /**
-     * Asks provider seals to bring items to an entity.
+     * Asks provider seals to bring a copy of the stack to an entity. A request equal to a queued one is not added.
      *
      * @param level  the level
-     * @param entity the receiver
-     * @param stack  the items, copied
+     * @param entity the target entity
+     * @param stack  the stack; copied
      */
     public static void requestProvisioning(Level level, Entity entity, ItemStack stack) {
-        queue(level, new ProvisionRequest(level, entity, stack));
+        requestProvisioning(level, entity, stack, DEFAULT_BATCH);
     }
 
     /**
-     * Like {@link #requestProvisioning(Level, BlockPos, Direction, ItemStack)}, with a discriminator that keeps otherwise identical
-     * requests apart.
+     * Like {@link #requestProvisioning(Level, BlockPos, Direction, ItemStack)} with a batch number, so identical requests of
+     * one large order stay separate.
      *
      * @param level the level
-     * @param pos   the block
-     * @param side  the face to deliver into
-     * @param stack the items, copied
-     * @param ui    the discriminator
+     * @param pos   the target block
+     * @param side  the face the stack is inserted through
+     * @param stack the stack; copied
+     * @param batch the batch number
      */
-    public static void requestProvisioning(Level level, BlockPos pos, Direction side, ItemStack stack, int ui) {
-        ProvisionRequest request = new ProvisionRequest(level, pos, side, stack);
-        request.setBatch(ui);
-        queue(level, request);
+    public static void requestProvisioning(Level level, BlockPos pos, Direction side, ItemStack stack, int batch) {
+        submit(level, batch, new ProvisionRequest(level, pos, side, stack));
     }
 
     /**
-     * Like {@link #requestProvisioning(Level, Entity, ItemStack)}, with a discriminator that keeps otherwise identical requests
-     * apart.
+     * Like {@link #requestProvisioning(Level, Entity, ItemStack)} with a batch number, so identical requests of one large
+     * order stay separate.
      *
      * @param level  the level
-     * @param entity the receiver
-     * @param stack  the items, copied
-     * @param ui     the discriminator
+     * @param entity the target entity
+     * @param stack  the stack; copied
+     * @param batch  the batch number
      */
-    public static void requestProvisioning(Level level, Entity entity, ItemStack stack, int ui) {
-        ProvisionRequest request = new ProvisionRequest(level, entity, stack);
-        request.setBatch(ui);
-        queue(level, request);
-    }
-
-    private static void queue(Level level, ProvisionRequest request) {
-        List<ProvisionRequest> queue = BINDING.get().getProvisionRequests(level);
-        if (!queue.contains(request)) {
-            queue.add(request);
-        }
-        if (queue.size() > PROVISION_QUEUE_LIMIT) {
-            queue.remove(0);
-        }
+    public static void requestProvisioning(Level level, Entity entity, ItemStack stack, int batch) {
+        submit(level, batch, new ProvisionRequest(level, entity, stack));
     }
 
     /**
      * @param level the level
-     * @return the live provisioning queue; duplicate requests are folded and the oldest are dropped past 1000
+     * @return the level's live provisioning queue in posting order, not a copy; it supports removal by predicate and by
+     *         index and concurrent iteration
      */
     public static List<ProvisionRequest> getProvisionRequests(Level level) {
-        return BINDING.get().getProvisionRequests(level);
+        return bound().getProvisionRequests(level);
+    }
+
+    private static Bindings bound() {
+        return BINDING.get();
+    }
+
+    private static void submit(Level level, int batch, ProvisionRequest request) {
+        request.withBatch(batch);
+        List<ProvisionRequest> pending = getProvisionRequests(level);
+        if (pending.contains(request)) {
+            return;
+        }
+        int overflow = pending.size() - QUEUE_LIMIT + 1;
+        for (int i = 0; i < overflow; i++) {
+            pending.remove(0);
+        }
+        pending.add(request);
     }
 
     /**
-     * The hooks the mod implements behind this facade.
+     * The implementation behind {@link GolemHelper}, bound by the mod once.
      *
      * @since 1.0.0
      */
     public interface Bindings {
         /**
          * @param id a seal type id
-         * @return the registered type, or empty
+         * @return the seal type, or empty
          */
         Optional<SealType> sealType(Identifier id);
 
         /**
          * @param level the level
-         * @param pos   the seal position, or null
-         * @return the placed seal, or null
+         * @param pos   the placement, possibly null
+         * @return the seal, or null
          */
         @Nullable
         ISealEntity getSealEntity(Level level, @Nullable SealPos pos);

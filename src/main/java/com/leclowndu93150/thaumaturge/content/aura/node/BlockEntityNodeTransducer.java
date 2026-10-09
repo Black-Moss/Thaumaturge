@@ -16,6 +16,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -27,23 +28,31 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
     public static final int CHARGE_TARGET = 1000;
     public static final int REVERT_THRESHOLD = 50;
 
+    private static final String KEY_COUNT = "Count";
+    private static final String KEY_STATUS = "Status";
     private static final int STATUS_IDLE = 0;
     private static final int STATUS_NODE = 1;
     private static final int STATUS_ENERGIZED = 2;
-    private static final int RECHECK_INTERVAL = 40;
+    private static final int UNSET_COUNT = -1;
+    private static final int NEVER_SENT = Integer.MIN_VALUE;
+    private static final int LOST_STABILIZER_COUNT = 50;
+    private static final int STATUS_RECHECK_INTERVAL = 40;
     private static final int SYNC_INTERVAL = 10;
-    private static final int NOT_SYNCED = Integer.MIN_VALUE;
     private static final int BOLT_INTERVAL = 10;
     private static final float BOLT_WIDTH = 0.06F;
+    private static final double BLOCK_CENTER = 0.5;
+    private static final double TOP_BOLT_HEIGHT = 0.8;
+    private static final double UNDERSIDE_BOLT_HEIGHT = 0.1;
+    private static final int STABILIZER_DEPTH = 2;
     private static final float CATASTROPHE_FLUX = 32.0F;
-    private static final float CATASTROPHE_EXPLOSION = 3.0F;
-    private static final int CATASTROPHE_SPILLS = 50;
-    private static final int CATASTROPHE_SPREAD = 8;
+    private static final float CATASTROPHE_POWER = 3.0F;
+    private static final int SPILL_ATTEMPTS = 50;
+    private static final int SPILL_RANGE = 7;
 
-    private int count = -1;
+    private int count = UNSET_COUNT;
     private int status = STATUS_IDLE;
-    private int syncedCount = NOT_SYNCED;
-    private int syncedStatus = NOT_SYNCED;
+    private int syncedCount = NEVER_SENT;
+    private int syncedStatus = NEVER_SENT;
 
     public BlockEntityNodeTransducer(BlockPos pos, BlockState state) {
         super(TTBlockEntities.NODE_TRANSDUCER.get(), pos, state);
@@ -58,104 +67,107 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
     }
 
     public void serverTick(Level level, BlockPos pos) {
-        if (count == -1 || level.getGameTime() % RECHECK_INTERVAL == 0) {
-            checkStatus(level, pos);
-        }
-        BlockEntity below = level.getBlockEntity(pos.below());
-        if (status == STATUS_NODE && count >= CHARGE_TARGET && below instanceof BlockEntityNode node && !node.isEnergized()) {
-            node.setEnergized(true);
-            checkStatus(level, pos);
-            setChanged();
-        }
-        if (status == STATUS_ENERGIZED && count <= REVERT_THRESHOLD && below instanceof BlockEntityNode node && node.isEnergized()) {
-            node.setEnergized(false);
-            List<AspectInstance> stored = node.getAspects().entries();
-            for (AspectInstance entry : stored) {
-                node.drain(entry.aspect(), entry.amount());
-            }
-            status = STATUS_IDLE;
-            setChanged();
+        if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (status != STATUS_IDLE && level.hasNeighborSignal(pos)) {
-            if (count < CHARGE_TARGET && hasStabilizer(level, pos)) {
-                count++;
-                if (status == STATUS_NODE && below instanceof BlockEntityNode node) {
-                    AspectList stored = node.getAspects();
-                    if (!stored.isEmpty()) {
-                        List<AspectInstance> entries = stored.entries();
-                        AspectInstance chosen = entries.get(level.getRandom().nextInt(entries.size()));
-                        node.drain(chosen.aspect(), 1);
-                    }
-                }
-                setChanged();
+        BlockPos nodePos = pos.below();
+        BlockEntityNode node = serverLevel.getBlockEntity(nodePos) instanceof BlockEntityNode found ? found : null;
+        BlockPos stabilizerPos = pos.below(STABILIZER_DEPTH);
+        boolean stabilizerPresent = serverLevel.getBlockEntity(stabilizerPos) instanceof BlockEntityNodeStabilizer && !serverLevel.hasNeighborSignal(stabilizerPos);
+        boolean powered = serverLevel.hasNeighborSignal(pos);
+        long time = serverLevel.getGameTime();
+        int previousCount = count;
+        int previousStatus = status;
+        boolean lostStabilizer = false;
+        if (count == UNSET_COUNT || time % STATUS_RECHECK_INTERVAL == 0) {
+            if (node != null && node.isEnergized() && !stabilizerPresent) {
+                catastrophe(serverLevel, nodePos);
+                node = null;
+                lostStabilizer = true;
+                status = STATUS_IDLE;
+                count = LOST_STABILIZER_COUNT;
+            } else {
+                followNode(node);
             }
-        } else if (count > 0) {
-            count--;
+        }
+        RandomSource random = serverLevel.getRandom();
+        if (!lostStabilizer) {
+            charge(node, powered, stabilizerPresent, random);
+        }
+        if (node != null && status == STATUS_NODE && count >= CHARGE_TARGET && !node.isEnergized()) {
+            node.setEnergized(true);
+            status = STATUS_ENERGIZED;
+        }
+        if (node != null && node.isEnergized() && count <= REVERT_THRESHOLD) {
+            node.setEnergized(false);
+            node.clearContained();
+            status = STATUS_IDLE;
+        }
+        if (count != previousCount || status != previousStatus) {
             setChanged();
         }
-        if (count > CHARGE_TARGET) {
-            count = CHARGE_TARGET;
-        }
-        if (level.getGameTime() % SYNC_INTERVAL == 0 && (count != syncedCount || status != syncedStatus)) {
+        if (time % SYNC_INTERVAL == 0 && (count != syncedCount || status != syncedStatus)) {
             syncedCount = count;
             syncedStatus = status;
-            level.sendBlockUpdated(pos, getBlockState(), getBlockState(), 3);
+            BlockState state = getBlockState();
+            serverLevel.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
         }
-        if (level instanceof ServerLevel serverLevel && count > REVERT_THRESHOLD && count < CHARGE_TARGET && level.getGameTime() % BOLT_INTERVAL == 0) {
-            if (level.getRandom().nextBoolean()) {
-                Effects.arcBolt(serverLevel, new Vec3(pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5, pos.getY() + 0.5, pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
-                        .to(Vec3.atCenterOf(pos.below())).width(BOLT_WIDTH).send();
-            }
-            if (level.getRandom().nextBoolean() && hasStabilizer(level, pos)) {
-                Effects.arcBolt(serverLevel, new Vec3(pos.getX() + 0.25 + level.getRandom().nextFloat() * 0.5, pos.getY() - 1.5, pos.getZ() + 0.25 + level.getRandom().nextFloat() * 0.5))
-                        .to(Vec3.atCenterOf(pos.below())).width(BOLT_WIDTH).send();
-            }
+        if (node != null && count > REVERT_THRESHOLD && count < CHARGE_TARGET && time % BOLT_INTERVAL == 0) {
+            showBolts(serverLevel, pos, nodePos, stabilizerPresent, random);
         }
     }
 
-    @Override
-    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+    private void charge(@Nullable BlockEntityNode node, boolean powered, boolean stabilizerPresent, RandomSource random) {
+        if (node == null || status == STATUS_IDLE || !powered) {
+            if (count > 0) {
+                count--;
+            }
+        } else if (stabilizerPresent && count < CHARGE_TARGET) {
+            count++;
+            if (status == STATUS_NODE) {
+                drainOnePoint(node, random);
+            }
+        }
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithoutMetadata(registries);
-    }
-
-    private void checkStatus(Level level, BlockPos pos) {
-        BlockPos nodePos = pos.below();
-        if (level.getBlockEntity(nodePos) instanceof BlockEntityNode node) {
-            if (node.isEnergized() && !hasStabilizer(level, pos)) {
-                if (level instanceof ServerLevel serverLevel) {
-                    catastrophicFailure(serverLevel, nodePos);
-                }
-                status = STATUS_IDLE;
-                count = REVERT_THRESHOLD;
-                setChanged();
-                return;
-            }
-            boolean wasEnergized = status == STATUS_ENERGIZED;
-            status = node.isEnergized() ? STATUS_ENERGIZED : STATUS_NODE;
-            if (node.isEnergized() && (!wasEnergized || count == -1)) {
-                count = CHARGE_TARGET;
-            } else {
-                count = Math.max(0, count);
-            }
-        } else {
-            status = STATUS_IDLE;
+    private void followNode(@Nullable BlockEntityNode node) {
+        int next = node == null ? STATUS_IDLE : node.isEnergized() ? STATUS_ENERGIZED : STATUS_NODE;
+        if (next == STATUS_IDLE) {
+            count = 0;
+        } else if (next == STATUS_ENERGIZED && (status != STATUS_ENERGIZED || count == UNSET_COUNT)) {
+            count = CHARGE_TARGET;
+        } else if (count == UNSET_COUNT) {
             count = 0;
         }
+        status = next;
     }
 
-    private static void catastrophicFailure(ServerLevel level, BlockPos nodePos) {
+    private static void drainOnePoint(BlockEntityNode node, RandomSource random) {
+        AspectList contained = node.getAspects();
+        List<AspectInstance> entries = contained.entries();
+        if (!entries.isEmpty()) {
+            node.drain(entries.get(random.nextInt(entries.size())).aspect(), 1);
+        }
+    }
+
+    private static void showBolts(ServerLevel level, BlockPos pos, BlockPos nodePos, boolean stabilizerPresent, RandomSource random) {
+        Vec3 nodeCenter = Vec3.atCenterOf(nodePos);
+        if (random.nextBoolean()) {
+            Effects.boltStrike(level, new Vec3(pos.getX() + BLOCK_CENTER, pos.getY() + TOP_BOLT_HEIGHT, pos.getZ() + BLOCK_CENTER)).to(nodeCenter).width(BOLT_WIDTH).send();
+        }
+        if (stabilizerPresent && random.nextBoolean()) {
+            Effects.boltStrike(level, new Vec3(pos.getX() + BLOCK_CENTER, pos.getY() + UNDERSIDE_BOLT_HEIGHT, pos.getZ() + BLOCK_CENTER)).to(nodeCenter).width(BOLT_WIDTH).send();
+        }
+    }
+
+    private static void catastrophe(ServerLevel level, BlockPos nodePos) {
+        RandomSource random = level.getRandom();
         AuraHelper.polluteAura(level, nodePos, CATASTROPHE_FLUX, true);
         level.removeBlock(nodePos, false);
-        level.explode(null, nodePos.getX() + 0.5, nodePos.getY() + 0.5, nodePos.getZ() + 0.5, CATASTROPHE_EXPLOSION, Level.ExplosionInteraction.NONE);
-        RandomSource random = level.getRandom();
-        for (int i = 0; i < CATASTROPHE_SPILLS; i++) {
-            BlockPos target = nodePos.offset(spread(random), spread(random), spread(random));
+        Vec3 center = Vec3.atCenterOf(nodePos);
+        level.explode(null, center.x, center.y, center.z, CATASTROPHE_POWER, Level.ExplosionInteraction.NONE);
+        for (int attempt = 0; attempt < SPILL_ATTEMPTS; attempt++) {
+            BlockPos target = nodePos.offset(spillOffset(random), spillOffset(random), spillOffset(random));
             if (!level.hasChunkAt(target)) {
                 continue;
             }
@@ -167,26 +179,31 @@ public final class BlockEntityNodeTransducer extends BlockEntity {
         }
     }
 
-    private static int spread(RandomSource random) {
-        return random.nextInt(CATASTROPHE_SPREAD) - random.nextInt(CATASTROPHE_SPREAD);
+    private static int spillOffset(RandomSource random) {
+        return random.nextInt(SPILL_RANGE + 1) - random.nextInt(SPILL_RANGE + 1);
     }
 
-    private static boolean hasStabilizer(Level level, BlockPos pos) {
-        BlockPos stabilizerPos = pos.below(2);
-        return level.getBlockEntity(stabilizerPos) instanceof BlockEntityNodeStabilizer && !level.hasNeighborSignal(stabilizerPos);
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveCustomOnly(registries);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("Count", count);
-        output.putInt("Status", status);
+        output.putInt(KEY_COUNT, count);
+        output.putInt(KEY_STATUS, status);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        count = input.getIntOr("Count", -1);
-        status = input.getIntOr("Status", STATUS_IDLE);
+        count = input.getIntOr(KEY_COUNT, UNSET_COUNT);
+        status = input.getIntOr(KEY_STATUS, STATUS_IDLE);
     }
 }

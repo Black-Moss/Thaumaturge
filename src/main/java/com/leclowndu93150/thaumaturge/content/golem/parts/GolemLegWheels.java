@@ -6,13 +6,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 public final class GolemLegWheels implements IGolemPartAbility {
-    private static final double MIN_TRAVEL_FOR_DUST = 0.25;
+    private static final double MIN_DUST_DISTANCE = 0.25;
+    private static final double GROUND_PROBE_DEPTH = 0.2;
+    private static final double DUST_OFFSET_Y = 0.1;
+    private static final double DUST_RISE = 1.5;
+    private static final double DUST_KICK = 4.0;
+    private static final double CENTER = 0.5;
 
     @Override
     public void tick(IGolemAPI golem) {
@@ -21,15 +28,23 @@ public final class GolemLegWheels implements IGolemPartAbility {
             return;
         }
         LivingEntity entity = golem.asEntity();
-        double dist = Math.sqrt(entity.distanceToSqr(entity.xOld, entity.yOld, entity.zOld));
-        if (!entity.onGround() || entity.isInWater() || dist <= MIN_TRAVEL_FOR_DUST) {
+        if (!entity.onGround() || entity.isInWater()) {
             return;
         }
-        BlockPos below = new BlockPos(Mth.floor(entity.getX()), Mth.floor(entity.getY() - 0.2F), Mth.floor(entity.getZ()));
-        BlockState state = level.getBlockState(below);
-        if (state.getRenderShape() != RenderShape.INVISIBLE) {
-            level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state), entity.getX() + (level.getRandom().nextFloat() - 0.5) * entity.getBbWidth(), entity.getBoundingBox().minY + 0.1,
-                    entity.getZ() + (level.getRandom().nextFloat() - 0.5) * entity.getBbWidth(), -entity.getDeltaMovement().x * 4.0, 1.5, -entity.getDeltaMovement().z * 4.0);
+        double dx = entity.getX() - entity.xo;
+        double dy = entity.getY() - entity.yo;
+        double dz = entity.getZ() - entity.zo;
+        if (Math.sqrt(dx * dx + dy * dy + dz * dz) <= MIN_DUST_DISTANCE) {
+            return;
         }
+        BlockState ground = level.getBlockState(new BlockPos(entity.getBlockX(), Mth.floor(entity.getY() - GROUND_PROBE_DEPTH), entity.getBlockZ()));
+        if (ground.getRenderShape() == RenderShape.INVISIBLE) {
+            return;
+        }
+        RandomSource random = level.getRandom();
+        Vec3 velocity = entity.getDeltaMovement();
+        double x = entity.getX() + (random.nextDouble() - CENTER) * entity.getBbWidth();
+        double z = entity.getZ() + (random.nextDouble() - CENTER) * entity.getBbWidth();
+        level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, ground), x, entity.getBoundingBox().minY + DUST_OFFSET_Y, z, -velocity.x * DUST_KICK, DUST_RISE, -velocity.z * DUST_KICK);
     }
 }

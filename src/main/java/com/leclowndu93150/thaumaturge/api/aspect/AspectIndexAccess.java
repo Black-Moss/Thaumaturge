@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumaturge.api.aspect;
 
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +22,9 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 public final class AspectIndexAccess {
-    private static Supplier<IAspectIndex> binding;
+    private static final String UNBOUND_MESSAGE = "AspectIndexAccess accessed before binding";
+    private static final String REBOUND_MESSAGE = "AspectIndexAccess already bound";
+    private static final AtomicReference<Supplier<IAspectIndex>> SOURCE = new AtomicReference<>();
 
     private AspectIndexAccess() {}
 
@@ -30,10 +35,12 @@ public final class AspectIndexAccess {
      * @throws IllegalStateException when accessed before the implementation has bound the facade
      */
     public static IAspectIndex index() {
-        if (binding == null) {
-            throw new IllegalStateException("AspectIndexAccess accessed before binding");
-        }
-        return binding.get();
+        Optional<Supplier<IAspectIndex>> bound = Optional.ofNullable(SOURCE.get());
+        return bound.orElseThrow(AspectIndexAccess::unbound).get();
+    }
+
+    private static IllegalStateException unbound() {
+        return new IllegalStateException(UNBOUND_MESSAGE);
     }
 
     /**
@@ -43,7 +50,8 @@ public final class AspectIndexAccess {
      * @return the aspect list, or {@link AspectList#EMPTY} when the item is unknown
      */
     public static AspectList of(Item item) {
-        return index().of(item);
+        Function<IAspectIndex, AspectList> byItem = view -> view.of(item);
+        return query(byItem);
     }
 
     /**
@@ -54,7 +62,7 @@ public final class AspectIndexAccess {
      * @return the aspect list, or {@link AspectList#EMPTY} when none
      */
     public static AspectList of(ItemStack stack) {
-        return index().of(stack);
+        return query(view -> view.of(stack));
     }
 
     /**
@@ -65,9 +73,12 @@ public final class AspectIndexAccess {
      * @throws IllegalStateException when already bound
      */
     public static void bind(Supplier<IAspectIndex> impl) {
-        if (binding != null) {
-            throw new IllegalStateException("AspectIndexAccess already bound");
+        if (!SOURCE.compareAndSet(null, impl)) {
+            throw new IllegalStateException(REBOUND_MESSAGE);
         }
-        binding = impl;
+    }
+
+    private static AspectList query(Function<IAspectIndex, AspectList> lookup) {
+        return lookup.apply(index());
     }
 }

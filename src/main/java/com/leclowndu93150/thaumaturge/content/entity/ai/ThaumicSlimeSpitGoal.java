@@ -3,98 +3,88 @@ package com.leclowndu93150.thaumaturge.content.entity.ai;
 import com.leclowndu93150.thaumaturge.content.entity.ThaumicSlime;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.EnumSet;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class ThaumicSlimeSpitGoal extends Goal {
-    private static final int COOLDOWN_TICKS = 100;
-    private static final int COOLDOWN_RESET_TICKS = 101;
     private static final double PLAYER_RANGE = 16.0;
-    private static final double MIN_SPIT_DISTANCE = 4.0;
-    private static final int MIN_SPIT_SIZE = 3;
-    private static final float SPIT_SPEED = 1.5F;
-    private static final float SPIT_SPREAD = 1.0F;
-    private static final float SPREAD_SCALE = 0.0075F;
-    private static final float ARC_COMPENSATION = 0.2F;
+    private static final int INITIAL_COOLDOWN = 100;
+    private static final int RESET_COOLDOWN = 101;
+    private static final int CHILD_SIZE = 1;
+    private static final double LAUNCH_SPEED = 1.5;
+    private static final double SPREAD = 0.0075;
+    private static final double ARC_PER_BLOCK = 0.2;
+    private static final double OVERHEAD_EPSILON = 1.0E-4;
+    private static final float TORSO_FRACTION = 0.5F;
+    private static final float GORE_VOLUME = 1.0F;
+    private static final float GORE_PITCH_FACTOR = 0.8F;
+    private static final float GORE_PITCH_SPREAD = 0.2F;
 
     private final ThaumicSlime slime;
-    private int cooldown = COOLDOWN_TICKS;
+    private int cooldown = INITIAL_COOLDOWN;
+    private @Nullable Player victim;
 
     public ThaumicSlimeSpitGoal(ThaumicSlime slime) {
         this.slime = slime;
-        this.setFlags(EnumSet.noneOf(Goal.Flag.class));
     }
 
     @Override
     public boolean canUse() {
-        Player nearest = slime.level().getNearestPlayer(slime, PLAYER_RANGE);
-        if (nearest == null) {
+        Player player = slime.level().getNearestPlayer(slime, PLAYER_RANGE);
+        if (player == null) {
             return false;
         }
         if (cooldown > 0) {
             cooldown--;
+        }
+        if (cooldown > 0 || !slime.canSpitAt(player)) {
             return false;
         }
-        if (slime.getSize() < MIN_SPIT_SIZE) {
-            return false;
-        }
-        return slime.distanceTo(nearest) > MIN_SPIT_DISTANCE;
+        victim = player;
+        return true;
     }
 
     @Override
     public void start() {
-        if (!(slime.level() instanceof ServerLevel serverLevel)) {
+        cooldown = RESET_COOLDOWN;
+        if (victim == null || !(slime.level() instanceof ServerLevel level)) {
             return;
         }
-        Player target = serverLevel.getNearestPlayer(slime, PLAYER_RANGE);
-        if (target == null) {
-            return;
-        }
-        cooldown = COOLDOWN_RESET_TICKS;
-        ThaumicSlime child = TTEntities.THAUMIC_SLIME.get().create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
+        ThaumicSlime child = TTEntities.THAUMIC_SLIME.get().create(level, EntitySpawnReason.MOB_SUMMONED);
         if (child == null) {
             return;
         }
-        child.setSize(1, true);
-        AABB box = slime.getBoundingBox();
-        double originY = (box.minY + box.maxY) / 2.0;
-        double dx = target.getX() - slime.getX();
-        double dy = target.getBoundingBox().minY + target.getBbHeight() / 3.0F - originY;
-        double dz = target.getZ() - slime.getZ();
-        double hDist = Math.sqrt(dx * dx + dz * dz);
-        if (hDist >= 1.0E-7) {
-            float yaw = (float) (Math.atan2(dz, dx) * 180.0 / Math.PI) - 90.0F;
-            float pitch = (float) (-(Math.atan2(dy, hDist) * 180.0 / Math.PI));
-            child.snapTo(slime.getX() + dx / hDist, originY, slime.getZ() + dz / hDist, yaw, pitch);
-            shoot(child, dx, dy + hDist * ARC_COMPENSATION, dz, SPIT_SPEED, SPIT_SPREAD);
-        }
-        serverLevel.addFreshEntity(child);
-        slime.playSound(TTSounds.GORE.get(), 1.0F, ((slime.getRandom().nextFloat() - slime.getRandom().nextFloat()) * 0.2F + 1.0F) * 0.8F);
+        RandomSource random = slime.getRandom();
+        child.setSize(CHILD_SIZE, true);
+        child.setPos(slime.getX(), slime.getY() + slime.getBbHeight() / 2.0, slime.getZ());
+        launch(child, victim, random);
+        level.addFreshEntity(child);
+        slime.playSound(TTSounds.GORE.get(), GORE_VOLUME, GORE_PITCH_FACTOR * (1.0F + (random.nextFloat() - random.nextFloat()) * GORE_PITCH_SPREAD));
         slime.setSize(slime.getSize() - 1, true);
+        victim = null;
     }
 
-    private void shoot(ThaumicSlime child, double dx, double dy, double dz, float speed, float spread) {
-        double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        dx /= length;
-        dy /= length;
-        dz /= length;
-        dx += child.getRandom().nextGaussian() * SPREAD_SCALE * spread;
-        dy += child.getRandom().nextGaussian() * SPREAD_SCALE * spread;
-        dz += child.getRandom().nextGaussian() * SPREAD_SCALE * spread;
-        dx *= speed;
-        dy *= speed;
-        dz *= speed;
-        child.setDeltaMovement(dx, dy, dz);
-        float hLength = (float) Math.sqrt(dx * dx + dz * dz);
-        float yaw = (float) (Math.atan2(dx, dz) * 180.0 / Math.PI);
-        float pitch = (float) (Math.atan2(dy, hLength) * 180.0 / Math.PI);
+    private void launch(ThaumicSlime child, Player target, RandomSource random) {
+        double dx = target.getX() - child.getX();
+        double dy = target.getY(TORSO_FRACTION) - child.getY();
+        double dz = target.getZ() - child.getZ();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        if (horizontal < OVERHEAD_EPSILON) {
+            return;
+        }
+        Vec3 velocity = new Vec3(dx, dy + horizontal * ARC_PER_BLOCK, dz).normalize().add(random.nextGaussian() * SPREAD, random.nextGaussian() * SPREAD, random.nextGaussian() * SPREAD)
+                .scale(LAUNCH_SPEED);
+        float yaw = (float) (Mth.atan2(-velocity.x, velocity.z) * Mth.RAD_TO_DEG);
+        child.setDeltaMovement(velocity);
         child.setYRot(yaw);
         child.yRotO = yaw;
-        child.setXRot(pitch);
-        child.xRotO = pitch;
+        child.yHeadRot = yaw;
+        child.yBodyRot = yaw;
     }
 }

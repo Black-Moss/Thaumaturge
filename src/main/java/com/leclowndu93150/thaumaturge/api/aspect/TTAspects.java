@@ -2,23 +2,19 @@ package com.leclowndu93150.thaumaturge.api.aspect;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import java.util.List;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
 
 /**
- * Typed handles to the built-in Thaumaturge aspects. Each constant is a {@link ResourceKey}
- * that can be resolved against a {@link HolderLookup.Provider} to obtain
- * the {@link Holder Holder} or value at runtime.
+ * Typed registry keys for the built-in aspects.
  *
- * <p>Holding a {@code ResourceKey} rather than the value itself means code is safe to
- * reference these constants in {@code <clinit>} and is unaffected by datapack reloads or
- * registration order.
+ * <p>Every constant is a key into the {@link IAspect#REGISTRY_KEY} datapack registry, so the
+ * constants are safe to reference during static initialisation of other classes. Resolving a key
+ * to a holder is done against the live registry and may yield no holder when a datapack removed
+ * the entry. The registry path of every constant equals its lowercase tag and never changes.
  *
- * <p>Addons should declare their own {@code ResourceKey} constants for any aspects they ship,
- * following the same pattern.
+ * <p>All members are immutable and thread-safe.
  *
- * @since 1.0.0
+ * @since 1.0
  */
 public final class TTAspects {
     public static final ResourceKey<IAspect> AER = key("aer");
@@ -27,7 +23,6 @@ public final class TTAspects {
     public static final ResourceKey<IAspect> AQUA = key("aqua");
     public static final ResourceKey<IAspect> ORDO = key("ordo");
     public static final ResourceKey<IAspect> PERDITIO = key("perditio");
-
     public static final ResourceKey<IAspect> VACUOS = key("vacuos");
     public static final ResourceKey<IAspect> LUX = key("lux");
     public static final ResourceKey<IAspect> MOTUS = key("motus");
@@ -62,7 +57,8 @@ public final class TTAspects {
 
     /**
      * The six primal aspects in canonical display order: aer, ignis, aqua, terra, ordo, perditio.
-     * This order is used by wand vis pools and the arcane workbench crystal slots.
+     * The list is immutable. Wand vis pools, workbench crystal slots and HUD bars follow its
+     * index order, and primal-only rules use list membership.
      */
     public static final List<ResourceKey<IAspect>> PRIMALS = List.of(AER, IGNIS, AQUA, TERRA, ORDO, PERDITIO);
 

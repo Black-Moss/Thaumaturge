@@ -14,8 +14,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockWorkQueues {
+    private static final int DEFAULT_SWAP_COLOR = 0xFFFFFF;
+    private static final float DEFAULT_STRENGTH = 1.0F;
+    private static final float DEFAULT_DURABILITY_MAX = 1.0F;
+    private static final Predicate<SwapContext> ALWAYS_ALLOWED = context -> true;
+    private static final VisCharge NO_CHARGE = new VisCharge(0.0F, null);
+
     private final List<BreakerTask> breakers = new ArrayList<>();
     private final List<SwapperTask> swappers = new ArrayList<>();
+
+    private static BlockWorkQueues forLevel(ServerLevel level) {
+        return level.getData(TTAttachments.BLOCK_WORK_QUEUES);
+    }
 
     public List<BreakerTask> breakers() {
         return breakers;
@@ -25,18 +35,20 @@ public final class BlockWorkQueues {
         return swappers;
     }
 
+    private record VisCharge(float cost, @Nullable ResourceKey<IAspect> aspect) {
+    }
+
     public record SwapContext(ServerLevel level, Player player, BlockPos pos) {
     }
 
     public record BreakerTask(BlockPos pos, BlockState source, UUID playerId, boolean fx, boolean silk, int fortune, float strength, float durability, float durabilityMax, int delay, float visCost,
             @Nullable ResourceKey<IAspect> visAspect) {
-
-        BreakerTask withDelay(int delay) {
-            return new BreakerTask(pos, source, playerId, fx, silk, fortune, strength, durability, durabilityMax, delay, visCost, visAspect);
+        BreakerTask withDelay(int newDelay) {
+            return new BreakerTask(pos, source, playerId, fx, silk, fortune, strength, durability, durabilityMax, newDelay, visCost, visAspect);
         }
 
-        BreakerTask withDurability(float durability) {
-            return new BreakerTask(pos, source, playerId, fx, silk, fortune, strength, durability, durabilityMax, delay, visCost, visAspect);
+        BreakerTask withDurability(float newDurability) {
+            return new BreakerTask(pos, source, playerId, fx, silk, fortune, strength, newDurability, durabilityMax, delay, visCost, visAspect);
         }
 
         public static final class Builder {
@@ -46,31 +58,30 @@ public final class BlockWorkQueues {
             private boolean fx;
             private boolean silk;
             private int fortune;
-            private float strength = 1.0F;
+            private float strength = DEFAULT_STRENGTH;
             private float durability;
-            private float durabilityMax = 1.0F;
+            private float durabilityMax = DEFAULT_DURABILITY_MAX;
             private int delay;
-            private float visCost;
-            private @Nullable ResourceKey<IAspect> visAspect;
+            private VisCharge charge = NO_CHARGE;
 
-            Builder(BlockPos pos, BlockState source, Player player) {
+            Builder(BlockPos pos, BlockState source, UUID playerId) {
                 this.pos = pos.immutable();
                 this.source = source;
-                this.playerId = player.getUUID();
+                this.playerId = playerId;
             }
 
             public Builder showFx() {
-                this.fx = true;
+                fx = true;
                 return this;
             }
 
-            public Builder silkTouch(boolean silk) {
-                this.silk = silk;
+            public Builder silkTouch(boolean enabled) {
+                silk = enabled;
                 return this;
             }
 
-            public Builder fortune(int fortune) {
-                this.fortune = fortune;
+            public Builder fortune(int level) {
+                fortune = level;
                 return this;
             }
 
@@ -85,29 +96,32 @@ public final class BlockWorkQueues {
                 return this;
             }
 
-            public Builder delay(int ticks) {
-                this.delay = ticks;
+            public Builder delay(int delay) {
+                this.delay = delay;
                 return this;
             }
 
-            public Builder visCost(float visCost, ResourceKey<IAspect> visAspect) {
-                this.visCost = visCost;
-                this.visAspect = visAspect;
+            public Builder visCost(float amount, @Nullable ResourceKey<IAspect> type) {
+                charge = new VisCharge(amount, type);
                 return this;
             }
 
             public void queue(ServerLevel level) {
-                level.getData(TTAttachments.BLOCK_WORK_QUEUES).breakers()
-                        .add(new BreakerTask(pos, source, playerId, fx, silk, fortune, strength, durability, durabilityMax, delay, visCost, visAspect));
+                BreakerTask task = build();
+                forLevel(level).breakers.add(task);
+            }
+
+            private BreakerTask build() {
+                return new BreakerTask(pos, source, playerId, fx, silk, fortune, strength, durability, durabilityMax, delay, charge.cost(), charge.aspect());
             }
         }
     }
 
     public record SwapperTask(BlockPos pos, @Nullable BlockState source, @Nullable BlockState target, boolean consumeTarget, int lifespan, UUID playerId, boolean fx, boolean fancy, int color,
             boolean pickup, boolean silk, int fortune, Predicate<SwapContext> allowSwap, float visCost, @Nullable ResourceKey<IAspect> visAspect) {
-
-        SwapperTask spreadTo(BlockPos neighbour) {
-            return new SwapperTask(neighbour, source, target, consumeTarget, lifespan - 1, playerId, fx, fancy, color, pickup, silk, fortune, allowSwap, visCost, visAspect);
+        SwapperTask propagatedTo(BlockPos newPos) {
+            int remainingLife = lifespan - 1;
+            return new SwapperTask(newPos, source(), target(), consumeTarget(), remainingLife, playerId(), fx(), fancy(), color(), pickup(), silk(), fortune(), allowSwap(), visCost(), visAspect());
         }
 
         public static final class Builder {
@@ -119,23 +133,22 @@ public final class BlockWorkQueues {
             private int lifespan;
             private boolean fx;
             private boolean fancy;
-            private int color = 0xFFFFFF;
+            private int color = DEFAULT_SWAP_COLOR;
             private boolean pickup;
             private boolean silk;
             private int fortune;
-            private Predicate<SwapContext> allowSwap = context -> true;
-            private float visCost;
-            private @Nullable ResourceKey<IAspect> visAspect;
+            private Predicate<SwapContext> allowSwap = ALWAYS_ALLOWED;
+            private VisCharge charge = NO_CHARGE;
 
-            Builder(BlockPos pos, @Nullable BlockState source, @Nullable BlockState target, Player player) {
+            Builder(BlockPos pos, @Nullable BlockState source, @Nullable BlockState target, UUID playerId) {
                 this.pos = pos.immutable();
                 this.source = source;
                 this.target = target;
-                this.playerId = player.getUUID();
+                this.playerId = playerId;
             }
 
             public Builder consumeTarget() {
-                this.consumeTarget = true;
+                consumeTarget = true;
                 return this;
             }
 
@@ -144,25 +157,25 @@ public final class BlockWorkQueues {
                 return this;
             }
 
-            public Builder showFx(int color, boolean fancy) {
-                this.fx = true;
-                this.color = color;
-                this.fancy = fancy;
+            public Builder showFx(int rgb, boolean sparkle) {
+                fancy = sparkle;
+                color = rgb;
+                fx = true;
                 return this;
             }
 
             public Builder pickupDrops() {
-                this.pickup = true;
+                pickup = true;
                 return this;
             }
 
-            public Builder silkTouch(boolean silk) {
-                this.silk = silk;
+            public Builder silkTouch(boolean enabled) {
+                silk = enabled;
                 return this;
             }
 
-            public Builder fortune(int fortune) {
-                this.fortune = fortune;
+            public Builder fortune(int level) {
+                fortune = level;
                 return this;
             }
 
@@ -171,15 +184,19 @@ public final class BlockWorkQueues {
                 return this;
             }
 
-            public Builder visCost(float visCost, ResourceKey<IAspect> visAspect) {
-                this.visCost = visCost;
-                this.visAspect = visAspect;
+            public Builder visCost(float amount, @Nullable ResourceKey<IAspect> type) {
+                charge = new VisCharge(amount, type);
                 return this;
             }
 
             public void queue(ServerLevel level) {
-                level.getData(TTAttachments.BLOCK_WORK_QUEUES).swappers()
-                        .add(new SwapperTask(pos, source, target, consumeTarget, lifespan, playerId, fx, fancy, color, pickup, silk, fortune, allowSwap, visCost, visAspect));
+                SwapperTask task = build();
+                forLevel(level).swappers.add(task);
+            }
+
+            private SwapperTask build() {
+                return new SwapperTask(this.pos, this.source, this.target, this.consumeTarget, this.lifespan, this.playerId, this.fx, this.fancy, this.color, this.pickup, this.silk, this.fortune,
+                        this.allowSwap, charge.cost(), charge.aspect());
             }
         }
     }

@@ -19,7 +19,7 @@ public final class SealAccess {
     }
 
     public static boolean isLive(Player player, ISealEntity seal) {
-        return SealHandler.getSealEntity(player.level(), seal.pos()) == seal && player.isWithinBlockInteractionRange(seal.pos().pos(), REACH_BUFFER);
+        return SealHandler.lookup(player.level(), seal.pos()) == seal && player.isWithinBlockInteractionRange(seal.pos().pos(), REACH_BUFFER);
     }
 
     public static boolean allows(@Nullable ISealEntity seal, IGolemAPI golem) {

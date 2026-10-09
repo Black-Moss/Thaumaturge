@@ -42,14 +42,14 @@ final class SpellFxBatch implements SpellFx {
     @Override
     public void arc(Vec3 from, Vec3 to, int color, float width) {
         if (arcs++ < MAX_ARCS) {
-            Effects.arcBolt(level, from).to(to).color(color).width(width).send();
+            Effects.boltStrike(level, from).to(to).color(color).width(width).send();
         }
     }
 
     @Override
     public void beam(Vec3 from, Vec3 to, int color, int ticks) {
         if (arcs++ < MAX_ARCS) {
-            Effects.beamBore(level, from).to(to).color(color).age(ticks).send();
+            Effects.drillBeam(level, from).to(to).color(color).age(ticks).send();
         }
     }
 

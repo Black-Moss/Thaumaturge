@@ -51,6 +51,7 @@ public final class AuraTests {
             float before = AuraHelper.getFlux(helper.getLevel(), pos);
             AuraHelper.addFlux(helper.getLevel(), pos, 7.0F);
             float after = AuraHelper.getFlux(helper.getLevel(), pos);
+            AuraHelper.drainFlux(helper.getLevel(), pos, 7.0F, false);
             if (after < before + 7.0F - EPSILON) {
                 helper.fail("Flux add did not register: before " + before + " after " + after);
                 return;

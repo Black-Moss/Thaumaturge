@@ -29,13 +29,17 @@ import net.minecraft.world.level.Level;
 
 public final class InfusionEnchantmentRecipe implements InfusionJobRecipe {
     public static final int INSTABILITY = 4;
-    private static final float OTHER_ENCHANT_COST_STEP = 0.33F;
+    private static final int MAX_COMPONENTS = 64;
     private static final int WARP_ROLL_BOUND = 10;
+    private static final float OTHER_ENCHANTMENT_WEIGHT = 0.33F;
+    private static final int DISPLAY_LEVEL = 1;
 
     public static final MapCodec<InfusionEnchantmentRecipe> MAP_CODEC = RecordCodecBuilder
-            .mapCodec(i -> i.group(InfusionEnchantment.CODEC.fieldOf("enchantment").forGetter(r -> r.enchantment), Ingredient.CODEC.listOf(1, 64).fieldOf("components").forGetter(r -> r.components),
-                    AspectList.NON_EMPTY_CODEC.fieldOf("aspects").forGetter(r -> r.aspects), Ingredient.CODEC.fieldOf("display_catalyst").forGetter(r -> r.displayCatalyst),
-                    ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research)).apply(i, InfusionEnchantmentRecipe::new));
+            .mapCodec(i -> i
+                    .group(InfusionEnchantment.CODEC.fieldOf("enchantment").forGetter(r -> r.enchantment),
+                            Ingredient.CODEC.listOf(1, MAX_COMPONENTS).fieldOf("components").forGetter(r -> r.components), AspectList.NON_EMPTY_CODEC.fieldOf("aspects").forGetter(r -> r.aspects),
+                            Ingredient.CODEC.fieldOf("display_catalyst").forGetter(r -> r.displayCatalyst), ResearchGate.CODEC.optionalFieldOf("research").forGetter(r -> r.research))
+                    .apply(i, InfusionEnchantmentRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, InfusionEnchantmentRecipe> STREAM_CODEC = StreamCodec.composite(InfusionEnchantment.STREAM_CODEC, r -> r.enchantment,
             Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), r -> r.components, AspectList.STREAM_CODEC, r -> r.aspects, Ingredient.CONTENTS_STREAM_CODEC, r -> r.displayCatalyst,
@@ -64,31 +68,25 @@ public final class InfusionEnchantmentRecipe implements InfusionJobRecipe {
     @Override
     public boolean matches(InfusionInput input, Level level) {
         ItemStack catalyst = input.catalyst();
-        if (!InfusionEnchantmentHelper.canApply(catalyst, enchantment)) {
-            return false;
-        }
-        if (InfusionEnchantmentHelper.level(catalyst, enchantment) >= enchantment.maxLevel()) {
-            return false;
-        }
-        return matchComponents(input.components()) != null;
+        return !catalyst.isEmpty() && InfusionEnchantmentHelper.canApply(catalyst, enchantment) && InfusionEnchantmentHelper.level(catalyst, enchantment) < enchantment.maxLevel()
+                && matchComponents(input.components()) != null;
     }
 
     public AspectList scaledAspects(ItemStack catalyst) {
-        int nextLevel = InfusionEnchantmentHelper.level(catalyst, enchantment) + 1;
-        if (nextLevel > enchantment.maxLevel()) {
+        int next = InfusionEnchantmentHelper.level(catalyst, enchantment) + 1;
+        if (next > enchantment.maxLevel()) {
             return AspectList.EMPTY;
         }
-        List<InfusionEnchantment> existing = InfusionEnchantmentHelper.list(catalyst);
-        int others = existing.size() - (existing.contains(enchantment) ? 1 : 0);
-        float modifier = nextLevel + others * OTHER_ENCHANT_COST_STEP;
-        AspectList out = AspectList.EMPTY;
-        for (AspectInstance instance : aspects.entries()) {
-            int amount = (int) (instance.amount() * modifier);
+        int others = InfusionEnchantmentHelper.list(catalyst).size() - (InfusionEnchantmentHelper.has(catalyst, enchantment) ? 1 : 0);
+        float modifier = next + OTHER_ENCHANTMENT_WEIGHT * others;
+        AspectList scaled = AspectList.EMPTY;
+        for (AspectInstance entry : aspects.entries()) {
+            int amount = (int) (entry.amount() * modifier);
             if (amount > 0) {
-                out = out.add(instance.aspect(), amount);
+                scaled = scaled.add(entry.aspect(), amount);
             }
         }
-        return out;
+        return scaled;
     }
 
     @Override
@@ -107,16 +105,16 @@ public final class InfusionEnchantmentRecipe implements InfusionJobRecipe {
     }
 
     public ItemStack enchantedResult(ItemStack catalyst, RandomSource random) {
-        ItemStack out = catalyst.copyWithCount(1);
-        int existing = InfusionEnchantmentHelper.level(out, enchantment);
-        if (existing >= enchantment.maxLevel()) {
-            return out;
+        ItemStack result = catalyst.copyWithCount(1);
+        int current = InfusionEnchantmentHelper.level(result, enchantment);
+        if (current >= enchantment.maxLevel()) {
+            return result;
         }
-        if (random.nextInt(WARP_ROLL_BOUND) < InfusionEnchantmentHelper.list(catalyst).size()) {
-            out.set(TTDataComponents.STACK_WARP.get(), out.getOrDefault(TTDataComponents.STACK_WARP.get(), 0) + 1);
+        if (random.nextInt(WARP_ROLL_BOUND) < InfusionEnchantmentHelper.list(result).size()) {
+            result.set(TTDataComponents.STACK_WARP.get(), result.getOrDefault(TTDataComponents.STACK_WARP.get(), 0) + 1);
         }
-        InfusionEnchantmentHelper.add(out, enchantment, existing + 1);
-        return out;
+        InfusionEnchantmentHelper.add(result, enchantment, current + 1);
+        return result;
     }
 
     @Override
@@ -141,11 +139,11 @@ public final class InfusionEnchantmentRecipe implements InfusionJobRecipe {
 
     @Override
     public ItemStack resultItem() {
-        ItemStack base = displayCatalyst.items().findFirst().map(holder -> new ItemStack(holder.value())).orElse(ItemStack.EMPTY);
-        if (!base.isEmpty()) {
-            InfusionEnchantmentHelper.add(base, enchantment, 1);
+        ItemStack display = displayCatalyst.items().findFirst().map(ItemStack::new).orElse(ItemStack.EMPTY);
+        if (!display.isEmpty()) {
+            InfusionEnchantmentHelper.add(display, enchantment, DISPLAY_LEVEL);
         }
-        return base;
+        return display;
     }
 
     @Override
@@ -157,15 +155,15 @@ public final class InfusionEnchantmentRecipe implements InfusionJobRecipe {
     public List<RecipeDisplay> display() {
         ItemStack out = resultItem();
         SlotDisplay resultDisplay = out.isEmpty() ? SlotDisplay.Empty.INSTANCE : new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(out));
-        return List
-                .of(new InfusionRecipeDisplay(displayCatalyst.display(), components().stream().map(Ingredient::display).map(d -> (SlotDisplay) d).toList(), aspects(), instability(), resultDisplay));
+        List<SlotDisplay> componentDisplays = components.stream().map(Ingredient::display).map(display -> (SlotDisplay) display).toList();
+        return List.of(new InfusionRecipeDisplay(displayCatalyst.display(), componentDisplays, aspects, INSTABILITY, resultDisplay));
     }
 
     @Override
     public ItemStack assemble(InfusionInput input) {
-        ItemStack out = input.catalyst().copyWithCount(1);
-        InfusionEnchantmentHelper.add(out, enchantment, InfusionEnchantmentHelper.level(out, enchantment) + 1);
-        return out;
+        ItemStack result = input.catalyst().copyWithCount(1);
+        InfusionEnchantmentHelper.add(result, enchantment, InfusionEnchantmentHelper.level(result, enchantment) + 1);
+        return result;
     }
 
     @Override

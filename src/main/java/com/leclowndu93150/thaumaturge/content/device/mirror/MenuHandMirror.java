@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.device.mirror;
 
 import com.leclowndu93150.thaumaturge.content.menu.AbstractTTMenu;
+import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,19 +12,24 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public final class MenuHandMirror extends AbstractTTMenu {
-    private static final int MACHINE_SLOTS = 1;
-    private static final int INPUT_SLOT_X = 80;
-    private static final int INPUT_SLOT_Y = 24;
-    private static final int PLAYER_INV_X = 8;
-    private static final int PLAYER_INV_Y = 84;
+    private static final int INPUT_SLOT = 0;
+    private static final int INPUT_SLOTS = 1;
+    private static final int INPUT_X = 80;
+    private static final int INPUT_Y = 24;
+    private static final int INVENTORY_X = 8;
+    private static final int INVENTORY_Y = 84;
     private static final int HOTBAR_Y = 142;
+    private static final int HOTBAR_SLOT_COUNT = 9;
+    private static final int OFFHAND_SWAP_BUTTON = 40;
+
+    public final int mirrorHotbarSlot;
 
     private final Player player;
-    private final InputContainer input;
-    public final int mirrorHotbarSlot;
-    private boolean transporting;
+    private final SimpleContainer input = new InputContainer(this);
+    private boolean settling;
 
     public MenuHandMirror(int containerId, Inventory inventory, RegistryFriendlyByteBuf buf) {
         this(containerId, inventory);
@@ -31,81 +37,88 @@ public final class MenuHandMirror extends AbstractTTMenu {
 
     public MenuHandMirror(int containerId, Inventory inventory) {
         super(TTMenus.HAND_MIRROR.get(), containerId);
+        addSlot(new Slot(input, INPUT_SLOT, INPUT_X, INPUT_Y));
+        addPlayerSlots(inventory);
         this.player = inventory.player;
-        this.input = new InputContainer(this);
         this.mirrorHotbarSlot = inventory.getSelectedSlot();
-        addSlot(new Slot(input, 0, INPUT_SLOT_X, INPUT_SLOT_Y));
-        addInventoryExtendedSlots(inventory, PLAYER_INV_X, PLAYER_INV_Y);
-        addInventoryHotbarSlots(inventory, PLAYER_INV_X, HOTBAR_Y);
     }
 
-    private ItemStack mirror() {
-        return player.getMainHandItem();
+    private void addPlayerSlots(Inventory inventory) {
+        addInventoryExtendedSlots(inventory, INVENTORY_X, INVENTORY_Y);
+        addInventoryHotbarSlots(inventory, INVENTORY_X, HOTBAR_Y);
+    }
+
+    private static boolean isMirror(ItemStack stack) {
+        return stack.is(TTItems.HAND_MIRROR.get());
     }
 
     @Override
     public void slotsChanged(Container container) {
-        super.slotsChanged(container);
-        if (container == input) {
-            inputChanged(container);
+        if (container == input && !settling && !input.isEmpty() && player instanceof ServerPlayer serverPlayer) {
+            relay(serverPlayer);
         }
+        super.slotsChanged(container);
     }
 
-    private void inputChanged(Container container) {
-        if (transporting || player.level().isClientSide() || !(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        ItemStack inserted = container.getItem(0);
-        if (inserted.isEmpty()) {
-            return;
-        }
-        ItemStack moved = inserted.copy();
-        transporting = true;
+    private void relay(ServerPlayer sender) {
+        settling = true;
         try {
-            container.setItem(0, ItemStack.EMPTY);
-            if (!ItemHandMirror.transport(mirror(), moved, serverPlayer)) {
-                container.setItem(0, moved);
+            ItemStack inserted = input.removeItemNoUpdate(INPUT_SLOT);
+            if (!ItemHandMirror.transport(sender.getMainHandItem(), inserted, sender)) {
+                input.setItem(INPUT_SLOT, inserted);
             }
         } finally {
-            transporting = false;
+            settling = false;
         }
     }
 
+    private @Nullable Slot slotAt(int index) {
+        return index >= 0 && index < slots.size() ? slots.get(index) : null;
+    }
+
+    private boolean holdsMirror(int index) {
+        Slot slot = slotAt(index);
+        return slot != null && isMirror(slot.getItem());
+    }
+
     @Override
-    public void clicked(int slotId, int button, ContainerInput containerInput, Player clickPlayer) {
-        if (slotId >= 0 && slotId < slots.size() && slots.get(slotId).getItem().getItem() instanceof ItemHandMirror) {
+    public void clicked(int slotId, int button, ContainerInput containerInput, Player clicker) {
+        boolean blocked = holdsMirror(slotId) || containerInput == ContainerInput.SWAP && swapsMirror(button, clicker);
+        if (!blocked) {
+            super.clicked(slotId, button, containerInput, clicker);
+        }
+    }
+
+    private boolean swapsMirror(int button, Player clicker) {
+        boolean inventoryButton = button == OFFHAND_SWAP_BUTTON || button >= 0 && button < HOTBAR_SLOT_COUNT;
+        return button == mirrorHotbarSlot || inventoryButton && isMirror(clicker.getInventory().getItem(button));
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player clicker, int index) {
+        boolean movable = slotAt(index) != null && !holdsMirror(index);
+        return movable ? quickMoveBetween(index, INPUT_SLOTS, stack -> true) : ItemStack.EMPTY;
+    }
+
+    @Override
+    public void removed(Player closing) {
+        super.removed(closing);
+        if (!(closing instanceof ServerPlayer)) {
             return;
         }
-        if (containerInput == ContainerInput.SWAP && button == mirrorHotbarSlot) {
-            return;
-        }
-        super.clicked(slotId, button, containerInput, clickPlayer);
+        clearContainer(closing, input);
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int index) {
-        if (slots.get(index).getItem().getItem() instanceof ItemHandMirror) {
-            return ItemStack.EMPTY;
-        }
-        return quickMoveBetween(index, MACHINE_SLOTS, stack -> true);
-    }
-
-    @Override
-    public void removed(Player removedPlayer) {
-        super.removed(removedPlayer);
-        clearContainer(removedPlayer, input);
-    }
-
-    @Override
-    public boolean stillValid(Player checkPlayer) {
-        return checkPlayer.getMainHandItem().getItem() instanceof ItemHandMirror;
+    public boolean stillValid(Player viewer) {
+        return isMirror(viewer.getMainHandItem());
     }
 
     private static final class InputContainer extends SimpleContainer {
         private final MenuHandMirror menu;
 
-        private InputContainer(MenuHandMirror menu) {
-            super(1);
+        InputContainer(MenuHandMirror menu) {
+            super(INPUT_SLOTS);
             this.menu = menu;
         }
 

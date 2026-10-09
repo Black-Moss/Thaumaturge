@@ -16,20 +16,24 @@ import net.minecraft.world.level.redstone.Orientation;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockVisBattery extends Block {
-    public static final MapCodec<BlockVisBattery> CODEC = simpleCodec(BlockVisBattery::new);
-    public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, 10);
-
     private static final int MAX_CHARGE = 10;
-    private static final float TRANSFER_AMOUNT = 1.0F;
-    private static final float CHARGE_AURA_FRACTION = 0.9F;
-    private static final float DISCHARGE_AURA_FRACTION = 0.75F;
-    private static final int POWERED_DISCHARGE_DELAY = 5;
-    private static final int CHARGE_DELAY_BASE = 100;
-    private static final int DISCHARGE_DELAY_BASE = 20;
+    private static final float VIS_STEP = 1.0F;
+    private static final float CHARGE_BAND = 0.9F;
+    private static final float RELEASE_BAND = 0.75F;
+    private static final float MIN_CHARGE_VIS = 1.0F;
+    private static final int POWERED_DELAY = 5;
+    private static final int CHARGE_DELAY_MIN = 100;
+    private static final int CHARGE_DELAY_SPREAD = 100;
+    private static final int RELEASE_DELAY_MIN = 20;
+    private static final int RELEASE_DELAY_SPREAD = 20;
+    private static final int WAKE_DELAY = 1;
+
+    public static final MapCodec<BlockVisBattery> CODEC = simpleCodec(BlockVisBattery::new);
+    public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, MAX_CHARGE);
 
     public BlockVisBattery(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any().setValue(CHARGE, 0));
+        registerDefaultState(stateDefinition.any().setValue(CHARGE, 0));
     }
 
     @Override
@@ -44,41 +48,18 @@ public final class BlockVisBattery extends Block {
 
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        updateTick(state, level, pos, random);
+        evaluate(state, level, pos, random);
     }
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        updateTick(state, level, pos, random);
-    }
-
-    private void updateTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        int charge = state.getValue(CHARGE);
-        if (level.hasNeighborSignal(pos)) {
-            if (charge > 0) {
-                AuraHelper.addVis(level, pos, TRANSFER_AMOUNT);
-                level.setBlockAndUpdate(pos, state.setValue(CHARGE, charge - 1));
-                level.scheduleTick(pos, this, POWERED_DISCHARGE_DELAY);
-            }
-            return;
-        }
-        float aura = AuraHelper.getVis(level, pos);
-        int base = AuraHelper.getAuraBase(level, pos);
-        if (charge < MAX_CHARGE && aura > base * CHARGE_AURA_FRACTION && aura > 1.0F) {
-            AuraHelper.drainVis(level, pos, TRANSFER_AMOUNT, false);
-            level.setBlockAndUpdate(pos, state.setValue(CHARGE, charge + 1));
-            level.scheduleTick(pos, this, CHARGE_DELAY_BASE + random.nextInt(CHARGE_DELAY_BASE));
-        } else if (charge > 0 && aura < base * DISCHARGE_AURA_FRACTION) {
-            AuraHelper.addVis(level, pos, TRANSFER_AMOUNT);
-            level.setBlockAndUpdate(pos, state.setValue(CHARGE, charge - 1));
-            level.scheduleTick(pos, this, DISCHARGE_DELAY_BASE + random.nextInt(DISCHARGE_DELAY_BASE));
-        }
+        evaluate(state, level, pos, random);
     }
 
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
-        if (level.hasNeighborSignal(pos)) {
-            level.scheduleTick(pos, this, 1);
+        if (!level.isClientSide() && level.hasNeighborSignal(pos)) {
+            level.scheduleTick(pos, this, WAKE_DELAY);
         }
     }
 
@@ -90,5 +71,45 @@ public final class BlockVisBattery extends Block {
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
         return state.getValue(CHARGE);
+    }
+
+    private void evaluate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        int charge = state.getValue(CHARGE);
+        Transition next = level.hasNeighborSignal(pos) ? whilePowered(charge) : whileIdle(random, charge, level, pos);
+        if (next != null) {
+            settle(next, level, pos, state);
+        }
+    }
+
+    private static @Nullable Transition whilePowered(int charge) {
+        return charge > 0 ? new Transition(charge - 1, true, POWERED_DELAY) : null;
+    }
+
+    private static @Nullable Transition whileIdle(RandomSource random, int charge, ServerLevel level, BlockPos pos) {
+        float vis = AuraHelper.getVis(level, pos);
+        float base = AuraHelper.getAuraBase(level, pos);
+        boolean absorbable = charge < MAX_CHARGE && vis > base * CHARGE_BAND && vis > MIN_CHARGE_VIS;
+        if (absorbable && AuraHelper.drainVis(level, pos, VIS_STEP, false) > 0.0F) {
+            return new Transition(charge + 1, false, jitter(random, CHARGE_DELAY_MIN, CHARGE_DELAY_SPREAD));
+        }
+        if (charge > 0 && vis < base * RELEASE_BAND) {
+            return new Transition(charge - 1, true, jitter(random, RELEASE_DELAY_MIN, RELEASE_DELAY_SPREAD));
+        }
+        return null;
+    }
+
+    private static int jitter(RandomSource random, int min, int spread) {
+        return min + random.nextInt(spread);
+    }
+
+    private void settle(Transition next, ServerLevel level, BlockPos pos, BlockState state) {
+        if (next.emitsVis()) {
+            AuraHelper.addVis(level, pos, VIS_STEP);
+        }
+        level.setBlock(pos, state.setValue(CHARGE, next.charge()), Block.UPDATE_ALL);
+        level.scheduleTick(pos, this, next.delay());
+    }
+
+    private record Transition(int charge, boolean emitsVis, int delay) {
     }
 }

@@ -26,6 +26,6 @@ public final class ArcaneBoreItem extends BlockItem {
     }
 
     private static void faceAwayFromPlacer(EntityArcaneBore bore, Player placer) {
-        bore.setFacing(placer.getDirection());
+        bore.turnTo(placer.getDirection());
     }
 }

@@ -5,7 +5,9 @@ import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealType;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -18,13 +20,13 @@ import net.minecraft.world.level.LevelReader;
 import org.jspecify.annotations.Nullable;
 
 public final class ItemSealPlacer extends Item implements ISealDisplayer {
-    private final Identifier sealKey;
+    private final @Nullable Identifier sealKey;
 
-    public ItemSealPlacer(Properties properties) {
+    public ItemSealPlacer(Item.Properties properties) {
         this(null, properties);
     }
 
-    public ItemSealPlacer(@Nullable Identifier sealKey, Properties properties) {
+    public ItemSealPlacer(@Nullable Identifier sealKey, Item.Properties properties) {
         super(properties);
         this.sealKey = sealKey;
     }
@@ -36,25 +38,23 @@ public final class ItemSealPlacer extends Item implements ISealDisplayer {
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         Player player = context.getPlayer();
-        if (sealKey == null || player == null || player.isShiftKeyDown()) {
+        if (player == null || player.isShiftKeyDown() || sealKey == null) {
             return InteractionResult.PASS;
         }
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (!player.mayUseItemAt(pos, context.getClickedFace(), stack)) {
+        Direction face = context.getClickedFace();
+        if (!player.mayUseItemAt(pos.relative(face), face, stack)) {
             return InteractionResult.FAIL;
         }
-        SealType type = GolemHelper.sealType(sealKey).orElse(null);
-        if (type == null || !type.placement().allows(level, pos, context.getClickedFace())) {
+        Optional<SealType> type = GolemHelper.sealType(sealKey);
+        if (type.isEmpty() || !type.get().placement().allows(level, pos, face)) {
             return InteractionResult.FAIL;
         }
-        if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
-        }
-        if (SealHandler.place((ServerLevel) level, new SealPos(pos, context.getClickedFace()), sealKey, type, player) && !player.hasInfiniteMaterials()) {
+        if (level instanceof ServerLevel serverLevel && SealHandler.place(serverLevel, new SealPos(pos, face), sealKey, type.get(), player) && !player.hasInfiniteMaterials()) {
             stack.shrink(1);
         }
-        return InteractionResult.SUCCESS_SERVER;
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override

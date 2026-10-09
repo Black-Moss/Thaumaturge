@@ -14,7 +14,7 @@ public final class AuraHelperBindings implements AuraHelper.Bindings {
 
     @Override
     public IAuraChunk chunkLookup(ServerLevel level, ChunkPos pos) {
-        AuraData data = AuraManager.getAuraChunk(level, pos);
+        AuraData data = AuraManager.chunkAt(level, pos);
         if (data != null) {
             return data;
         }
@@ -25,7 +25,7 @@ public final class AuraHelperBindings implements AuraHelper.Bindings {
 
     @Override
     public IAuraChunk blockLookup(Level level, BlockPos pos) {
-        AuraData data = AuraManager.getAuraChunk(level, pos);
+        AuraData data = AuraManager.chunkAt(level, pos);
         if (data != null) {
             return data;
         }
@@ -34,67 +34,67 @@ public final class AuraHelperBindings implements AuraHelper.Bindings {
 
     @Override
     public float getVis(Level level, BlockPos pos) {
-        return AuraManager.getVis(level, pos);
+        return AuraManager.visAt(level, pos);
     }
 
     @Override
     public float getFlux(Level level, BlockPos pos) {
-        return AuraManager.getFlux(level, pos);
+        return AuraManager.fluxAt(level, pos);
     }
 
     @Override
     public int getAuraBase(Level level, BlockPos pos) {
-        return AuraManager.getAuraBase(level, pos);
+        return AuraManager.baseCapacity(level, pos);
     }
 
     @Override
     public float getTotalAura(Level level, BlockPos pos) {
-        return AuraManager.getTotalAura(level, pos);
+        return AuraManager.combinedLevel(level, pos);
     }
 
     @Override
     public float getFluxSaturation(Level level, BlockPos pos) {
-        return AuraManager.getFluxSaturation(level, pos);
+        return AuraManager.fluxRatio(level, pos);
     }
 
     @Override
     public boolean shouldPreserveAura(Level level, @Nullable Player player, BlockPos pos) {
-        return AuraManager.shouldPreserveAura(level, player, pos);
+        return AuraManager.isPreservationDue(level, player, pos);
     }
 
     @Override
     public void addVis(Level level, BlockPos pos, float amount) {
-        AuraManager.addVis(level, pos, amount);
+        AuraManager.creditVis(level, pos, amount);
     }
 
     @Override
     public void addFlux(Level level, BlockPos pos, float amount) {
-        AuraManager.addFlux(level, pos, amount);
+        AuraManager.creditFlux(level, pos, amount);
     }
 
     @Override
     public float drainVis(Level level, BlockPos pos, float amount, boolean simulate) {
-        return AuraManager.drainVis(level, pos, amount, simulate);
+        return AuraManager.withdrawVis(level, pos, amount, simulate);
     }
 
     @Override
     public float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction) {
-        return AuraManager.drainVis(level, pos, amount, transaction);
+        return AuraManager.withdrawVis(level, pos, amount, transaction);
     }
 
     @Override
     public float drainFlux(Level level, BlockPos pos, float amount, boolean simulate) {
-        return AuraManager.drainFlux(level, pos, amount, simulate);
+        return AuraManager.withdrawFlux(level, pos, amount, simulate);
     }
 
     @Override
     public void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect) {
-        AuraManager.polluteAura(level, pos, amount, showEffect);
+        AuraManager.taint(level, pos, amount, showEffect);
     }
 
     @Override
     public float capacityRemaining(Level level, BlockPos pos) {
-        return Math.max(0.0F, AuraManager.getAuraBase(level, pos) - AuraManager.getTotalAura(level, pos));
+        return Math.max(0.0F, AuraManager.baseCapacity(level, pos) - AuraManager.combinedLevel(level, pos));
     }
 
     @Override

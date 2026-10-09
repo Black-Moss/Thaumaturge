@@ -10,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.EntityTypeTags;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -35,29 +34,28 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jspecify.annotations.Nullable;
 
 public final class BlockFluxGas extends Block implements PhysicalFluxBlock, LiquidBlockContainer {
-    private static final int MIN_SPREAD_DIFFERENCE = 2;
-
     public static final MapCodec<BlockFluxGas> CODEC = simpleCodec(BlockFluxGas::new);
     public static final IntegerProperty AMOUNT = IntegerProperty.create("amount", 1, PhysicalFlux.MAX_QUANTA);
 
-    private static final int TICK_DELAY = 10;
-    private static final int SPREAD_TARGETS = 5;
-    private static final int CONTACT_EFFECT_CHANCE = 10;
-    private static final int VIS_EXHAUST_DURATION = 1200;
-    private static final int LEVELS_PER_AMPLIFIER = 3;
-    private static final int NAUSEA_BASE_DURATION = 80;
-    private static final int NAUSEA_DURATION_PER_LEVEL = 20;
     private static final int REPLACEABLE_AMOUNT = 2;
-    private static final int AMBIENT_FUME_CHANCE = 10;
-    private static final int FUME_COLOR = ARGB.color(0xFF, 0x9C, 0x1D, 0xB8);
-    private static final float FUME_SCALE = 0.65F;
-    private static final double FUME_RISE = 0.015;
+    private static final int TICK_DELAY = 10;
     private static final float AURA_FLOOR_PER_QUANTUM = 0.25F;
     private static final float TAINT_WEIGHT_PER_QUANTUM = 0.35F;
     private static final int OUTBREAK_COST = 2;
+    private static final int MIN_SPREAD_GAP = 2;
+    private static final int SPREAD_CELLS = 5;
+    private static final int CONTACT_ONE_IN = 10;
+    private static final int VIS_EXHAUST_TICKS = 1200;
+    private static final int VIS_EXHAUST_QUANTA_PER_LEVEL = 3;
+    private static final int VIS_EXHAUST_MAX_AMPLIFIER = 2;
+    private static final int NAUSEA_BASE_SECONDS = 3;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final int FUME_ONE_IN = 10;
+    private static final int FUME_COLOR = 0xFF9C1DB8;
+    private static final float FUME_SCALE = 0.65F;
+    private static final double FUME_RISE = 0.015;
 
     public BlockFluxGas(Properties properties) {
         super(properties);
@@ -114,17 +112,17 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
     }
 
     @Override
-    protected boolean skipRendering(BlockState state, BlockState adjacent, Direction direction) {
-        return adjacent.is(this) || super.skipRendering(state, adjacent, direction);
+    protected boolean skipRendering(BlockState state, BlockState neighbour, Direction direction) {
+        return neighbour.is(this);
     }
 
     @Override
     protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
-        return state.getValue(AMOUNT) <= REPLACEABLE_AMOUNT;
+        return fluxAmount(state) <= REPLACEABLE_AMOUNT;
     }
 
     @Override
-    public boolean canPlaceLiquid(@Nullable LivingEntity user, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
+    public boolean canPlaceLiquid(LivingEntity user, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
         return false;
     }
 
@@ -135,12 +133,11 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
 
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        PhysicalFluxAuraFloor.observe(serverLevel, pos);
-        if (!oldState.is(this)) {
-            level.scheduleTick(pos, this, TICK_DELAY);
+        if (level instanceof ServerLevel server) {
+            PhysicalFluxAuraFloor.observe(server, pos);
+            if (!oldState.is(this)) {
+                scheduleFluxTick(server, pos);
+            }
         }
     }
 
@@ -150,132 +147,149 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         ticks.scheduleTick(pos, this, TICK_DELAY);
-        return state;
+        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        int remaining = flowUp(level, pos, state.getValue(AMOUNT));
-        if (remaining > 0 && level.getBlockState(pos).is(this)) {
-            spreadSideways(level, pos, remaining, random);
+        int remaining = rise(level, pos, fluxAmount(state));
+        if (remaining > 0) {
+            spread(level, pos, remaining, random);
         }
     }
 
-    private int flowUp(ServerLevel level, BlockPos pos, int amount) {
+    private static boolean isOrdinaryLiquid(BlockState state) {
+        return state.getBlock() instanceof LiquidBlock && !PhysicalFlux.isPhysicalFlux(state);
+    }
+
+    private static int room(BlockState target) {
+        if (target.is(TTBlocks.FLUX_GAS)) {
+            return PhysicalFlux.MAX_QUANTA - target.getValue(AMOUNT);
+        }
+        if (target.isAir()) {
+            return PhysicalFlux.MAX_QUANTA;
+        }
+        if (PhysicalFlux.isPhysicalFlux(target)) {
+            return 0;
+        }
+        if (!target.getFluidState().isEmpty()) {
+            return isOrdinaryLiquid(target) ? PhysicalFlux.MAX_QUANTA : 0;
+        }
+        return target.canBeReplaced() ? PhysicalFlux.MAX_QUANTA : 0;
+    }
+
+    private static int held(BlockState target) {
+        return target.is(TTBlocks.FLUX_GAS) ? target.getValue(AMOUNT) : 0;
+    }
+
+    private void store(ServerLevel level, BlockPos pos, int amount) {
+        level.setBlock(pos, amount > 0 ? gasBlockState(amount) : Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        if (amount > 0) {
+            scheduleFluxTick(level, pos);
+        }
+    }
+
+    private int rise(ServerLevel level, BlockPos pos, int amount) {
         BlockPos above = pos.above();
-        if (above.getY() > level.getMaxY()) {
-            setAmount(level, pos, 0);
+        if (level.isOutsideBuildHeight(above)) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
             return 0;
         }
         BlockState aboveState = level.getBlockState(above);
-        if (aboveState.getBlock() instanceof LiquidBlock && !PhysicalFlux.isPhysicalFlux(aboveState)) {
+        if (isOrdinaryLiquid(aboveState)) {
             level.setBlock(above, gasBlockState(amount), Block.UPDATE_ALL);
             level.setBlock(pos, aboveState, Block.UPDATE_ALL);
-            FluidState displaced = aboveState.getFluidState();
-            level.scheduleTick(pos, displaced.getType(), displaced.getType().getTickDelay(level));
-            level.scheduleTick(above, this, TICK_DELAY);
+            scheduleFluxTick(level, above);
             return 0;
         }
-        int aboveAmount = room(level, above);
-        if (aboveAmount < 0 || aboveAmount >= PhysicalFlux.MAX_QUANTA) {
+        int moved = Math.min(amount, room(aboveState));
+        if (moved <= 0) {
             return amount;
         }
-        int combined = amount + aboveAmount;
-        int moved = Math.min(PhysicalFlux.MAX_QUANTA, combined);
-        setAmount(level, above, moved);
-        setAmount(level, pos, combined - moved);
-        return combined - moved;
+        store(level, above, held(aboveState) + moved);
+        int remaining = amount - moved;
+        store(level, pos, remaining);
+        return remaining;
     }
 
-    private void spreadSideways(ServerLevel level, BlockPos pos, int amount, RandomSource random) {
-        BlockPos[] targets = new BlockPos[SPREAD_TARGETS];
-        targets[0] = pos;
+    private void spread(ServerLevel level, BlockPos pos, int amount, RandomSource random) {
+        BlockPos[] cells = new BlockPos[SPREAD_CELLS];
+        int[] levels = new int[SPREAD_CELLS];
+        cells[0] = pos;
+        levels[0] = amount;
         int count = 1;
         int total = amount;
         for (Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockPos target = pos.relative(direction);
-            int neighbour = room(level, target);
-            if (neighbour >= 0 && amount - neighbour >= MIN_SPREAD_DIFFERENCE) {
-                targets[count++] = target;
-                total += neighbour;
+            BlockPos neighbour = pos.relative(direction);
+            if (!level.hasChunkAt(neighbour)) {
+                continue;
+            }
+            BlockState target = level.getBlockState(neighbour);
+            int content = held(target);
+            if (room(target) > 0 && content <= amount - MIN_SPREAD_GAP) {
+                cells[count] = neighbour;
+                levels[count] = content;
+                total += content;
+                count++;
             }
         }
         if (count == 1) {
             return;
         }
-        for (int i = count - 1; i > 0; i--) {
-            int swap = random.nextInt(i + 1);
-            BlockPos held = targets[i];
-            targets[i] = targets[swap];
-            targets[swap] = held;
-        }
-        int each = total / count;
-        int remainder = total % count;
-        for (int i = 0; i < count; i++) {
-            setAmount(level, targets[i], each + (i < remainder ? 1 : 0));
-        }
-    }
-
-    private int room(ServerLevel level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        if (state.is(this)) {
-            return state.getValue(AMOUNT);
-        }
-        if (state.isAir()) {
-            return 0;
-        }
-        if (PhysicalFlux.isPhysicalFlux(state)) {
-            return -1;
-        }
-        if (!state.getFluidState().isEmpty()) {
-            return state.getBlock() instanceof LiquidBlock ? 0 : -1;
-        }
-        return state.canBeReplaced() ? 0 : -1;
-    }
-
-    private void setAmount(ServerLevel level, BlockPos pos, int amount) {
-        BlockState old = level.getBlockState(pos);
-        if (amount <= 0) {
-            if (old.is(this)) {
-                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        int share = total / count;
+        int leftover = total % count;
+        boolean[] bonus = new boolean[count];
+        while (leftover > 0) {
+            int index = random.nextInt(count);
+            if (!bonus[index]) {
+                bonus[index] = true;
+                leftover--;
             }
-            return;
         }
-        int clamped = Math.min(PhysicalFlux.MAX_QUANTA, amount);
-        if (old.is(this) && old.getValue(AMOUNT) == clamped) {
-            return;
+        for (int index = 0; index < count; index++) {
+            int result = share + (bonus[index] ? 1 : 0);
+            if (result != levels[index]) {
+                store(level, cells[index], result);
+            }
         }
-        if (!old.isAir() && !old.is(this)) {
-            level.destroyBlock(pos, false);
-        }
-        level.setBlock(pos, gasBlockState(clamped), Block.UPDATE_ALL);
-        level.scheduleTick(pos, this, TICK_DELAY);
     }
 
     @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        if (!(level instanceof ServerLevel serverLevel) || !(entity instanceof LivingEntity living) || resists(living) || serverLevel.getRandom().nextInt(CONTACT_EFFECT_CHANCE) != 0) {
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier applier, boolean intersects) {
+        if (!(level instanceof ServerLevel server) || !(entity instanceof LivingEntity living) || isShielded(living)) {
             return;
         }
-        int thickness = state.getValue(AMOUNT) - 1;
-        if (serverLevel.getRandom().nextBoolean()) {
-            living.addEffect(new MobEffectInstance(TTMobEffects.VIS_EXHAUST, VIS_EXHAUST_DURATION, thickness / LEVELS_PER_AMPLIFIER, true, true, false));
-        } else {
-            living.addEffect(new MobEffectInstance(MobEffects.NAUSEA, NAUSEA_BASE_DURATION + thickness * NAUSEA_DURATION_PER_LEVEL));
+        RandomSource random = living.getRandom();
+        if (random.nextInt(CONTACT_ONE_IN) != 0) {
+            return;
         }
-        PhysicalFlux.reduce(serverLevel, pos, 1);
+        int amount = fluxAmount(state);
+        living.addEffect(random.nextBoolean() ? visExhaust(amount) : nausea(amount));
+        server.setBlock(pos, amount > 1 ? gasBlockState(amount - 1) : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+        if (amount > 1) {
+            scheduleFluxTick(server, pos);
+        }
     }
 
-    private static boolean resists(LivingEntity living) {
-        return MobTraits.isTainted(living) || living.is(EntityTypeTags.UNDEAD) || FluxImmunityHelper.isImmune(living) || living.hasEffect(TTMobEffects.VIS_EXHAUST)
+    private static boolean isShielded(LivingEntity living) {
+        return MobTraits.isTainted(living) || living.getType().builtInRegistryHolder().is(EntityTypeTags.UNDEAD) || FluxImmunityHelper.isImmune(living) || living.hasEffect(TTMobEffects.VIS_EXHAUST)
                 || living.hasEffect(MobEffects.NAUSEA);
+    }
+
+    private static MobEffectInstance visExhaust(int amount) {
+        int amplifier = Math.min(VIS_EXHAUST_MAX_AMPLIFIER, (amount - 1) / VIS_EXHAUST_QUANTA_PER_LEVEL);
+        return new MobEffectInstance(TTMobEffects.VIS_EXHAUST, VIS_EXHAUST_TICKS, amplifier, false, true, false);
+    }
+
+    private static MobEffectInstance nausea(int amount) {
+        return new MobEffectInstance(MobEffects.NAUSEA, (NAUSEA_BASE_SECONDS + amount) * TICKS_PER_SECOND);
     }
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        if (random.nextInt(AMBIENT_FUME_CHANCE) == 0) {
+        if (random.nextInt(FUME_ONE_IN) == 0) {
             level.addParticle(new TaintFumeParticleOptions(FUME_COLOR, FUME_SCALE), pos.getX() + random.nextDouble(), pos.getY() + random.nextDouble(), pos.getZ() + random.nextDouble(), 0.0,
                     FUME_RISE, 0.0);
         }

@@ -10,8 +10,10 @@ import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 
 public final class EntityTaskGoal extends TaskGoal {
-    private static final double BASE_REACH_SQR = 3.5;
-    private static final float GAZE_TURN = 10.0F;
+    private static final double BASE_REACH_SQR = 3.5D;
+    private static final int REACH_RANGE = 0;
+    private static final float LOOK_TURN_SPEED = 10.0F;
+    private static final float HALF = 0.5F;
 
     public EntityTaskGoal(EntityThaumaturgeGolem golem) {
         super(golem);
@@ -21,9 +23,11 @@ public final class EntityTaskGoal extends TaskGoal {
     protected boolean claim(ServerLevel level) {
         for (Task task : TaskBoard.of(level).openEntityTasks(golem.getUUID(), golem)) {
             Entity target = task.entity();
-            if (target != null && mayTake(task, target.blockPosition()) && pathEndsNear(target)) {
-                float halfWidth = target.getBbWidth() / 2.0F;
-                reachSqr = BASE_REACH_SQR + halfWidth * halfWidth;
+            if (target == null || !mayTake(task, target.blockPosition())) {
+                continue;
+            }
+            retarget(task);
+            if (reachable(target)) {
                 take(task);
                 return true;
             }
@@ -35,37 +39,50 @@ public final class EntityTaskGoal extends TaskGoal {
     protected void approach(Task task) {
         Entity target = task.entity();
         if (target != null) {
-            golem.getNavigation().moveTo(target, golem.getGolemMoveSpeed());
+            golem.getNavigation().moveTo(target, golem.travelSpeed());
         }
     }
 
     @Override
     protected double distanceSqrTo(Task task) {
         Entity target = task.entity();
-        return target == null ? Double.MAX_VALUE : golem.distanceToSqr(target);
+        return target == null ? Double.POSITIVE_INFINITY : golem.distanceToSqr(target);
+    }
+
+    @Override
+    boolean adopts(Task task) {
+        return task.isEntityTask();
+    }
+
+    @Override
+    void retarget(Task task) {
+        Entity target = task.entity();
+        if (target != null) {
+            reachSqr = BASE_REACH_SQR + Mth.square(target.getBbWidth() * HALF);
+        }
     }
 
     @Override
     public void tick() {
-        super.tick();
-        Task task = golem.getTask();
+        Task task = golem.activeJob();
         Entity target = task == null ? null : task.entity();
         if (target != null) {
-            golem.getLookControl().setLookAt(target, GAZE_TURN, golem.getMaxHeadXRot());
+            golem.getLookControl().setLookAt(target, LOOK_TURN_SPEED, golem.getMaxHeadXRot());
         }
+        super.tick();
     }
 
-    private boolean pathEndsNear(Entity target) {
-        if (golem.distanceToSqr(target) < reachSqr) {
+    private boolean reachable(Entity target) {
+        if (golem.distanceToSqr(target) <= reachSqr) {
             return true;
         }
-        Path path = golem.getNavigation().createPath(target, 0);
+        Path path = golem.getNavigation().createPath(target, REACH_RANGE);
         Node end = path == null ? null : path.getEndNode();
         if (end == null) {
             return false;
         }
-        int dx = end.x - Mth.floor(target.getX());
-        int dz = end.z - Mth.floor(target.getZ());
+        double dx = end.x - target.getBlockX();
+        double dz = end.z - target.getBlockZ();
         return dx * dx + dz * dz < reachSqr;
     }
 }

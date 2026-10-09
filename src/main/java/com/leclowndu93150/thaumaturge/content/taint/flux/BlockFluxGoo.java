@@ -19,21 +19,24 @@ import net.minecraft.world.level.material.FluidState;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock {
-    public static final MapCodec<LiquidBlock> CODEC = simpleCodec(p -> (LiquidBlock) new BlockFluxGoo(FluxGooRefs.sourceFluid(), p));
+    public static final MapCodec<LiquidBlock> CODEC = simpleCodec(properties -> new BlockFluxGoo(FluxGooRefs.sourceFluid(), properties));
 
-    private static final int REPLACEABLE_AMOUNT_THRESHOLD = 2;
+    private static final int REPLACEABLE_AMOUNT = 2;
     private static final float AURA_FLOOR_PER_QUANTUM = 0.5F;
     private static final float TAINT_WEIGHT_PER_QUANTUM = 1.0F;
     private static final int OUTBREAK_COST = 0;
-    private static final int AMBIENT_FUME_DENOMINATOR = 44;
-    private static final int FUME_GRID = 64;
-    private static final int FUME_PARTICLE_INDEX = 64;
-    private static final int FUME_FINAL_FRAME_A = 65;
-    private static final int FUME_FINAL_FRAME_B = 66;
-    private static final float FUME_R = 1.0F;
-    private static final float FUME_G = 0.0F;
-    private static final float FUME_B = 0.5F;
+    private static final int FUME_ROLL_RANGE = 44;
+    private static final double FUME_HEIGHT_PER_STEP = 0.125;
+    private static final float FUME_RED = 1.0F;
+    private static final float FUME_GREEN = 0.0F;
+    private static final float FUME_BLUE = 0.5F;
+    private static final float FUME_COLOR_ALPHA = 1.0F;
     private static final float FUME_ALPHA = 0.25F;
+    private static final float FUME_MIN_SCALE = 0.2F;
+    private static final float FUME_SCALE_SPREAD = 0.3F;
+    private static final int FUME_MIN_AGE = 2;
+    private static final int FUME_AGE_SPREAD = 3;
+    private static final float FUME_BUOYANCY = -0.01F;
 
     public BlockFluxGoo(FlowingFluid fluid, BlockBehaviour.Properties properties) {
         super(fluid, properties);
@@ -46,27 +49,25 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
 
     @Override
     protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
-        FluidState fluidState = state.getFluidState();
-        return fluidState.getAmount() <= REPLACEABLE_AMOUNT_THRESHOLD;
+        return fluxAmount(state) <= REPLACEABLE_AMOUNT;
     }
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        int meta = state.getFluidState().getAmount() - 1;
-        if (random.nextInt(AMBIENT_FUME_DENOMINATOR) <= meta) {
-            double x = pos.getX() + random.nextFloat();
-            double y = pos.getY() + 0.125F * meta;
-            double z = pos.getZ() + random.nextFloat();
-            float scale = 0.2F + random.nextFloat() * 0.3F;
-            int maxAge = 2 + random.nextInt(3);
-            BubbleParticleOptions data = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, FUME_R, FUME_G, FUME_B), FUME_ALPHA, scale, maxAge, -0.01F, false);
-            level.addParticle(data, x, y, z, 0.0, 0.0, 0.0);
+        int steps = fluxAmount(state) - 1;
+        if (random.nextInt(FUME_ROLL_RANGE) > steps) {
+            return;
         }
+        int color = ARGB.colorFromFloat(FUME_COLOR_ALPHA, FUME_RED, FUME_GREEN, FUME_BLUE);
+        float scale = FUME_MIN_SCALE + random.nextFloat() * FUME_SCALE_SPREAD;
+        int age = FUME_MIN_AGE + random.nextInt(FUME_AGE_SPREAD);
+        level.addParticle(new BubbleParticleOptions(color, FUME_ALPHA, scale, age, FUME_BUOYANCY, false), pos.getX() + random.nextDouble(), pos.getY() + FUME_HEIGHT_PER_STEP * steps,
+                pos.getZ() + random.nextDouble(), 0.0, 0.0, 0.0);
     }
 
     @Override
     public int fluxAmount(BlockState state) {
-        return state.getFluidState().getAmount();
+        return Math.clamp(state.getFluidState().getAmount(), 1, PhysicalFlux.MAX_QUANTA);
     }
 
     @Override
@@ -76,9 +77,9 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
 
     @Override
     public void scheduleFluxTick(ServerLevel level, BlockPos pos) {
-        FluidState fluid = level.getFluidState(pos);
-        if (!fluid.isEmpty()) {
-            level.scheduleTick(pos, fluid.getType(), fluid.getType().getTickDelay(level));
+        FluidState fluidState = level.getFluidState(pos);
+        if (!fluidState.isEmpty()) {
+            level.scheduleTick(pos, fluidState.getType(), fluidState.getType().getTickDelay(level));
         }
     }
 

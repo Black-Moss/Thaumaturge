@@ -2,8 +2,9 @@ package com.leclowndu93150.thaumaturge.content.device.bore;
 
 import com.leclowndu93150.thaumaturge.registry.TTMenus;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -19,73 +20,97 @@ public final class MenuArcaneBore extends AbstractContainerMenu {
     public static final int PLAYER_GRID_Y = 84;
     public static final int HOTBAR_Y = 142;
 
-    private final @Nullable ArcaneBoreHost host;
+    private static final int TOOL_SLOT = 0;
+    private static final int TOOL_SLOTS = 1;
+
+    private final @Nullable ArcaneBoreHost bore;
 
     public MenuArcaneBore(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, playerInventory, resolve(playerInventory.player.level(), buf));
+        this(containerId, playerInventory, resolveHost(playerInventory.player.level(), buf));
     }
 
-    private MenuArcaneBore(int containerId, Inventory playerInventory, @Nullable ArcaneBoreHost host) {
+    private MenuArcaneBore(int containerId, Inventory playerInventory, @Nullable ArcaneBoreHost bore) {
         super(TTMenus.ARCANE_BORE.get(), containerId);
-        this.host = host;
-        addSlot(new Slot(new BoreToolContainer(host), 0, PICK_X, PICK_Y) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return ArcaneBoreTool.isPickaxe(stack);
-            }
-        });
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, PLAYER_GRID_X + col * 18, PLAYER_GRID_Y + row * 18));
-            }
-        }
-        for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInventory, col, PLAYER_GRID_X + col * 18, HOTBAR_Y));
-        }
-    }
-
-    private static @Nullable ArcaneBoreHost resolve(Level level, RegistryFriendlyByteBuf buf) {
-        if (buf.readBoolean()) {
-            return level.getBlockEntity(buf.readBlockPos()) instanceof ArcaneBoreHost blockHost ? blockHost : null;
-        }
-        return level.getEntity(buf.readVarInt()) instanceof ArcaneBoreHost entityHost ? entityHost : null;
+        this.bore = bore;
+        addSlot(new ToolSlot(new BoreToolContainer(bore), PICK_X, PICK_Y));
+        addInventoryExtendedSlots(playerInventory, PLAYER_GRID_X, PLAYER_GRID_Y);
+        addInventoryHotbarSlots(playerInventory, PLAYER_GRID_X, HOTBAR_Y);
     }
 
     public static void open(Player player, ArcaneBoreHost host) {
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new SimpleMenuProvider((id, inv, p) -> new MenuArcaneBore(id, inv, host), host.boreDisplayName()), host::writeBoreRef);
+            serverPlayer.openMenu(new BoreMenuProvider(host), host::writeBoreRef);
         }
     }
 
     public @Nullable ArcaneBoreHost bore() {
-        return host;
+        return bore;
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return host != null && host.boreValid();
+        return bore != null ? bore.boreValid() : false;
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slotIndex) {
-        ItemStack returnStack = ItemStack.EMPTY;
-        Slot slot = slots.get(slotIndex);
-        if (slot != null && slot.hasItem()) {
-            ItemStack stackInSlot = slot.getItem();
-            returnStack = stackInSlot.copy();
-            if (slotIndex == 0) {
-                if (!moveItemStackTo(stackInSlot, 1, slots.size(), true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!moveItemStackTo(stackInSlot, 0, 1, false)) {
-                return ItemStack.EMPTY;
-            }
-            if (stackInSlot.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
+    public ItemStack quickMoveStack(Player player, int index) {
+        Slot source = slots.get(index);
+        ItemStack stack = source.getItem();
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
         }
-        return returnStack;
+        ItemStack before = stack.copy();
+        boolean leavingTool = index == TOOL_SLOT;
+        int rangeStart = leavingTool ? TOOL_SLOTS : TOOL_SLOT;
+        int rangeEnd = leavingTool ? slots.size() : TOOL_SLOTS;
+        if (!moveItemStackTo(stack, rangeStart, rangeEnd, leavingTool)) {
+            return ItemStack.EMPTY;
+        }
+        refreshSource(source, stack);
+        return before;
+    }
+
+    private static void refreshSource(Slot source, ItemStack remainder) {
+        if (remainder.isEmpty()) {
+            source.setByPlayer(ItemStack.EMPTY);
+            return;
+        }
+        source.setChanged();
+    }
+
+    private static @Nullable ArcaneBoreHost resolveHost(Level level, RegistryFriendlyByteBuf buf) {
+        if (buf.readBoolean()) {
+            return level.getBlockEntity(buf.readBlockPos()) instanceof ArcaneBoreHost host ? host : null;
+        }
+        return level.getEntity(buf.readVarInt()) instanceof ArcaneBoreHost host ? host : null;
+    }
+
+    private static final class ToolSlot extends Slot {
+        ToolSlot(BoreToolContainer container, int x, int y) {
+            super(container, TOOL_SLOT, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return ArcaneBoreTool.isPickaxe(stack);
+        }
+    }
+
+    private static final class BoreMenuProvider implements MenuProvider {
+        private final ArcaneBoreHost host;
+
+        BoreMenuProvider(ArcaneBoreHost host) {
+            this.host = host;
+        }
+
+        @Override
+        public Component getDisplayName() {
+            return host.boreDisplayName();
+        }
+
+        @Override
+        public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+            return new MenuArcaneBore(containerId, playerInventory, host);
+        }
     }
 }

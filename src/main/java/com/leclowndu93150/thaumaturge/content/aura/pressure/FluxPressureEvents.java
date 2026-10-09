@@ -37,7 +37,7 @@ public final class FluxPressureEvents {
             return false;
         }
         FluxPressureState state = level.getData(TTAttachments.FLUX_PRESSURE);
-        if (!event.allowedNearTaint() && (TaintHelper.isNearTaintSeed(level, origin) || state.hasRainNear(origin, STACK_SUPPRESSION_RANGE_SQ))) {
+        if (!event.allowedNearTaint() && (TaintHelper.isWithinSeedInfluence(level, origin) || state.hasRainNear(origin, STACK_SUPPRESSION_RANGE_SQ))) {
             return false;
         }
         if (AuraHelper.drainFlux(level, origin, event.cost(), true) + COST_EPSILON < event.cost() || !event.fire(level, origin, state)) {

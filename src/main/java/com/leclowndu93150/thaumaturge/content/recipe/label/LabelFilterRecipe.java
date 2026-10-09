@@ -30,30 +30,38 @@ public final class LabelFilterRecipe extends CustomRecipe {
     }
 
     private @Nullable Holder<IAspect> checkAndGetAspectFromInput(CraftingInput input) {
-        boolean hasLabel = false;
-        Holder<IAspect> aspect = null;
-        for (ItemStack stack : input.items()) {
-            if (stack.is(TTItems.LABEL)) {
-                if (hasLabel)
-                    return null;
-                hasLabel = true;
+        int labelCount = 0;
+        int phialCount = 0;
+        Holder<IAspect> found = null;
+        for (int index = 0; index < input.size(); index++) {
+            ItemStack stack = input.getItem(index);
+            if (stack.isEmpty()) {
                 continue;
             }
-
-            if (stack.is(TTItems.PHIAL)) {
-                if (aspect != null)
+            if (stack.is(TTItems.LABEL)) {
+                labelCount++;
+            } else if (stack.is(TTItems.PHIAL)) {
+                phialCount++;
+                found = firstAspectOf(stack);
+                if (found == null) {
                     return null;
-                IItemEssentia essentia = stack.getCapability(EssentiaCapabilities.CONTAINER);
-                if (essentia == null || essentia.getAspects().isEmpty())
-                    return null;
-                aspect = essentia.getAspects().entries().getFirst().aspect();
-            } else if (!stack.isEmpty()) {
+                }
+            } else {
+                return null;
+            }
+            if (labelCount > 1 || phialCount > 1) {
                 return null;
             }
         }
-        if (!hasLabel)
+        return labelCount == 1 ? found : null;
+    }
+
+    private static @Nullable Holder<IAspect> firstAspectOf(ItemStack phial) {
+        IItemEssentia essentia = phial.getCapability(EssentiaCapabilities.CONTAINER);
+        if (essentia == null || essentia.getAspects().isEmpty()) {
             return null;
-        return aspect;
+        }
+        return essentia.getAspects().entries().getFirst().aspect();
     }
 
     @Override
@@ -71,17 +79,18 @@ public final class LabelFilterRecipe extends CustomRecipe {
 
     @Override
     public @NonNull NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
-        NonNullList<ItemStack> result = NonNullList.withSize(input.size(), ItemStack.EMPTY);
-
-        for (int slot = 0; slot < result.size(); ++slot) {
-            ItemStack item = input.getItem(slot);
-            ItemStackTemplate remainder = item.getCraftingRemainder();
-            if (item.is(TTItems.PHIAL))
-                result.set(slot, item.copyWithCount(1));
-            else
-                result.set(slot, remainder != null ? remainder.create() : ItemStack.EMPTY);
+        NonNullList<ItemStack> remaining = NonNullList.create();
+        for (ItemStack stack : input.items()) {
+            remaining.add(remainderOf(stack));
         }
+        return remaining;
+    }
 
-        return result;
+    private static ItemStack remainderOf(ItemStack stack) {
+        if (stack.is(TTItems.PHIAL)) {
+            return stack.copyWithCount(1);
+        }
+        ItemStackTemplate template = stack.getCraftingRemainder();
+        return template == null ? ItemStack.EMPTY : template.create();
     }
 }

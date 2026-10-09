@@ -4,35 +4,43 @@ import com.mojang.serialization.Codec;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Per-entry meta flag controlling Thaumonomicon display and unlock behaviour.
+ * Per-entry display and unlock flags of a research entry.
+ *
+ * <p>The declaration order is the iteration order of an entry's meta set and the order of the
+ * written {@code meta} list in data. The ordinal is never persisted or transmitted.
  *
  * @since 1.0.0
  */
 public enum ResearchEntryMeta implements StringRepresentable {
-    /** Entry icon is drawn with a circular frame. */
+    /** Draws the node frame round. Wins over {@link #HEX} when both are set. */
     ROUND("round"),
-    /** Entry icon is drawn with a spiky frame, used by eldritch entries. */
+    /** Draws an additional spiky overlay frame on top of the base shape. */
     SPIKY("spiky"),
-    /** Entry connector lines are drawn in reverse order. */
+    /** Reverses the direction of the connector lines of the entry. */
     REVERSE("reverse"),
-    /** Entry is hidden from the grid until unlocked. */
+    /** Draws the hidden frame variant and hides the entry until it can be unlocked. */
     HIDDEN("hidden"),
-    /** Entry is automatically added to the player's record on load. */
+    /** Adds the entry to the player record without player action when its conditions pass. */
     AUTOUNLOCK("autounlock"),
-    /** Entry icon is drawn with a hexagonal frame. */
+    /** Draws the node frame hexagonal. */
     HEX("hex");
 
-    /** Codec for datapack serialization. */
+    /** Codec reading and writing the lowercase serialized name. */
     public static final Codec<ResearchEntryMeta> CODEC = StringRepresentable.fromEnum(ResearchEntryMeta::values);
 
-    private final String name;
+    private final String serialized;
 
-    ResearchEntryMeta(String name) {
-        this.name = name;
+    ResearchEntryMeta(String serialized) {
+        this.serialized = serialized;
     }
 
+    /**
+     * The lowercase name used in data.
+     *
+     * @return the serialized name
+     */
     @Override
     public String getSerializedName() {
-        return name;
+        return serialized;
     }
 }

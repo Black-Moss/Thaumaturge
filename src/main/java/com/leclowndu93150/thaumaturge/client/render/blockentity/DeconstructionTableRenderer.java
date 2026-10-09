@@ -23,24 +23,32 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 public final class DeconstructionTableRenderer implements BlockEntityRenderer<BlockEntityDeconstructionTable, DeconstructionTableRenderState> {
-    private static final Identifier TABLE_TEXTURE = TTIds.rl("textures/entity/decontable.png");
-
+    private static final Identifier TEXTURE = TTIds.rl("textures/entity/decontable.png");
+    private static final float CENTER = 0.5F;
+    private static final float TABLE_Y = 1.0F;
     private static final float BOOK_Y = 1.02F;
-    private static final float BOOK_SCALE = 0.8F;
-    private static final float INPUT_Y = 1.15F;
+    private static final float ITEM_SCALE = 0.5128205F;
+    private static final float BOOK_SCALE = 0.8F * ITEM_SCALE;
+    private static final float ITEM_LIFT = 0.075F * ITEM_SCALE;
+    private static final float ITEM_Y = 1.15F + ITEM_LIFT;
     private static final float ASPECT_Y = 1.081F;
-    private static final float ASPECT_SCALE = 0.384F;
+    private static final float ASPECT_SIZE = 0.384F;
     private static final float ASPECT_ALPHA = 0.8F;
-    private static final float IN_FRAME_SCALE = 0.5128205F;
-    private static final float IN_FRAME_DROP = -0.05F;
-    private static final float FLAT_ITEM_LIFT = 0.125F;
+    private static final float FLIP_DEGREES = 180.0F;
+    private static final float LAY_FLAT_DEGREES = -90.0F;
+    private static final float TIME_PERIOD = 360.0F;
+    private static final int OUTLINE_NONE = 0;
+    private static final int DISPLAY_SEED = 0;
 
     private final DeconTableModel model;
     private final ItemModelResolver itemModelResolver;
+    private @Nullable ItemStack bookStack;
 
     public DeconstructionTableRenderer(BlockEntityRendererProvider.Context context) {
         this.model = new DeconTableModel(context.bakeLayer(TTModelLayers.DECONSTRUCTION_TABLE));
@@ -55,71 +63,65 @@ public final class DeconstructionTableRenderer implements BlockEntityRenderer<Bl
     @Override
     public void extractRenderState(BlockEntityDeconstructionTable table, DeconstructionTableRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(table, state, partialTicks, cameraPosition, breakProgress);
-        if (table.getLevel() == null) {
+        Level level = table.getLevel();
+        if (level == null) {
             return;
         }
-        state.ticks = (table.getLevel().getGameTime() % 360L) + partialTicks;
-        state.book = itemState(table, new ItemStack(TTItems.THAUMOMETER.get()));
-        ItemStack input = table.items().getResource(BlockEntityDeconstructionTable.SLOT_INPUT).toStack(1);
-        state.input = input.isEmpty() ? null : itemState(table, input);
-        state.aspect = resolveAspect(table);
-    }
-
-    private @Nullable ItemStackRenderState itemState(BlockEntityDeconstructionTable table, ItemStack stack) {
-        ItemStackRenderState itemState = new ItemStackRenderState();
-        itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.FIXED, table.getLevel(), null, 0);
-        return itemState;
-    }
-
-    private static @Nullable Holder<IAspect> resolveAspect(BlockEntityDeconstructionTable table) {
-        Identifier id = table.resultAspect();
-        if (id == null || table.getLevel() == null) {
-            return null;
+        state.ticks = level.getGameTime() % TIME_PERIOD + partialTicks;
+        if (bookStack == null) {
+            bookStack = new ItemStack(TTItems.THAUMOMETER.get());
         }
-        return table.getLevel().registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(ResourceKey.create(IAspect.REGISTRY_KEY, id)).map(holder -> (Holder<IAspect>) holder).orElse(null);
+        state.book = displayState(bookStack, level);
+        ItemResource input = table.items().getResource(BlockEntityDeconstructionTable.SLOT_INPUT);
+        state.input = input.isEmpty() ? null : displayState(input.toStack(1), level);
+        Identifier resultId = table.resultAspect();
+        state.aspect = resultId == null
+                ? null
+                : level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(ResourceKey.create(IAspect.REGISTRY_KEY, resultId)).<Holder<IAspect>>map(reference -> reference).orElse(null);
     }
 
     @Override
     public void submit(DeconstructionTableRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = state.lightCoords;
+        float spin = state.ticks % TIME_PERIOD;
         poseStack.pushPose();
-        poseStack.translate(0.5F, 1.0F, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(TABLE_TEXTURE), light, OverlayTexture.NO_OVERLAY, null, -1, null);
+        poseStack.translate(CENTER, TABLE_Y, CENTER);
+        poseStack.mulPose(Axis.XP.rotationDegrees(FLIP_DEGREES));
+        collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(TEXTURE), light, OverlayTexture.NO_OVERLAY, null);
         poseStack.popPose();
-
         if (state.book != null) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, BOOK_Y, 0.5F);
-            poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
+            poseStack.translate(CENTER, BOOK_Y, CENTER);
+            poseStack.mulPose(Axis.XP.rotationDegrees(LAY_FLAT_DEGREES));
+            poseStack.mulPose(Axis.YP.rotationDegrees(FLIP_DEGREES));
             poseStack.scale(BOOK_SCALE, BOOK_SCALE, BOOK_SCALE);
-            poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-            state.book.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
+            state.book.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);
             poseStack.popPose();
         }
-
         if (state.input != null) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, INPUT_Y, 0.5F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(state.ticks % 360.0F));
-            poseStack.scale(IN_FRAME_SCALE, IN_FRAME_SCALE, IN_FRAME_SCALE);
-            poseStack.translate(0.0F, IN_FRAME_DROP + FLAT_ITEM_LIFT, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-            state.input.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
+            poseStack.translate(CENTER, ITEM_Y, CENTER);
+            poseStack.mulPose(Axis.YP.rotationDegrees(spin + FLIP_DEGREES));
+            poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
+            state.input.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);
             poseStack.popPose();
         }
-
-        if (state.aspect != null) {
-            Holder<IAspect> aspect = state.aspect;
+        if (state.aspect != null && state.aspect.isBound()) {
             poseStack.pushPose();
-            poseStack.translate(0.5F, ASPECT_Y, 0.5F);
-            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(state.ticks % 360.0F));
-            poseStack.scale(ASPECT_SCALE, ASPECT_SCALE, ASPECT_SCALE);
+            poseStack.translate(CENTER, ASPECT_Y, CENTER);
+            poseStack.mulPose(Axis.YP.rotationDegrees(-spin));
+            poseStack.mulPose(Axis.XP.rotationDegrees(LAY_FLAT_DEGREES));
+            poseStack.scale(ASPECT_SIZE, ASPECT_SIZE, ASPECT_SIZE);
+            Holder<IAspect> aspect = state.aspect;
             collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(aspect.value().texture()),
                     (pose, buffer) -> AspectTagWorldRenderer.renderQuad(pose, buffer, aspect, ASPECT_ALPHA, false, light));
             poseStack.popPose();
         }
+    }
+
+    private ItemStackRenderState displayState(ItemStack stack, Level level) {
+        ItemStackRenderState display = new ItemStackRenderState();
+        itemModelResolver.updateForTopItem(display, stack, ItemDisplayContext.FIXED, level, null, DISPLAY_SEED);
+        return display;
     }
 }

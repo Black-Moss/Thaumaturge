@@ -20,9 +20,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import org.jspecify.annotations.Nullable;
 
 public class FocusItem extends Item {
     private static final String INDENT = "  ";
+    private static final String WITH_ASPECT_KEY = "tooltip.thaumaturge.focus.with_aspect";
+    private static final String WITH_SETTINGS_KEY = "tooltip.thaumaturge.focus.with_settings";
+    private static final String SETTING_KEY = "tooltip.thaumaturge.focus.setting";
+    private static final String LIST_KEY = "tooltip.thaumaturge.list";
 
     public FocusItem(Properties properties) {
         super(properties);
@@ -33,7 +38,7 @@ public class FocusItem extends Item {
         describe(stack, context.registries(), builder);
     }
 
-    public static void describe(ItemStack focus, HolderLookup.Provider registries, Consumer<Component> builder) {
+    public static void describe(ItemStack focus, HolderLookup.@Nullable Provider registries, Consumer<Component> builder) {
         Spell spell = Spells.spellOf(focus);
         if (spell == null || registries == null) {
             builder.accept(SpellText.blank());
@@ -53,32 +58,38 @@ public class FocusItem extends Item {
             }
         }
         for (SpellNode child : spell.root().children()) {
-            line(child, registries, builder, 0);
+            describeNode(child, registries, builder, 0);
         }
     }
 
-    private static void line(SpellNode node, HolderLookup.Provider registries, Consumer<Component> builder, int depth) {
-        Optional<SpellPart> part = Spells.part(registries, node.part());
+    private static void describeNode(SpellNode node, HolderLookup.Provider registries, Consumer<Component> builder, int depth) {
         MutableComponent text = SpellText.partName(node.part()).withStyle(ChatFormatting.DARK_PURPLE);
+        Optional<SpellPart> part = Spells.part(registries, node.part());
         if (part.isPresent()) {
-            if (part.get().aspect().selectable()) {
-                Optional<ResourceKey<IAspect>> aspect = part.get().aspect().resolve(node.aspect(), registries);
-                if (aspect.isPresent()) {
-                    text = Component.translatable("tooltip.thaumaturge.focus.with_aspect", text, SpellText.aspectName(aspect.get()).withStyle(ChatFormatting.GOLD));
-                }
-            }
-            MutableComponent values = null;
-            for (SettingSpec spec : part.get().settings()) {
-                Component value = Component.translatable("tooltip.thaumaturge.focus.setting", SpellText.setting(spec), spec.label(node.settings().getOrDefault(spec.key(), spec.defaultValue())));
-                values = values == null ? value.copy() : Component.translatable("tooltip.thaumaturge.list", values, value);
-            }
-            if (values != null) {
-                text = Component.translatable("tooltip.thaumaturge.focus.with_settings", text, values.withStyle(ChatFormatting.DARK_AQUA));
-            }
+            text = decorate(text, node, part.get(), registries);
         }
         builder.accept(Component.literal(INDENT.repeat(depth)).append(text));
         for (SpellNode child : node.children()) {
-            line(child, registries, builder, depth + 1);
+            describeNode(child, registries, builder, depth + 1);
         }
+    }
+
+    private static MutableComponent decorate(MutableComponent name, SpellNode node, SpellPart part, HolderLookup.Provider registries) {
+        MutableComponent text = name;
+        if (part.aspect().selectable()) {
+            Optional<ResourceKey<IAspect>> aspect = part.aspect().resolve(node.aspect(), registries);
+            if (aspect.isPresent()) {
+                text = Component.translatable(WITH_ASPECT_KEY, text, SpellText.aspectName(aspect.get()).withStyle(ChatFormatting.GOLD));
+            }
+        }
+        MutableComponent values = null;
+        for (SettingSpec spec : part.settings()) {
+            Component value = Component.translatable(SETTING_KEY, SpellText.setting(spec), spec.label(node.settings().getOrDefault(spec.key(), spec.defaultValue())));
+            values = values == null ? value.copy() : Component.translatable(LIST_KEY, values, value);
+        }
+        if (values != null) {
+            text = Component.translatable(WITH_SETTINGS_KEY, text, values.withStyle(ChatFormatting.DARK_AQUA));
+        }
+        return text;
     }
 }

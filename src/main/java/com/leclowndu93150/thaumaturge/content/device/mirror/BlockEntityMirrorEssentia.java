@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspectSource;
 import com.leclowndu93150.thaumaturge.content.infusion.EssentiaSources;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -17,6 +18,9 @@ import org.jspecify.annotations.Nullable;
 public final class BlockEntityMirrorEssentia extends BlockEntityMirrorBase implements IAspectSource {
     private static final int INSTABILITY_THRESHOLD = 64;
     private static final int TARGET_RANGE = 8;
+    private static final int MAX_TRANSFER = 1;
+    private static final int NOTHING_STORED = 0;
+    private static final boolean BLOCKED = false;
 
     private @Nullable EssentiaSources targetSources;
     private @Nullable BlockPos targetSourcesCenter;
@@ -35,30 +39,6 @@ public final class BlockEntityMirrorEssentia extends BlockEntityMirrorBase imple
         return target instanceof BlockEntityMirrorEssentia;
     }
 
-    public void serverTick(Level level, BlockPos pos) {
-        tickLink();
-    }
-
-    private @Nullable EssentiaSources sourcesAtTarget() {
-        if (link == null) {
-            return null;
-        }
-        if (targetSources == null || !link.pos().equals(targetSourcesCenter)) {
-            ServerLevel targetLevel = targetLevel();
-            if (targetLevel == null) {
-                return null;
-            }
-            BlockState targetState = targetLevel.getBlockState(link.pos());
-            if (!targetState.hasProperty(BlockMirror.FACING)) {
-                return null;
-            }
-            targetSources = new EssentiaSources(link.pos(), TARGET_RANGE).facing(targetState.getValue(BlockMirror.FACING)).ignoring(be -> be instanceof BlockEntityMirrorEssentia)
-                    .drainEffectTarget(Vec3.atCenterOf(link.pos()));
-            targetSourcesCenter = link.pos();
-        }
-        return targetSources;
-    }
-
     @Override
     public AspectList getAspects() {
         return AspectList.EMPTY;
@@ -67,57 +47,91 @@ public final class BlockEntityMirrorEssentia extends BlockEntityMirrorBase imple
     @Override
     public void setAspects(AspectList aspects) {}
 
-    @Override
-    public boolean accepts(Holder<IAspect> aspect) {
-        return isLinkValidSimple();
+    public void serverTick(Level level, BlockPos pos) {
+        tickLink();
+    }
+
+    private @Nullable EssentiaSources sourcesAtTarget() {
+        if (link == null) {
+            return null;
+        }
+        BlockPos center = link.pos();
+        if (targetSources != null && center.equals(targetSourcesCenter)) {
+            return targetSources;
+        }
+        ServerLevel destination = targetLevel();
+        if (destination == null) {
+            return null;
+        }
+        BlockState mirrorState = destination.getBlockState(center);
+        if (!mirrorState.hasProperty(BlockMirror.FACING)) {
+            return null;
+        }
+        targetSources = buildSources(center, mirrorState.getValue(BlockMirror.FACING));
+        targetSourcesCenter = center;
+        return targetSources;
+    }
+
+    private static EssentiaSources buildSources(BlockPos center, Direction facing) {
+        return new EssentiaSources(center, TARGET_RANGE).facing(facing).ignoring(BlockEntityMirrorEssentia.class::isInstance).drainEffectTarget(Vec3.atCenterOf(center));
+    }
+
+    private @Nullable Route openRoute(int amount) {
+        if (amount > MAX_TRANSFER || !verifyPairing()) {
+            return null;
+        }
+        ServerLevel destination = targetLevel();
+        EssentiaSources sources = sourcesAtTarget();
+        return destination == null || sources == null ? null : new Route(destination, sources);
     }
 
     @Override
     public int fill(Holder<IAspect> aspect, int amount) {
-        if (amount > 1 || !isLinkValid()) {
+        Route route = openRoute(amount);
+        if (route == null || !route.insert(aspect)) {
             return amount;
         }
-        ServerLevel targetLevel = targetLevel();
-        EssentiaSources sources = sourcesAtTarget();
-        if (targetLevel == null || sources == null) {
-            return amount;
-        }
-        if (sources.insert(targetLevel, aspect, 0)) {
-            addInstability(amount);
-            return 0;
-        }
-        return amount;
-    }
-
-    @Override
-    public boolean drain(Holder<IAspect> aspect, int amount) {
-        if (amount > 1 || !isLinkValid()) {
-            return false;
-        }
-        ServerLevel targetLevel = targetLevel();
-        EssentiaSources sources = sourcesAtTarget();
-        if (targetLevel == null || sources == null) {
-            return false;
-        }
-        if (sources.drain(targetLevel, aspect, 0)) {
-            addInstability(amount);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean holds(Holder<IAspect> aspect, int amount) {
-        return false;
-    }
-
-    @Override
-    public int amountOf(Holder<IAspect> aspect) {
+        pileOn(amount);
         return 0;
     }
 
     @Override
+    public boolean drain(Holder<IAspect> aspect, int amount) {
+        Route route = openRoute(amount);
+        if (route == null || !route.extract(aspect)) {
+            return false;
+        }
+        pileOn(amount);
+        return true;
+    }
+
+    @Override
+    public int amountOf(Holder<IAspect> aspect) {
+        return NOTHING_STORED;
+    }
+
+    @Override
+    public boolean accepts(Holder<IAspect> aspect) {
+        return pairingIntact();
+    }
+
+    @Override
     public boolean isBlocked() {
-        return false;
+        return BLOCKED;
+    }
+
+    @Override
+    public boolean holds(Holder<IAspect> aspect, int amount) {
+        return amountOf(aspect) >= amount && amount > 0;
+    }
+
+    private record Route(ServerLevel destination, EssentiaSources sources) {
+        boolean insert(Holder<IAspect> aspect) {
+            return sources.insert(destination, aspect, 0);
+        }
+
+        boolean extract(Holder<IAspect> aspect) {
+            return sources.drain(destination, aspect, 0);
+        }
     }
 }

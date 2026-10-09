@@ -32,9 +32,9 @@ public class TTImageButton extends TTButton {
 
     @Override
     protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        int color = activeTintColor(tintColor(), isHovered(), active);
+        int tint = activeTintColor(tintColor(), isHovered(), active);
         int drawX = getX() + (getWidth() - spriteWidth) / 2;
         int drawY = getY() + (getHeight() - spriteHeight) / 2;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, drawX, drawY, (float) u, (float) v, spriteWidth, spriteHeight, spriteWidth, spriteHeight, textureWidth, textureHeight, color);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, drawX, drawY, (float) u, (float) v, spriteWidth, spriteHeight, textureWidth, textureHeight, tint);
     }
 }

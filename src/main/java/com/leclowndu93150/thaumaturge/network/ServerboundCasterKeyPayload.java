@@ -27,12 +27,12 @@ public record ServerboundCasterKeyPayload(int mod) implements CustomPacketPayloa
                 return;
             }
             if (main.getItem() instanceof ICaster) {
-                CasterManager.toggleMisc(main, player.level(), player, payload.mod());
+                CasterManager.adjustArchitectArea(main, player.level(), player, payload.mod());
                 return;
             }
             ItemStack off = player.getOffhandItem();
             if (off.getItem() instanceof ICaster) {
-                CasterManager.toggleMisc(off, player.level(), player, payload.mod());
+                CasterManager.adjustArchitectArea(off, player.level(), player, payload.mod());
             }
         });
     }

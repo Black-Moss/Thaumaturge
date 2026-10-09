@@ -7,8 +7,11 @@ import com.leclowndu93150.thaumaturge.content.casters.CasterManager;
 import com.leclowndu93150.thaumaturge.network.ServerboundCasterKeyPayload;
 import com.leclowndu93150.thaumaturge.network.ServerboundFocusChangePayload;
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -18,19 +21,20 @@ import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class CasterKeyHandler {
-    private static final int MOD_GROW = 0;
-    private static final int MOD_CYCLE_DIM = 1;
-    private static final int MOD_SHIFT = 2;
+    private static final int MODIFIER_NONE = 0;
+    private static final int MODIFIER_CONTROL = 1;
+    private static final int MODIFIER_SHIFT = 2;
 
-    private static boolean keyPressedF;
-    private static boolean keyPressedG;
-    static boolean radialActive;
-    static boolean radialLock;
+    static boolean radialOpen;
+    static boolean inputLock;
+
+    private static boolean focusLatch;
+    private static boolean miscLatch;
 
     private CasterKeyHandler() {}
 
     public static boolean isRadialActive() {
-        return radialActive;
+        return radialOpen;
     }
 
     @SubscribeEvent
@@ -40,45 +44,88 @@ public final class CasterKeyHandler {
         if (player == null) {
             return;
         }
-        boolean holdingCaster = player.getMainHandItem().getItem() instanceof ICaster || player.getOffhandItem().getItem() instanceof ICaster;
-        if (mc.screen == null && holdingCaster && TTKeybinds.CHANGE_FOCUS.same(mc.options.keySwapOffhand)) {
-            boolean drained = mc.options.keySwapOffhand.consumeClick();
-            while (drained) {
-                drained = mc.options.keySwapOffhand.consumeClick();
+        boolean holdsCaster = !heldCaster(player).isEmpty();
+        discardOffhandSwaps(mc, holdsCaster);
+        pollFocusKey(mc, player, holdsCaster);
+        pollMiscKey(mc);
+    }
+
+    static ItemStack heldCaster(Player player) {
+        ItemStack main = player.getMainHandItem();
+        if (main.getItem() instanceof ICaster) {
+            return main;
+        }
+        ItemStack off = player.getOffhandItem();
+        return off.getItem() instanceof ICaster ? off : ItemStack.EMPTY;
+    }
+
+    static ItemStack socketedFocus(ItemStack caster) {
+        return caster.getItem() instanceof ICaster icaster ? icaster.getFocusStack(caster) : ItemStack.EMPTY;
+    }
+
+    static void requestFocus(String focusKey) {
+        if (inputLock) {
+            return;
+        }
+        inputLock = true;
+        ClientPacketDistributor.sendToServer(new ServerboundFocusChangePayload(focusKey));
+    }
+
+    static void regrabMouse(Minecraft mc) {
+        if (mc.isWindowActive() && !mc.mouseHandler.isMouseGrabbed()) {
+            mc.mouseHandler.grabMouse();
+        }
+    }
+
+    private static void discardOffhandSwaps(Minecraft mc, boolean holdsCaster) {
+        KeyMapping swap = mc.options.keySwapOffhand;
+        if (mc.screen != null || !holdsCaster || !TTKeybinds.CHANGE_FOCUS.same(swap)) {
+            return;
+        }
+        while (swap.consumeClick()) {
+            continue;
+        }
+    }
+
+    private static void pollFocusKey(Minecraft mc, LocalPlayer player, boolean holdsCaster) {
+        if (!TTKeybinds.CHANGE_FOCUS.isDown()) {
+            radialOpen = false;
+            focusLatch = false;
+            return;
+        }
+        boolean inGame = mc.screen == null && (mc.mouseHandler.isMouseGrabbed() || radialOpen || RadialFocusOverlay.isAnimating());
+        if (!inGame) {
+            return;
+        }
+        if (!focusLatch) {
+            inputLock = false;
+        }
+        if (!inputLock && holdsCaster) {
+            if (player.isShiftKeyDown()) {
+                requestFocus(CasterManager.REMOVE_FOCUS);
+            } else {
+                radialOpen = true;
             }
         }
-        boolean inGame = mc.screen == null && (mc.mouseHandler.isMouseGrabbed() || radialActive || RadialFocusOverlay.isAnimating());
-        if (TTKeybinds.CHANGE_FOCUS.isDown()) {
-            if (inGame) {
-                if (!keyPressedF) {
-                    radialLock = false;
-                }
-                if (!radialLock && (player.getMainHandItem().getItem() instanceof ICaster || player.getOffhandItem().getItem() instanceof ICaster)) {
-                    if (player.isShiftKeyDown()) {
-                        ClientPacketDistributor.sendToServer(new ServerboundFocusChangePayload(CasterManager.REMOVE_FOCUS));
-                        radialLock = true;
-                    } else {
-                        radialActive = true;
-                    }
-                }
-                keyPressedF = true;
-            }
-        } else {
-            radialActive = false;
-            keyPressedF = false;
+        focusLatch = true;
+    }
+
+    private static void pollMiscKey(Minecraft mc) {
+        if (!TTKeybinds.MISC_TOGGLE.isDown()) {
+            miscLatch = false;
+            return;
         }
-        if (TTKeybinds.MISC_TOGGLE.isDown()) {
-            if (mc.screen == null && mc.mouseHandler.isMouseGrabbed()) {
-                if (!keyPressedG) {
-                    int mod = InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL)
-                            ? MOD_CYCLE_DIM
-                            : InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ? MOD_SHIFT : MOD_GROW;
-                    ClientPacketDistributor.sendToServer(new ServerboundCasterKeyPayload(mod));
-                }
-                keyPressedG = true;
-            }
-        } else {
-            keyPressedG = false;
+        if (mc.screen != null || !mc.mouseHandler.isMouseGrabbed() || miscLatch) {
+            return;
         }
+        miscLatch = true;
+        ClientPacketDistributor.sendToServer(new ServerboundCasterKeyPayload(modifierValue(mc)));
+    }
+
+    private static int modifierValue(Minecraft mc) {
+        if (InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL)) {
+            return MODIFIER_CONTROL;
+        }
+        return InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) ? MODIFIER_SHIFT : MODIFIER_NONE;
     }
 }

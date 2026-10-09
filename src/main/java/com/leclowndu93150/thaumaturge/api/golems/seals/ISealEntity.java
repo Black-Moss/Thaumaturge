@@ -16,26 +16,6 @@ import org.jspecify.annotations.Nullable;
  */
 public interface ISealEntity {
     /**
-     * @return where the seal sits
-     */
-    SealPos pos();
-
-    /**
-     * @return the seal type
-     */
-    SealType type();
-
-    /**
-     * @return the behaviour instance owned by this placement
-     */
-    ISealBehavior behavior();
-
-    /**
-     * @return the item filter, present when the type declares one
-     */
-    Optional<ISealFilter> filter();
-
-    /**
      * @param setting a setting declared by this seal's type
      * @return the stored value, or the setting's fallback when the type does not declare it
      */
@@ -49,72 +29,60 @@ public interface ISealEntity {
      */
     void setSetting(SealSetting setting, boolean value);
 
-    /**
-     * @return the priority, from -5 to 5
-     */
+    /** {@return the item filter, present when the type declares one} */
+    Optional<ISealFilter> filter();
+
+    /** {@return the behaviour instance owned by this placement} */
+    ISealBehavior behavior();
+
+    /** {@return the seal type} */
+    SealType type();
+
+    /** {@return where the seal sits} */
+    SealPos pos();
+
+    /** {@return the priority, from -5 to 5} */
     byte priority();
 
-    /**
-     * @param priority the priority, from -5 to 5
-     */
-    void setPriority(byte priority);
-
-    /**
-     * @return the golem colour this seal serves, from 1 to 16, or 0 for every golem
-     */
+    /** {@return the golem colour this seal serves, from 1 to 16, or 0 for every golem} */
     byte color();
 
-    /**
-     * @param color the golem colour this seal serves, or 0 for every golem
-     */
-    void setColor(byte color);
-
-    /**
-     * @return the work area size along each axis, in blocks; the axis the seal faces counts depth, the others count a radius
-     */
+    /** {@return the work area size along each axis, in blocks; the axis the seal faces counts depth, the others count a radius} */
     BlockPos area();
 
-    /**
-     * @param area the work area size, each axis from 1 to 8
-     */
-    void setArea(BlockPos area);
-
-    /**
-     * @return whether only golems owned by the seal's owner may take its tasks
-     */
+    /** {@return whether only golems owned by the seal's owner may take its tasks} */
     boolean isLocked();
 
-    /**
-     * @param locked whether only the owner's golems may take the seal's tasks
-     */
-    void setLocked(boolean locked);
-
-    /**
-     * @return whether a redstone signal pauses the seal
-     */
+    /** {@return whether a redstone signal pauses the seal} */
     boolean isRedstoneControlled();
 
-    /**
-     * @param controlled whether a redstone signal pauses the seal
-     */
-    void setRedstoneControlled(boolean controlled);
-
-    /**
-     * @return the UUID of the player who placed the seal, or null
-     */
+    /** {@return the UUID of the player who placed the seal, or null} */
     @Nullable
     UUID owner();
-
-    /**
-     * @param owner the owning player's UUID, or null
-     */
-    void setOwner(@Nullable UUID owner);
 
     /**
      * @param level the level
      * @return whether redstone control is on and the seal's block or the block in front of it is powered
      */
     boolean isStoppedByRedstone(Level level);
+
+    /** @param area the work area size, each axis from 1 to 8 */
+    void setArea(BlockPos area);
+
+    /** @param color the golem colour this seal serves, or 0 for every golem */
+    void setColor(byte color);
+
+    /** @param locked whether only the owner's golems may take the seal's tasks */
+    void setLocked(boolean locked);
+
+    /** @param controlled whether a redstone signal pauses the seal */
+    void setRedstoneControlled(boolean controlled);
+
+    /** @param priority the priority, from -5 to 5 */
+    void setPriority(byte priority);
+
+    /** @param owner the owning player's UUID, or null */
+    void setOwner(@Nullable UUID owner);
 
     /**
      * Saves the change with the chunk and sends the seal to every player in the dimension. Does nothing on the client.

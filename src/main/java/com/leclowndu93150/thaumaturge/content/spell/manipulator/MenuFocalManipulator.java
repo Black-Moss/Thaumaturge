@@ -26,47 +26,45 @@ public final class MenuFocalManipulator extends AbstractContainerMenu {
     public static final int HOTBAR_Y = 12;
     public static final int MAIN_Y = 69;
     public static final int SLOT_PITCH = 18;
-    private static final int CABINET_COLUMNS = 3;
-    private static final int MAIN_ROWS = 9;
-    private static final int HOTBAR_SIZE = 9;
-    private static final int PLAYER_SLOTS = 36;
-    private static final int FOCUS_INDEX = 0;
-    private static final int FIRST_PLAYER = 1;
-    private static final int FIRST_HOTBAR = FIRST_PLAYER + PLAYER_SLOTS - HOTBAR_SIZE;
-    private static final float FAIL_VOLUME = 0.33F;
 
-    private final ContainerLevelAccess access;
+    private static final int FOCUS_SLOT = 0;
+    private static final int HOTBAR_SIZE = 9;
+    private static final int INVENTORY_MAIN_START = 9;
+    private static final int MAIN_SIZE = 27;
+    private static final int MAIN_FIRST = 1;
+    private static final int MAIN_END = MAIN_FIRST + MAIN_SIZE;
+    private static final int HOTBAR_FIRST = MAIN_END;
+    private static final int HOTBAR_END = HOTBAR_FIRST + HOTBAR_SIZE;
+    private static final int HOTBAR_COLUMNS = 3;
+    private static final int MAIN_ROWS = 9;
+    private static final float REFUSED_VOLUME = 0.33F;
+    private static final float REFUSED_PITCH = 1.0F;
+
     private final BlockPos pos;
+    private final ContainerLevelAccess access;
     private final @Nullable BlockEntityFocalManipulator table;
 
-    public MenuFocalManipulator(int containerId, Inventory inventory, RegistryFriendlyByteBuf buf) {
-        this(containerId, inventory, new ItemStacksResourceHandler(FIRST_PLAYER), ContainerLevelAccess.NULL, buf.readBlockPos(), null);
+    public MenuFocalManipulator(int containerId, Inventory inventory, RegistryFriendlyByteBuf buffer) {
+        this(containerId, inventory, buffer.readBlockPos(), null, new ItemStacksResourceHandler(1));
     }
 
     public MenuFocalManipulator(int containerId, Inventory inventory, BlockEntityFocalManipulator table) {
-        this(containerId, inventory, table.items(), ContainerLevelAccess.create(table.getLevel(), table.getBlockPos()), table.getBlockPos(), table);
+        this(containerId, inventory, table.getBlockPos(), table, table.items());
     }
 
-    private MenuFocalManipulator(int containerId, Inventory inventory, ItemStacksResourceHandler items, ContainerLevelAccess access, BlockPos pos, @Nullable BlockEntityFocalManipulator table) {
+    private MenuFocalManipulator(int containerId, Inventory inventory, BlockPos pos, @Nullable BlockEntityFocalManipulator table, ItemStacksResourceHandler items) {
         super(TTMenus.FOCAL_MANIPULATOR.get(), containerId);
-        this.access = access;
         this.pos = pos;
         this.table = table;
-        addSlot(new ResourceHandlerSlot(items, items::set, BlockEntityFocalManipulator.SLOT_FOCUS, FOCUS_SLOT_X, FOCUS_SLOT_Y));
-        for (int index = HOTBAR_SIZE; index < PLAYER_SLOTS; index++) {
-            addSlot(cabinetSlot(inventory, index));
+        this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
+        addSlot(new FocusSlot(items));
+        for (int slot = INVENTORY_MAIN_START; slot < INVENTORY_MAIN_START + MAIN_SIZE; slot++) {
+            int cell = slot - INVENTORY_MAIN_START;
+            addSlot(new Slot(inventory, slot, CABINET_X + SLOT_PITCH * (cell / MAIN_ROWS), MAIN_Y + SLOT_PITCH * (cell % MAIN_ROWS)));
         }
-        for (int index = 0; index < HOTBAR_SIZE; index++) {
-            addSlot(cabinetSlot(inventory, index));
+        for (int slot = 0; slot < HOTBAR_SIZE; slot++) {
+            addSlot(new Slot(inventory, slot, CABINET_X + SLOT_PITCH * (slot % HOTBAR_COLUMNS), HOTBAR_Y + SLOT_PITCH * (slot / HOTBAR_COLUMNS)));
         }
-    }
-
-    private static Slot cabinetSlot(Inventory inventory, int index) {
-        boolean hotbar = index < HOTBAR_SIZE;
-        int cell = hotbar ? index : index - HOTBAR_SIZE;
-        int column = hotbar ? cell % CABINET_COLUMNS : cell / MAIN_ROWS;
-        int row = hotbar ? cell / CABINET_COLUMNS : cell % MAIN_ROWS;
-        return new Slot(inventory, index, CABINET_X + column * SLOT_PITCH, (hotbar ? HOTBAR_Y : MAIN_Y) + row * SLOT_PITCH);
     }
 
     public BlockPos pos() {
@@ -79,10 +77,13 @@ public final class MenuFocalManipulator extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id == BUTTON_INSCRIBE && table != null && !table.startInscribing(player)) {
-            access.execute((level, at) -> level.playSound(null, at, TTSounds.CRAFTFAIL.get(), SoundSource.BLOCKS, FAIL_VOLUME, 1.0F));
+        if (id != BUTTON_INSCRIBE) {
+            return false;
         }
-        return id == BUTTON_INSCRIBE;
+        if (table != null && !table.startInscribing(player)) {
+            player.level().playSound(null, pos, TTSounds.CRAFTFAIL.get(), SoundSource.BLOCKS, REFUSED_VOLUME, REFUSED_PITCH);
+        }
+        return true;
     }
 
     @Override
@@ -96,27 +97,36 @@ public final class MenuFocalManipulator extends AbstractContainerMenu {
         if (!slot.hasItem()) {
             return ItemStack.EMPTY;
         }
-        ItemStack stack = slot.getItem();
-        ItemStack before = stack.copy();
-        if (!route(index, stack)) {
+        ItemStack moving = slot.getItem();
+        ItemStack original = moving.copy();
+        if (!route(moving, index)) {
             return ItemStack.EMPTY;
         }
-        if (stack.isEmpty()) {
+        if (moving.isEmpty()) {
             slot.setByPlayer(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
-        slot.onTake(player, stack);
-        return before;
+        return original;
     }
 
-    private boolean route(int index, ItemStack stack) {
-        if (index == FOCUS_INDEX) {
-            return moveItemStackTo(stack, FIRST_PLAYER, slots.size(), false);
+    private boolean route(ItemStack moving, int index) {
+        if (index == FOCUS_SLOT) {
+            return moveItemStackTo(moving, MAIN_FIRST, HOTBAR_END, false);
         }
-        if (FocusItems.isFocus(stack) && moveItemStackTo(stack, FOCUS_INDEX, FIRST_PLAYER, false)) {
-            return true;
+        boolean toFocus = FocusItems.isFocus(moving) && moveItemStackTo(moving, FOCUS_SLOT, MAIN_FIRST, false);
+        boolean toRest = !moving.isEmpty() && (index < MAIN_END ? moveItemStackTo(moving, HOTBAR_FIRST, HOTBAR_END, false) : moveItemStackTo(moving, MAIN_FIRST, MAIN_END, false));
+        return toFocus || toRest;
+    }
+
+    private static final class FocusSlot extends ResourceHandlerSlot {
+        FocusSlot(ItemStacksResourceHandler items) {
+            super(items, items::set, FOCUS_SLOT, FOCUS_SLOT_X, FOCUS_SLOT_Y);
         }
-        return index < FIRST_HOTBAR ? moveItemStackTo(stack, FIRST_HOTBAR, slots.size(), false) : moveItemStackTo(stack, FIRST_PLAYER, FIRST_HOTBAR, false);
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return FocusItems.isFocus(stack);
+        }
     }
 }

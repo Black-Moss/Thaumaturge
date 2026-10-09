@@ -7,24 +7,28 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.util.RandomSource;
 
 public final class FrostFlakeParticle extends TTParticle {
-    private static final int BASE_LIFETIME = 40;
+    private static final int LIFETIME_BASE = 40;
+    private static final int LIFETIME_RANGE = 40;
     private static final float FRICTION = 0.8F;
     private static final float GRAVITY = 0.033F;
-    private static final float DRIFT_XZ = 0.0025F;
-    private static final float DRIFT_Y = 1.0E-4F;
+    private static final float SIZE_UNIT = 0.1F;
+    private static final float JITTER_HORIZONTAL = 0.0025F;
+    private static final float JITTER_VERTICAL = 0.0001F;
+    private static final float START_TURNS_RANGE = 3.0F;
+    private static final float SPIN_DEVIATION = 0.25F;
 
     private FrostFlakeParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, FrostFlakeParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
-        this.lifetime = BASE_LIFETIME + this.random.nextInt(40);
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
         this.friction = FRICTION;
         this.gravity = GRAVITY;
-        this.quadSize = options.scale() * 0.1F;
-        setSpin(this.random.nextFloat() * 3.0F, (float) this.random.nextGaussian() / 4.0F);
+        this.quadSize = options.scale() * SIZE_UNIT;
+        setSpin(this.random.nextFloat() * START_TURNS_RANGE, (float) this.random.nextGaussian() * SPIN_DEVIATION);
     }
 
     @Override
     protected void update() {
-        drift(DRIFT_XZ, DRIFT_Y, DRIFT_XZ);
+        drift(JITTER_HORIZONTAL, JITTER_VERTICAL, JITTER_HORIZONTAL);
         this.alpha = 1.0F - progress();
     }
 

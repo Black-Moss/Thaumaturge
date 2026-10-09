@@ -18,18 +18,25 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 
 public final class EntityFallingTaint extends Entity implements IEntityWithComplexSpawn {
-    private static final int MAX_HANG_TIME = 100;
-    private static final int MAX_FALL_TIME = 600;
-    private static final float MOTION_DAMP = 0.98F;
-    private static final float LANDING_DAMP_HORIZONTAL = 0.7F;
-    private static final float LANDING_DAMP_VERTICAL = -0.5F;
+    private static final String BLOCK_KEY = "Block";
+    private static final String ORIGIN_KEY = "Origin";
+    private static final String TIME_KEY = "Time";
+    private static final double GRAVITY = 0.04;
+    private static final double AIR_DRAG = 0.98;
+    private static final double LANDING_HORIZONTAL_DAMPING = 0.7;
+    private static final double LANDING_VERTICAL_BOUNCE = -0.5;
+    private static final int GRACE_TICKS = 100;
+    private static final int MAX_FALL_TICKS = 600;
+    private static final float LAND_VOLUME = 0.5F;
+    private static final float LAND_PITCH = 1.0F;
 
-    private BlockState fallTile = TTBlocks.TAINT_CRUST.get().defaultBlockState();
-    private BlockPos originPos = BlockPos.ZERO;
-    private int fallTime;
+    private BlockState tile = TTBlocks.TAINT_CRUST.get().defaultBlockState();
+    private BlockPos origin = BlockPos.ZERO;
+    private int time;
 
     public EntityFallingTaint(EntityType<? extends EntityFallingTaint> type, Level level) {
         super(type, level);
@@ -37,113 +44,112 @@ public final class EntityFallingTaint extends Entity implements IEntityWithCompl
 
     public EntityFallingTaint(Level level, double x, double y, double z, BlockState state, BlockPos origin) {
         this(TTEntities.FALLING_TAINT.get(), level);
-        this.fallTile = state;
-        this.originPos = origin.immutable();
+        this.tile = state;
+        this.origin = origin;
+        restAt(x, y, z);
+    }
+
+    private void restAt(double x, double y, double z) {
+        this.setDeltaMovement(Vec3.ZERO);
         this.setPos(x, y, z);
-        this.setDeltaMovement(0.0, 0.0, 0.0);
-        this.xo = x;
-        this.yo = y;
-        this.zo = z;
+        this.setOldPosAndRot();
     }
 
     public BlockState getFallTile() {
-        return fallTile;
+        return this.tile;
     }
 
     public BlockPos origin() {
-        return originPos;
+        return this.origin;
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder data) {}
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {}
 
     @Override
     public void tick() {
-        super.tick();
-        if (this.fallTile.isAir()) {
+        if (this.tile.isAir()) {
             this.discard();
             return;
         }
-        this.xo = this.getX();
-        this.yo = this.getY();
-        this.zo = this.getZ();
-
+        if (this.level() instanceof ServerLevel level && !clearOrigin(level)) {
+            return;
+        }
         if (!this.isNoGravity()) {
-            this.setDeltaMovement(this.getDeltaMovement().add(0.0, -0.04, 0.0));
+            this.setDeltaMovement(this.getDeltaMovement().add(0.0, -GRAVITY, 0.0));
         }
-
         this.move(MoverType.SELF, this.getDeltaMovement());
-
-        if (!(this.level() instanceof ServerLevel server)) {
-            return;
+        if (this.level() instanceof ServerLevel level) {
+            this.time++;
+            BlockPos pos = this.blockPosition();
+            if (!this.onGround() && !level.getBlockState(pos.below()).is(TTBlocks.FLUX_GOO)) {
+                fall(level, pos);
+            } else {
+                land(level, pos);
+            }
         }
-        BlockPos here = this.blockPosition();
-
-        if (fallTime == 0) {
-            BlockState atOrigin = server.getBlockState(originPos);
-            if (!atOrigin.is(fallTile.getBlock())) {
-                this.discard();
-                return;
-            }
-            server.setBlock(originPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-        }
-
-        fallTime++;
-
-        BlockState below = server.getBlockState(here.below());
-        boolean overGoo = below.is(TTBlocks.FLUX_GOO.get());
-
-        if (!this.onGround() && !overGoo) {
-            if (fallTime > MAX_HANG_TIME && (here.getY() < server.getMinY() || here.getY() > server.getMaxY())) {
-                this.discard();
-                return;
-            }
-            if (fallTime > MAX_FALL_TIME) {
-                this.discard();
-                return;
-            }
-        } else {
-            this.setDeltaMovement(this.getDeltaMovement().multiply(LANDING_DAMP_HORIZONTAL, LANDING_DAMP_VERTICAL, LANDING_DAMP_HORIZONTAL));
-            server.playSound(null, here, TTSounds.GORE.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-            this.discard();
-            BlockState landingState = server.getBlockState(here);
-            if (landingState.canBeReplaced() || landingState.isAir() || landingState.is(TTBlocks.FLUX_GOO.get())) {
-                server.setBlock(here, fallTile, Block.UPDATE_ALL);
-            }
-            return;
-        }
-
-        this.setDeltaMovement(this.getDeltaMovement().scale(MOTION_DAMP));
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
-        output.store("Block", BlockState.CODEC, fallTile);
-        output.putLong("Origin", originPos.asLong());
-        output.putInt("Time", fallTime);
+        output.store(BLOCK_KEY, BlockState.CODEC, this.tile);
+        output.putLong(ORIGIN_KEY, this.origin.asLong());
+        output.putInt(TIME_KEY, this.time);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-        input.read("Block", BlockState.CODEC).filter(state -> !state.isAir()).ifPresent(state -> fallTile = state);
-        originPos = BlockPos.of(input.getLongOr("Origin", 0L));
-        fallTime = input.getIntOr("Time", 0);
+        input.read(BLOCK_KEY, BlockState.CODEC).filter(state -> !state.isAir()).ifPresent(state -> this.tile = state);
+        this.origin = BlockPos.of(input.getLongOr(ORIGIN_KEY, 0L));
+        this.time = input.getIntOr(TIME_KEY, 0);
     }
 
     @Override
-    public void writeSpawnData(RegistryFriendlyByteBuf buf) {
-        buf.writeVarInt(Block.getId(fallTile));
-        buf.writeBlockPos(originPos);
+    public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
+        buffer.writeVarInt(Block.getId(this.tile)).writeBlockPos(this.origin);
     }
 
     @Override
-    public void readSpawnData(RegistryFriendlyByteBuf buf) {
-        fallTile = Block.stateById(buf.readVarInt());
-        originPos = buf.readBlockPos();
+    public void readSpawnData(RegistryFriendlyByteBuf buffer) {
+        int stateId = buffer.readVarInt();
+        BlockPos source = buffer.readBlockPos();
+        this.tile = Block.stateById(stateId);
+        this.origin = source;
     }
 
     @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         return false;
+    }
+
+    private boolean clearOrigin(ServerLevel level) {
+        if (this.time != 0) {
+            return true;
+        }
+        if (!level.getBlockState(this.origin).is(this.tile.getBlock())) {
+            this.discard();
+            return false;
+        }
+        level.setBlock(this.origin, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        return true;
+    }
+
+    private void fall(ServerLevel level, BlockPos pos) {
+        this.setDeltaMovement(this.getDeltaMovement().scale(AIR_DRAG));
+        boolean outsideWorld = pos.getY() < level.getMinY() || pos.getY() > level.getMaxY();
+        if (this.time > GRACE_TICKS && outsideWorld || this.time > MAX_FALL_TICKS) {
+            this.discard();
+        }
+    }
+
+    private void land(ServerLevel level, BlockPos pos) {
+        Vec3 motion = this.getDeltaMovement();
+        this.setDeltaMovement(motion.x * LANDING_HORIZONTAL_DAMPING, motion.y * LANDING_VERTICAL_BOUNCE, motion.z * LANDING_HORIZONTAL_DAMPING);
+        level.playSound(null, pos, TTSounds.GORE.get(), SoundSource.BLOCKS, LAND_VOLUME, LAND_PITCH);
+        this.discard();
+        BlockState current = level.getBlockState(pos);
+        if (current.isAir() || current.canBeReplaced() || current.is(TTBlocks.FLUX_GOO)) {
+            level.setBlock(pos, this.tile, Block.UPDATE_ALL);
+        }
     }
 }

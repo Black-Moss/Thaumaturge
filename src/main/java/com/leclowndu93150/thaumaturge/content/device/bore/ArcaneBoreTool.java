@@ -4,22 +4,26 @@ import com.leclowndu93150.thaumaturge.api.items.InfusionEnchantment;
 import com.leclowndu93150.thaumaturge.content.equipment.InfusionEnchantmentHelper;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantable;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class ArcaneBoreTool {
-    private static final int MIN_RADIUS = 2;
-    private static final int ENCHANTABILITY_PER_RADIUS = 3;
+    private static final int ENCHANTABILITY_DIVISOR = 3;
     private static final int RADIUS_PER_DESTRUCTIVE = 2;
+    private static final int MIN_RADIUS = 2;
     private static final int DEPTH_PER_RADIUS = 8;
     private static final int DEPTH_PER_BURROWING = 16;
-    private static final int DESTROY_SPEED_DIVISOR = 2;
+    private static final float SPEED_DIVISOR = 2.0F;
+    private static final int KEPT_DURABILITY = 1;
 
     private ArcaneBoreTool() {}
 
@@ -35,7 +39,7 @@ public final class ArcaneBoreTool {
             return false;
         }
         for (Tool.Rule rule : tool.rules()) {
-            if (rule.blocks().unwrapKey().map(key -> key.equals(BlockTags.MINEABLE_WITH_PICKAXE)).orElse(false)) {
+            if (rule.blocks().unwrapKey().filter(BlockTags.MINEABLE_WITH_PICKAXE::equals).isPresent()) {
                 return true;
             }
         }
@@ -43,41 +47,35 @@ public final class ArcaneBoreTool {
     }
 
     public static boolean valid(ItemStack stack) {
-        if (!isPickaxe(stack)) {
-            return false;
-        }
-        return !stack.isDamageableItem() || stack.getDamageValue() + 1 < stack.getMaxDamage();
+        return isPickaxe(stack) && (!stack.isDamageableItem() || stack.getDamageValue() + KEPT_DURABILITY < stack.getMaxDamage());
     }
 
     public static int digRadius(ItemStack stack) {
         int radius = 0;
         if (isPickaxe(stack)) {
             Enchantable enchantable = stack.get(DataComponents.ENCHANTABLE);
-            radius = (enchantable == null ? 0 : enchantable.value()) / ENCHANTABILITY_PER_RADIUS;
-            radius += InfusionEnchantmentHelper.level(stack, InfusionEnchantment.DESTRUCTIVE) * RADIUS_PER_DESTRUCTIVE;
+            int base = enchantable == null ? 0 : enchantable.value() / ENCHANTABILITY_DIVISOR;
+            radius = base + RADIUS_PER_DESTRUCTIVE * InfusionEnchantmentHelper.level(stack, InfusionEnchantment.DESTRUCTIVE);
         }
         return radius <= 1 ? MIN_RADIUS : radius;
     }
 
     public static int digDepth(ItemStack stack) {
-        return digRadius(stack) * DEPTH_PER_RADIUS + InfusionEnchantmentHelper.level(stack, InfusionEnchantment.BURROWING) * DEPTH_PER_BURROWING;
+        return DEPTH_PER_RADIUS * digRadius(stack) + DEPTH_PER_BURROWING * InfusionEnchantmentHelper.level(stack, InfusionEnchantment.BURROWING);
     }
 
     public static int fortune(Level level, ItemStack stack) {
         if (!valid(stack)) {
             return 0;
         }
-        int fortune = stack.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE));
-        return Math.max(fortune, InfusionEnchantmentHelper.level(stack, InfusionEnchantment.SOUNDING));
+        return Math.max(enchantLevel(level, stack, Enchantments.FORTUNE), InfusionEnchantmentHelper.level(stack, InfusionEnchantment.SOUNDING));
     }
 
     public static int digSpeed(Level level, ItemStack stack, BlockState state) {
         if (!valid(stack)) {
             return 0;
         }
-        int speed = (int) (stack.getDestroySpeed(state) / DESTROY_SPEED_DIVISOR);
-        speed += stack.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.EFFICIENCY));
-        return speed;
+        return (int) (stack.getDestroySpeed(state) / SPEED_DIVISOR) + enchantLevel(level, stack, Enchantments.EFFICIENCY);
     }
 
     public static int refining(ItemStack stack) {
@@ -85,6 +83,10 @@ public final class ArcaneBoreTool {
     }
 
     public static boolean silkTouch(Level level, ItemStack stack) {
-        return !stack.isEmpty() && stack.getEnchantmentLevel(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH)) > 0;
+        return !stack.isEmpty() && enchantLevel(level, stack, Enchantments.SILK_TOUCH) > 0;
+    }
+
+    private static int enchantLevel(Level level, ItemStack stack, ResourceKey<Enchantment> key) {
+        return level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(key).map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, stack)).orElse(0);
     }
 }

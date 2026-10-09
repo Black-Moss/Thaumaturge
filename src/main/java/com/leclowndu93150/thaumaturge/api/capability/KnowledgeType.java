@@ -1,77 +1,88 @@
 package com.leclowndu93150.thaumaturge.api.capability;
 
-import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.StringRepresentable;
 
 /**
- * Kind of category knowledge a player may accumulate in addition to specific research entries.
+ * The two kinds of category knowledge a player accumulates.
  *
- * <p>Each entry advances a player's raw counter for a {@link IResearchCategory category}.
- * The raw counter is divided by {@link #progression()} to yield the visible level reported by
- * {@link IPlayerKnowledge#knowledge(KnowledgeType, ResourceKey)}; for
- * example, every thirty-second theory yields one level.
+ * <p>Each type keeps an independent raw counter per research category plus an uncategorised
+ * counter. The visible level is the raw counter divided by {@link #progression()} with truncating
+ * integer division. See {@link IPlayerKnowledge} for how the counters are stored.
+ *
+ * <p>The declaration order is load-bearing: {@link #STREAM_CODEC} encodes the ordinal, so
+ * {@link #THEORY} is wire value 0 and {@link #OBSERVATION} is wire value 1. Appending a constant
+ * is safe, reordering is not.
  *
  * @since 1.0.0
  */
 public enum KnowledgeType implements StringRepresentable {
-    THEORY("theory", "T", 32), OBSERVATION("observation", "O", 16);
+    /** Knowledge gained by study, one visible level per 32 raw points. */
+    THEORY("theory", "T", 32),
+    /** Knowledge gained by scanning, one visible level per 16 raw points. */
+    OBSERVATION("observation", "O", 16);
 
-    /** Codec for datapack and component serialization. */
+    private static final String TRANSLATION_PREFIX = "knowledge_type.thaumaturge.";
+
+    /**
+     * Codec for datapack and save serialization. Accepts and emits the lowercase serialized name
+     * only; an unknown string fails decoding.
+     */
     public static final Codec<KnowledgeType> CODEC = StringRepresentable.fromEnum(KnowledgeType::values);
 
-    /** Network codec for payload sync. */
-    public static final StreamCodec<ByteBuf, KnowledgeType> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], KnowledgeType::ordinal);
+    /**
+     * Network codec holding the ordinal as one variable-length integer. A decoded ordinal outside
+     * the constant range fails instead of wrapping.
+     */
+    public static final StreamCodec<ByteBuf, KnowledgeType> STREAM_CODEC = ByteBufCodecs.idMapper(index -> values()[index], KnowledgeType::ordinal);
 
-    private final String name;
+    private final String serializedName;
     private final String abbreviation;
     private final int progression;
 
-    KnowledgeType(String name, String abbreviation, int progression) {
-        this.name = name;
+    KnowledgeType(String serializedName, String abbreviation, int progression) {
+        this.serializedName = serializedName;
         this.abbreviation = abbreviation;
         this.progression = progression;
     }
 
     /**
-     * Stable lowercase name. Used as the JSON enum value and the prefix in the persisted map key.
+     * Returns the lowercase name used in saves, commands and texture paths.
      *
-     * @return the lowercase name
+     * @return the stable serialized name
      */
     @Override
     public String getSerializedName() {
-        return name;
+        return serializedName;
     }
 
     /**
-     * Single-letter abbreviation used by HUD overlays and the persisted map key.
+     * Returns the single capital letter used by HUD overlays and persisted map keys.
      *
-     * @return the abbreviation, never empty
+     * @return the stable abbreviation
      */
     public String abbreviation() {
         return abbreviation;
     }
 
     /**
-     * Divisor used to convert the raw accumulated counter into a visible level.
+     * Returns the number of raw points that make up one visible level.
      *
-     * @return the divisor, always positive
+     * @return the positive progression divisor
      */
     public int progression() {
         return progression;
     }
 
     /**
-     * Translation key of the display name, for example {@code knowledge_type.thaumaturge.theory}.
+     * Returns the translation key of the display name.
      *
-     * @return the translation key, never empty
-     * @since 1.0.0
+     * @return {@code knowledge_type.thaumaturge.} followed by the serialized name
      */
     public String translationKey() {
-        return "knowledge_type.thaumaturge." + name;
+        return TRANSLATION_PREFIX + serializedName;
     }
 }

@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.aura.pressure;
 
-import com.leclowndu93150.thaumaturge.content.warp.WarpManager;
+import com.leclowndu93150.thaumaturge.content.warp.WarpNotices;
 import com.leclowndu93150.thaumaturge.registry.TTMobEffects;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -32,7 +32,7 @@ public final class ExhaustPressureEvent extends AbstractFluxPressureEvent {
         }
         for (LivingEntity target : targets) {
             if (target instanceof ServerPlayer player) {
-                WarpManager.sendActionBar(player, MESSAGE);
+                WarpNotices.send(player, MESSAGE);
             }
             target.addEffect(new MobEffectInstance(TTMobEffects.INFECTIOUS_VIS_EXHAUST, DURATION, AMPLIFIER, false, true, false));
         }

@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.aspect;
 
-import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectIndex;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectRecipeContributor;
@@ -20,7 +19,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 public final class InfusionAspectContributor implements IAspectRecipeContributor {
     private Map<Item, List<Candidate>> candidates = Map.of();
 
-    private record Candidate(List<Ingredient> ingredients, AspectList aspects, int count) {
+    private record Candidate(List<Ingredient> ingredients, AspectList cost, int count) {
     }
 
     @Override
@@ -37,7 +36,7 @@ public final class InfusionAspectContributor implements IAspectRecipeContributor
             List<Ingredient> ingredients = new ArrayList<>(infusion.components().size() + 1);
             ingredients.add(infusion.catalyst());
             ingredients.addAll(infusion.components());
-            map.computeIfAbsent(output.getItem(), item -> new ArrayList<>()).add(new Candidate(List.copyOf(ingredients), infusion.aspects(), output.getCount()));
+            map.computeIfAbsent(output.getItem(), item -> new ArrayList<>()).add(new Candidate(ingredients, infusion.aspects(), output.getCount()));
         }
         candidates = map;
     }
@@ -49,12 +48,9 @@ public final class InfusionAspectContributor implements IAspectRecipeContributor
             return Optional.empty();
         }
         for (Candidate candidate : list) {
-            AspectList out = RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial);
-            for (AspectInstance entry : RecipeAspectDerivation.drain(candidate.aspects(), candidate.count()).entries()) {
-                out = out.add(entry);
-            }
-            if (!out.isEmpty()) {
-                return Optional.of(out);
+            AspectList aspects = RecipeAspectDerivation.fromIngredients(candidate.ingredients(), candidate.count(), partial).add(RecipeAspectDerivation.drain(candidate.cost(), candidate.count()));
+            if (!aspects.isEmpty()) {
+                return Optional.of(aspects);
             }
         }
         return Optional.empty();

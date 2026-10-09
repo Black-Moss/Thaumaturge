@@ -1,52 +1,41 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
+import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
-final class ReplantSite {
-    static final Codec<ReplantSite> CODEC = RecordCodecBuilder.create(instance -> instance
-            .group(Codec.LONG.optionalFieldOf("taskloc", 0L).forGetter(site -> site.pos.asLong()),
-                    Codec.BYTE.optionalFieldOf("taskface", (byte) 0).forGetter(site -> (byte) site.face.get3DDataValue()), Codec.BOOL.optionalFieldOf("farmland", false).forGetter(site -> site.tilled),
-                    ItemStack.OPTIONAL_CODEC.optionalFieldOf("seed", ItemStack.EMPTY).forGetter(site -> site.seed))
-            .apply(instance, (pos, face, tilled, seed) -> new ReplantSite(BlockPos.of(pos), Direction.from3DDataValue(face), seed, tilled)));
+record ReplantSite(BlockPos pos, Direction face, ItemStack seed, boolean tilled, @Nullable Task task) {
+    private static final long DEFAULT_POS = 0L;
+    private static final byte DEFAULT_FACE = 0;
+    private static final String LEGACY_POS_KEY = "taskloc";
+    private static final String LEGACY_FACE_KEY = "taskface";
+    private static final String LEGACY_TILLED_KEY = "farmland";
+    private static final Codec<Long> LEGACY_POS_CODEC = Codec.either(Codec.LONG, BlockPos.CODEC).xmap(either -> either.map(packed -> packed, BlockPos::asLong), packed -> Either.left(packed));
 
-    private final BlockPos pos;
-    private final Direction face;
-    private final ItemStack seed;
-    private final boolean tilled;
-    private int taskId;
+    static final MapCodec<ReplantSite> CODEC = RecordCodecBuilder
+            .mapCodec(instance -> instance
+                    .group(Codec.LONG.optionalFieldOf("pos", DEFAULT_POS).forGetter(site -> site.pos().asLong()),
+                            Codec.BYTE.optionalFieldOf("face", DEFAULT_FACE).forGetter(site -> (byte) site.face().get3DDataValue()),
+                            Codec.BOOL.optionalFieldOf("tilled", false).forGetter(ReplantSite::tilled), ItemStack.OPTIONAL_CODEC.optionalFieldOf("seed", ItemStack.EMPTY).forGetter(ReplantSite::seed))
+                    .apply(instance, ReplantSite::restore));
 
-    ReplantSite(BlockPos pos, Direction face, ItemStack seed, boolean tilled) {
-        this.pos = pos;
-        this.face = face;
-        this.seed = seed;
-        this.tilled = tilled;
+    static final MapCodec<ReplantSite> LEGACY_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
+            .group(LEGACY_POS_CODEC.optionalFieldOf(LEGACY_POS_KEY, DEFAULT_POS).forGetter(site -> site.pos().asLong()),
+                    Codec.BYTE.optionalFieldOf(LEGACY_FACE_KEY, DEFAULT_FACE).forGetter(site -> (byte) site.face().get3DDataValue()),
+                    Codec.BOOL.optionalFieldOf(LEGACY_TILLED_KEY, false).forGetter(ReplantSite::tilled), ItemStack.OPTIONAL_CODEC.optionalFieldOf("seed", ItemStack.EMPTY).forGetter(ReplantSite::seed))
+            .apply(instance, ReplantSite::restore));
+
+    private static ReplantSite restore(long pos, byte face, boolean tilled, ItemStack seed) {
+        return new ReplantSite(BlockPos.of(pos), Direction.from3DDataValue(face), seed, tilled, null);
     }
 
-    BlockPos pos() {
-        return pos;
-    }
-
-    Direction face() {
-        return face;
-    }
-
-    ItemStack seed() {
-        return seed;
-    }
-
-    boolean tilled() {
-        return tilled;
-    }
-
-    int taskId() {
-        return taskId;
-    }
-
-    void assign(int taskId) {
-        this.taskId = taskId;
+    ReplantSite withTask(@Nullable Task assigned) {
+        return new ReplantSite(pos, face, seed, tilled, assigned);
     }
 }

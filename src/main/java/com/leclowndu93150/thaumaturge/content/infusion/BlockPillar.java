@@ -8,41 +8,49 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class BlockPillar extends HorizontalDirectionalBlock {
     public static final MapCodec<BlockPillar> CODEC = simpleCodec(BlockPillar::new);
-    private static final VoxelShape NORTH_SHAPE = Shapes.or(box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), box(3.0, 8.0, 3.0, 13.0, 19.0, 13.0), box(5.0, 19.0, 5.0, 12.0, 20.0, 12.0),
-            box(4.0, 20.0, 4.0, 12.0, 23.0, 12.0), box(4.0, 21.0, 12.0, 13.0, 23.0, 13.0), box(12.0, 22.0, 5.0, 13.0, 25.0, 13.0), box(5.0, 23.0, 5.0, 7.0, 27.0, 13.0),
-            box(7.0, 23.0, 5.0, 12.0, 25.0, 13.0), box(7.0, 25.0, 5.0, 13.0, 26.0, 13.0), box(12.0, 25.0, 13.0, 14.0, 26.0, 14.0), box(7.0, 26.0, 5.0, 10.0, 27.0, 8.0),
-            box(7.0, 26.0, 7.0, 15.0, 28.0, 15.0), box(10.0, 27.0, 15.0, 15.0, 31.0, 16.0), box(7.0, 28.0, 10.0, 15.0, 29.0, 15.0), box(8.0, 28.0, 8.0, 15.0, 30.0, 10.0),
-            box(15.0, 28.0, 12.0, 16.0, 30.0, 14.0), box(8.0, 29.0, 9.0, 16.0, 31.0, 15.0), box(14.0, 30.0, 11.0, 15.0, 32.0, 13.0), box(10.0, 31.0, 10.0, 14.0, 32.0, 15.0),
-            box(11.0, 32.0, 11.0, 13.0, 33.0, 14.0));
-    private static final Map<Direction, VoxelShape> SHAPES = shapes();
+    private static final float FULL_BRIGHTNESS = 1.0F;
+    private static final double[][] NORTH_BOXES = {{0, 0, 0, 16, 8, 16}, {3, 8, 3, 13, 19, 13}, {5, 19, 5, 12, 20, 12}, {4, 20, 4, 12, 23, 12}, {4, 21, 12, 13, 23, 13}, {12, 22, 5, 13, 25, 13},
+            {5, 23, 5, 7, 27, 13}, {7, 23, 5, 12, 25, 13}, {7, 25, 5, 13, 26, 13}, {12, 25, 13, 14, 26, 14}, {7, 26, 5, 10, 27, 8}, {7, 26, 7, 15, 28, 15}, {10, 27, 15, 15, 31, 16},
+            {7, 28, 10, 15, 29, 15}, {8, 28, 8, 15, 30, 10}, {15, 28, 12, 16, 30, 14}, {8, 29, 9, 16, 31, 15}, {14, 30, 11, 15, 32, 13}, {10, 31, 10, 14, 32, 15}, {11, 32, 11, 13, 33, 14}};
+    private static final int BOX_MIN_X = 0;
+    private static final int BOX_MIN_Y = 1;
+    private static final int BOX_MIN_Z = 2;
+    private static final int BOX_MAX_X = 3;
+    private static final int BOX_MAX_Y = 4;
+    private static final int BOX_MAX_Z = 5;
+    private static final Map<Direction, VoxelShape> SHAPES = buildShapes();
 
     public BlockPillar(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    private static Map<Direction, VoxelShape> buildShapes() {
+        VoxelShape north = Shapes.empty();
+        for (double[] box : NORTH_BOXES) {
+            north = Shapes.or(north, Block.box(box[BOX_MIN_X], box[BOX_MIN_Y], box[BOX_MIN_Z], box[BOX_MAX_X], box[BOX_MAX_Y], box[BOX_MAX_Z]));
+        }
+        Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
+        shapes.put(Direction.NORTH, north);
+        shapes.put(Direction.EAST, DeviceShapes.rotate(north, 0, 1));
+        shapes.put(Direction.SOUTH, DeviceShapes.rotate(north, 0, 2));
+        shapes.put(Direction.WEST, DeviceShapes.rotate(north, 0, 3));
+        return shapes;
     }
 
     @Override
     protected MapCodec<BlockPillar> codec() {
         return CODEC;
-    }
-
-    private static Map<Direction, VoxelShape> shapes() {
-        Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
-        shapes.put(Direction.NORTH, NORTH_SHAPE);
-        shapes.put(Direction.EAST, DeviceShapes.rotate(NORTH_SHAPE, 0, 1));
-        shapes.put(Direction.SOUTH, DeviceShapes.rotate(NORTH_SHAPE, 0, 2));
-        shapes.put(Direction.WEST, DeviceShapes.rotate(NORTH_SHAPE, 0, 3));
-        return shapes;
     }
 
     @Override
@@ -52,7 +60,7 @@ public final class BlockPillar extends HorizontalDirectionalBlock {
 
     @Override
     protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
-        return 1.0F;
+        return FULL_BRIGHTNESS;
     }
 
     @Override
@@ -62,6 +70,6 @@ public final class BlockPillar extends HorizontalDirectionalBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 }

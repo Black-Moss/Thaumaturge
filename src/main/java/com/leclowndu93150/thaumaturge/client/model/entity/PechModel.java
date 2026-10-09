@@ -28,6 +28,11 @@ public final class PechModel extends EntityModel<PechRenderState> {
     private static final float IDLE_ARM_SPREAD = 0.06F;
     private static final float ATTACK_LIFT = 1.4F;
     private static final float ATTACK_TWIST = 0.35F;
+    private static final float ARM_WIDTH = 2.0F;
+    private static final float LEG_SPACING = 1.5F;
+    private static final float HIP_HEIGHT = 19.0F;
+    private static final float SHOULDER_SPACING = 3.5F;
+    private static final float SHOULDER_HEIGHT = 10.0F;
 
     public final ModelPart head;
     public final ModelPart jowls;
@@ -50,24 +55,56 @@ public final class PechModel extends EntityModel<PechRenderState> {
         this.pouch = root.getChild("pouch");
     }
 
+    private static CubeListBuilder cuboid(CubeListBuilder builder, int u, int v, float[] dims) {
+        return builder.texOffs(u, v).addBox(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
+    }
+
+    private static float[] dims(float x, float y, float z, float w, float h, float d) {
+        return new float[]{x, y, z, w, h, d};
+    }
+
+    private static CubeListBuilder arm(boolean mirrored, int u, float originX) {
+        CubeListBuilder builder = CubeListBuilder.create();
+        if (mirrored) {
+            builder.mirror();
+        }
+        return cuboid(builder, u, 23, dims(originX, 0.0F, -1.0F, ARM_WIDTH, 6.0F, 2.0F));
+    }
+
+    private static CubeListBuilder leg(boolean mirrored, int thighU, int thighV, int footU, int footV) {
+        CubeListBuilder builder = CubeListBuilder.create();
+        if (mirrored) {
+            builder.mirror();
+        }
+        cuboid(builder, thighU, thighV, dims(-1.5F, 0.0F, -1.5F, 3.0F, 4.0F, 3.0F));
+        return cuboid(builder, footU, footV, dims(-1.5F, 4.0F, -2.5F, 3.0F, 1.0F, 4.0F));
+    }
+
     public static LayerDefinition createLayer() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
-        PartDefinition body = root.addOrReplaceChild("body", CubeListBuilder.create().texOffs(87, 23).addBox(-3.0F, 0.0F, -2.0F, 6.0F, 3.0F, 4.0F), PartPose.offset(0.0F, 16.0F, 0.0F));
-        body.addOrReplaceChild("torso", CubeListBuilder.create().texOffs(90, 0).addBox(-3.5F, -7.0F, -2.5F, 7.0F, 7.0F, 5.0F), PartPose.rotation(TORSO_LEAN, 0.0F, 0.0F));
-        root.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 23).addBox(-3.0F, -6.0F, -3.0F, 6.0F, 6.0F, 5.0F).texOffs(85, 35).addBox(-3.5F, -5.0F, -3.5F, 7.0F, 1.0F, 1.0F)
-                .texOffs(78, 35).addBox(-1.0F, -4.0F, -4.0F, 2.0F, 2.0F, 1.0F), PartPose.offset(0.0F, 9.0F, -1.5F));
-        root.addOrReplaceChild("jowls", CubeListBuilder.create().texOffs(41, 23).addBox(-3.5F, -1.0F, -4.0F, 7.0F, 3.0F, 4.0F), PartPose.offset(0.0F, 9.0F, -1.5F));
-        root.addOrReplaceChild("right_leg",
-                CubeListBuilder.create().mirror().texOffs(108, 23).addBox(-1.5F, 0.0F, -1.5F, 3.0F, 4.0F, 3.0F).texOffs(48, 35).addBox(-1.5F, 4.0F, -2.5F, 3.0F, 1.0F, 4.0F),
-                PartPose.offset(-1.5F, 19.0F, 0.0F));
-        root.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(0, 35).addBox(-1.5F, 0.0F, -1.5F, 3.0F, 4.0F, 3.0F).texOffs(63, 35).addBox(-1.5F, 4.0F, -2.5F, 3.0F, 1.0F, 4.0F),
-                PartPose.offset(1.5F, 19.0F, 0.0F));
-        root.addOrReplaceChild("right_arm", CubeListBuilder.create().mirror().texOffs(23, 23).addBox(-2.0F, 0.0F, -1.0F, 2.0F, 6.0F, 2.0F), PartPose.offset(-3.5F, 10.0F, -1.0F));
-        root.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(32, 23).addBox(0.0F, 0.0F, -1.0F, 2.0F, 6.0F, 2.0F), PartPose.offset(3.5F, 10.0F, -1.0F));
-        root.addOrReplaceChild("pack", CubeListBuilder.create().texOffs(0, 0).addBox(-6.0F, -7.0F, 0.0F, 12.0F, 13.0F, 9.0F).texOffs(43, 0).addBox(-6.5F, -8.0F, -0.5F, 13.0F, 2.0F, 10.0F)
-                .texOffs(13, 35).addBox(-7.0F, -11.0F, 2.5F, 14.0F, 3.0F, 3.0F), PartPose.offsetAndRotation(0.0F, 11.0F, 2.0F, PACK_TILT, 0.0F, 0.0F));
-        root.addOrReplaceChild("pouch", CubeListBuilder.create().texOffs(64, 23).addBox(-4.0F, 0.0F, -0.5F, 8.0F, 4.0F, 3.0F), PartPose.offset(0.0F, 16.0F, 2.5F));
+        PartDefinition body = root.addOrReplaceChild("body", cuboid(CubeListBuilder.create(), 87, 23, dims(-3.0F, 0.0F, -2.0F, 6.0F, 3.0F, 4.0F)), PartPose.offset(0.0F, 16.0F, 0.0F));
+        body.addOrReplaceChild("torso", cuboid(CubeListBuilder.create(), 90, 0, dims(-3.5F, -7.0F, -2.5F, 7.0F, 7.0F, 5.0F)), PartPose.rotation(TORSO_LEAN, 0.0F, 0.0F));
+        PartPose facePose = PartPose.offset(0.0F, 9.0F, -1.5F);
+        CubeListBuilder skull = cuboid(CubeListBuilder.create(), 0, 23, dims(-3.0F, -6.0F, -3.0F, 6.0F, 6.0F, 5.0F));
+        cuboid(skull, 85, 35, dims(-3.5F, -5.0F, -3.5F, 7.0F, 1.0F, 1.0F));
+        root.addOrReplaceChild("head", cuboid(skull, 78, 35, dims(-1.0F, -4.0F, -4.0F, 2.0F, 2.0F, 1.0F)), facePose);
+        root.addOrReplaceChild("jowls", cuboid(CubeListBuilder.create(), 41, 23, dims(-3.5F, -1.0F, -4.0F, 7.0F, 3.0F, 4.0F)), facePose);
+        for (float side : new float[]{-1.0F, 1.0F}) {
+            boolean right = side < 0.0F;
+            CubeListBuilder legShape = right ? leg(true, 108, 23, 48, 35) : leg(false, 0, 35, 63, 35);
+            root.addOrReplaceChild(right ? "right_leg" : "left_leg", legShape, PartPose.offset(side * LEG_SPACING, HIP_HEIGHT, 0.0F));
+        }
+        for (float side : new float[]{-1.0F, 1.0F}) {
+            boolean right = side < 0.0F;
+            CubeListBuilder armShape = right ? arm(true, 23, -ARM_WIDTH) : arm(false, 32, 0.0F);
+            root.addOrReplaceChild(right ? "right_arm" : "left_arm", armShape, PartPose.offset(side * SHOULDER_SPACING, SHOULDER_HEIGHT, -1.0F));
+        }
+        CubeListBuilder packShape = cuboid(CubeListBuilder.create(), 0, 0, dims(-6.0F, -7.0F, 0.0F, 12.0F, 13.0F, 9.0F));
+        cuboid(packShape, 43, 0, dims(-6.5F, -8.0F, -0.5F, 13.0F, 2.0F, 10.0F));
+        cuboid(packShape, 13, 35, dims(-7.0F, -11.0F, 2.5F, 14.0F, 3.0F, 3.0F));
+        root.addOrReplaceChild("pack", packShape, PartPose.offsetAndRotation(0.0F, 11.0F, 2.0F, PACK_TILT, 0.0F, 0.0F));
+        root.addOrReplaceChild("pouch", cuboid(CubeListBuilder.create(), 64, 23, dims(-4.0F, 0.0F, -0.5F, 8.0F, 4.0F, 3.0F)), PartPose.offset(0.0F, 16.0F, 2.5F));
         return LayerDefinition.create(mesh, TEX_WIDTH, TEX_HEIGHT);
     }
 
@@ -77,14 +114,20 @@ public final class PechModel extends EntityModel<PechRenderState> {
         float phase = state.walkAnimationPos * WALK_FREQUENCY;
         float speed = Math.min(state.walkAnimationSpeed, 1.0F);
         float stride = Mth.sin(phase) * speed;
-        this.head.yRot = state.yRot * Mth.DEG_TO_RAD;
-        this.head.xRot = state.xRot * Mth.DEG_TO_RAD;
-        this.jowls.yRot = this.head.yRot;
-        this.jowls.xRot = this.head.xRot + JAW_MUMBLE_OPEN * Mth.abs(Mth.sin(state.mumble * JAW_MUMBLE_RATE)) + JAW_WALK_CHATTER * speed * Mth.abs(Mth.sin(phase * 2.0F));
-        this.rightLeg.xRot = stride * LEG_SWING;
-        this.leftLeg.xRot = -stride * LEG_SWING;
-        this.rightArm.xRot = -stride * ARM_SWING;
-        this.leftArm.xRot = stride * ARM_SWING;
+        float headYaw = state.yRot * Mth.DEG_TO_RAD;
+        float headPitch = state.xRot * Mth.DEG_TO_RAD;
+        float mumble = JAW_MUMBLE_OPEN * Mth.abs(Mth.sin(state.mumble * JAW_MUMBLE_RATE));
+        float chatter = JAW_WALK_CHATTER * speed * Mth.abs(Mth.sin(phase * 2.0F));
+        this.head.yRot = headYaw;
+        this.head.xRot = headPitch;
+        this.jowls.yRot = headYaw;
+        this.jowls.xRot = headPitch + mumble + chatter;
+        float legAngle = stride * LEG_SWING;
+        float armAngle = stride * ARM_SWING;
+        this.rightLeg.xRot = legAngle;
+        this.leftLeg.xRot = -legAngle;
+        this.rightArm.xRot = -armAngle;
+        this.leftArm.xRot = armAngle;
         float spread = IDLE_ARM_SPREAD * (1.0F + Mth.sin(state.ageInTicks * IDLE_ARM_RATE));
         this.rightArm.zRot = spread;
         this.leftArm.zRot = -spread;

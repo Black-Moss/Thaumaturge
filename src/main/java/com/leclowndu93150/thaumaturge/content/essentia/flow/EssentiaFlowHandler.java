@@ -1,113 +1,118 @@
 package com.leclowndu93150.thaumaturge.content.essentia.flow;
 
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
-import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEntityTube;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class EssentiaFlowHandler {
-    private static final int CREAK_CHANCE = 100;
+    private static final int HOP_LOSS = 1;
+    private static final int RESTRICT_DIVISOR = 2;
+    private static final int STREAM_ODDS = 8;
+    private static final int CREAK_ODDS = 100;
+    private static final int STREAM_TYPE_TAG = 0;
+    private static final double EDGE_OFFSET = 0.5;
+    private static final int TRANSFER_AMOUNT = 1;
 
     private EssentiaFlowHandler() {}
 
-    public static @Nullable IEssentiaTransport transport(Level level, BlockPos pos, Direction faceFromNeighbour) {
-        return EssentiaAccess.transport(level, pos, faceFromNeighbour);
+    public static @Nullable IEssentiaTransport transport(Level level, BlockPos pos, Direction face) {
+        if (!level.hasChunkAt(pos)) {
+            return null;
+        }
+        return EssentiaAccess.transport(level, pos, face);
     }
 
     public static void recalculateSuction(Level level, BlockPos pos, BlockEntityTube tube, @Nullable ResourceKey<IAspect> filter, boolean restrict, boolean directional) {
         tube.setSuction(null, 0);
-        Direction facing = tube.facing();
-        Holder<IAspect> filterHolder = filter == null ? null : EssentiaTransportHelper.resolve(level, filter);
-        for (Direction dir : Direction.values()) {
-            if (directional && facing != null && facing.getOpposite() != dir)
+        Direction facing = directional ? tube.flowSide() : null;
+        Holder<IAspect> filterHolder = filter == null ? null : Aspects.resolve(level, filter);
+        Holder<IAspect> held = tube.getEssentiaAmount(null) > 0 ? tube.getEssentiaType(null) : null;
+        int strongest = 0;
+        Holder<IAspect> strongestType = null;
+        for (Direction direction : Direction.values()) {
+            if (facing != null && direction != facing.getOpposite() || !tube.isConnectable(direction)) {
                 continue;
-            if (!tube.isConnectable(dir))
-                continue;
-            IEssentiaTransport neighbour = transport(level, pos.relative(dir), dir.getOpposite());
-            if (neighbour == null)
-                continue;
-            Holder<IAspect> neighbourSuction = neighbour.getSuctionType(dir.getOpposite());
-            Holder<IAspect> tubeEssentia = tube.getEssentiaType(dir);
-            int tubeEssentiaAmt = tube.getEssentiaAmount(dir);
-            if (filterHolder != null && neighbourSuction != null && !filterHolder.equals(neighbourSuction))
-                continue;
-            if (filterHolder == null && tubeEssentiaAmt > 0 && neighbourSuction != null && tubeEssentia != null && !tubeEssentia.equals(neighbourSuction))
-                continue;
-            if (filterHolder != null && tubeEssentiaAmt > 0 && tubeEssentia != null && neighbourSuction != null && !tubeEssentia.equals(neighbourSuction))
-                continue;
-            int suck = neighbour.getSuctionAmount(dir.getOpposite());
-            if (suck > 0 && suck > tube.getSuctionAmount(null) + 1) {
-                Holder<IAspect> st = neighbourSuction != null ? neighbourSuction : filterHolder;
-                tube.setSuction(st, restrict ? suck / 2 : suck - 1);
             }
+            Direction touching = direction.getOpposite();
+            IEssentiaTransport neighbour = transport(level, pos.relative(direction), touching);
+            if (neighbour == null || !neighbour.isConnectable(touching)) {
+                continue;
+            }
+            int offered = neighbour.getSuctionAmount(touching);
+            if (offered <= 0 || offered <= strongest + HOP_LOSS) {
+                continue;
+            }
+            Holder<IAspect> offeredType = neighbour.getSuctionType(touching);
+            if (offeredType != null && (filter != null && !offeredType.is(filter) || held != null && !offeredType.equals(held))) {
+                continue;
+            }
+            int reduced = offered - HOP_LOSS;
+            strongest = restrict ? reduced / RESTRICT_DIVISOR : reduced;
+            strongestType = offeredType != null ? offeredType : filterHolder;
+        }
+        if (strongest > 0) {
+            tube.setSuction(strongestType, strongest);
         }
     }
 
     public static void equalizeWithNeighbours(Level level, BlockPos pos, BlockEntityTube tube, boolean directional) {
-        if (tube.getEssentiaAmount(null) > 0)
+        int suction = tube.getSuctionAmount(null);
+        if (suction <= 0 || tube.getEssentiaAmount(null) > 0) {
             return;
-        Direction facing = tube.facing();
-        for (Direction dir : Direction.values()) {
-            if (directional && facing != null && facing.getOpposite() == dir)
+        }
+        Holder<IAspect> wanted = tube.getSuctionType(null);
+        Direction facing = directional ? tube.flowSide() : null;
+        for (Direction direction : Direction.values()) {
+            if (facing != null && direction == facing.getOpposite() || !tube.isConnectable(direction)) {
                 continue;
-            if (!tube.isConnectable(dir))
-                continue;
-            IEssentiaTransport neighbour = transport(level, pos.relative(dir), dir.getOpposite());
-            if (neighbour == null)
-                continue;
-            if (!neighbour.canOutputTo(dir.getOpposite()))
-                continue;
-            Holder<IAspect> tubeSuction = tube.getSuctionType(null);
-            Holder<IAspect> neighbourEssentia = neighbour.getEssentiaType(dir.getOpposite());
-            if (tubeSuction != null && neighbourEssentia != null && !tubeSuction.equals(neighbourEssentia))
-                continue;
-            if (tube.getSuctionAmount(null) <= neighbour.getSuctionAmount(dir.getOpposite()))
-                continue;
-            if (tube.getSuctionAmount(null) < neighbour.getMinimumSuction())
-                continue;
-            Holder<IAspect> aspect = tubeSuction;
-            if (aspect == null) {
-                aspect = neighbourEssentia;
-                if (aspect == null) {
-                    aspect = neighbour.getEssentiaType(null);
-                }
             }
-            if (aspect == null)
+            Direction touching = direction.getOpposite();
+            IEssentiaTransport neighbour = transport(level, pos.relative(direction), touching);
+            if (neighbour == null || !neighbour.isConnectable(touching) || !neighbour.canOutputTo(touching) || neighbour.getSuctionAmount(touching) >= suction
+                    || suction < neighbour.getMinimumSuction()) {
                 continue;
-            int taken = neighbour.takeEssentia(aspect, 1, dir.getOpposite());
-            int added = tube.addEssentia(aspect, taken, dir);
-            if (added > 0) {
-                spawnStreamParticle(level, pos, dir, aspect);
-                if (level.getRandom().nextInt(CREAK_CHANCE) == 0) {
-                    tube.broadcastCreak(level, pos);
-                }
+            }
+            Holder<IAspect> offered = neighbour.getEssentiaType(touching);
+            if (wanted != null && offered != null && !wanted.equals(offered)) {
+                continue;
+            }
+            Holder<IAspect> aspect = wanted != null ? wanted : offered;
+            if (aspect == null || neighbour.getEssentiaAmount(touching) < TRANSFER_AMOUNT || neighbour.takeEssentia(aspect, TRANSFER_AMOUNT, touching) != TRANSFER_AMOUNT) {
+                continue;
+            }
+            if (tube.addEssentia(aspect, TRANSFER_AMOUNT, direction) < TRANSFER_AMOUNT) {
+                neighbour.addEssentia(aspect, TRANSFER_AMOUNT, touching);
                 return;
             }
+            announceTransfer(level, pos, tube, direction, aspect);
+            return;
         }
     }
 
-    private static void spawnStreamParticle(Level level, BlockPos pos, Direction fromNeighbourDir, Holder<IAspect> aspect) {
-        if (!(level instanceof ServerLevel server))
+    private static void announceTransfer(Level level, BlockPos pos, BlockEntityTube tube, Direction direction, Holder<IAspect> aspect) {
+        if (!(level instanceof ServerLevel server)) {
             return;
-        if (level.getRandom().nextInt(8) != 0)
-            return;
-        int color = aspect.value().color();
-        double sx = pos.getX() + 0.5 + fromNeighbourDir.getStepX() * 0.5;
-        double sy = pos.getY() + 0.5 + fromNeighbourDir.getStepY() * 0.5;
-        double sz = pos.getZ() + 0.5 + fromNeighbourDir.getStepZ() * 0.5;
-        double tx = pos.getX() + 0.5;
-        double ty = pos.getY() + 0.5;
-        double tz = pos.getZ() + 0.5;
-        EffectDispatch.spawnEssentiaStream(server, new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, 0, server.getRandom().nextInt(8), 0.15F, 20, 0.0);
+        }
+        RandomSource random = server.getRandom();
+        if (random.nextInt(STREAM_ODDS) == 0) {
+            Vec3 center = Vec3.atCenterOf(pos);
+            Vec3 edge = center.add(direction.getStepX() * EDGE_OFFSET, direction.getStepY() * EDGE_OFFSET, direction.getStepZ() * EDGE_OFFSET);
+            EffectDispatch.spawnEssentiaStream(server, edge, center, aspect.value().color(), STREAM_TYPE_TAG);
+        }
+        if (random.nextInt(CREAK_ODDS) == 0) {
+            tube.broadcastCreak(server, pos);
+        }
     }
 }

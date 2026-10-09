@@ -5,6 +5,8 @@ import com.leclowndu93150.thaumaturge.client.screen.AbstractTTContainerScreen;
 import com.leclowndu93150.thaumaturge.content.device.bore.ArcaneBoreHost;
 import com.leclowndu93150.thaumaturge.content.device.bore.ArcaneBoreTool;
 import com.leclowndu93150.thaumaturge.content.device.bore.MenuArcaneBore;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -38,6 +40,7 @@ public final class ArcaneBoreScreen extends AbstractTTContainerScreen<MenuArcane
     private static final int PROPS_FIRST_Y = 34;
     private static final int PROPS_INDENT = 4;
     private static final int PROPS_LINE_STEP = 9;
+    private static final int PROPERTY_COUNT = 3;
     private static final int COLOR_WHITE = 0xFFFFFFFF;
     private static final int COLOR_REFINING = 0xFFC0C0C0;
     private static final int COLOR_FORTUNE = 0xFFEEC64A;
@@ -56,37 +59,61 @@ public final class ArcaneBoreScreen extends AbstractTTContainerScreen<MenuArcane
         if (bore == null) {
             return;
         }
-        Level level = bore.boreLevel();
-        int fill = (int) (HEALTH_BAR_WIDTH * (bore.boreHealth() / bore.boreMaxHealth()));
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + HEALTH_BAR_X, topPos + HEALTH_BAR_Y, HEALTH_BAR_U, HEALTH_BAR_V, fill, HEALTH_BAR_HEIGHT, 256, 256);
         ItemStack held = menu.getSlot(0).getItem();
-        if (!held.isEmpty() && held.isDamageableItem() && held.getDamageValue() + 1 >= held.getMaxDamage()) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + BROKEN_X, topPos + BROKEN_Y, BROKEN_U, BROKEN_V, BROKEN_SIZE, BROKEN_SIZE, 256, 256);
+        drawHealth(graphics, bore.boreHealth() / bore.boreMaxHealth());
+        if (isNearlyBroken(held)) {
+            drawSprite(graphics, BROKEN_X, BROKEN_Y, BROKEN_U, BROKEN_V, BROKEN_SIZE, BROKEN_SIZE);
         }
         graphics.pose().pushMatrix();
         graphics.pose().translate(leftPos + STATS_X, topPos + STATS_Y);
         graphics.pose().scale(STATS_SCALE, STATS_SCALE);
-        graphics.text(font, Component.translatable("gui.thaumaturge.bore.width", 1 + ArcaneBoreTool.digRadius(held) * 2), 0, 0, COLOR_WHITE, true);
-        graphics.text(font, Component.translatable("gui.thaumaturge.bore.depth", ArcaneBoreTool.digDepth(held)), STATS_COLUMN_2, 0, COLOR_WHITE, true);
-        graphics.text(font, Component.translatable("gui.thaumaturge.bore.speed", ArcaneBoreTool.digSpeed(level, held, Blocks.STONE.defaultBlockState())), 0, STATS_LINE_2, COLOR_WHITE, true);
+        drawStats(graphics, bore.boreLevel(), held);
+        graphics.pose().popMatrix();
+    }
+
+    private void drawSprite(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int width, int height) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + x, topPos + y, u, v, width, height, 256, 256);
+    }
+
+    private void drawHealth(GuiGraphicsExtractor graphics, float ratio) {
+        drawSprite(graphics, HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_U, HEALTH_BAR_V, (int) (HEALTH_BAR_WIDTH * ratio), HEALTH_BAR_HEIGHT);
+    }
+
+    private static boolean isNearlyBroken(ItemStack stack) {
+        return !stack.isEmpty() && stack.isDamageableItem() && stack.getDamageValue() + 1 >= stack.getMaxDamage();
+    }
+
+    private void drawLine(GuiGraphicsExtractor graphics, Component text, int x, int y, int color) {
+        graphics.text(font, text, x, y, color, true);
+    }
+
+    private void drawStats(GuiGraphicsExtractor graphics, Level level, ItemStack held) {
+        drawLine(graphics, Component.translatable("gui.thaumaturge.bore.width", 1 + ArcaneBoreTool.digRadius(held) * 2), 0, 0, COLOR_WHITE);
+        drawLine(graphics, Component.translatable("gui.thaumaturge.bore.depth", ArcaneBoreTool.digDepth(held)), STATS_COLUMN_2, 0, COLOR_WHITE);
+        drawLine(graphics, Component.translatable("gui.thaumaturge.bore.speed", ArcaneBoreTool.digSpeed(level, held, Blocks.STONE.defaultBlockState())), 0, STATS_LINE_2, COLOR_WHITE);
         int refining = ArcaneBoreTool.refining(held);
         int fortune = ArcaneBoreTool.fortune(level, held);
         boolean silk = ArcaneBoreTool.silkTouch(level, held);
-        if (silk || refining > 0 || fortune > 0) {
-            graphics.text(font, Component.translatable("gui.thaumaturge.bore.properties"), 0, PROPS_HEADER_Y, COLOR_WHITE, true);
-        }
-        int lineY = PROPS_FIRST_Y;
+        List<PropertyLine> properties = new ArrayList<>(PROPERTY_COUNT);
         if (refining > 0) {
-            graphics.text(font, Component.translatable("gui.thaumaturge.bore.refining", refining), PROPS_INDENT, lineY, COLOR_REFINING, true);
-            lineY += PROPS_LINE_STEP;
+            properties.add(new PropertyLine(Component.translatable("gui.thaumaturge.bore.refining", refining), COLOR_REFINING));
         }
         if (fortune > 0) {
-            graphics.text(font, Component.translatable("gui.thaumaturge.bore.fortune", fortune), PROPS_INDENT, lineY, COLOR_FORTUNE, true);
-            lineY += PROPS_LINE_STEP;
+            properties.add(new PropertyLine(Component.translatable("gui.thaumaturge.bore.fortune", fortune), COLOR_FORTUNE));
         }
         if (silk) {
-            graphics.text(font, Component.translatable("gui.thaumaturge.bore.silktouch"), PROPS_INDENT, lineY, COLOR_SILK, true);
+            properties.add(new PropertyLine(Component.translatable("gui.thaumaturge.bore.silktouch"), COLOR_SILK));
         }
-        graphics.pose().popMatrix();
+        if (properties.isEmpty()) {
+            return;
+        }
+        drawLine(graphics, Component.translatable("gui.thaumaturge.bore.properties"), 0, PROPS_HEADER_Y, COLOR_WHITE);
+        for (int i = 0; i < properties.size(); i++) {
+            PropertyLine line = properties.get(i);
+            drawLine(graphics, line.text(), PROPS_INDENT, PROPS_FIRST_Y + i * PROPS_LINE_STEP, line.color());
+        }
+    }
+
+    private record PropertyLine(Component text, int color) {
     }
 }

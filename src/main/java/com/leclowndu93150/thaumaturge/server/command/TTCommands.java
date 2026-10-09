@@ -37,7 +37,7 @@ import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.content.taint.flux.BlockFluxGas;
 import com.leclowndu93150.thaumaturge.content.taint.flux.FluxGooFluid;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
-import com.leclowndu93150.thaumaturge.content.warp.WarpEvents;
+import com.leclowndu93150.thaumaturge.content.warp.roll.WarpCheck;
 import com.leclowndu93150.thaumaturge.data.worldgen.feature.TTConfiguredFeatures;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
@@ -387,7 +387,7 @@ public final class TTCommands {
     }
 
     private static int warpEvent(CommandSourceStack source) throws CommandSyntaxException {
-        WarpEvents.checkWarpEvent(source.getPlayerOrException());
+        WarpCheck.run(source.getPlayerOrException());
         success(source, "warp.event");
         return Command.SINGLE_SUCCESS;
     }
@@ -514,9 +514,9 @@ public final class TTCommands {
             return failure(source, "spawn_failed", TTEntities.FLUX_RIFT.get().getDescription());
         }
         Vec3 pos = player.getEyePosition().add(player.getLookAngle().scale(RIFT_SPAWN_DISTANCE));
-        rift.setRiftSeed(level.getRandom().nextInt());
+        rift.reseed(level.getRandom().nextInt());
         rift.snapTo(pos.x, pos.y, pos.z, level.getRandom().nextFloat() * 360.0F, 0.0F);
-        rift.setRiftSize(size);
+        rift.resize(size);
         level.addFreshEntity(rift);
         success(source, "rift", size);
         return Command.SINGLE_SUCCESS;

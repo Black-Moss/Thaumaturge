@@ -7,13 +7,12 @@ import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class DustTriggerBlockedBreakHandler {
-    private DustTriggerBlockedBreakHandler() {}
-
     @SubscribeEvent
-    public static void onBreak(BreakBlockEvent event) {
-        if (DustTriggerSwapQueue.isBlocked(event.getLevel(), event.getPos())) {
-            event.setCanceled(true);
-            event.setNotifyClient(true);
+    public static void vetoSwapPendingBreak(BreakBlockEvent event) {
+        if (!DustTriggerSwapQueue.isBlocked(event.getLevel(), event.getPos())) {
+            return;
         }
+        event.setNotifyClient(true);
+        event.setCanceled(true);
     }
 }

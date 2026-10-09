@@ -1,10 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.effect;
 
-import com.leclowndu93150.thaumaturge.client.effect.instance.BeamPayloadIds;
 import com.leclowndu93150.thaumaturge.content.particle.BlockRunesParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.BoreDebrisParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.BoreSparkleParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.BubbleParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.BurstParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.CurlyWispParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.FireMoteParticleOptions;
@@ -23,29 +21,83 @@ import com.leclowndu93150.thaumaturge.network.effect.ClientboundBoreDigPayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundSpawnParticlePayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundStreamEffectPayload;
 import com.leclowndu93150.thaumaturge.registry.TTParticles;
-import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 public final class Effects {
     static final double DEFAULT_RADIUS = 64.0;
+
     private static final double BORE_DIG_RADIUS = 32.0;
+    private static final int NO_ENTITY = -1;
+    private static final int WHITE_RGB = 0xFFFFFF;
+    private static final EffectColor BAMF_COLOR = new EffectColor(0.5F, 0.1F, 0.6F);
+    private static final int SPARKLE_SKIP_SIDES = 6;
+    private static final int SPARKLE_SPAWN_SIDES = 4;
+    private static final float SPARKLE_SCALE_BASE = 0.6F;
+    private static final float SPARKLE_SCALE_SPREAD = 0.2F;
+    private static final float SPARKLE_DECAY = 1.0F;
+    private static final int SPARKLE_BASE_AGE = 2;
+    private static final int WISPY_AGE = 30;
+    private static final EffectColor WISPY_COLOR = new EffectColor(0.5F, 0.5F, 0.5F);
+    private static final float WISPY_ENTITY_GRAVITY = 0.2F;
+    private static final float WISPY_BLOCK_RED_BASE = 0.4F;
+    private static final float WISPY_BLOCK_RED_SPREAD = 0.6F;
+    private static final float WISPY_BLOCK_GREEN_BASE = 0.6F;
+    private static final float WISPY_BLOCK_BLUE_BASE = 0.6F;
+    private static final float WISPY_BLOCK_GB_SPREAD = 0.4F;
+    private static final double CURLY_JITTER_BASE = 0.0025;
+    private static final double CURLY_JITTER_SPREAD = 0.005;
+    private static final double CURLY_SIDE_BIAS = 0.025;
+    private static final double CURLY_SPAWN_LEAD = 5.0;
+    private static final float VENT_DEFAULT_SCALE = 1.0F;
+    private static final int VENT_FLAME_SIDES = 6;
+    private static final int VENT_FLAME_CHANCE = 2;
+    private static final EffectColor VENT_FLAME_COLOR = new EffectColor(1.0F, 0.7F, 0.2F);
+    private static final float VENT_FLAME_ALPHA = 0.9F;
+    private static final float VENT_FLAME_SCALE_BASE = 0.25F;
+    private static final float VENT_FLAME_SCALE_SPREAD = 0.1F;
+    private static final float VENT_FLAME_END_SCALE = 0.25F;
+    private static final double VENT_FLAME_MOTION_FACTOR = 0.5;
+    private static final int BLOCK_RUNES_DURATION = 30;
+    private static final double BLOCK_RUNES_OFFSET = 0.5;
+    private static final float SMOKE_RADIUS = 1.0F;
+    private static final int BEAM_AGE = 20;
+    private static final float BEAM_END_MODIFIER = 1.0F;
+    private static final float ARC_GRAVITY = 0.1F;
+    private static final float BOLT_WIDTH = 1.0F;
+    private static final int BORE_STREAM_COLOR = 0x8040C0;
+    private static final int BORE_STREAM_EXTEND = 10;
+    private static final float STREAM_SCALE = 0.15F;
+    private static final float WISP_FLAME_ALPHA = 0.5F;
+    private static final float WISP_FLAME_SCALE_BASE = 1.0F;
+    private static final float WISP_FLAME_SCALE_SPREAD = 0.25F;
+    private static final float WISP_FLAME_END_SCALE = 0.05F;
+    private static final float FIRE_MOTE_TRANSLUCENT_DIVISOR = 3.0F;
+    private static final int STABILIZER_LIFE = 20;
+    private static final double POLLUTION_INSET = 0.2;
+    private static final double POLLUTION_SPAN = 0.6;
+    private static final int PECH_AGE_BASE = 10;
+    private static final int PECH_AGE_RANGE = 10;
+    private static final float PECH_GRAVITY = -0.01F;
+    private static final EffectColor FLUX_FUME_COLOR = new EffectColor(1.0F, 0.0F, 0.5F);
+    private static final float FLUX_FUME_SCALE = 0.3F;
+    private static final int FLUX_FUME_MAX_AGE = 3;
+    private static final EffectColor BORE_SPARKLE_COLOR = new EffectColor(0.6F, 0.2F, 0.8F);
+    private static final float SCAN_ADDITIVE_THRESHOLD = 0.25F;
+    private static final double SLASH_MIN_HORIZONTAL = 1.0E-7;
+    private static final double SLASH_YAW_OFFSET = 90.0;
+    private static final double SLASH_ROLL_DEVIATION_DEGREES = 20.0;
 
     private Effects() {}
 
@@ -57,12 +109,12 @@ public final class Effects {
         return new Bamf(level, Vec3.atCenterOf(pos));
     }
 
-    public static Sparkle sparkle(ServerLevel level, Vec3 pos) {
-        return new Sparkle(level, pos);
+    public static Glint glint(ServerLevel level, Vec3 pos) {
+        return new Glint(level, pos);
     }
 
-    public static Sparkle sparkle(ServerLevel level, BlockPos pos) {
-        return new Sparkle(level, Vec3.atCenterOf(pos));
+    public static Glint glint(ServerLevel level, BlockPos pos) {
+        return new Glint(level, Vec3.atCenterOf(pos));
     }
 
     public static SimpleSparkle simpleSparkle(ServerLevel level, Vec3 pos) {
@@ -85,68 +137,64 @@ public final class Effects {
         return new Vent(level, pos, true);
     }
 
-    public static ArcLightning arcLightning(ServerLevel level, Vec3 from) {
-        return new ArcLightning(level, from);
+    public static ZapArc zapArc(ServerLevel level, Vec3 from) {
+        return new ZapArc(level, from);
     }
 
-    public static ArcBolt arcBolt(ServerLevel level, Vec3 from) {
-        return new ArcBolt(level, from);
+    public static BoltStrike boltStrike(ServerLevel level, Vec3 from) {
+        return new BoltStrike(level, from);
     }
 
-    public static BlockRunes blockRunes(ServerLevel level, Vec3 pos) {
-        return new BlockRunes(level, pos, false);
+    public static GlyphField glyphField(ServerLevel level, Vec3 corner) {
+        return new GlyphField(level, corner, false);
     }
 
-    public static BlockRunes blockRunes2(ServerLevel level, Vec3 pos) {
-        return new BlockRunes(level, pos, true);
+    public static GlyphField glyphFieldAlt(ServerLevel level, Vec3 corner) {
+        return new GlyphField(level, corner, true);
     }
 
-    public static SmokeSpiral smokeSpiral(ServerLevel level, Vec3 pos) {
-        return new SmokeSpiral(level, pos);
+    public static SpiralSmoke spiralSmoke(ServerLevel level, Vec3 pos) {
+        return new SpiralSmoke(level, pos);
     }
 
     public static BeamWand beamWand(ServerLevel level, LivingEntity source) {
         return new BeamWand(level, source);
     }
 
-    public static BeamBore beamBore(ServerLevel level, Vec3 source) {
-        return new BeamBore(level, source);
+    public static DrillBeam drillBeam(ServerLevel level, Vec3 from) {
+        return new DrillBeam(level, from);
     }
 
-    public static BoreDebris boreDebris(ServerLevel level, Vec3 pos, BlockState state) {
-        return new BoreDebris(level, pos, state);
+    public static BoreDebris boreDebris(ServerLevel level, Vec3 from, BlockState state) {
+        return new BoreDebris(level, from, state);
     }
 
-    public static BoreSparkle boreSparkle(ServerLevel level, Vec3 pos) {
-        return new BoreSparkle(level, pos);
+    public static BoreSparkle boreSparkle(ServerLevel level, Vec3 from) {
+        return new BoreSparkle(level, from);
     }
 
     public static void boreDig(ServerLevel level, BlockPos target, Entity bore, int delay) {
         sendBoreDig(level, target, bore.getId(), bore.blockPosition(), delay);
     }
 
-    public static void boreDig(ServerLevel level, BlockPos target, BlockPos bore, int delay) {
-        sendBoreDig(level, target, BoreDebrisParticleOptions.NO_ENTITY, bore, delay);
+    public static void boreDig(ServerLevel level, BlockPos target, BlockPos borePos, int delay) {
+        sendBoreDig(level, target, NO_ENTITY, borePos, delay);
     }
 
-    private static void sendBoreDig(ServerLevel level, BlockPos target, int boreEntityId, BlockPos borePos, int delay) {
-        PacketDistributor.sendToPlayersNear(level, null, target.getX(), target.getY(), target.getZ(), BORE_DIG_RADIUS, new ClientboundBoreDigPayload(target, boreEntityId, borePos, delay));
+    public static BoreStream boreStream(ServerLevel level, Vec3 from, Entity target) {
+        return new BoreStream(level, from, target);
     }
 
-    public static BoreStream boreStream(ServerLevel level, Vec3 source, Entity target) {
-        return new BoreStream(level, source, target);
-    }
-
-    public static VoidStream voidStream(ServerLevel level, Vec3 source) {
-        return new VoidStream(level, source);
+    public static VoidStream voidStream(ServerLevel level, Vec3 from) {
+        return new VoidStream(level, from);
     }
 
     public static FireMote fireMote(ServerLevel level, Vec3 pos) {
         return new FireMote(level, pos);
     }
 
-    public static Alumentum alumentum(ServerLevel level, Vec3 pos) {
-        return new Alumentum(level, pos);
+    public static EmberGlow emberGlow(ServerLevel level, Vec3 pos) {
+        return new EmberGlow(level, pos);
     }
 
     public static Taint taint(ServerLevel level, Vec3 pos) {
@@ -157,20 +205,20 @@ public final class Effects {
         return new LightningFlash(level, pos);
     }
 
-    public static Levitator levitator(ServerLevel level, Vec3 pos) {
-        return new Levitator(level, pos);
+    public static LiftMist liftMist(ServerLevel level, Vec3 pos) {
+        return new LiftMist(level, pos);
     }
 
-    public static Stabilizer stabilizer(ServerLevel level, Vec3 pos) {
-        return new Stabilizer(level, pos);
+    public static SteadyRune steadyRune(ServerLevel level, Vec3 pos) {
+        return new SteadyRune(level, pos);
     }
 
     public static GolemFly golemFly(ServerLevel level, Vec3 pos) {
         return new GolemFly(level, pos);
     }
 
-    public static Pollution pollution(ServerLevel level, BlockPos pos) {
-        return new Pollution(level, pos);
+    public static Pollution pollution(ServerLevel level, BlockPos corner) {
+        return new Pollution(level, corner);
     }
 
     public static FocusCloud focusCloud(ServerLevel level, Vec3 pos) {
@@ -189,20 +237,20 @@ public final class Effects {
         return new WispParticles(level, pos);
     }
 
-    public static CrucibleBubble crucibleBubble(ServerLevel level, Vec3 pos) {
-        return new CrucibleBubble(level, pos);
+    public static CauldronBubble cauldronBubble(ServerLevel level, Vec3 pos) {
+        return new CauldronBubble(level, pos);
     }
 
-    public static CrucibleBoil crucibleBoil(ServerLevel level, Vec3 pos) {
-        return new CrucibleBoil(level, pos);
+    public static CauldronBoil cauldronBoil(ServerLevel level, Vec3 pos) {
+        return new CauldronBoil(level, pos);
     }
 
-    public static CrucibleFroth crucibleFroth(ServerLevel level, Vec3 pos) {
-        return new CrucibleFroth(level, pos);
+    public static CauldronFoamUp cauldronFoamUp(ServerLevel level, Vec3 pos) {
+        return new CauldronFoamUp(level, pos);
     }
 
-    public static CrucibleFrothDown crucibleFrothDown(ServerLevel level, Vec3 pos) {
-        return new CrucibleFrothDown(level, pos);
+    public static CauldronFoamDown cauldronFoamDown(ServerLevel level, Vec3 pos) {
+        return new CauldronFoamDown(level, pos);
     }
 
     public static Spark spark(ServerLevel level, Vec3 pos) {
@@ -233,16 +281,16 @@ public final class Effects {
         return new PechsCurse(level, pos);
     }
 
-    public static CultistSpawn cultistSpawn(ServerLevel level, Vec3 pos) {
-        return new CultistSpawn(level, pos);
+    public static CrimsonPuff crimsonPuff(ServerLevel level, Vec3 pos) {
+        return new CrimsonPuff(level, pos);
     }
 
-    public static WispyMotesEntity wispyMotesEntity(ServerLevel level, Vec3 origin, int targetEntityId) {
-        return new WispyMotesEntity(level, origin, targetEntityId);
+    public static WispyMotesEntity wispyMotesEntity(ServerLevel level, Vec3 origin, int entityId) {
+        return new WispyMotesEntity(level, origin, entityId);
     }
 
-    public static WispyMotesOnBlock wispyMotesOnBlock(ServerLevel level, BlockPos pos) {
-        return new WispyMotesOnBlock(level, pos);
+    public static WispyMotesOnBlock wispyMotesOnBlock(ServerLevel level, BlockPos corner) {
+        return new WispyMotesOnBlock(level, corner);
     }
 
     public static FluxFume fluxFume(ServerLevel level, Vec3 pos) {
@@ -253,49 +301,65 @@ public final class Effects {
         return new FluxFume(level, Vec3.atCenterOf(pos));
     }
 
-    public static FireMoteParticleOptions fireMoteData(RandomSource rand, double vx, double vy, double vz, float r, float g, float b, float alpha, float scale) {
-        boolean translucent = rand.nextBoolean();
-        return new FireMoteParticleOptions(vx, vy, vz, r, g, b, alpha, translucent ? scale / 3.0F : scale, translucent);
+    public static FireMoteParticleOptions fireMoteData(RandomSource rng, double mx, double my, double mz, float red, float green, float blue, float opacity, float baseScale) {
+        boolean translucent = rng.nextBoolean();
+        float size = translucent ? baseScale / FIRE_MOTE_TRANSLUCENT_DIVISOR : baseScale;
+        return new FireMoteParticleOptions(mx, my, mz, red, green, blue, opacity, size, translucent);
     }
 
-    public static void spawn(ServerLevel level, ParticleOptions options, double x, double y, double z) {
-        spawn(level, options, x, y, z, 0.0, 0.0, 0.0);
+    public static void spawn(ServerLevel level, ParticleOptions particle, double px, double py, double pz) {
+        broadcastNear(level, px, py, pz, DEFAULT_RADIUS, new ClientboundSpawnParticlePayload(particle, px, py, pz, 0.0, 0.0, 0.0));
     }
 
-    public static void spawn(ServerLevel level, ParticleOptions options, double x, double y, double z, double vx, double vy, double vz) {
-        PacketDistributor.sendToPlayersNear(level, null, x, y, z, DEFAULT_RADIUS, new ClientboundSpawnParticlePayload(options, x, y, z, vx, vy, vz));
+    public static void spawn(ServerLevel level, ParticleOptions particle, double px, double py, double pz, double mx, double my, double mz) {
+        broadcastNear(level, px, py, pz, DEFAULT_RADIUS, new ClientboundSpawnParticlePayload(particle, px, py, pz, mx, my, mz));
     }
 
-    public static void scanGlyph(ServerPlayer viewer, double x, double y, double z, int color, int delay) {
-        float brightness = (ARGB.red(color) + ARGB.green(color) + ARGB.blue(color)) / (3.0F * 255.0F);
-        ScanGlyphParticleOptions options = new ScanGlyphParticleOptions(color, delay, brightness >= 0.25F);
-        PacketDistributor.sendToPlayer(viewer, new ClientboundSpawnParticlePayload(options, x, y, z));
+    public static void scanGlyph(ServerPlayer viewer, double px, double py, double pz, int rgb, int delay) {
+        boolean additive = EffectColor.mean(rgb) >= SCAN_ADDITIVE_THRESHOLD;
+        PacketDistributor.sendToPlayer(viewer, new ClientboundSpawnParticlePayload(new ScanGlyphParticleOptions(rgb, delay, additive), px, py, pz));
     }
 
-    public static void slash(ServerLevel level, double x, double y, double z, double x2, double y2, double z2, int duration) {
-        RandomSource rand = level.getRandom();
-        double dx = x2 - x;
-        double dy = y2 - y;
-        double dz = z2 - z;
-        double horizontal = Math.sqrt(dx * dx + dz * dz);
+    public static void slash(ServerLevel level, double sx, double sy, double sz, double ex, double ey, double ez, int duration) {
+        double dx = ex - sx;
+        double dy = ey - sy;
+        double dz = ez - sz;
+        float roll = (float) Math.toRadians(level.getRandom().nextGaussian() * SLASH_ROLL_DEVIATION_DEGREES);
+        double planar = Math.hypot(dx, dz);
         float yaw = 0.0F;
         float pitch = 0.0F;
-        if (horizontal >= 1.0E-7) {
-            yaw = (float) (Mth.atan2(dz, dx) * 180.0 / Math.PI) - 90.0F;
-            pitch = (float) (-(Mth.atan2(dy, horizontal) * 180.0 / Math.PI));
+        if (planar >= SLASH_MIN_HORIZONTAL) {
+            yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - SLASH_YAW_OFFSET);
+            pitch = (float) -Math.toDegrees(Math.atan2(dy, planar));
         }
-        float roll = (float) Math.toRadians(rand.nextGaussian() * 20.0);
         SlashParticleOptions options = new SlashParticleOptions(duration, yaw, pitch, roll);
-        spawn(level, options, x, y, z, dx / duration, dy / duration, dz / duration);
+        spawn(level, options, sx, sy, sz, dx / duration, dy / duration, dz / duration);
+    }
+
+    private static void sendBoreDig(ServerLevel level, BlockPos target, int boreEntityId, BlockPos borePos, int delay) {
+        ClientboundBoreDigPayload payload = new ClientboundBoreDigPayload(target, boreEntityId, borePos, delay);
+        broadcastNear(level, target.getX(), target.getY(), target.getZ(), BORE_DIG_RADIUS, payload);
+    }
+
+    private static void broadcastNear(ServerLevel level, double x, double y, double z, double radius, CustomPacketPayload payload) {
+        PacketDistributor.sendToPlayersNear(level, null, x, y, z, radius, payload);
+    }
+
+    private static void broadcastStream(ServerLevel level, Vec3 origin, ClientboundStreamEffectPayload payload) {
+        broadcastNear(level, origin.x, origin.y, origin.z, DEFAULT_RADIUS, payload);
+    }
+
+    private static void spawnMoving(ServerLevel level, ParticleOptions options, Vec3 at, Vec3 velocity) {
+        spawn(level, options, at.x, at.y, at.z, velocity.x, velocity.y, velocity.z);
     }
 
     public static final class Bamf {
         private final ServerLevel level;
         private final Vec3 pos;
-        private float r = 0.5F, g = 0.1F, b = 0.6F;
-        private boolean sound = false;
-        private boolean fancy = false;
-        private Direction side = null;
+        private EffectColor color = BAMF_COLOR;
+        private boolean sound;
+        private boolean fancy;
+        private @Nullable Direction side;
 
         Bamf(ServerLevel level, Vec3 pos) {
             this.level = level;
@@ -303,9 +367,7 @@ public final class Effects {
         }
 
         public Bamf color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
@@ -325,147 +387,151 @@ public final class Effects {
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            if (sound) {
-                level.playSound(null, pos.x, pos.y, pos.z, TTSounds.POOF.get(), SoundSource.BLOCKS, 0.4F, 1.0F + (float) rand.nextGaussian() * 0.05F);
-            }
-            int puffs = 6 + rand.nextInt(3) + 2;
-            for (int a = 0; a < puffs; a++) {
-                double vx = (0.05F + rand.nextFloat() * 0.05F) * (rand.nextBoolean() ? -1 : 1);
-                double vy = (0.05F + rand.nextFloat() * 0.05F) * (rand.nextBoolean() ? -1 : 1);
-                double vz = (0.05F + rand.nextFloat() * 0.05F) * (rand.nextBoolean() ? -1 : 1);
-                if (side != null) {
-                    vx += side.getStepX() * 0.1F;
-                    vy += side.getStepY() * 0.1F;
-                    vz += side.getStepZ() * 0.1F;
-                }
-                float pr = Mth.clamp(r * (1.0F + (float) rand.nextGaussian() * 0.1F), 0.0F, 1.0F);
-                float pg = Mth.clamp(g * (1.0F + (float) rand.nextGaussian() * 0.1F), 0.0F, 1.0F);
-                float pb = Mth.clamp(b * (1.0F + (float) rand.nextGaussian() * 0.1F), 0.0F, 1.0F);
-                spawn(level, TTParticles.colorOf(TTParticles.PUFF, pr, pg, pb), pos.x + vx * 2.0, pos.y + vy * 2.0, pos.z + vz * 2.0, vx / 2.0, vy / 2.0, vz / 2.0);
-            }
-            if (fancy) {
-                int motes = 2 + rand.nextInt(3);
-                for (int a = 0; a < motes; a++) {
-                    double vx = (0.025F + rand.nextFloat() * 0.025F) * (rand.nextBoolean() ? -1 : 1);
-                    double vy = (0.025F + rand.nextFloat() * 0.025F) * (rand.nextBoolean() ? -1 : 1);
-                    double vz = (0.025F + rand.nextFloat() * 0.025F) * (rand.nextBoolean() ? -1 : 1);
-                    wispyMotes(level, new Vec3(pos.x + vx * 2.0, pos.y + vy * 2.0, pos.z + vz * 2.0)).motion(vx, vy, vz).age(15 + rand.nextInt(10)).randomColor().gravity(-0.01F).send();
-                }
-                spawn(level, TTParticles.colorOf(TTParticles.FLASH, 1.0F, 0.9F, 1.0F), pos.x, pos.y, pos.z);
-            }
-            int wisps = (fancy ? 2 : 0) + rand.nextInt(3);
-            for (int a = 0; a < wisps; a++) {
-                curlyWisp(level, pos).color((0.9F + rand.nextFloat() * 0.1F + r) / 2.0F, (0.1F + g) / 2.0F, (0.5F + rand.nextFloat() * 0.1F + b) / 2.0F).alpha(0.75F).side(side).seed(a).send();
-            }
+            PuffCloud.send(level, pos, color, sound, fancy, side);
         }
     }
 
-    public static final class Sparkle {
+    public static final class Glint {
         private final ServerLevel level;
         private final Vec3 pos;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
+        private EffectColor color = EffectColor.WHITE;
 
-        Sparkle(ServerLevel level, Vec3 pos) {
+        Glint(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public Sparkle color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+        public Glint color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            if (rand.nextInt(6) >= 4)
+            RandomSource random = level.getRandom();
+            if (random.nextInt(SPARKLE_SKIP_SIDES) >= SPARKLE_SPAWN_SIDES) {
                 return;
-            SparkleParticleOptions options = new SparkleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), 0.6F + rand.nextFloat() * 0.2F, 0, 1.0F, 0.0F, 2, false);
-            spawn(level, options, pos.x, pos.y, pos.z);
+            }
+            float scale = SPARKLE_SCALE_BASE + random.nextFloat() * SPARKLE_SCALE_SPREAD;
+            spawn(level, new SparkleParticleOptions(color.argb(), scale, 0, SPARKLE_DECAY, 0.0F, SPARKLE_BASE_AGE, false), pos.x, pos.y, pos.z);
         }
     }
 
     public static final class SimpleSparkle {
         private final ServerLevel level;
         private final Vec3 pos;
-        private double vx, vy, vz;
-        private float scale = 0.4F;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private int delay = 0;
-        private float decay = 0.98F;
-        private float gravity = 0.0F;
-        private int baseAge = 16;
+        private final SparkleSettings settings = new SparkleSettings();
 
         SimpleSparkle(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public SimpleSparkle motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public SimpleSparkle motion(double x, double y, double z) {
+            settings.motion = new Vec3(x, y, z);
             return this;
         }
 
         public SimpleSparkle color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            settings.color = new EffectColor(r, g, b);
             return this;
         }
 
         public SimpleSparkle scale(float scale) {
-            this.scale = scale;
+            settings.scale = scale;
             return this;
         }
 
         public SimpleSparkle delay(int delay) {
-            this.delay = delay;
+            settings.delay = delay;
             return this;
         }
 
         public SimpleSparkle decay(float decay) {
-            this.decay = decay;
+            settings.decay = decay;
             return this;
         }
 
-        public SimpleSparkle gravity(float gravity) {
-            this.gravity = gravity;
+        public SimpleSparkle drift(float gravity) {
+            settings.gravity = gravity;
             return this;
         }
 
         public SimpleSparkle baseAge(int baseAge) {
-            this.baseAge = baseAge;
+            settings.baseAge = baseAge;
             return this;
         }
 
         public void send() {
-            SparkleParticleOptions options = new SparkleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), scale, delay, decay, gravity, baseAge, true);
-            spawn(level, options, pos.x, pos.y, pos.z, vx, vy, vz);
+            settings.send(level, pos, true);
+        }
+    }
+
+    public static final class LineSparkle {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private final SparkleSettings settings = new SparkleSettings();
+
+        LineSparkle(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public LineSparkle motion(double x, double y, double z) {
+            settings.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public LineSparkle color(float r, float g, float b) {
+            settings.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public LineSparkle scale(float scale) {
+            settings.scale = scale;
+            return this;
+        }
+
+        public LineSparkle delay(int delay) {
+            settings.delay = delay;
+            return this;
+        }
+
+        public LineSparkle decay(float decay) {
+            settings.decay = decay;
+            return this;
+        }
+
+        public LineSparkle drift(float gravity) {
+            settings.gravity = gravity;
+            return this;
+        }
+
+        public LineSparkle baseAge(int baseAge) {
+            settings.baseAge = baseAge;
+            return this;
+        }
+
+        public void send() {
+            settings.send(level, pos, false);
         }
     }
 
     public static final class WispyMotes {
         private final ServerLevel level;
         private final Vec3 pos;
-        private double vx, vy, vz;
-        private int age = 30;
-        private float r = 0.5F, g = 0.5F, b = 0.5F;
-        private boolean randomColor = false;
-        private float gravity = 0.0F;
+        private Vec3 motion = Vec3.ZERO;
+        private int age = WISPY_AGE;
+        private EffectColor color = WISPY_COLOR;
+        private boolean randomColor;
+        private float gravity;
 
         WispyMotes(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public WispyMotes motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public WispyMotes motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
@@ -475,9 +541,7 @@ public final class Effects {
         }
 
         public WispyMotes color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            this.color = new EffectColor(r, g, b);
             this.randomColor = false;
             return this;
         }
@@ -487,41 +551,86 @@ public final class Effects {
             return this;
         }
 
-        public WispyMotes gravity(float gravity) {
+        public WispyMotes drift(float gravity) {
             this.gravity = gravity;
             return this;
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            float cr = randomColor ? 0.25F + rand.nextFloat() * 0.75F : r;
-            float cg = randomColor ? 0.25F + rand.nextFloat() * 0.75F : g;
-            float cb = randomColor ? 0.25F + rand.nextFloat() * 0.75F : b;
-            WispyMoteParticleOptions options = new WispyMoteParticleOptions(ARGB.colorFromFloat(1.0F, cr, cg, cb), age, gravity, WispyMoteParticleOptions.NO_ENTITY);
-            spawn(level, options, pos.x, pos.y, pos.z, vx, vy, vz);
+            EffectColor shown = randomColor ? EffectColor.randomMote(level.getRandom()) : color;
+            spawnMoving(level, new WispyMoteParticleOptions(shown.argb(), age, gravity, NO_ENTITY), pos, motion);
+        }
+    }
+
+    public static final class WispyMotesEntity {
+        private final ServerLevel level;
+        private final Vec3 origin;
+        private final int entityId;
+        private EffectColor color = EffectColor.WHITE;
+
+        WispyMotesEntity(ServerLevel level, Vec3 origin, int entityId) {
+            this.level = level;
+            this.origin = origin;
+            this.entityId = entityId;
+        }
+
+        public WispyMotesEntity color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public void send() {
+            spawn(level, new WispyMoteParticleOptions(color.argb(), WISPY_AGE, WISPY_ENTITY_GRAVITY, entityId), origin.x, origin.y, origin.z);
+        }
+    }
+
+    public static final class WispyMotesOnBlock {
+        private final ServerLevel level;
+        private final BlockPos corner;
+        private int age = WISPY_AGE;
+        private float gravity;
+
+        WispyMotesOnBlock(ServerLevel level, BlockPos corner) {
+            this.level = level;
+            this.corner = corner;
+        }
+
+        public WispyMotesOnBlock age(int age) {
+            this.age = age;
+            return this;
+        }
+
+        public WispyMotesOnBlock drift(float gravity) {
+            this.gravity = gravity;
+            return this;
+        }
+
+        public void send() {
+            RandomSource random = level.getRandom();
+            EffectColor color = new EffectColor(WISPY_BLOCK_RED_BASE + random.nextFloat() * WISPY_BLOCK_RED_SPREAD, WISPY_BLOCK_GREEN_BASE + random.nextFloat() * WISPY_BLOCK_GB_SPREAD,
+                    WISPY_BLOCK_BLUE_BASE + random.nextFloat() * WISPY_BLOCK_GB_SPREAD);
+            spawn(level, new WispyMoteParticleOptions(color.argb(), age, gravity, NO_ENTITY), corner.getX() + random.nextDouble(), corner.getY(), corner.getZ() + random.nextDouble());
         }
     }
 
     public static final class CurlyWisp {
         private final ServerLevel level;
         private final Vec3 pos;
-        private double vx, vy, vz;
+        private Vec3 motion = Vec3.ZERO;
         private float scale = 1.0F;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
+        private EffectColor color = EffectColor.WHITE;
         private float alpha = 1.0F;
-        private Direction side = null;
-        private int seed = 0;
-        private int delay = 0;
+        private @Nullable Direction side;
+        private int seed;
+        private int delay;
 
         CurlyWisp(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public CurlyWisp motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public CurlyWisp motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
@@ -531,9 +640,7 @@ public final class Effects {
         }
 
         public CurlyWisp color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
@@ -542,7 +649,7 @@ public final class Effects {
             return this;
         }
 
-        public CurlyWisp side(Direction side) {
+        public CurlyWisp side(@Nullable Direction side) {
             this.side = side;
             return this;
         }
@@ -558,17 +665,17 @@ public final class Effects {
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            double dx = vx + (0.0025F + rand.nextFloat() * 0.005F) * (rand.nextBoolean() ? -1 : 1);
-            double dy = vy + (0.0025F + rand.nextFloat() * 0.005F) * (rand.nextBoolean() ? -1 : 1);
-            double dz = vz + (0.0025F + rand.nextFloat() * 0.005F) * (rand.nextBoolean() ? -1 : 1);
+            RandomSource random = level.getRandom();
+            double mx = motion.x + EffectRandom.signedSpeed(random, CURLY_JITTER_BASE, CURLY_JITTER_SPREAD);
+            double my = motion.y + EffectRandom.signedSpeed(random, CURLY_JITTER_BASE, CURLY_JITTER_SPREAD);
+            double mz = motion.z + EffectRandom.signedSpeed(random, CURLY_JITTER_BASE, CURLY_JITTER_SPREAD);
             if (side != null) {
-                dx += side.getStepX() * 0.025F;
-                dy += side.getStepY() * 0.025F;
-                dz += side.getStepZ() * 0.025F;
+                mx += side.getStepX() * CURLY_SIDE_BIAS;
+                my += side.getStepY() * CURLY_SIDE_BIAS;
+                mz += side.getStepZ() * CURLY_SIDE_BIAS;
             }
-            CurlyWispParticleOptions options = new CurlyWispParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, scale, delay, seed);
-            spawn(level, options, pos.x + dx * 5.0, pos.y + dy * 5.0, pos.z + dz * 5.0, dx, dy, dz);
+            CurlyWispParticleOptions options = new CurlyWispParticleOptions(color.argb(), alpha, scale, delay, seed);
+            spawn(level, options, pos.x + mx * CURLY_SPAWN_LEAD, pos.y + my * CURLY_SPAWN_LEAD, pos.z + mz * CURLY_SPAWN_LEAD, mx, my, mz);
         }
     }
 
@@ -576,10 +683,10 @@ public final class Effects {
         private final ServerLevel level;
         private final Vec3 pos;
         private final boolean variant;
-        private double vx, vy, vz;
-        private int color = 0xFFFFFF;
-        private float scale = 1.0F;
-        private boolean spawnFlame = false;
+        private Vec3 motion = Vec3.ZERO;
+        private int color = WHITE_RGB;
+        private float scale = VENT_DEFAULT_SCALE;
+        private boolean flame;
 
         Vent(ServerLevel level, Vec3 pos, boolean variant) {
             this.level = level;
@@ -587,10 +694,8 @@ public final class Effects {
             this.variant = variant;
         }
 
-        public Vent motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public Vent motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
@@ -605,110 +710,118 @@ public final class Effects {
         }
 
         public Vent withFlame() {
-            this.spawnFlame = true;
+            this.flame = true;
             return this;
         }
 
         public void send() {
-            spawn(level, new VentParticleOptions(vx, vy, vz, color, scale, variant), pos.x, pos.y, pos.z);
-            RandomSource rand = level.getRandom();
-            if (spawnFlame && rand.nextInt(6) < 2) {
-                WispFlameParticleOptions flame = new WispFlameParticleOptions(ARGB.colorFromFloat(1.0F, 1.0F, 0.7F, 0.2F), 0.9F, 0.25F + rand.nextFloat() * 0.1F, 0.25F, 0);
-                spawn(level, flame, pos.x, pos.y, pos.z, vx / 2.0, vy / 2.0, vz / 2.0);
+            spawn(level, new VentParticleOptions(motion.x, motion.y, motion.z, color, scale, variant), pos.x, pos.y, pos.z);
+            RandomSource random = level.getRandom();
+            if (flame && random.nextInt(VENT_FLAME_SIDES) < VENT_FLAME_CHANCE) {
+                float flameScale = VENT_FLAME_SCALE_BASE + random.nextFloat() * VENT_FLAME_SCALE_SPREAD;
+                WispFlameParticleOptions options = new WispFlameParticleOptions(VENT_FLAME_COLOR.argb(), VENT_FLAME_ALPHA, flameScale, VENT_FLAME_END_SCALE, 0);
+                spawn(level, options, pos.x, pos.y, pos.z, motion.x * VENT_FLAME_MOTION_FACTOR, motion.y * VENT_FLAME_MOTION_FACTOR, motion.z * VENT_FLAME_MOTION_FACTOR);
             }
         }
     }
 
-    public static final class BlockRunes {
+    public static final class GlyphField {
         private final ServerLevel level;
-        private final Vec3 pos;
+        private final Vec3 corner;
         private final boolean variant;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private int duration = 30;
-        private float gravity = 0.0F;
+        private EffectColor color = EffectColor.WHITE;
+        private int duration = BLOCK_RUNES_DURATION;
+        private float gravity;
 
-        BlockRunes(ServerLevel level, Vec3 pos, boolean variant) {
+        GlyphField(ServerLevel level, Vec3 corner, boolean variant) {
             this.level = level;
-            this.pos = pos;
+            this.corner = corner;
             this.variant = variant;
         }
 
-        public BlockRunes color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+        public GlyphField color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
-        public BlockRunes duration(int duration) {
+        public GlyphField lifetime(int duration) {
             this.duration = duration;
             return this;
         }
 
-        public BlockRunes gravity(float gravity) {
+        public GlyphField drift(float gravity) {
             this.gravity = gravity;
             return this;
         }
 
         public void send() {
-            spawn(level, new BlockRunesParticleOptions(r, g, b, duration, gravity, variant), pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+            BlockRunesParticleOptions options = new BlockRunesParticleOptions(color.r(), color.g(), color.b(), duration, gravity, variant);
+            spawn(level, options, corner.x + BLOCK_RUNES_OFFSET, corner.y + BLOCK_RUNES_OFFSET, corner.z + BLOCK_RUNES_OFFSET);
         }
     }
 
-    public static final class SmokeSpiral {
+    public static final class SpiralSmoke {
         private final ServerLevel level;
         private final Vec3 pos;
-        private float radius = 1.0F;
-        private int start = 0;
-        private int minY = 0;
-        private int color = 0xFFFFFF;
+        private float radius = SMOKE_RADIUS;
+        private int start;
+        private int minY;
+        private int color = WHITE_RGB;
 
-        SmokeSpiral(ServerLevel level, Vec3 pos) {
+        SpiralSmoke(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public SmokeSpiral radius(float radius) {
+        public SpiralSmoke radius(float radius) {
             this.radius = radius;
             return this;
         }
 
-        public SmokeSpiral start(int startDeg) {
-            this.start = startDeg;
+        public SpiralSmoke start(int start) {
+            this.start = start;
             return this;
         }
 
-        public SmokeSpiral minY(int minY) {
+        public SpiralSmoke minY(int minY) {
             this.minY = minY;
             return this;
         }
 
-        public SmokeSpiral color(int color) {
+        public SpiralSmoke color(int color) {
             this.color = color;
             return this;
         }
 
         public void send() {
-            float cr = ARGB.red(color) / 255.0F;
-            float cg = ARGB.green(color) / 255.0F;
-            float cb = ARGB.blue(color) / 255.0F;
-            spawn(level, new SmokeSpiralParticleOptions(radius, start, minY, cr, cg, cb), pos.x, pos.y, pos.z);
+            EffectColor channels = EffectColor.ofRgb(color);
+            spawn(level, new SmokeSpiralParticleOptions(radius, start, minY, channels.r(), channels.g(), channels.b()), pos.x, pos.y, pos.z);
+        }
+    }
+
+    private static final class BeamSettings {
+        private int color = WHITE_RGB;
+        private int age = BEAM_AGE;
+        private int type;
+        private float endMod = BEAM_END_MODIFIER;
+        private boolean reverse;
+
+        ClientboundStreamEffectPayload toPayload(Vec3 start, Vec3 end, int sourceId, boolean drill) {
+            return ClientboundStreamEffectPayload.beam(start.x, start.y, start.z, end.x, end.y, end.z, color, age, type, endMod, reverse, sourceId, drill);
         }
     }
 
     public static final class BeamWand {
         private final ServerLevel level;
-        private final LivingEntity source;
-        private Vec3 target = null;
-        private int color = 0xFFFFFF;
-        private int age = 20;
-        private int beamType = 0;
-        private float endMod = 1.0F;
-        private boolean reverse = false;
+        private final Vec3 source;
+        private final int sourceId;
+        private final BeamSettings settings = new BeamSettings();
+        private @Nullable Vec3 target;
 
         BeamWand(ServerLevel level, LivingEntity source) {
             this.level = level;
-            this.source = source;
+            this.source = source.position();
+            this.sourceId = source.getId();
         }
 
         public BeamWand to(Vec3 target) {
@@ -717,423 +830,329 @@ public final class Effects {
         }
 
         public BeamWand color(int color) {
-            this.color = color;
+            settings.color = color;
             return this;
         }
 
         public BeamWand age(int age) {
-            this.age = age;
+            settings.age = age;
             return this;
         }
 
-        public BeamWand type(int beamType) {
-            this.beamType = beamType;
+        public BeamWand type(int type) {
+            settings.type = type;
             return this;
         }
 
         public BeamWand endMod(float endMod) {
-            this.endMod = endMod;
+            settings.endMod = endMod;
             return this;
         }
 
         public BeamWand reverse(boolean reverse) {
-            this.reverse = reverse;
+            settings.reverse = reverse;
             return this;
         }
 
         public void send() {
-            if (target == null)
-                return;
-            ClientboundStreamEffectPayload payload = ClientboundStreamEffectPayload.beam(source.getX(), source.getY(), source.getZ(), target.x, target.y, target.z, color, age, beamType, endMod,
-                    reverse, source.getId(), false);
-            PacketDistributor.sendToPlayersNear(level, null, source.getX(), source.getY(), source.getZ(), DEFAULT_RADIUS, payload);
+            Vec3 end = target;
+            if (end != null) {
+                broadcastStream(level, source, settings.toPayload(source, end, sourceId, false));
+            }
         }
     }
 
-    public static final class BeamBore {
+    public static final class DrillBeam {
         private final ServerLevel level;
         private final Vec3 source;
-        private Vec3 target = null;
-        private int color = 0xFFFFFF;
-        private int age = 20;
-        private int beamType = 0;
-        private float endMod = 1.0F;
-        private boolean reverse = false;
+        private final BeamSettings settings = new BeamSettings();
+        private @Nullable Vec3 target;
 
-        BeamBore(ServerLevel level, Vec3 source) {
+        DrillBeam(ServerLevel level, Vec3 source) {
             this.level = level;
             this.source = source;
         }
 
-        public BeamBore to(Vec3 target) {
+        public DrillBeam to(Vec3 target) {
             this.target = target;
             return this;
         }
 
-        public BeamBore color(int color) {
-            this.color = color;
+        public DrillBeam color(int color) {
+            settings.color = color;
             return this;
         }
 
-        public BeamBore age(int age) {
-            this.age = age;
+        public DrillBeam age(int age) {
+            settings.age = age;
             return this;
         }
 
-        public BeamBore type(int beamType) {
-            this.beamType = beamType;
+        public DrillBeam type(int type) {
+            settings.type = type;
             return this;
         }
 
-        public BeamBore endMod(float endMod) {
-            this.endMod = endMod;
+        public DrillBeam endMod(float endMod) {
+            settings.endMod = endMod;
             return this;
         }
 
-        public BeamBore reverse(boolean reverse) {
-            this.reverse = reverse;
+        public DrillBeam reverse(boolean reverse) {
+            settings.reverse = reverse;
             return this;
         }
 
         public void send() {
-            if (target == null)
-                return;
-            ClientboundStreamEffectPayload payload = ClientboundStreamEffectPayload.beam(source.x, source.y, source.z, target.x, target.y, target.z, color, age, beamType, endMod, reverse,
-                    BeamPayloadIds.NO_ENTITY, true);
-            PacketDistributor.sendToPlayersNear(level, null, source.x, source.y, source.z, DEFAULT_RADIUS, payload);
+            Vec3 end = target;
+            if (end != null) {
+                broadcastStream(level, source, settings.toPayload(source, end, NO_ENTITY, true));
+            }
         }
     }
 
-    public static final class ArcLightning {
+    public static final class ZapArc {
         private final ServerLevel level;
         private final Vec3 from;
-        private Vec3 to = null;
-        private int color = 0xFFFFFF;
-        private float gravity = 0.1F;
+        private @Nullable Vec3 target;
+        private int color = WHITE_RGB;
+        private float gravity = ARC_GRAVITY;
 
-        ArcLightning(ServerLevel level, Vec3 from) {
+        ZapArc(ServerLevel level, Vec3 from) {
             this.level = level;
             this.from = from;
         }
 
-        public ArcLightning to(Vec3 to) {
-            this.to = to;
+        public ZapArc to(Vec3 target) {
+            this.target = target;
             return this;
         }
 
-        public ArcLightning color(int color) {
+        public ZapArc color(int color) {
             this.color = color;
             return this;
         }
 
-        public ArcLightning gravity(float gravity) {
+        public ZapArc drift(float gravity) {
             this.gravity = gravity;
             return this;
         }
 
         public void send() {
-            if (to == null)
+            Vec3 end = target;
+            if (end == null) {
                 return;
-            EffectDispatch.spawnArc(level, from, to, color, gravity);
+            }
+            EffectDispatch.spawnArc(level, from, end, color, gravity);
         }
     }
 
-    public static final class ArcBolt {
-        private static final int NO_SOURCE_ENTITY = -1;
-
+    public static final class BoltStrike {
         private final ServerLevel level;
         private final Vec3 from;
-        private Vec3 to = null;
-        private int color = 0xFFFFFF;
-        private float width = 1.0F;
-        private int sourceEntityId = NO_SOURCE_ENTITY;
+        private @Nullable Vec3 target;
+        private int color = WHITE_RGB;
+        private float width = BOLT_WIDTH;
+        private int sourceEntityId = NO_ENTITY;
 
-        ArcBolt(ServerLevel level, Vec3 from) {
+        BoltStrike(ServerLevel level, Vec3 from) {
             this.level = level;
             this.from = from;
         }
 
-        public ArcBolt to(Vec3 to) {
-            this.to = to;
+        public BoltStrike to(Vec3 target) {
+            this.target = target;
             return this;
         }
 
-        public ArcBolt color(int color) {
+        public BoltStrike color(int color) {
             this.color = color;
             return this;
         }
 
-        public ArcBolt width(float width) {
+        public BoltStrike width(float width) {
             this.width = width;
             return this;
         }
 
-        public ArcBolt sourceEntity(@Nullable Entity entity) {
-            this.sourceEntityId = entity == null ? NO_SOURCE_ENTITY : entity.getId();
+        public BoltStrike sourceEntity(@Nullable Entity entity) {
+            this.sourceEntityId = entity == null ? NO_ENTITY : entity.getId();
             return this;
         }
 
         public void send() {
-            if (to == null)
+            Vec3 end = target;
+            if (end == null) {
                 return;
-            EffectDispatch.spawnBolt(level, from, to, color, width, sourceEntityId);
+            }
+            EffectDispatch.spawnBolt(level, from, end, color, width, sourceEntityId);
         }
     }
 
-    public static final class FireMote {
+    public static final class BoreStream {
         private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private float alpha = 1.0F;
-        private float scale = 1.0F;
+        private final Vec3 source;
+        private final int targetId;
+        private int color = BORE_STREAM_COLOR;
+        private int count;
+        private float scale = STREAM_SCALE;
+        private int extend = BORE_STREAM_EXTEND;
+        private double upward;
 
-        FireMote(ServerLevel level, Vec3 pos) {
+        BoreStream(ServerLevel level, Vec3 source, @Nullable Entity target) {
             this.level = level;
-            this.pos = pos;
+            this.source = source;
+            this.targetId = target == null ? NO_ENTITY : target.getId();
         }
 
-        public FireMote motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public BoreStream color(int color) {
+            this.color = color;
             return this;
         }
 
-        public FireMote color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+        public BoreStream count(int count) {
+            this.count = count;
             return this;
         }
 
-        public FireMote alpha(float alpha) {
-            this.alpha = alpha;
+        public BoreStream scale(float scale) {
+            this.scale = scale;
             return this;
         }
 
-        public FireMote scale(float scale) {
+        public BoreStream reach(int extend) {
+            this.extend = extend;
+            return this;
+        }
+
+        public BoreStream upward(double upward) {
+            this.upward = upward;
+            return this;
+        }
+
+        public void send() {
+            if (targetId == NO_ENTITY) {
+                return;
+            }
+            broadcastStream(level, source, ClientboundStreamEffectPayload.bore(source.x, source.y, source.z, targetId, color, count, scale, extend, upward));
+        }
+    }
+
+    public static final class VoidStream {
+        private final ServerLevel level;
+        private final Vec3 source;
+        private @Nullable Vec3 target;
+        private int seed;
+        private float scale = STREAM_SCALE;
+
+        VoidStream(ServerLevel level, Vec3 source) {
+            this.level = level;
+            this.source = source;
+        }
+
+        public VoidStream to(Vec3 target) {
+            this.target = target;
+            return this;
+        }
+
+        public VoidStream seed(int seed) {
+            this.seed = seed;
+            return this;
+        }
+
+        public VoidStream scale(float scale) {
             this.scale = scale;
             return this;
         }
 
         public void send() {
-            spawn(level, fireMoteData(level.getRandom(), vx, vy, vz, r, g, b, alpha, scale), pos.x, pos.y, pos.z);
+            if (target == null) {
+                return;
+            }
+            broadcastStream(level, source, ClientboundStreamEffectPayload.voidStream(source.x, source.y, source.z, target.x, target.y, target.z, seed, scale));
         }
     }
 
-    public static final class Alumentum {
+    public static final class BoreDebris {
         private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private float alpha = 1.0F;
-        private float scale = 1.0F;
+        private final Vec3 source;
+        private final BlockState state;
+        private @Nullable Vec3 target;
+        private Vec3 motion = Vec3.ZERO;
 
-        Alumentum(ServerLevel level, Vec3 pos) {
+        BoreDebris(ServerLevel level, Vec3 source, BlockState state) {
             this.level = level;
-            this.pos = pos;
+            this.source = source;
+            this.state = state;
         }
 
-        public Alumentum motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public BoreDebris to(Vec3 target) {
+            this.target = target;
             return this;
         }
 
-        public Alumentum color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            return this;
-        }
-
-        public Alumentum alpha(float alpha) {
-            this.alpha = alpha;
-            return this;
-        }
-
-        public Alumentum scale(float scale) {
-            this.scale = scale;
+        public BoreDebris motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
         public void send() {
-            spawn(level, new FireMoteParticleOptions(vx, vy, vz, r, g, b, alpha, scale, true), pos.x, pos.y, pos.z);
+            if (target == null) {
+                return;
+            }
+            BoreDebrisParticleOptions options = new BoreDebrisParticleOptions(state, target.x, target.y, target.z, motion.x, motion.y, motion.z);
+            spawn(level, options, source.x, source.y, source.z);
         }
     }
 
-    public static final class Taint {
+    public static final class BoreSparkle {
         private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-        private float scale = 1.0F;
-        private int color = TaintFumeParticleOptions.RANDOM_COLOR;
+        private final Vec3 source;
+        private @Nullable Vec3 target;
+        private EffectColor color = BORE_SPARKLE_COLOR;
 
-        Taint(ServerLevel level, Vec3 pos) {
+        BoreSparkle(ServerLevel level, Vec3 source) {
             this.level = level;
-            this.pos = pos;
+            this.source = source;
         }
 
-        public Taint motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public BoreSparkle to(Vec3 target) {
+            this.target = target;
             return this;
         }
 
-        public Taint scale(float scale) {
-            this.scale = scale;
+        public BoreSparkle color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
-        public Taint color(int argb) {
-            this.color = argb;
+        public BoreSparkle color(int rgb) {
+            this.color = EffectColor.ofRgb(rgb);
             return this;
         }
 
         public void send() {
-            spawn(level, new TaintFumeParticleOptions(color, scale), pos.x, pos.y, pos.z, vx, vy, vz);
-        }
-    }
-
-    public static final class LightningFlash {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private float alpha = 1.0F;
-        private float scale = 1.0F;
-
-        LightningFlash(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public LightningFlash color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            return this;
-        }
-
-        public LightningFlash alpha(float alpha) {
-            this.alpha = alpha;
-            return this;
-        }
-
-        public LightningFlash scale(float scale) {
-            this.scale = scale;
-            return this;
-        }
-
-        public void send() {
-            spawn(level, new LightningFlashParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, scale), pos.x, pos.y, pos.z);
-        }
-    }
-
-    public static final class Levitator {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-
-        Levitator(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public Levitator motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
-            return this;
-        }
-
-        public void send() {
-            spawn(level, TTParticles.LEVITATOR_MIST.get(), pos.x, pos.y, pos.z, vx, vy, vz);
-        }
-    }
-
-    public static final class Stabilizer {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-        private int life = 20;
-
-        Stabilizer(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public Stabilizer motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
-            return this;
-        }
-
-        public Stabilizer life(int life) {
-            this.life = life;
-            return this;
-        }
-
-        public void send() {
-            spawn(level, new StabilizerRuneParticleOptions(life), pos.x, pos.y, pos.z, vx, vy, vz);
-        }
-    }
-
-    public static final class GolemFly {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-
-        GolemFly(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public GolemFly motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
-            return this;
-        }
-
-        public void send() {
-            spawn(level, TTParticles.GOLEM_TRAIL.get(), pos.x, pos.y, pos.z, vx, vy, vz);
-        }
-    }
-
-    public static final class Pollution {
-        private final ServerLevel level;
-        private final BlockPos pos;
-
-        Pollution(ServerLevel level, BlockPos pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            spawn(level, TTParticles.POLLUTION_FUME.get(), pos.getX() + 0.2F + rand.nextFloat() * 0.6F, pos.getY() + 0.2F + rand.nextFloat() * 0.6F, pos.getZ() + 0.2F + rand.nextFloat() * 0.6F);
+            if (target == null) {
+                return;
+            }
+            BoreSparkleParticleOptions options = new BoreSparkleParticleOptions(target.x, target.y, target.z, color.r(), color.g(), color.b());
+            spawn(level, options, source.x, source.y, source.z);
         }
     }
 
     public static final class FocusCloud {
         private final ServerLevel level;
         private final Vec3 pos;
-        private double vx, vy, vz;
-        private int color = 0xFFFFFF;
+        private Vec3 motion = Vec3.ZERO;
+        private int color = WHITE_RGB;
 
         FocusCloud(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public FocusCloud motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public FocusCloud motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
@@ -1143,78 +1162,24 @@ public final class Effects {
         }
 
         public void send() {
-            spawn(level, TTParticles.colorOf(TTParticles.FOCUS_CLOUD, color), pos.x, pos.y, pos.z, vx, vy, vz);
-        }
-    }
-
-    public static final class BlockMist {
-        private final ServerLevel level;
-        private final BlockPos pos;
-        private int color = 0xFFFFFF;
-
-        BlockMist(ServerLevel level, BlockPos pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public BlockMist color(int color) {
-            this.color = color;
-            return this;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
-            AABB bs = shape.isEmpty() ? Shapes.block().bounds() : shape.bounds();
-            for (int a = 0; a < 8; a++) {
-                double x = pos.getX() + bs.minX + rand.nextFloat() * (bs.maxX - bs.minX);
-                double y = pos.getY() + bs.minY + rand.nextFloat() * (bs.maxY - bs.minY);
-                double z = pos.getZ() + bs.minZ + rand.nextFloat() * (bs.maxZ - bs.minZ);
-                spawn(level, TTParticles.colorOf(TTParticles.BLOCK_MIST, color), x, y, z, rand.nextGaussian() * 0.01, rand.nextFloat() * 0.075, rand.nextGaussian() * 0.01);
-            }
-        }
-    }
-
-    public static final class BlockMistFlat {
-        private final ServerLevel level;
-        private final BlockPos pos;
-        private int color = 0xFFFFFF;
-
-        BlockMistFlat(ServerLevel level, BlockPos pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public BlockMistFlat color(int color) {
-            this.color = color;
-            return this;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            for (int a = 0; a < 6; a++) {
-                spawn(level, TTParticles.colorOf(TTParticles.MIST_FLAT, color), pos.getX() + rand.nextFloat(), pos.getY() + rand.nextFloat() * 0.125F, pos.getZ() + rand.nextFloat(),
-                        (rand.nextFloat() - rand.nextFloat()) * 0.005, 0.005, (rand.nextFloat() - rand.nextFloat()) * 0.005);
-            }
+            spawnMoving(level, TTParticles.colorOf(TTParticles.FOCUS_CLOUD, EffectColor.opaque(color)), pos, motion);
         }
     }
 
     public static final class WispParticles {
         private final ServerLevel level;
         private final Vec3 pos;
-        private double vx, vy, vz;
-        private int color = 0xFFFFFF;
-        private int delay = 0;
+        private Vec3 motion = Vec3.ZERO;
+        private int color = WHITE_RGB;
+        private int delay;
 
         WispParticles(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public WispParticles motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
+        public WispParticles motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
@@ -1229,126 +1194,40 @@ public final class Effects {
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            WispFlameParticleOptions options = new WispFlameParticleOptions(color, 0.5F, 1.0F + rand.nextFloat() * 0.25F, 0.05F, delay);
-            spawn(level, options, pos.x, pos.y, pos.z, vx, vy, vz);
+            float scale = WISP_FLAME_SCALE_BASE + level.getRandom().nextFloat() * WISP_FLAME_SCALE_SPREAD;
+            spawnMoving(level, new WispFlameParticleOptions(EffectColor.opaque(color), WISP_FLAME_ALPHA, scale, WISP_FLAME_END_SCALE, delay), pos, motion);
         }
     }
 
-    public static final class WispyMotesOnBlock {
-        private final ServerLevel level;
-        private final BlockPos pos;
-        private int age = 30;
-        private float gravity = 0.0F;
-
-        WispyMotesOnBlock(ServerLevel level, BlockPos pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public WispyMotesOnBlock age(int age) {
-            this.age = age;
-            return this;
-        }
-
-        public WispyMotesOnBlock gravity(float gravity) {
-            this.gravity = gravity;
-            return this;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            wispyMotes(level, new Vec3(pos.getX() + rand.nextFloat(), pos.getY(), pos.getZ() + rand.nextFloat())).age(age)
-                    .color(0.4F + rand.nextFloat() * 0.6F, 0.6F + rand.nextFloat() * 0.4F, 0.6F + rand.nextFloat() * 0.4F).gravity(gravity).send();
-        }
-    }
-
-    public static final class CrucibleBubble {
+    public static final class LightningFlash {
         private final ServerLevel level;
         private final Vec3 pos;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
+        private EffectColor color = EffectColor.WHITE;
+        private float alpha = 1.0F;
+        private float scale = 1.0F;
 
-        CrucibleBubble(ServerLevel level, Vec3 pos) {
+        LightningFlash(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public CrucibleBubble color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+        public LightningFlash color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public LightningFlash alpha(float alpha) {
+            this.alpha = alpha;
+            return this;
+        }
+
+        public LightningFlash scale(float scale) {
+            this.scale = scale;
             return this;
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            BubbleParticleOptions options = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), 1.0F, rand.nextFloat() * 0.3F + 0.3F, 15 + rand.nextInt(10), -0.001F, false);
-            spawn(level, options, pos.x, pos.y, pos.z);
-        }
-    }
-
-    public static final class CrucibleBoil {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private int heat = 1;
-
-        CrucibleBoil(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public CrucibleBoil color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            return this;
-        }
-
-        public CrucibleBoil heat(int heat) {
-            this.heat = heat;
-            return this;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            for (int a = 0; a < 2; a++) {
-                BubbleParticleOptions options = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), 1.0F, rand.nextFloat() * 0.3F + 0.2F, (int) (7.0 + 8.0 / (rand.nextDouble() * 0.8 + 0.2)),
-                        -0.025F * heat, false);
-                spawn(level, options, pos.x + 0.2 + rand.nextFloat() * 0.6, pos.y, pos.z + 0.2 + rand.nextFloat() * 0.6, 0.0, 0.002, 0.0);
-            }
-        }
-    }
-
-    public static final class CrucibleFroth {
-        private final ServerLevel level;
-        private final Vec3 pos;
-
-        CrucibleFroth(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            BubbleParticleOptions options = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, 0.5F, 0.5F, 0.7F), 1.0F, rand.nextFloat() * 0.2F + 0.2F, 4 + rand.nextInt(3), 0.1F, false);
-            spawn(level, options, pos.x, pos.y, pos.z);
-        }
-    }
-
-    public static final class CrucibleFrothDown {
-        private final ServerLevel level;
-        private final Vec3 pos;
-
-        CrucibleFrothDown(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            BubbleParticleOptions options = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, 0.25F, 0.0F, 0.75F), 0.8F, rand.nextFloat() * 0.2F + 0.4F, 12 + rand.nextInt(12), 0.05F, true);
-            spawn(level, options, pos.x, pos.y, pos.z);
+            spawn(level, new LightningFlashParticleOptions(color.argb(), alpha, scale), pos.x, pos.y, pos.z);
         }
     }
 
@@ -1356,7 +1235,7 @@ public final class Effects {
         private final ServerLevel level;
         private final Vec3 pos;
         private float size = 1.0F;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
+        private EffectColor color = EffectColor.WHITE;
         private float alpha = 1.0F;
 
         Spark(ServerLevel level, Vec3 pos) {
@@ -1370,9 +1249,7 @@ public final class Effects {
         }
 
         public Spark color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
@@ -1382,7 +1259,7 @@ public final class Effects {
         }
 
         public void send() {
-            spawn(level, new SparkParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, size), pos.x, pos.y, pos.z);
+            spawn(level, new SparkParticleOptions(color.argb(), alpha, size), pos.x, pos.y, pos.z);
         }
     }
 
@@ -1406,173 +1283,220 @@ public final class Effects {
         }
     }
 
-    public static final class EssentiaDrop {
+    public static final class FireMote {
         private final ServerLevel level;
         private final Vec3 pos;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
+        private Vec3 motion = Vec3.ZERO;
+        private EffectColor color = EffectColor.WHITE;
         private float alpha = 1.0F;
+        private float scale = 1.0F;
 
-        EssentiaDrop(ServerLevel level, Vec3 pos) {
+        FireMote(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public EssentiaDrop color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+        public FireMote motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
             return this;
         }
 
-        public EssentiaDrop alpha(float alpha) {
+        public FireMote color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public FireMote alpha(float alpha) {
             this.alpha = alpha;
             return this;
         }
 
-        public void send() {
-            RandomSource rand = level.getRandom();
-            BubbleParticleOptions options = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), alpha, 0.4F + rand.nextFloat() * 0.2F, 20 + rand.nextInt(10), 0.01F, false);
-            spawn(level, options, pos.x, pos.y, pos.z, rand.nextGaussian() * 0.005, rand.nextGaussian() * 0.005, rand.nextGaussian() * 0.005);
-        }
-    }
-
-    public static final class JarSplash {
-        private static final int JAR_COLOR = 0x286176;
-        private final ServerLevel level;
-        private final Vec3 pos;
-
-        JarSplash(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public void send() {
-            RandomSource rand = level.getRandom();
-            BubbleParticleOptions options = new BubbleParticleOptions(JAR_COLOR, 0.5F, 0.4F + rand.nextFloat() * 0.3F, 20 + rand.nextInt(10), 0.3F, true);
-            spawn(level, options, pos.x + rand.nextGaussian() * 0.075, pos.y, pos.z + rand.nextGaussian() * 0.075, rand.nextGaussian() * 0.015, 0.075 + rand.nextFloat() * 0.05,
-                    rand.nextGaussian() * 0.015);
-        }
-    }
-
-    public static final class LineSparkle {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
-        private float scale = 0.4F;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-        private int delay = 0;
-        private float decay = 0.98F;
-        private float gravity = 0.0F;
-        private int baseAge = 16;
-
-        LineSparkle(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public LineSparkle motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
-            return this;
-        }
-
-        public LineSparkle color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            return this;
-        }
-
-        public LineSparkle scale(float scale) {
+        public FireMote scale(float scale) {
             this.scale = scale;
             return this;
         }
 
-        public LineSparkle delay(int delay) {
-            this.delay = delay;
-            return this;
-        }
-
-        public LineSparkle decay(float decay) {
-            this.decay = decay;
-            return this;
-        }
-
-        public LineSparkle gravity(float gravity) {
-            this.gravity = gravity;
-            return this;
-        }
-
-        public LineSparkle baseAge(int baseAge) {
-            this.baseAge = baseAge;
-            return this;
-        }
-
         public void send() {
-            SparkleParticleOptions options = new SparkleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), scale, delay, decay, gravity, baseAge, false);
-            spawn(level, options, pos.x, pos.y, pos.z, vx, vy, vz);
+            FireMoteParticleOptions options = fireMoteData(level.getRandom(), motion.x, motion.y, motion.z, color.r(), color.g(), color.b(), alpha, scale);
+            spawn(level, options, pos.x, pos.y, pos.z);
         }
     }
 
-    public static final class BlockSparkles {
+    public static final class EmberGlow {
         private final ServerLevel level;
-        private final BlockPos pos;
-        private Vec3 source = null;
+        private final Vec3 pos;
+        private Vec3 motion = Vec3.ZERO;
+        private EffectColor color = EffectColor.WHITE;
+        private float alpha = 1.0F;
+        private float scale = 1.0F;
 
-        BlockSparkles(ServerLevel level, BlockPos pos) {
+        EmberGlow(ServerLevel level, Vec3 pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public BlockSparkles from(Vec3 source) {
-            this.source = source;
+        public EmberGlow motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public EmberGlow color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public EmberGlow alpha(float alpha) {
+            this.alpha = alpha;
+            return this;
+        }
+
+        public EmberGlow scale(float scale) {
+            this.scale = scale;
             return this;
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
-            AABB bs = level.getBlockState(pos).getShape(level, pos).bounds().inflate(0.1);
-            int num = (int) (((bs.getXsize() + bs.getYsize() + bs.getZsize()) / 3.0) * 20.0);
-            if (num < 1)
-                num = 1;
-            Vec3 start = source != null ? source : new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-            for (Direction face : Direction.values()) {
-                BlockPos neighbor = pos.relative(face);
-                var neighborState = level.getBlockState(neighbor);
-                if (neighborState.isSolidRender() && neighborState.isFaceSturdy(level, neighbor, face.getOpposite()))
-                    continue;
-                boolean rx = face.getStepX() == 0;
-                boolean ry = face.getStepY() == 0;
-                boolean rz = face.getStepZ() == 0;
-                double mx = 0.5 + face.getStepX() * 0.51;
-                double my = 0.5 + face.getStepY() * 0.51;
-                double mz = 0.5 + face.getStepZ() * 0.51;
-                for (int a = 0; a < num * 2; a++) {
-                    double x = mx;
-                    double y = my;
-                    double z = mz;
-                    if (rx)
-                        x = mx + rand.nextGaussian() * 0.6;
-                    if (ry)
-                        y = my + rand.nextGaussian() * 0.6;
-                    if (rz)
-                        z = mz + rand.nextGaussian() * 0.6;
-                    x = Mth.clamp(x, bs.minX, bs.maxX);
-                    y = Mth.clamp(y, bs.minY, bs.maxY);
-                    z = Mth.clamp(z, bs.minZ, bs.maxZ);
-                    float r = 1.0F;
-                    float g = (189 + rand.nextInt(67)) / 255.0F;
-                    float b = (64 + rand.nextInt(192)) / 255.0F;
-                    double wx = pos.getX() + x;
-                    double wy = pos.getY() + y;
-                    double wz = pos.getZ() + z;
-                    double dist = start.distanceTo(new Vec3(wx, wy, wz));
-                    int delay = rand.nextInt(5) + (int) (dist * 16.0);
-                    float sparkScale = 0.4F + (float) rand.nextGaussian() * 0.1F;
-                    simpleSparkle(level, new Vec3(wx, wy, wz)).motion(0.0, 0.0025, 0.0).scale(sparkScale).color(r, g, b).delay(delay).decay(1.0F).gravity(0.01F).baseAge(16).send();
-                }
-            }
+            spawn(level, glowOptions(), pos.x, pos.y, pos.z);
+        }
+
+        private FireMoteParticleOptions glowOptions() {
+            return new FireMoteParticleOptions(motion.x, motion.y, motion.z, color.r(), color.g(), color.b(), alpha, scale, true);
+        }
+    }
+
+    public static final class LiftMist {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private Vec3 motion = Vec3.ZERO;
+
+        LiftMist(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public LiftMist motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public void send() {
+            spawnMoving(level, TTParticles.LEVITATOR_MIST.get(), pos, motion);
+        }
+    }
+
+    public static final class GolemFly {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private Vec3 motion = Vec3.ZERO;
+
+        GolemFly(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public GolemFly motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public void send() {
+            spawnMoving(level, TTParticles.GOLEM_TRAIL.get(), pos, motion);
+        }
+    }
+
+    public static final class CrimsonPuff {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private Vec3 motion = Vec3.ZERO;
+
+        CrimsonPuff(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public CrimsonPuff motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public void send() {
+            spawnMoving(level, TTParticles.CRIMSON_SMOKE.get(), pos, motion);
+        }
+    }
+
+    public static final class Taint {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private Vec3 motion = Vec3.ZERO;
+        private float scale = 1.0F;
+        private int color = TaintFumeParticleOptions.RANDOM_COLOR;
+
+        Taint(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public Taint motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public Taint scale(float scale) {
+            this.scale = scale;
+            return this;
+        }
+
+        public Taint color(int color) {
+            this.color = color;
+            return this;
+        }
+
+        public void send() {
+            spawnMoving(level, new TaintFumeParticleOptions(color, scale), pos, motion);
+        }
+    }
+
+    public static final class SteadyRune {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private Vec3 motion = Vec3.ZERO;
+        private int life = STABILIZER_LIFE;
+
+        SteadyRune(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public SteadyRune motion(double x, double y, double z) {
+            this.motion = new Vec3(x, y, z);
+            return this;
+        }
+
+        public SteadyRune life(int life) {
+            this.life = life;
+            return this;
+        }
+
+        public void send() {
+            spawnMoving(level, new StabilizerRuneParticleOptions(life), pos, motion);
+        }
+    }
+
+    public static final class Pollution {
+        private final ServerLevel level;
+        private final BlockPos corner;
+
+        Pollution(ServerLevel level, BlockPos corner) {
+            this.level = level;
+            this.corner = corner;
+        }
+
+        public void send() {
+            RandomSource random = level.getRandom();
+            double x = corner.getX() + POLLUTION_INSET + random.nextDouble() * POLLUTION_SPAN;
+            double y = corner.getY() + POLLUTION_INSET + random.nextDouble() * POLLUTION_SPAN;
+            double z = corner.getZ() + POLLUTION_INSET + random.nextDouble() * POLLUTION_SPAN;
+            spawn(level, TTParticles.POLLUTION_FUME.get(), x, y, z);
         }
     }
 
@@ -1586,220 +1510,124 @@ public final class Effects {
         }
 
         public void send() {
-            RandomSource rand = level.getRandom();
+            RandomSource random = level.getRandom();
             spawn(level, TTParticles.PECH_CURSE.get(), pos.x, pos.y, pos.z);
-            wispyMotes(level, pos).age(10 + rand.nextInt(10)).randomColor().gravity(-0.01F).send();
+            int age = PECH_AGE_BASE + random.nextInt(PECH_AGE_RANGE);
+            spawn(level, new WispyMoteParticleOptions(EffectColor.randomMote(random).argb(), age, PECH_GRAVITY, NO_ENTITY), pos.x, pos.y, pos.z);
         }
     }
 
-    public static final class CultistSpawn {
+    public static final class BlockMist {
         private final ServerLevel level;
-        private final Vec3 pos;
-        private double vx, vy, vz;
+        private final BlockPos pos;
+        private int color = WHITE_RGB;
 
-        CultistSpawn(ServerLevel level, Vec3 pos) {
+        BlockMist(ServerLevel level, BlockPos pos) {
             this.level = level;
             this.pos = pos;
         }
 
-        public CultistSpawn motion(double vx, double vy, double vz) {
-            this.vx = vx;
-            this.vy = vy;
-            this.vz = vz;
-            return this;
-        }
-
-        public void send() {
-            spawn(level, TTParticles.CRIMSON_SMOKE.get(), pos.x, pos.y, pos.z, vx, vy, vz);
-        }
-    }
-
-    public static final class WispyMotesEntity {
-        private final ServerLevel level;
-        private final Vec3 origin;
-        private final int targetEntityId;
-        private float r = 1.0F, g = 1.0F, b = 1.0F;
-
-        WispyMotesEntity(ServerLevel level, Vec3 origin, int targetEntityId) {
-            this.level = level;
-            this.origin = origin;
-            this.targetEntityId = targetEntityId;
-        }
-
-        public WispyMotesEntity color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            return this;
-        }
-
-        public void send() {
-            WispyMoteParticleOptions options = new WispyMoteParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), 30, 0.2F, targetEntityId);
-            spawn(level, options, origin.x, origin.y, origin.z);
-        }
-    }
-
-    public static final class BoreDebris {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private final BlockState state;
-        private Vec3 target = null;
-        private double sx = 0.0;
-        private double sy = 0.0;
-        private double sz = 0.0;
-
-        BoreDebris(ServerLevel level, Vec3 pos, BlockState state) {
-            this.level = level;
-            this.pos = pos;
-            this.state = state;
-        }
-
-        public BoreDebris to(Vec3 target) {
-            this.target = target;
-            return this;
-        }
-
-        public BoreDebris motion(double sx, double sy, double sz) {
-            this.sx = sx;
-            this.sy = sy;
-            this.sz = sz;
-            return this;
-        }
-
-        public void send() {
-            if (target == null)
-                return;
-            spawn(level, new BoreDebrisParticleOptions(state, target.x, target.y, target.z, sx, sy, sz), pos.x, pos.y, pos.z);
-        }
-    }
-
-    public static final class BoreSparkle {
-        private final ServerLevel level;
-        private final Vec3 pos;
-        private Vec3 target = null;
-        private float r = 0.6F;
-        private float g = 0.2F;
-        private float b = 0.8F;
-
-        BoreSparkle(ServerLevel level, Vec3 pos) {
-            this.level = level;
-            this.pos = pos;
-        }
-
-        public BoreSparkle to(Vec3 target) {
-            this.target = target;
-            return this;
-        }
-
-        public BoreSparkle color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            return this;
-        }
-
-        public BoreSparkle color(int rgb) {
-            this.r = ARGB.red(rgb) / 255.0F;
-            this.g = ARGB.green(rgb) / 255.0F;
-            this.b = ARGB.blue(rgb) / 255.0F;
-            return this;
-        }
-
-        public void send() {
-            if (target == null)
-                return;
-            spawn(level, new BoreSparkleParticleOptions(target.x, target.y, target.z, r, g, b), pos.x, pos.y, pos.z);
-        }
-    }
-
-    public static final class BoreStream {
-        private final ServerLevel level;
-        private final Vec3 source;
-        private final Entity target;
-        private int color = 0x8040C0;
-        private int count = 0;
-        private float scale = 0.15F;
-        private int extend = 10;
-        private double my = 0.0;
-
-        BoreStream(ServerLevel level, Vec3 source, Entity target) {
-            this.level = level;
-            this.source = source;
-            this.target = target;
-        }
-
-        public BoreStream color(int color) {
+        public BlockMist color(int color) {
             this.color = color;
             return this;
         }
 
-        public BoreStream count(int count) {
-            this.count = count;
-            return this;
-        }
-
-        public BoreStream scale(float scale) {
-            this.scale = scale;
-            return this;
-        }
-
-        public BoreStream extend(int extend) {
-            this.extend = extend;
-            return this;
-        }
-
-        public BoreStream upward(double my) {
-            this.my = my;
-            return this;
-        }
-
         public void send() {
-            ClientboundStreamEffectPayload payload = ClientboundStreamEffectPayload.bore(source.x, source.y, source.z, target.getId(), color, count, scale, extend, my);
-            PacketDistributor.sendToPlayersNear(level, null, source.x, source.y, source.z, DEFAULT_RADIUS, payload);
+            BlockEffects.mist(level, pos, color);
         }
     }
 
-    public static final class VoidStream {
+    public static final class BlockMistFlat {
         private final ServerLevel level;
-        private final Vec3 source;
-        private Vec3 target = null;
-        private int seed = 0;
-        private float scale = 0.15F;
+        private final BlockPos pos;
+        private int color = WHITE_RGB;
 
-        VoidStream(ServerLevel level, Vec3 source) {
+        BlockMistFlat(ServerLevel level, BlockPos pos) {
             this.level = level;
-            this.source = source;
+            this.pos = pos;
         }
 
-        public VoidStream to(Vec3 target) {
-            this.target = target;
-            return this;
-        }
-
-        public VoidStream seed(int seed) {
-            this.seed = seed;
-            return this;
-        }
-
-        public VoidStream scale(float scale) {
-            this.scale = scale;
+        public BlockMistFlat color(int color) {
+            this.color = color;
             return this;
         }
 
         public void send() {
-            if (target == null)
-                return;
-            ClientboundStreamEffectPayload payload = ClientboundStreamEffectPayload.voidStream(source.x, source.y, source.z, target.x, target.y, target.z, seed, scale);
-            PacketDistributor.sendToPlayersNear(level, null, source.x, source.y, source.z, DEFAULT_RADIUS, payload);
+            BlockEffects.flatMist(level, pos, color);
+        }
+    }
+
+    public static final class BlockSparkles {
+        private final ServerLevel level;
+        private final BlockPos pos;
+        private Vec3 source;
+
+        BlockSparkles(ServerLevel level, BlockPos pos) {
+            this(level, pos, Vec3.atCenterOf(pos));
+        }
+
+        private BlockSparkles(ServerLevel level, BlockPos pos, Vec3 source) {
+            this.level = level;
+            this.pos = pos;
+            this.source = source;
+        }
+
+        public BlockSparkles from(Vec3 source) {
+            this.source = source;
+            return this;
+        }
+
+        public void send() {
+            BlockEffects.sparkles(level, pos, source);
+        }
+    }
+
+    public static final class JarSplash {
+        private final ServerLevel level;
+        private final Vec3 pos;
+
+        JarSplash(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public void send() {
+            BubbleEffects.jarSplash(level, pos);
+        }
+    }
+
+    public static final class EssentiaDrop {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private EffectColor color = EffectColor.WHITE;
+        private float alpha = 1.0F;
+
+        EssentiaDrop(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public EssentiaDrop color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public EssentiaDrop alpha(float alpha) {
+            this.alpha = alpha;
+            return this;
+        }
+
+        public void send() {
+            BubbleEffects.essentiaDrop(level, pos, color, alpha);
         }
     }
 
     public static final class FluxFume {
         private final ServerLevel level;
         private final Vec3 pos;
-        private float r = 1.0F, g = 0.0F, b = 0.5F;
-        private float scale = 0.3F;
-        private int maxAge = 3;
+        private EffectColor color = FLUX_FUME_COLOR;
+        private float scale = FLUX_FUME_SCALE;
+        private int maxAge = FLUX_FUME_MAX_AGE;
 
         FluxFume(ServerLevel level, Vec3 pos) {
             this.level = level;
@@ -1807,16 +1635,12 @@ public final class Effects {
         }
 
         public FluxFume color(int rgb) {
-            this.r = ARGB.red(rgb) / 255.0F;
-            this.g = ARGB.green(rgb) / 255.0F;
-            this.b = ARGB.blue(rgb) / 255.0F;
+            this.color = EffectColor.ofRgb(rgb);
             return this;
         }
 
         public FluxFume color(float r, float g, float b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
+            this.color = new EffectColor(r, g, b);
             return this;
         }
 
@@ -1831,8 +1655,81 @@ public final class Effects {
         }
 
         public void send() {
-            BubbleParticleOptions options = new BubbleParticleOptions(ARGB.colorFromFloat(1.0F, r, g, b), 0.25F, scale, maxAge, -0.01F, false);
-            spawn(level, options, pos.x, pos.y, pos.z);
+            BubbleEffects.fluxFume(level, pos, color, scale, maxAge);
+        }
+    }
+
+    public static final class CauldronFoamDown {
+        private final ServerLevel level;
+        private final Vec3 pos;
+
+        CauldronFoamDown(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public void send() {
+            BubbleEffects.frothDown(level, pos);
+        }
+    }
+
+    public static final class CauldronFoamUp {
+        private final ServerLevel level;
+        private final Vec3 pos;
+
+        CauldronFoamUp(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public void send() {
+            BubbleEffects.froth(level, pos);
+        }
+    }
+
+    public static final class CauldronBoil {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private EffectColor color = EffectColor.WHITE;
+        private int heat = 1;
+
+        CauldronBoil(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public CauldronBoil color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public CauldronBoil heat(int heat) {
+            this.heat = heat;
+            return this;
+        }
+
+        public void send() {
+            BubbleEffects.boil(level, pos, color, heat);
+        }
+    }
+
+    public static final class CauldronBubble {
+        private final ServerLevel level;
+        private final Vec3 pos;
+        private EffectColor color = EffectColor.WHITE;
+
+        CauldronBubble(ServerLevel level, Vec3 pos) {
+            this.level = level;
+            this.pos = pos;
+        }
+
+        public CauldronBubble color(float r, float g, float b) {
+            this.color = new EffectColor(r, g, b);
+            return this;
+        }
+
+        public void send() {
+            BubbleEffects.bubble(level, pos, color);
         }
     }
 }

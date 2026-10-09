@@ -36,20 +36,25 @@ public final class BlockEldritchCrabSpawner extends BaseEntityBlock {
     public static final MapCodec<BlockEldritchCrabSpawner> CODEC = simpleCodec(BlockEldritchCrabSpawner::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
-    private static final Map<Direction, VoxelShape> SHAPES = DeviceShapes.facingShapesFromUp(Shapes.or(box(0.0, 0.0, 0.0, 7.0, 1.0, 16.0), box(1.0, 1.0, 5.0, 5.0, 2.0, 11.0),
-            box(2.0, 1.0, 3.0, 14.0, 2.0, 5.0), box(2.0, 1.0, 11.0, 14.0, 2.0, 14.0), box(2.0, 2.0, 5.0, 4.0, 3.0, 11.0), box(3.0, 1.0, 2.0, 14.0, 2.0, 3.0), box(3.0, 2.0, 3.0, 7.0, 3.0, 5.0),
-            box(3.0, 2.0, 11.0, 7.0, 3.0, 13.0), box(4.0, 1.0, 14.0, 11.0, 2.0, 15.0), box(4.0, 2.0, 5.0, 5.0, 3.0, 6.0), box(4.0, 2.0, 10.0, 5.0, 3.0, 11.0), box(5.0, 1.0, 1.0, 11.0, 2.0, 2.0),
-            box(5.0, 1.0, 5.0, 6.0, 2.0, 6.0), box(5.0, 1.0, 10.0, 6.0, 2.0, 11.0), box(5.0, 2.0, 2.0, 10.0, 3.0, 3.0), box(5.0, 2.0, 13.0, 10.0, 3.0, 14.0), box(7.0, 0.0, 0.0, 16.0, 1.0, 7.0),
-            box(7.0, 0.0, 9.0, 16.0, 1.0, 16.0), box(7.0, 2.0, 3.0, 13.0, 3.0, 4.0), box(7.0, 2.0, 12.0, 13.0, 3.0, 13.0), box(9.0, 0.0, 7.0, 16.0, 1.0, 9.0), box(9.0, 2.0, 11.0, 13.0, 3.0, 12.0),
-            box(10.0, 1.0, 5.0, 15.0, 2.0, 6.0), box(10.0, 1.0, 10.0, 15.0, 2.0, 11.0), box(10.0, 2.0, 4.0, 13.0, 3.0, 5.0), box(11.0, 1.0, 6.0, 15.0, 2.0, 10.0), box(11.0, 2.0, 5.0, 14.0, 3.0, 6.0),
-            box(11.0, 2.0, 10.0, 13.0, 3.0, 11.0), box(12.0, 2.0, 6.0, 13.0, 3.0, 10.0), box(13.0, 2.0, 6.0, 14.0, 3.0, 9.0)));
-
-    private static final int XP_BASE = 15;
-    private static final int XP_ROLL = 15;
+    private static final int EXP_BASE = 15;
+    private static final int EXP_SPREAD = 15;
+    private static final int[][] PLATE_BOXES = {{0, 0, 0, 7, 1, 16}, {1, 1, 5, 5, 2, 11}, {2, 1, 3, 14, 2, 5}, {2, 1, 11, 14, 2, 14}, {2, 2, 5, 4, 3, 11}, {3, 1, 2, 14, 2, 3}, {3, 2, 3, 7, 3, 5},
+            {3, 2, 11, 7, 3, 13}, {4, 1, 14, 11, 2, 15}, {4, 2, 5, 5, 3, 6}, {4, 2, 10, 5, 3, 11}, {5, 1, 1, 11, 2, 2}, {5, 1, 5, 6, 2, 6}, {5, 1, 10, 6, 2, 11}, {5, 2, 2, 10, 3, 3},
+            {5, 2, 13, 10, 3, 14}, {7, 0, 0, 16, 1, 7}, {7, 0, 9, 16, 1, 16}, {7, 2, 3, 13, 3, 4}, {7, 2, 12, 13, 3, 13}, {9, 0, 7, 16, 1, 9}, {9, 2, 11, 13, 3, 12}, {10, 1, 5, 15, 2, 6},
+            {10, 1, 10, 15, 2, 11}, {10, 2, 4, 13, 3, 5}, {11, 1, 6, 15, 2, 10}, {11, 2, 5, 14, 3, 6}, {11, 2, 10, 13, 3, 11}, {12, 2, 6, 13, 3, 10}, {13, 2, 6, 14, 3, 9}};
+    private static final Map<Direction, VoxelShape> SHAPES = DeviceShapes.facingShapesFromUp(plate());
 
     public BlockEldritchCrabSpawner(BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP));
+    }
+
+    private static VoxelShape plate() {
+        VoxelShape shape = Shapes.empty();
+        for (int[] box : PLATE_BOXES) {
+            shape = Shapes.or(shape, Block.box(box[0], box[1], box[2], box[3], box[4], box[5]));
+        }
+        return shape;
     }
 
     @Override
@@ -101,7 +106,7 @@ public final class BlockEldritchCrabSpawner extends BaseEntityBlock {
     @Override
     public int getExpDrop(BlockState state, LevelAccessor level, BlockPos pos, @Nullable BlockEntity blockEntity, @Nullable Entity breaker, ItemStack tool) {
         RandomSource random = level.getRandom();
-        return XP_BASE + random.nextInt(XP_ROLL) + random.nextInt(XP_ROLL);
+        return EXP_BASE + random.nextInt(EXP_SPREAD) + random.nextInt(EXP_SPREAD);
     }
 
     @Override
@@ -111,6 +116,6 @@ public final class BlockEldritchCrabSpawner extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return createTickerHelper(type, TTBlockEntities.ELDRITCH_CRAB_SPAWNER.get(), (tickLevel, pos, tickState, spawner) -> spawner.tick(tickLevel, pos, tickState));
+        return createTickerHelper(type, TTBlockEntities.ELDRITCH_CRAB_SPAWNER.get(), (tickLevel, pos, tickState, vent) -> vent.tick(tickLevel, pos, tickState));
     }
 }

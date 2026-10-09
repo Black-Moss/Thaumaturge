@@ -18,58 +18,59 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
-import org.joml.Matrix4f;
 
 public final class CrystalBakedModel implements DynamicBlockStateModel {
     private static final Direction[] FACES = Direction.values();
+    private static final int TINT_INDEX = 0;
+    private static final int MATERIAL_FLAGS = 0;
+    private static final boolean AMBIENT_OCCLUSION = true;
 
     private final TTMesh mesh;
-    private final Material.Baked particleMaterial;
+    private final Material.Baked material;
 
-    public CrystalBakedModel(TTMesh mesh, Material.Baked particleMaterial) {
+    public CrystalBakedModel(TTMesh mesh, Material.Baked material) {
         this.mesh = mesh;
-        this.particleMaterial = particleMaterial;
+        this.material = material;
     }
 
     @Override
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, List<BlockStateModelPart> parts) {
         int growth = state.hasProperty(BlockCrystal.SIZE) ? state.getValue(BlockCrystal.SIZE) : 0;
-        int partsPerFace = growth + 1;
         long seed = CrystalShards.seed(state, pos);
-        QuadCollection.Builder builder = new QuadCollection.Builder();
+        List<BakedQuad> quads = new ArrayList<>();
         boolean any = false;
         for (Direction face : FACES) {
             if (!CrystalShards.supports(level, pos, face)) {
                 continue;
             }
-            Matrix4f transform = CrystalFaceTransforms.forFace(face);
+            any = true;
             List<Integer> order = CrystalShards.order(face, seed);
-            for (int i = 0; i < partsPerFace; i++) {
-                addPart(mesh.parts().get(order.get(i)), transform, builder);
-                any = true;
+            for (int i = 0; i <= growth; i++) {
+                bakeShard(order.get(i), face, quads);
             }
         }
         if (!any) {
-            addPart(mesh.parts().get(CrystalShards.unsupported(seed)), CrystalFaceTransforms.forFace(Direction.DOWN), builder);
+            bakeShard(CrystalShards.unsupported(seed), Direction.DOWN, quads);
         }
-        parts.add(new SimpleModelWrapper(builder.build(), true, particleMaterial));
-    }
-
-    private void addPart(TTMeshPart part, Matrix4f transform, QuadCollection.Builder builder) {
-        List<BakedQuad> quads = new ArrayList<>();
-        CrystalQuadBaker.bakePart(part, particleMaterial, 0, transform, quads);
+        QuadCollection.Builder builder = new QuadCollection.Builder();
         for (BakedQuad quad : quads) {
             builder.addUnculledFace(quad);
         }
+        parts.add(new SimpleModelWrapper(builder.build(), AMBIENT_OCCLUSION, material));
+    }
+
+    private void bakeShard(int index, Direction face, List<BakedQuad> output) {
+        TTMeshPart part = mesh.parts().get(index);
+        CrystalQuadBaker.bakePart(part, material, TINT_INDEX, CrystalFaceTransforms.forFace(face), output);
     }
 
     @Override
     public Material.Baked particleMaterial() {
-        return particleMaterial;
+        return material;
     }
 
     @Override
     public int materialFlags() {
-        return 0;
+        return MATERIAL_FLAGS;
     }
 }

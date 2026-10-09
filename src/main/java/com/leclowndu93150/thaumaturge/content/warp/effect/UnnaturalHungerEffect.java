@@ -7,10 +7,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 public final class UnnaturalHungerEffect extends MobEffect {
+    private static final int COLOR = 0x2B1D0E;
     private static final float EXHAUSTION_PER_LEVEL = 0.025F;
 
     public UnnaturalHungerEffect() {
-        super(MobEffectCategory.HARMFUL, 0x2B1D0E);
+        super(MobEffectCategory.HARMFUL, COLOR);
     }
 
     @Override

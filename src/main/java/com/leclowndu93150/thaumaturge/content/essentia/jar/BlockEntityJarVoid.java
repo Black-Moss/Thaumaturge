@@ -7,33 +7,34 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class BlockEntityJarVoid extends BlockEntityJar {
+    private static final int LEAK_ODDS = 250;
+    private static final float LEAK_FLUX = 1.0F;
+    private static final int FILTERED_SUCTION = 48;
+    private static final int UNFILTERED_SUCTION = 32;
+    private static final int FILTERED_MINIMUM_SUCTION = 48;
+    private static final int UNFILTERED_MINIMUM_SUCTION = 32;
+
     public BlockEntityJarVoid(BlockPos pos, BlockState state) {
         super(TTBlockEntities.JAR_VOID.get(), pos, state);
     }
 
     @Override
-    protected int doAddToContainer(ResourceKey<IAspect> incoming, int requested) {
-        if (requested == 0)
-            return 0;
-        ResourceKey<IAspect> filter = aspectFilterKey();
-        if (filter != null && !filter.equals(incoming))
-            return requested;
-        ResourceKey<IAspect> currentAspect = aspectKey();
-        int currentAmount = amount();
-        if (incoming.equals(currentAspect) || currentAmount == 0) {
-            int newTotal = currentAmount + requested;
-            int capped = Math.min(newTotal, CAPACITY);
-            super.doAddToContainer(incoming, capped - currentAmount);
-            int overflow = newTotal - CAPACITY;
-            if (overflow > 0) {
-                leakOverflowFlux();
-            }
+    protected int doAddToContainer(ResourceKey<IAspect> key, int requested) {
+        if (requested <= 0) {
             return 0;
         }
-        return requested;
+        ResourceKey<IAspect> filter = aspectFilterKey();
+        if (filter != null && !filter.equals(key) || amount() > 0 && !key.equals(aspectKey())) {
+            return requested;
+        }
+        if (super.doAddToContainer(key, requested) > 0) {
+            rollLeak();
+        }
+        return 0;
     }
 
     @Override
@@ -43,13 +44,7 @@ public final class BlockEntityJarVoid extends BlockEntityJar {
 
     @Override
     public void onStorageVoided(int voided) {
-        leakOverflowFlux();
-    }
-
-    private void leakOverflowFlux() {
-        if (level != null && !level.isClientSide() && level.getRandom().nextInt(250) == 0) {
-            AuraHelper.addFlux(level, getBlockPos(), 1.0F);
-        }
+        rollLeak();
     }
 
     @Override
@@ -65,11 +60,17 @@ public final class BlockEntityJarVoid extends BlockEntityJar {
 
     @Override
     public int getSuctionAmount(Direction face) {
-        return aspectFilterKey() != null && amount() < CAPACITY ? 48 : 32;
+        return aspectFilterKey() != null && amount() < CAPACITY ? FILTERED_SUCTION : UNFILTERED_SUCTION;
     }
 
     @Override
     public int getMinimumSuction() {
-        return aspectFilterKey() != null ? 48 : 32;
+        return aspectFilterKey() != null ? FILTERED_MINIMUM_SUCTION : UNFILTERED_MINIMUM_SUCTION;
+    }
+
+    private void rollLeak() {
+        if (level instanceof ServerLevel server && server.getRandom().nextInt(LEAK_ODDS) == 0) {
+            AuraHelper.addFlux(server, worldPosition, LEAK_FLUX);
+        }
     }
 }

@@ -63,7 +63,7 @@ public final class TransducerTests {
                     helper.fail("Node not energized after " + FULL_CHARGE_TICKS + " powered ticks; charge " + (transducer == null ? "?" : transducer.getCount()));
                     return;
                 }
-                for (var entry : node.getAspectsBase().entries()) {
+                for (var entry : node.capacity().entries()) {
                     if (!entry.aspect().value().isPrimal()) {
                         helper.fail("Energized base still holds a compound aspect");
                         return;
@@ -84,8 +84,8 @@ public final class TransducerTests {
     private static void pollRevert(GameTestHelper helper, BlockEntityNode node, int preservedVitium, int remainingTicks) {
         helper.runAfterDelay(REVERT_POLL_TICKS, () -> {
             if (!node.isEnergized()) {
-                if (node.getAspectsBase().amountOf(vitium(helper)) != preservedVitium) {
-                    helper.fail("Reverted node base does not match the preserved snapshot of " + preservedVitium + ": " + node.getAspectsBase());
+                if (node.capacity().amountOf(vitium(helper)) != preservedVitium) {
+                    helper.fail("Reverted node base does not match the preserved snapshot of " + preservedVitium + ": " + node.capacity());
                     return;
                 }
                 helper.succeed();

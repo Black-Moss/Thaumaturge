@@ -5,79 +5,78 @@ import java.util.Optional;
 import net.minecraft.resources.Identifier;
 
 /**
- * A single step within an {@link IResearchEntry}. Stages list the recipes shown, the things the
- * player must obtain or craft, the knowledge or research rewards required to advance, and any
- * warp inflicted on completion.
+ * One step of a research entry.
+ *
+ * <p>Implementations are immutable. Every list-returning member is non-null and an empty list
+ * means none. Stages complete in order once every applicable requirement holds.
  *
  * @since 1.0.0
  */
 public interface IResearchStage {
     /**
-     * Translation key for the stage body text.
+     * The translation key of the stage body text.
      *
-     * @return the translation key
+     * @return the text key
      */
     String textKey();
 
     /**
-     * Recipe identifiers displayed in this stage's UI panel.
+     * The recipe identifiers shown in the right-hand panel of the stage.
      *
-     * @return the recipe identifiers, never null
+     * @return the recipe identifiers, possibly empty
      */
     List<Identifier> recipes();
 
     /**
-     * Items the player must collect to advance.
+     * The item requirements consumed from the player inventory when the stage completes.
      *
-     * @return the collection requirements, never null
+     * @return the obtain requirements, possibly empty
      */
     List<ResearchRequirement> obtain();
 
     /**
-     * Items the player must craft to advance.
+     * The item requirements satisfied by a previous craft or by holding at least one matching item.
      *
-     * @return the crafting requirements, never null
+     * @return the craft requirements, possibly empty
      */
     List<ResearchRequirement> craft();
 
     /**
-     * Knowledge rewards granted when this stage completes.
+     * The knowledge granted to the player when the stage completes.
      *
-     * @return the knowledge rewards, never null
+     * @return the knowledge rewards, possibly empty
      */
     List<KnowledgeReward> knowledge();
 
     /**
-     * Knowledge the player must hold to advance past this stage. The listed amounts are consumed
-     * when the stage completes.
+     * The knowledge the player must pay or hold for the stage to complete.
      *
-     * @return the knowledge costs, never null
+     * @return the knowledge costs, empty by default
      */
     default List<KnowledgeReward> requiredKnowledge() {
         return List.of();
     }
 
     /**
-     * Multiblock structure diagram displayed for this stage, shown as an exploded isometric
-     * view with its activation vis cost.
+     * The optional multiblock diagram shown with its activation vis cost.
      *
-     * @return the construct diagram, or empty when the stage has none
+     * @return the construct, empty by default
      */
     default Optional<ResearchConstruct> construct() {
         return Optional.empty();
     }
 
     /**
-     * Other research entries required to be complete before this stage will advance.
+     * The research entries that must be complete before the stage advances.
      *
-     * @return the prerequisite research identifiers, never null
+     * @return the prerequisite entry identifiers, possibly empty
      */
     List<Identifier> requiredResearch();
 
     /**
-     * Amount of warp inflicted on the player when this stage completes.
+     * The warp inflicted when the stage completes.
      *
-     * @return the warp amount, never negative
+     * @return the warp amount, zero or higher
      */
     int warp();
 }

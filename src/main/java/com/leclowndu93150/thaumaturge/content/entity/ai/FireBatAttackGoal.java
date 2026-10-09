@@ -7,27 +7,29 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 
 public final class FireBatAttackGoal extends Goal {
-    private static final float TARGET_HEIGHT_FACTOR = 0.66F;
-    private static final float MIN_ATTACK_REACH = 2.5F;
-    private static final float REACH_WIDTH_FACTOR = 1.1F;
-    private static final int COOLDOWN_BASE = 20;
-    private static final int COOLDOWN_SPREAD = 20;
-    private static final float EXPLODE_ONE_IN = 10.0F;
+    private static final double CHEST_FRACTION = 0.66;
+    private static final double FLY_SPEED = 1.0;
+    private static final double MIN_REACH = 2.5;
+    private static final double REACH_PER_WIDTH = 1.1;
+    private static final int COOLDOWN_MIN_TICKS = 20;
+    private static final int COOLDOWN_SPREAD_TICKS = 20;
+    private static final int EXPLODE_ONE_IN = 10;
     private static final float EXPLOSION_POWER = 1.5F;
+    private static final float HURT_VOLUME = 0.5F;
+    private static final float HURT_PITCH_BASE = 0.9F;
+    private static final float HURT_PITCH_SPREAD = 0.2F;
 
-    private final EntityFireBat bat;
-    private int attackCooldown;
+    private static final EnumSet<Goal.Flag> FLAGS = EnumSet.of(Goal.Flag.MOVE);
 
-    public FireBatAttackGoal(EntityFireBat bat) {
-        this.bat = bat;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
-    }
+    private int ticksUntilStrike;
+    private final EntityFireBat flyer;
 
-    @Override
-    public boolean canUse() {
-        return bat.getTarget() != null && !bat.isHanging();
+    public FireBatAttackGoal(EntityFireBat flyer) {
+        setFlags(FLAGS);
+        this.flyer = flyer;
     }
 
     @Override
@@ -36,36 +38,52 @@ public final class FireBatAttackGoal extends Goal {
     }
 
     @Override
+    public boolean canUse() {
+        LivingEntity prey = flyer.getTarget();
+        return prey != null && !flyer.isHanging() && prey.isAlive();
+    }
+
+    @Override
     public void tick() {
-        LivingEntity target = bat.getTarget();
-        if (target == null) {
+        LivingEntity prey = flyer.getTarget();
+        if (prey == null || !(flyer.level() instanceof ServerLevel world)) {
             return;
         }
-        if (attackCooldown > 0) {
-            attackCooldown--;
-        }
-        bat.getMoveControl().setWantedPosition(target.getX(), target.getY() + target.getEyeHeight() * TARGET_HEIGHT_FACTOR, target.getZ(), 1.0);
-        if (!bat.hasLineOfSight(target)) {
-            return;
-        }
-        float reach = Math.max(MIN_ATTACK_REACH, target.getBbWidth() * REACH_WIDTH_FACTOR);
-        boolean verticalOverlap = target.getBoundingBox().maxY > bat.getBoundingBox().minY && target.getBoundingBox().minY < bat.getBoundingBox().maxY;
-        if (attackCooldown <= 0 && bat.distanceTo(target) < reach && verticalOverlap) {
-            attack(target);
+        double aimY = prey.getY() + prey.getEyeHeight() * CHEST_FRACTION;
+        flyer.getMoveControl().setWantedPosition(prey.getX(), aimY, prey.getZ(), FLY_SPEED);
+        if (ticksUntilStrike > 0) {
+            ticksUntilStrike--;
+        } else if (canStrike(prey)) {
+            ticksUntilStrike = COOLDOWN_MIN_TICKS + flyer.getRandom().nextInt(COOLDOWN_SPREAD_TICKS);
+            if (flyer.getRandom().nextInt(EXPLODE_ONE_IN) == 0) {
+                detonate(world, prey);
+            } else {
+                bite(world, prey);
+            }
         }
     }
 
-    private void attack(LivingEntity target) {
-        attackCooldown = COOLDOWN_BASE + bat.getRandom().nextInt(COOLDOWN_SPREAD);
-        if (bat.level() instanceof ServerLevel server) {
-            if (bat.getRandom().nextInt((int) EXPLODE_ONE_IN) == 0) {
-                target.invulnerableTime = 0;
-                server.explode(bat, bat.getX(), bat.getY(), bat.getZ(), EXPLOSION_POWER, false, Level.ExplosionInteraction.NONE);
-                bat.discard();
-                return;
-            }
-            bat.doHurtTarget(server, target);
-        }
-        bat.playSound(SoundEvents.BAT_HURT, 0.5F, 0.9F + bat.getRandom().nextFloat() * 0.2F);
+    private boolean canStrike(LivingEntity prey) {
+        return withinReach(prey) && flyer.hasLineOfSight(prey);
+    }
+
+    private boolean withinReach(LivingEntity prey) {
+        double reach = Math.max(MIN_REACH, REACH_PER_WIDTH * prey.getBbWidth());
+        AABB mine = flyer.getBoundingBox();
+        AABB theirs = prey.getBoundingBox();
+        boolean overlapsVertically = mine.maxY >= theirs.minY && mine.minY <= theirs.maxY;
+        return flyer.distanceToSqr(prey) < reach * reach && overlapsVertically;
+    }
+
+    private void detonate(ServerLevel world, LivingEntity prey) {
+        prey.invulnerableTime = 0;
+        world.explode(flyer, flyer.getX(), flyer.getY(), flyer.getZ(), EXPLOSION_POWER, false, Level.ExplosionInteraction.NONE);
+        flyer.discard();
+    }
+
+    private void bite(ServerLevel world, LivingEntity prey) {
+        flyer.doHurtTarget(world, prey);
+        float pitch = HURT_PITCH_BASE + flyer.getRandom().nextFloat() * HURT_PITCH_SPREAD;
+        flyer.playSound(SoundEvents.BAT_HURT, HURT_VOLUME, pitch);
     }
 }

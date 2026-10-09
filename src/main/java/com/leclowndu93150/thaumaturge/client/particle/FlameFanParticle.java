@@ -7,9 +7,9 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.util.RandomSource;
 
 public final class FlameFanParticle extends TTParticle {
-    private static final int FRAME_COUNT = 10;
     private static final int LIFETIME = 10;
     private static final float FRICTION = 0.75F;
+    private static final float SIZE_UNIT = 0.1F;
 
     private FlameFanParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, FlameFanParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
@@ -17,13 +17,13 @@ public final class FlameFanParticle extends TTParticle {
         this.lifetime = LIFETIME;
         this.friction = FRICTION;
         this.gravity = options.lift();
-        this.quadSize = options.scale() * 0.1F;
-        frameByProgress();
+        this.quadSize = options.scale() * SIZE_UNIT;
+        frame(0);
     }
 
     @Override
     protected void update() {
-        frame((int) (progress() * FRAME_COUNT));
+        frameByProgress();
     }
 
     public static final class Provider implements ParticleProvider<FlameFanParticleOptions> {

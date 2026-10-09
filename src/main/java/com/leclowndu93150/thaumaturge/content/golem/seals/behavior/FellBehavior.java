@@ -9,9 +9,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 public final class FellBehavior extends CellWorkBehavior {
     private static final int STAGGER = 33;
+    private static final int FELL_XP = 1;
 
     public FellBehavior() {
         super(STAGGER);
@@ -24,16 +26,24 @@ public final class FellBehavior extends CellWorkBehavior {
 
     @Override
     public boolean completeTask(ServerLevel level, ISealEntity seal, IGolemAPI golem, Task task) {
-        if (stillMine(level, seal, task)) {
-            golem.swingArm();
-            if (EnchantMining.breakFurthest(level, task.pos(), level.getBlockState(task.pos()), TTFakePlayer.GOLEM.at(level, golem.asEntity()))) {
-                keepAlive(task);
-                golem.addRankXp(1);
-                return false;
-            }
-            release(task);
+        boolean continuing = stillMine(level, seal, task) && fell(level, golem, task);
+        if (continuing) {
+            return false;
         }
+        release(task);
         task.end();
         return true;
+    }
+
+    private boolean fell(ServerLevel level, IGolemAPI golem, Task task) {
+        BlockPos origin = task.pos();
+        FakePlayer player = TTFakePlayer.GOLEM.at(level, golem.asEntity());
+        golem.swingArm();
+        boolean broke = EnchantMining.breakFurthest(level, origin, level.getBlockState(origin), player);
+        if (broke) {
+            keepAlive(task);
+            golem.addRankXp(FELL_XP);
+        }
+        return broke;
     }
 }

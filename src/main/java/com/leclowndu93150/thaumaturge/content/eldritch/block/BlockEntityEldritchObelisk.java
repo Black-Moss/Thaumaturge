@@ -2,8 +2,9 @@ package com.leclowndu93150.thaumaturge.content.eldritch.block;
 
 import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
-import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,25 +15,33 @@ import net.minecraft.world.phys.AABB;
 
 public final class BlockEntityEldritchObelisk extends BlockEntity {
     private static final int PULSE_INTERVAL = 20;
-    private static final double BUFF_RANGE = 6.0;
-    private static final int BUFF_DURATION = 40;
+    private static final double PULSE_RANGE = 6.0;
+    private static final int BUFF_TICKS = 40;
+    private static final int BUFF_AMPLIFIER = 0;
 
-    private int counter;
+    private int pulseTimer;
 
     public BlockEntityEldritchObelisk(BlockPos pos, BlockState state) {
         super(TTBlockEntities.ELDRITCH_OBELISK.get(), pos, state);
     }
 
     public void serverTick(Level level, BlockPos pos) {
-        if (counter++ % PULSE_INTERVAL != 0) {
+        if (pulseTimer > 0) {
+            pulseTimer--;
             return;
         }
-        List<LivingEntity> nearby = level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(BUFF_RANGE));
-        for (LivingEntity entity : nearby) {
-            if (entity.is(ThaumaturgeEntityTypeTags.ELDRITCH) && !entity.hasEffect(MobEffects.REGENERATION)) {
-                entity.addEffect(new MobEffectInstance(MobEffects.STRENGTH, BUFF_DURATION, 0, true, true));
-                entity.addEffect(new MobEffectInstance(MobEffects.REGENERATION, BUFF_DURATION, 0, true, true));
-            }
+        pulseTimer = PULSE_INTERVAL - 1;
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(PULSE_RANGE), BlockEntityEldritchObelisk::needsBuff)) {
+            entity.addEffect(buff(MobEffects.STRENGTH));
+            entity.addEffect(buff(MobEffects.REGENERATION));
         }
+    }
+
+    private static boolean needsBuff(LivingEntity entity) {
+        return entity.is(ThaumaturgeEntityTypeTags.ELDRITCH) && !entity.hasEffect(MobEffects.REGENERATION);
+    }
+
+    private static MobEffectInstance buff(Holder<MobEffect> effect) {
+        return new MobEffectInstance(effect, BUFF_TICKS, BUFF_AMPLIFIER, true, true);
     }
 }

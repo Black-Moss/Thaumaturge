@@ -16,16 +16,20 @@ import net.minecraft.world.level.Level;
 public final class EntityCausalityCollapser extends AbstractThrownCharge {
     public static final ThrowProfile THROW = new ThrowProfile(0.8F, 2.0F, 0.0F, 0.3F);
 
-    private static final float EXPLOSION_STRENGTH = 2.0F;
-    private static final double RIFT_COLLAPSE_RANGE = 3.0;
-    private static final ChargeTrail EMBERS = new ChargeTrail(0xF07A1E, 0.3F, 0.55F, 3.0F);
+    private static final float BLAST_POWER = 2.0F;
+    private static final double RIFT_REACH = 3.0;
+    private static final int TRAIL_COLOR = 0xF07A1E;
+    private static final float TRAIL_SHADE = 0.3F;
+    private static final float TRAIL_ALPHA = 0.55F;
+    private static final float TRAIL_SCALE = 3.0F;
+    private static final ChargeTrail EMBER_TRAIL = new ChargeTrail(TRAIL_COLOR, TRAIL_SHADE, TRAIL_ALPHA, TRAIL_SCALE);
 
     public EntityCausalityCollapser(EntityType<? extends EntityCausalityCollapser> type, Level level) {
         super(type, level);
     }
 
-    public EntityCausalityCollapser(Level level, LivingEntity shooter, ItemStack stack) {
-        super(TTEntities.CAUSALITY_COLLAPSER.get(), shooter, level, stack);
+    public EntityCausalityCollapser(Level level, LivingEntity thrower, ItemStack stack) {
+        super(TTEntities.CAUSALITY_COLLAPSER.get(), thrower, level, stack);
     }
 
     @Override
@@ -35,19 +39,19 @@ public final class EntityCausalityCollapser extends AbstractThrownCharge {
 
     @Override
     protected boolean canHitEntity(Entity entity) {
-        return entity instanceof EntityFluxRift || super.canHitEntity(entity);
+        return entity instanceof EntityFluxRift && entity.isAlive() || super.canHitEntity(entity);
     }
 
     @Override
     protected ChargeTrail trail() {
-        return EMBERS;
+        return EMBER_TRAIL;
     }
 
     @Override
     protected void detonate(ServerLevel level) {
-        level.explode(this, getX(), getY(), getZ(), EXPLOSION_STRENGTH, Level.ExplosionInteraction.MOB);
-        for (EntityFluxRift rift : level.getEntitiesOfClass(EntityFluxRift.class, getBoundingBox().inflate(RIFT_COLLAPSE_RANGE))) {
-            rift.setCollapse(true);
+        level.explode(this, this.getX(), this.getY(), this.getZ(), BLAST_POWER, Level.ExplosionInteraction.MOB);
+        for (EntityFluxRift rift : level.getEntitiesOfClass(EntityFluxRift.class, this.getBoundingBox().inflate(RIFT_REACH))) {
+            rift.beginCollapse();
         }
     }
 }

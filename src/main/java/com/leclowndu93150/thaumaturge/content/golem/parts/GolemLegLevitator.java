@@ -8,21 +8,23 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
 public final class GolemLegLevitator implements IGolemPartAbility {
-    private static final int GROUNDED_PULSE = 5;
-    private static final double EXHAUST_HEIGHT = 0.1;
-    private static final double EXHAUST_FALL = -0.1;
-    private static final double EXHAUST_SPREAD = 100.0;
+    private static final int GROUNDED_INTERVAL_TICKS = 5;
+    private static final double TRAIL_OFFSET_Y = 0.1;
+    private static final double TRAIL_SPREAD_DIVISOR = 100.0;
+    private static final double TRAIL_FALL_SPEED = -0.1;
 
     @Override
     public void tick(IGolemAPI golem) {
         Level level = golem.level();
-        LivingEntity body = golem.asEntity();
-        boolean idle = body.onGround() && body.tickCount % GROUNDED_PULSE != 0;
-        if (!level.isClientSide() || idle) {
+        if (!level.isClientSide()) {
+            return;
+        }
+        LivingEntity entity = golem.asEntity();
+        if (entity.onGround() && entity.tickCount % GROUNDED_INTERVAL_TICKS != 0) {
             return;
         }
         RandomSource random = level.getRandom();
-        level.addParticle(TTParticles.GOLEM_TRAIL.get(), body.getX(), body.getY() + EXHAUST_HEIGHT, body.getZ(), random.nextGaussian() / EXHAUST_SPREAD, EXHAUST_FALL,
-                random.nextGaussian() / EXHAUST_SPREAD);
+        level.addParticle(TTParticles.GOLEM_TRAIL.get(), entity.getX(), entity.getY() + TRAIL_OFFSET_Y, entity.getZ(), random.nextGaussian() / TRAIL_SPREAD_DIVISOR, TRAIL_FALL_SPEED,
+                random.nextGaussian() / TRAIL_SPREAD_DIVISOR);
     }
 }

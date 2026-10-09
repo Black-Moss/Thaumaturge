@@ -15,6 +15,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityBanner extends AbstractSyncedBlockEntity {
+    private static final String ASPECT_KEY = "aspect";
+
     private @Nullable ResourceKey<IAspect> aspect;
 
     public BlockEntityBanner(BlockPos pos, BlockState state) {
@@ -27,42 +29,42 @@ public final class BlockEntityBanner extends AbstractSyncedBlockEntity {
 
     public void setAspect(@Nullable ResourceKey<IAspect> aspect) {
         this.aspect = aspect;
-        setChanged();
         if (level != null) {
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            setChangedAndSync();
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        String id = input.getStringOr("aspect", "");
-        Identifier parsed = id.isEmpty() ? null : Identifier.tryParse(id);
-        this.aspect = parsed == null ? null : ResourceKey.create(IAspect.REGISTRY_KEY, parsed);
+        String stored = input.getStringOr(ASPECT_KEY, "");
+        Identifier id = stored.isEmpty() ? null : Identifier.tryParse(stored);
+        aspect = id == null ? null : ResourceKey.create(IAspect.REGISTRY_KEY, id);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putString("aspect", aspect == null ? "" : aspect.identifier().toString());
+        output.putString(ASPECT_KEY, aspect == null ? "" : aspect.identifier().toString());
     }
 
     @Override
-    public void collectImplicitComponents(DataComponentMap.Builder builder) {
-        super.collectImplicitComponents(builder);
+    public void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
         if (aspect != null) {
-            builder.set(TTDataComponents.ASPECT_FILTER.get(), aspect);
+            components.set(TTDataComponents.ASPECT_FILTER.get(), aspect);
         }
     }
 
     @Override
     public void applyImplicitComponents(DataComponentGetter components) {
         super.applyImplicitComponents(components);
-        this.aspect = components.get(TTDataComponents.ASPECT_FILTER.get());
+        aspect = components.get(TTDataComponents.ASPECT_FILTER.get());
     }
 
     @Override
     public void removeComponentsFromTag(ValueOutput output) {
-        output.discard("aspect");
+        super.removeComponentsFromTag(output);
+        output.discard(ASPECT_KEY);
     }
 }

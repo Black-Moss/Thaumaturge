@@ -4,10 +4,10 @@ import com.leclowndu93150.thaumaturge.registry.TTTreePlacers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.Comparator;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.RandomizableContainer;
@@ -15,6 +15,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecorator;
 import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorType;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
@@ -25,18 +26,20 @@ public final class SpiderNestDecorator extends TreeDecorator {
                     BuiltInRegistries.BLOCK.byNameCodec().fieldOf("log").forGetter(decorator -> decorator.log),
                     BuiltInRegistries.BLOCK.byNameCodec().fieldOf("leaves").forGetter(decorator -> decorator.leaves)).apply(instance, SpiderNestDecorator::new));
 
-    private static final int WEB_ATTEMPTS = 50;
-    private static final int WEB_SPREAD = 7;
-    private static final int WEB_HEIGHT = 10;
+    private static final int WEB_BOX_HALF_WIDTH = 7;
+    private static final int WEB_BOX_HEIGHT = 10;
+    private static final int WEB_DENSITY = 50;
+    private static final int CHEST_DEPTH = 2;
+    private static final Direction[] DIRECTIONS = Direction.values();
 
     private final float probability;
     private final Block log;
     private final Block leaves;
 
     public SpiderNestDecorator(float probability, Block log, Block leaves) {
-        this.probability = probability;
-        this.log = log;
         this.leaves = leaves;
+        this.log = log;
+        this.probability = probability;
     }
 
     @Override
@@ -45,36 +48,62 @@ public final class SpiderNestDecorator extends TreeDecorator {
     }
 
     @Override
-    public void place(TreeDecorator.Context context) {
+    public void place(Context context) {
         RandomSource random = context.random();
         if (context.logs().isEmpty() || random.nextFloat() >= probability) {
             return;
         }
-        int lowest = context.logs().getFirst().getY();
-        BlockPos foot = context.logs().stream().filter(pos -> pos.getY() == lowest).min(Comparator.comparingInt(Vec3i::getX).thenComparingInt(Vec3i::getZ)).orElseThrow();
+        BlockPos foot = findFoot(context.logs());
         BlockPos spawnerPos = foot.below();
         context.setBlock(spawnerPos, Blocks.SPAWNER.defaultBlockState());
-        if (!(context.level().getBlockEntity(spawnerPos) instanceof SpawnerBlockEntity spawner)) {
-            return;
+        if (context.level().getBlockEntity(spawnerPos) instanceof SpawnerBlockEntity spawner) {
+            spawner.setEntityId(EntityType.CAVE_SPIDER, random);
+            scatterWebs(context, foot, random);
+            placeLootChest(context, foot.below(CHEST_DEPTH), random);
         }
-        spawner.setEntityId(EntityType.CAVE_SPIDER, random);
-        for (int attempt = 0; attempt < WEB_ATTEMPTS; attempt++) {
-            BlockPos web = new BlockPos(foot.getX() - WEB_SPREAD + random.nextInt(WEB_SPREAD * 2), foot.getY() + random.nextInt(WEB_HEIGHT), foot.getZ() - WEB_SPREAD + random.nextInt(WEB_SPREAD * 2));
-            if (context.isAir(web) && clingsToTree(context, web)) {
-                context.setBlock(web, Blocks.COBWEB.defaultBlockState());
-            }
-        }
-        BlockPos chestPos = foot.below(2);
+    }
+
+    private static void placeLootChest(Context context, BlockPos chestPos, RandomSource random) {
         context.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
         RandomizableContainer.setBlockEntityLootTable(context.level(), random, chestPos, BuiltInLootTables.SIMPLE_DUNGEON);
     }
 
-    private boolean clingsToTree(TreeDecorator.Context context, BlockPos web) {
-        for (Direction direction : Direction.values()) {
-            if (context.checkBlock(web.relative(direction), state -> state.is(log) || state.is(leaves))) {
-                return true;
+    private void scatterWebs(Context context, BlockPos foot, RandomSource random) {
+        int remaining = WEB_DENSITY;
+        while (remaining-- > 0) {
+            int dx = rollHorizontal(random);
+            int dy = random.nextInt(WEB_BOX_HEIGHT + 1);
+            int dz = rollHorizontal(random);
+            BlockPos web = foot.offset(dx, dy, dz);
+            if (context.isAir(web) && touchesAnchor(context, web)) {
+                context.setBlock(web, Blocks.COBWEB.defaultBlockState());
             }
         }
-        return false;
+    }
+
+    private static int rollHorizontal(RandomSource random) {
+        return random.nextInt(2 * WEB_BOX_HALF_WIDTH + 1) - WEB_BOX_HALF_WIDTH;
+    }
+
+    private boolean touchesAnchor(Context context, BlockPos pos) {
+        return Arrays.stream(DIRECTIONS).anyMatch(direction -> context.checkBlock(pos.relative(direction), this::isAnchor));
+    }
+
+    private boolean isAnchor(BlockState state) {
+        return state.is(leaves) || state.is(log);
+    }
+
+    private static BlockPos findFoot(ObjectArrayList<BlockPos> logs) {
+        int lowest = logs.get(0).getY();
+        BlockPos foot = null;
+        for (BlockPos candidate : logs) {
+            if (candidate.getY() != lowest) {
+                continue;
+            }
+            if (foot == null || candidate.getX() < foot.getX() || (candidate.getX() == foot.getX() && candidate.getZ() < foot.getZ())) {
+                foot = candidate;
+            }
+        }
+        return foot;
     }
 }

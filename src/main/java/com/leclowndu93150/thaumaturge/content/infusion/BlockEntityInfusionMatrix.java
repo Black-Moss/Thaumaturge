@@ -8,15 +8,12 @@ import com.leclowndu93150.thaumaturge.api.items.IGogglesReadout;
 import com.leclowndu93150.thaumaturge.content.aspect.ReadOnlyAspectContainer;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
-import com.leclowndu93150.thaumaturge.content.particle.BoreSparkleParticleOptions;
-import com.leclowndu93150.thaumaturge.content.particle.InfusionCrumbsParticleOptions;
 import com.leclowndu93150.thaumaturge.content.research.ResearchProgressionEvents;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,13 +23,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
@@ -45,38 +42,63 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity implements IGogglesReadout, IInteractWithCaster, ReadOnlyAspectContainer {
     public static final float STABILITY_CAP = 25.0F;
-    private static final float STABILITY_FLOOR = -100.0F;
-    private static final int IDLE_VALIDATE_INTERVAL = 100;
-    private static final int CRAFT_VALIDATE_INTERVAL = 20;
-    private static final int CRAFT_RESURVEY_INTERVAL = 100;
-    private static final int ITEM_PULL_TICKS = 5;
-    private static final int FINISH_GRACE_CYCLES = 2;
-    private static final int INSTABILITY_ROLL_BOUND = 1500;
-    private static final float MIN_COST_MULT = 0.5F;
-    private static final float ESSENTIA_STARVE_PENALTY = 0.25F;
-    private static final int ESSENTIA_FX_RANGE_TICKS = 12;
-    private static final double GOGGLES_TEXT_Y_OFFSET = 1.5;
 
-    private static final DecimalFormat STABILITY_FORMAT = new DecimalFormat("#######.##");
-    private static final String STABILITY_LANG_PREFIX = "gui.thaumaturge.infusion.stability.";
+    private static final String ACTIVE_KEY = "Active";
+    private static final String STABILITY_KEY = "Stability";
+    private static final String REPLENISH_KEY = "Replenish";
+    private static final String JOB_KEY = "Job";
+    private static final String NUMBER_PATTERN = "#######.##";
+    private static final String KEY_GAIN = "gui.thaumaturge.infusion.stability.gain_amount";
+    private static final String KEY_LOSS = "gui.thaumaturge.infusion.stability.loss_range";
+    private static final float VERY_STABLE_THRESHOLD = STABILITY_CAP / 2.0F;
+    private static final float UNSTABLE_THRESHOLD = -25.0F;
+    private static final float STABILITY_FLOOR = -100.0F;
+    private static final Vec3 READOUT_ANCHOR = new Vec3(0.0, 1.5, 0.0);
+
+    private static final int ALTAR_DEPTH = 2;
+    private static final int STALE_INTERVAL = 100;
+    private static final int CRAFTING_CHECK_INTERVAL = 20;
+    private static final int IDLE_CHECK_INTERVAL = 100;
+    private static final int IDLE_REGEN_MIN_INTERVAL = 5;
+    private static final float IDLE_REGEN_MIN_GAIN = 0.1F;
+    private static final int RUNE_INTERVAL = 5;
+    private static final int LOOP_SOUND_INTERVAL = 65;
+    private static final float RUNE_RED_BASE = 0.5F;
+    private static final float RUNE_RED_SPREAD = 0.2F;
+    private static final float RUNE_GREEN = 0.1F;
+    private static final float RUNE_BLUE_BASE = 0.7F;
+    private static final float RUNE_BLUE_SPREAD = 0.3F;
+    private static final int RUNE_LIFETIME = 25;
+    private static final float RUNE_GRAVITY = -0.03F;
+    private static final float SOUND_VOLUME = 0.5F;
+    private static final float SOUND_PITCH = 1.0F;
+    private static final float FAIL_VOLUME = 1.0F;
+    private static final float FAIL_PITCH = 0.6F;
+    private static final float MIN_COST_MULTIPLIER = 0.5F;
+    private static final int INSTABILITY_ROLL_BOUND = 1500;
+    private static final float EVENT_STABILITY_BASE = 5.0F;
+    private static final float EVENT_STABILITY_SPREAD = 5.0F;
+    private static final float FAILED_DRAIN_PENALTY = 0.25F;
+    private static final int PULL_TICKS = 5;
+    private static final int FINISH_GRACE_CYCLES = 3;
 
     private boolean active;
-    private float stability;
-    private float stabilityReplenish;
+    private final StabilityState stability = new StabilityState();
     private @Nullable InfusionCraftJob job;
-    private int count;
-    private int itemPullCountdown;
-    private int finishGrace;
-    private boolean checkSurroundings = true;
+    private int tickCount;
+    private boolean stale;
     private @Nullable MatrixEnvironment environment;
-    private final EssentiaSources essentiaSources = new EssentiaSources(this.worldPosition);
+    private final EssentiaSources sources;
+    private final CraftPipeline pipeline;
+    private final Map<BlockPos, Integer> clientSources = new HashMap<>();
 
     public float clientStartUp;
     public int clientCraftTicks;
-    private final Map<BlockPos, Integer> clientSourceFX = new HashMap<>();
 
     public BlockEntityInfusionMatrix(BlockPos pos, BlockState state) {
         super(TTBlockEntities.INFUSION_MATRIX.get(), pos, state);
+        this.sources = new EssentiaSources(pos);
+        this.pipeline = new CraftPipeline(List.of(new EssentiaStage(sources), new IngredientStage(), new FinishStage()));
     }
 
     public boolean isActive() {
@@ -88,7 +110,7 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     }
 
     public float stability() {
-        return stability;
+        return stability.value();
     }
 
     public AspectList remainingEssentia() {
@@ -101,95 +123,46 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityInfusionMatrix matrix) {
-        if (level instanceof ServerLevel serverLevel) {
-            matrix.tickServer(serverLevel);
+        if (level instanceof ServerLevel server) {
+            matrix.tickServer(server);
         }
     }
 
     public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityInfusionMatrix matrix) {
-        matrix.tickClient();
-    }
-
-    private MatrixEnvironment environment(ServerLevel level) {
-        if (environment == null || checkSurroundings) {
-            checkSurroundings = false;
-            environment = MatrixEnvironment.survey(level, worldPosition);
-            if (stabilityReplenish != environment.stabilityReplenish()) {
-                stabilityReplenish = environment.stabilityReplenish();
-                setChanged();
-                syncToClient();
-            }
-        }
-        return environment;
-    }
-
-    private void tickServer(ServerLevel level) {
-        count++;
-        if (isCrafting() && count % CRAFT_RESURVEY_INTERVAL == 0) {
-            checkSurroundings = true;
-        }
-        MatrixEnvironment env = environment(level);
-        int interval = isCrafting() ? CRAFT_VALIDATE_INTERVAL : IDLE_VALIDATE_INTERVAL;
-        if (count % interval == 0 && !MatrixEnvironment.validLocation(level, worldPosition)) {
-            active = false;
-            job = null;
-            setChanged();
-            syncToClient();
-            return;
-        }
-        int countDelay = Math.max(1, env.cycleTime() / 2);
-        if (active && !isCrafting() && stability < STABILITY_CAP && count % Math.max(5, countDelay) == 0) {
-            stability = Math.min(STABILITY_CAP, stability + Math.max(0.1F, env.stabilityReplenish()));
-            setChanged();
-            syncToClient();
-        }
-        if (active && isCrafting() && count % countDelay == 0) {
-            craftCycle(level, env, countDelay);
-            setChanged();
-            syncToClient();
-        }
-        if (active && isCrafting()) {
-            if (count % 5 != 0) {
-                return;
-            }
-            if (count % 65 == 0) {
-                level.playSound(null, worldPosition, TTSounds.INFUSER.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-            }
-            RandomSource rand = level.getRandom();
-            Effects.blockRunes(level, Vec3.atLowerCornerOf(centralPedestal())).color(0.5F + rand.nextFloat() * 0.2F, 0.1F, 0.7F + rand.nextFloat() * 0.3F).duration(25).gravity(-0.03F).send();
-        }
+        matrix.tickClient(level);
     }
 
     @Override
     public boolean onCasterRightClick(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, InteractionHand hand) {
-        if (level instanceof ServerLevel serverLevel) {
-            onRightClick(serverLevel, player);
+        if (level instanceof ServerLevel server) {
+            onRightClick(server, player);
         }
         return true;
     }
 
     public void onRightClick(ServerLevel level, Player player) {
-        if (active && !isCrafting()) {
-            tryStartCraft(level, player);
-        } else if (!active && MatrixEnvironment.validLocation(level, worldPosition)) {
-            level.playSound(null, worldPosition, TTSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+        if (active) {
+            if (job == null) {
+                tryStartCraft(level, player);
+            }
+            return;
+        }
+        if (MatrixEnvironment.validLocation(level, worldPosition)) {
+            playSound(level, TTSounds.CRAFTSTART.get(), SOUND_VOLUME, SOUND_PITCH);
             active = true;
-            setChanged();
-            syncToClient();
+            setChangedAndSync();
         }
     }
 
     public boolean tryStartCraft(ServerLevel level, Player player) {
-        checkSurroundings = true;
-        essentiaSources.invalidate();
+        stale = true;
+        sources.invalidate();
         if (!MatrixEnvironment.validLocation(level, worldPosition)) {
             active = false;
-            setChanged();
-            syncToClient();
+            setChangedAndSync();
             return false;
         }
-        MatrixEnvironment env = environment(level);
-        InfusionInput input = stagedInput(level, env);
+        InfusionInput input = stagedInput(level);
         if (input.catalyst().isEmpty() || input.components().isEmpty()) {
             return false;
         }
@@ -198,327 +171,580 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             return false;
         }
         InfusionJobRecipe recipe = match.recipe();
-        job = new InfusionCraftJob(recipe.jobComponents(input), scaledCost(env, recipe.jobEssentia(input)), recipe.jobResult(input, level.getRandom()), input.catalyst().copyWithCount(1),
-                recipe.jobInstability(input), Optional.of(player.getUUID()));
-        level.playSound(null, worldPosition, TTSounds.CRAFTSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-        setChanged();
-        syncToClient();
+        List<ItemStack> ingredients = recipe.jobComponents(input);
+        if (ingredients == null) {
+            return false;
+        }
+        job = new InfusionCraftJob(ingredients, projectedCost(level, recipe.jobEssentia(input)), recipe.jobResult(input, level.getRandom()), input.catalyst(), recipe.jobInstability(input),
+                Optional.of(player.getUUID()));
+        pipeline.reset();
+        playSound(level, TTSounds.CRAFTSTART.get(), SOUND_VOLUME, SOUND_PITCH);
+        setChangedAndSync();
         return true;
-    }
-
-    InfusionInput stagedInput(ServerLevel level) {
-        return stagedInput(level, environmentSnapshot(level));
-    }
-
-    AspectList projectedCost(ServerLevel level, AspectList essentia) {
-        return scaledCost(environmentSnapshot(level), essentia);
-    }
-
-    private MatrixEnvironment environmentSnapshot(ServerLevel level) {
-        return environment != null && !checkSurroundings ? environment : MatrixEnvironment.survey(level, worldPosition);
-    }
-
-    private InfusionInput stagedInput(ServerLevel level, MatrixEnvironment env) {
-        List<ItemStack> components = new ArrayList<>();
-        for (BlockPos pedestalPos : env.pedestals()) {
-            ItemStack stack = pedestalItem(level, pedestalPos);
-            if (!stack.isEmpty()) {
-                components.add(stack.copyWithCount(1));
-            }
-        }
-        return new InfusionInput(pedestalItem(level, centralPedestal()), components);
-    }
-
-    private static AspectList scaledCost(MatrixEnvironment env, AspectList essentia) {
-        float costMult = Math.max(MIN_COST_MULT, env.costMult());
-        AspectList scaled = AspectList.EMPTY;
-        for (AspectInstance instance : essentia.entries()) {
-            int amount = (int) (instance.amount() * costMult);
-            if (amount > 0) {
-                scaled = scaled.add(instance.aspect(), amount);
-            }
-        }
-        return scaled;
-    }
-
-    static ItemStack withCatalystWear(ItemStack result, ItemStack catalyst) {
-        ItemStack worn = result.copy();
-        if (catalyst.isDamageableItem() && catalyst.getDamageValue() > 0 && worn.isDamageableItem() && worn.getDamageValue() == 0) {
-            float damageRatio = (float) catalyst.getDamageValue() / catalyst.getMaxDamage();
-            worn.setDamageValue((int) (worn.getMaxDamage() * damageRatio));
-        }
-        return worn;
-    }
-
-    private void craftCycle(ServerLevel level, MatrixEnvironment env, int countDelay) {
-        if (job == null) {
-            return;
-        }
-        RandomSource rand = level.getRandom();
-        stability -= rand.nextFloat() * lossPerCycle();
-        stability = Mth.clamp(stability + env.stabilityReplenish(), STABILITY_FLOOR, STABILITY_CAP);
-        boolean valid = catalystStillPresent(level);
-        if (!valid || (stability < 0.0F && rand.nextInt(INSTABILITY_ROLL_BOUND) <= Math.abs(stability))) {
-            InstabilityEvents.trigger(level, worldPosition, env.pedestals());
-            stability += 5.0F + rand.nextFloat() * 5.0F;
-            if (valid) {
-                syncToClient();
-                return;
-            }
-        }
-        if (!valid) {
-            failCraft(level);
-            return;
-        }
-        if (!job.essentia().isEmpty()) {
-            drainEssentiaCycle(level, countDelay);
-            return;
-        }
-        if (job.ingredients().isEmpty()) {
-            if (finishGrace++ >= FINISH_GRACE_CYCLES) {
-                finishGrace = 0;
-                finishCraft(level);
-            }
-            return;
-        }
-        pullIngredientCycle(level, env);
-    }
-
-    private float lossPerCycle() {
-        if (job == null) {
-            return 0.0F;
-        }
-        return job.instability() / stabilityModifier();
-    }
-
-    private float stabilityModifier() {
-        if (stability > STABILITY_CAP / 2.0F) {
-            return 5.0F;
-        }
-        if (stability >= 0.0F) {
-            return 6.0F;
-        }
-        return stability > -25.0F ? 7.0F : 8.0F;
-    }
-
-    private String stabilityTierKey() {
-        if (stability > STABILITY_CAP / 2.0F) {
-            return "very_stable";
-        }
-        if (stability >= 0.0F) {
-            return "stable";
-        }
-        return stability > -25.0F ? "unstable" : "very_unstable";
     }
 
     @Override
     public Vec3 readoutAnchor() {
-        return new Vec3(0.0, GOGGLES_TEXT_Y_OFFSET, 0.0);
+        return READOUT_ANCHOR;
     }
 
     @Override
     public List<Component> readout() {
-        Component tier = Component.translatable(STABILITY_LANG_PREFIX + stabilityTierKey()).withStyle(ChatFormatting.BOLD);
-        Component gain = Component.translatable(STABILITY_LANG_PREFIX + "gain_amount", STABILITY_FORMAT.format(stabilityReplenish)).withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC);
-        float lpc = lossPerCycle();
-        if (lpc == 0.0F) {
-            return List.of(tier, gain);
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable(stability.tier().key).withStyle(ChatFormatting.BOLD));
+        lines.add(Component.translatable(KEY_GAIN, formatNumber(stability.gain())).withStyle(ChatFormatting.GOLD, ChatFormatting.ITALIC));
+        float maxLoss = job == null ? 0.0F : stability.maxLoss(job.instability());
+        if (maxLoss != 0.0F) {
+            lines.add(Component.translatable(KEY_LOSS, formatNumber(maxLoss)).withStyle(ChatFormatting.RED, ChatFormatting.ITALIC));
         }
-        Component loss = Component.translatable(STABILITY_LANG_PREFIX + "loss_range", STABILITY_FORMAT.format(lpc)).withStyle(ChatFormatting.RED, ChatFormatting.ITALIC);
-        return List.of(tier, gain, loss);
-    }
-
-    private boolean catalystStillPresent(ServerLevel level) {
-        if (job == null) {
-            return false;
-        }
-        ItemStack current = pedestalItem(level, centralPedestal());
-        return !current.isEmpty() && ItemStack.isSameItemSameComponents(current, job.catalyst());
-    }
-
-    private void drainEssentiaCycle(ServerLevel level, int countDelay) {
-        for (AspectInstance instance : job.essentia().entries()) {
-            if (instance.amount() <= 0) {
-                continue;
-            }
-            if (essentiaSources.drain(level, instance.aspect(), instance.amount() > 1 ? countDelay : 0)) {
-                job.setEssentia(job.essentia().reduce(instance.aspect(), 1));
-                syncToClient();
-                return;
-            }
-            stability -= ESSENTIA_STARVE_PENALTY;
-        }
-        syncToClient();
-    }
-
-    private void pullIngredientCycle(ServerLevel level, MatrixEnvironment env) {
-        List<ItemStack> ingredients = job.ingredients();
-        for (int a = 0; a < ingredients.size(); a++) {
-            for (BlockPos pedestalPos : env.pedestals()) {
-                if (!(level.getBlockEntity(pedestalPos) instanceof BlockEntityPedestal pedestal)) {
-                    continue;
-                }
-                ItemStack stack = pedestal.getItem();
-                if (stack.isEmpty() || !ItemStack.isSameItemSameComponents(stack, ingredients.get(a))) {
-                    continue;
-                }
-                if (itemPullCountdown == 0) {
-                    itemPullCountdown = ITEM_PULL_TICKS;
-                    InfusionFx.itemStream(level, worldPosition, pedestalPos);
-                } else if (--itemPullCountdown < 1) {
-                    ItemStackTemplate remainder = stack.getItem().getCraftingRemainder(stack);
-                    pedestal.setItem(remainder == null ? ItemStack.EMPTY : remainder.create());
-                    ingredients.remove(a);
-                    setChanged();
-                }
-                return;
-            }
-            AspectList essentia = job.essentia();
-            if (!essentia.isEmpty() && level.getRandom().nextInt(1 + a) == 0) {
-                List<AspectInstance> entries = essentia.entries();
-                AspectInstance random = entries.get(level.getRandom().nextInt(entries.size()));
-                job.setEssentia(essentia.add(random.aspect(), 1));
-                stability -= ESSENTIA_STARVE_PENALTY;
-                syncToClient();
-            }
-        }
-    }
-
-    private void failCraft(ServerLevel level) {
-        job = null;
-        level.playSound(null, worldPosition, TTSounds.CRAFTFAIL.get(), SoundSource.BLOCKS, 1.0F, 0.6F);
-        setChanged();
-        syncToClient();
-    }
-
-    private void finishCraft(ServerLevel level) {
-        if (!(level.getBlockEntity(centralPedestal()) instanceof BlockEntityPedestal pedestal)) {
-            job = null;
-            syncToClient();
-            return;
-        }
-        ItemStack catalyst = pedestal.getItem();
-        ServerPlayer crafter = job.player().map(uuid -> level.getServer().getPlayerList().getPlayer(uuid)).orElse(null);
-        InfusionCraftedEvent event = NeoForge.EVENT_BUS.post(new InfusionCraftedEvent(level, worldPosition, crafter, catalyst.copy(), withCatalystWear(job.result(), catalyst)));
-        ItemStack result = event.getResult();
-        pedestal.setItem(result);
-        job = null;
-        if (crafter != null && !result.isEmpty()) {
-            awardCraft(crafter, result);
-        }
-        InfusionFx.pedestalBamf(level, centralPedestal());
-        level.playSound(null, worldPosition, TTSounds.WAND.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-        setChanged();
-        syncToClient();
-    }
-
-    private void awardCraft(ServerPlayer player, ItemStack result) {
-        player.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
-        ResearchProgressionEvents.recordCrafted(player, result);
-    }
-
-    private ItemStack pedestalItem(Level level, BlockPos pos) {
-        return level.getBlockEntity(pos) instanceof BlockEntityPedestal pedestal ? pedestal.getItem() : ItemStack.EMPTY;
-    }
-
-    private BlockPos centralPedestal() {
-        return worldPosition.below(2);
+        return lines;
     }
 
     public void refreshSurroundings() {
-        checkSurroundings = true;
+        stale = true;
     }
 
-    private void tickClient() {
-        if (isCrafting()) {
-            if (clientCraftTicks == 0 && level != null) {
-                level.playLocalSound(worldPosition, TTSounds.INFUSERSTART.get(), SoundSource.BLOCKS, 0.5F, 1.0F, false);
-            }
-            clientCraftTicks++;
-        } else if (clientCraftTicks > 0) {
-            clientCraftTicks = Math.min(50, Math.max(0, clientCraftTicks - 2));
-        }
-        if (active && clientStartUp < 1.0F) {
-            clientStartUp = Math.min(1.0F, clientStartUp + Math.max(clientStartUp / 10.0F, 0.001F));
-        } else if (!active && clientStartUp > 0.0F) {
-            clientStartUp -= clientStartUp / 10.0F;
-            if (clientStartUp < 0.001F) {
-                clientStartUp = 0.0F;
-            }
-        }
-        tickClientSourceFX();
-    }
-
-    public void addClientSourceFX(BlockPos source, int ticks) {
-        clientSourceFX.put(source.immutable(), ticks);
-    }
-
-    private void tickClientSourceFX() {
-        if (clientSourceFX.isEmpty() || level == null) {
-            return;
-        }
-        RandomSource rand = level.getRandom();
-        Iterator<Map.Entry<BlockPos, Integer>> it = clientSourceFX.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<BlockPos, Integer> entry = it.next();
-            if (entry.getValue() <= 0) {
-                it.remove();
-                continue;
-            }
-            BlockPos loc = entry.getKey();
-            if (level.getBlockEntity(loc) instanceof BlockEntityPedestal pedestal) {
-                ItemStack stack = pedestal.getItem();
-                if (!stack.isEmpty()) {
-                    spawnPullFX(rand, loc, stack);
-                }
-                entry.setValue(entry.getValue() - 1);
-            } else {
-                entry.setValue(0);
-            }
-        }
-    }
-
-    private void spawnPullFX(RandomSource rand, BlockPos loc, ItemStack stack) {
-        double tx = worldPosition.getX() + 0.5;
-        double ty = worldPosition.getY() - 0.5;
-        double tz = worldPosition.getZ() + 0.5;
-        if (rand.nextInt(3) == 0) {
-            level.addParticle(new BoreSparkleParticleOptions(tx, ty, tz, 0.4F + rand.nextFloat() * 0.2F, 0.2F, 0.6F + rand.nextFloat() * 0.3F), loc.getX() + rand.nextFloat(),
-                    loc.getY() + rand.nextFloat() + 1.0F, loc.getZ() + rand.nextFloat(), 0.0, 0.0, 0.0);
-            return;
-        }
-        ItemStackTemplate template = new ItemStackTemplate(stack.getItem());
-        if (stack.getItem() instanceof BlockItem) {
-            for (int a = 0; a < 4; a++) {
-                level.addParticle(new InfusionCrumbsParticleOptions(template, tx, ty, tz, 0.0, 0.0, 0.0), loc.getX() + rand.nextFloat(), loc.getY() + rand.nextFloat() + 1.0F,
-                        loc.getZ() + rand.nextFloat(), 0.0, 0.0, 0.0);
-            }
-        } else {
-            for (int a = 0; a < 4; a++) {
-                level.addParticle(new InfusionCrumbsParticleOptions(template, tx, ty, tz, rand.nextGaussian() * 0.03F, rand.nextGaussian() * 0.03F, rand.nextGaussian() * 0.03F),
-                        loc.getX() + 0.4F + rand.nextFloat() * 0.2F, loc.getY() + 1.23F + rand.nextFloat() * 0.2F, loc.getZ() + 0.4F + rand.nextFloat() * 0.2F, 0.0, 0.0, 0.0);
-            }
-        }
+    public void addClientSourceFX(BlockPos pos, int ticks) {
+        clientSources.put(pos.immutable(), ticks);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putBoolean("Active", active);
-        output.putFloat("Stability", stability);
-        output.putFloat("Replenish", stabilityReplenish);
+        output.putBoolean(ACTIVE_KEY, active);
+        stability.save(output);
         if (job != null) {
-            output.store("Job", InfusionCraftJob.CODEC, job);
+            output.store(JOB_KEY, InfusionCraftJob.CODEC, job);
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        active = input.getBooleanOr("Active", false);
-        stability = input.getFloatOr("Stability", 0.0F);
-        stabilityReplenish = input.getFloatOr("Replenish", 0.0F);
-        job = input.read("Job", InfusionCraftJob.CODEC).orElse(null);
+        active = input.getBooleanOr(ACTIVE_KEY, false);
+        stability.load(input);
+        job = input.read(JOB_KEY, InfusionCraftJob.CODEC).orElse(null);
     }
 
+    InfusionInput stagedInput(ServerLevel level) {
+        MatrixEnvironment env = environment(level);
+        BlockEntityPedestal center = centralPedestal(level);
+        ItemStack catalyst = ItemStack.EMPTY;
+        if (center != null) {
+            catalyst = center.getItem().copyWithCount(1);
+        }
+        List<ItemStack> components = new ArrayList<>(env.pedestals().size());
+        for (BlockPos pos : env.pedestals()) {
+            if (!(level.getBlockEntity(pos) instanceof BlockEntityPedestal pedestal)) {
+                continue;
+            }
+            ItemStack held = pedestal.getItem();
+            if (!held.isEmpty()) {
+                components.add(held.copyWithCount(1));
+            }
+        }
+        return new InfusionInput(catalyst, components);
+    }
+
+    AspectList projectedCost(ServerLevel level, AspectList base) {
+        float multiplier = Math.max(MIN_COST_MULTIPLIER, environment(level).costMult());
+        AspectList scaled = AspectList.EMPTY;
+        for (AspectInstance entry : base.entries()) {
+            int amount = (int) (entry.amount() * multiplier);
+            if (amount <= 0) {
+                continue;
+            }
+            scaled = scaled.add(entry.aspect(), amount);
+        }
+        return scaled;
+    }
+
+    static ItemStack withCatalystWear(ItemStack result, ItemStack catalyst) {
+        ItemStack worn = result.copy();
+        if (catalyst.isDamageableItem() && catalyst.isDamaged() && worn.isDamageableItem() && !worn.isDamaged()) {
+            float fraction = (float) catalyst.getDamageValue() / catalyst.getMaxDamage();
+            worn.setDamageValue((int) (worn.getMaxDamage() * fraction));
+        }
+        return worn;
+    }
+
+    private MatrixEnvironment environment(ServerLevel level) {
+        MatrixEnvironment current = environment;
+        if (current == null || stale) {
+            current = MatrixEnvironment.survey(level, worldPosition);
+            environment = current;
+            stale = false;
+            if (stability.adoptGain(current.stabilityReplenish())) {
+                setChangedAndSync();
+            }
+        }
+        return current;
+    }
+
+    private @Nullable BlockEntityPedestal centralPedestal(ServerLevel level) {
+        return level.getBlockEntity(worldPosition.below(ALTAR_DEPTH)) instanceof BlockEntityPedestal pedestal ? pedestal : null;
+    }
+
+    private static int halfCycle(MatrixEnvironment env) {
+        return Math.max(1, env.cycleTime() / 2);
+    }
+
+    private boolean due(int interval) {
+        return tickCount % interval == 0;
+    }
+
+    private void playSound(ServerLevel level, SoundEvent sound, float volume, float pitch) {
+        level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, pitch);
+    }
+
+    private static String formatNumber(float value) {
+        return new DecimalFormat(NUMBER_PATTERN).format(value);
+    }
+
+    private void tickServer(ServerLevel level) {
+        tickCount++;
+        boolean crafting = job != null;
+        if (crafting && due(STALE_INTERVAL)) {
+            stale = true;
+        }
+        MatrixEnvironment env = environment(level);
+        if (placementLost(level, crafting)) {
+            shutDown();
+            return;
+        }
+        if (!active) {
+            return;
+        }
+        int half = halfCycle(env);
+        if (!crafting) {
+            regenerateIdle(half);
+            return;
+        }
+        ambience(level);
+        if (due(half)) {
+            runCycle(level, env, half);
+        }
+    }
+
+    private boolean placementLost(ServerLevel level, boolean crafting) {
+        if (!active && !crafting) {
+            return false;
+        }
+        int interval = crafting ? CRAFTING_CHECK_INTERVAL : IDLE_CHECK_INTERVAL;
+        return due(interval) && !MatrixEnvironment.validLocation(level, worldPosition);
+    }
+
+    private void shutDown() {
+        active = false;
+        job = null;
+        pipeline.reset();
+        setChangedAndSync();
+    }
+
+    private void regenerateIdle(int half) {
+        if (!stability.canRegenerate() || !due(Math.max(IDLE_REGEN_MIN_INTERVAL, half))) {
+            return;
+        }
+        stability.regenerate();
+        setChangedAndSync();
+    }
+
+    private void ambience(ServerLevel level) {
+        if (due(RUNE_INTERVAL)) {
+            RandomSource random = level.getRandom();
+            float red = RUNE_RED_BASE + random.nextFloat() * RUNE_RED_SPREAD;
+            float blue = RUNE_BLUE_BASE + random.nextFloat() * RUNE_BLUE_SPREAD;
+            Vec3 origin = Vec3.atLowerCornerOf(worldPosition.below(ALTAR_DEPTH));
+            Effects.glyphField(level, origin).color(red, RUNE_GREEN, blue).lifetime(RUNE_LIFETIME).drift(RUNE_GRAVITY).send();
+        }
+        if (due(LOOP_SOUND_INTERVAL)) {
+            playSound(level, TTSounds.INFUSER.get(), SOUND_VOLUME, SOUND_PITCH);
+        }
+    }
+
+    private void runCycle(ServerLevel level, MatrixEnvironment env, int half) {
+        InfusionCraftJob current = job;
+        if (current == null) {
+            return;
+        }
+        RandomSource random = level.getRandom();
+        stability.drift(random, current.instability(), env.stabilityReplenish());
+        BlockEntityPedestal center = centralPedestal(level);
+        CycleOutcome outcome = CycleOutcome.decide(center != null && catalystMatches(center, current), stability, random);
+        if (outcome.firesEvent()) {
+            InstabilityEvents.trigger(level, worldPosition, env.pedestals());
+            stability.rebound(random);
+        }
+        switch (outcome) {
+            case CATALYST_LOST -> abortCraft(level);
+            case PROCEED -> pipeline.advance(new CycleContext(level, env, half, current, center));
+            case EVENT -> {
+            }
+        }
+        setChangedAndSync();
+    }
+
+    private static boolean catalystMatches(BlockEntityPedestal center, InfusionCraftJob current) {
+        ItemStack held = center.getItem();
+        return !held.isEmpty() && ItemStack.isSameItemSameComponents(held, current.catalyst());
+    }
+
+    private void abortCraft(ServerLevel level) {
+        job = null;
+        pipeline.reset();
+        playSound(level, TTSounds.CRAFTFAIL.get(), FAIL_VOLUME, FAIL_PITCH);
+    }
+
+    private void tickClient(Level level) {
+        clientCraftTicks = ClientAnimator.craftTicks(level, worldPosition, clientCraftTicks, job != null);
+        clientStartUp = ClientAnimator.startUp(clientStartUp, active);
+        MatrixPullEffects.tickSources(level, worldPosition, clientSources);
+    }
+
+    private enum CycleOutcome {
+        PROCEED, EVENT, CATALYST_LOST;
+
+        private static CycleOutcome decide(boolean catalystPresent, StabilityState state, RandomSource random) {
+            if (!catalystPresent) {
+                return CATALYST_LOST;
+            }
+            return state.eventRoll(random) ? EVENT : PROCEED;
+        }
+
+        private boolean firesEvent() {
+            return this != PROCEED;
+        }
+    }
+
+    private final class CycleContext {
+        private final ServerLevel level;
+        private final MatrixEnvironment env;
+        private final int half;
+        private final InfusionCraftJob current;
+        private final @Nullable BlockEntityPedestal center;
+
+        private CycleContext(ServerLevel level, MatrixEnvironment env, int half, InfusionCraftJob current, @Nullable BlockEntityPedestal center) {
+            this.level = level;
+            this.env = env;
+            this.half = half;
+            this.current = current;
+            this.center = center;
+        }
+
+        private ServerLevel level() {
+            return level;
+        }
+
+        private MatrixEnvironment env() {
+            return env;
+        }
+
+        private int half() {
+            return half;
+        }
+
+        private InfusionCraftJob job() {
+            return current;
+        }
+
+        private BlockEntityPedestal center() {
+            return center;
+        }
+
+        private BlockPos matrixPos() {
+            return worldPosition;
+        }
+
+        private void penalise() {
+            stability.punish();
+        }
+
+        private void markChanged() {
+            setChangedAndSync();
+        }
+
+        private void clearJob() {
+            job = null;
+        }
+
+        private void playSound(SoundEvent sound) {
+            BlockEntityInfusionMatrix.this.playSound(level, sound, SOUND_VOLUME, SOUND_PITCH);
+        }
+    }
+
+    private interface CraftStage {
+        boolean complete(InfusionCraftJob job);
+
+        void advance(CycleContext context);
+
+        void reset();
+    }
+
+    private static final class CraftPipeline {
+        private final List<CraftStage> stages;
+        private int cursor;
+
+        private CraftPipeline(List<CraftStage> stages) {
+            this.stages = stages;
+        }
+
+        private void reset() {
+            cursor = 0;
+            for (CraftStage stage : stages) {
+                stage.reset();
+            }
+        }
+
+        private void advance(CycleContext context) {
+            int last = stages.size() - 1;
+            while (cursor < last && stages.get(cursor).complete(context.job())) {
+                cursor++;
+            }
+            stages.get(cursor).advance(context);
+        }
+    }
+
+    private static final class EssentiaStage implements CraftStage {
+        private final EssentiaSources sources;
+
+        private EssentiaStage(EssentiaSources sources) {
+            this.sources = sources;
+        }
+
+        @Override
+        public boolean complete(InfusionCraftJob job) {
+            return job.essentia().isEmpty();
+        }
+
+        @Override
+        public void advance(CycleContext context) {
+            InfusionCraftJob current = context.job();
+            for (AspectInstance entry : current.essentia().entries()) {
+                int extension = entry.amount() > 1 ? context.half() : 0;
+                if (sources.drain(context.level(), entry.aspect(), extension)) {
+                    current.setEssentia(current.essentia().remove(entry.aspect(), 1));
+                    break;
+                }
+                context.penalise();
+            }
+        }
+
+        @Override
+        public void reset() {}
+    }
+
+    private static final class IngredientStage implements CraftStage {
+        private int countdown;
+
+        @Override
+        public boolean complete(InfusionCraftJob job) {
+            return job.ingredients().isEmpty();
+        }
+
+        @Override
+        public void advance(CycleContext context) {
+            List<ItemStack> ingredients = context.job().ingredients();
+            for (int index = 0; index < ingredients.size(); index++) {
+                BlockPos holder = findHolder(context.level(), context.env().pedestals(), ingredients.get(index));
+                if (holder != null) {
+                    pull(context, holder, ingredients, index);
+                    return;
+                }
+            }
+        }
+
+        @Override
+        public void reset() {
+            countdown = 0;
+        }
+
+        private static @Nullable BlockPos findHolder(ServerLevel level, List<BlockPos> pedestals, ItemStack wanted) {
+            for (BlockPos candidate : pedestals) {
+                if (level.getBlockEntity(candidate) instanceof BlockEntityPedestal pedestal) {
+                    ItemStack held = pedestal.getItem();
+                    if (!held.isEmpty() && ItemStack.isSameItemSameComponents(held, wanted)) {
+                        return candidate;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void pull(CycleContext context, BlockPos holder, List<ItemStack> ingredients, int index) {
+            ServerLevel level = context.level();
+            if (countdown == 0) {
+                countdown = PULL_TICKS;
+                InfusionFx.itemStream(level, context.matrixPos(), holder);
+                return;
+            }
+            countdown--;
+            if (countdown > 0 || !(level.getBlockEntity(holder) instanceof BlockEntityPedestal pedestal)) {
+                return;
+            }
+            ItemStack held = pedestal.getItem();
+            ItemStackTemplate remainder = held.getItem().getCraftingRemainder(held);
+            pedestal.setItem(remainder != null ? remainder.create() : ItemStack.EMPTY);
+            ingredients.remove(index);
+            context.markChanged();
+        }
+    }
+
+    private static final class FinishStage implements CraftStage {
+        private int grace;
+
+        @Override
+        public boolean complete(InfusionCraftJob job) {
+            return false;
+        }
+
+        @Override
+        public void advance(CycleContext context) {
+            grace++;
+            if (grace >= FINISH_GRACE_CYCLES) {
+                grace = 0;
+                finish(context);
+            }
+        }
+
+        @Override
+        public void reset() {
+            grace = 0;
+        }
+
+        private static void finish(CycleContext context) {
+            ServerLevel level = context.level();
+            InfusionCraftJob current = context.job();
+            BlockEntityPedestal center = context.center();
+            ItemStack catalyst = center.getItem().copy();
+            ServerPlayer crafter = current.player().map(id -> level.getServer().getPlayerList().getPlayer(id)).orElse(null);
+            InfusionCraftedEvent event = new InfusionCraftedEvent(level, context.matrixPos(), crafter, catalyst, withCatalystWear(current.result(), catalyst));
+            NeoForge.EVENT_BUS.post(event);
+            ItemStack result = event.getResult();
+            center.setItem(result);
+            context.clearJob();
+            if (crafter != null && !result.isEmpty()) {
+                crafter.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
+                ResearchProgressionEvents.recordCrafted(crafter, result);
+            }
+            InfusionFx.pedestalBamf(level, context.matrixPos().below(ALTAR_DEPTH));
+            context.playSound(TTSounds.WAND.get());
+            context.markChanged();
+        }
+    }
+
+    private static final class StabilityState {
+        private float value;
+        private float gain;
+
+        private float value() {
+            return value;
+        }
+
+        private float gain() {
+            return gain;
+        }
+
+        private StabilityTier tier() {
+            return StabilityTier.of(value);
+        }
+
+        private float maxLoss(int instability) {
+            return (float) instability / tier().divisor;
+        }
+
+        private void drift(RandomSource random, int instability, float replenish) {
+            float loss = random.nextFloat() * maxLoss(instability);
+            value = Mth.clamp(value - loss + replenish, STABILITY_FLOOR, STABILITY_CAP);
+        }
+
+        private boolean eventRoll(RandomSource random) {
+            return value < 0.0F && random.nextInt(INSTABILITY_ROLL_BOUND) <= Math.abs(value);
+        }
+
+        private void rebound(RandomSource random) {
+            value += EVENT_STABILITY_BASE + random.nextFloat() * EVENT_STABILITY_SPREAD;
+        }
+
+        private void punish() {
+            value -= FAILED_DRAIN_PENALTY;
+        }
+
+        private boolean canRegenerate() {
+            return value < STABILITY_CAP;
+        }
+
+        private void regenerate() {
+            value = Math.min(STABILITY_CAP, value + Math.max(IDLE_REGEN_MIN_GAIN, gain));
+        }
+
+        private boolean adoptGain(float replenish) {
+            if (gain == replenish) {
+                return false;
+            }
+            gain = replenish;
+            return true;
+        }
+
+        private void save(ValueOutput output) {
+            output.putFloat(STABILITY_KEY, value);
+            output.putFloat(REPLENISH_KEY, gain);
+        }
+
+        private void load(ValueInput input) {
+            value = input.getFloatOr(STABILITY_KEY, 0.0F);
+            gain = input.getFloatOr(REPLENISH_KEY, 0.0F);
+        }
+    }
+
+    private static final class ClientAnimator {
+        private static final float START_UP_MAX = 1.0F;
+        private static final float START_UP_RATE = 10.0F;
+        private static final float START_UP_MIN_STEP = 0.001F;
+        private static final int CRAFT_TICKS_DECAY = 2;
+        private static final int CRAFT_TICKS_MAX = 50;
+
+        private ClientAnimator() {}
+
+        private static int craftTicks(Level level, BlockPos pos, int ticks, boolean crafting) {
+            if (!crafting) {
+                return ticks > 0 ? Mth.clamp(ticks - CRAFT_TICKS_DECAY, 0, CRAFT_TICKS_MAX) : ticks;
+            }
+            if (ticks == 0) {
+                level.playLocalSound(pos, TTSounds.INFUSERSTART.get(), SoundSource.BLOCKS, SOUND_VOLUME, SOUND_PITCH, false);
+            }
+            return ticks + 1;
+        }
+
+        private static float startUp(float current, boolean active) {
+            float step = current / START_UP_RATE;
+            if (active) {
+                return current < START_UP_MAX ? Math.min(START_UP_MAX, current + Math.max(step, START_UP_MIN_STEP)) : current;
+            }
+            if (current > 0.0F) {
+                float eased = current - step;
+                return eased < START_UP_MIN_STEP ? 0.0F : eased;
+            }
+            return current;
+        }
+    }
+
+    private enum StabilityTier {
+        VERY_STABLE("gui.thaumaturge.infusion.stability.very_stable", 5), STABLE("gui.thaumaturge.infusion.stability.stable", 6), UNSTABLE("gui.thaumaturge.infusion.stability.unstable",
+                7), VERY_UNSTABLE("gui.thaumaturge.infusion.stability.very_unstable", 8);
+
+        private final String key;
+        private final int divisor;
+
+        StabilityTier(String key, int divisor) {
+            this.key = key;
+            this.divisor = divisor;
+        }
+
+        private static StabilityTier of(float stability) {
+            if (stability >= 0.0F) {
+                return stability > VERY_STABLE_THRESHOLD ? VERY_STABLE : STABLE;
+            }
+            return stability > UNSTABLE_THRESHOLD ? UNSTABLE : VERY_UNSTABLE;
+        }
+    }
 }

@@ -24,6 +24,8 @@ public final class BlockEntityVisRelay extends AbstractSyncedBlockEntity {
     private static final int PULSE_EVENT = 0;
     private static final long NO_PULSE = -1000L;
     private static final int WHITE = 0xFFFFFF;
+    private static final String KEY_PARENT = "Parent";
+    private static final String KEY_DEPTH = "Depth";
 
     private @Nullable BlockPos parentPos;
     private int depth;
@@ -66,19 +68,24 @@ public final class BlockEntityVisRelay extends AbstractSyncedBlockEntity {
 
     @Override
     public boolean triggerEvent(int id, int param) {
-        if (id != PULSE_EVENT) {
-            return super.triggerEvent(id, param);
+        boolean isPulse = id == PULSE_EVENT;
+        if (isPulse && level != null && level.isClientSide()) {
+            propagatePulse(level, param);
         }
-        if (level != null && level.isClientSide()) {
-            long now = level.getGameTime();
-            startPulse(param, now);
-            BlockPos next = parentPos;
-            for (int hop = 0; next != null && hop < HOP_CAP && level.getBlockEntity(next) instanceof BlockEntityVisRelay parent && !parent.isPulsing(now); hop++) {
-                parent.startPulse(param, now);
-                next = parent.parentPos;
+        return isPulse || super.triggerEvent(id, param);
+    }
+
+    private void propagatePulse(Level clientLevel, int color) {
+        long now = clientLevel.getGameTime();
+        startPulse(color, now);
+        BlockEntityVisRelay current = this;
+        for (int hop = 0; hop < HOP_CAP && current.parentPos != null; hop++) {
+            if (!(clientLevel.getBlockEntity(current.parentPos) instanceof BlockEntityVisRelay parent) || parent.isPulsing(now)) {
+                break;
             }
+            parent.startPulse(color, now);
+            current = parent;
         }
-        return true;
     }
 
     private void startPulse(int color, long now) {
@@ -196,17 +203,18 @@ public final class BlockEntityVisRelay extends AbstractSyncedBlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        if (parentPos != null) {
-            output.store("Parent", BlockPos.CODEC, parentPos);
-            output.putInt("Depth", depth);
+        BlockPos saved = parentPos;
+        if (saved == null) {
+            return;
         }
+        output.store(KEY_PARENT, BlockPos.CODEC, saved);
+        output.putInt(KEY_DEPTH, depth);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        parentPos = input.read("Parent", BlockPos.CODEC).orElse(null);
-        depth = input.getIntOr("Depth", 0);
+        depth = input.getIntOr(KEY_DEPTH, 0);
+        parentPos = input.read(KEY_PARENT, BlockPos.CODEC).orElse(null);
     }
-
 }

@@ -20,63 +20,75 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 public final class EntityMindSpider extends Spider {
-    private static final EntityDataAccessor<Boolean> DATA_HARMLESS = SynchedEntityData.defineId(EntityMindSpider.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<String> DATA_VIEWER = SynchedEntityData.defineId(EntityMindSpider.class, EntityDataSerializers.STRING);
-
-    private static final int XP_REWARD = 1;
-    private static final int HARMLESS_LIFESPAN_TICKS = 1200;
+    private static final EntityDataAccessor<Boolean> HARMLESS = SynchedEntityData.defineId(EntityMindSpider.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<String> VIEWER = SynchedEntityData.defineId(EntityMindSpider.class, EntityDataSerializers.STRING);
+    private static final String HARMLESS_KEY = "is_hallucination";
+    private static final String VIEWER_KEY = "observer_name";
+    private static final String LEGACY_HARMLESS_KEY = "harmless";
+    private static final String LEGACY_VIEWER_KEY = "viewer";
+    private static final double MAX_HEALTH = 1.0;
+    private static final double ATTACK_DAMAGE = 1.0;
+    private static final int EXPERIENCE_REWARD = 1;
+    private static final int HALLUCINATION_LIFESPAN = 1200;
     private static final float VOICE_PITCH = 0.7F;
-
-    private int lifeSpan = Integer.MAX_VALUE;
 
     public EntityMindSpider(EntityType<? extends EntityMindSpider> type, Level level) {
         super(type, level);
-        this.xpReward = XP_REWARD;
+        this.xpReward = EXPERIENCE_REWARD;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Spider.createAttributes().add(Attributes.MAX_HEALTH, 1.0).add(Attributes.ATTACK_DAMAGE, 1.0);
+        return Spider.createAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE);
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder entityData) {
-        super.defineSynchedData(entityData);
-        entityData.define(DATA_HARMLESS, false);
-        entityData.define(DATA_VIEWER, "");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HARMLESS, false);
+        builder.define(VIEWER, "");
     }
 
-    public String getViewer() {
-        return this.entityData.get(DATA_VIEWER);
+    @Override
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean(HARMLESS_KEY, this.isIllusion());
+        output.putString(VIEWER_KEY, this.witnessName());
     }
 
-    public void setViewer(String player) {
-        this.entityData.set(DATA_VIEWER, player);
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.entityData.set(HARMLESS, input.getBooleanOr(HARMLESS_KEY, input.getBooleanOr(LEGACY_HARMLESS_KEY, false)));
+        this.entityData.set(VIEWER, input.getStringOr(VIEWER_KEY, input.getStringOr(LEGACY_VIEWER_KEY, "")));
     }
 
-    public boolean isHarmless() {
-        return this.entityData.get(DATA_HARMLESS);
+    public String witnessName() {
+        return this.entityData.get(VIEWER);
     }
 
-    public void setHarmless(boolean harmless) {
-        if (harmless) {
-            this.lifeSpan = HARMLESS_LIFESPAN_TICKS;
+    public boolean isIllusion() {
+        return this.entityData.get(HARMLESS);
+    }
+
+    public void bindIllusion(String witness) {
+        this.entityData.set(VIEWER, witness);
+        this.entityData.set(HARMLESS, true);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.level().isClientSide() || !this.isIllusion()) {
+            return;
         }
-        this.entityData.set(DATA_HARMLESS, harmless);
-    }
-
-    @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
-        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, groupData);
-        for (Entity passenger : List.copyOf(this.getPassengers())) {
-            passenger.stopRiding();
-            passenger.discard();
+        if (this.tickCount > HALLUCINATION_LIFESPAN) {
+            this.discard();
         }
-        return result;
     }
 
     @Override
-    protected int getBaseExperienceReward(ServerLevel level) {
-        return isHarmless() ? 0 : super.getBaseExperienceReward(level);
+    public boolean isIgnoringBlockTriggers() {
+        return true;
     }
 
     @Override
@@ -86,33 +98,23 @@ public final class EntityMindSpider extends Spider {
 
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        return !isHarmless() && super.doHurtTarget(level, target);
+        return !this.isIllusion() && super.doHurtTarget(level, target);
     }
 
     @Override
-    public boolean isIgnoringBlockTriggers() {
-        return true;
+    protected int getBaseExperienceReward(ServerLevel level) {
+        return this.isIllusion() ? 0 : super.getBaseExperienceReward(level);
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (!this.level().isClientSide() && this.tickCount > this.lifeSpan) {
-            this.discard();
-        }
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+        SpawnGroupData data = super.finalizeSpawn(level, difficulty, reason, groupData);
+        List.copyOf(this.getPassengers()).forEach(EntityMindSpider::banishRider);
+        return data;
     }
 
-    @Override
-    protected void addAdditionalSaveData(ValueOutput output) {
-        super.addAdditionalSaveData(output);
-        output.putBoolean("harmless", isHarmless());
-        output.putString("viewer", getViewer());
-    }
-
-    @Override
-    protected void readAdditionalSaveData(ValueInput input) {
-        super.readAdditionalSaveData(input);
-        setHarmless(input.getBooleanOr("harmless", false));
-        setViewer(input.getStringOr("viewer", ""));
+    private static void banishRider(Entity rider) {
+        rider.stopRiding();
+        rider.discard();
     }
 }

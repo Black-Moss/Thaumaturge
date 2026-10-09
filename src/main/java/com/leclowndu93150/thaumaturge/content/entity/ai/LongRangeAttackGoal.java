@@ -6,29 +6,41 @@ import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 
 public final class LongRangeAttackGoal extends RangedAttackGoal {
-    private final Mob wielder;
-    private final double minDistance;
+    private final Mob shooter;
+    private final double minDistanceSqr;
 
-    public LongRangeAttackGoal(RangedAttackMob mob, double minDistance, double speedModifier, int attackIntervalMin, int attackIntervalMax, float attackRadius) {
-        super(mob, speedModifier, attackIntervalMin, attackIntervalMax, attackRadius);
-        this.minDistance = minDistance;
-        this.wielder = (Mob) mob;
+    public LongRangeAttackGoal(RangedAttackMob mob, double speed, double minDistance, int minInterval, int maxInterval, float radius) {
+        super(mob, speed, minInterval, maxInterval, radius);
+        this.minDistanceSqr = square(minDistance);
+        this.shooter = requireMob(mob);
+    }
+
+    private static double square(double value) {
+        return value * value;
+    }
+
+    private static Mob requireMob(RangedAttackMob candidate) {
+        if (!(candidate instanceof Mob mob)) {
+            throw new IllegalArgumentException("LongRangeAttackGoal requires a Mob that implements RangedAttackMob");
+        }
+        return mob;
+    }
+
+    private boolean hasLiveTarget() {
+        LivingEntity target = shooter.getTarget();
+        if (target != null && !target.isAlive()) {
+            shooter.setTarget(null);
+            return false;
+        }
+        return target != null;
+    }
+
+    private boolean isBeyondMinimum() {
+        return shooter.distanceToSqr(shooter.getTarget()) >= minDistanceSqr;
     }
 
     @Override
     public boolean canUse() {
-        if (!super.canUse()) {
-            return false;
-        }
-        LivingEntity target = this.wielder.getTarget();
-        if (target == null) {
-            return false;
-        }
-        if (!target.isAlive()) {
-            this.wielder.setTarget(null);
-            return false;
-        }
-        double distSq = this.wielder.distanceToSqr(target.getX(), target.getBoundingBox().minY, target.getZ());
-        return distSq >= this.minDistance * this.minDistance;
+        return hasLiveTarget() && isBeyondMinimum() && super.canUse();
     }
 }

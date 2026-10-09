@@ -19,11 +19,10 @@ public final class CrownFoliagePlacer extends FoliagePlacer {
     public static final MapCodec<CrownFoliagePlacer> CODEC = RecordCodecBuilder.mapCodec(
             instance -> foliagePlacerParts(instance).and(Codec.BOOL.fieldOf("absorb_foreign_leaves").forGetter(placer -> placer.absorbForeignLeaves)).apply(instance, CrownFoliagePlacer::new));
 
-    private static final int CLUSTER_LAYERS = 4;
-    private static final float RIM_RADIUS = 2.0F;
-    private static final float BELLY_RADIUS = 3.0F;
-    private static final double RADIUS_SLACK = 0.618;
-    private static final double CELL_CENTER = 0.5;
+    private static final int LAYER_COUNT = 4;
+    private static final int LAST_LAYER = LAYER_COUNT - 1;
+    private static final int SQUARE_RADIUS = 2;
+    private static final int EDGE_REACH = 1;
 
     private final boolean absorbForeignLeaves;
 
@@ -38,30 +37,20 @@ public final class CrownFoliagePlacer extends FoliagePlacer {
     }
 
     @Override
-    protected void createFoliage(WorldGenLevel level, FoliagePlacer.FoliageSetter foliageSetter, RandomSource random, TreeConfiguration config, int treeHeight, FoliagePlacer.FoliageAttachment foliageAttachment, int foliageHeight, int leafRadius, int offset) {
-        BlockPos center = foliageAttachment.pos();
-        BlockState leaves = config.foliageProvider.getState(level, random, center);
+    protected void createFoliage(WorldGenLevel level, FoliageSetter setter, RandomSource random, TreeConfiguration config, int treeHeight, FoliageAttachment attachment, int foliageHeight, int leafRadius, int offset) {
+        BlockPos anchor = attachment.pos();
+        BlockState leaf = config.foliageProvider.getState(level, random, anchor);
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (int layer = 0; layer < CLUSTER_LAYERS; layer++) {
-            float radius = layer == 0 || layer == CLUSTER_LAYERS - 1 ? RIM_RADIUS : BELLY_RADIUS;
-            int span = (int) (radius + RADIUS_SLACK);
-            for (int dx = -span; dx <= span; dx++) {
-                for (int dz = -span; dz <= span; dz++) {
-                    if (Math.pow(Math.abs(dx) + CELL_CENTER, 2.0) + Math.pow(Math.abs(dz) + CELL_CENTER, 2.0) <= radius * radius) {
-                        cursor.setWithOffset(center, dx, layer, dz);
-                        settleLeaf(level, foliageSetter, cursor, leaves);
+        for (int layer = 0; layer < LAYER_COUNT; layer++) {
+            boolean plus = layer == 0 || layer == LAST_LAYER;
+            for (int dx = -SQUARE_RADIUS; dx <= SQUARE_RADIUS; dx++) {
+                for (int dz = -SQUARE_RADIUS; dz <= SQUARE_RADIUS; dz++) {
+                    if (inLayer(plus, dx, dz)) {
+                        cursor.setWithOffset(anchor, dx, layer, dz);
+                        placeLeaf(level, setter, cursor, leaf);
                     }
                 }
             }
-        }
-    }
-
-    private void settleLeaf(WorldGenLevel level, FoliagePlacer.FoliageSetter foliageSetter, BlockPos pos, BlockState leaves) {
-        BlockState present = level.getBlockState(pos);
-        if (present.isAir()) {
-            foliageSetter.set(pos, leaves);
-        } else if (absorbForeignLeaves && present.is(BlockTags.LEAVES) && !present.is(leaves.getBlock())) {
-            foliageSetter.set(pos, TreeLeafUpdater.carryDistance(leaves, present));
         }
     }
 
@@ -73,5 +62,26 @@ public final class CrownFoliagePlacer extends FoliagePlacer {
     @Override
     protected boolean shouldSkipLocation(RandomSource random, int dx, int y, int dz, int currentRadius, boolean doubleTrunk) {
         return false;
+    }
+
+    private static boolean inLayer(boolean plus, int dx, int dz) {
+        int absX = Math.abs(dx);
+        int absZ = Math.abs(dz);
+        if (plus) {
+            return absX + absZ <= EDGE_REACH;
+        }
+        return !(absX == SQUARE_RADIUS && absZ == SQUARE_RADIUS);
+    }
+
+    private void placeLeaf(WorldGenLevel level, FoliageSetter setter, BlockPos pos, BlockState leaf) {
+        if (level.isOutsideBuildHeight(pos)) {
+            return;
+        }
+        BlockState existing = level.getBlockState(pos);
+        if (existing.isAir()) {
+            setter.set(pos, leaf);
+        } else if (absorbForeignLeaves && existing.is(BlockTags.LEAVES) && !existing.is(leaf.getBlock())) {
+            setter.set(pos, TreeLeafUpdater.carryDistance(leaf, existing));
+        }
     }
 }

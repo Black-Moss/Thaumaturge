@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.worldgen.feature;
 
 import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeFeatureConfig;
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
@@ -20,9 +21,9 @@ import com.leclowndu93150.thaumaturge.content.world.tree.silverwood.SilverwoodTr
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTFeatures;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
@@ -34,6 +35,7 @@ import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.data.worldgen.placement.TreePlacements;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.block.Block;
@@ -43,6 +45,7 @@ import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.WeightedPlacedFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.HugeMushroomFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
@@ -155,11 +158,30 @@ public final class TTConfiguredFeatures {
     private static final int CRYSTAL_BIOME_ASPECT_CHANCE = 3;
     private static final int FLORA_GRASS_ATTEMPTS = 3;
     private static final int FLORA_VISHROOM_ATTEMPTS = 5;
+    private static final int FLORA_FLOWER_ATTEMPTS = 10;
+    private static final int FLORA_HUGE_MUSHROOM_RARITY = 40;
+    private static final int HUGE_MUSHROOM_FOLIAGE_RADIUS = 3;
 
     private TTConfiguredFeatures() {}
 
     private static ResourceKey<ConfiguredFeature<?, ?>> key(String path) {
         return ResourceKey.create(Registries.CONFIGURED_FEATURE, TTIds.rl(path));
+    }
+
+    private static <C extends FeatureConfiguration> void add(BootstrapContext<ConfiguredFeature<?, ?>> context, ResourceKey<ConfiguredFeature<?, ?>> id, Feature<C> feature, C config) {
+        context.register(id, new ConfiguredFeature<>(feature, config));
+    }
+
+    private static void addSingleBlock(BootstrapContext<ConfiguredFeature<?, ?>> context, ResourceKey<ConfiguredFeature<?, ?>> id, Block block) {
+        add(context, id, Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(block)));
+    }
+
+    private static void addPlain(BootstrapContext<ConfiguredFeature<?, ?>> context, ResourceKey<ConfiguredFeature<?, ?>> id, Feature<NoneFeatureConfiguration> feature) {
+        add(context, id, feature, NoneFeatureConfiguration.INSTANCE);
+    }
+
+    private static Holder<PlacedFeature> inline(Holder<ConfiguredFeature<?, ?>> feature) {
+        return PlacementUtils.inlinePlaced(feature);
     }
 
     private static VegetationPatchConfiguration caveGround(Block ground) {
@@ -169,18 +191,26 @@ public final class TTConfiguredFeatures {
     }
 
     private static TreeConfiguration crownTree(Block log, Block leaves, CrownShape shape, CrownRule rule, boolean absorbForeignLeaves, List<TreeDecorator> decorators) {
-        return new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(log), new CrownTrunkPlacer(CROWN_TREE_BASE_HEIGHT, CROWN_TREE_HEIGHT_SPREAD, 0, shape, rule),
-                BlockStateProvider.simple(leaves), new CrownFoliagePlacer(ConstantInt.ZERO, ConstantInt.ZERO, absorbForeignLeaves), new TwoLayersFeatureSize(1, 0, 0)).ignoreVines()
+        CrownTrunkPlacer trunk = new CrownTrunkPlacer(CROWN_TREE_BASE_HEIGHT, CROWN_TREE_HEIGHT_SPREAD, 0, shape, rule);
+        CrownFoliagePlacer foliage = new CrownFoliagePlacer(ConstantInt.ZERO, ConstantInt.ZERO, absorbForeignLeaves);
+        return new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(log), trunk, BlockStateProvider.simple(leaves), foliage, new TwoLayersFeatureSize(1, 0, 0)).ignoreVines()
                 .decorators(decorators).build();
     }
 
     private static TreeConfiguration silverwoodTree(int minHeight, int extraHeight, boolean growNodes, boolean keepApart, Optional<Block> flower) {
-        List<TreeDecorator> decorators = new ArrayList<>();
-        decorators.add(DetachedLeafPruner.INSTANCE);
-        flower.ifPresent(block -> decorators.add(new ScatteredFlowersDecorator(block)));
-        return new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(TTBlocks.LOG_SILVERWOOD.get()), new SilverwoodTrunkPlacer(minHeight, extraHeight - 1, 0, growNodes, keepApart),
-                BlockStateProvider.simple(TTBlocks.LEAVES_SILVERWOOD.get()), new LeafCellFoliagePlacer(ConstantInt.ZERO, ConstantInt.ZERO), new TwoLayersFeatureSize(1, 0, 0)).ignoreVines()
-                .decorators(List.copyOf(decorators)).build();
+        List<TreeDecorator> decorators = flower.<List<TreeDecorator>>map(block -> List.of(DetachedLeafPruner.INSTANCE, new ScatteredFlowersDecorator(block)))
+                .orElseGet(() -> List.of(DetachedLeafPruner.INSTANCE));
+        SilverwoodTrunkPlacer trunk = new SilverwoodTrunkPlacer(minHeight, extraHeight - 1, 0, growNodes, keepApart);
+        TreeConfiguration.TreeConfigurationBuilder builder = new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(TTBlocks.LOG_SILVERWOOD.get()), trunk,
+                BlockStateProvider.simple(TTBlocks.LEAVES_SILVERWOOD.get()), new LeafCellFoliagePlacer(ConstantInt.ZERO, ConstantInt.ZERO), new TwoLayersFeatureSize(1, 0, 0));
+        return builder.ignoreVines().decorators(decorators).build();
+    }
+
+    private static TreeConfiguration caveGreatwoodTree() {
+        BlobFoliagePlacer foliage = new BlobFoliagePlacer(ConstantInt.of(MAGICAL_CAVE_GREATWOOD_FOLIAGE_RADIUS), ConstantInt.of(0), MAGICAL_CAVE_GREATWOOD_FOLIAGE_HEIGHT);
+        StraightTrunkPlacer trunk = new StraightTrunkPlacer(MAGICAL_CAVE_GREATWOOD_BASE_HEIGHT, MAGICAL_CAVE_GREATWOOD_EXTRA_HEIGHT, 0);
+        return new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(TTBlocks.LOG_GREATWOOD.get()), trunk, BlockStateProvider.simple(TTBlocks.LEAVES_GREATWOOD.get()), foliage,
+                new TwoLayersFeatureSize(1, 0, 1)).build();
     }
 
     private static Holder<PlacedFeature> patch(Holder<ConfiguredFeature<?, ?>> feature, int tries) {
@@ -188,116 +218,137 @@ public final class TTConfiguredFeatures {
                 BlockPredicateFilter.forPredicate(BlockPredicate.ONLY_IN_AIR_PREDICATE));
     }
 
+    private static HugeMushroomFeatureConfiguration hugeMushroom(Block cap, TagKey<Block> placeOn) {
+        BlockStateProvider capProvider = BlockStateProvider.simple(cap.defaultBlockState().setValue(HugeMushroomBlock.DOWN, false));
+        BlockStateProvider stemProvider = BlockStateProvider.simple(Blocks.MUSHROOM_STEM.defaultBlockState().setValue(HugeMushroomBlock.UP, false).setValue(HugeMushroomBlock.DOWN, false));
+        return new HugeMushroomFeatureConfiguration(capProvider, stemProvider, HUGE_MUSHROOM_FOLIAGE_RADIUS, BlockPredicate.matchesTag(placeOn));
+    }
+
+    private static MagicForestFloraConfig.PlantPatch plantPatch(Block block, int attempts, int rarity) {
+        return new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(block), attempts, rarity);
+    }
+
+    private static NodeFeatureConfig node(boolean eerie) {
+        return new NodeFeatureConfig(false, eerie, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+    }
+
+    private static CrystalClusterConfig.Entry crystal(ResourceKey<IAspect> aspect, Supplier<? extends Block> block) {
+        return new CrystalClusterConfig.Entry(aspect, block.get());
+    }
+
+    private static ReplaceBlockConfiguration oreReplacement(Block stoneOre, Block deepslateOre) {
+        OreConfiguration.TargetBlockState inStone = OreConfiguration.target(new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES), stoneOre.defaultBlockState());
+        OreConfiguration.TargetBlockState inDeepslate = OreConfiguration.target(new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES), deepslateOre.defaultBlockState());
+        return new ReplaceBlockConfiguration(List.of(inStone, inDeepslate));
+    }
+
     public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         HolderGetter<PlacedFeature> placed = context.lookup(Registries.PLACED_FEATURE);
         HolderGetter<ConfiguredFeature<?, ?>> configured = context.lookup(Registries.CONFIGURED_FEATURE);
+        registerSurfaceTrees(context);
+        registerCaveTrees(context);
+        registerForestSelectors(context, placed);
+        registerTaintBiome(context);
+        registerForestFlora(context, configured);
+        registerCaveGround(context, configured);
+        registerCaveVegetation(context, configured);
+        registerStructures(context);
+        registerCrystals(context);
+        registerOres(context);
+    }
 
+    private static void registerSurfaceTrees(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+        Block greatwoodLog = TTBlocks.LOG_GREATWOOD.get();
+        Block greatwoodLeaves = TTBlocks.LEAVES_GREATWOOD.get();
         CrownShape greatwoodShape = new CrownShape(GREATWOOD_TRUNK_WIDTH, GREATWOOD_HEIGHT_ATTENUATION, GREATWOOD_BRANCH_SLOPE, GREATWOOD_SCALE_WIDTH, true);
-        List<TreeDecorator> greatwoodNest = List.of(new SpiderNestDecorator(GREATWOOD_SPIDER_CHANCE, TTBlocks.LOG_GREATWOOD.get(), TTBlocks.LEAVES_GREATWOOD.get()));
-        context.register(GREATWOOD_TREE,
-                new ConfiguredFeature<>(Feature.TREE, crownTree(TTBlocks.LOG_GREATWOOD.get(), TTBlocks.LEAVES_GREATWOOD.get(), greatwoodShape, CrownRule.OPEN_AIR, false, greatwoodNest)));
-        context.register(GREATWOOD_TREE_GROWN,
-                new ConfiguredFeature<>(Feature.TREE, crownTree(TTBlocks.LOG_GREATWOOD.get(), TTBlocks.LEAVES_GREATWOOD.get(), greatwoodShape, CrownRule.OPEN_AIR, false, List.of())));
+        List<TreeDecorator> greatwoodNest = List.of(new SpiderNestDecorator(GREATWOOD_SPIDER_CHANCE, greatwoodLog, greatwoodLeaves));
+        add(context, GREATWOOD_TREE, Feature.TREE, crownTree(greatwoodLog, greatwoodLeaves, greatwoodShape, CrownRule.OPEN_AIR, false, greatwoodNest));
+        add(context, GREATWOOD_TREE_GROWN, Feature.TREE, crownTree(greatwoodLog, greatwoodLeaves, greatwoodShape, CrownRule.OPEN_AIR, false, List.of()));
         CrownShape magicOakShape = new CrownShape(1, MAGIC_OAK_TRUNK_SHARE, MAGIC_OAK_BRANCH_SLOPE, MAGIC_OAK_CROWN_WIDTH, false);
-        context.register(BIG_MAGIC_TREE, new ConfiguredFeature<>(Feature.TREE, crownTree(Blocks.OAK_LOG, Blocks.OAK_LEAVES, magicOakShape, CrownRule.REPLACEABLE, true, List.of())));
-        context.register(SILVERWOOD_TREE,
-                new ConfiguredFeature<>(Feature.TREE, silverwoodTree(SILVERWOOD_NATURAL_MIN_HEIGHT, SILVERWOOD_NATURAL_EXTRA_HEIGHT, true, true, Optional.of(TTBlocks.PLANT_SHIMMERLEAF.get()))));
-        context.register(SILVERWOOD_TREE_GROWN, new ConfiguredFeature<>(Feature.TREE, silverwoodTree(SILVERWOOD_GROWN_MIN_HEIGHT, SILVERWOOD_GROWN_EXTRA_HEIGHT, true, false, Optional.empty())));
+        add(context, BIG_MAGIC_TREE, Feature.TREE, crownTree(Blocks.OAK_LOG, Blocks.OAK_LEAVES, magicOakShape, CrownRule.REPLACEABLE, true, List.of()));
+        Optional<Block> shimmerleaf = Optional.of(TTBlocks.PLANT_SHIMMERLEAF.get());
+        add(context, SILVERWOOD_TREE, Feature.TREE, silverwoodTree(SILVERWOOD_NATURAL_MIN_HEIGHT, SILVERWOOD_NATURAL_EXTRA_HEIGHT, true, true, shimmerleaf));
+        add(context, SILVERWOOD_TREE_GROWN, Feature.TREE, silverwoodTree(SILVERWOOD_GROWN_MIN_HEIGHT, SILVERWOOD_GROWN_EXTRA_HEIGHT, true, false, Optional.empty()));
+    }
 
-        context.register(SILVERWOOD_TREE_CAVE, new ConfiguredFeature<>(Feature.TREE,
-                silverwoodTree(MAGICAL_CAVE_SILVERWOOD_BASE_HEIGHT, MAGICAL_CAVE_SILVERWOOD_EXTRA_HEIGHT, false, false, Optional.of(TTBlocks.PLANT_SHIMMERLEAF.get()))));
-        context.register(MAGICAL_CAVE_GREATWOOD_TREE, new ConfiguredFeature<>(Feature.TREE,
-                new TreeConfiguration.TreeConfigurationBuilder(BlockStateProvider.simple(TTBlocks.LOG_GREATWOOD.get()),
-                        new StraightTrunkPlacer(MAGICAL_CAVE_GREATWOOD_BASE_HEIGHT, MAGICAL_CAVE_GREATWOOD_EXTRA_HEIGHT, 0), BlockStateProvider.simple(TTBlocks.LEAVES_GREATWOOD.get()),
-                        new BlobFoliagePlacer(ConstantInt.of(MAGICAL_CAVE_GREATWOOD_FOLIAGE_RADIUS), ConstantInt.of(0), MAGICAL_CAVE_GREATWOOD_FOLIAGE_HEIGHT), new TwoLayersFeatureSize(1, 0, 1))
-                        .build()));
+    private static void registerCaveTrees(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+        add(context, SILVERWOOD_TREE_CAVE, Feature.TREE,
+                silverwoodTree(MAGICAL_CAVE_SILVERWOOD_BASE_HEIGHT, MAGICAL_CAVE_SILVERWOOD_EXTRA_HEIGHT, false, false, Optional.of(TTBlocks.PLANT_SHIMMERLEAF.get())));
+        add(context, MAGICAL_CAVE_GREATWOOD_TREE, Feature.TREE, caveGreatwoodTree());
+    }
 
-        context.register(MAGIC_FOREST_TREES,
-                new ConfiguredFeature<>(Feature.RANDOM_SELECTOR,
-                        new RandomFeatureConfiguration(
-                                List.of(new WeightedPlacedFeature(placed.getOrThrow(TTPlacedFeatures.SILVERWOOD_CHECKED), MAGIC_FOREST_SILVERWOOD_CHANCE),
-                                        new WeightedPlacedFeature(placed.getOrThrow(TTPlacedFeatures.GREATWOOD_CHECKED), MAGIC_FOREST_GREATWOOD_CHANCE)),
-                                placed.getOrThrow(TTPlacedFeatures.BIG_MAGIC_CHECKED))));
+    private static void registerForestSelectors(BootstrapContext<ConfiguredFeature<?, ?>> context, HolderGetter<PlacedFeature> placed) {
+        Holder<PlacedFeature> silverwood = placed.getOrThrow(TTPlacedFeatures.SILVERWOOD_CHECKED);
+        Holder<PlacedFeature> greatwood = placed.getOrThrow(TTPlacedFeatures.GREATWOOD_CHECKED);
+        Holder<PlacedFeature> bigMagic = placed.getOrThrow(TTPlacedFeatures.BIG_MAGIC_CHECKED);
+        add(context, MAGIC_FOREST_TREES, Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(
+                List.of(new WeightedPlacedFeature(silverwood, MAGIC_FOREST_SILVERWOOD_CHANCE), new WeightedPlacedFeature(greatwood, MAGIC_FOREST_GREATWOOD_CHANCE)), bigMagic));
+        add(context, TAINTED_LANDS_TREES, Feature.RANDOM_SELECTOR,
+                new RandomFeatureConfiguration(List.of(new WeightedPlacedFeature(bigMagic, TAINTED_LANDS_BIG_TREE_CHANCE)), placed.getOrThrow(TreePlacements.OAK_CHECKED)));
+    }
 
-        context.register(TAINTED_LANDS_TREES, new ConfiguredFeature<>(Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(
-                List.of(new WeightedPlacedFeature(placed.getOrThrow(TTPlacedFeatures.BIG_MAGIC_CHECKED), TAINTED_LANDS_BIG_TREE_CHANCE)), placed.getOrThrow(TreePlacements.OAK_CHECKED))));
+    private static void registerTaintBiome(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+        UniformInt crustRadius = UniformInt.of(TAINT_BIOME_MIN_CRUST_RADIUS, TAINT_BIOME_MAX_CRUST_RADIUS);
+        add(context, TAINT_BIOME, TTFeatures.TAINT_BIOME.get(), new TaintBiomeConfig(TTBlocks.TAINT_CRUST.get(), TAINT_BIOME_MAX_CRUST_BLOBS, crustRadius, TAINT_BIOME_GRASS_FIBRE_ATTEMPTS,
+                TAINT_BIOME_GENERAL_FIBRE_ATTEMPTS, TAINT_BIOME_GROUND_SEARCH_DEPTH, true, TAINT_BIOME_LANDMARK_RADIUS_CHUNKS, TAINT_BIOME_LANDMARK_ATTEMPTS));
+    }
 
-        context.register(TAINT_BIOME,
-                new ConfiguredFeature<>(TTFeatures.TAINT_BIOME.get(),
-                        new TaintBiomeConfig(TTBlocks.TAINT_CRUST.get(), TAINT_BIOME_MAX_CRUST_BLOBS, UniformInt.of(TAINT_BIOME_MIN_CRUST_RADIUS, TAINT_BIOME_MAX_CRUST_RADIUS),
-                                TAINT_BIOME_GRASS_FIBRE_ATTEMPTS, TAINT_BIOME_GENERAL_FIBRE_ATTEMPTS, TAINT_BIOME_GROUND_SEARCH_DEPTH, true, TAINT_BIOME_LANDMARK_RADIUS_CHUNKS,
-                                TAINT_BIOME_LANDMARK_ATTEMPTS)));
+    private static void registerForestFlora(BootstrapContext<ConfiguredFeature<?, ?>> context, HolderGetter<ConfiguredFeature<?, ?>> configured) {
+        add(context, MAGIC_FOREST_BROWN_MUSHROOM, Feature.HUGE_BROWN_MUSHROOM, hugeMushroom(Blocks.BROWN_MUSHROOM_BLOCK, BlockTags.HUGE_BROWN_MUSHROOM_CAN_PLACE_ON));
+        add(context, MAGIC_FOREST_RED_MUSHROOM, Feature.HUGE_RED_MUSHROOM, hugeMushroom(Blocks.RED_MUSHROOM_BLOCK, BlockTags.HUGE_RED_MUSHROOM_CAN_PLACE_ON));
+        List<MagicForestFloraConfig.PlantPatch> plants = List.of(plantPatch(Blocks.TALL_GRASS, 12, 1), plantPatch(Blocks.SHORT_GRASS, 10, 1), plantPatch(Blocks.FERN, 6, 1),
+                plantPatch(Blocks.BROWN_MUSHROOM, 6, 4), plantPatch(Blocks.RED_MUSHROOM, 6, 8));
+        HolderSet<ConfiguredFeature<?, ?>> hugeMushrooms = HolderSet.direct(configured.getOrThrow(MAGIC_FOREST_BROWN_MUSHROOM), configured.getOrThrow(MAGIC_FOREST_RED_MUSHROOM));
+        HolderSet<Block> flowers = context.lookup(Registries.BLOCK).getOrThrow(TTBlockTags.MAGICAL_FOREST_FLOWERS);
+        add(context, MAGIC_FOREST_FLORA, TTFeatures.MAGIC_FOREST_FLORA.get(), new MagicForestFloraConfig(TTBlocks.GRASS_AMBIENT.get(), TTBlocks.PLANT_VISHROOM.get(), FLORA_GRASS_ATTEMPTS,
+                FLORA_VISHROOM_ATTEMPTS, flowers, FLORA_FLOWER_ATTEMPTS, plants, hugeMushrooms, FLORA_HUGE_MUSHROOM_RARITY));
+    }
 
-        context.register(MAGIC_FOREST_BROWN_MUSHROOM,
-                new ConfiguredFeature<>(Feature.HUGE_BROWN_MUSHROOM,
-                        new HugeMushroomFeatureConfiguration(BlockStateProvider.simple(Blocks.BROWN_MUSHROOM_BLOCK.defaultBlockState().setValue(HugeMushroomBlock.DOWN, false)),
-                                BlockStateProvider.simple(Blocks.MUSHROOM_STEM.defaultBlockState().setValue(HugeMushroomBlock.UP, false).setValue(HugeMushroomBlock.DOWN, false)), 3,
-                                BlockPredicate.matchesTag(BlockTags.HUGE_BROWN_MUSHROOM_CAN_PLACE_ON))));
-        context.register(MAGIC_FOREST_RED_MUSHROOM,
-                new ConfiguredFeature<>(Feature.HUGE_RED_MUSHROOM,
-                        new HugeMushroomFeatureConfiguration(BlockStateProvider.simple(Blocks.RED_MUSHROOM_BLOCK.defaultBlockState().setValue(HugeMushroomBlock.DOWN, false)),
-                                BlockStateProvider.simple(Blocks.MUSHROOM_STEM.defaultBlockState().setValue(HugeMushroomBlock.UP, false).setValue(HugeMushroomBlock.DOWN, false)), 3,
-                                BlockPredicate.matchesTag(BlockTags.HUGE_RED_MUSHROOM_CAN_PLACE_ON))));
-        context.register(MAGIC_FOREST_FLORA,
-                new ConfiguredFeature<>(TTFeatures.MAGIC_FOREST_FLORA.get(),
-                        new MagicForestFloraConfig(TTBlocks.GRASS_AMBIENT.get(), TTBlocks.PLANT_VISHROOM.get(), FLORA_GRASS_ATTEMPTS, FLORA_VISHROOM_ATTEMPTS,
-                                context.lookup(Registries.BLOCK).getOrThrow(TTBlockTags.MAGICAL_FOREST_FLOWERS), 10,
-                                List.of(new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.TALL_GRASS), 12, 1),
-                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.SHORT_GRASS), 10, 1),
-                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.FERN), 6, 1),
-                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.BROWN_MUSHROOM), 6, 4),
-                                        new MagicForestFloraConfig.PlantPatch(BlockStateProvider.simple(Blocks.RED_MUSHROOM), 6, 8)),
-                                HolderSet.direct(configured.getOrThrow(MAGIC_FOREST_BROWN_MUSHROOM), configured.getOrThrow(MAGIC_FOREST_RED_MUSHROOM)), 40)));
+    private static void registerCaveGround(BootstrapContext<ConfiguredFeature<?, ?>> context, HolderGetter<ConfiguredFeature<?, ?>> configured) {
+        add(context, MAGICAL_CAVE_GRASS, Feature.VEGETATION_PATCH, caveGround(Blocks.GRASS_BLOCK));
+        add(context, MAGICAL_CAVE_AMBIENT_GRASS, Feature.VEGETATION_PATCH, caveGround(TTBlocks.GRASS_AMBIENT.get()));
+        addPlain(context, MAGICAL_CAVE_POND, TTFeatures.MAGICAL_CAVE_POND.get());
+        add(context, MAGICAL_CAVE_MUSHROOMS, Feature.RANDOM_BOOLEAN_SELECTOR,
+                new RandomBooleanFeatureConfiguration(inline(configured.getOrThrow(TreeFeatures.HUGE_BROWN_MUSHROOM)), inline(configured.getOrThrow(TreeFeatures.HUGE_RED_MUSHROOM))));
+    }
 
-        context.register(MAGICAL_CAVE_GRASS, new ConfiguredFeature<>(Feature.VEGETATION_PATCH, caveGround(Blocks.GRASS_BLOCK)));
-        context.register(MAGICAL_CAVE_AMBIENT_GRASS, new ConfiguredFeature<>(Feature.VEGETATION_PATCH, caveGround(TTBlocks.GRASS_AMBIENT.get())));
-        context.register(MAGICAL_CAVE_POND, new ConfiguredFeature<>(TTFeatures.MAGICAL_CAVE_POND.get(), NoneFeatureConfiguration.INSTANCE));
-        context.register(MAGICAL_CAVE_MUSHROOMS,
-                new ConfiguredFeature<>(Feature.RANDOM_BOOLEAN_SELECTOR, new RandomBooleanFeatureConfiguration(PlacementUtils.inlinePlaced(configured.getOrThrow(TreeFeatures.HUGE_BROWN_MUSHROOM)),
-                        PlacementUtils.inlinePlaced(configured.getOrThrow(TreeFeatures.HUGE_RED_MUSHROOM)))));
-        context.register(MAGICAL_CAVE_TREES,
-                new ConfiguredFeature<>(Feature.RANDOM_SELECTOR,
-                        new RandomFeatureConfiguration(
-                                List.of(new WeightedPlacedFeature(PlacementUtils.inlinePlaced(configured.getOrThrow(SILVERWOOD_TREE_CAVE)), MAGICAL_CAVE_SILVERWOOD_CHANCE),
-                                        new WeightedPlacedFeature(PlacementUtils.inlinePlaced(configured.getOrThrow(MAGICAL_CAVE_GREATWOOD_TREE)), MAGICAL_CAVE_GREATWOOD_CHANCE),
-                                        new WeightedPlacedFeature(PlacementUtils.inlinePlaced(configured.getOrThrow(TreeFeatures.OAK)), MAGICAL_CAVE_OAK_TREE_CHANCE)),
-                                PlacementUtils.inlinePlaced(configured.getOrThrow(MAGICAL_CAVE_BUSH)))));
-        context.register(MAGICAL_CAVE_BUSH, new ConfiguredFeature<>(TTFeatures.MAGICAL_CAVE_BUSH.get(), NoneFeatureConfiguration.INSTANCE));
-        context.register(MAGICAL_CAVE_FLORA,
-                new ConfiguredFeature<>(Feature.RANDOM_SELECTOR,
-                        new RandomFeatureConfiguration(
-                                List.of(new WeightedPlacedFeature(patch(configured.getOrThrow(VegetationFeatures.BROWN_MUSHROOM), MUSHROOM_PATCH_TRIES), MAGICAL_CAVE_BROWN_MUSHROOM_CHANCE),
-                                        new WeightedPlacedFeature(patch(configured.getOrThrow(VegetationFeatures.RED_MUSHROOM), MUSHROOM_PATCH_TRIES), MAGICAL_CAVE_RED_MUSHROOM_CHANCE),
-                                        new WeightedPlacedFeature(patch(configured.getOrThrow(VegetationFeatures.FLOWER_DEFAULT), FLOWER_PATCH_TRIES), MAGICAL_CAVE_FLOWER_CHANCE)),
-                                patch(configured.getOrThrow(VegetationFeatures.GRASS), GRASS_PATCH_TRIES))));
-        context.register(MAGICAL_CAVE_VISHROOM, new ConfiguredFeature<>(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(TTBlocks.PLANT_VISHROOM.get()))));
-        context.register(MAGICAL_CAVE_SHIMMERLEAF, new ConfiguredFeature<>(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(TTBlocks.PLANT_SHIMMERLEAF.get()))));
+    private static void registerCaveVegetation(BootstrapContext<ConfiguredFeature<?, ?>> context, HolderGetter<ConfiguredFeature<?, ?>> configured) {
+        List<WeightedPlacedFeature> caveTrees = List.of(new WeightedPlacedFeature(inline(configured.getOrThrow(SILVERWOOD_TREE_CAVE)), MAGICAL_CAVE_SILVERWOOD_CHANCE),
+                new WeightedPlacedFeature(inline(configured.getOrThrow(MAGICAL_CAVE_GREATWOOD_TREE)), MAGICAL_CAVE_GREATWOOD_CHANCE),
+                new WeightedPlacedFeature(inline(configured.getOrThrow(TreeFeatures.OAK)), MAGICAL_CAVE_OAK_TREE_CHANCE));
+        add(context, MAGICAL_CAVE_TREES, Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(caveTrees, inline(configured.getOrThrow(MAGICAL_CAVE_BUSH))));
+        addPlain(context, MAGICAL_CAVE_BUSH, TTFeatures.MAGICAL_CAVE_BUSH.get());
+        List<WeightedPlacedFeature> caveFlora = List.of(
+                new WeightedPlacedFeature(patch(configured.getOrThrow(VegetationFeatures.BROWN_MUSHROOM), MUSHROOM_PATCH_TRIES), MAGICAL_CAVE_BROWN_MUSHROOM_CHANCE),
+                new WeightedPlacedFeature(patch(configured.getOrThrow(VegetationFeatures.RED_MUSHROOM), MUSHROOM_PATCH_TRIES), MAGICAL_CAVE_RED_MUSHROOM_CHANCE),
+                new WeightedPlacedFeature(patch(configured.getOrThrow(VegetationFeatures.FLOWER_DEFAULT), FLOWER_PATCH_TRIES), MAGICAL_CAVE_FLOWER_CHANCE));
+        add(context, MAGICAL_CAVE_FLORA, Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(caveFlora, patch(configured.getOrThrow(VegetationFeatures.GRASS), GRASS_PATCH_TRIES)));
+        addSingleBlock(context, MAGICAL_CAVE_VISHROOM, TTBlocks.PLANT_VISHROOM.get());
+        addSingleBlock(context, MAGICAL_CAVE_SHIMMERLEAF, TTBlocks.PLANT_SHIMMERLEAF.get());
+    }
 
-        context.register(MANA_PODS, new ConfiguredFeature<>(TTFeatures.MANA_PODS.get(), NoneFeatureConfiguration.INSTANCE));
+    private static void registerStructures(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+        addPlain(context, MANA_PODS, TTFeatures.MANA_PODS.get());
+        add(context, NODES_WILD, TTFeatures.NODE.get(), node(false));
+        add(context, NODES_EERIE, TTFeatures.NODE.get(), node(true));
+        addPlain(context, OBSIDIAN_TOTEM, TTFeatures.OBSIDIAN_TOTEM.get());
+        addPlain(context, CRIMSON_PORTAL, TTFeatures.CRIMSON_PORTAL.get());
+        addPlain(context, HILLTOP_STONES, TTFeatures.HILLTOP_STONES.get());
+    }
 
-        context.register(NODES_WILD, new ConfiguredFeature<>(TTFeatures.NODE.get(), new NodeFeatureConfig(false, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
-        context.register(NODES_EERIE, new ConfiguredFeature<>(TTFeatures.NODE.get(), new NodeFeatureConfig(false, true, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA)));
-        context.register(OBSIDIAN_TOTEM, new ConfiguredFeature<>(TTFeatures.OBSIDIAN_TOTEM.get(), NoneFeatureConfiguration.INSTANCE));
-        context.register(CRIMSON_PORTAL, new ConfiguredFeature<>(TTFeatures.CRIMSON_PORTAL.get(), NoneFeatureConfiguration.INSTANCE));
-        context.register(HILLTOP_STONES, new ConfiguredFeature<>(TTFeatures.HILLTOP_STONES.get(), NoneFeatureConfiguration.INSTANCE));
+    private static void registerCrystals(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+        List<CrystalClusterConfig.Entry> entries = List.of(crystal(TTAspects.AER, TTBlocks.CRYSTAL_AER), crystal(TTAspects.IGNIS, TTBlocks.CRYSTAL_IGNIS),
+                crystal(TTAspects.AQUA, TTBlocks.CRYSTAL_AQUA), crystal(TTAspects.TERRA, TTBlocks.CRYSTAL_TERRA), crystal(TTAspects.ORDO, TTBlocks.CRYSTAL_ORDO),
+                crystal(TTAspects.PERDITIO, TTBlocks.CRYSTAL_PERDITIO));
+        add(context, CRYSTALS, TTFeatures.CRYSTAL_CLUSTER.get(), new CrystalClusterConfig(entries, CRYSTAL_ATTEMPTS, CRYSTAL_MAX_TOTAL, CRYSTAL_BIOME_ASPECT_CHANCE));
+        add(context, MAGICAL_CAVE_CRYSTALS, TTFeatures.CRYSTAL_CLUSTER.get(),
+                new CrystalClusterConfig(entries, MAGICAL_CAVE_CRYSTAL_ATTEMPTS, MAGICAL_CAVE_CRYSTAL_MAX_TOTAL, CRYSTAL_BIOME_ASPECT_CHANCE, true));
+    }
 
-        List<CrystalClusterConfig.Entry> crystals = List.of(new CrystalClusterConfig.Entry(TTAspects.AER, TTBlocks.CRYSTAL_AER.get()),
-                new CrystalClusterConfig.Entry(TTAspects.IGNIS, TTBlocks.CRYSTAL_IGNIS.get()), new CrystalClusterConfig.Entry(TTAspects.AQUA, TTBlocks.CRYSTAL_AQUA.get()),
-                new CrystalClusterConfig.Entry(TTAspects.TERRA, TTBlocks.CRYSTAL_TERRA.get()), new CrystalClusterConfig.Entry(TTAspects.ORDO, TTBlocks.CRYSTAL_ORDO.get()),
-                new CrystalClusterConfig.Entry(TTAspects.PERDITIO, TTBlocks.CRYSTAL_PERDITIO.get()));
-        context.register(CRYSTALS, new ConfiguredFeature<>(TTFeatures.CRYSTAL_CLUSTER.get(), new CrystalClusterConfig(crystals, CRYSTAL_ATTEMPTS, CRYSTAL_MAX_TOTAL, CRYSTAL_BIOME_ASPECT_CHANCE)));
-        context.register(MAGICAL_CAVE_CRYSTALS, new ConfiguredFeature<>(TTFeatures.CRYSTAL_CLUSTER.get(),
-                new CrystalClusterConfig(crystals, MAGICAL_CAVE_CRYSTAL_ATTEMPTS, MAGICAL_CAVE_CRYSTAL_MAX_TOTAL, CRYSTAL_BIOME_ASPECT_CHANCE, true)));
-
-        TagMatchTest stone = new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES);
-        TagMatchTest deepslate = new TagMatchTest(BlockTags.DEEPSLATE_ORE_REPLACEABLES);
-        context.register(ORE_CINNABAR, new ConfiguredFeature<>(Feature.REPLACE_SINGLE_BLOCK, new ReplaceBlockConfiguration(List
-                .of(OreConfiguration.target(stone, TTBlocks.ORE_CINNABAR.get().defaultBlockState()), OreConfiguration.target(deepslate, TTBlocks.DEEPSLATE_ORE_CINNABAR.get().defaultBlockState())))));
-        context.register(ORE_QUARTZ, new ConfiguredFeature<>(Feature.REPLACE_SINGLE_BLOCK, new ReplaceBlockConfiguration(
-                List.of(OreConfiguration.target(stone, TTBlocks.ORE_QUARTZ.get().defaultBlockState()), OreConfiguration.target(deepslate, TTBlocks.DEEPSLATE_ORE_QUARTZ.get().defaultBlockState())))));
-        context.register(ORE_AMBER, new ConfiguredFeature<>(Feature.REPLACE_SINGLE_BLOCK, new ReplaceBlockConfiguration(
-                List.of(OreConfiguration.target(stone, TTBlocks.ORE_AMBER.get().defaultBlockState()), OreConfiguration.target(deepslate, TTBlocks.DEEPSLATE_ORE_AMBER.get().defaultBlockState())))));
-
-        context.register(CINDERPEARL_PATCH, new ConfiguredFeature<>(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(TTBlocks.PLANT_CINDERPEARL.get()))));
+    private static void registerOres(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+        add(context, ORE_CINNABAR, Feature.REPLACE_SINGLE_BLOCK, oreReplacement(TTBlocks.ORE_CINNABAR.get(), TTBlocks.DEEPSLATE_ORE_CINNABAR.get()));
+        add(context, ORE_QUARTZ, Feature.REPLACE_SINGLE_BLOCK, oreReplacement(TTBlocks.ORE_QUARTZ.get(), TTBlocks.DEEPSLATE_ORE_QUARTZ.get()));
+        add(context, ORE_AMBER, Feature.REPLACE_SINGLE_BLOCK, oreReplacement(TTBlocks.ORE_AMBER.get(), TTBlocks.DEEPSLATE_ORE_AMBER.get()));
+        addSingleBlock(context, CINDERPEARL_PATCH, TTBlocks.PLANT_CINDERPEARL.get());
     }
 }

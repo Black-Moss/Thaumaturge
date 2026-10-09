@@ -5,305 +5,275 @@ import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.ProvisionRequest;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * One unit of golem work on a level's task board: a block or an entity that a golem walks to so the posting seal can act on it.
+ * One unit of golem work on a level's task board.
  *
- * <p>
- * Tasks are server side only and are never saved. A task lives on the board until it ends or its life counter runs out; the board removes it at its next once-a-second sweep and tells
- * the posting seal.
+ * <p>Tasks are created with the static factories and posted through {@link GolemHelper#addGolemTask}, which gives them
+ * their id. They live on the server only, are never saved or synchronised, and must be used from the server thread. Life
+ * counts board sweeps, one per second.
+ *
+ * <p>Equality uses the board-assigned id alone, so tasks that were never posted (id 0) are equal to each other.
  *
  * @since 1.0.0
  */
 public final class Task {
-    private static final int DEFAULT_LIFE = 300;
+    private static final int INITIAL_LIFE = 300;
     private static final int CLAIM_LIFE_BONUS = 120;
     private static final int ATTEMPT_LIFE_BONUS = 1;
 
-    private final @Nullable SealPos origin;
-    private final TaskTarget target;
-    private int id;
-    private @Nullable UUID assignee;
-    private byte priority;
-    private int life = DEFAULT_LIFE;
-    private int sealData;
-    private boolean claimed;
-    private boolean ended;
-    private boolean finished;
-    private @Nullable ProvisionRequest provision;
+    private static final byte NO_COLOR = 0;
 
-    private Task(@Nullable SealPos origin, TaskTarget target) {
-        this.origin = origin;
+    private final TaskTarget target;
+    private final @Nullable SealPos origin;
+    private int remainingLife = INITIAL_LIFE;
+    private int boardId;
+    private int sealOwnedValue;
+    private byte rank;
+    private final Set<Status> status = EnumSet.noneOf(Status.class);
+    private @Nullable UUID reservedFor;
+    private @Nullable ProvisionRequest servedRequest;
+
+    private Task(TaskTarget target, @Nullable SealPos origin) {
         this.target = target;
+        this.origin = origin;
     }
 
     /**
-     * Creates a task aimed at a block.
-     *
-     * @param origin the posting seal, or {@code null} for free-standing work that any golem may take and that finishes as soon as a golem reaches it
-     * @param pos    the block to work
-     * @return a new, unposted task
-     * @since 1.0.0
+     * @param origin the placement of the posting seal, or null for free-standing work that counts as finished when a golem attempts it
+     * @param pos    the block to work on
+     * @return a new task aimed at the block
      */
     public static Task atBlock(@Nullable SealPos origin, BlockPos pos) {
-        return new Task(origin, new BlockTarget(pos.immutable()));
+        return new Task(new BlockTarget(pos.immutable()), origin);
     }
 
     /**
-     * Creates a task aimed at an entity. Its position follows the entity.
-     *
-     * @param origin the posting seal, or {@code null} for free-standing work
-     * @param entity the entity to work
-     * @return a new, unposted task
-     * @since 1.0.0
+     * @param origin the placement of the posting seal, or null for free-standing work that counts as finished when a golem attempts it
+     * @param entity the entity to work on
+     * @return a new task aimed at the entity
      */
     public static Task onEntity(@Nullable SealPos origin, Entity entity) {
-        return new Task(origin, new EntityTarget(entity));
+        return new Task(new EntityTarget(entity), origin);
     }
 
     /**
-     * @return the posting seal's position, or {@code null} for free-standing work
-     * @since 1.0.0
+     * @return the placement of the posting seal, or null
      */
     public @Nullable SealPos origin() {
         return origin;
     }
 
     /**
-     * @return what the task points a golem at
-     * @since 1.0.0
+     * @return what the task points at
      */
     public TaskTarget target() {
         return target;
     }
 
     /**
-     * @return the target block, or the block the target entity currently stands in
-     * @since 1.0.0
+     * @return the block the golem walks to; for an entity task, the block the entity stands in
      */
     public BlockPos pos() {
         return target.pos();
     }
 
     /**
-     * @return the target entity, or {@code null} for a block task
-     * @since 1.0.0
+     * @return the target entity, or null for a block task
      */
     public @Nullable Entity entity() {
-        return target instanceof EntityTarget onEntity ? onEntity.entity() : null;
+        return switch (target) {
+            case EntityTarget entityTarget -> entityTarget.entity();
+            case BlockTarget ignored -> null;
+        };
     }
 
     /**
-     * @return whether the task targets an entity
-     * @since 1.0.0
+     * @return whether the task is aimed at an entity
      */
     public boolean isEntityTask() {
-        return target instanceof EntityTarget;
+        return entity() != null;
     }
 
     /**
-     * @return the identifier the board gave the task when it was posted; two tasks are equal exactly when their identifiers are
-     * @since 1.0.0
+     * @return the board-assigned id, or 0 before the task is posted
      */
     public int id() {
-        return id;
+        return boardId;
     }
 
     /**
-     * Sets the identifier. Called by the board when the task is posted.
+     * Stores the id handed out by the task board. Called when the task is posted.
      *
-     * @param id the identifier, unique within the board
-     * @since 1.0.0
+     * @param id the id to store
      */
     public void assignId(int id) {
-        this.id = id;
+        boardId = id;
     }
 
     /**
-     * @return the only golem allowed to claim the task, or {@code null} when any golem may
-     * @since 1.1.0
+     * @return the unique id of the only golem allowed to take this task, or null when it is open to every golem
      */
     public @Nullable UUID assignedGolem() {
-        return assignee;
+        return reservedFor;
     }
 
     /**
-     * Restricts the task to one golem.
-     *
-     * @param golem the golem's UUID, or {@code null} to let any golem claim it
-     * @since 1.1.0
+     * @param golem the unique id of the golem the task is reserved for, or null
      */
     public void assignTo(@Nullable UUID golem) {
-        this.assignee = golem;
+        reservedFor = golem;
     }
 
     /**
-     * @return the only golem allowed to claim the task, or {@code null} when any golem may
-     * @since 1.0.0
+     * @return the assigned golem
      * @deprecated use {@link #assignedGolem()}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public @Nullable UUID claimant() {
         return assignedGolem();
     }
 
     /**
-     * @param claimant the golem's UUID, or {@code null} to let any golem claim it
-     * @since 1.0.0
+     * @param claimant the assigned golem
      * @deprecated use {@link #assignTo(UUID)}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public void setClaimant(@Nullable UUID claimant) {
         assignTo(claimant);
     }
 
     /**
-     * @return the priority; each point is worth 256 square blocks of distance when golems rank open tasks
-     * @since 1.0.0
+     * @return the priority, normally copied from the seal, from -5 to 5
      */
     public byte priority() {
-        return priority;
+        return rank;
     }
 
     /**
-     * @param priority the new priority, normally copied from the posting seal (-5 to 5)
-     * @since 1.0.0
+     * @param priority the new priority
      */
     public void setPriority(byte priority) {
-        this.priority = priority;
+        rank = priority;
     }
 
     /**
-     * @return the remaining life in board sweeps (one per second); the task is removed at the sweep after this reaches 0
-     * @since 1.1.0
+     * @return the remaining sweeps before the board removes the task
      */
     public int life() {
-        return life;
+        return remainingLife;
     }
 
     /**
-     * @param life the remaining life in board sweeps; a new task starts with 300
-     * @since 1.1.0
+     * @param life the new life
      */
     public void setLife(int life) {
-        this.life = life;
+        remainingLife = life;
     }
 
     /**
-     * @return the remaining life in board sweeps, capped at {@link Short#MAX_VALUE}
-     * @since 1.0.0
+     * @return the life, capped at the largest 16-bit signed value
      * @deprecated use {@link #life()}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public short lifespan() {
-        return (short) Math.min(Short.MAX_VALUE, life);
+        return (short) Math.min(remainingLife, Short.MAX_VALUE);
     }
 
     /**
-     * @param lifespan the remaining life in board sweeps
-     * @since 1.0.0
+     * @param lifespan the new life
      * @deprecated use {@link #setLife(int)}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public void setLifespan(short lifespan) {
-        setLife(lifespan);
+        remainingLife = lifespan;
     }
 
     /**
-     * @return a number owned by the posting seal for its own per-task state
-     * @since 1.0.0
+     * @return the integer the posting seal keeps on the task for its own state; the task never interprets it
      */
     public int data() {
-        return sealData;
+        return sealOwnedValue;
     }
 
     /**
-     * @param data the posting seal's per-task state
-     * @since 1.0.0
+     * @param data the new seal-owned integer
      */
     public void setData(int data) {
-        this.sealData = data;
+        sealOwnedValue = data;
     }
 
     /**
      * @return whether a golem has claimed the task
-     * @since 1.1.0
      */
     public boolean isClaimed() {
-        return claimed;
+        return status.contains(Status.CLAIMED);
     }
 
     /**
-     * Marks the task as claimed by a golem and adds 120 sweeps of life, so work a golem is doing does not expire under it.
-     *
-     * @since 1.1.0
+     * Marks the task as claimed and adds 120 life. Calling it twice adds twice.
      */
     public void claim() {
-        setClaimed(true);
+        status.add(Status.CLAIMED);
+        addLife(CLAIM_LIFE_BONUS);
     }
 
     /**
-     * Releases the golem's claim so the task is open again, adding 120 sweeps of life.
-     *
-     * @since 1.1.0
+     * Clears the claim and adds 120 life.
      */
     public void release() {
-        setClaimed(false);
+        status.remove(Status.CLAIMED);
+        addLife(CLAIM_LIFE_BONUS);
     }
 
     /**
-     * @return whether a golem has claimed the task
-     * @since 1.0.0
+     * @return whether the task is claimed
      * @deprecated use {@link #isClaimed()}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public boolean isReserved() {
         return isClaimed();
     }
 
     /**
-     * @param reserved {@code true} to claim, {@code false} to release
-     * @since 1.0.0
+     * @param reserved true behaves as {@link #claim()}, false as {@link #release()}
      * @deprecated use {@link #claim()} or {@link #release()}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public void setReserved(boolean reserved) {
-        setClaimed(reserved);
-    }
-
-    private void setClaimed(boolean claimed) {
-        this.claimed = claimed;
-        extendLife(CLAIM_LIFE_BONUS);
-    }
-
-    /**
-     * @return whether the task has ended (finished or cancelled); an ended task is removed at the next sweep
-     * @since 1.1.0
-     */
-    public boolean isEnded() {
-        return ended;
-    }
-
-    /**
-     * Ends the task and drops its link to any provisioning request. Ending is one-way.
-     *
-     * @since 1.1.0
-     */
-    public void end() {
-        this.ended = true;
-        this.provision = null;
+        if (reserved) {
+            claim();
+        } else {
+            release();
+        }
     }
 
     /**
      * @return whether the task has ended
-     * @since 1.0.0
+     */
+    public boolean isEnded() {
+        return status.contains(Status.ENDED);
+    }
+
+    /**
+     * Ends the task for good and clears its link to a provisioning request. The board drops it at the next sweep.
+     */
+    public void end() {
+        servedRequest = null;
+        status.add(Status.ENDED);
+    }
+
+    /**
+     * @return whether the task has ended
      * @deprecated use {@link #isEnded()}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public boolean isSuspended() {
         return isEnded();
     }
@@ -311,85 +281,88 @@ public final class Task {
     /**
      * Ends the task.
      *
-     * @since 1.0.0
      * @deprecated use {@link #end()}
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
+    @Deprecated
     public void suspend() {
         end();
     }
 
     /**
-     * @return whether the most recent completion attempt finished the work
-     * @since 1.0.0
+     * @return whether the last attempt finished the work
      */
     public boolean isCompleted() {
-        return finished;
+        return status.contains(Status.COMPLETED);
     }
 
     /**
-     * Records a completion attempt, or a tick spent walking to the task when {@code completed} is {@code false}. Adds one sweep of life.
+     * Stores the result of a golem's attempt, replacing the previous result, and adds 1 life. The value is stored as given,
+     * including for a task without a posting seal; the board's arrival attempt reports such a task as finished.
      *
-     * @param completed whether the posting seal finished the work
-     * @since 1.0.0
+     * @param finished whether the work finished
      */
-    public void recordAttempt(boolean completed) {
-        this.finished = completed;
-        extendLife(ATTEMPT_LIFE_BONUS);
+    public void recordAttempt(boolean finished) {
+        if (finished) {
+            status.add(Status.COMPLETED);
+        } else {
+            status.remove(Status.COMPLETED);
+        }
+        addLife(ATTEMPT_LIFE_BONUS);
     }
 
     /**
-     * @return the provisioning request this task is serving, or {@code null}
-     * @since 1.0.0
+     * @return the provisioning request this task serves, or null
      */
     public @Nullable ProvisionRequest linkedProvision() {
-        return provision;
+        return servedRequest;
     }
 
     /**
-     * Sets the task's side of a request link only.
+     * Sets only this task's pointer; {@link ProvisionRequest#link} sets both sides.
      *
-     * @param request the provisioning request this task serves, or {@code null} to unlink
-     * @since 1.0.0
-     * @deprecated use {@link ProvisionRequest#link(Task)} and {@link ProvisionRequest#unlink()}, which keep both sides of the link in step
+     * @param request the request this task serves, or null
      */
-    @Deprecated(since = "1.1.0", forRemoval = true)
     public void linkProvision(@Nullable ProvisionRequest request) {
-        this.provision = request;
+        servedRequest = request;
     }
 
     /**
-     * Checks the posting seal's colour and its own rules for this golem. Lock and trait rules are checked separately by the golem before this. A task whose seal no longer exists passes.
+     * Checks the golem colour against the posting seal, then asks the seal's behaviour. A task without a posting seal, or whose
+     * seal no longer exists, passes. The golem's own lock and trait rules are checked by the golem before this.
      *
      * @param golem the golem asking
-     * @return whether the golem may take the task
-     * @since 1.0.0
+     * @return whether the golem may perform the task
      */
     public boolean canBePerformedBy(IGolemAPI golem) {
-        if (origin == null) {
-            return true;
-        }
-        ISealEntity seal = GolemHelper.getSealEntity(golem.asEntity().level(), origin);
+        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
         if (seal == null) {
             return true;
         }
-        if (golem.color() != 0 && seal.color() != 0 && golem.color() != seal.color()) {
+        if (colorsClash(golem.color(), seal.color())) {
             return false;
         }
         return seal.behavior().canPerform(seal, golem, this);
     }
 
-    private void extendLife(int amount) {
-        life = (int) Math.min(Integer.MAX_VALUE, (long) life + amount);
-    }
-
     @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Task other && other.id == id;
+    public boolean equals(Object other) {
+        return this == other || other instanceof Task task && task.boardId == boardId;
     }
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(id);
+        return Integer.hashCode(boardId);
+    }
+
+    private enum Status {
+        CLAIMED, ENDED, COMPLETED
+    }
+
+    private static boolean colorsClash(byte golemColor, byte sealColor) {
+        return golemColor != NO_COLOR && sealColor != NO_COLOR && golemColor != sealColor;
+    }
+
+    private void addLife(int bonus) {
+        remainingLife = (int) Math.min((long) remainingLife + bonus, Integer.MAX_VALUE);
     }
 }

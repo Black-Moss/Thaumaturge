@@ -5,11 +5,14 @@ import com.leclowndu93150.thaumaturge.api.items.ChargeDisplay;
 import com.leclowndu93150.thaumaturge.api.items.ChargeProfile;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -20,19 +23,21 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class TravellerBootsItem extends Item {
-    private static final int MAX_CHARGE = 240;
-    private static final int ENERGY_PER_CHARGE = 60;
-    private static final int ENERGY_INTERVAL_TICKS = 20;
-    private static final float GROUND_BOOST = 0.05F;
-    private static final float JUMP_BOOST = 0.275F;
-    private static final float WATER_AIR_BOOST = 0.025F;
-    private static final float STEP_HEIGHT_BONUS = 0.4F;
-    private static final AttributeModifier STEP_MODIFIER = new AttributeModifier(TTIds.rl("traveller_step"), STEP_HEIGHT_BONUS, AttributeModifier.Operation.ADD_VALUE);
-
-    private static final AttributeModifier JUMP_MODIFIER = new AttributeModifier(TTIds.rl("traveller_jump"), JUMP_BOOST, AttributeModifier.Operation.ADD_VALUE);
+    private static final int CHARGE_CAPACITY = 240;
+    private static final int ENERGY_SECONDS_PER_CHARGE = 60;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final int CHARGE_PER_REFILL = 1;
+    private static final double STEP_BONUS = 0.4;
+    private static final double JUMP_BONUS = 0.275;
+    private static final float GROUND_ACCELERATION = 0.05F;
+    private static final float WATER_ACCELERATION_DIVISOR = 4.0F;
+    private static final float WATER_AIR_ACCELERATION = 0.025F;
+    private static final Identifier STEP_MODIFIER_ID = TTIds.rl("traveller_step");
+    private static final Identifier JUMP_MODIFIER_ID = TTIds.rl("traveller_jump");
+    private static final Vec3 FORWARD = new Vec3(0.0, 0.0, 1.0);
 
     public TravellerBootsItem(Properties properties) {
-        super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(MAX_CHARGE, ChargeDisplay.ON_CHANGE)));
+        super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(CHARGE_CAPACITY, ChargeDisplay.ON_CHANGE)));
     }
 
     @Override
@@ -46,60 +51,55 @@ public final class TravellerBootsItem extends Item {
         if (slot != EquipmentSlot.FEET || !(entity instanceof ServerPlayer player)) {
             return;
         }
-        if (player.tickCount % ENERGY_INTERVAL_TICKS == 0) {
-            int energy = stack.getOrDefault(TTDataComponents.ENERGY.get(), 0);
-            if (energy > 0) {
-                energy--;
-            } else if (RechargeAccess.consumeCharge(stack, player, 1)) {
-                energy = ENERGY_PER_CHARGE;
-            }
-            stack.set(TTDataComponents.ENERGY.get(), energy);
+        if (player.tickCount % TICKS_PER_SECOND == 0) {
+            upkeepEnergy(stack, player);
         }
         boolean active = RechargeAccess.getCharge(stack) > 0 && !player.getAbilities().flying && !player.isShiftKeyDown();
-        AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
-        AttributeInstance jumpHeight = player.getAttribute(Attributes.JUMP_STRENGTH);
-        if (stepHeight != null) {
-            if (active && !stepHeight.hasModifier(STEP_MODIFIER.id())) {
-                stepHeight.addTransientModifier(STEP_MODIFIER);
-            } else if (!active && stepHeight.hasModifier(STEP_MODIFIER.id())) {
-                stepHeight.removeModifier(STEP_MODIFIER.id());
-            }
-        }
-        if (jumpHeight != null) {
-            if (active && !jumpHeight.hasModifier(JUMP_MODIFIER.id())) {
-                jumpHeight.addTransientModifier(JUMP_MODIFIER);
-            } else if (!active && jumpHeight.hasModifier(JUMP_MODIFIER.id())) {
-                jumpHeight.removeModifier(JUMP_MODIFIER.id());
-            }
+        if (active) {
+            addModifier(player, Attributes.STEP_HEIGHT, STEP_MODIFIER_ID, STEP_BONUS);
+            addModifier(player, Attributes.JUMP_STRENGTH, JUMP_MODIFIER_ID, JUMP_BONUS);
+        } else {
+            clearMovementBoosts(player);
         }
     }
 
     static void clearMovementBoosts(ServerPlayer player) {
-        AttributeInstance stepHeight = player.getAttribute(Attributes.STEP_HEIGHT);
-        AttributeInstance jumpHeight = player.getAttribute(Attributes.JUMP_STRENGTH);
-        if (stepHeight != null) {
-            stepHeight.removeModifier(STEP_MODIFIER.id());
-        }
-        if (jumpHeight != null) {
-            jumpHeight.removeModifier(JUMP_MODIFIER.id());
-        }
+        removeModifier(player, Attributes.STEP_HEIGHT, STEP_MODIFIER_ID);
+        removeModifier(player, Attributes.JUMP_STRENGTH, JUMP_MODIFIER_ID);
     }
 
-    public static void clientMovementTick(Player player, ItemStack stack) {
-        if (RechargeAccess.getCharge(stack) <= 0 || player.getAbilities().flying || player.zza <= 0.0F) {
+    public static void clientMovementTick(Player player, ItemStack boots) {
+        if (RechargeAccess.getCharge(boots) <= 0 || player.getAbilities().flying || player.zza <= 0.0F) {
             return;
         }
+        boolean inWater = player.isInWater();
         if (player.onGround()) {
-            float bonus = GROUND_BOOST;
-            if (player.isInWater()) {
-                bonus /= 4.0F;
-            }
-            player.moveRelative(bonus, FORWARD);
-        } else if (player.isInWater()) {
-            player.moveRelative(WATER_AIR_BOOST, FORWARD);
+            player.moveRelative(inWater ? GROUND_ACCELERATION / WATER_ACCELERATION_DIVISOR : GROUND_ACCELERATION, FORWARD);
+        } else if (inWater) {
+            player.moveRelative(WATER_AIR_ACCELERATION, FORWARD);
         }
     }
 
-    private static final Vec3 FORWARD = new Vec3(0.0, 0.0, 1.0);
+    private static void upkeepEnergy(ItemStack stack, ServerPlayer player) {
+        int energy = stack.getOrDefault(TTDataComponents.ENERGY.get(), 0);
+        if (energy > 0) {
+            stack.set(TTDataComponents.ENERGY.get(), energy - 1);
+        } else if (RechargeAccess.consumeCharge(stack, player, CHARGE_PER_REFILL)) {
+            stack.set(TTDataComponents.ENERGY.get(), ENERGY_SECONDS_PER_CHARGE);
+        }
+    }
 
+    private static void addModifier(ServerPlayer player, Holder<Attribute> attribute, Identifier id, double amount) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        if (instance != null && !instance.hasModifier(id)) {
+            instance.addTransientModifier(new AttributeModifier(id, amount, AttributeModifier.Operation.ADD_VALUE));
+        }
+    }
+
+    private static void removeModifier(ServerPlayer player, Holder<Attribute> attribute, Identifier id) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        if (instance != null && instance.hasModifier(id)) {
+            instance.removeModifier(id);
+        }
+    }
 }

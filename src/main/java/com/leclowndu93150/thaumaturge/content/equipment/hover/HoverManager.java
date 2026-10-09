@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.items.IHoverGear;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -19,13 +20,17 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 
 public final class HoverManager {
     public static final int FUEL_INTERVAL_TICKS = 360;
-    private static final int HUM_INTERVAL_TICKS = 24;
+
+    private static final Identifier FLIGHT_MODIFIER_ID = TTIds.rl("hover_flight");
+    private static final double FLIGHT_MODIFIER_VALUE = 1.0;
     private static final float TOGGLE_VOLUME = 0.33F;
+    private static final float TOGGLE_PITCH = 1.0F;
+    private static final int HUM_INTERVAL_TICKS = 24;
     private static final float HUM_VOLUME = 0.05F;
+    private static final float HUM_PITCH_BASE = 1.0F;
     private static final float HUM_PITCH_SPREAD = 0.05F;
-    private static final double IDLE_FALL_DAMPING = 0.75;
-    private static final double FLIGHT_GRANT = 1.0;
-    private static final AttributeModifier FLIGHT_MODIFIER = new AttributeModifier(TTIds.rl("hover_flight"), FLIGHT_GRANT, AttributeModifier.Operation.ADD_VALUE);
+    private static final float FALL_DECAY = 0.75F;
+    private static final int NO_COUNT = 0;
 
     private HoverManager() {}
 
@@ -49,66 +54,64 @@ public final class HoverManager {
     }
 
     public static void toggle(ServerPlayer player) {
-        ItemStack worn = wornHoverGear(player);
-        if (!(worn.getItem() instanceof IHoverGear gear)) {
+        ItemStack gearStack = wornHoverGear(player);
+        if (!(gearStack.getItem() instanceof IHoverGear gear)) {
             return;
         }
-        boolean hovering = !isHovering(player);
-        if (hovering && gear.getHoverFuel(worn) <= 0) {
+        boolean enable = !isHovering(player);
+        if (enable && gear.getHoverFuel(gearStack) <= 0) {
             return;
         }
-        setHovering(player, hovering);
-        playToggleSound(player, hovering);
+        setHovering(player, enable);
+        playToggleSound(player, enable ? TTSounds.HHON.get() : TTSounds.HHOFF.get());
+    }
+
+    public static void setHovering(ServerPlayer player, boolean hovering) {
+        player.setData(TTAttachments.HOVERING, hovering);
+        if (hovering) {
+            applyFlight(player);
+        } else {
+            releaseFlight(player);
+        }
     }
 
     public static void tick(ServerPlayer player, ItemStack stack, IHoverGear gear) {
         if (player.isCreative() || player.isSpectator()) {
             return;
         }
-        boolean hovering = isHovering(player);
-        if (hovering && expendCharge(player, stack, gear)) {
-            keepAloft(player);
-            player.resetFallDistance();
-            if (player.tickCount % HUM_INTERVAL_TICKS == 0) {
-                play(player, TTSounds.JACOBS.get(), HUM_VOLUME, 1.0F + player.getRandom().nextFloat() * HUM_PITCH_SPREAD);
-            }
+        if (!isHovering(player)) {
+            player.fallDistance *= FALL_DECAY;
             return;
         }
-        if (hovering) {
+        boolean hasFuel = gear.getHoverFuel(stack) > 0;
+        if (hasFuel) {
+            int elapsed = player.getData(TTAttachments.HOVER_CHARGE) + 1;
+            if (elapsed >= FUEL_INTERVAL_TICKS) {
+                elapsed = NO_COUNT;
+                gear.consumeHoverFuel(stack);
+                hasFuel = gear.getHoverFuel(stack) > 0;
+            }
+            player.setData(TTAttachments.HOVER_CHARGE, elapsed);
+        }
+        if (!hasFuel) {
+            player.setData(TTAttachments.HOVER_CHARGE, NO_COUNT);
             setHovering(player, false);
-            playToggleSound(player, false);
+            playToggleSound(player, TTSounds.HHOFF.get());
+            player.fallDistance *= FALL_DECAY;
+            return;
         }
-        player.fallDistance *= IDLE_FALL_DAMPING;
-    }
-
-    public static void setHovering(ServerPlayer player, boolean hovering) {
-        player.setData(TTAttachments.HOVERING, hovering);
-        if (hovering) {
-            keepAloft(player);
-        } else {
-            land(player);
+        player.fallDistance = 0.0;
+        applyFlight(player);
+        if (player.tickCount % HUM_INTERVAL_TICKS == 0) {
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.JACOBS.get(), SoundSource.PLAYERS, HUM_VOLUME,
+                    HUM_PITCH_BASE + player.getRandom().nextFloat() * HUM_PITCH_SPREAD);
         }
     }
 
-    private static boolean expendCharge(ServerPlayer player, ItemStack stack, IHoverGear gear) {
-        int fuel = gear.getHoverFuel(stack);
-        if (fuel <= 0) {
-            return false;
-        }
-        int charge = player.getData(TTAttachments.HOVER_CHARGE);
-        if (charge < FUEL_INTERVAL_TICKS) {
-            player.setData(TTAttachments.HOVER_CHARGE, charge + 1);
-            return true;
-        }
-        player.setData(TTAttachments.HOVER_CHARGE, 0);
-        gear.consumeHoverFuel(stack);
-        return fuel > 1;
-    }
-
-    private static void keepAloft(ServerPlayer player) {
+    private static void applyFlight(ServerPlayer player) {
         AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
-        if (flight != null && !flight.hasModifier(FLIGHT_MODIFIER.id())) {
-            flight.addTransientModifier(FLIGHT_MODIFIER);
+        if (flight != null && !flight.hasModifier(FLIGHT_MODIFIER_ID)) {
+            flight.addTransientModifier(new AttributeModifier(FLIGHT_MODIFIER_ID, FLIGHT_MODIFIER_VALUE, AttributeModifier.Operation.ADD_VALUE));
         }
         Abilities abilities = player.getAbilities();
         if (!abilities.flying && !player.onGround()) {
@@ -117,10 +120,10 @@ public final class HoverManager {
         }
     }
 
-    private static void land(ServerPlayer player) {
+    private static void releaseFlight(ServerPlayer player) {
         AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
         if (flight != null) {
-            flight.removeModifier(FLIGHT_MODIFIER.id());
+            flight.removeModifier(FLIGHT_MODIFIER_ID);
         }
         Abilities abilities = player.getAbilities();
         if (abilities.flying && !player.mayFly()) {
@@ -129,11 +132,7 @@ public final class HoverManager {
         }
     }
 
-    private static void playToggleSound(ServerPlayer player, boolean hovering) {
-        play(player, hovering ? TTSounds.HHON.get() : TTSounds.HHOFF.get(), TOGGLE_VOLUME, 1.0F);
-    }
-
-    private static void play(ServerPlayer player, SoundEvent sound, float volume, float pitch) {
-        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, volume, pitch);
+    private static void playToggleSound(ServerPlayer player, SoundEvent sound) {
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, TOGGLE_VOLUME, TOGGLE_PITCH);
     }
 }

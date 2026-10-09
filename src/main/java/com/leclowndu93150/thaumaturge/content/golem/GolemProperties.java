@@ -11,40 +11,49 @@ import com.leclowndu93150.thaumaturge.api.golems.parts.GolemLeg;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
 import com.leclowndu93150.thaumaturge.registry.TTGolemParts;
-import com.leclowndu93150.thaumaturge.registry.TTGolemTraits;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 public final class GolemProperties implements IGolemProperties {
-    private static final int MAX_RANK = 10;
-    private static final int BASE_SHARE = 2;
+    private static final String MATERIAL_KEY = "material";
+    private static final String HEAD_KEY = "head";
+    private static final String ARMS_KEY = "arms";
+    private static final String LEGS_KEY = "legs";
+    private static final String ADDON_KEY = "addon";
+    private static final String RANK_KEY = "rank";
+    private static final int MATERIAL_BASE_MULTIPLIER = 2;
 
-    public static final Codec<GolemProperties> CODEC = RecordCodecBuilder.create(instance -> instance
-            .group(TTGolemParts.materials().byNameCodec().fieldOf("material").forGetter(GolemProperties::material), TTGolemParts.heads().byNameCodec().fieldOf("head").forGetter(GolemProperties::head),
-                    TTGolemParts.arms().byNameCodec().fieldOf("arms").forGetter(GolemProperties::arms), TTGolemParts.legs().byNameCodec().fieldOf("legs").forGetter(GolemProperties::legs),
-                    TTGolemParts.addons().byNameCodec().fieldOf("addon").forGetter(GolemProperties::addon), Codec.intRange(0, MAX_RANK).optionalFieldOf("rank", 0).forGetter(GolemProperties::rank))
-            .apply(instance, GolemProperties::new));
-    public static final StreamCodec<ByteBuf, GolemProperties> STREAM_CODEC = StreamCodec.composite(byId(TTGolemParts::materials), GolemProperties::material, byId(TTGolemParts::heads),
-            GolemProperties::head, byId(TTGolemParts::arms), GolemProperties::arms, byId(TTGolemParts::legs), GolemProperties::legs, byId(TTGolemParts::addons), GolemProperties::addon,
-            ByteBufCodecs.VAR_INT.map(rank -> Mth.clamp(rank, 0, MAX_RANK), rank -> rank), GolemProperties::rank, GolemProperties::new);
+    public static final Codec<GolemProperties> CODEC = Codec
+            .lazyInitialized(() -> RecordCodecBuilder.create(instance -> instance
+                    .group(partCodec(TTGolemParts::materials).fieldOf(MATERIAL_KEY).forGetter(GolemProperties::material),
+                            partCodec(TTGolemParts::heads).fieldOf(HEAD_KEY).forGetter(GolemProperties::head), partCodec(TTGolemParts::arms).fieldOf(ARMS_KEY).forGetter(GolemProperties::arms),
+                            partCodec(TTGolemParts::legs).fieldOf(LEGS_KEY).forGetter(GolemProperties::legs), partCodec(TTGolemParts::addons).fieldOf(ADDON_KEY).forGetter(GolemProperties::addon),
+                            Codec.INT.xmap(GolemProperties::clampRank, GolemProperties::clampRank).optionalFieldOf(RANK_KEY, 0).forGetter(GolemProperties::rank))
+                    .apply(instance, GolemProperties::new)));
+
+    public static final StreamCodec<ByteBuf, GolemProperties> STREAM_CODEC = StreamCodec.composite(partStream(TTGolemParts::materials), GolemProperties::material, partStream(TTGolemParts::heads),
+            GolemProperties::head, partStream(TTGolemParts::arms), GolemProperties::arms, partStream(TTGolemParts::legs), GolemProperties::legs, partStream(TTGolemParts::addons),
+            GolemProperties::addon, ByteBufCodecs.VAR_INT.map(GolemProperties::clampRank, GolemProperties::clampRank), GolemProperties::rank, GolemProperties::new);
 
     private final GolemMaterial material;
     private final GolemHead head;
@@ -67,65 +76,48 @@ public final class GolemProperties implements IGolemProperties {
         return new GolemProperties(TTGolemParts.WOOD.get(), TTGolemParts.HEAD_BASIC.get(), TTGolemParts.ARMS_BASIC.get(), TTGolemParts.LEGS_WALKER.get(), TTGolemParts.ADDON_NONE.get(), 0);
     }
 
-    public static GolemProperties of(IGolemProperties build) {
-        return build instanceof GolemProperties own ? own : new GolemProperties(build.material(), build.head(), build.arms(), build.legs(), build.addon(), build.rank());
-    }
-
-    private static <T> StreamCodec<ByteBuf, T> byId(Supplier<Registry<T>> registry) {
-        return Identifier.STREAM_CODEC.map(id -> {
-            T value = registry.get().getValue(id);
-            if (value == null) {
-                throw new DecoderException("Unknown golem part " + id);
-            }
-            return value;
-        }, value -> registry.get().getKey(value));
+    public static GolemProperties of(IGolemProperties properties) {
+        if (properties instanceof GolemProperties direct) {
+            return direct;
+        }
+        return new GolemProperties(properties.material(), properties.head(), properties.arms(), properties.legs(), properties.addon(), properties.rank());
     }
 
     public boolean isKnownBy(IPlayerKnowledge knowledge) {
-        return Stream.of(material.research(), head.research(), arms.research(), legs.research(), addon.research()).flatMap(List::stream).allMatch(knowledge::isResearchComplete);
+        List<List<Identifier>> requirements = List.of(material.research(), head.research(), arms.research(), legs.research(), addon.research());
+        for (List<Identifier> research : requirements) {
+            for (Identifier id : research) {
+                if (!knowledge.isResearchComplete(id)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
     public Set<GolemTrait> traits() {
-        if (traits == null) {
-            traits = Collections.unmodifiableSet(resolveTraits());
+        Set<GolemTrait> resolved = traits;
+        if (resolved == null) {
+            resolved = resolveTraits();
+            traits = resolved;
         }
-        return traits;
-    }
-
-    private Set<GolemTrait> resolveTraits() {
-        Set<GolemTrait> resolved = new LinkedHashSet<>();
-        Stream.of(material.traits(), head.traits(), arms.traits(), legs.traits(), addon.traits()).flatMap(List::stream).map(Holder::value).forEach(trait -> {
-            GolemTrait opposite = trait.opposite() == null ? null : TTGolemTraits.registry().getValue(trait.opposite());
-            if (opposite != null && resolved.remove(opposite)) {
-                return;
-            }
-            resolved.add(trait);
-        });
         return resolved;
     }
 
     @Override
     public List<ItemStack> components() {
         List<ItemStack> bill = new ArrayList<>();
-        merge(bill, material.base(), BASE_SHARE);
-        merge(bill, material.mechanism(), 1);
+        ItemStack base = material.base();
+        base.setCount(base.getCount() * MATERIAL_BASE_MULTIPLIER);
+        mergeInto(bill, base);
+        mergeInto(bill, material.mechanism());
         for (GolemPart part : List.of(arms, legs, head, addon)) {
             for (GolemComponent component : part.components()) {
-                merge(bill, component.resolve(material), 1);
+                mergeInto(bill, component.resolve(material));
             }
         }
         return bill;
-    }
-
-    private static void merge(List<ItemStack> bill, ItemStack item, int times) {
-        for (ItemStack line : bill) {
-            if (ItemStack.isSameItemSameComponents(line, item)) {
-                line.grow(item.getCount() * times);
-                return;
-            }
-        }
-        bill.add(item.copyWithCount(item.getCount() * times));
     }
 
     @Override
@@ -190,11 +182,80 @@ public final class GolemProperties implements IGolemProperties {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof GolemProperties build && build.material == material && build.head == head && build.arms == arms && build.legs == legs && build.addon == addon && build.rank == rank;
+        return this == other
+                || other instanceof GolemProperties that && material == that.material && head == that.head && arms == that.arms && legs == that.legs && addon == that.addon && rank == that.rank;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(material, head, arms, legs, addon, rank);
+        int hash = System.identityHashCode(material);
+        hash = 31 * hash + System.identityHashCode(head);
+        hash = 31 * hash + System.identityHashCode(arms);
+        hash = 31 * hash + System.identityHashCode(legs);
+        hash = 31 * hash + System.identityHashCode(addon);
+        return 31 * hash + rank;
+    }
+
+    private Set<GolemTrait> resolveTraits() {
+        Map<GolemTrait, Holder<GolemTrait>> active = new LinkedHashMap<>();
+        List<List<Holder<GolemTrait>>> sources = List.of(material.traits(), head.traits(), arms.traits(), legs.traits(), addon.traits());
+        for (List<Holder<GolemTrait>> source : sources) {
+            for (Holder<GolemTrait> holder : source) {
+                GolemTrait trait = holder.value();
+                Holder<GolemTrait> clash = findOpposite(active, trait.opposite());
+                if (clash != null) {
+                    active.remove(clash.value());
+                } else {
+                    active.putIfAbsent(trait, holder);
+                }
+            }
+        }
+        return Collections.unmodifiableSet(new LinkedHashSet<>(active.keySet()));
+    }
+
+    private static @Nullable Holder<GolemTrait> findOpposite(Map<GolemTrait, Holder<GolemTrait>> active, @Nullable ResourceKey<GolemTrait> opposite) {
+        if (opposite == null) {
+            return null;
+        }
+        for (Holder<GolemTrait> candidate : active.values()) {
+            if (candidate.is(opposite)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static void mergeInto(List<ItemStack> bill, ItemStack stack) {
+        for (ItemStack line : bill) {
+            if (ItemStack.isSameItemSameComponents(line, stack)) {
+                line.grow(stack.getCount());
+                return;
+            }
+        }
+        bill.add(stack);
+    }
+
+    private static int clampRank(int rank) {
+        return Mth.clamp(rank, 0, EntityThaumaturgeGolem.MAX_RANK);
+    }
+
+    private static <T> Codec<T> partCodec(Supplier<Registry<T>> registry) {
+        return Codec.lazyInitialized(() -> registry.get().byNameCodec());
+    }
+
+    private static <T> StreamCodec<ByteBuf, T> partStream(Supplier<Registry<T>> registry) {
+        return StreamCodec.of((buf, part) -> Identifier.STREAM_CODEC.encode(buf, keyOf(registry.get(), part)), buf -> lookup(registry.get(), Identifier.STREAM_CODEC.decode(buf)));
+    }
+
+    private static <T> Identifier keyOf(Registry<T> registry, T part) {
+        Identifier key = registry.getKey(part);
+        if (key == null) {
+            throw new EncoderException("Unregistered golem part " + part);
+        }
+        return key;
+    }
+
+    private static <T> T lookup(Registry<T> registry, Identifier id) {
+        return registry.getOptional(id).orElseThrow(() -> new DecoderException("Unknown golem part " + id));
     }
 }

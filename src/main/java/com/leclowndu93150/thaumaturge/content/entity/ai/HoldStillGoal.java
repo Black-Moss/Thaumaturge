@@ -5,25 +5,25 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 public final class HoldStillGoal<T extends Mob & HoldsStill> extends Goal {
-    private final T mob;
+    private final T creature;
 
-    public HoldStillGoal(T mob) {
-        this.mob = mob;
-        setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.JUMP));
+    public HoldStillGoal(T creature) {
+        this.creature = creature;
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.JUMP));
     }
 
     @Override
     public boolean canUse() {
-        return mob.isAlive() && mob.onGround() && !mob.isInWater() && mob.holdingStill();
+        return creature.holdingStill() && creature.isAlive() && creature.onGround() && !creature.isInWater();
     }
 
     @Override
     public void start() {
-        mob.getNavigation().stop();
+        creature.getNavigation().stop();
     }
 
     @Override
     public void stop() {
-        mob.releaseHold();
+        creature.releaseHold();
     }
 }

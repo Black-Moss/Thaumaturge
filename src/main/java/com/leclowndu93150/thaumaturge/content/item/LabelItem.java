@@ -1,12 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.item;
 
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
 import com.leclowndu93150.thaumaturge.api.items.ILabel;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -16,68 +16,66 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 public final class LabelItem extends Item implements ILabel {
+    private static final String MARKED_NAME_KEY = "item." + TTIds.MODID + ".marked_label";
+
     public LabelItem(Item.Properties properties) {
         super(properties);
     }
 
     public static ItemStack withAspect(Holder<IAspect> aspect) {
-        return withAspect(aspect.unwrapKey().orElseThrow());
+        ResourceKey<IAspect> key = aspect.unwrapKey().orElseThrow(() -> new IllegalArgumentException("Aspect holder has no registry key: " + aspect));
+        return withAspect(key);
     }
 
     public static ItemStack withAspect(ResourceKey<IAspect> aspect) {
         ItemStack stack = new ItemStack(TTItems.LABEL.get());
-        stack.set(TTDataComponents.ASPECT_FILTER, aspect);
+        stack.set(TTDataComponents.ASPECT_FILTER.get(), aspect);
         return stack;
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
-        if (level.isClientSide())
-            return InteractionResult.SUCCESS;
-        BlockPos pos = context.getClickedPos();
-        Direction side = context.getClickedFace();
         Player player = context.getPlayer();
-        if (player == null)
-            return InteractionResult.PASS;
-        ItemStack stack = context.getItemInHand();
-        BlockState state = level.getBlockState(pos);
-        Block block = state.getBlock();
-        if (block instanceof ILabelable labelable) {
-            if (labelable.applyLabel(player, pos, side, stack)) {
-                if (!player.getAbilities().instabuild)
-                    stack.shrink(1);
-                return InteractionResult.SUCCESS;
-            }
+        if (player == null) {
             return InteractionResult.PASS;
         }
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof ILabelable labelable) {
-            if (labelable.applyLabel(player, pos, side, stack)) {
-                if (!player.getAbilities().instabuild)
-                    stack.shrink(1);
-                return InteractionResult.SUCCESS;
-            }
+        Level level = context.getLevel();
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
-        return InteractionResult.PASS;
+        ItemStack held = context.getItemInHand();
+        ILabelable target = findTarget(level, context.getClickedPos());
+        if (target == null || !target.applyLabel(player, context.getClickedPos(), context.getClickedFace(), held)) {
+            return InteractionResult.PASS;
+        }
+        if (!player.hasInfiniteMaterials()) {
+            held.shrink(1);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
     public @Nullable ResourceKey<IAspect> getFilteredAspect(ItemStack stack) {
-        return stack.has(TTDataComponents.ASPECT_FILTER.get()) ? stack.get(TTDataComponents.ASPECT_FILTER.get()) : null;
+        return stack.get(TTDataComponents.ASPECT_FILTER.get());
     }
 
     @Override
     public Component getName(ItemStack stack) {
         if (stack.has(TTDataComponents.ASPECT_FILTER.get())) {
-            return Component.translatable("item.thaumaturge.marked_label");
+            return Component.translatable(MARKED_NAME_KEY);
         }
         return super.getName(stack);
+    }
+
+    private static @Nullable ILabelable findTarget(Level level, BlockPos pos) {
+        if (level.getBlockState(pos).getBlock() instanceof ILabelable block) {
+            return block;
+        }
+        BlockEntity entity = level.getBlockEntity(pos);
+        return entity instanceof ILabelable labelable ? labelable : null;
     }
 }

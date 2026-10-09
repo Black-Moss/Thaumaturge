@@ -8,35 +8,23 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.Tags;
 
 public final class OreScanColors {
-    public static final int DEFAULT = 12632256;
+    public static final int DEFAULT = 0xC0C0C0;
 
-    private static final int C_IRON = 14200723;
-    private static final int C_COAL = 1052688;
-    private static final int C_REDSTONE = 16711680;
-    private static final int C_GOLD = 16576075;
-    private static final int C_LAPIS = 1328572;
-    private static final int C_DIAMOND = 6155509;
-    private static final int C_EMERALD = 1564002;
-    private static final int C_QUARTZ = 15064789;
-    private static final int C_COPPER = 16620629;
-    private static final int C_AMBER = 16626469;
-    private static final int C_CINNABAR = 10159368;
-
-    private record Entry(TagKey<Block> ore, int color) {
-    }
-
-    private static final List<Entry> ENTRIES = List.of(new Entry(Tags.Blocks.ORES_IRON, C_IRON), new Entry(Tags.Blocks.ORES_COAL, C_COAL), new Entry(Tags.Blocks.ORES_REDSTONE, C_REDSTONE),
-            new Entry(Tags.Blocks.ORES_GOLD, C_GOLD), new Entry(Tags.Blocks.ORES_LAPIS, C_LAPIS), new Entry(Tags.Blocks.ORES_DIAMOND, C_DIAMOND), new Entry(Tags.Blocks.ORES_EMERALD, C_EMERALD),
-            new Entry(Tags.Blocks.ORES_QUARTZ, C_QUARTZ), new Entry(Tags.Blocks.ORES_COPPER, C_COPPER), new Entry(TTBlockTags.ORES_AMBER, C_AMBER), new Entry(TTBlockTags.ORES_CINNABAR, C_CINNABAR));
+    private static final List<Entry> TABLE = List.of(new Entry(Tags.Blocks.ORES_IRON, 0xD8AF93), new Entry(Tags.Blocks.ORES_COAL, 0x101010), new Entry(Tags.Blocks.ORES_REDSTONE, 0xFF0000),
+            new Entry(Tags.Blocks.ORES_GOLD, 0xFCEE4B), new Entry(Tags.Blocks.ORES_LAPIS, 0x1445BC), new Entry(Tags.Blocks.ORES_DIAMOND, 0x5DECF5), new Entry(Tags.Blocks.ORES_EMERALD, 0x17DD62),
+            new Entry(Tags.Blocks.ORES_QUARTZ, 0xE5DED5), new Entry(Tags.Blocks.ORES_COPPER, 0xFD9C55), new Entry(TTBlockTags.ORES_AMBER, 0xFDB325), new Entry(TTBlockTags.ORES_CINNABAR, 0x9B0508));
 
     private OreScanColors() {}
 
     public static int of(BlockState state) {
-        for (Entry entry : ENTRIES) {
+        for (Entry entry : TABLE) {
             if (state.is(entry.ore())) {
                 return entry.color();
             }
         }
         return DEFAULT;
+    }
+
+    private record Entry(TagKey<Block> ore, int color) {
     }
 }

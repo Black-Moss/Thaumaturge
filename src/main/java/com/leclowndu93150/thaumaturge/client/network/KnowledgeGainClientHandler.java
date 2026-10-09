@@ -3,7 +3,8 @@ package com.leclowndu93150.thaumaturge.client.network;
 import com.leclowndu93150.thaumaturge.client.hud.KnowledgeGainOverlay;
 import com.leclowndu93150.thaumaturge.network.ClientboundKnowledgeGainPayload;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class KnowledgeGainClientHandler {
@@ -12,17 +13,20 @@ public final class KnowledgeGainClientHandler {
 
     private KnowledgeGainClientHandler() {}
 
-    public static void handle(ClientboundKnowledgeGainPayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            LocalPlayer player = mc.player;
-            if (player == null || mc.level == null) {
-                return;
-            }
-            for (int point = 0; point < payload.count(); point++) {
-                KnowledgeGainOverlay.addTracker(payload.knowledgeType(), payload.category().orElse(null), BASE_DURATION_TICKS + mc.level.getRandom().nextInt(EXTRA_DURATION_SPREAD),
-                        mc.level.getRandom().nextLong());
-            }
-        });
+    public static void handle(ClientboundKnowledgeGainPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> addTrackers(payload));
+    }
+
+    private static void addTrackers(ClientboundKnowledgeGainPayload payload) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Level level = minecraft.level;
+        if (minecraft.player == null || level == null) {
+            return;
+        }
+        RandomSource random = level.getRandom();
+        for (int point = 0; point < payload.count(); point++) {
+            int duration = BASE_DURATION_TICKS + random.nextInt(EXTRA_DURATION_SPREAD);
+            KnowledgeGainOverlay.addTracker(payload.knowledgeType(), payload.category().orElse(null), duration, random.nextLong());
+        }
     }
 }

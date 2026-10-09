@@ -1,38 +1,44 @@
 package com.leclowndu93150.thaumaturge.content.golem.ai;
 
+import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
+import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
+import com.leclowndu93150.thaumaturge.content.golem.GolemEvent;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealAccess;
-import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskBoard;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandoff;
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public abstract class TaskGoal extends Goal {
-    private static final int CLAIM_COOLDOWN = 5;
-    private static final int GIVE_UP_AFTER = 1000;
-    private static final int REPATH_EVERY = 5;
-    private static final int RETRY_DELAY = 10;
-    private static final int DETOUR_RANGE = 6;
-    private static final int DETOUR_HEIGHT = 4;
-    private static final double DETOUR_OFFSET = 0.5;
-    private static final byte GIVE_UP_EMOTE = 6;
-    private static final double BLOCK_REACH_SQR = 4.0;
+    private static final int MAX_STEPS = 1000;
+    private static final int CLAIM_COOLDOWN_ASKS = 5;
+    private static final int PAUSE_TICKS = 10;
+    private static final int PATH_REFRESH_INTERVAL = 5;
+    private static final int UNSTICK_HORIZONTAL = 6;
+    private static final int UNSTICK_VERTICAL = 4;
+    private static final double QUARTER_TURN = Math.PI / 2.0D;
+
+    private enum Phase {
+        IDLE, APPROACHING, WORKING, PAUSED, FINISHED
+    }
 
     protected final EntityThaumaturgeGolem golem;
-    protected double reachSqr = BLOCK_REACH_SQR;
-    private int steps = -1;
+    protected double reachSqr;
+    private Phase phase = Phase.IDLE;
+    private @Nullable Task current;
+    private @Nullable BlockPos lastCheck;
+    private int steps;
     private int cooldown;
-    private int pause;
-    private @Nullable BlockPos lastFoothold;
+    private int pausedTicks;
 
     protected TaskGoal(EntityThaumaturgeGolem golem) {
         this.golem = golem;
@@ -45,6 +51,12 @@ public abstract class TaskGoal extends Goal {
 
     protected abstract double distanceSqrTo(Task task);
 
+    boolean adopts(Task task) {
+        return false;
+    }
+
+    void retarget(Task task) {}
+
     @Override
     public boolean requiresUpdateEveryTick() {
         return true;
@@ -52,107 +64,145 @@ public abstract class TaskGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (!(golem.level() instanceof ServerLevel level)) {
+            return false;
+        }
+        Task held = golem.activeJob();
+        if (held != null && !held.isEnded()) {
+            return false;
+        }
         if (cooldown > 0) {
             cooldown--;
             return false;
         }
-        cooldown = CLAIM_COOLDOWN;
-        Task current = golem.getTask();
-        if (current != null && !current.isEnded() || !(golem.level() instanceof ServerLevel level)) {
-            return false;
+        if (claim(level)) {
+            return true;
         }
-        if (!claim(level)) {
-            return false;
-        }
-        Task claimed = golem.getTask();
-        ISealEntity seal = claimed == null ? null : SealHandler.getSealEntity(level, claimed.origin());
-        if (seal != null) {
-            seal.behavior().onTaskStarted(level, seal, golem, claimed);
-        }
-        return true;
+        cooldown = CLAIM_COOLDOWN_ASKS;
+        return false;
     }
 
-    protected boolean mayTake(Task task, BlockPos target) {
-        return SealAccess.allows(SealHandler.getSealEntity(golem.level(), task.origin()), golem) && task.canBePerformedBy(golem) && golem.isWithinHome(target);
+    protected boolean mayTake(Task task, BlockPos where) {
+        SealPos origin = task.origin();
+        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        return SealAccess.allows(seal, golem) && task.canBePerformedBy(golem) && golem.isWithinHome(where);
     }
 
     protected void take(Task task) {
+        SealPos origin = task.origin();
+        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        if (seal != null && golem.level() instanceof ServerLevel level) {
+            seal.behavior().onTaskStarted(level, seal, golem, task);
+        }
         TaskHandoff.assign(golem, task);
+        current = task;
+        steps = 0;
+        phase = Phase.APPROACHING;
     }
 
     @Override
     public void start() {
-        Task task = golem.getTask();
-        if (task != null) {
-            approach(task);
-        }
-        steps = 0;
+        lastCheck = null;
+        pausedTicks = 0;
     }
 
     @Override
     public boolean canContinueToUse() {
-        Task task = golem.getTask();
-        return steps >= 0 && steps <= GIVE_UP_AFTER && task != null && !task.isEnded();
+        return phase != Phase.FINISHED && steps <= MAX_STEPS && current != null && golem.activeJob() == current && !current.isEnded();
     }
 
     @Override
     public void tick() {
-        Task task = golem.getTask();
-        if (task == null || pause-- > 0 || !(golem.level() instanceof ServerLevel level)) {
+        Task task = current;
+        if (task == null) {
             return;
         }
-        if (distanceSqrTo(task) > reachSqr) {
-            walk(task);
-        } else {
-            work(level, task);
-        }
-    }
-
-    private void walk(Task task) {
-        task.recordAttempt(false);
-        steps++;
-        if (steps % REPATH_EVERY != 0) {
-            return;
-        }
-        BlockPos foothold = golem.blockPosition();
-        if (foothold.equals(lastFoothold)) {
-            detour(task);
-        } else {
-            approach(task);
-        }
-        lastFoothold = foothold;
-    }
-
-    private void detour(Task task) {
-        Vec3 aside = DefaultRandomPos.getPosTowards(golem, DETOUR_RANGE, DETOUR_HEIGHT, Vec3.atLowerCornerOf(task.pos()), Math.PI / 2.0);
-        if (aside != null) {
-            golem.getNavigation().moveTo(aside.x + DETOUR_OFFSET, aside.y + DETOUR_OFFSET, aside.z + DETOUR_OFFSET, golem.getGolemMoveSpeed());
-        }
-    }
-
-    private void work(ServerLevel level, Task task) {
-        TaskBoard.attempt(level, task, golem);
-        Task after = golem.getTask();
-        if (after != null && after.isCompleted()) {
-            steps = Math.min(steps, 0) - 1;
-            pause = 0;
-        } else {
-            pause = RETRY_DELAY;
+        switch (phase) {
+            case APPROACHING -> approachStep(task);
+            case WORKING -> work(task);
+            case PAUSED -> pause(task);
+            default -> {
+            }
         }
     }
 
     @Override
     public void stop() {
-        Task task = golem.getTask();
+        Task task = current;
+        current = null;
+        phase = Phase.IDLE;
         if (task == null) {
             return;
         }
-        if (!task.isCompleted() && task.isClaimed() && ThaumaturgeCommonConfig.SHOW_GOLEM_EMOTES.get()) {
-            golem.level().broadcastEntityEvent(golem, GIVE_UP_EMOTE);
+        if (!task.isCompleted() && task.isClaimed()) {
+            GolemEvent.TASK_FAILED.broadcast(golem);
         }
         if (task.isCompleted() && !task.isEnded()) {
             task.end();
         }
-        task.release();
+        if (task.isClaimed()) {
+            task.release();
+        }
+        if (golem.activeJob() == task) {
+            golem.assignJob(null);
+        }
+    }
+
+    private void approachStep(Task task) {
+        if (distanceSqrTo(task) > reachSqr) {
+            walk(task);
+        } else {
+            phase = Phase.WORKING;
+        }
+    }
+
+    private void walk(Task task) {
+        if (steps++ % PATH_REFRESH_INTERVAL != 0) {
+            return;
+        }
+        BlockPos here = golem.blockPosition();
+        boolean stuck = here.equals(lastCheck);
+        lastCheck = here;
+        if (!stuck) {
+            approach(task);
+            return;
+        }
+        Vec3 detour = DefaultRandomPos.getPosTowards(golem, UNSTICK_HORIZONTAL, UNSTICK_VERTICAL, aimPoint(task), QUARTER_TURN);
+        if (detour != null) {
+            golem.getNavigation().moveTo(detour.x, detour.y, detour.z, golem.travelSpeed());
+        }
+    }
+
+    private void work(Task task) {
+        TaskBoard.attempt((ServerLevel) golem.level(), task, golem);
+        if (!task.isCompleted()) {
+            phase = Phase.PAUSED;
+            pausedTicks = 0;
+            return;
+        }
+        Task next = golem.activeJob();
+        if (next != null && next != task && !next.isEnded() && adopts(next)) {
+            if (!task.isEnded()) {
+                task.end();
+            }
+            current = next;
+            steps = 0;
+            lastCheck = null;
+            retarget(next);
+            phase = Phase.APPROACHING;
+        } else {
+            phase = Phase.FINISHED;
+        }
+    }
+
+    private void pause(Task task) {
+        if (++pausedTicks >= PAUSE_TICKS) {
+            phase = distanceSqrTo(task) > reachSqr ? Phase.APPROACHING : Phase.WORKING;
+        }
+    }
+
+    private static Vec3 aimPoint(Task task) {
+        Entity entity = task.entity();
+        return entity == null ? Vec3.atCenterOf(task.pos()) : entity.position();
     }
 }

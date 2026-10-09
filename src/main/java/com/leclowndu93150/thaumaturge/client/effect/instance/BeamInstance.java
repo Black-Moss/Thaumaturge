@@ -1,129 +1,62 @@
 package com.leclowndu93150.thaumaturge.client.effect.instance;
 
+import com.leclowndu93150.thaumaturge.client.effect.instance.beam.BeamAnchor;
+import com.leclowndu93150.thaumaturge.client.effect.instance.beam.BeamPose;
 import com.leclowndu93150.thaumaturge.client.effect.manager.IFXInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 public final class BeamInstance implements IFXInstance {
-    private static final double HAND_SIDE_X = 0.066;
-    private static final double HAND_DROP = 0.06;
-    private static final double HAND_SIDE_Z = 0.04;
-    private static final double LOOK_LEAD = 0.3;
-    private static final double ANCHOR_LIFT = 0.25;
-    private static final float GROW_TICKS = 4.0F;
-    private static final int FADE_TICKS = 4;
-    private static final float BASE_OPACITY = 0.4F;
-    private static final float FADE_STEP = 0.1F;
+    private static final float CHANNEL_SCALE = 255.0F;
+    private static final int SPIN_DEGREES_PER_TICK = 5;
+    private static final int FULL_CIRCLE_DEGREES = 360;
+    private static final float GROW_DURATION = 4.0F;
+    private static final float FADE_DURATION = 4.0F;
+    private static final float PEAK_OPACITY = 0.4F;
+    private static final float SCROLL_RATE = 0.2F;
+    private static final float SCROLL_PERIOD_RATE = 0.1F;
 
-    private final int sourceEntityId;
-    private final boolean entityAnchored;
-    private final boolean withSource;
+    private final Vec3 target;
+    private final float[] tint;
+    private final int maxAge;
     private final int beamType;
-    private double sourceX;
-    private double sourceY;
-    private double sourceZ;
-    private double prevSourceX;
-    private double prevSourceY;
-    private double prevSourceZ;
-    private final double targetX;
-    private final double targetY;
-    private final double targetZ;
-    private final double prevTargetX;
-    private final double prevTargetY;
-    private final double prevTargetZ;
-    private final float colorR;
-    private final float colorG;
-    private final float colorB;
     private final float endMod;
     private final boolean reverse;
-    private final int rotationSpeed;
-    private float length;
-    private float rotYaw;
-    private float rotPitch;
-    private float prevYaw;
-    private float prevPitch;
+    private final int sourceEntityId;
+    private final boolean withSource;
+
+    private BeamPose latest;
+    private BeamPose earlier;
     private int age;
-    private final int maxAge;
-    private float prevSize;
     private boolean expired;
 
-    public BeamInstance(double sx, double sy, double sz, double tx, double ty, double tz, int color, int age, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {
-        this.colorR = ((color >> 16) & 0xFF) / 255.0F;
-        this.colorG = ((color >> 8) & 0xFF) / 255.0F;
-        this.colorB = (color & 0xFF) / 255.0F;
-        this.maxAge = age;
+    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {
+        this.target = new Vec3(targetX, targetY, targetZ);
+        this.tint = new float[]{ARGB.red(color) / CHANNEL_SCALE, ARGB.green(color) / CHANNEL_SCALE, ARGB.blue(color) / CHANNEL_SCALE};
+        this.maxAge = maxAge;
         this.beamType = beamType;
         this.endMod = endMod;
         this.reverse = reverse;
-        this.rotationSpeed = 5;
         this.sourceEntityId = sourceEntityId;
-        this.entityAnchored = sourceEntityId != BeamPayloadIds.NO_ENTITY;
         this.withSource = withSource;
-        this.sourceX = sx;
-        this.sourceY = sy;
-        this.sourceZ = sz;
-        this.prevSourceX = sx;
-        this.prevSourceY = sy;
-        this.prevSourceZ = sz;
-        this.targetX = tx;
-        this.targetY = ty;
-        this.targetZ = tz;
-        this.prevTargetX = tx;
-        this.prevTargetY = ty;
-        this.prevTargetZ = tz;
-        refreshGeometry();
-        this.prevYaw = this.rotYaw;
-        this.prevPitch = this.rotPitch;
+        this.latest = BeamPose.between(new Vec3(sourceX, sourceY, sourceZ), this.target);
+        this.earlier = this.latest;
     }
 
     @Override
     public void tick() {
-        this.prevSize = computeSize(0.0F);
-        this.prevSourceX = this.sourceX;
-        this.prevSourceY = this.sourceY;
-        this.prevSourceZ = this.sourceZ;
-        this.prevYaw = this.rotYaw;
-        this.prevPitch = this.rotPitch;
-        Entity anchor = resolveAnchor();
-        if (anchor != null) {
-            this.sourceX = anchor.getX();
-            this.sourceY = anchor.getY() + anchorHeight(anchor);
-            this.sourceZ = anchor.getZ();
+        LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
+        this.earlier = this.latest;
+        this.latest = BeamPose.between(anchor != null ? BeamAnchor.chestPoint(anchor) : this.earlier.source(), this.target);
+        this.expired = this.age >= this.maxAge;
+        if (!this.expired) {
+            this.age++;
         }
-        refreshGeometry();
-        unwindAngles();
-        if (this.age++ >= this.maxAge) {
-            this.expired = true;
-        }
-    }
-
-    private Entity resolveAnchor() {
-        if (!this.entityAnchored) {
-            return null;
-        }
-        ClientLevel level = Minecraft.getInstance().level;
-        Entity entity = level != null ? level.getEntity(this.sourceEntityId) : null;
-        return entity != null && entity.isAlive() ? entity : null;
-    }
-
-    private static double anchorHeight(Entity entity) {
-        return entity.getBbHeight() / 2.0 + ANCHOR_LIFT;
-    }
-
-    private void refreshGeometry() {
-        Vec3 span = new Vec3(this.sourceX - this.targetX, this.sourceY - this.targetY, this.sourceZ - this.targetZ);
-        this.length = (float) span.length();
-        this.rotYaw = (float) Math.toDegrees(Math.atan2(span.x, span.z));
-        this.rotPitch = (float) Math.toDegrees(Math.atan2(span.y, span.horizontalDistance()));
-    }
-
-    private void unwindAngles() {
-        this.prevYaw = this.rotYaw - Mth.wrapDegrees(this.rotYaw - this.prevYaw);
-        this.prevPitch = this.rotPitch - Mth.wrapDegrees(this.rotPitch - this.prevPitch);
     }
 
     @Override
@@ -136,7 +69,7 @@ public final class BeamInstance implements IFXInstance {
     }
 
     public float length() {
-        return this.length;
+        return (float) this.latest.source().distanceTo(this.target);
     }
 
     public float endMod() {
@@ -148,7 +81,7 @@ public final class BeamInstance implements IFXInstance {
     }
 
     public int rotationSpeed() {
-        return this.rotationSpeed;
+        return SPIN_DEGREES_PER_TICK;
     }
 
     public int age() {
@@ -160,78 +93,65 @@ public final class BeamInstance implements IFXInstance {
     }
 
     public float colorR() {
-        return this.colorR;
+        return this.tint[0];
     }
 
     public float colorG() {
-        return this.colorG;
+        return this.tint[1];
     }
 
     public float colorB() {
-        return this.colorB;
+        return this.tint[2];
     }
 
     public boolean entityAnchored() {
-        return this.entityAnchored;
+        return this.sourceEntityId != BeamPayloadIds.NO_ENTITY;
     }
 
     public boolean withSource() {
         return this.withSource;
     }
 
-    public Vec3 sourcePos(float partial) {
-        Entity anchor = resolveAnchor();
-        if (anchor != null) {
-            Vec3 lead = anchor.getViewVector(1.0F).scale(LOOK_LEAD);
-            Vec3 before = handAnchor(anchor, anchor.xOld, anchor.yOld, anchor.zOld, anchor.yRotO).add(lead);
-            Vec3 now = handAnchor(anchor, anchor.getX(), anchor.getY(), anchor.getZ(), Mth.lerp(partial, anchor.yRotO, anchor.getYRot())).add(lead);
-            return before.lerp(now, partial);
-        }
-        return new Vec3(Mth.lerp(partial, this.prevSourceX, this.sourceX), Mth.lerp(partial, this.prevSourceY, this.sourceY), Mth.lerp(partial, this.prevSourceZ, this.sourceZ));
+    public Vec3 sourcePos(float partialTick) {
+        LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
+        return anchor != null ? BeamAnchor.handSpan(anchor, partialTick).lerp(partialTick) : this.earlier.source().lerp(this.latest.source(), partialTick);
     }
 
-    private static Vec3 handAnchor(Entity entity, double x, double y, double z, float yawDegrees) {
-        double yawRad = Math.toRadians(yawDegrees);
-        return new Vec3(x - Math.cos(yawRad) * HAND_SIDE_X, y + anchorHeight(entity) - HAND_DROP, z - Math.sin(yawRad) * HAND_SIDE_Z);
+    public Vec3 targetPos(float partialTick) {
+        return this.target;
     }
 
-    public Vec3 targetPos(float partial) {
-        return new Vec3(Mth.lerp(partial, this.prevTargetX, this.targetX), Mth.lerp(partial, this.prevTargetY, this.targetY), Mth.lerp(partial, this.prevTargetZ, this.targetZ));
+    public float yawAt(float partialTick) {
+        return Mth.rotLerp(partialTick, this.earlier.yaw(), this.latest.yaw());
     }
 
-    public float yawAt(float partial) {
-        return Mth.lerp(partial, this.prevYaw, this.rotYaw);
+    public float pitchAt(float partialTick) {
+        return Mth.rotLerp(partialTick, this.earlier.pitch(), this.latest.pitch());
     }
 
-    public float pitchAt(float partial) {
-        return Mth.lerp(partial, this.prevPitch, this.rotPitch);
+    public float computeSize(float partialTick) {
+        return ramp(this.age + partialTick, GROW_DURATION);
     }
 
-    public float computeSize(float partial) {
-        float size = Math.min((this.age + partial) / GROW_TICKS, 1.0F);
-        return Mth.lerp(partial, this.prevSize, size);
+    public float computeOpacity(float partialTick) {
+        return PEAK_OPACITY * ramp(this.maxAge - this.age, FADE_DURATION);
     }
 
-    public float computeOpacity(float partial) {
-        int remaining = this.maxAge - this.age;
-        if (remaining <= FADE_TICKS) {
-            return BASE_OPACITY - (FADE_TICKS - remaining) * FADE_STEP;
-        }
-        return BASE_OPACITY;
-    }
-
-    public float texScroll(float partial) {
+    public float texScroll(float partialTick) {
         LocalPlayer player = Minecraft.getInstance().player;
-        float slide = player != null ? player.tickCount : 0;
-        float v = slide + partial;
-        if (this.reverse) {
-            v = -v;
-        }
-        return -v * 0.2F - Mth.floor(-v * 0.1F);
+        float elapsed = (player == null ? 0 : player.tickCount) + partialTick;
+        float flow = this.reverse ? elapsed : -elapsed;
+        return flow * SCROLL_RATE - (float) Math.floor(flow * SCROLL_PERIOD_RATE);
     }
 
-    public float worldRotation(float partial) {
-        long worldTime = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
-        return worldTime % (360 / this.rotationSpeed) * this.rotationSpeed + this.rotationSpeed * partial;
+    public float worldRotation(float partialTick) {
+        ClientLevel level = Minecraft.getInstance().level;
+        long clock = level == null ? 0L : level.getGameTime();
+        long wrapped = clock % (FULL_CIRCLE_DEGREES / SPIN_DEGREES_PER_TICK);
+        return wrapped * SPIN_DEGREES_PER_TICK + SPIN_DEGREES_PER_TICK * partialTick;
+    }
+
+    private static float ramp(float value, float duration) {
+        return Mth.clamp(value / duration, 0.0F, 1.0F);
     }
 }

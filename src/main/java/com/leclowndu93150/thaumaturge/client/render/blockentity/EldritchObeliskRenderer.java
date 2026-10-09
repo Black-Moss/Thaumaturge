@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.golem.GolemMeshes;
-import com.leclowndu93150.thaumaturge.client.model.mesh.TTMesh;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMeshPart;
 import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
 import com.leclowndu93150.thaumaturge.content.eldritch.block.BlockEntityEldritchObelisk;
@@ -18,8 +17,11 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -30,14 +32,24 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
 
     private static final Identifier SIDE_TEXTURE = TTIds.rl("textures/entity/obelisk_side.png");
     private static final Identifier SIDE_TEXTURE_OUTER = TTIds.rl("textures/entity/obelisk_side_2.png");
-    private static final Identifier CAP_TEXTURE = TTIds.rl("textures/entity/obelisk_cap.png");
-    private static final Identifier CAP_TEXTURE_OUTER = TTIds.rl("textures/entity/obelisk_cap_2.png");
-
-    private static final float COLUMN_BASE = 1.0F;
-    private static final int COLUMN_HEIGHT = 3;
     private static final float BOB_PERIOD = 10.0F;
     private static final float BOB_AMPLITUDE = 0.1F;
+    private static final float BASE_HEIGHT = 1.0F;
+    private static final float COLUMN_HEIGHT = 3.0F;
     private static final float PLANE_INSET = 0.01F;
+    private static final float[] PLANE_OFFSETS = {PLANE_INSET, 1.0F - PLANE_INSET};
+    private static final float CENTER = 0.5F;
+    private static final float QUARTER_TURN_DEGREES = 90.0F;
+    private static final int WHITE = 0xFFFFFFFF;
+    private static final float BOUNDS_SIDE_MARGIN = 0.5F;
+    private static final float BOUNDS_HEIGHT = 6.0F;
+    private static final int VIEW_DISTANCE = 64;
+
+    private static final PanelEdge[] PANEL_EDGES = {new PanelEdge(0.0F, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F), new PanelEdge(0.0F, 1.0F, 0.0F, 0.0F, -1.0F, 0.0F),
+            new PanelEdge(1.0F, 1.0F, 0.0F, 1.0F, 0.0F, 1.0F), new PanelEdge(1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F)};
+
+    private record PanelEdge(float startX, float startZ, float endX, float endZ, float normalX, float normalZ) {
+    }
 
     public EldritchObeliskRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -49,62 +61,30 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
     @Override
     public void extractRenderState(BlockEntityEldritchObelisk obelisk, EldritchObeliskRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(obelisk, state, partialTicks, cameraPosition, breakProgress);
-        var viewEntity = Minecraft.getInstance().getCameraEntity();
-        state.animationTime = viewEntity == null ? partialTicks : viewEntity.tickCount + partialTicks;
-        state.outerLands = obelisk.getLevel() != null && obelisk.getLevel().dimension() == OuterLands.DIMENSION;
+        state.animationTime = animationTime(partialTicks);
+        Level level = obelisk.getLevel();
+        state.outerLands = level != null && OuterLands.DIMENSION.equals(level.dimension());
     }
 
     @Override
     public void submit(EldritchObeliskRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        float bob = Mth.sin(state.animationTime / BOB_PERIOD) * BOB_AMPLITUDE + BOB_AMPLITUDE;
-        float base = COLUMN_BASE + bob;
-        float top = base + COLUMN_HEIGHT;
-        collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> {
-            EldritchPortalSurface.quad(pose, buffer, state.blockPos, 0.0F, base, PLANE_INSET, 0.0F, top, PLANE_INSET, 1.0F, top, PLANE_INSET, 1.0F, base, PLANE_INSET);
-            EldritchPortalSurface.quad(pose, buffer, state.blockPos, 0.0F, base, 1.0F - PLANE_INSET, 0.0F, top, 1.0F - PLANE_INSET, 1.0F, top, 1.0F - PLANE_INSET, 1.0F, base, 1.0F - PLANE_INSET);
-            EldritchPortalSurface.quad(pose, buffer, state.blockPos, PLANE_INSET, base, 0.0F, PLANE_INSET, top, 0.0F, PLANE_INSET, top, 1.0F, PLANE_INSET, base, 1.0F);
-            EldritchPortalSurface.quad(pose, buffer, state.blockPos, 1.0F - PLANE_INSET, base, 0.0F, 1.0F - PLANE_INSET, top, 0.0F, 1.0F - PLANE_INSET, top, 1.0F, 1.0F - PLANE_INSET, base, 1.0F);
-        });
-        RenderType sideType = RenderTypes.entityCutout(state.outerLands ? SIDE_TEXTURE_OUTER : SIDE_TEXTURE);
-        for (int a = 0; a < 4; a++) {
-            poseStack.pushPose();
-            poseStack.translate(0.5F, base, 0.5F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(a * 90.0F));
-            poseStack.translate(0.0F, 0.0F, -0.5F);
-            collector.submitCustomGeometry(poseStack, sideType, (pose, buffer) -> sideQuad(pose, buffer, state.lightCoords));
-            poseStack.popPose();
-        }
-        RenderType capType = RenderTypes.entityCutout(state.outerLands ? CAP_TEXTURE_OUTER : CAP_TEXTURE);
+        float bottom = BASE_HEIGHT + BOB_AMPLITUDE * Mth.sin(state.animationTime / BOB_PERIOD) + BOB_AMPLITUDE;
+        float top = bottom + COLUMN_HEIGHT;
+        BlockPos pos = state.blockPos;
+        int light = state.lightCoords;
+        collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> writeSurfacePlanes(pose, buffer, pos, bottom, top));
+        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(state.outerLands ? SIDE_TEXTURE_OUTER : SIDE_TEXTURE), (pose, buffer) -> writeSidePanels(pose, buffer, bottom, top, light));
+        RenderType capType = RenderTypes.entityCutout(state.outerLands ? EldritchCapRenderer.CAP_TEXTURE_OUTER : EldritchCapRenderer.CAP_TEXTURE);
+        submitEndCap(poseStack, collector, capType, light, bottom, Axis.XP);
+        submitEndCap(poseStack, collector, capType, light, top, Axis.XN);
+    }
+
+    private static void submitEndCap(PoseStack poseStack, SubmitNodeCollector collector, RenderType capType, int light, float height, Axis tilt) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, base, 0.5F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-        submitCap(CAP_MODEL, poseStack, collector, capType, state.lightCoords);
+        poseStack.translate(CENTER, height, CENTER);
+        poseStack.mulPose(tilt.rotationDegrees(QUARTER_TURN_DEGREES));
+        submitCap(CAP_MODEL, poseStack, collector, capType, light);
         poseStack.popPose();
-        poseStack.pushPose();
-        poseStack.translate(0.5F, top, 0.5F);
-        poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
-        submitCap(CAP_MODEL, poseStack, collector, capType, state.lightCoords);
-        poseStack.popPose();
-    }
-
-    static void submitCap(Identifier model, PoseStack poseStack, SubmitNodeCollector collector, RenderType type, int light) {
-        TTMesh mesh = GolemMeshes.get(model);
-        for (TTMeshPart part : mesh.parts()) {
-            if (CAP_PART.equals(part.name())) {
-                collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, -1));
-            }
-        }
-    }
-
-    private static void sideQuad(PoseStack.Pose pose, VertexConsumer buffer, int light) {
-        sideVertex(buffer, pose, -0.5F, COLUMN_HEIGHT, 0.0F, 1.0F, light);
-        sideVertex(buffer, pose, 0.5F, COLUMN_HEIGHT, 1.0F, 1.0F, light);
-        sideVertex(buffer, pose, 0.5F, 0.0F, 1.0F, 0.0F, light);
-        sideVertex(buffer, pose, -0.5F, 0.0F, 0.0F, 0.0F, light);
-    }
-
-    private static void sideVertex(VertexConsumer buffer, PoseStack.Pose pose, float x, float y, float u, float v, int light) {
-        buffer.addVertex(pose, x, y, 0.0F).setColor(-1).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, 0.0F, 0.0F, -1.0F);
     }
 
     @Override
@@ -114,11 +94,52 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
 
     @Override
     public AABB getRenderBoundingBox(BlockEntityEldritchObelisk obelisk) {
-        return new AABB(obelisk.getBlockPos()).inflate(0.5, 0.0, 0.5).expandTowards(0.0, 5.0, 0.0);
+        BlockPos pos = obelisk.getBlockPos();
+        return new AABB(pos.getX() - BOUNDS_SIDE_MARGIN, pos.getY(), pos.getZ() - BOUNDS_SIDE_MARGIN, pos.getX() + 1.0 + BOUNDS_SIDE_MARGIN, pos.getY() + BOUNDS_HEIGHT,
+                pos.getZ() + 1.0 + BOUNDS_SIDE_MARGIN);
     }
 
     @Override
     public int getViewDistance() {
-        return 64;
+        return VIEW_DISTANCE;
+    }
+
+    static void submitCap(Identifier meshId, PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType, int light) {
+        for (TTMeshPart part : GolemMeshes.get(meshId).parts()) {
+            if (CAP_PART.equals(part.name())) {
+                collector.submitCustomGeometry(poseStack, renderType, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE));
+            }
+        }
+    }
+
+    static float animationTime(float partialTicks) {
+        Entity camera = Minecraft.getInstance().getCameraEntity();
+        return camera == null ? partialTicks : camera.tickCount + partialTicks;
+    }
+
+    private static void writeSurfacePlanes(PoseStack.Pose pose, VertexConsumer buffer, BlockPos pos, float bottom, float top) {
+        for (float z : PLANE_OFFSETS) {
+            EldritchPortalSurface.quad(pose, buffer, pos, 0.0F, bottom, z, 0.0F, top, z, 1.0F, top, z, 1.0F, bottom, z);
+        }
+        for (float x : PLANE_OFFSETS) {
+            EldritchPortalSurface.quad(pose, buffer, pos, x, bottom, 0.0F, x, top, 0.0F, x, top, 1.0F, x, bottom, 1.0F);
+        }
+    }
+
+    private static void writeSidePanels(PoseStack.Pose pose, VertexConsumer buffer, float bottom, float top, int light) {
+        for (PanelEdge edge : PANEL_EDGES) {
+            panel(pose, buffer, edge.startX(), edge.startZ(), edge.endX(), edge.endZ(), bottom, top, edge.normalX(), 0.0F, edge.normalZ(), light);
+        }
+    }
+
+    private static void panel(PoseStack.Pose pose, VertexConsumer buffer, float startX, float startZ, float endX, float endZ, float bottom, float top, float nx, float ny, float nz, int light) {
+        sideVertex(pose, buffer, startX, bottom, startZ, 0.0F, 0.0F, nx, ny, nz, light);
+        sideVertex(pose, buffer, endX, bottom, endZ, 1.0F, 0.0F, nx, ny, nz, light);
+        sideVertex(pose, buffer, endX, top, endZ, 1.0F, 1.0F, nx, ny, nz, light);
+        sideVertex(pose, buffer, startX, top, startZ, 0.0F, 1.0F, nx, ny, nz, light);
+    }
+
+    private static void sideVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float z, float u, float v, float nx, float ny, float nz, int light) {
+        buffer.addVertex(pose, x, y, z).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
     }
 }

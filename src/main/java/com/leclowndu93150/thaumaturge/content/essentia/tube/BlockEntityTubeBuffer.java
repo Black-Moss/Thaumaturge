@@ -2,13 +2,19 @@ package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
-import com.leclowndu93150.thaumaturge.content.essentia.BellowsHelper;
-import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
-import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
+import com.leclowndu93150.thaumaturge.content.essentia.cadence.IntervalTimer;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.BufferSides;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.BufferSuctionPolicy;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.ChokeLevel;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.PullCandidate;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.PullSelector;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.TakeArbitration;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.TakeVerdict;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import com.mojang.serialization.Codec;
@@ -17,327 +23,291 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity implements IEssentiaTransport, IInteractWithCaster {
     public static final int MAX_AMOUNT = 10;
-    private static final Codec<List<Integer>> CHOKED_CODEC = Codec.INT.listOf();
-    private static final Codec<List<Boolean>> OPEN_CODEC = Codec.BOOL.listOf();
 
+    private static final String CONTENTS_KEY = "Contents";
+    private static final String CHOKED_KEY = "Choked";
+    private static final String OPEN_KEY = "Open";
+    private static final String FACING_KEY = "Facing";
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final int BELLOWS_RECOUNT_TICKS = 20;
+    private static final int PULL_TICKS = 5;
+    private static final int SINGLE_UNIT = 1;
+    private static final int FIRST_SIDE = 0;
+    private static final int NO_ARM = -1;
+    private static final int NO_SUCTION = 0;
+    private static final @Nullable Holder<IAspect> NO_SUCTION_TYPE = null;
+    private static final float TOOL_VOLUME = 0.5F;
+    private static final float TOOL_PITCH_BASE = 0.9F;
+    private static final float TOOL_PITCH_SPREAD = 0.2F;
+    private static final float SQUEAK_VOLUME = 0.6F;
+    private static final float SQUEAK_PITCH_BASE = 2.0F;
+    private static final float SQUEAK_PITCH_SPREAD = 0.2F;
+
+    private final BufferSides sides = new BufferSides();
+    private final BufferSuctionPolicy suctionPolicy = new BufferSuctionPolicy();
+    private final TakeArbitration arbitration = new TakeArbitration(sides, suctionPolicy);
+    private final PullSelector pullSelector = new PullSelector(sides, suctionPolicy);
+    private final IntervalTimer bellowsTimer = IntervalTimer.firingAfterFullPeriod(BELLOWS_RECOUNT_TICKS);
+    private final IntervalTimer pullTimer = IntervalTimer.firingAfterFullPeriod(PULL_TICKS);
     private AspectList contents = AspectList.EMPTY;
-    private final int[] chokedSides = new int[]{0, 0, 0, 0, 0, 0};
-    private final boolean[] openSides = new boolean[]{true, true, true, true, true, true};
     private Direction facing = Direction.NORTH;
-    private int tickCount;
-    private int bellows = -1;
 
     public BlockEntityTubeBuffer(BlockPos pos, BlockState state) {
         super(TTBlockEntities.TUBE_BUFFER.get(), pos, state);
     }
 
-    public AspectList contents() {
+    public AspectList heldAspects() {
         return contents;
     }
 
-    public int chokedSide(Direction face) {
-        return chokedSides[face.ordinal()];
+    public int chokedSide(Direction side) {
+        return sides.choke(side).ordinal();
     }
 
-    public void cycleChokedSide(Direction face) {
-        int i = face.ordinal();
-        chokedSides[i]++;
-        if (chokedSides[i] > 2) {
-            chokedSides[i] = 0;
-        }
-        setChanged();
-        syncToClient();
+    public void cycleChokedSide(Direction side) {
+        sides.cycleChoke(side);
+        setChangedAndSync();
     }
 
-    public boolean[] openSides() {
-        return openSides;
+    public boolean[] sideOpenFlags() {
+        return sides.openFlags();
     }
 
-    public boolean isSideOpen(Direction face) {
-        return face != null && openSides[face.ordinal()];
+    public boolean isSideOpen(Direction side) {
+        return sides.isOpen(side);
     }
 
-    public void setOpenSide(Direction face, boolean open) {
-        openSides[face.ordinal()] = open;
-        setChanged();
-        syncToClient();
+    public void setOpenSide(Direction side, boolean open) {
+        sides.setOpen(side, open);
+        setChangedAndSync();
     }
 
-    public boolean toggleOpenSide(Direction face) {
-        if (face == null)
-            return false;
-        int i = face.ordinal();
-        openSides[i] = !openSides[i];
-        if (level != null) {
-            BlockPos neighbour = getBlockPos().relative(face);
-            BlockEntity tile = level.getBlockEntity(neighbour);
-            if (tile instanceof BlockEntityTube tube) {
-                tube.setOpenSide(face.getOpposite(), openSides[i]);
-                BlockEntityTube.pushUpdate(tube);
-            } else if (tile instanceof BlockEntityTubeBuffer buffer) {
-                buffer.openSides[face.getOpposite().ordinal()] = openSides[i];
-                buffer.setChanged();
-                buffer.syncToClient();
-            }
-        }
-        setChanged();
-        syncToClient();
-        return openSides[i];
+    public boolean toggleOpenSide(Direction side) {
+        boolean open = !isSideOpen(side);
+        setOpenSide(side, open);
+        return open;
     }
 
-    public Direction facing() {
+    public Direction placedFacing() {
         return facing;
     }
 
-    public void setFacingForPlacement(LivingEntity placer) {
+    public void setFacingForPlacement(@Nullable LivingEntity placer) {
+        facing = facingFor(placer);
+        setChangedAndSync();
+    }
+
+    private static Direction facingFor(@Nullable LivingEntity placer) {
         if (placer == null) {
-            this.facing = Direction.NORTH;
-        } else {
-            this.facing = Direction.orderedByNearest(placer)[0].getOpposite();
+            return Direction.NORTH;
         }
-        setChanged();
-        syncToClient();
+        return Direction.orderedByNearest(placer)[0].getOpposite();
     }
 
     @Override
     public boolean onCasterRightClick(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, InteractionHand hand) {
-        if (!(level instanceof ServerLevel)) {
+        if (level.isClientSide()) {
             return true;
         }
-        if (!(player.pick(player.blockInteractionRange(), 0.0F, false) instanceof BlockHitResult hit) || !hit.getBlockPos().equals(pos)) {
-            return false;
+        int arm = lookedAtArm(level, player, pos);
+        boolean handled = arm != NO_ARM && handleCasterClick(arm, player.isShiftKeyDown());
+        if (handled) {
+            player.swing(hand);
         }
-        if (!handleCasterClick(BlockEssentiaTransport.resolveSubHit(getBlockState(), hit, pos), player.isShiftKeyDown())) {
-            return false;
-        }
-        player.swing(hand);
-        return true;
+        return handled;
     }
 
-    public boolean handleCasterClick(int subHit, boolean sneaking) {
-        if (level == null || subHit < 0 || subHit >= 6)
+    private static int lookedAtArm(Level level, Player player, BlockPos pos) {
+        BlockHitResult hit = BlockEssentiaTransport.traceLook(level, player, pos);
+        return hit == null ? NO_ARM : BlockEssentiaTransport.resolveSubHit(level.getBlockState(pos), hit, pos);
+    }
+
+    public boolean handleCasterClick(int part, boolean sneaking) {
+        if (level == null || part < 0 || part >= DIRECTIONS.length) {
             return false;
-        Direction dir = Direction.values()[subHit];
+        }
+        Direction side = DIRECTIONS[part];
         if (sneaking) {
-            cycleChokedSide(dir);
-            level.playSound(null, getBlockPos(), TTSounds.SQUEEK.get(), SoundSource.BLOCKS, 0.6F, 2.0F + level.getRandom().nextFloat() * 0.2F);
+            cycleChokedSide(side);
+            playClickSound(level, TTSounds.SQUEEK.get(), SQUEAK_VOLUME, SQUEAK_PITCH_BASE, SQUEAK_PITCH_SPREAD);
             return true;
         }
-        toggleOpenSide(dir);
-        BlockEssentiaTransport.refreshConnections(level, getBlockPos());
-        BlockEssentiaTransport.refreshConnections(level, getBlockPos().relative(dir));
-        level.playSound(null, getBlockPos(), TTSounds.TOOL.get(), SoundSource.BLOCKS, 0.5F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+        boolean open = toggleOpenSide(side);
+        BlockEssentiaTransport.syncNeighbourSide(level, worldPosition, side, open);
+        playClickSound(level, TTSounds.TOOL.get(), TOOL_VOLUME, TOOL_PITCH_BASE, TOOL_PITCH_SPREAD);
         return true;
     }
 
-    public int visSize() {
+    private void playClickSound(Level world, SoundEvent sound, float volume, float pitchBase, float pitchSpread) {
+        world.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, pitchBase + world.getRandom().nextFloat() * pitchSpread);
+    }
+
+    public int heldTotal() {
         return contents.totalAmount();
     }
 
-    public int fill(ResourceKey<IAspect> aspectKey, int amount) {
-        if (amount != 1)
-            return amount;
-        if (visSize() < MAX_AMOUNT) {
-            Holder<IAspect> holder = EssentiaTransportHelper.resolve(level, aspectKey);
-            if (holder == null)
-                return amount;
-            contents = contents.add(new AspectInstance(holder, amount));
-            setChanged();
-            syncToClient();
+    public int fill(ResourceKey<IAspect> aspect, int amount) {
+        Holder<IAspect> resolved = Aspects.resolve(level, aspect);
+        return resolved == null ? 0 : insert(resolved, amount);
+    }
+
+    private int insert(Holder<IAspect> aspect, int amount) {
+        if (amount != SINGLE_UNIT || isFull()) {
             return 0;
         }
-        return amount;
+        contents = contents.add(aspect, SINGLE_UNIT);
+        setChangedAndSync();
+        return SINGLE_UNIT;
     }
 
     public boolean drain(Holder<IAspect> aspect, int amount) {
-        if (contents.amountOf(aspect) >= amount) {
-            contents = contents.remove(aspect, amount);
-            setChanged();
-            syncToClient();
-            return true;
+        if (amount < SINGLE_UNIT || contents.amountOf(aspect) < amount) {
+            return false;
         }
-        return false;
+        contents = contents.remove(aspect, amount);
+        setChangedAndSync();
+        return true;
     }
 
-    @Override
-    public boolean isConnectable(Direction face) {
-        return face != null && openSides[face.ordinal()];
-    }
-
-    @Override
-    public boolean canInputFrom(Direction face) {
-        return face != null && openSides[face.ordinal()];
-    }
-
-    @Override
-    public boolean canOutputTo(Direction face) {
-        return face != null && openSides[face.ordinal()];
-    }
-
-    @Override
-    public void setSuction(Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public int getMinimumSuction() {
-        return 0;
-    }
-
-    @Override
-    public Holder<IAspect> getSuctionType(Direction face) {
-        return null;
-    }
-
-    @Override
-    public int getSuctionAmount(Direction face) {
-        int choke = chokedSides[face.ordinal()];
-        if (choke == 2)
-            return 0;
-        if (bellows > 0 && choke != 1)
-            return bellows * 32;
-        return 1;
+    private boolean openOn(@Nullable Direction side) {
+        return side != null && sides.isOpen(side);
     }
 
     public int bellowsCount() {
-        return bellows;
-    }
-
-    private void refreshBellows() {
-        if (level == null) {
-            bellows = 0;
-            return;
-        }
-        bellows = BellowsHelper.countBellows(level, getBlockPos(), Direction.values());
-    }
-
-    @Override
-    public Holder<IAspect> getEssentiaType(Direction face) {
-        List<AspectInstance> entries = contents.entries();
-        if (entries.isEmpty())
-            return null;
-        int idx = level == null ? 0 : level.getRandom().nextInt(entries.size());
-        return entries.get(idx).aspect();
-    }
-
-    @Override
-    public int getEssentiaAmount(Direction face) {
-        return visSize();
-    }
-
-    @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canOutputTo(face) || level == null)
-            return 0;
-        BlockPos neighbourPos = getBlockPos().relative(face);
-        IEssentiaTransport remote = EssentiaFlowHandler.transport(level, neighbourPos, face.getOpposite());
-        int suction = remote == null ? 0 : remote.getSuctionAmount(face.getOpposite());
-        for (Direction dir : Direction.values()) {
-            if (!canOutputTo(dir) || dir == face)
-                continue;
-            BlockPos otherPos = getBlockPos().relative(dir);
-            IEssentiaTransport other = EssentiaFlowHandler.transport(level, otherPos, dir.getOpposite());
-            if (other == null)
-                continue;
-            int otherSuck = other.getSuctionAmount(dir.getOpposite());
-            Holder<IAspect> otherType = other.getSuctionType(dir.getOpposite());
-            if ((otherType == null || otherType.equals(aspect)) && suction < otherSuck && getSuctionAmount(dir) < otherSuck) {
-                return 0;
-            }
-        }
-        int available = contents.amountOf(aspect);
-        int taken = Math.min(amount, available);
-        if (taken <= 0)
-            return 0;
-        return drain(aspect, taken) ? taken : 0;
-    }
-
-    @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canInputFrom(face))
-            return 0;
-        ResourceKey<IAspect> key = aspect == null ? null : aspect.unwrapKey().orElse(null);
-        if (key == null)
-            return 0;
-        return amount - fill(key, amount);
+        return suctionPolicy.bellowsCount();
     }
 
     public void tickServer(Level level, BlockPos pos, BlockState state) {
-        tickCount++;
-        if (bellows < 0 || tickCount % 20 == 0) {
-            refreshBellows();
+        boolean pullDue = pullTimer.advance();
+        boolean recountDue = bellowsTimer.advance();
+        if (recountDue || suctionPolicy.needsCount()) {
+            suctionPolicy.recount(level, pos);
         }
-        if (tickCount % 5 == 0 && visSize() < MAX_AMOUNT) {
-            fillBuffer(level, pos);
+        if (pullDue && !isFull()) {
+            pullFromNeighbour(level, pos);
         }
     }
 
-    private void fillBuffer(Level level, BlockPos pos) {
-        for (Direction dir : Direction.values()) {
-            if (!canInputFrom(dir))
-                continue;
-            BlockPos neighbourPos = pos.relative(dir);
-            IEssentiaTransport remote = EssentiaFlowHandler.transport(level, neighbourPos, dir.getOpposite());
-            if (remote == null)
-                continue;
-            if (remote.getEssentiaAmount(dir.getOpposite()) > 0 && remote.getSuctionAmount(dir.getOpposite()) < getSuctionAmount(dir) && getSuctionAmount(dir) >= remote.getMinimumSuction()) {
-                Holder<IAspect> ta = remote.getEssentiaType(dir.getOpposite());
-                if (ta == null)
-                    continue;
-                ResourceKey<IAspect> key = ta.unwrapKey().orElse(null);
-                if (key == null)
-                    continue;
-                int taken = remote.takeEssentia(ta, 1, dir.getOpposite());
-                if (taken > 0) {
-                    fill(key, taken);
-                }
-                return;
-            }
+    private boolean isFull() {
+        return heldTotal() >= MAX_AMOUNT;
+    }
+
+    private void pullFromNeighbour(Level world, BlockPos origin) {
+        PullCandidate found = pullSelector.select(world, origin, FIRST_SIDE);
+        while (found != null && !transfer(found)) {
+            found = pullSelector.select(world, origin, found.side().ordinal() + 1);
         }
+    }
+
+    private boolean transfer(PullCandidate candidate) {
+        Direction towardPeer = candidate.side().getOpposite();
+        if (candidate.peer().takeEssentia(candidate.aspect(), SINGLE_UNIT, towardPeer) <= 0) {
+            return false;
+        }
+        insert(candidate.aspect(), SINGLE_UNIT);
+        return true;
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        contents = input.read("Contents", AspectList.CODEC).orElse(AspectList.EMPTY);
-        List<Integer> choked = input.read("Choked", CHOKED_CODEC).orElse(List.of());
-        for (int i = 0; i < 6 && i < choked.size(); i++) {
-            chokedSides[i] = choked.get(i);
+    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction side) {
+        return NO_SUCTION_TYPE;
+    }
+
+    @Override
+    public int getSuctionAmount(@Nullable Direction side) {
+        ChokeLevel level = side == null ? ChokeLevel.NORMAL : sides.choke(side);
+        return suctionPolicy.offered(level);
+    }
+
+    @Override
+    public int getMinimumSuction() {
+        return NO_SUCTION;
+    }
+
+    @Override
+    public void setSuction(@Nullable Holder<IAspect> type, int strength) {}
+
+    @Override
+    public boolean isConnectable(Direction side) {
+        return openOn(side);
+    }
+
+    @Override
+    public int getEssentiaAmount(@Nullable Direction side) {
+        return heldTotal();
+    }
+
+    @Override
+    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction side) {
+        if (contents.isEmpty()) {
+            return null;
         }
-        List<Boolean> open = input.read("Open", OPEN_CODEC).orElse(List.of());
-        for (int i = 0; i < 6; i++) {
-            openSides[i] = i < open.size() ? open.get(i) : true;
+        List<AspectInstance> held = contents.entries();
+        AspectInstance chosen = level == null ? held.get(0) : held.get(level.getRandom().nextInt(held.size()));
+        return chosen.aspect();
+    }
+
+    @Override
+    public int takeEssentia(Holder<IAspect> kind, int amount, Direction side) {
+        if (side == null || !canOutputTo(side)) {
+            return 0;
         }
-        int facingOrdinal = input.getIntOr("Facing", Direction.NORTH.ordinal());
-        if (facingOrdinal >= 0 && facingOrdinal < 6) {
-            facing = Direction.values()[facingOrdinal];
-        } else {
-            facing = Direction.NORTH;
+        boolean outbid = level != null && arbitration.judge(level, worldPosition, kind, side) == TakeVerdict.OUTBID;
+        int moved = Math.min(amount, contents.amountOf(kind));
+        if (outbid || moved < SINGLE_UNIT) {
+            return 0;
         }
+        boolean removed = drain(kind, moved);
+        return removed ? moved : 0;
+    }
+
+    @Override
+    public boolean canOutputTo(Direction side) {
+        return openOn(side);
+    }
+
+    @Override
+    public int addEssentia(Holder<IAspect> kind, int amount, Direction side) {
+        boolean accepted = side != null && canInputFrom(side) && kind.unwrapKey().isPresent();
+        return accepted ? insert(kind, amount) : 0;
+    }
+
+    @Override
+    public boolean canInputFrom(Direction side) {
+        return side != null && sides.isOpen(side);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("Contents", AspectList.CODEC, contents);
-        List<Integer> choked = List.of(chokedSides[0], chokedSides[1], chokedSides[2], chokedSides[3], chokedSides[4], chokedSides[5]);
-        output.store("Choked", CHOKED_CODEC, choked);
-        List<Boolean> open = List.of(openSides[0], openSides[1], openSides[2], openSides[3], openSides[4], openSides[5]);
-        output.store("Open", OPEN_CODEC, open);
-        output.putInt("Facing", facing.ordinal());
+        output.store(CONTENTS_KEY, AspectList.CODEC, contents);
+        output.store(CHOKED_KEY, Codec.INT.listOf(), sides.chokeOrdinals());
+        output.store(OPEN_KEY, Codec.BOOL.listOf(), sides.openList());
+        output.putInt(FACING_KEY, facing.ordinal());
     }
 
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        List<Integer> chokes = input.read(CHOKED_KEY, Codec.INT.listOf()).orElse(List.of());
+        List<Boolean> opens = input.read(OPEN_KEY, Codec.BOOL.listOf()).orElse(List.of());
+        contents = input.read(CONTENTS_KEY, AspectList.CODEC).orElse(AspectList.EMPTY);
+        sides.restore(chokes, opens);
+        facing = BlockEssentiaTransport.directionOrNorth(input.getIntOr(FACING_KEY, Direction.NORTH.ordinal()));
+    }
 }

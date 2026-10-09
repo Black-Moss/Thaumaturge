@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -22,9 +21,13 @@ import net.minecraft.world.item.component.TooltipDisplay;
 
 public final class VoidseerCharmItem extends Item implements IVisDiscountGear, IWarpingGear {
     public static final Identifier DISCOUNT_MODIFIER_ID = TTIds.rl("voidseer_discount");
+
+    private static final String TEXT_KEY = "item.thaumaturge.voidseer_charm.text";
     private static final int WARP_CAP = 100;
-    private static final float MAX_DISCOUNT = 25.0F;
-    private static final int WARP_PER_DISCOUNT = 5;
+    private static final float MAX_DISCOUNT_PERCENT = 25.0F;
+    private static final double PERCENT_DIVISOR = 100.0;
+    private static final float WARP_DIVISOR = 100.0F;
+    private static final int WARP_PER_DISCOUNT_PERCENT = 5;
 
     public VoidseerCharmItem(Properties properties) {
         super(properties);
@@ -34,30 +37,30 @@ public final class VoidseerCharmItem extends Item implements IVisDiscountGear, I
         if (!(wearer instanceof Player player)) {
             return 0;
         }
-        int permanent = Math.min(WARP_CAP, WarpHelper.getWarp(player).get(WarpType.PERMANENT));
-        return Mth.floor(permanent / (float) WARP_CAP * MAX_DISCOUNT);
+        int permanent = Math.min(WarpHelper.getWarp(player).get(WarpType.PERMANENT), WARP_CAP);
+        return (int) (permanent / WARP_DIVISOR * MAX_DISCOUNT_PERCENT);
     }
 
     public void wornTick(ItemStack stack, LivingEntity wearer) {
-        AttributeInstance attribute = wearer.getAttribute(TTAttributes.VIS_DISCOUNT);
-        if (attribute == null) {
+        AttributeInstance instance = wearer.getAttribute(TTAttributes.VIS_DISCOUNT);
+        if (wearer.level().isClientSide() || instance == null) {
             return;
         }
-        double contribution = discountFor(wearer) / 100.0;
-        AttributeModifier existing = attribute.getModifier(DISCOUNT_MODIFIER_ID);
-        if (existing != null && existing.amount() == contribution) {
+        double desired = discountFor(wearer) / PERCENT_DIVISOR;
+        AttributeModifier existing = instance.getModifier(DISCOUNT_MODIFIER_ID);
+        if ((existing == null ? 0.0 : existing.amount()) == desired) {
             return;
         }
-        attribute.removeModifier(DISCOUNT_MODIFIER_ID);
-        if (contribution != 0.0) {
-            attribute.addTransientModifier(new AttributeModifier(DISCOUNT_MODIFIER_ID, contribution, AttributeModifier.Operation.ADD_VALUE));
+        instance.removeModifier(DISCOUNT_MODIFIER_ID);
+        if (desired != 0.0) {
+            instance.addTransientModifier(new AttributeModifier(DISCOUNT_MODIFIER_ID, desired, AttributeModifier.Operation.ADD_VALUE));
         }
     }
 
     public static void clearDiscount(LivingEntity wearer) {
-        AttributeInstance attribute = wearer.getAttribute(TTAttributes.VIS_DISCOUNT);
-        if (attribute != null) {
-            attribute.removeModifier(DISCOUNT_MODIFIER_ID);
+        AttributeInstance instance = wearer.getAttribute(TTAttributes.VIS_DISCOUNT);
+        if (instance != null) {
+            instance.removeModifier(DISCOUNT_MODIFIER_ID);
         }
     }
 
@@ -68,12 +71,12 @@ public final class VoidseerCharmItem extends Item implements IVisDiscountGear, I
 
     @Override
     public int warp(ItemStack stack, LivingEntity wearer) {
-        return discountFor(wearer) / WARP_PER_DISCOUNT;
+        return discountFor(wearer) / WARP_PER_DISCOUNT_PERCENT;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-        tooltip.accept(Component.translatable("item.thaumaturge.voidseer_charm.text").withStyle(ChatFormatting.DARK_BLUE, ChatFormatting.ITALIC));
+        tooltip.accept(Component.translatable(TEXT_KEY).withStyle(ChatFormatting.DARK_BLUE, ChatFormatting.ITALIC));
         super.appendHoverText(stack, context, display, tooltip, flag);
     }
 }

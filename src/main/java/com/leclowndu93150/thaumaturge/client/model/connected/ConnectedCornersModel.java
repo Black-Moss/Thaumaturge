@@ -11,9 +11,9 @@ import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 
 public record ConnectedCornersModel(Identifier sprites, Identifier particle) implements CustomUnbakedBlockStateModel {
     public static final Identifier TYPE = TTIds.rl("connected_corners");
-    public static final MapCodec<ConnectedCornersModel> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
-            .group(Identifier.CODEC.fieldOf("sprites").forGetter(ConnectedCornersModel::sprites), Identifier.CODEC.fieldOf("particle").forGetter(ConnectedCornersModel::particle))
-            .apply(instance, ConnectedCornersModel::new));
+    public static final MapCodec<ConnectedCornersModel> CODEC = RecordCodecBuilder.mapCodec(
+            instance -> instance.group(Identifier.CODEC.fieldOf("sprites").forGetter(ConnectedCornersModel::sprites), Identifier.CODEC.fieldOf("particle").forGetter(ConnectedCornersModel::particle))
+                    .apply(instance, ConnectedCornersModel::new));
 
     @Override
     public BlockStateModel bake(ModelBaker baker) {

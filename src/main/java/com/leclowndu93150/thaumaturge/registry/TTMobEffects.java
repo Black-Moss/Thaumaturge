@@ -7,7 +7,7 @@ import com.leclowndu93150.thaumaturge.content.taint.effect.VisExhaustEffect;
 import com.leclowndu93150.thaumaturge.content.warp.effect.BlurredVisionEffect;
 import com.leclowndu93150.thaumaturge.content.warp.effect.DeathGazeEffect;
 import com.leclowndu93150.thaumaturge.content.warp.effect.SunScornedEffect;
-import com.leclowndu93150.thaumaturge.content.warp.effect.ThaumarhiaEffect;
+import com.leclowndu93150.thaumaturge.content.warp.effect.ThaumorrheaEffect;
 import com.leclowndu93150.thaumaturge.content.warp.effect.UnnaturalHungerEffect;
 import com.leclowndu93150.thaumaturge.content.warp.effect.WarpWardEffect;
 import net.minecraft.core.Holder;
@@ -25,7 +25,7 @@ public final class TTMobEffects {
 
     public static final Holder<MobEffect> FLUX_TAINT = MOB_EFFECTS.register("flux_taint", FluxTaintEffect::new);
 
-    public static final Holder<MobEffect> THAUMARHIA = MOB_EFFECTS.register("thaumarhia", ThaumarhiaEffect::new);
+    public static final Holder<MobEffect> THAUMARHIA = MOB_EFFECTS.register("thaumarhia", ThaumorrheaEffect::new);
 
     public static final Holder<MobEffect> UNNATURAL_HUNGER = MOB_EFFECTS.register("unnatural_hunger", UnnaturalHungerEffect::new);
 

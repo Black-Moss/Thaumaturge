@@ -32,32 +32,25 @@ public class BlockArcaneWorkbenchCharger extends Block {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getShape(BlockState state, BlockGetter getter, BlockPos position, CollisionContext collision) {
         return SHAPE;
     }
 
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return willSurvive(level, pos);
-    }
-
-    private boolean willSurvive(LevelReader level, BlockPos pos) {
         return level.getBlockState(pos.below()).is(TTBlockTags.ARCANE_WORKBENCH_CHARGER_HOSTS);
     }
 
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (!canSurvive(state, level, pos))
-            return Blocks.AIR.defaultBlockState();
-        return super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+        BlockState updated = super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
+        return canSurvive(state, level, pos) ? updated : Blocks.AIR.defaultBlockState();
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide() && !DeviceGate.passes(player, TTIds.rl("workbench_charger"))) {
-            return InteractionResult.SUCCESS_SERVER;
-        }
         BlockPos host = pos.below();
-        return level.getBlockState(host).useWithoutItem(level, player, hit.withPosition(host));
+        boolean allowed = level.isClientSide() || DeviceGate.passes(player, TTIds.rl("workbench_charger"));
+        return allowed ? level.getBlockState(host).useWithoutItem(level, player, hit.withPosition(host)) : InteractionResult.SUCCESS_SERVER;
     }
 }

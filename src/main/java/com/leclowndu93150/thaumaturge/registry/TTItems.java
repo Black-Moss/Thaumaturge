@@ -73,7 +73,7 @@ import com.leclowndu93150.thaumaturge.content.wands.ItemPrimalCharm;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWandCap;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWandRod;
-import com.leclowndu93150.thaumaturge.content.warp.ItemSanitySoap;
+import com.leclowndu93150.thaumaturge.content.warp.soap.SanitySoapItem;
 import com.leclowndu93150.thaumaturge.content.world.mound.LootBagItem;
 import java.util.EnumMap;
 import java.util.Map;
@@ -453,7 +453,7 @@ public final class TTItems {
     public static final DeferredItem<Item> MODULE_AGGRESSION = ITEMS.registerSimpleItem("module_aggression");
     public static final DeferredItem<Item> MORPHIC_RESONATOR = ITEMS.registerSimpleItem("morphic_resonator");
     public static final DeferredItem<Item> BATH_SALTS = ITEMS.registerItem("bath_salts", Item::new);
-    public static final DeferredItem<ItemSanitySoap> SANITY_SOAP = ITEMS.registerItem("sanity_soap", ItemSanitySoap::new);
+    public static final DeferredItem<SanitySoapItem> SANITY_SOAP = ITEMS.registerItem("sanity_soap", SanitySoapItem::new);
 
     public static final DeferredItem<Item> CHUNK_BEEF = registerChunk("chunk_beef");
     public static final DeferredItem<Item> CHUNK_CHICKEN = registerChunk("chunk_chicken");

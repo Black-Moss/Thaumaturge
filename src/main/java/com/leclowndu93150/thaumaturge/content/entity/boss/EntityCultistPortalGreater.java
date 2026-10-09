@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
+import com.leclowndu93150.thaumaturge.content.decor.banner.BannerStandingBlock;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultist;
 import com.leclowndu93150.thaumaturge.content.entity.portal.CultistPortals;
@@ -10,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -23,175 +25,239 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.RotationSegment;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
-    private static final int PORTAL_XP = 30;
-    private static final double ACTIVATION_RANGE = 48.0;
-    private static final double MINION_SCAN_RANGE = 32.0;
-    private static final int MINION_TIMING_PER_CULTIST = 20;
-    private static final int BOSS_STAGE = 12;
-    private static final int BANNER_DISTANCE = 6;
-    private static final int BANNER_STAGE_TICK = 160;
-    private static final int CRATE_WINDOW_MAX = 150;
-    private static final int CRATE_WINDOW_MIN = 20;
-    private static final int CRATE_INTERVAL = 13;
-    private static final int CRATE_SPREAD = 5;
-    private static final float CRATE_RARE_CHANCE = 0.05F;
-    private static final float CRATE_UNCOMMON_CHANCE = 0.2F;
+    private static final String STAGE_KEY = "stage";
+    private static final double MAX_HEALTH = 500.0;
+    private static final double ATTACK_DAMAGE = 0.0;
+    private static final double ARMOR = 5.0;
+    private static final double KNOCKBACK_RESISTANCE = 1.0;
+    private static final int EXPERIENCE = 30;
     private static final float TOUCH_DAMAGE = 8.0F;
-    private static final int OVERSPAWN_DAMAGE_BASE = 5;
-    private static final float DEATH_EXPLOSION_POWER = 2.0F;
-    private static final int ARC_COLOR = 0xBB2222;
+    private static final float DEATH_BLAST_POWER = 2.0F;
+    private static final int OPENING_TICKS = 200;
+    private static final int BANNER_COUNTDOWN = 190;
+    private static final int CRATE_FIRST_COUNTDOWN = 120;
+    private static final int CRATE_LAST_COUNTDOWN = 20;
+    private static final int CRATE_INTERVAL = 13;
+    private static final double PLAYER_RANGE = 48.0;
+    private static final int RECHECK_MIN_TICKS = 30;
+    private static final int RECHECK_SPREAD_TICKS = 30;
+    private static final int[] EARLY_DELAY_MIN = {15, 14, 13, 12, 11};
+    private static final int[] EARLY_DELAY_MAX = {24, 22, 20, 18, 16};
+    private static final int POPULATION_STAGE = EARLY_DELAY_MIN.length;
+    private static final int LEADER_STAGE = 12;
+    private static final double POPULATION_RANGE = 32.0;
+    private static final int POPULATION_DELAY_PER_CULTIST = 20;
+    private static final int POPULATION_EXTRA_SPREAD = 5;
+    private static final int POPULATION_DIVISOR = 3;
+    private static final int LEADER_DELAY_BASE = 50;
+    private static final int LEADER_POPULATION_FACTOR = 2;
+    private static final int LEADER_DELAY_SPREAD = 50;
+    private static final int DRAIN_MIN = 5;
+    private static final int DRAIN_SPREAD = 5;
+    private static final float HEAL_PER_TICK = 1.0F;
     private static final int HOME_RADIUS = 32;
+    private static final int BANNER_DISTANCE = 6;
+    private static final int CRATE_RADIUS = 4;
+    private static final float RARE_CHANCE = 0.05F;
+    private static final float UNCOMMON_CHANCE = 0.15F;
+    private static final int BOLT_COLOR = 0xBB2222;
+    private static final float CHIME_VOLUME = 1.0F;
+    private static final float CHIME_PITCH = 1.0F;
+    private static final int AMBIENT_SOUND_INTERVAL = CultistPortals.AMBIENT_INTERVAL;
+    private static final boolean PUSHABLE = false;
+    private static final Direction[] CARDINALS = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
-    private int stage;
-    private int stageCounter = 200;
     public int pulse;
+    private int stage;
+    private int countdown = OPENING_TICKS;
+    private boolean opening = true;
 
     public EntityCultistPortalGreater(EntityType<? extends EntityCultistPortalGreater> type, Level level) {
         super(type, level);
-        this.xpReward = PORTAL_XP;
+        this.xpReward = EXPERIENCE;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createBossAttributes().add(Attributes.MAX_HEALTH, 500.0).add(Attributes.ATTACK_DAMAGE, 0.0).add(Attributes.ARMOR, 5.0).add(Attributes.KNOCKBACK_RESISTANCE, 1.0);
+        return createBossAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE).add(Attributes.ARMOR, ARMOR).add(Attributes.KNOCKBACK_RESISTANCE,
+                KNOCKBACK_RESISTANCE);
     }
 
     @Override
     protected void registerGoals() {}
 
     @Override
-    protected void addAdditionalSaveData(ValueOutput output) {
-        super.addAdditionalSaveData(output);
-        output.putInt("stage", this.stage);
+    protected void addAdditionalSaveData(ValueOutput out) {
+        super.addAdditionalSaveData(out);
+        out.putInt(STAGE_KEY, stage);
     }
 
     @Override
-    protected void readAdditionalSaveData(ValueInput input) {
-        super.readAdditionalSaveData(input);
-        this.stage = input.getIntOr("stage", 0);
+    protected void readAdditionalSaveData(ValueInput in) {
+        super.readAdditionalSaveData(in);
+        stage = in.getIntOr(STAGE_KEY, 0);
     }
 
     @Override
     public boolean isPushable() {
-        return false;
+        return PUSHABLE;
     }
 
     @Override
-    public void move(MoverType type, Vec3 movement) {}
+    public void move(MoverType kind, Vec3 delta) {}
 
     @Override
     public void aiStep() {
-        if (this.pulse > 0) {
-            this.pulse--;
-        }
+        pulse = Math.max(0, pulse - 1);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (this.level().isClientSide()) {
+        if (!isAlive() || !(level() instanceof ServerLevel server)) {
             return;
         }
-        ServerLevel server = (ServerLevel) this.level();
-        if (this.stageCounter <= 0) {
-            if (this.level().getNearestPlayer(this, ACTIVATION_RANGE) != null) {
-                this.level().broadcastEntityEvent(this, CultistPortals.PULSE_EVENT);
-                if (this.stage <= 4) {
-                    this.stageCounter = 15 + this.random.nextInt(10 - this.stage) - this.stage;
-                    this.spawnMinions(server);
-                } else if (this.stage == BOSS_STAGE) {
-                    this.stageCounter = 50 + this.getTiming() * 2 + this.random.nextInt(50);
-                    this.spawnBoss(server);
-                } else {
-                    int timing = this.getTiming();
-                    this.stageCounter = timing + this.random.nextInt(5 + timing / 3);
-                    this.spawnMinions(server);
-                }
-                this.stage++;
-            } else {
-                this.stageCounter = 30 + this.random.nextInt(30);
+        if (stage < LEADER_STAGE) {
+            heal(HEAL_PER_TICK);
+        }
+        tickWaves(server);
+    }
+
+    private void tickWaves(ServerLevel level) {
+        if (countdown > 0) {
+            if (opening && stage == 0) {
+                openingEvents(level);
             }
+            countdown--;
+            return;
+        }
+        opening = false;
+        if (level.getNearestPlayer(this, PLAYER_RANGE) == null) {
+            countdown = RECHECK_MIN_TICKS + random.nextInt(RECHECK_SPREAD_TICKS);
+            return;
+        }
+        pulse(level);
+        runStage(level);
+        stage++;
+    }
+
+    private void openingEvents(ServerLevel level) {
+        if (countdown == BANNER_COUNTDOWN) {
+            placeBanners(level);
+        } else if (countdown <= CRATE_FIRST_COUNTDOWN && countdown >= CRATE_LAST_COUNTDOWN && (CRATE_FIRST_COUNTDOWN - countdown) % CRATE_INTERVAL == 0) {
+            placeCrate(level);
+        }
+    }
+
+    private void runStage(ServerLevel level) {
+        if (stage < POPULATION_STAGE) {
+            spawnMinion(level);
+            countdown = EARLY_DELAY_MIN[stage] + random.nextInt(EARLY_DELAY_MAX[stage] - EARLY_DELAY_MIN[stage] + 1);
+        } else if (stage == LEADER_STAGE) {
+            spawnLeader(level);
+            countdown = LEADER_DELAY_BASE + LEADER_POPULATION_FACTOR * populationDelay() + random.nextInt(LEADER_DELAY_SPREAD);
         } else {
-            this.stageCounter--;
-            if (this.stageCounter == BANNER_STAGE_TICK && this.stage == 0) {
-                this.level().broadcastEntityEvent(this, CultistPortals.PULSE_EVENT);
-                this.placeBanners(server);
+            spawnMinion(level);
+            int population = populationDelay();
+            countdown = population + random.nextInt(POPULATION_EXTRA_SPREAD) + population / POPULATION_DIVISOR - 1;
+            if (stage > LEADER_STAGE) {
+                hurtServer(level, damageSources().fellOutOfWorld(), DRAIN_MIN + random.nextInt(DRAIN_SPREAD));
             }
-            if (this.stageCounter > CRATE_WINDOW_MIN && this.stageCounter < CRATE_WINDOW_MAX && this.stage == 0 && this.stageCounter % CRATE_INTERVAL == 0) {
-                this.placeCrate(server);
-            }
-        }
-        if (this.stage < BOSS_STAGE) {
-            this.heal(1.0F);
         }
     }
 
-    private void placeBanners(ServerLevel server) {
-        for (Direction dir : Direction.Plane.HORIZONTAL) {
-            BlockPos pos = new BlockPos((int) this.getX() - dir.getStepX() * BANNER_DISTANCE, (int) this.getY(), (int) this.getZ() + dir.getStepZ() * BANNER_DISTANCE);
-            int rotation = switch (dir) {
-                case NORTH -> 8;
-                case WEST -> 12;
-                case EAST -> 4;
-                default -> 0;
-            };
-            BlockState banner = TTBlocks.BANNER_CRIMSON_CULT.get().defaultBlockState().setValue(BlockStateProperties.ROTATION_16, rotation);
-            server.setBlock(pos, banner, Block.UPDATE_ALL);
-            Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0)).to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
-            this.playSound(TTSounds.WANDFAIL.get(), 1.0F, 1.0F);
+    private int populationDelay() {
+        return POPULATION_DELAY_PER_CULTIST * CultistPortals.cultistsNear(this, POPULATION_RANGE);
+    }
+
+    private void spawnMinion(ServerLevel level) {
+        EntityCultist minion = CultistPortals.rollMinion(level, random);
+        if (minion != null) {
+            arrive(level, minion);
         }
     }
 
-    private void placeCrate(ServerLevel server) {
-        int x = (int) this.getX() + this.random.nextInt(CRATE_SPREAD) - this.random.nextInt(CRATE_SPREAD);
-        int z = (int) this.getZ() + this.random.nextInt(CRATE_SPREAD) - this.random.nextInt(CRATE_SPREAD);
-        BlockPos pos = new BlockPos(x, (int) this.getY(), z);
-        if (x == (int) this.getX() || z == (int) this.getZ() || !server.isEmptyBlock(pos)) {
+    private void spawnLeader(ServerLevel level) {
+        EntityCultistLeader leader = TTEntities.CULTIST_LEADER.get().create(level, EntitySpawnReason.MOB_SUMMONED);
+        if (leader != null) {
+            arrive(level, leader);
+        }
+    }
+
+    private void arrive(ServerLevel level, Mob arrival) {
+        arrival.setHomeTo(blockPosition(), HOME_RADIUS);
+        CultistPortals.summon(this, level, arrival);
+        arrival.setHomeTo(blockPosition(), HOME_RADIUS);
+        chime(level);
+    }
+
+    private void placeBanners(ServerLevel level) {
+        BlockPos base = blockPosition();
+        for (Direction side : CARDINALS) {
+            BlockPos pos = base.relative(side, BANNER_DISTANCE);
+            if (!level.hasChunkAt(pos)) {
+                continue;
+            }
+            float facingYaw = side.getOpposite().toYRot();
+            BlockState banner = TTBlocks.BANNER_CRIMSON_CULT.get().defaultBlockState().setValue(BannerStandingBlock.ROTATION, RotationSegment.convertToSegment(facingYaw));
+            level.setBlock(pos, banner, Block.UPDATE_ALL);
+            bolt(level, Vec3.atCenterOf(pos));
+        }
+        chime(level);
+        pulse(level);
+    }
+
+    private void placeCrate(ServerLevel level) {
+        int dx = random.nextInt(CRATE_RADIUS * 2 + 1) - CRATE_RADIUS;
+        int dz = random.nextInt(CRATE_RADIUS * 2 + 1) - CRATE_RADIUS;
+        BlockPos pos = blockPosition().offset(dx, 0, dz);
+        if (dx == 0 || dz == 0 || !level.hasChunkAt(pos) || !level.isEmptyBlock(pos)) {
             return;
         }
-        this.level().broadcastEntityEvent(this, CultistPortals.PULSE_EVENT);
-        float roll = this.random.nextFloat();
-        Block crate = TTBlocks.LOOT_CRATE_COMMON.get();
-        if (roll < CRATE_RARE_CHANCE) {
-            crate = TTBlocks.LOOT_CRATE_RARE.get();
-        } else if (roll < CRATE_UNCOMMON_CHANCE) {
-            crate = TTBlocks.LOOT_CRATE_UNCOMMON.get();
-        }
-        server.setBlock(pos, crate.defaultBlockState(), Block.UPDATE_ALL);
-        Effects.arcBolt(server, this.position().add(0.0, this.getBbHeight() / 2.0, 0.0)).to(Vec3.atCenterOf(pos)).color(ARC_COLOR).send();
-        this.playSound(TTSounds.WANDFAIL.get(), 1.0F, 1.0F);
+        level.setBlock(pos, crateState(), Block.UPDATE_ALL);
+        bolt(level, Vec3.atCenterOf(pos));
+        chime(level);
+        pulse(level);
     }
 
-    private int getTiming() {
-        return CultistPortals.cultistsNear(this, MINION_SCAN_RANGE) * MINION_TIMING_PER_CULTIST;
+    private BlockState crateState() {
+        float roll = random.nextFloat();
+        if (roll < RARE_CHANCE) {
+            return TTBlocks.LOOT_CRATE_RARE.get().defaultBlockState();
+        }
+        return roll < RARE_CHANCE + UNCOMMON_CHANCE ? TTBlocks.LOOT_CRATE_UNCOMMON.get().defaultBlockState() : TTBlocks.LOOT_CRATE_COMMON.get().defaultBlockState();
     }
 
-    private void spawnMinions(ServerLevel server) {
-        EntityCultist cultist = CultistPortals.rollMinion(server, this.random);
-        if (cultist != null) {
-            this.spawnCultist(server, cultist);
-        }
-        if (this.stage > BOSS_STAGE) {
-            this.hurtServer(server, this.damageSources().fellOutOfWorld(), OVERSPAWN_DAMAGE_BASE + this.random.nextInt(5));
-        }
+    private void bolt(ServerLevel level, Vec3 target) {
+        Effects.boltStrike(level, getBoundingBox().getCenter()).to(target).color(BOLT_COLOR).send();
     }
 
-    private void spawnBoss(ServerLevel server) {
-        EntityCultistLeader leader = TTEntities.CULTIST_LEADER.get().create(server, EntitySpawnReason.MOB_SUMMONED);
-        if (leader != null) {
-            this.spawnCultist(server, leader);
-        }
+    private void chime(ServerLevel level) {
+        level.playSound(null, getX(), getY(), getZ(), TTSounds.WANDFAIL.get(), SoundSource.HOSTILE, CHIME_VOLUME, CHIME_PITCH);
     }
 
-    private void spawnCultist(ServerLevel server, Mob cultist) {
-        cultist.setHomeTo(this.blockPosition(), HOME_RADIUS);
-        CultistPortals.summon(this, server, cultist);
+    private void pulse(ServerLevel level) {
+        level.broadcastEntityEvent(this, CultistPortals.PULSE_EVENT);
+    }
+
+    @Override
+    public void handleEntityEvent(byte event) {
+        if (event != CultistPortals.PULSE_EVENT) {
+            super.handleEntityEvent(event);
+            return;
+        }
+        pulse = CultistPortals.PULSE_TICKS;
+    }
+
+    @Override
+    public boolean addEffect(MobEffectInstance effect, @Nullable Entity origin) {
+        return false;
     }
 
     @Override
@@ -200,47 +266,33 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     }
 
     @Override
+    public void die(DamageSource cause) {
+        CultistPortals.collapse(this, DEATH_BLAST_POWER);
+        super.die(cause);
+    }
+
+    @Override
+    public int getAmbientSoundInterval() {
+        return AMBIENT_SOUND_INTERVAL;
+    }
+
+    @Override
     protected float getSoundVolume() {
         return CultistPortals.SOUND_VOLUME;
     }
 
     @Override
-    public int getAmbientSoundInterval() {
-        return CultistPortals.AMBIENT_INTERVAL;
-    }
-
-    @Override
     protected SoundEvent getAmbientSound() {
-        return TTSounds.MONOLITH.get();
+        return TTSounds.MONOLITH.value();
     }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return TTSounds.ZAP.get();
+    protected SoundEvent getHurtSound(DamageSource cause) {
+        return TTSounds.ZAP.value();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return TTSounds.SHOCK.get();
-    }
-
-    @Override
-    public void handleEntityEvent(byte event) {
-        if (event == CultistPortals.PULSE_EVENT) {
-            this.pulse = CultistPortals.PULSE_TICKS;
-        } else {
-            super.handleEntityEvent(event);
-        }
-    }
-
-    @Override
-    public boolean addEffect(MobEffectInstance effect, @Nullable Entity source) {
-        return false;
-    }
-
-    @Override
-    public void die(DamageSource source) {
-        CultistPortals.collapse(this, DEATH_EXPLOSION_POWER);
-        super.die(source);
+        return TTSounds.SHOCK.value();
     }
 }

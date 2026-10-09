@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.device;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.entity.EntityFluxRift;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -13,16 +12,17 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 public final class BlockEntityStabilizer extends BlockEntity {
-    private static final int CAPACITY = 15;
+    private static final int MAX_ENERGY = 15;
     private static final int CHARGE_INTERVAL = 20;
-    private static final int WORK_INTERVAL = 5;
-    private static final float POLLUTION_PER_CHARGE = 0.25F;
+    private static final int STABILISE_INTERVAL = 5;
+    private static final int STABILISE_DELAY = 5;
     private static final double RIFT_RANGE = 8.0;
-    private static final int WORK_DELAY = 5;
+    private static final float CHARGE_POLLUTION = 0.25F;
+    private static final String ENERGY_KEY = "energy";
 
+    private int energy;
     private int ticks;
     private int delay;
-    private int energy;
 
     public BlockEntityStabilizer(BlockPos pos, BlockState state) {
         super(TTBlockEntities.STABILIZER.get(), pos, state);
@@ -33,55 +33,60 @@ public final class BlockEntityStabilizer extends BlockEntity {
     }
 
     public boolean mitigate(int amount) {
-        if (energy >= amount) {
-            energy -= amount;
-            setChanged();
-            if (level != null) {
-                level.updateNeighbourForOutputSignal(getBlockPos(), getBlockState().getBlock());
-            }
-            return true;
+        if (energy < amount) {
+            return false;
         }
-        return false;
+        energy -= amount;
+        energyChanged();
+        return true;
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityStabilizer stabilizer) {
         stabilizer.ticks++;
-        if (stabilizer.energy < CAPACITY && stabilizer.ticks % CHARGE_INTERVAL == 0) {
+        if (stabilizer.ticks % CHARGE_INTERVAL == 0 && stabilizer.energy < MAX_ENERGY) {
             stabilizer.energy++;
-            AuraHelper.polluteAura(level, pos, POLLUTION_PER_CHARGE, true);
-            stabilizer.setChanged();
-            level.updateNeighbourForOutputSignal(pos, state.getBlock());
+            AuraHelper.polluteAura(level, pos, CHARGE_POLLUTION, true);
+            stabilizer.energyChanged();
         }
-        if (stabilizer.energy > 0 && stabilizer.delay <= 0 && stabilizer.ticks % WORK_INTERVAL == 0) {
-            stabilizer.tryAddStability(level, pos);
+        if (stabilizer.ticks % STABILISE_INTERVAL == 0 && stabilizer.energy > 0 && stabilizer.delay <= 0) {
+            stabilizer.stabilise(level, pos);
         }
         if (stabilizer.delay > 0) {
             stabilizer.delay--;
         }
     }
 
-    private void tryAddStability(Level level, BlockPos pos) {
-        List<EntityFluxRift> rifts = level.getEntitiesOfClass(EntityFluxRift.class, new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1).inflate(RIFT_RANGE));
-        for (EntityFluxRift rift : rifts) {
-            if (!rift.isRemoved() && rift.getStability() != EntityFluxRift.Stability.VERY_STABLE && mitigate(1)) {
-                rift.addStability();
-                delay += WORK_DELAY;
-                if (energy <= 0) {
-                    return;
-                }
+    private void stabilise(Level level, BlockPos pos) {
+        for (EntityFluxRift rift : level.getEntitiesOfClass(EntityFluxRift.class, new AABB(pos).inflate(RIFT_RANGE))) {
+            if (energy <= 0) {
+                return;
             }
+            if (rift.isRemoved() || rift.stabilityTier() == EntityFluxRift.Stability.VERY_STABLE) {
+                continue;
+            }
+            energy--;
+            rift.nudgeStability();
+            delay += STABILISE_DELAY;
+            energyChanged();
+        }
+    }
+
+    private void energyChanged() {
+        setChanged();
+        if (level != null) {
+            level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         }
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        energy = Math.min(input.getIntOr("energy", 0), CAPACITY);
+        energy = Math.min(MAX_ENERGY, input.getIntOr(ENERGY_KEY, 0));
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("energy", energy);
+        output.putInt(ENERGY_KEY, energy);
     }
 }

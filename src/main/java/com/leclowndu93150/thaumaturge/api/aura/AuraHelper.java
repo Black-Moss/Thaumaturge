@@ -9,291 +9,440 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Public addon API for per-chunk aura: pure vis, accumulated flux, and the chunk's max base. All
- * methods are server-side; clients receive aura snapshots through the underlying attachment sync
- * and should never call mutators.
+ * Static facade over the per-chunk aura: vis, flux and the chunk's base capacity.
  *
- * <p>Every read returns zero when the chunk has no aura record yet (generation runs on first
- * load). Every mutator silently no-ops when the chunk is missing. The intended contract is that
- * addons call freely without null checks; values clamp at the impl boundary.
+ * <p>The facade holds no aura logic. Every method forwards to the {@link Bindings} implementation installed once during
+ * mod initialisation, and passes arguments and results through without clamping or caching. Calling any method before
+ * the implementation is bound throws {@link IllegalStateException}.
  *
- * <p>The helper is a static facade. The implementation is bound at mod init by Thaumaturge via
- * {@link #bind(Bindings)}; addons must not call {@code bind}.
+ * <p>All methods are meant for the logical server. Clients read aura through the synced attachment and never call the
+ * mutators.
  *
  * @since 1.0.0
  */
 public final class AuraHelper {
-    private static Bindings impl;
+    private static final String ALREADY_BOUND = "AuraHelper already bound";
+    private static final String NOT_BOUND = "AuraHelper accessed before binding";
+
+    private static Bindings bindings;
 
     private AuraHelper() {}
 
     /**
-     * Returns the aura record for the given chunk on the server side.
+     * Installs the implementation behind this facade. Called once by the mod during initialisation.
+     *
+     * @param implementation the implementation to forward to
+     * @throws IllegalStateException when an implementation is already bound
+     */
+    public static void bind(Bindings implementation) {
+        if (bindings == null) {
+            bindings = implementation;
+            return;
+        }
+        throw new IllegalStateException(ALREADY_BOUND);
+    }
+
+    private static Bindings target() {
+        if (bindings == null) {
+            throw new IllegalStateException(NOT_BOUND);
+        }
+        return bindings;
+    }
+
+    /**
+     * Looks up the aura record of a chunk by chunk position.
      *
      * @param level the server level
-     * @param pos   the chunk position
-     * @return the aura record, never null; freshly-created entries report base/vis/flux as zero
-     *         until generation has populated them
-     * @throws IllegalStateException when called before the implementation has bound the helper
+     * @param pos the chunk position
+     * @return the aura record, never null; an empty record stamped with {@code pos} when the chunk has none yet
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static IAuraChunk of(ServerLevel level, ChunkPos pos) {
-        return bindingOrThrow().chunkLookup(level, pos);
+        Bindings impl = target();
+        return impl.chunkLookup(level, pos);
     }
 
     /**
-     * Returns the aura record for the chunk containing the given block position. Resolves the
-     * chunk by right-shifting the block coordinates by four.
+     * Looks up the aura record of the chunk containing a block position.
      *
-     * @param level the level; must be a server level at runtime
-     * @param pos   a block position inside the target chunk
-     * @return the aura record, never null
-     * @throws IllegalStateException when called before the implementation has bound the helper
+     * @param level the level
+     * @param pos the block position
+     * @return the aura record, never null; an empty record when the chunk has none yet
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static IAuraChunk of(Level level, BlockPos pos) {
-        return bindingOrThrow().blockLookup(level, pos);
+        Bindings impl = target();
+        return impl.blockLookup(level, pos);
     }
 
     /**
-     * Returns the current pure vis in the chunk containing the given block.
+     * Reads the vis of the chunk containing a position.
      *
      * @param level the level
-     * @param pos   block position resolving to the chunk
-     * @return vis amount; zero when no aura record exists yet
+     * @param pos the block position
+     * @return the vis amount, 0 when the chunk has no record
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static float getVis(Level level, BlockPos pos) {
-        return bindingOrThrow().getVis(level, pos);
+        Bindings impl = target();
+        return impl.getVis(level, pos);
     }
 
     /**
-     * Returns the current flux in the chunk containing the given block.
+     * Reads the flux of the chunk containing a position.
      *
      * @param level the level
-     * @param pos   block position resolving to the chunk
-     * @return flux amount; zero when no aura record exists yet
+     * @param pos the block position
+     * @return the flux amount, 0 when the chunk has no record
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static float getFlux(Level level, BlockPos pos) {
-        return bindingOrThrow().getFlux(level, pos);
+        Bindings impl = target();
+        return impl.getFlux(level, pos);
     }
 
     /**
-     * Returns the chunk's maximum aura, sampled at generation time from biome modifiers.
+     * Reads the base (maximum) aura of the chunk containing a position.
      *
      * @param level the level
-     * @param pos   block position resolving to the chunk
-     * @return base aura, clamped to {@code [0, 500]}; zero when no aura record exists yet
+     * @param pos the block position
+     * @return the base aura in the range 0 to 500, 0 when the chunk has no record
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static int getAuraBase(Level level, BlockPos pos) {
-        return bindingOrThrow().getAuraBase(level, pos);
+        Bindings impl = target();
+        return impl.getAuraBase(level, pos);
     }
 
     /**
-     * Returns the sum of vis and flux in the chunk.
+     * Reads the combined vis and flux of the chunk containing a position.
      *
      * @param level the level
-     * @param pos   block position resolving to the chunk
-     * @return {@code getVis + getFlux}
+     * @param pos the block position
+     * @return vis plus flux
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static float getTotalAura(Level level, BlockPos pos) {
-        return bindingOrThrow().getTotalAura(level, pos);
+        Bindings impl = target();
+        return impl.getTotalAura(level, pos);
     }
 
     /**
-     * Returns the chunk's flux saturation ratio: {@code flux / base}.
+     * Reads the flux divided by the base aura of the chunk containing a position.
      *
      * @param level the level
-     * @param pos   block position resolving to the chunk
-     * @return saturation in {@code [0, 1+]} when the rift threshold is exceeded; zero when no aura
-     *         record exists or base is zero
+     * @param pos the block position
+     * @return the ratio, which may exceed 1; 0 when the chunk has no record or its base is 0
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static float getFluxSaturation(Level level, BlockPos pos) {
-        return bindingOrThrow().getFluxSaturation(level, pos);
+        Bindings impl = target();
+        return impl.getFluxSaturation(level, pos);
     }
 
     /**
-     * Tests whether aura preservation applies in the chunk. Returns true when the player (or the
-     * server context, for {@code player == null}) holds the aura-preservation research and the
-     * chunk's vis has dropped below ten percent of base. Callers should bail out of vis-draining
-     * operations when this returns true.
+     * Reads how much more aura the chunk containing a position can hold.
      *
-     * @param level  the level
-     * @param player the player whose research gates the check; null bypasses the gate
-     * @param pos    block position resolving to the chunk
-     * @return true when the chunk is in preserve mode and the caller should not drain further vis
+     * @param level the level
+     * @param pos the block position
+     * @return base minus total aura, floored at 0; 0 when the chunk has no record
+     * @throws IllegalStateException when the facade is not yet bound
+     */
+    public static float capacityRemaining(Level level, BlockPos pos) {
+        Bindings impl = target();
+        return impl.capacityRemaining(level, pos);
+    }
+
+    /**
+     * Tests whether the chunk containing a position can take an amount of vis.
+     *
+     * @param level the level
+     * @param pos the block position
+     * @param amount the amount to test
+     * @return true when the remaining capacity is at least {@code amount}; non-positive amounts always fit
+     * @throws IllegalStateException when the facade is not yet bound
+     */
+    public static boolean canAcceptVis(Level level, BlockPos pos, float amount) {
+        Bindings impl = target();
+        return impl.canAcceptVis(level, pos, amount);
+    }
+
+    /**
+     * Tests whether vis draining should stop to protect the chunk's aura.
+     *
+     * <p>The result is false when the base is 0. Otherwise it is true only when the player is null or has completed the
+     * aura preservation research, and vis divided by base is strictly below ten percent.
+     *
+     * @param level the level
+     * @param player the acting player, or null for a non-player actor
+     * @param pos the block position
+     * @return true when the caller should stop draining vis
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static boolean shouldPreserveAura(Level level, @Nullable Player player, BlockPos pos) {
-        return bindingOrThrow().shouldPreserveAura(level, player, pos);
+        Bindings impl = target();
+        return impl.shouldPreserveAura(level, player, pos);
     }
 
     /**
-     * Adds pure vis to the chunk. Negative amounts are silently ignored; use {@link #drainVis} to
-     * remove vis.
+     * Adds vis to the chunk containing a position.
      *
-     * @param level  the level
-     * @param pos    block position resolving to the chunk
-     * @param amount vis to add; must be non-negative
+     * <p>Negative amounts are ignored. The implementation clamps to its limits and does nothing when the chunk has no
+     * record.
+     *
+     * @param level the level
+     * @param pos the block position
+     * @param amount the amount to add
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static void addVis(Level level, BlockPos pos, float amount) {
-        bindingOrThrow().addVis(level, pos, amount);
+        Bindings impl = target();
+        impl.addVis(level, pos, amount);
     }
 
     /**
-     * Adds flux to the chunk. Negative amounts are silently ignored; use {@link #drainFlux} to
-     * remove flux.
+     * Adds flux to the chunk containing a position.
      *
-     * @param level  the level
-     * @param pos    block position resolving to the chunk
-     * @param amount flux to add; must be non-negative
+     * <p>Negative amounts are ignored. The implementation clamps to its limits and does nothing when the chunk has no
+     * record.
+     *
+     * @param level the level
+     * @param pos the block position
+     * @param amount the amount to add
+     * @throws IllegalStateException when the facade is not yet bound
      */
     public static void addFlux(Level level, BlockPos pos, float amount) {
-        bindingOrThrow().addFlux(level, pos, amount);
+        Bindings impl = target();
+        impl.addFlux(level, pos, amount);
     }
 
     /**
-     * Drains up to {@code amount} pure vis from the chunk.
+     * Adds flux to the chunk containing a position, optionally with a visual cue.
      *
-     * @param level    the level
-     * @param pos      block position resolving to the chunk
-     * @param amount   maximum vis to drain
-     * @param simulate when true, the chunk record is not modified and the method only reports how
-     *                 much would have been drained
-     * @return the amount of vis actually drained, never greater than {@code amount} or the chunk's
-     *         available vis
+     * <p>Negative amounts are ignored. When {@code withCue} is true the implementation also broadcasts a small
+     * flux-fume cue at the position to nearby players.
+     *
+     * @param level the level
+     * @param pos the block position
+     * @param fluxAmount the flux amount to add
+     * @param withCue whether to broadcast the visual cue
+     * @throws IllegalStateException when the facade is not yet bound
      */
-    public static float drainVis(Level level, BlockPos pos, float amount, boolean simulate) {
-        return bindingOrThrow().drainVis(level, pos, amount, simulate);
+    public static void polluteAura(Level level, BlockPos pos, float fluxAmount, boolean withCue) {
+        Bindings impl = target();
+        impl.polluteAura(level, pos, fluxAmount, withCue);
     }
 
     /**
-     * Drains up to {@code amount} pure vis from the chunk as part of a transaction.
+     * Removes flux from the chunk containing a position.
      *
-     * <p>The drain is undone when the transaction or any enclosing transaction aborts, and the
-     * chunk is marked for saving once the outermost transaction commits. Non-positive amounts
-     * drain nothing.
+     * @param level the level
+     * @param pos the block position
+     * @param requested the amount requested
+     * @param dryRun when true, nothing is changed and the result reports what would be drained
+     * @return the amount drained, never more than requested or available
+     * @throws IllegalStateException when the facade is not yet bound
+     */
+    public static float drainFlux(Level level, BlockPos pos, float requested, boolean dryRun) {
+        Bindings impl = target();
+        return impl.drainFlux(level, pos, requested, dryRun);
+    }
+
+    /**
+     * Removes vis from the chunk containing a position.
      *
-     * @param level       the level
-     * @param pos         block position resolving to the chunk
-     * @param amount      maximum vis to drain
-     * @param transaction the open transaction the drain belongs to
-     * @return the amount of vis drained, never greater than {@code amount} or the chunk's
-     *         available vis
+     * @param level the level
+     * @param pos the block position
+     * @param requested the amount requested
+     * @param dryRun when true, nothing is changed and the result reports what would be drained
+     * @return the amount drained, never more than requested or available
+     * @throws IllegalStateException when the facade is not yet bound
+     */
+    public static float drainVis(Level level, BlockPos pos, float requested, boolean dryRun) {
+        Bindings impl = target();
+        return impl.drainVis(level, pos, requested, dryRun);
+    }
+
+    /**
+     * Removes vis from the chunk containing a position as part of a transaction.
+     *
+     * <p>The removal is undone if the given transaction or any enclosing one aborts. The chunk is marked for saving
+     * when the outermost transaction commits. Non-positive amounts drain 0.
+     *
+     * @param level the level
+     * @param pos the block position
+     * @param amount the amount requested
+     * @param transaction the transaction that owns the removal
+     * @return the amount drained, never more than requested or available
+     * @throws IllegalStateException when the facade is not yet bound
      * @since 1.0.0
      */
     public static float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction) {
-        return bindingOrThrow().drainVis(level, pos, amount, transaction);
+        Bindings impl = target();
+        return impl.drainVis(level, pos, amount, transaction);
     }
 
     /**
-     * Drains up to {@code amount} flux from the chunk.
+     * Implementation contract fulfilled by the mod and bound once through {@link AuraHelper#bind(Bindings)}.
      *
-     * @param level    the level
-     * @param pos      block position resolving to the chunk
-     * @param amount   maximum flux to drain
-     * @param simulate when true, the chunk record is not modified and the method only reports how
-     *                 much would have been drained
-     * @return the amount of flux actually drained, never greater than {@code amount} or the
-     *         chunk's available flux
-     */
-    public static float drainFlux(Level level, BlockPos pos, float amount, boolean simulate) {
-        return bindingOrThrow().drainFlux(level, pos, amount, simulate);
-    }
-
-    /**
-     * Returns how much more aura the chunk can hold before reaching its base, that is
-     * {@code max(0, base - (vis + flux))}. Useful for sizing vis a caller intends to add.
-     *
-     * @param level the level
-     * @param pos   block position resolving to the chunk
-     * @return the remaining headroom in aura units; zero when the chunk is full or has no record
-     */
-    public static float capacityRemaining(Level level, BlockPos pos) {
-        return bindingOrThrow().capacityRemaining(level, pos);
-    }
-
-    /**
-     * Tests whether the chunk can absorb the given amount of vis without exceeding its base.
-     * Equivalent to {@code capacityRemaining(level, pos) >= amount}.
-     *
-     * @param level  the level
-     * @param pos    block position resolving to the chunk
-     * @param amount the vis amount to test; non-positive amounts always fit
-     * @return true when the chunk has room for {@code amount} more aura
-     */
-    public static boolean canAcceptVis(Level level, BlockPos pos, float amount) {
-        return bindingOrThrow().canAcceptVis(level, pos, amount);
-    }
-
-    /**
-     * Adds flux to the chunk, optionally broadcasting a small visual cue at {@code pos}. Equivalent
-     * to {@link #addFlux} when {@code showEffect} is false.
-     *
-     * @param level      the level
-     * @param pos        block position resolving to the chunk; doubles as the visual effect anchor
-     * @param amount     flux to add; must be non-negative
-     * @param showEffect when true, a flux-fume cue is broadcast to nearby players
-     */
-    public static void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect) {
-        bindingOrThrow().polluteAura(level, pos, amount, showEffect);
-    }
-
-    /**
-     * Binds the helper's implementation. Called once at mod init by the implementation; addons
-     * must not call this.
-     *
-     * @param bindings the implementation
-     * @throws IllegalStateException when already bound
-     */
-    public static void bind(Bindings bindings) {
-        if (impl != null) {
-            throw new IllegalStateException("AuraHelper already bound");
-        }
-        impl = bindings;
-    }
-
-    private static Bindings bindingOrThrow() {
-        if (impl == null) {
-            throw new IllegalStateException("AuraHelper accessed before binding");
-        }
-        return impl;
-    }
-
-    /**
-     * Implementation hook supplied by Thaumaturge at mod init. Each method on this interface
-     * corresponds to a public static on {@link AuraHelper}. Addons must not implement this
-     * interface.
+     * <p>Each method corresponds to the facade method of the same name; {@link #chunkLookup} and {@link #blockLookup}
+     * back the two {@code of} overloads.
      *
      * @since 1.0.0
      */
     public interface Bindings {
+
+        /**
+         * Backs {@link AuraHelper#of(ServerLevel, ChunkPos)}.
+         *
+         * @param level the server level
+         * @param pos the chunk position
+         * @return the aura record, never null
+         */
         IAuraChunk chunkLookup(ServerLevel level, ChunkPos pos);
 
+        /**
+         * Backs {@link AuraHelper#of(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return the aura record, never null
+         */
         IAuraChunk blockLookup(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#getVis(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return the vis amount
+         */
         float getVis(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#getFlux(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return the flux amount
+         */
         float getFlux(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#getAuraBase(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return the base aura
+         */
         int getAuraBase(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#getTotalAura(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return vis plus flux
+         */
         float getTotalAura(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#getFluxSaturation(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return the flux to base ratio
+         */
         float getFluxSaturation(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#shouldPreserveAura(Level, Player, BlockPos)}.
+         *
+         * @param level the level
+         * @param player the acting player, or null
+         * @param pos the block position
+         * @return true when vis draining should stop
+         */
         boolean shouldPreserveAura(Level level, @Nullable Player player, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#addVis(Level, BlockPos, float)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the amount to add
+         */
         void addVis(Level level, BlockPos pos, float amount);
 
+        /**
+         * Backs {@link AuraHelper#addFlux(Level, BlockPos, float)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the amount to add
+         */
         void addFlux(Level level, BlockPos pos, float amount);
 
+        /**
+         * Backs {@link AuraHelper#drainVis(Level, BlockPos, float, boolean)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the amount requested
+         * @param simulate whether to leave the chunk unchanged
+         * @return the amount drained
+         */
         float drainVis(Level level, BlockPos pos, float amount, boolean simulate);
 
+        /**
+         * Backs {@link AuraHelper#drainVis(Level, BlockPos, float, TransactionContext)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the amount requested
+         * @param transaction the owning transaction
+         * @return the amount drained
+         */
         float drainVis(Level level, BlockPos pos, float amount, TransactionContext transaction);
 
+        /**
+         * Backs {@link AuraHelper#drainFlux(Level, BlockPos, float, boolean)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the amount requested
+         * @param simulate whether to leave the chunk unchanged
+         * @return the amount drained
+         */
         float drainFlux(Level level, BlockPos pos, float amount, boolean simulate);
 
+        /**
+         * Backs {@link AuraHelper#polluteAura(Level, BlockPos, float, boolean)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the flux amount to add
+         * @param showEffect whether to broadcast the visual cue
+         */
         void polluteAura(Level level, BlockPos pos, float amount, boolean showEffect);
 
+        /**
+         * Backs {@link AuraHelper#capacityRemaining(Level, BlockPos)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @return the remaining capacity
+         */
         float capacityRemaining(Level level, BlockPos pos);
 
+        /**
+         * Backs {@link AuraHelper#canAcceptVis(Level, BlockPos, float)}.
+         *
+         * @param level the level
+         * @param pos the block position
+         * @param amount the amount to test
+         * @return true when the amount fits
+         */
         boolean canAcceptVis(Level level, BlockPos pos, float amount);
     }
 }

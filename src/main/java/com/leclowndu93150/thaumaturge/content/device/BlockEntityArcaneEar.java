@@ -18,12 +18,21 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 public final class BlockEntityArcaneEar extends BlockEntity {
     private static final int NOTE_COUNT = 25;
+    private static final int NOTE_MAX = NOTE_COUNT - 1;
+    private static final int NOTE_CENTER = 12;
+    private static final double PITCH_BASE = 2.0;
+    private static final double PITCH_STEP = 12.0;
+    private static final float NOTE_VOLUME = 3.0F;
+    private static final double BLOCK_CENTER = 0.5;
+    private static final double PARTICLE_SPEED = 1.0;
     private static final int PULSE_TICKS = 10;
     private static final NoteBlockInstrument[] INSTRUMENTS = NoteBlockInstrument.values();
+    private static final String NOTE_KEY = "note";
+    private static final String TONE_KEY = "tone";
 
-    private byte note;
-    private byte instrument;
-    private int redstoneSignal;
+    private int note;
+    private int tone;
+    private int pulseTimer;
 
     public BlockEntityArcaneEar(BlockPos pos, BlockState state) {
         super(TTBlockEntities.ARCANE_EAR.get(), pos, state);
@@ -34,33 +43,28 @@ public final class BlockEntityArcaneEar extends BlockEntity {
     }
 
     public NoteBlockInstrument instrument() {
-        return INSTRUMENTS[Math.floorMod(instrument, INSTRUMENTS.length)];
+        return INSTRUMENTS[Math.floorMod(tone, INSTRUMENTS.length)];
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide()) {
-            level.getData(TTAttachments.EAR_INDEX.get()).add(getBlockPos().immutable());
+            level.getData(TTAttachments.EAR_INDEX).add(worldPosition.immutable());
         }
     }
 
     @Override
     public void setRemoved() {
-        if (level != null && !level.isClientSide()) {
-            level.getData(TTAttachments.EAR_INDEX.get()).remove(getBlockPos());
-        }
         super.setRemoved();
+        if (level != null && !level.isClientSide()) {
+            level.getData(TTAttachments.EAR_INDEX).remove(worldPosition);
+        }
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityArcaneEar ear) {
-        if (ear.redstoneSignal <= 0) {
-            return;
-        }
-        ear.redstoneSignal--;
-        if (ear.redstoneSignal == 0 && state.getValue(BlockStateProperties.ENABLED)) {
-            level.setBlock(pos, state.setValue(BlockStateProperties.ENABLED, false), Block.UPDATE_ALL);
-            notifyPower(level, pos, state);
+        if (ear.pulseTimer > 0 && --ear.pulseTimer == 0) {
+            ear.setEnabled(false);
         }
     }
 
@@ -69,28 +73,29 @@ public final class BlockEntityArcaneEar extends BlockEntity {
             return;
         }
         Direction facing = getBlockState().getValue(BlockStateProperties.FACING);
-        BlockState support = level.getBlockState(getBlockPos().relative(facing.getOpposite()));
-        this.instrument = (byte) support.instrument().ordinal();
+        tone = level.getBlockState(worldPosition.relative(facing.getOpposite())).instrument().ordinal();
         setChanged();
     }
 
     public void changePitch() {
-        note = (byte) ((note + 1) % NOTE_COUNT);
+        note = (note + 1) % NOTE_COUNT;
         setChanged();
     }
 
     public void playNote() {
-        if (!(level instanceof ServerLevel server)) {
+        if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        BlockPos pos = getBlockPos();
-        float pitch = (float) Math.pow(2.0, (note - 12) / 12.0);
-        server.playSound(null, pos, instrument().getSoundEvent().value(), SoundSource.BLOCKS, 3.0F, pitch);
-        server.sendParticles(ParticleTypes.NOTE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, note / 24.0, 0.0, 0.0, 1.0);
+        float pitch = (float) Math.pow(PITCH_BASE, (note - NOTE_CENTER) / PITCH_STEP);
+        double x = worldPosition.getX() + BLOCK_CENTER;
+        double y = worldPosition.getY() + BLOCK_CENTER;
+        double z = worldPosition.getZ() + BLOCK_CENTER;
+        serverLevel.playSound(null, x, y, z, instrument().getSoundEvent().value(), SoundSource.BLOCKS, NOTE_VOLUME, pitch);
+        serverLevel.sendParticles(ParticleTypes.NOTE, x, y, z, 0, note / (double) NOTE_MAX, 0.0, 0.0, PARTICLE_SPEED);
     }
 
-    public boolean matches(NoteBlockInstrument playedInstrument, int playedNote) {
-        return instrument() == playedInstrument && note == playedNote;
+    public boolean matches(NoteBlockInstrument instrument, int note) {
+        return instrument == instrument() && note == this.note;
     }
 
     public void trigger() {
@@ -99,35 +104,41 @@ public final class BlockEntityArcaneEar extends BlockEntity {
         }
         playNote();
         BlockState state = getBlockState();
-        if (getBlockState().getBlock() instanceof BlockArcaneEar ear && ear.isToggle()) {
-            level.setBlock(getBlockPos(), state.setValue(BlockStateProperties.ENABLED, !state.getValue(BlockStateProperties.ENABLED)), Block.UPDATE_ALL);
-        } else {
-            redstoneSignal = PULSE_TICKS;
-            level.setBlock(getBlockPos(), state.setValue(BlockStateProperties.ENABLED, true), Block.UPDATE_ALL);
+        boolean enabled = state.getValue(BlockStateProperties.ENABLED);
+        if (state.getBlock() instanceof BlockArcaneEar ear && ear.isToggle()) {
+            setEnabled(!enabled);
+            return;
         }
-        notifyPower(level, getBlockPos(), getBlockState());
+        pulseTimer = PULSE_TICKS;
+        if (!enabled) {
+            setEnabled(true);
+        }
     }
 
-    private static void notifyPower(Level level, BlockPos pos, BlockState state) {
-        Direction facing = state.getValue(BlockStateProperties.FACING).getOpposite();
-        level.updateNeighborsAt(pos, state.getBlock());
-        level.updateNeighborsAt(pos.relative(facing), state.getBlock());
+    private void setEnabled(boolean enabled) {
+        if (level == null) {
+            return;
+        }
+        BlockState state = getBlockState();
+        level.setBlock(worldPosition, state.setValue(BlockStateProperties.ENABLED, enabled), Block.UPDATE_ALL);
+        Block block = state.getBlock();
+        Direction facing = state.getValue(BlockStateProperties.FACING);
+        level.updateNeighborsAt(worldPosition, block, null);
+        level.updateNeighborsAt(worldPosition.relative(facing.getOpposite()), block, null);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        note = input.getByteOr("note", (byte) 0);
-        instrument = input.getByteOr("tone", (byte) 0);
-        if (note < 0 || note > 24) {
-            note = 0;
-        }
+        int stored = input.getByteOr(NOTE_KEY, (byte) 0);
+        note = stored < 0 || stored > NOTE_MAX ? 0 : stored;
+        tone = input.getByteOr(TONE_KEY, (byte) 0);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putByte("note", note);
-        output.putByte("tone", instrument);
+        output.putByte(NOTE_KEY, (byte) note);
+        output.putByte(TONE_KEY, (byte) tone);
     }
 }

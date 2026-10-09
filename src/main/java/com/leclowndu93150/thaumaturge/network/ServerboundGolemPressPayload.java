@@ -29,9 +29,9 @@ public record ServerboundGolemPressPayload(BlockPos pos, GolemProperties props, 
                 return;
             }
             if (payload.craft()) {
-                builder.startCraft(payload.props(), player);
+                builder.beginAssembly(payload.props(), player);
             } else {
-                boolean[] stuff = builder.checkCraft(payload.props());
+                boolean[] stuff = builder.stockedComponents(payload.props());
                 byte[] bytes = new byte[stuff.length];
                 for (int i = 0; i < stuff.length; i++) {
                     bytes[i] = (byte) (stuff[i] ? 1 : 0);

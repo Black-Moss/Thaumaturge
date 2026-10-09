@@ -1,100 +1,108 @@
 package com.leclowndu93150.thaumaturge.client.particle;
 
+import com.leclowndu93150.thaumaturge.client.particle.support.ParticleCulling;
 import com.leclowndu93150.thaumaturge.content.particle.VentParticleOptions;
-import net.minecraft.client.GraphicsPreset;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class VentParticle extends TTParticle {
-    private static final int FRAME_COUNT = 6;
-    private static final float BASE_ALPHA = 0.4F;
+    private static final float MIN_SCALE = 1.0E-4F;
+    private static final float START_FRACTION_BASE = 0.05F;
+    private static final float START_FRACTION_SPAN = 0.1F;
+    private static final float GROWTH_RATE = 1.15F;
+    private static final float GROWTH_RATE_VARIANT = 1.2F;
+    private static final float HALF_EXTENT_PER_GROWTH = 0.3F;
+    private static final float ALPHA_PEAK = 0.4F;
+    private static final float FRAME_BASE = 1.0F;
+    private static final float FRAME_SPAN = 4.0F;
+    private static final float COLOR_NOISE = 0.05F;
+    private static final double MIN_VELOCITY_SQR = 1.0E-12;
+    private static final double VELOCITY_NOISE = 0.0375;
+    private static final double LAUNCH_SPEED = 0.125;
+    private static final double RISE = 0.0025;
+    private static final double RISE_VARIANT_SPREAD = 0.0075;
+    private static final float HITBOX = 0.02F;
     private static final float FRICTION = 0.85F;
-    private static final float GROW_RATE = 1.15F;
-    private static final float GROW_RATE_VARIANT = 1.2F;
-    private static final float HEADING_SPEED = 0.125F;
-    private static final float HEADING_JITTER = 0.0375F;
-    private static final float RISE_ACCEL = 0.0025F;
-    private static final int NEAR_RANGE = 25;
-    private static final int FAR_RANGE = 50;
 
-    private final boolean variant;
     private final float fullScale;
-    private final float riseAccel;
-    private float growth;
+    private final float startFraction;
+    private final float growthRate;
+    private final double rise;
 
     private VentParticle(ClientLevel level, double x, double y, double z, VentParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, options.vx(), options.vy(), options.vz(), sheet);
-        this.variant = options.variant();
-        this.fullScale = options.scale();
-        this.growth = (this.random.nextFloat() * 0.1F + 0.05F) * this.fullScale;
+        this.fullScale = Math.max(options.scale(), MIN_SCALE);
+        this.growthRate = options.variant() ? GROWTH_RATE_VARIANT : GROWTH_RATE;
+        this.startFraction = this.random.nextFloat() * START_FRACTION_SPAN + START_FRACTION_BASE;
         this.lifetime = Integer.MAX_VALUE;
         this.hasPhysics = true;
         this.friction = FRICTION;
-        this.setSize(0.02F, 0.02F);
+        setSize(HITBOX, HITBOX);
         setColor(options.color());
-        if (this.variant) {
-            this.rCol = Mth.clamp(this.rCol + (float) this.random.nextGaussian() * 0.05F, 0.0F, 1.0F);
-            this.gCol = Mth.clamp(this.gCol + (float) this.random.nextGaussian() * 0.05F, 0.0F, 1.0F);
-            this.bCol = Mth.clamp(this.bCol + (float) this.random.nextGaussian() * 0.05F, 0.0F, 1.0F);
-            this.riseAccel = (float) (this.random.nextGaussian() * 0.0075);
+        if (options.variant()) {
+            this.rCol = noisy(this.rCol);
+            this.gCol = noisy(this.gCol);
+            this.bCol = noisy(this.bCol);
+            this.rise = this.random.nextGaussian() * RISE_VARIANT_SPREAD;
         } else {
-            this.riseAccel = RISE_ACCEL;
-            aimAlong(options.vx(), options.vy(), options.vz());
+            this.rise = RISE;
+            launch();
         }
-        removeIfFarFromCamera(x, y, z);
+        applyFraction(this.startFraction);
     }
 
-    private void aimAlong(double vx, double vy, double vz) {
-        Vec3 direction = new Vec3(vx, vy, vz);
-        if (direction.lengthSqr() < 1.0E-12) {
+    private float noisy(float channel) {
+        return Mth.clamp(channel + (float) (this.random.nextGaussian() * COLOR_NOISE), 0.0F, 1.0F);
+    }
+
+    private void launch() {
+        double lengthSqr = this.xd * this.xd + this.yd * this.yd + this.zd * this.zd;
+        if (lengthSqr < MIN_VELOCITY_SQR) {
             return;
         }
-        direction = direction.normalize();
-        this.xd = (direction.x + this.random.nextGaussian() * signedJitter()) * HEADING_SPEED;
-        this.yd = (direction.y + this.random.nextGaussian() * signedJitter()) * HEADING_SPEED;
-        this.zd = (direction.z + this.random.nextGaussian() * signedJitter()) * HEADING_SPEED;
+        double inverseLength = 1.0 / Math.sqrt(lengthSqr);
+        this.xd *= inverseLength;
+        this.yd *= inverseLength;
+        this.zd *= inverseLength;
+        jitterVelocity(VELOCITY_NOISE);
+        this.xd *= LAUNCH_SPEED;
+        this.yd *= LAUNCH_SPEED;
+        this.zd *= LAUNCH_SPEED;
     }
 
-    private double signedJitter() {
-        return this.random.nextBoolean() ? -HEADING_JITTER : HEADING_JITTER;
+    private float growthFraction() {
+        return this.startFraction * (float) Math.pow(this.growthRate, this.age);
     }
 
-    private void removeIfFarFromCamera(double x, double y, double z) {
-        int range = Minecraft.getInstance().options.graphicsPreset().get() == GraphicsPreset.FAST ? NEAR_RANGE : FAR_RANGE;
-        Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().position();
-        if (camera.distanceToSqr(x, y, z) > (double) range * range) {
-            remove();
-        }
+    private void applyFraction(float fraction) {
+        this.quadSize = HALF_EXTENT_PER_GROWTH * this.fullScale * fraction;
+        this.alpha = ALPHA_PEAK * (1.0F - fraction);
+        frame((int) (FRAME_BASE + FRAME_SPAN * fraction));
     }
 
     @Override
     public void tick() {
-        this.yd += this.riseAccel;
+        this.yd += this.rise;
         super.tick();
-        if (this.removed) {
-            return;
-        }
-        this.growth = Math.min(this.growth * (this.variant ? GROW_RATE_VARIANT : GROW_RATE), this.fullScale);
-        if (this.growth >= this.fullScale) {
-            remove();
-        }
     }
 
     @Override
     protected void update() {
-        float grown = this.growth / this.fullScale;
-        this.alpha = BASE_ALPHA * (1.0F - grown);
-        this.quadSize = 0.3F * this.growth;
-        frame((int) (1.0F + grown * 4.0F));
+        float fraction = growthFraction();
+        if (fraction >= 1.0F) {
+            remove();
+            return;
+        }
+        applyFraction(fraction);
     }
 
     @Override
-    public Layer getLayer() {
+    public SingleQuadParticle.Layer getLayer() {
         return TTParticleLayers.translucent(this.sheet);
     }
 
@@ -102,7 +110,10 @@ public final class VentParticle extends TTParticle {
         private static final ParticleSheet SHEET = TTParticleSheets.sheet("vent");
 
         @Override
-        public Particle createParticle(VentParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
+        public @Nullable Particle createParticle(VentParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
+            if (ParticleCulling.beyondSpawnRange(x, y, z)) {
+                return null;
+            }
             return new VentParticle(level, x, y, z, options, SHEET);
         }
     }

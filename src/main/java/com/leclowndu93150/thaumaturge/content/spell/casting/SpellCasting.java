@@ -41,7 +41,7 @@ public final class SpellCasting {
 
     public static InteractionResult use(Level level, Player player, InteractionHand hand, ItemStack wand, ItemStack focus) {
         Spell spell = Spells.spellOf(focus);
-        if (spell == null || CasterManager.isOnCooldown(player)) {
+        if (spell == null || CasterManager.isCoolingDown(player)) {
             return InteractionResult.PASS;
         }
         if (spell.style() != CastStyle.INSTANT) {
@@ -114,7 +114,7 @@ public final class SpellCasting {
             return false;
         }
         Map<ResourceKey<IAspect>, Integer> split = WandVisHelper.primalSplit(Math.round(pre.visCost() * WandEconomy.CENTIVIS_PER_VIS), FocusItems.aspects(summary, player.registryAccess()));
-        if (!player.getAbilities().instabuild && !WandVisHelper.consumeAllVis(wand, player, split, true, false)) {
+        if (!player.getAbilities().instabuild && !WandVisHelper.payCosts(wand, player, split, true, false)) {
             if (player instanceof ServerPlayer serverPlayer) {
                 TTActionBar.send(serverPlayer, SpellText.notEnoughVis().copy().withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
             }
@@ -129,11 +129,11 @@ public final class SpellCasting {
             return true;
         }
         Map<ResourceKey<IAspect>, Integer> split = FocusItems.visSplit(summary, visShare, player.registryAccess());
-        return WandVisHelper.consumeAllVis(wand, player, split, false, false);
+        return WandVisHelper.payCosts(wand, player, split, false, false);
     }
 
     private static void startCooldown(Player player, ItemStack wand, int ticks) {
-        CasterManager.setCooldown(player, ticks);
+        CasterManager.startCooldown(player, ticks);
         player.getCooldowns().addCooldown(wand, ticks);
     }
 

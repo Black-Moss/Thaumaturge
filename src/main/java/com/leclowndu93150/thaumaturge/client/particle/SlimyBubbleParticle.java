@@ -7,37 +7,46 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.util.RandomSource;
 
 public final class SlimyBubbleParticle extends TTParticle {
-    private static final int GROW_TICKS = 6;
-    private static final int RISE_END_GAP = 4;
-    private static final int GROW_LIFT_AGE = 5;
-    private static final float GROW_LIFT = 0.1F;
-    private static final double RISE_SPEED = 0.005;
-    private static final int GROW_FRAME = 0;
-    private static final int RISE_FRAME = 3;
-    private static final int POP_END_FRAME = 6;
+    private static final int[] GROW_FRAMES = {0, 0, 1, 1, 2, 2, 3};
+    private static final int RISE_START_AGE = GROW_FRAMES.length;
+    private static final int LIFT_AGE = 5;
+    private static final double LIFT_AMOUNT = 0.1;
+    private static final int POP_TICKS = 4;
+    private static final int POP_FIRST_FRAME = 5;
+    private static final int POP_SECOND_FRAME = 6;
+    private static final int POP_FRAME_STEP = 2;
+    private static final int WOBBLE_PERIOD = 4;
+    private static final int WOBBLE_SPLIT = 2;
+    private static final int WOBBLE_LOW_FRAME = 3;
+    private static final int WOBBLE_HIGH_FRAME = 4;
+    private static final double RISE_ACCELERATION = 0.005;
+    private static final double POP_DAMPING = 0.5;
 
     private SlimyBubbleParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SlimyBubbleParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
         setColor(options.color());
         this.alpha = options.alpha();
-        this.lifetime = options.age();
         this.quadSize = options.scale();
-        frame(GROW_FRAME);
+        this.lifetime = options.age();
     }
 
     @Override
     protected void update() {
-        if (this.age - 1 < GROW_TICKS) {
-            frame(GROW_FRAME + this.age / 2);
-            if (this.age == GROW_LIFT_AGE) {
-                this.y += GROW_LIFT;
-            }
-        } else if (this.age < this.lifetime - RISE_END_GAP) {
-            this.yd += RISE_SPEED;
-            frame(RISE_FRAME + this.age % 4 / 2);
+        if (this.age == LIFT_AGE) {
+            setPos(this.x, this.y + LIFT_AMOUNT, this.z);
+        }
+        int remaining = this.lifetime - this.age;
+        if (remaining < POP_TICKS) {
+            int step = POP_TICKS - 1 - remaining;
+            frame(step < POP_FRAME_STEP ? POP_FIRST_FRAME : POP_SECOND_FRAME);
+            this.yd *= POP_DAMPING;
+            return;
+        }
+        if (this.age < RISE_START_AGE) {
+            frame(GROW_FRAMES[this.age]);
         } else {
-            this.yd /= 2.0;
-            frame(POP_END_FRAME - (this.lifetime - this.age) / 2);
+            frame(this.age % WOBBLE_PERIOD < WOBBLE_SPLIT ? WOBBLE_LOW_FRAME : WOBBLE_HIGH_FRAME);
+            this.yd += RISE_ACCELERATION;
         }
     }
 

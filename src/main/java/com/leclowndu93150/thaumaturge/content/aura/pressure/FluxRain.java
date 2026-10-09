@@ -58,7 +58,7 @@ public final class FluxRain {
         }
         BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, cursor);
         BlockPos target = level.getBlockState(surface).canBeReplaced() ? surface : surface.above();
-        if (TaintHelper.isNearTaintSeed(level, target)) {
+        if (TaintHelper.isWithinSeedInfluence(level, target)) {
             return;
         }
         if (AuraHelper.drainFlux(level, target, POOL_FLUX_COST, true) + POOL_FLUX_EPSILON < POOL_FLUX_COST) {

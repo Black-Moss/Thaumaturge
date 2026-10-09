@@ -9,7 +9,7 @@ import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -22,42 +22,89 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class GrappleGunItem extends Item {
-    private static final int MAX_CHARGE = 100;
-    private static final float LAUNCH_PITCH_OFFSET = -5.0F;
-    private static final float LAUNCH_VELOCITY = 1.5F;
+    private static final int CHARGE_CAPACITY = 100;
+    private static final int CHARGE_COST = 1;
+    private static final int NO_GRAPPLE = -1;
+    private static final float FIRE_VOLUME = 3.0F;
+    private static final float FIRE_PITCH_BASE = 0.8F;
+    private static final float FIRE_PITCH_SPREAD = 0.1F;
+    private static final float PITCH_OFFSET = -5.0F;
+    private static final float LAUNCH_SPEED = 1.5F;
+    private static final float LAUNCH_INACCURACY = 0.0F;
+    private static final float YAW_TRIM_DEGREES = 0.5F;
+    private static final float RIGHT_YAW_OFFSET_DEGREES = 90.0F;
+    private static final Vec3 SIDE_SHIFT = new Vec3(0.2, 0.0, 0.3);
+    private static final LaunchParameters LAUNCH = new LaunchParameters(PITCH_OFFSET, LAUNCH_SPEED, LAUNCH_INACCURACY);
 
     public GrappleGunItem(Properties properties) {
-        super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(MAX_CHARGE, ChargeDisplay.ALWAYS)));
+        super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(CHARGE_CAPACITY, ChargeDisplay.ALWAYS)));
     }
 
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
-        if (!Boolean.TRUE.equals(stack.get(TTDataComponents.GRAPPLE_LOADED))) {
-            return;
-        }
-        int tracked = entity.getData(TTAttachments.GRAPPLE_ID.get());
-        if (tracked < 0 || !(level.getEntity(tracked) instanceof EntityGrapple grapple) || !grapple.isAlive()) {
-            stack.remove(TTDataComponents.GRAPPLE_LOADED);
+        super.inventoryTick(stack, level, entity, slot);
+        if (LoadedState.isLoaded(stack) && !hasLiveGrapple(level, entity)) {
+            LoadedState.clear(stack);
         }
     }
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        player.playSound(TTSounds.ICE.get(), 3.0F, 0.8F + level.getRandom().nextFloat() * 0.1F);
+        level.playSound(player, player.getX(), player.getY(), player.getZ(), TTSounds.ICE.get(), SoundSource.PLAYERS, FIRE_VOLUME, FIRE_PITCH_BASE + level.getRandom().nextFloat() * FIRE_PITCH_SPREAD);
         ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide() && RechargeAccess.getCharge(stack) > 0) {
-            EntityGrapple grapple = new EntityGrapple(TTEntities.GRAPPLE.get(), level, player, hand);
-            grapple.shootFromRotation(player, player.getXRot(), player.getYRot(), LAUNCH_PITCH_OFFSET, LAUNCH_VELOCITY, 0.0F);
-            int handSign = hand == InteractionHand.MAIN_HAND ? 1 : -1;
-            double px = -Mth.cos((player.getYRot() - 0.5F) / 180.0F * (float) Math.PI) * 0.2F * handSign;
-            double pz = -Mth.sin((player.getYRot() - 0.5F) / 180.0F * (float) Math.PI) * 0.3F * handSign;
-            Vec3 look = player.getLookAngle();
-            grapple.setPos(grapple.getX() + px + look.x, grapple.getY(), grapple.getZ() + pz + look.z);
-            if (level.addFreshEntity(grapple)) {
-                RechargeAccess.consumeCharge(stack, player, 1);
-                stack.set(TTDataComponents.GRAPPLE_LOADED, true);
-            }
+            fire(level, player, hand, stack);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean hasLiveGrapple(ServerLevel level, Entity owner) {
+        int id = owner.getData(TTAttachments.GRAPPLE_ID.get());
+        return id != NO_GRAPPLE && level.getEntity(id) instanceof EntityGrapple grapple && grapple.isAlive();
+    }
+
+    private static void fire(Level level, Player player, InteractionHand hand, ItemStack stack) {
+        Vec3 spawn = spawnPoint(player, hand);
+        EntityGrapple grapple = new EntityGrapple(TTEntities.GRAPPLE.get(), level, player, hand);
+        grapple.setPos(spawn.x, grapple.getY(), spawn.z);
+        launch(grapple, player, LAUNCH);
+        if (level.addFreshEntity(grapple)) {
+            onSpawned(stack, player);
+        }
+    }
+
+    private static Vec3 spawnPoint(Player player, InteractionHand hand) {
+        double sign = hand == InteractionHand.MAIN_HAND ? 1.0 : -1.0;
+        Vec3 right = Vec3.directionFromRotation(0.0F, player.getYRot() - YAW_TRIM_DEGREES + RIGHT_YAW_OFFSET_DEGREES);
+        Vec3 handShift = right.multiply(SIDE_SHIFT).scale(sign);
+        return player.position().add(handShift).add(player.getLookAngle());
+    }
+
+    private static void launch(EntityGrapple grapple, Player player, LaunchParameters parameters) {
+        grapple.shootFromRotation(player, player.getXRot(), player.getYRot(), parameters.pitchOffset(), parameters.speed(), parameters.inaccuracy());
+    }
+
+    private static void onSpawned(ItemStack stack, Player player) {
+        RechargeAccess.consumeCharge(stack, player, CHARGE_COST);
+        LoadedState.set(stack);
+    }
+
+    private record LaunchParameters(float pitchOffset, float speed, float inaccuracy) {
+    }
+
+    private static final class LoadedState {
+        private LoadedState() {}
+
+        static boolean isLoaded(ItemStack stack) {
+            return stack.getOrDefault(TTDataComponents.GRAPPLE_LOADED.get(), false);
+        }
+
+        static void set(ItemStack stack) {
+            stack.set(TTDataComponents.GRAPPLE_LOADED.get(), true);
+        }
+
+        static void clear(ItemStack stack) {
+            stack.remove(TTDataComponents.GRAPPLE_LOADED.get());
+        }
     }
 }

@@ -16,7 +16,7 @@ public final class SlotWorkbenchWand extends Slot {
         if (!(stack.getItem() instanceof ICaster)) {
             return false;
         }
-        if (stack.getItem() instanceof ItemWand wand && wand.isStaff(stack)) {
+        if (stack.getItem() instanceof ItemWand wand && wand.usesStaffRod(stack)) {
             return false;
         }
         return true;

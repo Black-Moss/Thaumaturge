@@ -80,7 +80,7 @@ public final class SpellSprite extends AbstractSpellCarrier {
         }
         Entity target = prey.get();
         Vec3 aim = target.getBoundingBox().getCenter();
-        Effects.arcBolt(level, from).to(aim).color(charge.look().color()).width(ZAP_WIDTH).send();
+        Effects.boltStrike(level, from).to(aim).color(charge.look().color()).width(ZAP_WIDTH).send();
         level.playSound(null, from.x, from.y, from.z, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.6F, 1.6F);
         charge.resume(level, List.of(SpellTarget.entity(target, aim.subtract(from))));
     }

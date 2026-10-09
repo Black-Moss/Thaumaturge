@@ -1,23 +1,22 @@
 package com.leclowndu93150.thaumaturge.content.equipment;
 
 import com.leclowndu93150.thaumaturge.api.items.IChanneledItem;
-import com.leclowndu93150.thaumaturge.client.effect.ClientEffects;
-import com.leclowndu93150.thaumaturge.content.misc.TTActionBar;
+import com.leclowndu93150.thaumaturge.client.effect.WhirlwindSmokeEmitter;
+import com.leclowndu93150.thaumaturge.content.equipment.whirlwind.HoverPhysics;
+import com.leclowndu93150.thaumaturge.content.equipment.whirlwind.PulseScheduler;
+import com.leclowndu93150.thaumaturge.content.equipment.whirlwind.RepelField;
+import com.leclowndu93150.thaumaturge.content.equipment.whirlwind.WhirlwindStrategy;
 import com.leclowndu93150.thaumaturge.mixin.server.network.ServerGamePacketListenerImplAccessor;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -28,21 +27,29 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.component.UseEffects;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.phys.Vec3;
 
 public final class ElementalSwordItem extends Item implements IChanneledItem {
-    private static final int USE_DURATION = 72000;
-    private static final double PULL_RANGE = 2.5;
-    private static final int SMOKE_COLOR = 14540253;
-    private static final int PULSE_INTERVAL_TICKS = 20;
     public static final UseEffects USE_EFFECTS = new UseEffects(UseEffects.DEFAULT.canSprint(), false, UseEffects.DEFAULT.speedMultiplier());
+
+    private static final int USE_DURATION_TICKS = 72000;
+    private static final int WIND_INTERVAL_TICKS = 20;
+    private static final int WEAR_PER_PULSE = 1;
+    private static final float TOGGLE_VOLUME = 0.5F;
+    private static final float TOGGLE_PITCH_OFF = 0.8F;
+    private static final float TOGGLE_PITCH_ON = 1.2F;
+    private static final float WIND_VOLUME = 0.5F;
+    private static final float WIND_PITCH_BASE = 0.9F;
+    private static final float WIND_PITCH_SPREAD = 0.2F;
+    private static final List<WhirlwindStrategy> STRATEGIES = List.of(new HoverPhysics(), new RepelField());
+    private static final PulseScheduler PULSES = new PulseScheduler(WIND_INTERVAL_TICKS);
+    private static final WhirlwindSmokeEmitter SMOKE = new WhirlwindSmokeEmitter();
 
     public ElementalSwordItem(Properties properties) {
         super(properties);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag flag) {
         builder.accept(Component.translatable("tooltip.thaumaturge.elemental_sword.toggle").withStyle(ChatFormatting.DARK_GRAY));
     }
 
@@ -52,20 +59,15 @@ public final class ElementalSwordItem extends Item implements IChanneledItem {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity user) {
-        return USE_DURATION;
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
+        return USE_DURATION_TICKS;
     }
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
-            boolean disabled = !stack.getOrDefault(TTDataComponents.WHIRLWIND_DISABLED.get(), false);
-            stack.set(TTDataComponents.WHIRLWIND_DISABLED.get(), disabled);
-            if (!level.isClientSide()) {
-                TTActionBar.sendPurple(player, disabled ? "message.thaumaturge.elemental_sword.whirlwind_off" : "message.thaumaturge.elemental_sword.whirlwind_on");
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.KEY.get(), SoundSource.PLAYERS, 0.5F, disabled ? 0.8F : 1.2F);
-            }
+            toggle(level, player, stack);
             return InteractionResult.SUCCESS;
         }
         if (stack.getOrDefault(TTDataComponents.WHIRLWIND_DISABLED.get(), false)) {
@@ -76,57 +78,32 @@ public final class ElementalSwordItem extends Item implements IChanneledItem {
     }
 
     @Override
-    public void onUseTick(Level level, LivingEntity player, ItemStack stack, int ticksRemaining) {
-        super.onUseTick(level, player, stack, ticksRemaining);
-        int ticks = USE_DURATION - ticksRemaining;
-        Vec3 movement = player.getDeltaMovement();
-        double dy = movement.y;
-        if (dy < 0.0) {
-            dy /= 1.2F;
-            player.fallDistance /= 1.2F;
+    public void onUseTick(Level level, LivingEntity user, ItemStack stack, int remainingUseDuration) {
+        for (WhirlwindStrategy strategy : STRATEGIES) {
+            strategy.apply(level, user);
         }
-        dy += 0.08F;
-        if (dy > 0.5) {
-            dy = 0.2F;
-        }
-        player.setDeltaMovement(movement.x, dy, movement.z);
-        if (player instanceof ServerPlayer serverPlayer) {
-            ((ServerGamePacketListenerImplAccessor) serverPlayer.connection).setAboveGroundTickCount(0);
-        }
-
-        List<Entity> targets = level.getEntities(player, player.getBoundingBox().inflate(PULL_RANGE));
-        for (Entity entity : targets) {
-            if (entity instanceof Player || !(entity instanceof LivingEntity) || !entity.isAlive() || player.getVehicle() == entity) {
-                continue;
-            }
-            Vec3 p = player.position();
-            Vec3 t = entity.position();
-            double distance = p.distanceTo(t) + 0.1;
-            Vec3 r = t.subtract(p);
-            entity.push(r.x / PULL_RANGE / distance, r.y / PULL_RANGE / distance, r.z / PULL_RANGE / distance);
-        }
-
         if (level.isClientSide()) {
-            int miny = (int) (player.getBoundingBox().minY - 2.0);
-            if (player.onGround()) {
-                miny = Mth.floor(player.getBoundingBox().minY);
-            }
-            for (int a = 0; a < 5; a++) {
-                ClientEffects.smokeSpiral(level, player.getX(), player.getBoundingBox().minY + player.getBbHeight() / 2.0F, player.getZ(), 1.5F, level.getRandom().nextInt(360), miny, SMOKE_COLOR);
-            }
-            if (player.onGround()) {
-                float r1 = level.getRandom().nextFloat() * 360.0F;
-                float mx = -Mth.sin(r1 / 180.0F * (float) Math.PI) / 5.0F;
-                float mz = Mth.cos(r1 / 180.0F * (float) Math.PI) / 5.0F;
-                level.addParticle(ParticleTypes.SMOKE, player.getX(), player.getBoundingBox().minY + 0.1F, player.getZ(), mx, 0.0, mz);
-            }
-        } else if (ticks == 0 || ticks % PULSE_INTERVAL_TICKS == 0) {
-            level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.WIND.get(), SoundSource.PLAYERS, 0.5F, 0.9F + level.getRandom().nextFloat() * 0.2F);
-            player.gameEvent(GameEvent.ELYTRA_GLIDE);
+            SMOKE.emit(level, user);
+            return;
         }
+        if (user instanceof ServerPlayer player) {
+            ((ServerGamePacketListenerImplAccessor) player.connection).setAboveGroundTickCount(0);
+        }
+        if (PULSES.isDue(USE_DURATION_TICKS - remainingUseDuration)) {
+            level.playSound(null, user.getX(), user.getY(), user.getZ(), TTSounds.WIND.get(), SoundSource.PLAYERS, WIND_VOLUME, WIND_PITCH_BASE + level.getRandom().nextFloat() * WIND_PITCH_SPREAD);
+            user.gameEvent(GameEvent.ELYTRA_GLIDE);
+            stack.hurtAndBreak(WEAR_PER_PULSE, user, user.getUsedItemHand().asEquipmentSlot());
+        }
+    }
 
-        if (ticks % PULSE_INTERVAL_TICKS == 0) {
-            stack.hurtAndBreak(1, player, player.getUsedItemHand() == InteractionHand.OFF_HAND ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND);
+    private static void toggle(Level level, Player player, ItemStack stack) {
+        boolean disabled = !stack.getOrDefault(TTDataComponents.WHIRLWIND_DISABLED.get(), false);
+        stack.set(TTDataComponents.WHIRLWIND_DISABLED.get(), disabled);
+        if (level.isClientSide()) {
+            return;
         }
+        String message = disabled ? "message.thaumaturge.elemental_sword.whirlwind_off" : "message.thaumaturge.elemental_sword.whirlwind_on";
+        player.sendOverlayMessage(Component.translatable(message).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.KEY.get(), SoundSource.PLAYERS, TOGGLE_VOLUME, disabled ? TOGGLE_PITCH_OFF : TOGGLE_PITCH_ON);
     }
 }

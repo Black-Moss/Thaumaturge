@@ -108,12 +108,12 @@ public final class TTCapabilities {
     private static void smeltery(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.SMELTER.get(), (be, side) -> {
             if (side == null) {
-                return be.getInventory();
+                return be.itemSlots();
             }
             if (side == Direction.UP || be.getBlockState().getValue(BlockSmelter.FACING).getAxis().equals(side.getAxis())) {
-                return RangedResourceHandler.ofSingleIndex(be.getInventory(), 0);
+                return RangedResourceHandler.ofSingleIndex(be.itemSlots(), 0);
             }
-            return RangedResourceHandler.ofSingleIndex(be.getInventory(), 1);
+            return RangedResourceHandler.ofSingleIndex(be.itemSlots(), 1);
         });
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.ALEMBIC.get(), (be, side) -> be);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.ALEMBIC.get(), (be, side) -> be);
@@ -124,11 +124,11 @@ public final class TTCapabilities {
         event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.GOLEM_BUILDER.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
         event.registerBlock(EssentiaCapabilities.TRANSPORT, (level, pos, state, be, side) -> AdvancedAlchemicalFurnaceStructure.nozzle(level, pos, side),
                 TTBlocks.ADVANCED_ALCHEMICAL_FURNACE_NOZZLE.get());
-        event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.GOLEM_BUILDER.get(), (be, side) -> be.output());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.GOLEM_BUILDER.get(), (be, side) -> be.outputHandler());
     }
 
     private static void infernalFurnace(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.INFERNAL_FURNACE.get(), (be, side) -> side == null || side == Direction.UP ? be.inventory() : null);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.INFERNAL_FURNACE.get(), (be, side) -> side == null || side == Direction.UP ? be.items() : null);
     }
 
     private static void researchTable(RegisterCapabilitiesEvent event) {

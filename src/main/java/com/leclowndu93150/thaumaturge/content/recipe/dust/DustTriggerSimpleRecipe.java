@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerInput;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerPlacement;
 import com.leclowndu93150.thaumaturge.api.recipe.ResearchGate;
+import com.leclowndu93150.thaumaturge.registry.TTRecipeSerializers;
 import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -36,14 +37,16 @@ public final class DustTriggerSimpleRecipe implements DustTrigger {
 
     public static final RecipeSerializer<DustTriggerSimpleRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 
+    private static final int SWAP_DELAY_TICKS = 50;
+
     private final Block target;
     private final ItemStackTemplate result;
     private final Optional<ResearchGate> research;
 
     public DustTriggerSimpleRecipe(Block target, ItemStackTemplate result, Optional<ResearchGate> research) {
-        this.target = target;
-        this.result = result;
         this.research = research;
+        this.result = result;
+        this.target = target;
     }
 
     public Block target() {
@@ -71,10 +74,9 @@ public final class DustTriggerSimpleRecipe implements DustTrigger {
 
     @Override
     public void execute(DustTriggerInput input, Player player, @Nullable DustTriggerPlacement placement, Direction useFace) {
-        if (!(input.level() instanceof ServerLevel serverLevel)) {
-            return;
+        if (input.level() instanceof ServerLevel serverLevel) {
+            DustTriggerSwapQueue.enqueueDrop(serverLevel, input.pos(), input.clicked(), this.result.create(), SWAP_DELAY_TICKS);
         }
-        DustTriggerSwapQueue.enqueueDrop(serverLevel, input.pos(), input.clicked(), this.result.create(), 50);
     }
 
     @Override
@@ -89,7 +91,7 @@ public final class DustTriggerSimpleRecipe implements DustTrigger {
 
     @Override
     public RecipeSerializer<DustTriggerSimpleRecipe> getSerializer() {
-        return SERIALIZER;
+        return TTRecipeSerializers.DUST_TRIGGER_SIMPLE.get();
     }
 
     @Override

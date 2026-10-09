@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.util.FormattedCharSequence;
 
 public final class HalfScaleTooltipLine implements ClientTooltipComponent {
-    public static final String PREFIX = "@@";
     private static final float SCALE = 0.5F;
     private static final int LINE_HEIGHT = 7;
 

@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumaturge.content.aura.pressure;
 
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
 import com.leclowndu93150.thaumaturge.api.warp.WarpType;
-import com.leclowndu93150.thaumaturge.content.warp.WarpManager;
+import com.leclowndu93150.thaumaturge.content.warp.WarpNotices;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -34,7 +34,7 @@ public final class WarpPressureEvent extends AbstractFluxPressureEvent {
         }
         RandomSource random = level.getRandom();
         for (ServerPlayer player : targets) {
-            WarpManager.sendActionBar(player, MESSAGE);
+            WarpNotices.send(player, MESSAGE);
             if (random.nextFloat() < NORMAL_WARP_CHANCE) {
                 WarpHelper.addWarp(player, NORMAL_WARP, WarpType.NORMAL);
             } else {

@@ -12,6 +12,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -25,18 +27,20 @@ public abstract class AbstractTaintSpore extends Monster {
     public static final int MIN_SIZE = 2;
     public static final int MAX_SIZE = 10;
 
-    private static final EntityDataAccessor<Integer> DATA_SPORE_SIZE = SynchedEntityData.defineId(AbstractTaintSpore.class, EntityDataSerializers.INT);
-    private static final int CHECK_INTERVAL = 20;
-    private static final int GROWTH_INTERVAL = 1200;
-    private static final float DISPLAY_GROWTH_PER_TICK = 0.02F;
-    private static final float STARVE_DAMAGE = 1.0F;
-    private static final float UNSET_DISPLAY_SIZE = -1.0F;
+    private static final EntityDataAccessor<Integer> SIZE = SynchedEntityData.defineId(AbstractTaintSpore.class, EntityDataSerializers.INT);
+    private static final String SIZE_KEY = "SporeSize";
     private static final byte EVENT_RELEASE = 16;
     private static final int RELEASE_TICKS = 30;
+    private static final int UPKEEP_INTERVAL = 20;
+    private static final int GROWTH_INTERVAL = 1200;
+    private static final float STARVATION_DAMAGE = 1.0F;
+    private static final float DISPLAY_GROWTH_PER_TICK = 0.02F;
+    private static final double STILL_SPEED = 0.0;
 
-    private boolean burst;
-    private float displaySize = UNSET_DISPLAY_SIZE;
-    private float oldDisplaySize = UNSET_DISPLAY_SIZE;
+    private boolean bursting;
+    private boolean displayReady;
+    private float displaySize;
+    private float previousDisplaySize;
     private int releaseTicks;
 
     protected AbstractTaintSpore(EntityType<? extends AbstractTaintSpore> type, Level level) {
@@ -44,74 +48,88 @@ public abstract class AbstractTaintSpore extends Monster {
         setNoGravity(true);
     }
 
+    static AttributeSupplier.Builder createSporeAttributes(double maxHealth) {
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, maxHealth).add(Attributes.MOVEMENT_SPEED, STILL_SPEED);
+    }
+
     protected abstract boolean requiresStalkSupport();
 
     protected abstract void onBurst(ServerLevel level);
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder data) {
-        super.defineSynchedData(data);
-        data.define(DATA_SPORE_SIZE, MIN_SIZE);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SIZE, MIN_SIZE);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (!level().isClientSide()) {
-            return;
+        setDeltaMovement(Vec3.ZERO);
+        if (level().isClientSide()) {
+            advanceDisplay();
         }
+    }
+
+    private void advanceDisplay() {
+        float target = getSporeSize();
+        if (!displayReady) {
+            displayReady = true;
+            displaySize = target;
+        }
+        previousDisplaySize = displaySize;
+        displaySize = target > displaySize ? Math.min(target, displaySize + DISPLAY_GROWTH_PER_TICK) : target;
         if (releaseTicks > 0) {
             releaseTicks--;
         }
-        float target = getSporeSize();
-        if (displaySize < 0.0F) {
-            displaySize = target;
-            oldDisplaySize = target;
-            return;
-        }
-        oldDisplaySize = displaySize;
-        displaySize = displaySize < target ? Math.min(target, displaySize + DISPLAY_GROWTH_PER_TICK) : target;
     }
 
     @Override
     public void aiStep() {
         super.aiStep();
-        setDeltaMovement(Vec3.ZERO);
-        if (!(level() instanceof ServerLevel server) || tickCount % CHECK_INTERVAL != 0) {
-            return;
+        if (level() instanceof ServerLevel server && tickCount % UPKEEP_INTERVAL == 0) {
+            upkeep(server);
         }
-        if (server.getDifficulty() == Difficulty.PEACEFUL) {
-            demoteSupport(server);
+    }
+
+    private void upkeep(ServerLevel level) {
+        if (level.getDifficulty() == Difficulty.PEACEFUL) {
+            demoteStalk(level);
             discard();
             return;
         }
         if (tickCount % GROWTH_INTERVAL == 0 && getSporeSize() < MAX_SIZE) {
             setSporeSize(getSporeSize() + 1);
         }
-        if (!TaintBiomeManager.isTainted(server, blockPosition())) {
-            hurtServer(server, server.damageSources().starve(), STARVE_DAMAGE);
+        if (!TaintBiomeManager.isTainted(level, blockPosition())) {
+            hurtServer(level, damageSources().starve(), STARVATION_DAMAGE);
             if (isRemoved()) {
                 return;
             }
         }
-        if (requiresStalkSupport() && !server.getBlockState(blockPosition().below()).is(TTBlocks.TAINT_SPORE_STALK.get())) {
-            burst(server);
+        if (requiresStalkSupport() && !level.getBlockState(blockPosition().below()).is(TTBlocks.TAINT_SPORE_STALK)) {
+            burst(level);
+        }
+    }
+
+    private void demoteStalk(ServerLevel level) {
+        BlockPos below = blockPosition().below();
+        BlockState state = level.getBlockState(below);
+        if (state.is(TTBlocks.TAINT_SPORE_STALK) && state.getValue(BlockTaintSporeStalk.MATURE)) {
+            level.setBlock(below, state.setValue(BlockTaintSporeStalk.MATURE, false), Block.UPDATE_CLIENTS);
         }
     }
 
     public int getSporeSize() {
-        return entityData.get(DATA_SPORE_SIZE);
+        return entityData.get(SIZE);
     }
 
     protected void setSporeSize(int size) {
-        entityData.set(DATA_SPORE_SIZE, Mth.clamp(size, MIN_SIZE, MAX_SIZE));
+        entityData.set(SIZE, Mth.clamp(size, MIN_SIZE, MAX_SIZE));
     }
 
     public float getDisplaySize(float partialTick) {
-        if (displaySize < 0.0F || oldDisplaySize < 0.0F) {
-            return getSporeSize();
-        }
-        return Mth.lerp(partialTick, oldDisplaySize, displaySize);
+        return displayReady ? Mth.lerp(partialTick, previousDisplaySize, displaySize) : getSporeSize();
     }
 
     public int releaseTicks() {
@@ -148,32 +166,26 @@ public abstract class AbstractTaintSpore extends Monster {
     }
 
     protected final void burst(ServerLevel level) {
-        if (burst) {
+        if (bursting) {
             return;
         }
-        burst = true;
+        bursting = true;
         onBurst(level);
-        demoteSupport(level);
+        demoteStalk(level);
         discard();
-    }
-
-    private void demoteSupport(ServerLevel level) {
-        BlockPos below = blockPosition().below();
-        BlockState support = level.getBlockState(below);
-        if (support.is(TTBlocks.TAINT_SPORE_STALK.get()) && support.getValue(BlockTaintSporeStalk.MATURE)) {
-            level.setBlock(below, support.setValue(BlockTaintSporeStalk.MATURE, false), Block.UPDATE_CLIENTS);
-        }
     }
 
     @Override
     public void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
-        output.putInt("SporeSize", getSporeSize());
+        int size = entityData.get(SIZE);
+        output.putInt(SIZE_KEY, size);
     }
 
     @Override
     public void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        setSporeSize(input.getIntOr("SporeSize", MIN_SIZE));
+        int stored = input.getIntOr(SIZE_KEY, MIN_SIZE);
+        setSporeSize(stored);
     }
 }

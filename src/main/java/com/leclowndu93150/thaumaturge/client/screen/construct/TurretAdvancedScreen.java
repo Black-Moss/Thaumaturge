@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.client.screen.construct;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.entity.construct.EntityTurretCrossbowAdvanced;
 import com.leclowndu93150.thaumaturge.content.entity.construct.MenuTurretAdvanced;
+import com.leclowndu93150.thaumaturge.content.entity.construct.TurretFilter;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -37,7 +38,7 @@ public final class TurretAdvancedScreen extends TurretBasicScreen<MenuTurretAdva
         if (turret == null) {
             return;
         }
-        boolean[] toggles = {turret.getTargetAnimal(), turret.getTargetMob(), turret.getTargetPlayer(), turret.getTargetFriendly()};
+        boolean[] toggles = {turret.isFilterOn(TurretFilter.ANIMALS), turret.isFilterOn(TurretFilter.MOBS), turret.isFilterOn(TurretFilter.PLAYERS), turret.isFilterOn(TurretFilter.FRIENDLY)};
         for (int index = 0; index < toggles.length; index++) {
             int x = leftPos + BUTTON_X;
             int y = topPos + BUTTON_FIRST_Y + index * BUTTON_SPACING;

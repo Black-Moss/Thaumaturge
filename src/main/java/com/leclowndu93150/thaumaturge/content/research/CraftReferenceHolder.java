@@ -2,10 +2,8 @@ package com.leclowndu93150.thaumaturge.content.research;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
-import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
-import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.Item;
@@ -31,25 +29,22 @@ public final class CraftReferenceHolder {
     }
 
     public static void rebuild(RegistryAccess access) {
-        Set<Item> found = new HashSet<>();
-        access.lookup(IResearchEntry.REGISTRY_KEY).ifPresent(lookup -> lookup.listElements().forEach(entry -> {
-            for (IResearchStage stage : entry.value().stages()) {
-                for (ResearchRequirement req : stage.craft()) {
-                    for (Holder<Item> holder : req.items()) {
-                        found.add(holder.value());
-                    }
-                }
-            }
-        }));
-        items = Set.copyOf(found);
+        publish(access);
     }
 
     public static boolean isReference(RegistryAccess access, Item item) {
-        Set<Item> current = items;
-        if (current.isEmpty()) {
-            rebuild(access);
-            current = items;
-        }
-        return current.contains(item);
+        Set<Item> cached = items;
+        return (cached.isEmpty() ? publish(access) : cached).contains(item);
+    }
+
+    private static Set<Item> publish(RegistryAccess access) {
+        Set<Item> collected = collectCraftItems(access);
+        items = collected;
+        return collected;
+    }
+
+    private static Set<Item> collectCraftItems(RegistryAccess access) {
+        return access.lookup(IResearchEntry.REGISTRY_KEY).map(lookup -> lookup.listElements().flatMap(entry -> entry.value().stages().stream()).flatMap(stage -> stage.craft().stream())
+                .flatMap(requirement -> requirement.items().stream()).map(Holder::value).collect(Collectors.toUnmodifiableSet())).orElse(Set.of());
     }
 }

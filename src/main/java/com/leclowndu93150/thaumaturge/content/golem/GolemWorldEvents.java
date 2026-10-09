@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskBoard;
 import com.leclowndu93150.thaumaturge.network.ClientboundSealPayload;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -36,19 +37,28 @@ public final class GolemWorldEvents {
 
     @SubscribeEvent
     public static void onChunkWatch(ChunkWatchEvent.Sent event) {
-        for (SealEntity seal : SealHandler.getSealsInChunk(event.getChunk())) {
-            PacketDistributor.sendToPlayer(event.getPlayer(), ClientboundSealPayload.update(seal));
+        ServerPlayer viewer = event.getPlayer();
+        for (SealEntity seal : SealHandler.chunkSeals(event.getChunk())) {
+            PacketDistributor.sendToPlayer(viewer, ClientboundSealPayload.update(seal));
         }
     }
 
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
-        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        if (serverLevel.getGameTime() % TASK_CLEAR_INTERVAL_TICKS == 0) {
-            TaskBoard.of(serverLevel).sweep(serverLevel);
+        if (isSweepTick(level.getGameTime())) {
+            sweepTasks(level);
         }
-        SealHandler.tickSealEntities(serverLevel);
+        SealHandler.runTicks(level);
+    }
+
+    private static boolean isSweepTick(long gameTime) {
+        return gameTime % TASK_CLEAR_INTERVAL_TICKS == 0;
+    }
+
+    private static void sweepTasks(ServerLevel level) {
+        TaskBoard.of(level).sweep(level);
     }
 }

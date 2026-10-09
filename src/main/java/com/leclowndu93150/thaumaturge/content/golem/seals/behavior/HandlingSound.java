@@ -7,13 +7,16 @@ import net.minecraft.util.RandomSource;
 final class HandlingSound {
     static final float HIGH = 2.0F;
     static final float LOW = 1.0F;
+
     private static final float VOLUME = 0.125F;
-    private static final float WOBBLE = 0.7F;
+    private static final float PITCH_SPREAD = 0.7F;
+    private static final float PITCH_BASE = 1.0F;
 
     private HandlingSound() {}
 
     static void play(IGolemAPI golem, float octave) {
         RandomSource random = golem.level().getRandom();
-        golem.asEntity().playSound(SoundEvents.ITEM_PICKUP, VOLUME, ((random.nextFloat() - random.nextFloat()) * WOBBLE + 1.0F) * octave);
+        float pitch = ((random.nextFloat() - random.nextFloat()) * PITCH_SPREAD + PITCH_BASE) * octave;
+        golem.asEntity().playSound(SoundEvents.ITEM_PICKUP, VOLUME, pitch);
     }
 }

@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.essentia.tube;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -45,15 +46,15 @@ public class BlockTube extends BlockEssentiaTransport {
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide())
-            return null;
-        return createTickerHelper(type, TTBlockEntities.TUBE.get(), (lvl, pos, st, tube) -> tube.tickServer(lvl, pos, st));
+        BlockEntityTicker<T> serverTicker = createTickerHelper(type, TTBlockEntities.TUBE.get(), BlockTube::tickTube);
+        return level.isClientSide() ? null : serverTicker;
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.getBlockEntity(pos) instanceof BlockEntityTube tube) {
+        BlockEntity placed = level.getBlockEntity(pos);
+        if (placed instanceof BlockEntityTube tube) {
             tube.setFacingForPlacement(placer);
             refreshConnectionsAround(level, pos);
         }
@@ -61,21 +62,33 @@ public class BlockTube extends BlockEssentiaTransport {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!player.isSecondaryUseActive())
+        if (!player.isSecondaryUseActive()) {
             return InteractionResult.PASS;
-        if (level.isClientSide())
-            return InteractionResult.SUCCESS;
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityTube tube))
-            return InteractionResult.PASS;
-        int subHit = resolveSubHit(state, hit, pos);
-        if (subHit == TubeGeometry.CORE_HIT && !tube.isSideOpen(hit.getDirection())) {
-            subHit = hit.getDirection().ordinal();
         }
-        if (tube.handleCasterClick(subHit)) {
-            tube.playToolSound(level, pos);
-            player.swing(player.getUsedItemHand());
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
+        }
+        if (level.getBlockEntity(pos) instanceof BlockEntityTube tube) {
+            return applyCasterClick(tube, state, level, pos, player, hit) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
         return InteractionResult.PASS;
+    }
+
+    private boolean applyCasterClick(BlockEntityTube tube, BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        Direction face = hit.getDirection();
+        int part = resolveSubHit(state, hit, pos);
+        if (part == TubeGeometry.CORE_HIT && !tube.isSideOpen(face)) {
+            part = face.ordinal();
+        }
+        if (!tube.handleCasterClick(part)) {
+            return false;
+        }
+        tube.playToolSound(level, pos);
+        player.swing(player.getUsedItemHand());
+        return true;
+    }
+
+    private static void tickTube(Level level, BlockPos pos, BlockState state, BlockEntityTube tube) {
+        tube.tickServer(level, pos, state);
     }
 }

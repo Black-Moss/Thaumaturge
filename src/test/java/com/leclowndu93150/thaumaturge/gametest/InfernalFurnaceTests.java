@@ -25,9 +25,9 @@ public final class InfernalFurnaceTests {
 
         r.add("infernal_furnace/cook_progress_marks_changed", 20, helper -> {
             CountingFurnace furnace = createFurnace(helper);
-            furnace.furnaceCookTime = 3;
+            furnace.smeltTicksLeft = 3;
             tick(furnace, helper);
-            helper.assertTrue(furnace.furnaceCookTime == 2, "Cooking must still advance each tick");
+            helper.assertTrue(furnace.smeltTicksLeft == 2, "Cooking must still advance each tick");
             helper.assertTrue(furnace.changes == 1, "Saved cooking progress must mark the furnace changed");
             helper.succeed();
         });
@@ -36,16 +36,16 @@ public final class InfernalFurnaceTests {
             CountingFurnace furnace = createFurnace(helper);
             ItemResource iron = ItemResource.of(new ItemStack(Items.RAW_IRON));
             try (Transaction transaction = Transaction.openRoot()) {
-                furnace.inventory().insert(0, iron, 2, transaction);
+                furnace.items().insert(0, iron, 2, transaction);
             }
             helper.assertTrue(furnace.changes == 0, "Aborted insertion must not mark the furnace changed");
-            helper.assertTrue(furnace.inventory().getAmountAsInt(0) == 0, "Aborted insertion must leave the inventory empty");
+            helper.assertTrue(furnace.items().getAmountAsInt(0) == 0, "Aborted insertion must leave the inventory empty");
             try (Transaction transaction = Transaction.openRoot()) {
-                furnace.inventory().insert(0, iron, 2, transaction);
+                furnace.items().insert(0, iron, 2, transaction);
                 transaction.commit();
             }
             helper.assertTrue(furnace.changes == 1, "Committed insertion must mark the furnace changed immediately");
-            furnace.inventory().set(0, iron, 1);
+            furnace.items().set(0, iron, 1);
             helper.assertTrue(furnace.changes == 2, "Consuming an item must mark the furnace changed");
             helper.succeed();
         });
@@ -54,7 +54,7 @@ public final class InfernalFurnaceTests {
     private static CountingFurnace createFurnace(GameTestHelper helper) {
         CountingFurnace furnace = new CountingFurnace(helper.absolutePos(new BlockPos(2, 2, 3)));
         furnace.setLevel(helper.getLevel());
-        furnace.speedyTime = 20;
+        furnace.visCharge = 20;
         return furnace;
     }
 

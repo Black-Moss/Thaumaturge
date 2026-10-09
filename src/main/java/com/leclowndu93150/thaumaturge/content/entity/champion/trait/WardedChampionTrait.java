@@ -8,26 +8,32 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jspecify.annotations.Nullable;
 
 public final class WardedChampionTrait extends AbstractChampionTrait {
-    private static final int RECHARGE_INTERVAL_TICKS = 25;
-    private static final float RECHARGE_AMOUNT = 1.0F;
+    private static final int WARD_DIVISOR = 2;
+    private static final int REGENERATION_INTERVAL = 25;
+    private static final float REGENERATION_AMOUNT = 1.0F;
 
     @Override
     protected void championModifiers(LivingEntity mob, MobTraitModifiers modifiers) {
-        double ward = ward(mob);
-        if (mob.getAttributeBaseValue(Attributes.MAX_ABSORPTION) < ward) {
-            modifiers.setBase(Attributes.MAX_ABSORPTION, ward);
+        float ward = ward(mob);
+        double ceiling = mob.getAttributeBaseValue(Attributes.MAX_ABSORPTION);
+        if (ward <= ceiling) {
+            return;
         }
+        modifiers.setBase(Attributes.MAX_ABSORPTION, ward);
     }
 
     @Override
     protected void onChampionAdded(LivingEntity mob) {
-        mob.setAbsorptionAmount(mob.getAbsorptionAmount() + ward(mob));
+        float granted = ward(mob);
+        mob.setAbsorptionAmount(granted + mob.getAbsorptionAmount());
     }
 
     @Override
     public void tick(LivingEntity mob) {
-        if (mob.invulnerableTime <= 0 && mob.tickCount % RECHARGE_INTERVAL_TICKS == 0 && mob.getAbsorptionAmount() < ward(mob)) {
-            mob.setAbsorptionAmount(mob.getAbsorptionAmount() + RECHARGE_AMOUNT);
+        boolean ready = mob.invulnerableTime <= 0 && mob.tickCount % REGENERATION_INTERVAL == 0;
+        float current = mob.getAbsorptionAmount();
+        if (ready && current < ward(mob)) {
+            mob.setAbsorptionAmount(current + REGENERATION_AMOUNT);
         }
     }
 
@@ -37,7 +43,7 @@ public final class WardedChampionTrait extends AbstractChampionTrait {
         return amount;
     }
 
-    private static int ward(LivingEntity mob) {
-        return (int) mob.getAttributeBaseValue(Attributes.MAX_HEALTH) / 2;
+    private static float ward(LivingEntity mob) {
+        return (int) mob.getAttributeBaseValue(Attributes.MAX_HEALTH) / WARD_DIVISOR;
     }
 }

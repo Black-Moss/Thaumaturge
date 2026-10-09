@@ -1,15 +1,17 @@
 package com.leclowndu93150.thaumaturge.client.hud;
 
-import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.casters.ICaster;
-import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.api.spell.SpellSummary;
+import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
+import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
-import java.text.DecimalFormat;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.client.DeltaTracker;
@@ -17,223 +19,274 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.NonNullList;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.gui.GuiLayer;
+import org.jspecify.annotations.Nullable;
 
 public final class CasterHudOverlay implements GuiLayer {
-    private static final Identifier HUD = TTIds.rl("textures/gui/hud.png");
-    private static final Identifier HUD_WAND = TTIds.rl("textures/gui/hud_wand.png");
-
-    private static final int[] previousVis = new int[WandEconomy.PRIMAL_COUNT];
-    private static long changeSyncTime;
-    private static final int TEX_SIZE = 256;
-
     public static final int STACK_HEIGHT = 60;
+
+    private static final Identifier WAND_SHEET = HudTextures.CASTER_DIAL;
+    private static final int TEX = TTScreenTextures.TEX_SIZE;
+    private static final int PRIMALS = WandEconomy.PRIMAL_COUNT;
+
     private static final int DIAL_SIZE = 32;
-    private static final int DIAL_SRC_SIZE = 64;
-    private static final int ANCHOR = 16;
-    private static final float SPOKE_BASE_DEG = -15.0F;
-    private static final float SPOKE_STEP_DEG = 24.0F;
-    private static final int SPOKE_RADIUS = -32;
-    private static final int MARKER_SIZE = 8;
-    private static final int MARKER_HALF = 4;
-    private static final float COST_MARKER_U = 136.0F;
-    private static final float RISE_MARKER_U = 120.0F;
-    private static final float FALL_MARKER_U = 128.0F;
-    private static final int COST_TEXT_X = 8;
-    private static final long CHANGE_SYNC_INTERVAL_MS = 1000L;
-    private static final float BAR_SPACE_SCALE = 0.5F;
-    private static final int BAR_MAX_HEIGHT = 30;
+    private static final int DIAL_ART_SIZE = 64;
+    private static final int DIAL_CENTER = 16;
+    private static final int DIAL_BOTTOM_OFFSET = 32;
+    private static final float BAR_RADIUS = 32.0F;
+    private static final float BAR_SCALE = 0.5F;
+    private static final float BOTTOM_START_DEGREES = -15.0F;
+    private static final float STACK_START_DEGREES = 75.0F;
+    private static final float BAR_STEP_DEGREES = 24.0F;
+
     private static final int BAR_BOTTOM = 35;
-    private static final float BAR_FILL_U = 104.0F;
+    private static final int BAR_MAX_FILL = 30;
+    private static final int BAR_FILL_U = 104;
     private static final int BAR_FILL_W = 8;
+    private static final int BAR_FILL_X = -4;
+    private static final int BAR_FILL_ALPHA = 204;
+    private static final int DEFAULT_ENERGY_COLOR = 0xC0FFFF;
+    private static final int BAR_FRAME_U = 72;
     private static final int BAR_FRAME_X = -8;
     private static final int BAR_FRAME_Y = -3;
-    private static final float BAR_FRAME_U = 72.0F;
     private static final int BAR_FRAME_W = 16;
     private static final int BAR_FRAME_H = 42;
-    private static final float BAR_FILL_ALPHA = 0.8F;
-    private static final int AMOUNT_TEXT_X = -32;
-    private static final int AMOUNT_TEXT_Y = -4;
-    private static final int ITEM_HALF = 8;
-    private static final int COUNT_TEXT_LIFT = 9;
-    private static final int COUNT_TEXT_X = 16;
-    private static final int COUNT_TEXT_Y = 24;
-    private static final float COUNT_TEXT_SCALE = 0.5F;
-    private static final int WHITE = 0xFFFFFFFF;
-    private static final int OUTLINE_BLACK = 0xFF000000;
-    private static final int DEFAULT_ENERGY_COLOR = 0xC0FFFF;
+    private static final int MARKER_U_COST = 136;
+    private static final int MARKER_U_RISING = 120;
+    private static final int MARKER_U_FALLING = 128;
+    private static final int MARKER_SIZE = 8;
+    private static final int MARKER_X = -4;
+    private static final int MARKER_Y = -8;
+    private static final int MARKER_Y_STACKED = -16;
 
-    private static final DecimalFormat AMOUNT_FORMAT = new DecimalFormat("#######.#");
+    private static final int VIS_TEXT_X = -32;
+    private static final int COST_TEXT_X = 8;
+    private static final int BAR_TEXT_Y = -4;
+    private static final int WHITE = 0xFFFFFFFF;
+    private static final int BLACK = 0xFF000000;
+
+    private static final int ITEM_OFFSET = 8;
+    private static final int TRADE_ANCHOR_RISE = 9;
+    private static final float TRADE_SCALE = 0.5F;
+    private static final int TRADE_RIGHT = 16;
+    private static final int TRADE_DOWN = 24;
+    private static final int[] OUTLINE_STEPS = {-1, 0, 1, 0, -1};
+
+    private static final long SNAPSHOT_INTERVAL_MS = 1000L;
+    private static final int[] PREVIOUS_VIS = new int[PRIMALS];
+    private static long lastSnapshotMillis;
+
+    private static final int AMOUNT_MAX_INTEGER_DIGITS = 7;
+    private static final int AMOUNT_MAX_FRACTION_DIGITS = 1;
+    private static final RoundingMode AMOUNT_ROUNDING = RoundingMode.HALF_UP;
+
+    private final NumberFormat amountFormat = createAmountFormat();
 
     public CasterHudOverlay() {}
 
     public static boolean isVisible(Minecraft mc) {
         LocalPlayer player = mc.player;
-        if (player == null || mc.options.hideGui || !mc.mouseHandler.isMouseGrabbed()) {
-            return false;
-        }
-        return player.getMainHandItem().getItem() instanceof ICaster || player.getOffhandItem().getItem() instanceof ICaster;
+        return player != null && !mc.options.hideGui && mc.mouseHandler.isMouseGrabbed()
+                && (player.getMainHandItem().getItem() instanceof ICaster || player.getOffhandItem().getItem() instanceof ICaster);
     }
 
     public static LeftHudStack.Gauge dialGauge() {
-        return new LeftHudStack.Gauge() {
-            @Override
-            public boolean visible(Minecraft mc, LocalPlayer player) {
-                return isVisible(mc) && !ThaumaturgeClientConfig.dialBottom();
-            }
-
-            @Override
-            public int height() {
-                return STACK_HEIGHT;
-            }
-
-            @Override
-            public String exclusiveGroup() {
-                return null;
-            }
-
-            @Override
-            public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-                renderDial(graphics, 0);
-            }
-        };
+        return new DialGauge(new CasterHudOverlay());
     }
 
     @Override
     public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        Minecraft mc = Minecraft.getInstance();
-        if (!isVisible(mc) || !ThaumaturgeClientConfig.dialBottom()) {
+        if (!ThaumaturgeClientConfig.dialBottom()) {
             return;
         }
-        renderDial(graphics, graphics.guiHeight() - DIAL_SIZE);
-    }
-
-    private static void renderDial(GuiGraphicsExtractor graphics, int dialY) {
         Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc.player;
-        ItemStack casterStack = player.getMainHandItem();
-        if (!(casterStack.getItem() instanceof ICaster)) {
-            casterStack = player.getOffhandItem();
+        if (!isVisible(mc)) {
+            return;
         }
-        ICaster wand = (ICaster) casterStack.getItem();
+        drawDial(graphics, mc, mc.player, graphics.guiHeight() - DIAL_BOTTOM_OFFSET, true);
+    }
 
-        graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, 0, dialY, 0.0F, 0.0F, DIAL_SIZE, DIAL_SIZE, DIAL_SRC_SIZE, DIAL_SRC_SIZE, TEX_SIZE, TEX_SIZE);
-
-        int max = WandVisHelper.getMaxVis(casterStack);
-        ItemStack focusStack = wand.getFocusStack(casterStack);
-        boolean hasFocus = FocusItems.isFocus(focusStack);
-        Map<ResourceKey<IAspect>, Integer> costSplit = null;
-        Optional<SpellSummary> summary = hasFocus ? FocusItems.summary(focusStack, player.registryAccess(), null) : Optional.empty();
-        if (summary.isPresent() && summary.get().vis() > 0.0F) {
-            costSplit = FocusItems.visSplit(summary.get(), 1.0F, player.registryAccess());
+    private void drawDial(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, int dialY, boolean bottomMode) {
+        ItemStack mainStack = player.getMainHandItem();
+        ItemStack casterStack = mainStack.getItem() instanceof ICaster ? mainStack : player.getOffhandItem();
+        if (!(casterStack.getItem() instanceof ICaster caster)) {
+            return;
         }
-        float costModifier = wand.getConsumptionModifier(casterStack, player, false);
-        boolean sneak = player.isShiftKeyDown();
-        long now = Util.getMillis();
-        boolean snapshot = now >= changeSyncTime;
-        if (snapshot) {
-            changeSyncTime = now + CHANGE_SYNC_INTERVAL_MS;
-        }
-
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(ANCHOR, dialY + ANCHOR);
-        int count = 0;
-        for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
-            int amt = WandVisHelper.getVis(casterStack, primal);
-            float primalCost = costSplit == null ? 0.0F : costSplit.getOrDefault(primal, 0) * costModifier / WandEconomy.CENTIVIS_PER_VIS;
+        ItemStack focus = caster.getFocusStack(casterStack);
+        boolean hasFocus = FocusItems.isFocus(focus);
+        float[] costs = hasFocus ? primalCosts(mc, player, caster, casterStack, focus) : new float[PRIMALS];
+        int maxVis = WandVisHelper.capacityOf(casterStack);
+        int[] current = new int[PRIMALS];
+        graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SHEET, 0, dialY, 0, 0, DIAL_SIZE, DIAL_SIZE, DIAL_ART_SIZE, DIAL_ART_SIZE, TEX, TEX);
+        float startDegrees = bottomMode ? BOTTOM_START_DEGREES : STACK_START_DEGREES;
+        for (int i = 0; i < PRIMALS; i++) {
+            ResourceKey<IAspect> primal = TTAspects.PRIMALS.get(i);
+            current[i] = WandVisHelper.storedIn(casterStack, primal);
+            float radians = (startDegrees + i * BAR_STEP_DEGREES) * Mth.DEG_TO_RAD;
             graphics.pose().pushMatrix();
-            if (!ThaumaturgeClientConfig.dialBottom()) {
-                graphics.pose().rotate((float) Math.toRadians(90.0));
-            }
-            graphics.pose().rotate((float) Math.toRadians(SPOKE_BASE_DEG + count * SPOKE_STEP_DEG));
-            graphics.pose().translate(0.0F, SPOKE_RADIUS);
-            graphics.pose().scale(BAR_SPACE_SCALE, BAR_SPACE_SCALE);
-            int loc = max > 0 ? (int) (BAR_MAX_HEIGHT * (float) amt / max) : 0;
-            if (loc > 0) {
-                int color = primalColor(mc, primal);
-                graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, -BAR_FILL_W / 2, BAR_BOTTOM - loc, BAR_FILL_U, 0.0F, BAR_FILL_W, loc, BAR_FILL_W, loc, TEX_SIZE, TEX_SIZE,
-                        ARGB.color(Math.round(BAR_FILL_ALPHA * 255.0F), color));
-            }
-            graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, BAR_FRAME_X, BAR_FRAME_Y, BAR_FRAME_U, 0.0F, BAR_FRAME_W, BAR_FRAME_H, BAR_FRAME_W, BAR_FRAME_H, TEX_SIZE, TEX_SIZE);
-            int markerShift = 0;
-            if (primalCost > 0.0F) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, -MARKER_HALF, -MARKER_SIZE, COST_MARKER_U, 0.0F, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, TEX_SIZE, TEX_SIZE);
-                markerShift = MARKER_SIZE;
-            }
-            if (previousVis[count] > amt) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, -MARKER_HALF, -MARKER_SIZE - markerShift, FALL_MARKER_U, 0.0F, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, TEX_SIZE,
-                        TEX_SIZE);
-            } else if (previousVis[count] < amt) {
-                graphics.blit(RenderPipelines.GUI_TEXTURED, HUD_WAND, -MARKER_HALF, -MARKER_SIZE - markerShift, RISE_MARKER_U, 0.0F, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, TEX_SIZE,
-                        TEX_SIZE);
-            }
-            if (snapshot) {
-                previousVis[count] = amt;
-            }
-            if (sneak) {
-                graphics.pose().pushMatrix();
-                graphics.pose().rotate((float) Math.toRadians(-90.0));
-                graphics.text(mc.font, AMOUNT_FORMAT.format(amt / (float) WandEconomy.CENTIVIS_PER_VIS), AMOUNT_TEXT_X, AMOUNT_TEXT_Y, WHITE, true);
-                graphics.pose().popMatrix();
-                if (primalCost > 0.0F) {
-                    graphics.pose().pushMatrix();
-                    graphics.pose().rotate((float) Math.toRadians(-90.0));
-                    graphics.text(mc.font, AMOUNT_FORMAT.format(primalCost), COST_TEXT_X, AMOUNT_TEXT_Y, WHITE, true);
-                    graphics.pose().popMatrix();
-                }
-            }
+            graphics.pose().translate(DIAL_CENTER + BAR_RADIUS * Mth.sin(radians), dialY + DIAL_CENTER - BAR_RADIUS * Mth.cos(radians));
+            graphics.pose().rotate(radians);
+            graphics.pose().scale(BAR_SCALE, BAR_SCALE);
+            drawBar(graphics, mc, player, current[i], maxVis, PREVIOUS_VIS[i], costs[i], aspectColor(mc, primal));
             graphics.pose().popMatrix();
-            count++;
         }
-        graphics.pose().popMatrix();
-
         if (hasFocus) {
-            BlockState picked = wand.getPickedBlock(player.getMainHandItem());
-            ItemStack pickedStack = picked == null ? ItemStack.EMPTY : new ItemStack(picked.getBlock().asItem());
-            if (!pickedStack.isEmpty()) {
-                renderTradeHud(graphics, mc, player, pickedStack, dialY);
-            } else {
-                graphics.item(focusStack, ANCHOR - ITEM_HALF, dialY + ANCHOR - ITEM_HALF);
+            drawCentre(graphics, mc, player, focus, dialY);
+        }
+        long now = Util.getMillis();
+        if (now - lastSnapshotMillis >= SNAPSHOT_INTERVAL_MS) {
+            System.arraycopy(current, 0, PREVIOUS_VIS, 0, PRIMALS);
+            lastSnapshotMillis = now;
+        }
+    }
+
+    private void drawBar(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, int stored, int maxVis, int previous, float cost, int color) {
+        int fill = maxVis > 0 ? (int) ((float) stored / maxVis * BAR_MAX_FILL) : 0;
+        if (fill > 0) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SHEET, BAR_FILL_X, BAR_BOTTOM - fill, BAR_FILL_U, 0, BAR_FILL_W, fill, BAR_FILL_W, fill, TEX, TEX, ARGB.color(BAR_FILL_ALPHA, color));
+        }
+        graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SHEET, BAR_FRAME_X, BAR_FRAME_Y, BAR_FRAME_U, 0, BAR_FRAME_W, BAR_FRAME_H, BAR_FRAME_W, BAR_FRAME_H, TEX, TEX);
+        boolean hasCost = cost > 0.0F;
+        if (hasCost) {
+            drawMarker(graphics, MARKER_U_COST, MARKER_Y);
+        }
+        int trendY = hasCost ? MARKER_Y_STACKED : MARKER_Y;
+        if (stored < previous) {
+            drawMarker(graphics, MARKER_U_FALLING, trendY);
+        } else if (stored > previous) {
+            drawMarker(graphics, MARKER_U_RISING, trendY);
+        }
+        if (player.isShiftKeyDown()) {
+            drawRotatedText(graphics, mc, amountFormat.format(stored / (float) WandEconomy.CENTIVIS_PER_VIS), VIS_TEXT_X);
+            if (hasCost) {
+                drawRotatedText(graphics, mc, amountFormat.format(cost), COST_TEXT_X);
             }
         }
     }
 
-    private static int primalColor(Minecraft mc, ResourceKey<IAspect> primal) {
+    private static void drawMarker(GuiGraphicsExtractor graphics, int u, int y) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SHEET, MARKER_X, y, u, 0, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, TEX, TEX);
+    }
+
+    private static void drawRotatedText(GuiGraphicsExtractor graphics, Minecraft mc, String text, int x) {
+        graphics.pose().pushMatrix();
+        graphics.pose().rotate(-Mth.HALF_PI);
+        graphics.text(mc.font, text, x, BAR_TEXT_Y, WHITE, true);
+        graphics.pose().popMatrix();
+    }
+
+    private static void drawCentre(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, ItemStack focus, int dialY) {
+        int itemY = dialY + ITEM_OFFSET;
+        ItemStack picked = pickedStack(player.getMainHandItem());
+        if (picked.isEmpty()) {
+            graphics.item(focus, ITEM_OFFSET, itemY);
+            return;
+        }
+        graphics.item(picked, ITEM_OFFSET, itemY);
+        String count = String.valueOf(countOf(player, picked.getItem()));
+        int x = TRADE_RIGHT - mc.font.width(count);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(DIAL_CENTER, dialY + DIAL_CENTER - TRADE_ANCHOR_RISE);
+        graphics.pose().scale(TRADE_SCALE, TRADE_SCALE);
+        for (int i = 0; i + 1 < OUTLINE_STEPS.length; i++) {
+            graphics.text(mc.font, count, x + OUTLINE_STEPS[i], TRADE_DOWN + OUTLINE_STEPS[i + 1], BLACK, false);
+        }
+        graphics.text(mc.font, count, x, TRADE_DOWN, WHITE, false);
+        graphics.pose().popMatrix();
+    }
+
+    private static ItemStack pickedStack(ItemStack mainStack) {
+        if (!(mainStack.getItem() instanceof ICaster caster)) {
+            return ItemStack.EMPTY;
+        }
+        BlockState state = caster.getPickedBlock(mainStack);
+        return state == null ? ItemStack.EMPTY : new ItemStack(state.getBlock());
+    }
+
+    private static int countOf(LocalPlayer player, Item item) {
+        int total = 0;
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (stack.is(item)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
+    }
+
+    private static float[] primalCosts(Minecraft mc, LocalPlayer player, ICaster caster, ItemStack casterStack, ItemStack focus) {
+        float[] costs = new float[PRIMALS];
+        if (mc.level == null) {
+            return costs;
+        }
+        HolderLookup.Provider registries = mc.level.registryAccess();
+        Optional<SpellSummary> summary = FocusItems.summary(focus, registries, player);
+        if (summary.isEmpty() || summary.get().vis() <= 0.0F) {
+            return costs;
+        }
+        Map<ResourceKey<IAspect>, Integer> split = FocusItems.visSplit(summary.get(), 1.0F, registries);
+        float modifier = caster.getConsumptionModifier(casterStack, player, false);
+        for (int i = 0; i < PRIMALS; i++) {
+            int amount = split.getOrDefault(TTAspects.PRIMALS.get(i), 0);
+            if (amount > 0) {
+                costs[i] = amount * modifier / WandEconomy.CENTIVIS_PER_VIS;
+            }
+        }
+        return costs;
+    }
+
+    private static int aspectColor(Minecraft mc, ResourceKey<IAspect> key) {
         if (mc.level == null) {
             return DEFAULT_ENERGY_COLOR;
         }
-        return mc.level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(primal).value().color();
+        return mc.level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).get(key).map(holder -> holder.value().color()).orElse(DEFAULT_ENERGY_COLOR);
     }
 
-    private static void renderTradeHud(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, ItemStack picked, int dialY) {
-        int amount = 0;
-        NonNullList<ItemStack> main = player.getInventory().getNonEquipmentItems();
-        for (ItemStack stack : main) {
-            if (!stack.isEmpty() && ItemStack.isSameItem(stack, picked)) {
-                amount += stack.getCount();
+    private static NumberFormat createAmountFormat() {
+        NumberFormat format = NumberFormat.getNumberInstance(Locale.ROOT);
+        format.setMaximumIntegerDigits(AMOUNT_MAX_INTEGER_DIGITS);
+        format.setMaximumFractionDigits(AMOUNT_MAX_FRACTION_DIGITS);
+        format.setGroupingUsed(false);
+        format.setRoundingMode(AMOUNT_ROUNDING);
+        return format;
+    }
+
+    private static final class DialGauge implements LeftHudStack.Gauge {
+        private final CasterHudOverlay renderer;
+
+        private DialGauge(CasterHudOverlay renderer) {
+            this.renderer = renderer;
+        }
+
+        @Override
+        public boolean visible(Minecraft mc, LocalPlayer player) {
+            return !ThaumaturgeClientConfig.dialBottom() && isVisible(mc);
+        }
+
+        @Override
+        public int height() {
+            return STACK_HEIGHT;
+        }
+
+        @Override
+        public @Nullable String exclusiveGroup() {
+            return null;
+        }
+
+        @Override
+        public void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null) {
+                renderer.drawDial(graphics, mc, mc.player, 0, false);
             }
         }
-        graphics.item(picked, ANCHOR - ITEM_HALF, dialY + ANCHOR - ITEM_HALF);
-        String text = Integer.toString(amount);
-        int width = mc.font.width(text);
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(ANCHOR, dialY + ANCHOR - COUNT_TEXT_LIFT);
-        graphics.pose().scale(COUNT_TEXT_SCALE, COUNT_TEXT_SCALE);
-        for (int a = -1; a <= 1; a++) {
-            for (int b = -1; b <= 1; b++) {
-                if ((a == 0 || b == 0) && (a != 0 || b != 0)) {
-                    graphics.text(mc.font, text, a + COUNT_TEXT_X - width, b + COUNT_TEXT_Y, OUTLINE_BLACK, false);
-                }
-            }
-        }
-        graphics.text(mc.font, text, COUNT_TEXT_X - width, COUNT_TEXT_Y, WHITE, false);
-        graphics.pose().popMatrix();
     }
 }

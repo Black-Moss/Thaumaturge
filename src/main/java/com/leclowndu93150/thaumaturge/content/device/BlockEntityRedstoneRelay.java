@@ -8,10 +8,13 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 public final class BlockEntityRedstoneRelay extends AbstractSyncedBlockEntity {
-    private static final int MAX_SIGNAL = 15;
+    private static final int MIN_LEVEL = 1;
+    private static final int MAX_LEVEL = 15;
+    private static final String IN_KEY = "in";
+    private static final String OUT_KEY = "out";
 
-    private int in = 1;
-    private int out = 15;
+    private int in = MIN_LEVEL;
+    private int out = MAX_LEVEL;
 
     public BlockEntityRedstoneRelay(BlockPos pos, BlockState state) {
         super(TTBlockEntities.REDSTONE_RELAY.get(), pos, state);
@@ -26,35 +29,30 @@ public final class BlockEntityRedstoneRelay extends AbstractSyncedBlockEntity {
     }
 
     public void increaseIn() {
-        in++;
-        if (in > MAX_SIGNAL) {
-            in = 1;
-        }
-        setChanged();
-        syncToClient();
+        in = next(in);
+        setChangedAndSync();
     }
 
     public void increaseOut() {
-        out++;
-        if (out > MAX_SIGNAL) {
-            out = 1;
-        }
-        setChanged();
-        syncToClient();
+        out = next(out);
+        setChangedAndSync();
+    }
+
+    private static int next(int value) {
+        return value >= MAX_LEVEL ? MIN_LEVEL : value + 1;
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        in = input.getByteOr("in", (byte) 1);
-        out = input.getByteOr("out", (byte) 15);
+        in = input.getByteOr(IN_KEY, (byte) MIN_LEVEL);
+        out = input.getByteOr(OUT_KEY, (byte) MAX_LEVEL);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putByte("in", (byte) in);
-        output.putByte("out", (byte) out);
+        output.putByte(IN_KEY, (byte) in);
+        output.putByte(OUT_KEY, (byte) out);
     }
-
 }

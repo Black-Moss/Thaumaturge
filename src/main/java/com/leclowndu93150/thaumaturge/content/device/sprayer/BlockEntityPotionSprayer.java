@@ -3,13 +3,11 @@ package com.leclowndu93150.thaumaturge.content.device.sprayer;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
-import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.particle.VentParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
-import java.util.ArrayList;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -17,6 +15,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.effect.MobEffect;
@@ -35,31 +34,52 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity implements IEssentiaTransport {
     public static final int MAX_CHARGES = 8;
-    private static final int SUCTION_CYCLE_TICKS = 5;
-    private static final int SUCTION_STRENGTH = 128;
-    private static final int SPRAY_REACH = 2;
-    private static final int SPRAY_AREA = 1;
-    private static final int VENT_EVENT = 0;
-    private static final int VENT_TICKS = 15;
-    private static final float VENT_SPEED = 0.25F;
+
+    private static final String POTION_KEY = "Potion";
+    private static final String RECIPE_KEY = "Recipe";
+    private static final String PROGRESS_KEY = "Progress";
+    private static final String CHARGES_KEY = "Charges";
+    private static final String COLOR_KEY = "Color";
     private static final int DEFAULT_COLOR = 0x333333;
+    private static final int COLOR_MASK = 0xFFFFFF;
+    private static final int ESSENTIA_INTERVAL = 5;
+    private static final int SUCTION = 128;
+    private static final int PULL_AMOUNT = 1;
+    private static final int SPRAY_REACH = 2;
+    private static final double SPRAY_SIDE = 3.0;
+    private static final int VENT_EVENT = 0;
+    private static final int VENT_DURATION = 15;
+    private static final int VENT_PARTICLE_DIVISOR = 2;
+    private static final float VENT_SIZE = 4.0F;
+    private static final double VENT_CENTER = 0.5;
+    private static final double VENT_JITTER = 0.1;
+    private static final double VENT_SPREAD = 0.06;
+    private static final double VENT_SPEED = 0.25;
+    private static final float SPRAY_VOLUME = 0.25F;
+    private static final float SPRAY_PITCH = 2.6F;
+    private static final float SPRAY_PITCH_SPREAD = 0.8F;
+    private static final double INSTANT_EFFECT_SCALE = 1.0;
+    private static final int NOTHING = 0;
+    private static final boolean OUTPUT_ALLOWED = false;
+    private static final @Nullable Holder<IAspect> NO_ASPECT = null;
 
     private ItemStack potion = ItemStack.EMPTY;
-    private AspectList recipe = AspectList.EMPTY;
-    private AspectList progress = AspectList.EMPTY;
-    private int charges;
+    private ItemStack appliedPotion = ItemStack.EMPTY;
+    private AspectList essentiaNeeded = AspectList.EMPTY;
+    private AspectList essentiaStored = AspectList.EMPTY;
+    private int sprayShots;
     private int color = DEFAULT_COLOR;
-    private int counter;
-    private boolean activated;
-    private int venting;
-    private @Nullable Holder<IAspect> currentSuction;
+    private int essentiaTimer;
+    private int ventTicks;
+    private boolean powerEdgeLatched;
+    private @Nullable Holder<IAspect> requested;
 
     public BlockEntityPotionSprayer(BlockPos pos, BlockState state) {
         super(TTBlockEntities.POTION_SPRAYER.get(), pos, state);
     }
 
-    public static boolean isValidPotion(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof PotionItem;
+    public static boolean holdsPotionItem(ItemStack stack) {
+        return stack.getItem() instanceof PotionItem;
     }
 
     public ItemStack getPotion() {
@@ -68,212 +88,242 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
 
     public void setPotion(ItemStack stack) {
         potion = stack;
-        recalcAspects();
+        if (level instanceof ServerLevel serverLevel && !ItemStack.matches(appliedPotion, stack)) {
+            recalculate(serverLevel);
+        }
     }
 
-    public AspectList recipe() {
-        return recipe;
+    private void recalculate(ServerLevel serverLevel) {
+        appliedPotion = potion.copy();
+        essentiaNeeded = potion.isEmpty() ? AspectList.EMPTY : PotionAspects.of(serverLevel, potion);
+        essentiaStored = AspectList.EMPTY;
+        sprayShots = 0;
+        requested = null;
+        color = potion.isEmpty() ? DEFAULT_COLOR : potion.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).getColor() & COLOR_MASK;
+        setChangedAndSync();
     }
 
-    public AspectList progress() {
-        return progress;
+    public AspectList essentiaNeeded() {
+        return essentiaNeeded;
     }
 
-    public int charges() {
-        return charges;
+    public AspectList essentiaStored() {
+        return essentiaStored;
+    }
+
+    public int sprayShots() {
+        return sprayShots;
     }
 
     public int color() {
         return color;
     }
 
+    private Direction facing() {
+        return getBlockState().getValue(BlockPotionSprayer.FACING);
+    }
+
     void tick(Level level, BlockPos pos, BlockState state) {
-        counter++;
-        Direction facing = state.getValue(BlockPotionSprayer.FACING);
         if (level.isClientSide()) {
-            clientVent(level, pos, facing);
+            vent(level, pos, state.getValue(BlockPotionSprayer.FACING));
             return;
         }
-        ServerLevel server = (ServerLevel) level;
-        if (counter % SUCTION_CYCLE_TICKS == 0) {
-            currentSuction = null;
-            if (!potion.isEmpty() && charges < MAX_CHARGES) {
-                boolean done = true;
-                for (AspectInstance entry : recipe.entries()) {
-                    if (progress.amountOf(entry.aspect()) < entry.amount()) {
-                        currentSuction = entry.aspect();
-                        done = false;
-                        break;
-                    }
-                }
-                if (done && !recipe.isEmpty()) {
-                    progress = AspectList.EMPTY;
-                    charges++;
-                    setChanged();
-                    syncToClient();
-                } else if (currentSuction != null) {
-                    fill(server, facing);
-                }
-            }
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
         }
-        boolean enabled = state.getValue(BlockStateProperties.ENABLED);
-        if (!enabled) {
-            if (!activated && charges > 0) {
-                charges--;
-                spray(server, pos, facing);
-                server.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.25F, 2.6F + (server.getRandom().nextFloat() - server.getRandom().nextFloat()) * 0.8F);
-                server.blockEvent(pos, state.getBlock(), VENT_EVENT, 0);
-                setChanged();
-                syncToClient();
-            }
-            activated = true;
-        } else if (activated) {
-            activated = false;
+        trackPowerEdge(serverLevel, pos, state);
+        boolean due = essentiaTimer == 0;
+        essentiaTimer = (essentiaTimer + 1) % ESSENTIA_INTERVAL;
+        if (due) {
+            gatherEssentia(serverLevel, pos, state.getValue(BlockPotionSprayer.FACING));
         }
     }
 
-    private void spray(ServerLevel server, BlockPos pos, Direction facing) {
-        List<MobEffectInstance> effects = new ArrayList<>();
-        potion.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).getAllEffects().forEach(effects::add);
-        if (effects.isEmpty()) {
+    private void trackPowerEdge(ServerLevel level, BlockPos pos, BlockState state) {
+        if (state.getValue(BlockStateProperties.ENABLED)) {
+            powerEdgeLatched = false;
             return;
         }
-        BlockPos center = pos.relative(facing, SPRAY_REACH);
-        AABB box = new AABB(center.getX() - SPRAY_AREA, center.getY() - SPRAY_AREA, center.getZ() - SPRAY_AREA, center.getX() + 1 + SPRAY_AREA, center.getY() + 1 + SPRAY_AREA,
-                center.getZ() + 1 + SPRAY_AREA);
-        for (LivingEntity target : server.getEntitiesOfClass(LivingEntity.class, box)) {
-            if (!target.isAlive() || !target.isAffectedByPotions()) {
+        if (powerEdgeLatched) {
+            return;
+        }
+        powerEdgeLatched = true;
+        if (sprayShots > 0) {
+            discharge(level, pos, state);
+        }
+    }
+
+    private void discharge(ServerLevel level, BlockPos pos, BlockState state) {
+        sprayShots--;
+        applyPotion(level, pos, state.getValue(BlockPotionSprayer.FACING));
+        RandomSource random = level.getRandom();
+        level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, SPRAY_VOLUME, SPRAY_PITCH + (random.nextFloat() - random.nextFloat()) * SPRAY_PITCH_SPREAD);
+        level.blockEvent(pos, state.getBlock(), VENT_EVENT, 0);
+        setChangedAndSync();
+    }
+
+    private void applyPotion(ServerLevel level, BlockPos pos, Direction facing) {
+        Iterable<MobEffectInstance> effects = potion.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).getAllEffects();
+        AABB area = AABB.ofSize(pos.relative(facing, SPRAY_REACH).getCenter(), SPRAY_SIDE, SPRAY_SIDE, SPRAY_SIDE);
+        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, area, BlockEntityPotionSprayer::canReceiveSpray)) {
+            effects.forEach(effect -> applyEffect(level, target, effect));
+        }
+    }
+
+    private static boolean canReceiveSpray(LivingEntity entity) {
+        return entity.isAlive() && entity.isAffectedByPotions();
+    }
+
+    private static void applyEffect(ServerLevel level, LivingEntity target, MobEffectInstance effect) {
+        Holder<MobEffect> holder = effect.getEffect();
+        if (!holder.value().isInstantenous()) {
+            target.addEffect(new MobEffectInstance(holder, effect.getDuration(), effect.getAmplifier()));
+            return;
+        }
+        holder.value().applyInstantenousEffect(level, null, null, target, effect.getAmplifier(), INSTANT_EFFECT_SCALE);
+    }
+
+    private void gatherEssentia(ServerLevel level, BlockPos pos, Direction facing) {
+        if (potion.isEmpty() || sprayShots >= MAX_CHARGES) {
+            requested = null;
+            return;
+        }
+        if (!essentiaNeeded.isEmpty() && firstUnmet() == null) {
+            sprayShots++;
+            essentiaStored = AspectList.EMPTY;
+            setChangedAndSync();
+        }
+        requested = sprayShots >= MAX_CHARGES ? null : firstUnmet();
+        if (requested != null) {
+            pull(level, pos, facing, requested);
+        }
+    }
+
+    private @Nullable Holder<IAspect> firstUnmet() {
+        for (AspectInstance entry : essentiaNeeded.entries()) {
+            if (essentiaStored.amountOf(entry.aspect()) < entry.amount()) {
+                return entry.aspect();
+            }
+        }
+        return null;
+    }
+
+    private void pull(ServerLevel level, BlockPos pos, Direction facing, Holder<IAspect> aspect) {
+        for (Direction side : Direction.values()) {
+            if (side == facing) {
                 continue;
             }
-            for (MobEffectInstance instance : effects) {
-                Holder<MobEffect> effect = instance.getEffect();
-                if (effect.value().isInstantenous()) {
-                    effect.value().applyInstantenousEffect(server, null, null, target, instance.getAmplifier(), 1.0);
-                } else {
-                    target.addEffect(new MobEffectInstance(effect, instance.getDuration(), instance.getAmplifier()));
-                }
+            BlockPos neighbour = pos.relative(side);
+            if (pullFrom(level, pos, neighbour, side.getOpposite(), aspect) || pullFrom(level, pos, neighbour.above(), side.getOpposite(), aspect)) {
+                return;
             }
         }
     }
 
-    private void clientVent(Level level, BlockPos pos, Direction facing) {
-        if (venting <= 0) {
+    private boolean pullFrom(ServerLevel level, BlockPos self, BlockPos candidate, Direction face, Holder<IAspect> aspect) {
+        if (candidate.equals(self) || !level.hasChunkAt(candidate)) {
+            return false;
+        }
+        IEssentiaTransport transport = level.getCapability(EssentiaCapabilities.TRANSPORT, candidate, face);
+        if (transport == null || !aspect.equals(transport.getEssentiaType(face)) || transport.getEssentiaAmount(face) <= 0 || transport.getSuctionAmount(face) >= SUCTION
+                || SUCTION < transport.getMinimumSuction()) {
+            return false;
+        }
+        int taken = transport.takeEssentia(aspect, PULL_AMOUNT, face);
+        if (taken > 0) {
+            essentiaStored = essentiaStored.add(aspect, taken);
+            setChangedAndSync();
+        }
+        return true;
+    }
+
+    private void vent(Level level, BlockPos pos, Direction facing) {
+        if (ventTicks <= 0) {
             return;
         }
-        venting--;
-        RandomSource rand = level.getRandom();
-        for (int i = 0; i < venting / 2; i++) {
-            float fx = 0.1F - rand.nextFloat() * 0.2F;
-            float fy = 0.1F - rand.nextFloat() * 0.2F;
-            float fz = 0.1F - rand.nextFloat() * 0.2F;
-            double mx = rand.nextGaussian() * 0.06 + facing.getStepX() * VENT_SPEED;
-            double my = rand.nextGaussian() * 0.06 + facing.getStepY() * VENT_SPEED;
-            double mz = rand.nextGaussian() * 0.06 + facing.getStepZ() * VENT_SPEED;
-            level.addParticle(new VentParticleOptions(mx, my, mz, color, 4.0F, false), pos.getX() + 0.5F + fx + facing.getStepX() / 2.0F, pos.getY() + 0.5F + fy + facing.getStepY() / 2.0F,
-                    pos.getZ() + 0.5F + fz + facing.getStepZ() / 2.0F, 0.0, 0.0, 0.0);
+        RandomSource random = level.getRandom();
+        int puffs = (ventTicks - 1) / VENT_PARTICLE_DIVISOR;
+        while (puffs-- > 0) {
+            double driftX = ventDrift(random, facing.getStepX());
+            double driftY = ventDrift(random, facing.getStepY());
+            double driftZ = ventDrift(random, facing.getStepZ());
+            double x = ventOrigin(pos.getX(), facing.getStepX(), random);
+            double y = ventOrigin(pos.getY(), facing.getStepY(), random);
+            double z = ventOrigin(pos.getZ(), facing.getStepZ(), random);
+            level.addParticle(new VentParticleOptions(driftX, driftY, driftZ, color, VENT_SIZE, false), x, y, z, 0.0, 0.0, 0.0);
         }
+        ventTicks--;
+    }
+
+    private static double ventDrift(RandomSource random, int step) {
+        return random.nextGaussian() * VENT_SPREAD + step * VENT_SPEED;
+    }
+
+    private static double ventOrigin(int blockCoordinate, int step, RandomSource random) {
+        double faceOffset = VENT_CENTER * (1 + step);
+        return blockCoordinate + faceOffset + Mth.nextDouble(random, -VENT_JITTER, VENT_JITTER);
     }
 
     @Override
-    public boolean triggerEvent(int event, int param) {
-        if (event == VENT_EVENT) {
-            if (level != null && level.isClientSide()) {
-                venting = VENT_TICKS;
-            }
-            return true;
+    public boolean triggerEvent(int id, int param) {
+        boolean isVent = id == VENT_EVENT;
+        if (isVent && level != null && level.isClientSide()) {
+            ventTicks = VENT_DURATION;
         }
-        return super.triggerEvent(event, param);
-    }
-
-    private void recalcAspects() {
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-        color = DEFAULT_COLOR;
-        if (!potion.isEmpty()) {
-            recipe = PotionAspects.of((ServerLevel) level, potion);
-            color = potion.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).getColor();
-        } else {
-            recipe = AspectList.EMPTY;
-        }
-        charges = 0;
-        progress = AspectList.EMPTY;
-        setChanged();
-        syncToClient();
-    }
-
-    private void fill(ServerLevel server, Direction facing) {
-        for (int y = 0; y <= 1; y++) {
-            for (Direction dir : Direction.values()) {
-                if (dir == facing) {
-                    continue;
-                }
-                BlockPos from = getBlockPos().above(y);
-                IEssentiaTransport ic = EssentiaFlowHandler.transport(server, from.relative(dir), dir.getOpposite());
-                if (ic == null) {
-                    continue;
-                }
-                if (ic.getEssentiaAmount(dir.getOpposite()) > 0 && ic.getSuctionAmount(dir.getOpposite()) < getSuctionAmount(dir) && getSuctionAmount(dir) >= ic.getMinimumSuction()) {
-                    int taken = ic.takeEssentia(currentSuction, 1, dir.getOpposite());
-                    if (taken > 0) {
-                        acceptEssentia(currentSuction, taken);
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    private int acceptEssentia(Holder<IAspect> aspect, int amount) {
-        int needed = recipe.amountOf(aspect) - progress.amountOf(aspect);
-        if (needed <= 0) {
-            return 0;
-        }
-        int added = Math.min(needed, amount);
-        progress = progress.add(aspect, added);
-        setChanged();
-        syncToClient();
-        return added;
+        return isVent || super.triggerEvent(id, param);
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (level != null && !level.isClientSide() && !potion.isEmpty()) {
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), potion);
-            potion = ItemStack.EMPTY;
-        }
         super.preRemoveSideEffects(pos, state);
+        if (level == null || level.isClientSide() || potion.isEmpty()) {
+            return;
+        }
+        ItemStack leftover = potion;
+        potion = ItemStack.EMPTY;
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), leftover);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         if (!potion.isEmpty()) {
-            output.store("Potion", ItemStack.CODEC, potion);
+            output.store(POTION_KEY, ItemStack.CODEC, potion);
         }
-        output.store("Recipe", AspectList.CODEC, recipe);
-        output.store("Progress", AspectList.CODEC, progress);
-        output.putInt("Charges", charges);
-        output.putInt("Color", color);
+        output.store(RECIPE_KEY, AspectList.CODEC, essentiaNeeded);
+        output.store(PROGRESS_KEY, AspectList.CODEC, essentiaStored);
+        output.putInt(CHARGES_KEY, sprayShots);
+        output.putInt(COLOR_KEY, color);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        potion = input.read("Potion", ItemStack.CODEC).orElse(ItemStack.EMPTY);
-        recipe = input.read("Recipe", AspectList.CODEC).orElse(AspectList.EMPTY);
-        progress = input.read("Progress", AspectList.CODEC).orElse(AspectList.EMPTY);
-        charges = input.getIntOr("Charges", 0);
-        color = input.getIntOr("Color", DEFAULT_COLOR);
+        essentiaNeeded = readAspects(input, RECIPE_KEY);
+        essentiaStored = readAspects(input, PROGRESS_KEY);
+        sprayShots = input.getIntOr(CHARGES_KEY, 0);
+        color = input.getIntOr(COLOR_KEY, DEFAULT_COLOR);
+        potion = input.read(POTION_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        appliedPotion = potion.copy();
     }
 
-    private Direction facing() {
-        return getBlockState().getValue(BlockPotionSprayer.FACING);
+    private static AspectList readAspects(ValueInput input, String key) {
+        return input.read(key, AspectList.CODEC).orElse(AspectList.EMPTY);
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
-        return face != facing();
+    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {
+        requested = aspect;
+    }
+
+    @Override
+    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
+        return requested;
+    }
+
+    @Override
+    public int getSuctionAmount(@Nullable Direction face) {
+        return requested == null ? 0 : SUCTION;
     }
 
     @Override
@@ -283,46 +333,43 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
 
     @Override
     public boolean canOutputTo(Direction face) {
-        return false;
+        return OUTPUT_ALLOWED;
     }
 
     @Override
-    public void setSuction(Holder<IAspect> aspect, int amount) {
-        currentSuction = aspect;
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(Direction face) {
-        return currentSuction;
-    }
-
-    @Override
-    public int getSuctionAmount(Direction face) {
-        return currentSuction != null ? SUCTION_STRENGTH : 0;
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getEssentiaType(Direction face) {
-        return null;
-    }
-
-    @Override
-    public int getEssentiaAmount(Direction face) {
-        return 0;
-    }
-
-    @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        return 0;
+    public boolean isConnectable(Direction face) {
+        return true;
     }
 
     @Override
     public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        return canInputFrom(face) ? acceptEssentia(aspect, amount) : 0;
+        boolean wanted = requested != null && requested.equals(aspect) && face != facing();
+        int room = wanted ? Math.max(0, essentiaNeeded.amountOf(aspect) - essentiaStored.amountOf(aspect)) : NOTHING;
+        int accepted = Math.min(Math.max(amount, 0), room);
+        if (accepted > NOTHING) {
+            essentiaStored = essentiaStored.add(aspect, accepted);
+            setChangedAndSync();
+        }
+        return accepted;
     }
 
     @Override
     public int getMinimumSuction() {
-        return 0;
+        return NOTHING;
+    }
+
+    @Override
+    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+        return NOTHING;
+    }
+
+    @Override
+    public int getEssentiaAmount(@Nullable Direction face) {
+        return NOTHING;
+    }
+
+    @Override
+    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+        return NO_ASPECT;
     }
 }

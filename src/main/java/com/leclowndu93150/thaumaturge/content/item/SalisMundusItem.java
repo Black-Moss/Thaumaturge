@@ -16,10 +16,12 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -34,10 +36,16 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
+import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID)
 public final class SalisMundusItem extends Item {
     private static final int SWAP_DELAY_TICKS = 50;
+    private static final float SOUND_VOLUME = 0.33F;
+    private static final float SOUND_PITCH_BASE = 1.0F;
+    private static final float SOUND_PITCH_DEVIATION = 0.05F;
+    private static final int CONSUMED_COUNT = 1;
+    private static final String NO_RESEARCH_KEY = "message.thaumaturge.salis_mundus.no_research";
 
     public SalisMundusItem(Item.Properties properties) {
         super(properties);
@@ -45,15 +53,16 @@ public final class SalisMundusItem extends Item {
 
     @SubscribeEvent
     public static void allowUseOnCraftingTable(UseItemOnBlockEvent event) {
-        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK)
+        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK) {
             return;
-        if (!event.getItemStack().is(TTItems.SALIS_MUNDUS))
+        }
+        if (!event.getItemStack().is(TTItems.SALIS_MUNDUS)) {
             return;
-        if (event.getPlayer() == null)
-            return;
-        if (!event.getPlayer().isCrouching())
-            return;
-        event.cancelWithResult(InteractionResult.PASS);
+        }
+        Player player = event.getPlayer();
+        if (player != null && player.isCrouching()) {
+            event.cancelWithResult(InteractionResult.PASS);
+        }
     }
 
     @Override
@@ -64,18 +73,28 @@ public final class SalisMundusItem extends Item {
         }
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        ItemStack stack = context.getItemInHand();
-        if (!player.mayUseItemAt(pos, context.getClickedFace(), stack)) {
+        Direction face = context.getClickedFace();
+        ItemStack held = context.getItemInHand();
+        if (!player.mayUseItemAt(pos, face, held)) {
             return InteractionResult.FAIL;
         }
-        player.swing(context.getHand());
-        if (level.isClientSide()) {
+        InteractionHand hand = context.getHand();
+        player.swing(hand);
+        if (!(level instanceof ServerLevel serverLevel) || !(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.SUCCESS;
         }
-        ServerLevel serverLevel = (ServerLevel) level;
+        return applyOnServer(context, serverLevel, serverPlayer, held, pos, face, hand);
+    }
+
+    @Override
+    public boolean doesSneakBypassUse(ItemStack stack, LevelReader level, BlockPos pos, Player player) {
+        return true;
+    }
+
+    private static InteractionResult applyOnServer(UseOnContext context, ServerLevel level, ServerPlayer player, ItemStack held, BlockPos pos, Direction face, InteractionHand hand) {
         BlockState clicked = level.getBlockState(pos);
-        DustTriggerInput input = new DustTriggerInput(stack, level, pos, clicked);
-        Optional<RecipeHolder<DustTrigger>> match = serverLevel.recipeAccess().getRecipeFor(TTRecipeTypes.DUST_TRIGGER.get(), input, level);
+        DustTriggerInput input = new DustTriggerInput(held, level, pos, clicked);
+        Optional<RecipeHolder<DustTrigger>> match = level.recipeAccess().getRecipeFor(TTRecipeTypes.DUST_TRIGGER.get(), input, level);
         if (match.isEmpty()) {
             return InteractionResult.PASS;
         }
@@ -83,16 +102,16 @@ public final class SalisMundusItem extends Item {
         DustTrigger trigger = holder.value();
         if (!trigger.doesPassGate(player)) {
             Thaumaturge.LOGGER.debug("Salis Mundus trigger {} blocked by research gate {}", holder.id(), trigger.researchGate().orElse(null));
-            TTActionBar.sendPurple(player, "message.thaumaturge.salis_mundus.no_research");
+            TTActionBar.sendPurple(player, NO_RESEARCH_KEY);
             return InteractionResult.PASS;
         }
         ItemStack result = trigger.assemble(input);
         if (result.isEmpty()) {
             return InteractionResult.PASS;
         }
-        ItemStack consumed = stack.copyWithCount(1);
-        if (!player.getAbilities().instabuild) {
-            stack.shrink(1);
+        ItemStack consumed = held.copyWithCount(CONSUMED_COUNT);
+        if (!player.hasInfiniteMaterials()) {
+            held.shrink(CONSUMED_COUNT);
         }
         DustTriggerPlacement placement = null;
         if (trigger.isMultiblock()) {
@@ -100,26 +119,33 @@ public final class SalisMundusItem extends Item {
             if (placement == null) {
                 return InteractionResult.PASS;
             }
-            trigger.execute(input, player, placement, context.getClickedFace());
-        } else if (result.getItem() instanceof BlockItem blockItem) {
-            DustTriggerSwapQueue.enqueuePlace(serverLevel, pos, clicked, blockItem.getBlock().defaultBlockState(), SWAP_DELAY_TICKS);
+            trigger.execute(input, player, placement, face);
         } else {
-            DustTriggerSwapQueue.enqueueDrop(serverLevel, pos, clicked, result, SWAP_DELAY_TICKS);
+            queueSwap(level, pos, clicked, result);
         }
-        if (player instanceof ServerPlayer serverPlayer) {
-            Vec3 hitWorld = context.getClickLocation();
-            DustTriggerFx.emitUseBurst(serverLevel, serverPlayer, context.getHand(), pos);
-            DustTriggerFx.emitTriggerSparkles(serverLevel, serverPlayer, pos, trigger, hitWorld, placement);
-            serverPlayer.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
-            ResearchProgressionEvents.recordCrafted(serverPlayer, result);
-            CriteriaTriggers.RECIPE_CRAFTED.trigger(serverPlayer, holder.id(), List.of(consumed));
-        }
-        level.playSound(null, pos, TTSounds.DUST.get(), SoundSource.PLAYERS, 0.33F, 1.0F + (float) level.getRandom().nextGaussian() * 0.05F);
+        emitEffects(level, player, hand, pos, context.getClickLocation(), trigger, placement);
+        recordProgress(player, holder, result, consumed);
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    public boolean doesSneakBypassUse(ItemStack stack, LevelReader level, BlockPos pos, Player player) {
-        return true;
+    private static void queueSwap(ServerLevel level, BlockPos pos, BlockState original, ItemStack result) {
+        if (result.getItem() instanceof BlockItem blockItem) {
+            DustTriggerSwapQueue.enqueuePlace(level, pos, original, blockItem.getBlock().defaultBlockState(), SWAP_DELAY_TICKS);
+        } else {
+            DustTriggerSwapQueue.enqueueDrop(level, pos, original, result, SWAP_DELAY_TICKS);
+        }
+    }
+
+    private static void emitEffects(ServerLevel level, ServerPlayer player, InteractionHand hand, BlockPos pos, Vec3 start, DustTrigger trigger, @Nullable DustTriggerPlacement placement) {
+        DustTriggerFx.emitUseBurst(level, player, hand, pos);
+        DustTriggerFx.emitTriggerSparkles(level, player, pos, trigger, start, placement);
+        float pitch = SOUND_PITCH_BASE + (float) level.getRandom().nextGaussian() * SOUND_PITCH_DEVIATION;
+        level.playSound(null, pos, TTSounds.DUST.get(), SoundSource.PLAYERS, SOUND_VOLUME, pitch);
+    }
+
+    private static void recordProgress(ServerPlayer player, RecipeHolder<DustTrigger> holder, ItemStack result, ItemStack consumed) {
+        player.awardStat(Stats.ITEM_CRAFTED.get(result.getItem()), result.getCount());
+        ResearchProgressionEvents.recordCrafted(player, result);
+        CriteriaTriggers.RECIPE_CRAFTED.trigger(player, holder.id(), List.of(consumed));
     }
 }

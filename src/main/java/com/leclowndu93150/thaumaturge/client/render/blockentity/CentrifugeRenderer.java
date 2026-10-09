@@ -36,10 +36,14 @@ public final class CentrifugeRenderer implements BlockEntityRenderer<BlockEntity
         BlockEntityRenderer.super.extractRenderState(centrifuge, state, partialTicks, cameraPosition, breakProgress);
         state.rotation = centrifuge.rotation + centrifuge.rotationSpeed * partialTicks;
         state.spinnerParts.clear();
-        BlockStateModel spinner = Minecraft.getInstance().getModelManager().getStandaloneModel(SPINNER_MODEL);
-        if (spinner != null && centrifuge.getLevel() instanceof ClientLevel clientLevel) {
-            spinner.collectParts(clientLevel, centrifuge.getBlockPos(), centrifuge.getBlockState(), clientLevel.getRandom(), state.spinnerParts);
+        if (!(centrifuge.getLevel() instanceof ClientLevel clientLevel)) {
+            return;
         }
+        BlockStateModel spinner = Minecraft.getInstance().getModelManager().getStandaloneModel(SPINNER_MODEL);
+        if (spinner == null) {
+            return;
+        }
+        spinner.collectParts(clientLevel, centrifuge.getBlockPos(), centrifuge.getBlockState(), clientLevel.getRandom(), state.spinnerParts);
     }
 
     @Override
@@ -48,10 +52,14 @@ public final class CentrifugeRenderer implements BlockEntityRenderer<BlockEntity
             return;
         }
         poseStack.pushPose();
-        poseStack.translate(BLOCK_CENTER, BLOCK_CENTER, BLOCK_CENTER);
+        pivot(poseStack, BLOCK_CENTER);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.rotation));
-        poseStack.translate(-BLOCK_CENTER, -BLOCK_CENTER, -BLOCK_CENTER);
+        pivot(poseStack, -BLOCK_CENTER);
         collector.submitMultiLayerBlockModel(poseStack, state.spinnerParts, true, NO_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
+    }
+
+    private static void pivot(PoseStack poseStack, float offset) {
+        poseStack.translate(offset, offset, offset);
     }
 }

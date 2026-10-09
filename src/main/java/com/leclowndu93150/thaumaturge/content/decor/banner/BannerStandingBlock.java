@@ -11,12 +11,12 @@ import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.state.properties.RotationSegment;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.block.state.properties.RotationSegment;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -24,7 +24,12 @@ import org.jspecify.annotations.Nullable;
 
 public final class BannerStandingBlock extends AbstractBannerBlock {
     public static final IntegerProperty ROTATION = BlockStateProperties.ROTATION_16;
-    private static final VoxelShape SHAPE = Block.box(5.28, 0.0, 5.28, 10.56, 32.0, 10.56);
+    private static final int ROTATION_STEPS = 16;
+    private static final float HALF_TURN_DEGREES = 180.0F;
+    private static final double POST_MIN = 5.28;
+    private static final double POST_MAX = 10.56;
+    private static final double POST_HEIGHT = 32.0;
+    private static final VoxelShape SHAPE = box(POST_MIN, 0.0, POST_MIN, POST_MAX, POST_HEIGHT, POST_MAX);
 
     public BannerStandingBlock(@Nullable DyeColor dye, Properties properties) {
         super(dye, properties);
@@ -38,17 +43,17 @@ public final class BannerStandingBlock extends AbstractBannerBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(ROTATION, RotationSegment.convertToSegment(context.getRotation() + 180.0F));
+        return defaultBlockState().setValue(ROTATION, RotationSegment.convertToSegment(context.getRotation() + HALF_TURN_DEGREES));
     }
 
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
-        return state.setValue(ROTATION, rotation.rotate(state.getValue(ROTATION), RotationSegment.getMaxSegmentIndex() + 1));
+        return state.setValue(ROTATION, rotation.rotate(state.getValue(ROTATION), ROTATION_STEPS));
     }
 
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
-        return state.setValue(ROTATION, mirror.mirror(state.getValue(ROTATION), RotationSegment.getMaxSegmentIndex() + 1));
+        return state.setValue(ROTATION, mirror.mirror(state.getValue(ROTATION), ROTATION_STEPS));
     }
 
     @Override

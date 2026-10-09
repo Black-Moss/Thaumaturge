@@ -6,129 +6,190 @@ import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaIntake;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaIntakeHost;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.CactusBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.GrassBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.StemBlock;
-import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityLampGrowth extends AbstractSyncedBlockEntity implements EssentiaIntakeHost {
+    private static final int INTAKE_SUCTION = 128;
+    private static final int INTAKE_INTERVAL = 5;
     private static final int MAX_CHARGES = 20;
-    private static final int SCAN_DISTANCE = 6;
-    private static final int SUCTION = 128;
-    private static final int DRAW_INTERVAL = 5;
+    private static final int IDLE_CHARGES = -1;
+    private static final int RADIUS = 6;
+    private static final int COLUMN_SIDE = RADIUS * 2 + 1;
+    private static final int COLUMN_COUNT = COLUMN_SIDE * COLUMN_SIDE;
+    private static final int RANGE_SQR = 36;
+    private static final int NETHER_WART_MATURE_AGE = 3;
+    private static final int FEEDBACK_PARTICLES = 6;
+    private static final double FEEDBACK_SPREAD = 0.3;
+    private static final double BLOCK_CENTER = 0.5;
+    private static final String RESERVE_KEY = "reserve";
+    private static final String CHARGES_KEY = "charges";
 
-    private final EssentiaIntake intake = new EssentiaIntake(this, TTAspects.HERBA, SUCTION, DRAW_INTERVAL);
+    private final EssentiaIntake intake = new EssentiaIntake(this, TTAspects.HERBA, INTAKE_SUCTION, INTAKE_INTERVAL);
+    private final int[] columnOrder = new int[COLUMN_COUNT];
+    private final BlockPos.MutableBlockPos cell = new BlockPos.MutableBlockPos();
+    private int columnsLeft;
+    private int charges = IDLE_CHARGES;
     private boolean reserve;
-    private int charges = -1;
     private BlockPos lastTarget = BlockPos.ZERO;
-    private BlockState lastTargetState = null;
-    private final List<BlockPos> checklist = new ArrayList<>();
+    private @Nullable BlockState lastState;
 
     public BlockEntityLampGrowth(BlockPos pos, BlockState state) {
         super(TTBlockEntities.LAMP_GROWTH.get(), pos, state);
+        for (int index = 0; index < COLUMN_COUNT; index++) {
+            columnOrder[index] = index;
+        }
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityLampGrowth lamp) {
-        boolean powered = level.hasNeighborSignal(pos);
-        if (lamp.charges <= 0) {
-            if (lamp.reserve) {
-                lamp.charges = MAX_CHARGES;
-                lamp.reserve = false;
-                lamp.setChanged();
-            } else if (lamp.intake.pullOne()) {
-                lamp.charges = MAX_CHARGES;
-                lamp.setChanged();
-            }
-        }
-        BlockLamp.showLit(level, pos, state, lamp.charges > 0 && !powered);
-        if (!lamp.reserve && lamp.intake.pullOne()) {
-            lamp.reserve = true;
-            lamp.setChanged();
-        }
-        if (lamp.charges == 0) {
-            lamp.charges = -1;
-        }
-        if (!powered && lamp.charges > 0) {
-            lamp.updatePlant();
-        }
-    }
-
-    private void updatePlant() {
-        if (!(level instanceof ServerLevel server)) {
+        lamp.pullEssentia();
+        lamp.transferReserve();
+        lamp.normalizeIdle();
+        boolean running = !level.hasNeighborSignal(pos) && lamp.charges > 0;
+        BlockLamp.showLit(level, pos, state, running);
+        if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        BlockState current = server.getBlockState(lastTarget);
-        if (lastTargetState != null && current != lastTargetState) {
-            server.sendParticles(ParticleTypes.HAPPY_VILLAGER, lastTarget.getX() + 0.5, lastTarget.getY() + 0.5, lastTarget.getZ() + 0.5, 6, 0.3, 0.3, 0.3, 0.0);
-            lastTargetState = current;
+        if (running) {
+            lamp.growOnce(serverLevel, pos);
         }
-        if (checklist.isEmpty()) {
-            for (int a = -SCAN_DISTANCE; a <= SCAN_DISTANCE; a++) {
-                for (int b = -SCAN_DISTANCE; b <= SCAN_DISTANCE; b++) {
-                    checklist.add(getBlockPos().offset(a, SCAN_DISTANCE, b));
-                }
-            }
-            Collections.shuffle(checklist);
+        lamp.showFeedback(serverLevel);
+    }
+
+    private void pullEssentia() {
+        if (!wantsEssentia() || !intake.pullOne()) {
+            return;
         }
-        BlockPos column = checklist.removeFirst();
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(column.getX(), column.getY(), column.getZ());
-        while (cursor.getY() >= getBlockPos().getY() - SCAN_DISTANCE) {
-            BlockState state = server.getBlockState(cursor);
-            if (!state.isAir() && isPlant(state) && cursor.distToCenterSqr(getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5, getBlockPos().getZ() + 0.5) < SCAN_DISTANCE * SCAN_DISTANCE
-                    && !isGrownCrop(server, cursor, state) && !state.is(TTBlockTags.LAMP_GROWTH_BLACKLIST)) {
-                charges--;
-                BlockPos target = cursor.immutable();
-                lastTarget = target;
-                lastTargetState = state;
-                if (state.isRandomlyTicking()) {
-                    state.randomTick(server, target, server.getRandom());
-                }
-                setChanged();
+        if (charges > 0) {
+            reserve = true;
+        } else {
+            charges = MAX_CHARGES;
+        }
+        setChanged();
+    }
+
+    private void transferReserve() {
+        if (charges > 0 || !reserve) {
+            return;
+        }
+        reserve = false;
+        charges = MAX_CHARGES;
+        setChanged();
+    }
+
+    private void normalizeIdle() {
+        if (charges != 0) {
+            return;
+        }
+        charges = IDLE_CHARGES;
+        setChanged();
+    }
+
+    private void growOnce(ServerLevel level, BlockPos origin) {
+        int column = takeColumn(level.getRandom());
+        int offsetX = column / COLUMN_SIDE - RADIUS;
+        int offsetZ = column % COLUMN_SIDE - RADIUS;
+        if (!level.hasChunkAt(cell.set(origin.getX() + offsetX, origin.getY(), origin.getZ() + offsetZ))) {
+            return;
+        }
+        int reach = verticalReach(offsetX * offsetX + offsetZ * offsetZ);
+        for (int offsetY = reach; offsetY >= -reach; offsetY--) {
+            cell.set(origin.getX() + offsetX, origin.getY() + offsetY, origin.getZ() + offsetZ);
+            BlockState target = level.getBlockState(cell);
+            if (isValidTarget(level, cell, target)) {
+                applyGrowth(level, target);
                 return;
             }
-            cursor.move(0, -1, 0);
         }
     }
 
-    private static boolean isPlant(BlockState state) {
-        Block block = state.getBlock();
-        if (block instanceof GrassBlock) {
+    private static int verticalReach(int horizontalSqr) {
+        int room = RANGE_SQR - horizontalSqr;
+        int reach = -1;
+        while ((reach + 1) * (reach + 1) < room && reach < RADIUS) {
+            reach++;
+        }
+        return reach;
+    }
+
+    private void applyGrowth(ServerLevel level, BlockState target) {
+        charges--;
+        lastTarget = cell.immutable();
+        lastState = target;
+        if (target.isRandomlyTicking()) {
+            target.randomTick(level, lastTarget, level.getRandom());
+        }
+        setChanged();
+    }
+
+    private int takeColumn(RandomSource random) {
+        if (columnsLeft <= 0) {
+            columnsLeft = COLUMN_COUNT;
+        }
+        int lastSlot = columnsLeft - 1;
+        int slot = random.nextInt(columnsLeft);
+        int column = columnOrder[slot];
+        columnOrder[slot] = columnOrder[lastSlot];
+        columnOrder[lastSlot] = column;
+        columnsLeft--;
+        return column;
+    }
+
+    private static boolean isValidTarget(Level level, BlockPos pos, BlockState state) {
+        if (state.isAir() || state.is(TTBlockTags.LAMP_GROWTH_BLACKLIST)) {
             return false;
         }
-        return block instanceof BonemealableBlock || block instanceof CactusBlock || block instanceof SugarCaneBlock || block instanceof NetherWartBlock;
+        return isPlant(state.getBlock()) && !isFullyGrown(level, pos, state);
     }
 
-    private static boolean isGrownCrop(ServerLevel level, BlockPos pos, BlockState state) {
+    private static boolean isPlant(Block block) {
+        if (block == Blocks.CACTUS || block == Blocks.SUGAR_CANE || block == Blocks.NETHER_WART) {
+            return true;
+        }
+        return block instanceof BonemealableBlock && !(block instanceof GrassBlock);
+    }
+
+    private static boolean isFullyGrown(Level level, BlockPos pos, BlockState state) {
         Block block = state.getBlock();
-        if (block instanceof CropBlock crop) {
-            return crop.isMaxAge(state);
-        }
-        if (block instanceof NetherWartBlock) {
-            return state.getValue(NetherWartBlock.AGE) >= 3;
-        }
         if (block instanceof StemBlock) {
             return false;
         }
-        if (block instanceof BonemealableBlock growable) {
-            return !growable.isValidBonemealTarget(level, pos, state);
+        if (block instanceof CropBlock crop) {
+            return crop.isMaxAge(state);
         }
-        return false;
+        if (block == Blocks.NETHER_WART) {
+            return state.getValue(NetherWartBlock.AGE) >= NETHER_WART_MATURE_AGE;
+        }
+        return block instanceof BonemealableBlock bonemealable && !bonemealable.isValidBonemealTarget(level, pos, state);
+    }
+
+    private void showFeedback(ServerLevel level) {
+        if (lastState == null) {
+            return;
+        }
+        BlockState current = level.getBlockState(lastTarget);
+        if (current == lastState) {
+            return;
+        }
+        lastState = current;
+        level.sendParticles(ParticleTypes.HAPPY_VILLAGER, lastTarget.getX() + BLOCK_CENTER, lastTarget.getY() + BLOCK_CENTER, lastTarget.getZ() + BLOCK_CENTER, FEEDBACK_PARTICLES, FEEDBACK_SPREAD,
+                FEEDBACK_SPREAD, FEEDBACK_SPREAD, 0.0);
     }
 
     public EssentiaIntake intake() {
@@ -148,15 +209,14 @@ public final class BlockEntityLampGrowth extends AbstractSyncedBlockEntity imple
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        reserve = input.getBooleanOr("reserve", false);
-        charges = input.getIntOr("charges", -1);
+        reserve = input.getBooleanOr(RESERVE_KEY, false);
+        charges = input.getIntOr(CHARGES_KEY, IDLE_CHARGES);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putBoolean("reserve", reserve);
-        output.putInt("charges", charges);
+        output.putBoolean(RESERVE_KEY, reserve);
+        output.putInt(CHARGES_KEY, charges);
     }
-
 }

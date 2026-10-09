@@ -8,21 +8,21 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public enum CrownRule implements StringRepresentable {
-    OPEN_AIR("open_air", false), REPLACEABLE("replaceable", true);
+    OPEN_AIR("open_air", true, true), REPLACEABLE("replaceable", false, false);
 
     public static final Codec<CrownRule> CODEC = StringRepresentable.fromEnum(CrownRule::values);
 
-    private static final double CROWN_FLOOR = 0.3;
-    private static final float CROWN_FLOOR_SINGLE = 0.3F;
-    private static final double CENTER = 0.5;
-    private static final float CENTER_SINGLE = 0.5F;
+    private static final double HALF = 0.5;
+    private static final float HALF_SINGLE = 0.5F;
 
-    private final String name;
-    private final boolean singlePrecision;
+    private final String serializedName;
+    private final boolean ownLeavesOnly;
+    private final boolean doublePrecision;
 
-    CrownRule(String name, boolean singlePrecision) {
-        this.name = name;
-        this.singlePrecision = singlePrecision;
+    CrownRule(String serializedName, boolean ownLeavesOnly, boolean doublePrecision) {
+        this.serializedName = serializedName;
+        this.ownLeavesOnly = ownLeavesOnly;
+        this.doublePrecision = doublePrecision;
     }
 
     public static boolean canHostLog(BlockState state) {
@@ -30,26 +30,36 @@ public enum CrownRule implements StringRepresentable {
     }
 
     public boolean isOpen(BlockState state, Block ownLeaves) {
-        return singlePrecision ? canHostLog(state) : state.isAir() || state.is(ownLeaves);
-    }
-
-    public boolean belowCrown(int layer, int heightLimit) {
-        return singlePrecision ? layer < heightLimit * CROWN_FLOOR_SINGLE : layer < heightLimit * CROWN_FLOOR;
-    }
-
-    public int clusterCoordinate(int trunk, double offset) {
-        return singlePrecision ? trunk + Mth.floor(offset + CENTER) : Mth.floor(offset + trunk + CENTER);
-    }
-
-    public int lineCoordinate(int start, int delta, int steps, int index, boolean probing) {
-        if (singlePrecision) {
-            return start + Mth.floor(CENTER_SINGLE + index * ((float) delta / steps));
+        if (ownLeavesOnly) {
+            return state.isAir() || state.is(ownLeaves);
         }
-        return Mth.floor(start + index * ((double) delta / steps) + (probing ? 0.0 : CENTER));
+        return canHostLog(state);
+    }
+
+    public boolean belowCrown(int layer, int crownFloor) {
+        return layer < crownFloor;
+    }
+
+    public int clusterCoordinate(int base, double offset) {
+        return round(base + offset);
+    }
+
+    public int lineCoordinate(int start, int delta, int step, int span, boolean exact) {
+        if (exact) {
+            return start + Integer.signum(delta) * step;
+        }
+        return start + round((double) delta * step / span);
+    }
+
+    private int round(double value) {
+        if (doublePrecision) {
+            return Mth.floor(value + HALF);
+        }
+        return Mth.floor((float) value + HALF_SINGLE);
     }
 
     @Override
     public String getSerializedName() {
-        return name;
+        return serializedName;
     }
 }

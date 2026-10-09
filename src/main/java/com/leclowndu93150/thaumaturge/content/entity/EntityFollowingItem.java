@@ -3,8 +3,6 @@ package com.leclowndu93150.thaumaturge.content.entity;
 import com.leclowndu93150.thaumaturge.content.particle.BubbleParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -17,19 +15,24 @@ import org.jspecify.annotations.Nullable;
 
 public final class EntityFollowingItem extends ItemEntity implements IEntityWithComplexSpawn {
     private static final int NO_COLLECTOR = -1;
-    private static final int ACCELERATION_TICKS = 20;
-    private static final double ARRIVAL_RADIUS = 0.5;
-    private static final double ARRIVAL_BRAKE = 0.1;
-    private static final int BUBBLE_COLOR = 0xFF6F86FF;
-    private static final float BUBBLE_SCALE = 0.35F;
-    private static final float BUBBLE_SCALE_SPREAD = 0.25F;
-    private static final int BUBBLE_AGE = 14;
-    private static final int BUBBLE_AGE_SPREAD = 8;
-    private static final float BUBBLE_RISE = -0.002F;
-    private static final double BUBBLE_SCATTER = 0.12;
+    private static final int IDLE = -1;
+    private static final float FULL_TURN_DEGREES = 360.0F;
+    private static final double ARRIVAL_DISTANCE = 0.5;
+    private static final double ARRIVAL_DAMPING = 0.1;
+    private static final int MAX_PURSUIT = 19;
+    private static final int PURSUIT_DIVISOR_BASE = 20;
+    private static final double HALF = 0.5;
+    private static final int TRAIL_COLOR = 0xFF6F86FF;
+    private static final float TRAIL_ALPHA = 1.0F;
+    private static final float TRAIL_SCALE_BASE = 0.35F;
+    private static final float TRAIL_SCALE_SPREAD = 0.25F;
+    private static final int TRAIL_AGE_BASE = 14;
+    private static final int TRAIL_AGE_SPREAD = 8;
+    private static final float TRAIL_BUOYANCY = -0.002F;
+    private static final double TRAIL_JITTER = 0.12;
 
     private @Nullable Entity collector;
-    private int pursuitTicks;
+    private int pursuit = IDLE;
 
     public EntityFollowingItem(EntityType<? extends EntityFollowingItem> type, Level level) {
         super(type, level);
@@ -37,51 +40,65 @@ public final class EntityFollowingItem extends ItemEntity implements IEntityWith
 
     public EntityFollowingItem(Level level, double x, double y, double z, ItemStack stack, Entity collector) {
         this(TTEntities.FOLLOWING_ITEM.get(), level);
-        setPos(x, y, z);
-        setItem(stack);
-        setYRot(random.nextFloat() * 360.0F);
-        lifespan = stack.getEntityLifespan(level);
-        follow(collector);
+        this.setPos(x, y, z);
+        this.setItem(stack);
+        this.setYRot(this.random.nextFloat() * FULL_TURN_DEGREES);
+        engage(collector);
+    }
+
+    private boolean isPursuing() {
+        return this.pursuit != IDLE;
+    }
+
+    private void engage(Entity target) {
+        this.collector = target;
+        this.pursuit = 0;
+        this.setNoGravity(true);
+    }
+
+    private void disengage() {
+        this.pursuit = IDLE;
+        this.setNoGravity(false);
     }
 
     @Override
     public void tick() {
-        if (collector != null) {
-            pursue(collector);
+        if (isPursuing()) {
+            stepTowardCollector();
         }
         super.tick();
     }
 
-    private void follow(@Nullable Entity entity) {
-        collector = entity;
-        setNoGravity(entity != null);
-    }
-
-    private void pursue(Entity target) {
-        if (target.isRemoved()) {
-            follow(null);
+    private void stepTowardCollector() {
+        Entity target = this.collector;
+        if (target == null || target.isRemoved()) {
+            disengage();
             return;
         }
-        Vec3 toTarget = target.position().add(0.0, target.getBbHeight() * 0.5, 0.0).subtract(position());
-        double distance = toTarget.length();
-        if (distance <= ARRIVAL_RADIUS) {
-            setDeltaMovement(getDeltaMovement().scale(ARRIVAL_BRAKE));
-            follow(null);
+        Vec3 gap = target.position().add(0.0, target.getBbHeight() * HALF, 0.0).subtract(this.position());
+        if (gap.length() <= ARRIVAL_DISTANCE) {
+            this.setDeltaMovement(this.getDeltaMovement().scale(ARRIVAL_DAMPING));
+            disengage();
             return;
         }
-        pursuitTicks = Math.min(pursuitTicks + 1, ACCELERATION_TICKS - 1);
-        setDeltaMovement(toTarget.scale(1.0 / (distance * (ACCELERATION_TICKS - pursuitTicks))));
-        if (level().isClientSide()) {
-            trailBubble();
+        this.pursuit = Math.min(MAX_PURSUIT, this.pursuit + 1);
+        this.setDeltaMovement(gap.normalize().scale(1.0 / (PURSUIT_DIVISOR_BASE - this.pursuit)));
+        if (this.level().isClientSide()) {
+            emitTrailBubble();
         }
     }
 
-    private void trailBubble() {
-        RandomSource random = getRandom();
-        BubbleParticleOptions bubble = new BubbleParticleOptions(BUBBLE_COLOR, 1.0F, BUBBLE_SCALE + random.nextFloat() * BUBBLE_SCALE_SPREAD, BUBBLE_AGE + random.nextInt(BUBBLE_AGE_SPREAD),
-                BUBBLE_RISE, false);
-        level().addParticle(bubble, xo + random.triangle(0.0, BUBBLE_SCATTER), yo + getBbHeight() * 0.5 + random.triangle(0.0, BUBBLE_SCATTER), zo + random.triangle(0.0, BUBBLE_SCATTER), 0.0, 0.0,
-                0.0);
+    private double jitter() {
+        return this.random.triangle(0.0, TRAIL_JITTER);
+    }
+
+    private void emitTrailBubble() {
+        float scale = TRAIL_SCALE_BASE + this.random.nextFloat() * TRAIL_SCALE_SPREAD;
+        int age = TRAIL_AGE_BASE + this.random.nextInt(TRAIL_AGE_SPREAD);
+        double px = this.xo + jitter();
+        double py = this.yo + this.getBbHeight() * HALF + jitter();
+        double pz = this.zo + jitter();
+        this.level().addParticle(new BubbleParticleOptions(TRAIL_COLOR, TRAIL_ALPHA, scale, age, TRAIL_BUOYANCY, false), px, py, pz, 0.0, 0.0, 0.0);
     }
 
     @Override
@@ -91,12 +108,19 @@ public final class EntityFollowingItem extends ItemEntity implements IEntityWith
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
-        ByteBufCodecs.VAR_INT.encode(buffer, collector == null ? NO_COLLECTOR : collector.getId());
+        Entity target = isPursuing() ? this.collector : null;
+        buffer.writeVarInt(target == null ? NO_COLLECTOR : target.getId());
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buffer) {
-        int collectorId = ByteBufCodecs.VAR_INT.decode(buffer);
-        follow(collectorId == NO_COLLECTOR ? null : level().getEntity(collectorId));
+        int id = buffer.readVarInt();
+        if (id == NO_COLLECTOR) {
+            return;
+        }
+        Entity found = this.level().getEntity(id);
+        if (found != null) {
+            engage(found);
+        }
     }
 }

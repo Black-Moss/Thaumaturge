@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.device.mirror;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponentGetter;
@@ -11,6 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,16 +21,21 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 public abstract class BlockEntityMirrorBase extends AbstractSyncedBlockEntity {
-    private static final int RETRY_BASE_INTERVAL = 40;
-    private static final int RETRY_MAX_INTERVAL = 600;
-    private static final int RETRY_BACKOFF = 20;
-    private static final int INSTABILITY_DECAY_INTERVAL = 100;
+    private static final String LINKED_KEY = "linked";
+    private static final String INSTABILITY_KEY = "instability";
+    private static final String LINK_POS_KEY = "linkPos";
+    private static final String LINK_DIM_KEY = "linkDim";
+    private static final int BASE_INTERVAL = 40;
+    private static final int INTERVAL_STEP = 20;
+    private static final int MAX_INTERVAL = 600;
+    private static final int DECAY_INTERVAL = 100;
+    private static final float FLUX_PER_OVERFLOW = 1.0F;
 
-    public boolean linked;
+    public boolean paired;
     public @Nullable GlobalPos link;
-    public int instability;
+    public int stress;
     protected int count;
-    protected int inc = RETRY_BASE_INTERVAL;
+    protected int inc = BASE_INTERVAL;
 
     protected BlockEntityMirrorBase(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -36,196 +43,215 @@ public abstract class BlockEntityMirrorBase extends AbstractSyncedBlockEntity {
 
     protected abstract int instabilityThreshold();
 
-    protected abstract boolean isSameKind(BlockEntity target);
+    protected abstract boolean isSameKind(BlockEntity other);
 
-    protected @Nullable BlockEntityMirrorBase target() {
-        ServerLevel targetLevel = targetLevel();
-        if (targetLevel == null || link == null) {
+    protected @Nullable BlockEntityMirrorBase partner() {
+        GlobalPos destination = link;
+        ServerLevel destinationLevel = targetLevel();
+        if (destination == null || destinationLevel == null) {
             return null;
         }
-        BlockEntity be = targetLevel.getBlockEntity(link.pos());
-        return be instanceof BlockEntityMirrorBase mirror && isSameKind(mirror) ? mirror : null;
-    }
-
-    private boolean isTargetLoaded() {
-        ServerLevel targetLevel = targetLevel();
-        return targetLevel != null && link != null && targetLevel.isLoaded(link.pos());
+        BlockEntity found = destinationLevel.getBlockEntity(destination.pos());
+        if (found == null || !isSameKind(found)) {
+            return null;
+        }
+        return (BlockEntityMirrorBase) found;
     }
 
     protected @Nullable ServerLevel targetLevel() {
-        if (level == null || level.isClientSide() || link == null || level.getServer() == null) {
+        if (link == null || !(level instanceof ServerLevel serverLevel)) {
             return null;
         }
-        return level.getServer().getLevel(link.dimension());
+        return serverLevel.getServer().getLevel(link.dimension());
     }
 
-    public void restoreLink() {
-        if (!isDestinationValid()) {
+    public void reconnect() {
+        if (level == null || !acceptsPartner()) {
             return;
         }
-        BlockEntityMirrorBase target = target();
-        if (target == null || level == null) {
+        BlockEntityMirrorBase other = partner();
+        GlobalPos here = globalPosition();
+        if (other == null || here == null) {
             return;
         }
-        target.linked = true;
-        target.link = GlobalPos.of(level.dimension(), worldPosition);
-        target.onLinkRestored(this);
-        target.syncToClient();
-        this.linked = true;
-        onLinkRestored(target);
-        setChanged();
-        target.setChanged();
-        syncToClient();
+        paired = true;
+        other.paired = true;
+        other.link = here;
+        onLinkRestored(other);
+        other.onLinkRestored(this);
+        setChangedAndSync();
+        other.setChangedAndSync();
     }
 
     protected void onLinkRestored(BlockEntityMirrorBase other) {}
 
-    public void invalidateLink() {
-        ServerLevel targetLevel = targetLevel();
-        if (targetLevel == null || link == null || !targetLevel.hasChunkAt(link.pos())) {
+    public void severPartner() {
+        if (!partnerAvailable()) {
             return;
         }
-        BlockEntityMirrorBase target = target();
-        if (target != null) {
-            target.linked = false;
-            setChanged();
-            target.setChanged();
-            target.syncToClient();
+        BlockEntityMirrorBase other = partner();
+        if (other == null || !other.pointsAt(this)) {
+            return;
         }
+        other.paired = false;
+        other.setChangedAndSync();
     }
 
-    public boolean isLinkValid() {
-        if (!linked) {
-            return false;
-        }
-        BlockEntityMirrorBase target = target();
-        if (target == null) {
-            breakLink();
-            return false;
-        }
-        if (!target.linked) {
-            breakLink();
-            return false;
-        }
-        if (linksBackToSelf(target)) {
+    public boolean verifyPairing() {
+        if (pairingIntact()) {
             return true;
         }
-        breakLink();
+        if (paired && (link == null || partnerAvailable())) {
+            paired = false;
+            setChangedAndSync();
+        }
         return false;
     }
 
-    public boolean isLinkValidSimple() {
-        if (!linked) {
+    public boolean pairingIntact() {
+        if (!paired || link == null) {
             return false;
         }
-        BlockEntityMirrorBase target = target();
-        return target != null && target.linked && linksBackToSelf(target);
+        BlockEntityMirrorBase partner = partner();
+        return partner != null && partner.paired && partner.pointsAt(this);
     }
 
-    private boolean linksBackToSelf(BlockEntityMirrorBase target) {
-        return level != null && target.link != null && target.link.pos().equals(worldPosition) && target.link.dimension() == level.dimension();
-    }
-
-    public boolean isDestinationValid() {
-        BlockEntityMirrorBase target = target();
-        if (target == null) {
-            linked = false;
-            setChanged();
-            syncToClient();
-            return false;
+    public boolean acceptsPartner() {
+        BlockEntityMirrorBase partner = partner();
+        boolean valid = partner != null && !(partner.pairingIntact() && !partner.pointsAt(this));
+        if (!valid && paired) {
+            paired = false;
+            setChangedAndSync();
         }
-        return !target.isLinkValid();
+        return valid;
     }
 
-    private void breakLink() {
-        linked = false;
+    protected void pileOn(int amount) {
+        stress += amount;
         setChanged();
-        syncToClient();
-    }
-
-    protected void addInstability(int amount) {
-        instability += amount;
-        setChanged();
+        shedExcess();
     }
 
     protected void tickLink() {
-        checkInstability();
-        if (count++ % inc == 0 && isTargetLoaded()) {
-            if (!isLinkValidSimple()) {
-                if (inc < RETRY_MAX_INTERVAL) {
-                    inc += RETRY_BACKOFF;
-                }
-                restoreLink();
-            } else {
-                inc = RETRY_BASE_INTERVAL;
-            }
-        }
-    }
-
-    protected void checkInstability() {
         if (level == null) {
             return;
         }
-        if (instability > instabilityThreshold()) {
-            AuraHelper.polluteAura(level, worldPosition, 1.0F, true);
-            instability -= instabilityThreshold();
+        decayStress(level.getGameTime());
+        if (link != null) {
+            pollPartner();
+        }
+    }
+
+    private void decayStress(long gameTime) {
+        if (stress > 0 && gameTime % DECAY_INTERVAL == 0) {
+            stress--;
             setChanged();
         }
-        if (instability > 0 && count % INSTABILITY_DECAY_INTERVAL == 0) {
-            instability--;
+    }
+
+    private void pollPartner() {
+        count++;
+        if (count < inc || !partnerAvailable()) {
+            return;
         }
+        count = 0;
+        if (verifyPairing()) {
+            inc = BASE_INTERVAL;
+            return;
+        }
+        reconnect();
+        inc = Math.min(MAX_INTERVAL, inc + INTERVAL_STEP);
+    }
+
+    protected void shedExcess() {
+        int limit = instabilityThreshold();
+        if (level == null || level.isClientSide() || stress <= limit) {
+            return;
+        }
+        AuraHelper.polluteAura(level, worldPosition, FLUX_PER_OVERFLOW, true);
+        stress -= limit;
+        setChanged();
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        linked = input.getBooleanOr("linked", false);
-        instability = input.getIntOr("instability", 0);
-        long pos = input.getLongOr("linkPos", 0L);
-        String dim = input.getStringOr("linkDim", "");
-        if (!dim.isEmpty()) {
-            Identifier dimId = Identifier.tryParse(dim);
-            if (dimId != null) {
-                link = GlobalPos.of(ResourceKey.create(Registries.DIMENSION, dimId), BlockPos.of(pos));
-            }
+        stress = input.getIntOr(INSTABILITY_KEY, 0);
+        paired = input.getBooleanOr(LINKED_KEY, false);
+        GlobalPos restored = readLink(input);
+        if (restored != null) {
+            link = restored;
         }
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putBoolean("linked", linked);
-        output.putInt("instability", instability);
+        output.putInt(INSTABILITY_KEY, stress);
+        output.putBoolean(LINKED_KEY, paired);
         if (link != null) {
-            output.putLong("linkPos", link.pos().asLong());
-            output.putString("linkDim", link.dimension().identifier().toString());
+            writeLink(output, link);
         }
     }
 
-    @Override
-    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
-        super.collectImplicitComponents(builder);
-        if (linked && link != null) {
-            builder.set(TTDataComponents.MIRROR_LINK.get(), link);
+    private static @Nullable GlobalPos readLink(ValueInput input) {
+        Identifier dimensionId = parseDimension(input.getStringOr(LINK_DIM_KEY, ""));
+        if (dimensionId == null) {
+            return null;
         }
+        ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, dimensionId);
+        return GlobalPos.of(dimensionKey, BlockPos.of(input.getLongOr(LINK_POS_KEY, 0L)));
+    }
+
+    private static void writeLink(ValueOutput output, GlobalPos target) {
+        output.putLong(LINK_POS_KEY, target.pos().asLong());
+        output.putString(LINK_DIM_KEY, target.dimension().identifier().toString());
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        if (!paired || link == null) {
+            return;
+        }
+        components.set(TTDataComponents.MIRROR_LINK.get(), link);
     }
 
     @Override
     protected void applyImplicitComponents(DataComponentGetter components) {
         super.applyImplicitComponents(components);
-        GlobalPos stored = components.get(TTDataComponents.MIRROR_LINK.get());
-        if (stored != null) {
-            link = stored;
-            linked = false;
-        }
+        Optional.ofNullable(components.get(TTDataComponents.MIRROR_LINK.get())).ifPresent(this::adoptStoredLink);
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        super.preRemoveSideEffects(pos, state);
-        if (linked) {
-            invalidateLink();
+        if (paired && link != null) {
+            severPartner();
         }
+        super.preRemoveSideEffects(pos, state);
     }
 
+    private void adoptStoredLink(GlobalPos stored) {
+        paired = false;
+        link = stored;
+    }
+
+    private boolean partnerAvailable() {
+        GlobalPos destination = link;
+        ServerLevel destinationLevel = targetLevel();
+        return destination != null && destinationLevel != null && destinationLevel.hasChunkAt(destination.pos());
+    }
+
+    private boolean pointsAt(BlockEntityMirrorBase other) {
+        GlobalPos otherPosition = other.globalPosition();
+        return otherPosition != null && otherPosition.equals(link);
+    }
+
+    private @Nullable GlobalPos globalPosition() {
+        return level == null ? null : GlobalPos.of(level.dimension(), worldPosition);
+    }
+
+    private static @Nullable Identifier parseDimension(String name) {
+        return name.isEmpty() ? null : Identifier.tryParse(name);
+    }
 }

@@ -4,11 +4,14 @@ import com.leclowndu93150.thaumaturge.content.recipe.SalisMundusRecipe;
 import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -23,39 +26,32 @@ public final class SalisMundusCraftingExtension implements ICraftingCategoryExte
 
     @Override
     public List<SlotDisplay> getIngredients(RecipeHolder<SalisMundusRecipe> recipeHolder) {
+        List<SlotDisplay> slots = Stream.of(Items.FLINT, Items.BOWL, Items.REDSTONE).<SlotDisplay>map(item -> new SlotDisplay.ItemSlotDisplay(item)).collect(Collectors.toCollection(ArrayList::new));
         List<SlotDisplay> crystals = crystalDisplays();
-        List<SlotDisplay> slots = new ArrayList<>();
-        slots.add(new SlotDisplay.ItemSlotDisplay(Items.FLINT));
-        slots.add(new SlotDisplay.ItemSlotDisplay(Items.BOWL));
-        slots.add(new SlotDisplay.ItemSlotDisplay(Items.REDSTONE));
-        for (int slot = 0; slot < CRYSTAL_SLOTS; slot++) {
-            slots.add(rotated(crystals, slot));
-        }
+        IntStream.range(0, CRYSTAL_SLOTS).mapToObj(offset -> rotated(crystals, offset)).forEach(slots::add);
         return slots;
     }
 
     private static SlotDisplay rotated(List<SlotDisplay> displays, int offset) {
-        if (displays.size() <= 1) {
-            return displays.isEmpty() ? SlotDisplay.Empty.INSTANCE : displays.get(0);
+        if (displays.isEmpty()) {
+            return SlotDisplay.Empty.INSTANCE;
         }
-        List<SlotDisplay> shifted = new ArrayList<>(displays.size());
-        for (int i = 0; i < displays.size(); i++) {
-            shifted.add(displays.get((i + offset) % displays.size()));
+        if (displays.size() == 1) {
+            return displays.get(0);
         }
+        List<SlotDisplay> shifted = new ArrayList<>(displays);
+        Collections.rotate(shifted, -offset);
         return new SlotDisplay.Composite(shifted);
     }
 
     private static List<SlotDisplay> crystalDisplays() {
         Player player = Minecraft.getInstance().player;
-        if (player != null) {
-            List<SlotDisplay> variants = new ArrayList<>();
-            for (ItemStack crystal : EssentiaCrystalFactory.discoveredCrystals(player)) {
-                variants.add(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(crystal)));
-            }
-            if (!variants.isEmpty()) {
-                return variants;
-            }
+        List<SlotDisplay> variants = player == null
+                ? List.of()
+                : EssentiaCrystalFactory.discoveredCrystals(player).stream().<SlotDisplay>map(crystal -> new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(crystal))).toList();
+        if (variants.isEmpty()) {
+            return List.of(new SlotDisplay.ItemSlotDisplay(TTItems.ESSENTIA_CRYSTAL.get()));
         }
-        return List.of(new SlotDisplay.ItemSlotDisplay(TTItems.ESSENTIA_CRYSTAL.get()));
+        return variants;
     }
 }

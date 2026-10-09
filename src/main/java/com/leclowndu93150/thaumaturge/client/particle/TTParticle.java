@@ -10,16 +10,21 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public abstract class TTParticle extends SingleQuadParticle {
-    private static final float SPIN_UNIT = (float) (2.0 * Math.PI * Math.PI / 180.0);
+    private static final double FULL_TURN_RADIANS = Math.PI * 2.0;
+    private static final double SPIN_UNIT_DEGREES_PER_TICK = 360.0 * Math.PI / 180.0;
+    private static final float SPIN_UNIT_RADIANS_PER_TICK = (float) Math.toRadians(SPIN_UNIT_DEGREES_PER_TICK);
+    private static final int MOON_PHASE_COUNT = 8;
+    private static final double MOON_PHASE_STEP_RADIANS = Math.PI / 4.0;
+    private static final float[] MOON_PHASE_HEADINGS = buildMoonPhaseHeadings();
     private static final float WIND_STRENGTH = 0.1F;
-    private static final float WIND_ANGLE_JITTER = 0.17F;
+    private static final float HEADING_JITTER_RADIANS = 0.17F;
 
     protected final @Nullable ParticleSheet sheet;
     protected int frame;
     private int delay;
-    private float spinPerTick;
-    private double windX;
-    private double windZ;
+    private float rollStepRadians;
+    private double moonPushX;
+    private double moonPushZ;
 
     protected TTParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ParticleSheet sheet) {
         this(level, x, y, z, vx, vy, vz, sheet, null);
@@ -44,17 +49,12 @@ public abstract class TTParticle extends SingleQuadParticle {
 
     @Override
     public void tick() {
-        this.xo = this.x;
-        this.yo = this.y;
-        this.zo = this.z;
-        if (this.delay > 0) {
-            this.delay--;
+        recordPreviousPosition();
+        if (consumeDelayTick()) {
             return;
         }
-        this.oRoll = this.roll;
-        this.roll += this.spinPerTick;
-        this.xd += this.windX;
-        this.zd += this.windZ;
+        advanceRoll();
+        applyMoonPush();
         super.tick();
         if (!this.removed) {
             update();
@@ -62,6 +62,38 @@ public abstract class TTParticle extends SingleQuadParticle {
     }
 
     protected abstract void update();
+
+    private static float[] buildMoonPhaseHeadings() {
+        float[] headings = new float[MOON_PHASE_COUNT];
+        for (int phase = 0; phase < MOON_PHASE_COUNT; phase++) {
+            headings[phase] = (float) (phase * MOON_PHASE_STEP_RADIANS);
+        }
+        return headings;
+    }
+
+    private void recordPreviousPosition() {
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+    }
+
+    private boolean consumeDelayTick() {
+        if (this.delay <= 0) {
+            return false;
+        }
+        this.delay--;
+        return true;
+    }
+
+    private void advanceRoll() {
+        this.oRoll = this.roll;
+        this.roll += this.rollStepRadians;
+    }
+
+    private void applyMoonPush() {
+        this.xd += this.moonPushX;
+        this.zd += this.moonPushZ;
+    }
 
     protected float progress() {
         return Mth.clamp((float) this.age / this.lifetime, 0.0F, 1.0F);
@@ -79,16 +111,16 @@ public abstract class TTParticle extends SingleQuadParticle {
     }
 
     protected void setSpin(float startTurns, float speed) {
-        this.roll = (float) (startTurns * Math.PI * 2.0);
+        this.roll = (float) (startTurns * FULL_TURN_RADIANS);
         this.oRoll = this.roll;
-        this.spinPerTick = speed * SPIN_UNIT;
+        this.rollStepRadians = speed * SPIN_UNIT_RADIANS_PER_TICK;
     }
 
     protected void setMoonWind(double scale) {
         int phase = this.level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(this.x, this.y, this.z)).index();
-        double angle = phase * (Math.PI / 4.0) + this.random.nextFloat() * WIND_ANGLE_JITTER;
-        this.windX = Math.cos(angle) * WIND_STRENGTH * scale;
-        this.windZ = Math.sin(angle) * WIND_STRENGTH * scale;
+        float heading = MOON_PHASE_HEADINGS[Math.floorMod(phase, MOON_PHASE_COUNT)] + this.random.nextFloat() * HEADING_JITTER_RADIANS;
+        this.moonPushX = Mth.cos(heading) * WIND_STRENGTH * scale;
+        this.moonPushZ = Mth.sin(heading) * WIND_STRENGTH * scale;
     }
 
     protected void drift(float strengthX, float strengthY, float strengthZ) {
@@ -98,6 +130,12 @@ public abstract class TTParticle extends SingleQuadParticle {
             this.yd += this.random.nextGaussian() * strengthY;
         if (strengthZ != 0.0F)
             this.zd += this.random.nextGaussian() * strengthZ;
+    }
+
+    protected void jitterVelocity(double deviation) {
+        this.xd += this.random.nextGaussian() * deviation;
+        this.yd += this.random.nextGaussian() * deviation;
+        this.zd += this.random.nextGaussian() * deviation;
     }
 
     protected void frame(int index) {

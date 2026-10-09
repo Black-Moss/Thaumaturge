@@ -14,7 +14,7 @@ public final class WandIsStaffProperty implements ConditionalItemModelProperty {
 
     @Override
     public boolean get(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity owner, int seed, ItemDisplayContext displayContext) {
-        return WandVisHelper.getParts(stack).rod().staff();
+        return WandVisHelper.partsOf(stack).rod().staff();
     }
 
     @Override

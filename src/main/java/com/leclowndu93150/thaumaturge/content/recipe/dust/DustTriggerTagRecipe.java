@@ -42,10 +42,10 @@ public final class DustTriggerTagRecipe implements DustTrigger {
     private final ItemStackTemplate result;
     private final Optional<ResearchGate> research;
 
-    public DustTriggerTagRecipe(TagKey<Block> targetTag, ItemStackTemplate result, Optional<ResearchGate> research) {
-        this.targetTag = targetTag;
-        this.result = result;
-        this.research = research;
+    public DustTriggerTagRecipe(TagKey<Block> tag, ItemStackTemplate output, Optional<ResearchGate> gate) {
+        this.research = gate;
+        this.result = output;
+        this.targetTag = tag;
     }
 
     public TagKey<Block> targetTag() {

@@ -9,11 +9,20 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 public final class VoidRobeArmorItem extends Item implements IVisDiscountGear {
-    private static final int VIS_DISCOUNT = 5;
-    private static final int WARP = 3;
+    private static final int ROBE_VIS_DISCOUNT = 5;
+    private static final int ROBE_STACK_WARP = 3;
 
     public VoidRobeArmorItem(Properties properties) {
-        super(GearWarp.with(properties, WARP));
+        super(warded(properties));
+    }
+
+    private static Properties warded(Properties properties) {
+        return GearWarp.with(properties, ROBE_STACK_WARP);
+    }
+
+    @Override
+    public int getVisDiscount(ItemStack stack) {
+        return ROBE_VIS_DISCOUNT;
     }
 
     @Override
@@ -21,10 +30,4 @@ public final class VoidRobeArmorItem extends Item implements IVisDiscountGear {
         super.inventoryTick(stack, level, entity, slot);
         VoidGearItem.selfRepairTick(stack, entity);
     }
-
-    @Override
-    public int getVisDiscount(ItemStack stack) {
-        return VIS_DISCOUNT;
-    }
-
 }

@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
@@ -26,8 +25,10 @@ import org.jspecify.annotations.Nullable;
 public final class BlockJarBrain extends BaseEntityBlock {
     public static final MapCodec<BlockJarBrain> CODEC = simpleCodec(BlockJarBrain::new);
 
-    private static final int RELEASE_EAT_DELAY = 40;
-    private static final int MAX_RELEASE = 64;
+    private static final int EAT_DELAY_TICKS = 40;
+    private static final int MAX_RELEASE = 63;
+    private static final float CLICK_VOLUME = 0.2F;
+    private static final float CLICK_PITCH = 1.0F;
 
     public BlockJarBrain(BlockBehaviour.Properties properties) {
         super(properties);
@@ -49,32 +50,33 @@ public final class BlockJarBrain extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new BlockEntityJarBrain(pos, state);
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJarBrain jar)) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityJarBrain brain)) {
             return InteractionResult.PASS;
         }
-        jar.setEatDelay(RELEASE_EAT_DELAY);
+        brain.setEatDelay(EAT_DELAY_TICKS);
         if (level instanceof ServerLevel server) {
-            int release = server.getRandom().nextInt(Math.min(jar.xp() + 1, MAX_RELEASE));
+            int release = server.getRandom().nextInt(Math.min(brain.xp(), MAX_RELEASE) + 1);
             if (release > 0) {
-                jar.setXp(jar.xp() - release);
-                ExperienceOrb.award(server, new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), release);
-                jar.setChanged();
-                jar.syncToClient();
+                brain.setXp(brain.xp() - release);
+                ExperienceOrb.award(server, pos.getCenter(), release);
+                brain.setChangedAndSync();
             }
-        } else {
-            level.playSound(player, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.JAR.get(), SoundSource.BLOCKS, 0.2F, 1.0F);
+            return InteractionResult.SUCCESS_SERVER;
         }
+        level.playSound(player, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, CLICK_VOLUME, CLICK_PITCH);
         return InteractionResult.SUCCESS;
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return createTickerHelper(type, TTBlockEntities.JAR_BRAIN.get(), level.isClientSide() ? BlockEntityJarBrain::clientTick : BlockEntityJarBrain::serverTick);
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide()
+                ? createTickerHelper(type, TTBlockEntities.JAR_BRAIN.get(), BlockEntityJarBrain::clientTick)
+                : createTickerHelper(type, TTBlockEntities.JAR_BRAIN.get(), BlockEntityJarBrain::serverTick);
     }
 }

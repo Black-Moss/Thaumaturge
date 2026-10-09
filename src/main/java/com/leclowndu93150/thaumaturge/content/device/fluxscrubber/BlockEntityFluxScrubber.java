@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.device.fluxscrubber;
 
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
@@ -30,23 +31,33 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityFluxScrubber extends BlockEntity implements IEssentiaTransport {
     public static final int WORK_POWER = 5;
+
+    private static final int NONE = 0;
+
+    private static final String ESSENTIA_KEY = "Essentia";
+    private static final String CHARGES_KEY = "Charges";
+    private static final String POWER_KEY = "Power";
     private static final int POWER_REQUEST = 10;
-    private static final int DRAW_RETRY_TICKS = 20;
-    private static final int RADIUS = 16;
-    private static final int DIAMETER = RADIUS * 2 + 1;
-    private static final int SCAN_VOLUME = DIAMETER * DIAMETER * DIAMETER;
-    private static final int CHECKS_PER_TICK = 16;
+    private static final int RETRY_DELAY = 20;
+    private static final int SCAN_RADIUS = 16;
+    private static final int SCAN_SIDE = 2 * SCAN_RADIUS + 1;
+    private static final int SCAN_CELLS = SCAN_SIDE * SCAN_SIDE * SCAN_SIDE;
+    private static final int SCAN_RADIUS_SQUARED = SCAN_RADIUS * SCAN_RADIUS;
+    private static final int CELL_BUDGET = 16;
+    private static final int REMOVAL_AMOUNT = 1;
     private static final float SPARKLE_RED = 0xDD / 255.0F;
+    private static final float SPARKLE_GREEN = 0.0F;
+    private static final float SPARKLE_BLUE = 1.0F;
     private static final float SPARKLE_SCALE = 0.8F;
 
     private int essentia;
     private int charges;
     private int power;
-    private int drawCooldown;
-    private int scanIndex;
-    private int scanOffset;
-    private int scanStep;
     private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+    private int refillWait;
+    private int scanOffset;
+    private int scanStep = 1;
+    private int scanIndex = SCAN_CELLS;
 
     public BlockEntityFluxScrubber(BlockPos pos, BlockState state) {
         super(TTBlockEntities.FLUX_SCRUBBER.get(), pos, state);
@@ -69,183 +80,91 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityFluxScrubber scrubber) {
-        if (level instanceof ServerLevel server) {
-            scrubber.tickServer(server, pos);
+        if (level instanceof ServerLevel serverLevel) {
+            scrubber.work(serverLevel, pos);
         }
-    }
-
-    private void tickServer(ServerLevel level, BlockPos pos) {
-        int chargesPerRoll = ThaumaturgeCommonConfig.FLUX_SCRUBBER_CHARGES_PER_ROLL.get();
-        if (charges >= chargesPerRoll) {
-            charges -= chargesPerRoll;
-            if (level.getRandom().nextDouble() < ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_CHANCE.get() && essentia < essentiaCapacity()) {
-                essentia = Math.min(essentiaCapacity(), essentia + ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_PER_ROLL.get());
-                changedAndSync();
-            } else {
-                setChanged();
-            }
-        }
-        if (power < WORK_POWER) {
-            drawPower(level, pos);
-        }
-        if (power >= WORK_POWER) {
-            scanForFlux(level, pos);
-        }
-    }
-
-    private void drawPower(ServerLevel level, BlockPos pos) {
-        if (drawCooldown > 0) {
-            drawCooldown--;
-            return;
-        }
-        int drained = VisRelayNetwork.drainEverySourceNear(level, pos, TTAspects.AER, POWER_REQUEST);
-        if (drained < POWER_REQUEST) {
-            drained += VisRelayNetwork.drainNodesNear(level, pos, TTAspects.AER, POWER_REQUEST - drained);
-        }
-        if (drained > 0) {
-            power += drained;
-            setChanged();
-        } else {
-            drawCooldown = DRAW_RETRY_TICKS;
-        }
-    }
-
-    private void scanForFlux(ServerLevel level, BlockPos origin) {
-        ensureScanCycle(level.getRandom());
-        for (int i = 0; i < CHECKS_PER_TICK && scanIndex < SCAN_VOLUME; i++) {
-            int encoded = (int) ((scanOffset + (long) scanIndex++ * scanStep) % SCAN_VOLUME);
-            int dx = encoded % DIAMETER - RADIUS;
-            int yz = encoded / DIAMETER;
-            int dz = yz % DIAMETER - RADIUS;
-            int dy = yz / DIAMETER - RADIUS;
-            if (dx * dx + dy * dy + dz * dz >= RADIUS * RADIUS) {
-                continue;
-            }
-            cursor.setWithOffset(origin, dx, dy, dz);
-            if (level.isLoaded(cursor) && PhysicalFlux.isScrubbable(level.getBlockState(cursor))) {
-                BlockPos target = cursor.immutable();
-                if (PhysicalFlux.reduce(level, target, 1) != 1) {
-                    continue;
-                }
-                power -= WORK_POWER;
-                charges++;
-                setChanged();
-                Effects.simpleSparkle(level, Vec3.atCenterOf(target)).color(SPARKLE_RED, 0.0F, 1.0F).scale(SPARKLE_SCALE).send();
-                return;
-            }
-        }
-    }
-
-    private void ensureScanCycle(RandomSource random) {
-        if (scanStep == 0 || scanIndex >= SCAN_VOLUME) {
-            scanOffset = random.nextInt(SCAN_VOLUME);
-            do {
-                scanStep = 1 + random.nextInt(SCAN_VOLUME - 1);
-            } while (gcd(scanStep, SCAN_VOLUME) != 1);
-            scanIndex = 0;
-        }
-    }
-
-    private static int gcd(int a, int b) {
-        return b == 0 ? a : gcd(b, a % b);
-    }
-
-    private Direction outputFace() {
-        return getBlockState().getValue(BlockStateProperties.FACING);
-    }
-
-    private @Nullable Holder<IAspect> praecantatio() {
-        return level == null ? null : level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(TTAspects.PRAECANTATIO);
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
-        return face == outputFace();
+    public boolean isConnectable(final Direction face) {
+        return isOutputSide(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean canOutputTo(final Direction face) {
+        return isOutputSide(face);
+    }
+
+    @Override
+    public boolean canInputFrom(final Direction face) {
         return false;
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
-        return isConnectable(face);
+    public @Nullable Holder<IAspect> getEssentiaType(@Nullable final Direction face) {
+        if (essentia <= 0 || !isOutputSide(face)) {
+            return null;
+        }
+        return Aspects.resolve(level, TTAspects.PRAECANTATIO);
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(Direction face) {
-        return null;
+    public int getEssentiaAmount(@Nullable final Direction face) {
+        return isOutputSide(face) ? essentia : NONE;
     }
 
     @Override
-    public int getSuctionAmount(Direction face) {
-        return 0;
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getEssentiaType(Direction face) {
-        return canOutputTo(face) && essentia > 0 ? praecantatio() : null;
-    }
-
-    @Override
-    public int getEssentiaAmount(Direction face) {
-        return canOutputTo(face) ? essentia : 0;
-    }
-
-    @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canOutputTo(face) || aspect == null || amount <= 0 || essentia <= 0 || !aspect.is(TTAspects.PRAECANTATIO)) {
-            return 0;
+    public int takeEssentia(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face) {
+        boolean allowed = isOutputSide(face) && aspect.is(TTAspects.PRAECANTATIO);
+        if (!allowed || amount <= 0 || essentia <= 0) {
+            return NONE;
         }
         int taken = Math.min(amount, essentia);
         essentia -= taken;
-        changedAndSync();
+        setChangedAndSend();
         return taken;
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        return 0;
+    public int addEssentia(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face) {
+        return NONE;
+    }
+
+    @Override
+    public void setSuction(@Nullable final Holder<IAspect> aspect, final int amount) {}
+
+    @Override
+    public @Nullable Holder<IAspect> getSuctionType(@Nullable final Direction face) {
+        return passiveSuctionType();
+    }
+
+    @Override
+    public int getSuctionAmount(@Nullable final Direction face) {
+        return NONE;
     }
 
     @Override
     public int getMinimumSuction() {
-        return 0;
+        return NONE;
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> aspect, Direction face) {
-        return 0;
-    }
-
-    private void changedAndSync() {
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
-        }
+    public int spaceFor(final Holder<IAspect> aspect, @Nullable final Direction face) {
+        return NONE;
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        essentia = Math.clamp(input.getIntOr("Essentia", 0), 0, essentiaCapacity());
-        charges = Math.max(0, input.getIntOr("Charges", 0));
-        power = Math.max(0, input.getIntOr("Power", 0));
-        scanIndex = 0;
-        scanStep = 0;
+        essentia = Math.min(storedOrZero(input, ESSENTIA_KEY), essentiaCapacity());
+        charges = storedOrZero(input, CHARGES_KEY);
+        power = storedOrZero(input, POWER_KEY);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("Essentia", essentia);
-        output.putInt("Charges", charges);
-        output.putInt("Power", power);
+        writeCounters(output);
     }
 
     @Override
@@ -256,5 +175,121 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    private static int storedOrZero(ValueInput input, String key) {
+        return Math.max(NONE, input.getIntOr(key, NONE));
+    }
+
+    private void writeCounters(ValueOutput output) {
+        output.putInt(ESSENTIA_KEY, essentia);
+        output.putInt(CHARGES_KEY, charges);
+        output.putInt(POWER_KEY, power);
+    }
+
+    private static @Nullable Holder<IAspect> passiveSuctionType() {
+        return null;
+    }
+
+    private boolean isOutputSide(@Nullable Direction face) {
+        return face == getBlockState().getValue(BlockStateProperties.FACING);
+    }
+
+    private void setChangedAndSend() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+    }
+
+    private void work(ServerLevel level, BlockPos pos) {
+        if (power < WORK_POWER) {
+            refill(level, pos);
+        } else {
+            scan(level, pos);
+        }
+        int perRoll = ThaumaturgeCommonConfig.FLUX_SCRUBBER_CHARGES_PER_ROLL.get();
+        while (charges >= perRoll) {
+            charges -= perRoll;
+            roll(level.getRandom());
+        }
+    }
+
+    private void refill(ServerLevel level, BlockPos pos) {
+        if (refillWait > 0) {
+            refillWait--;
+            return;
+        }
+        int obtained = VisRelayNetwork.drainEverySourceNear(level, pos, TTAspects.AER, POWER_REQUEST);
+        if (obtained < POWER_REQUEST) {
+            obtained += VisRelayNetwork.drainNodesNear(level, pos, TTAspects.AER, POWER_REQUEST - obtained);
+        }
+        if (obtained > 0) {
+            power += obtained;
+            setChanged();
+        } else {
+            refillWait = RETRY_DELAY;
+        }
+    }
+
+    private void roll(RandomSource random) {
+        int capacity = essentiaCapacity();
+        if (essentia < capacity && random.nextDouble() < ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_CHANCE.get()) {
+            essentia = Math.min(capacity, essentia + ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_PER_ROLL.get());
+            setChangedAndSend();
+        } else {
+            setChanged();
+        }
+    }
+
+    private void scan(ServerLevel level, BlockPos pos) {
+        if (scanIndex >= SCAN_CELLS) {
+            reseed(level.getRandom());
+        }
+        for (int budget = 0; budget < CELL_BUDGET && scanIndex < SCAN_CELLS; budget++) {
+            int cell = (int) ((scanOffset + (long) scanIndex * scanStep) % SCAN_CELLS);
+            scanIndex++;
+            int dx = cell % SCAN_SIDE - SCAN_RADIUS;
+            int rest = cell / SCAN_SIDE;
+            int dz = rest % SCAN_SIDE - SCAN_RADIUS;
+            int dy = rest / SCAN_SIDE - SCAN_RADIUS;
+            if (dx * dx + dy * dy + dz * dz >= SCAN_RADIUS_SQUARED) {
+                continue;
+            }
+            cursor.setWithOffset(pos, dx, dy, dz);
+            if (!level.hasChunkAt(cursor) || !PhysicalFlux.isScrubbable(level.getBlockState(cursor))) {
+                continue;
+            }
+            BlockPos target = cursor.immutable();
+            if (PhysicalFlux.reduce(level, target, REMOVAL_AMOUNT) == REMOVAL_AMOUNT) {
+                power -= WORK_POWER;
+                charges++;
+                setChanged();
+                Effects.simpleSparkle(level, Vec3.atCenterOf(target)).color(SPARKLE_RED, SPARKLE_GREEN, SPARKLE_BLUE).scale(SPARKLE_SCALE).send();
+                return;
+            }
+        }
+    }
+
+    private void reseed(RandomSource random) {
+        scanOffset = random.nextInt(SCAN_CELLS);
+        int step;
+        do {
+            step = 1 + random.nextInt(SCAN_CELLS - 1);
+        } while (gcd(step, SCAN_CELLS) != 1);
+        scanStep = step;
+        scanIndex = 0;
+    }
+
+    private static int gcd(int a, int b) {
+        int x = a;
+        int y = b;
+        while (y != 0) {
+            int next = x % y;
+            x = y;
+            y = next;
+        }
+        return x;
     }
 }

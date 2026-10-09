@@ -1,29 +1,18 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.NORTH;
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.EAST;
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.SOUTH;
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.WEST;
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.propertyFor;
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.recomputeConnections;
-import static com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport.canConnectTo;
-
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
-import com.leclowndu93150.thaumaturge.api.items.ILabel;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
 import com.leclowndu93150.thaumaturge.content.device.DeviceShapes;
+import com.leclowndu93150.thaumaturge.content.essentia.storage.LabelledVesselActions;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
-import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import com.mojang.serialization.MapCodec;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -36,6 +25,7 @@ import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -45,27 +35,53 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jspecify.annotations.Nullable;
 
 public class BlockAlembic extends BaseEntityBlock implements ILabelable {
-
-    private static final MapCodec<BlockAlembic> CODEC = simpleCodec(BlockAlembic::new);
-
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty EAST = BlockStateProperties.EAST;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
     public static final BooleanProperty WEST = BlockStateProperties.WEST;
 
-    private static final Map<Direction, VoxelShape> PANE_RECESSES = DeviceShapes.facingShapesFromNorth(box(3.0, 2.0, 1.0, 13.0, 14.0, 2.0));
-    private static final Map<Direction, VoxelShape> SPIGOTS = DeviceShapes.facingShapesFromNorth(Shapes.or(box(5.0, 5.0, 0.0, 11.0, 11.0, 1.0), box(6.0, 6.0, 1.0, 10.0, 10.0, 2.0)));
-    private static final VoxelShape BODY = body();
+    private static final MapCodec<BlockAlembic> CODEC = simpleCodec(BlockAlembic::new);
+    private static final Direction[] SIDES = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+    private static final Map<Direction, BooleanProperty> SIDE_PROPERTIES = sideProperties();
+    private static final VoxelShape[] SHAPES = buildShapes();
+    private static final int COMPARATOR_STEPS = 14;
 
-    private final Function<BlockState, VoxelShape> shapes;
-
-    public BlockAlembic(Properties properties) {
+    public BlockAlembic(BlockBehaviour.Properties properties) {
         super(properties);
-        this.shapes = getShapeForEachState(BlockAlembic::shapeFor);
         registerDefaultState(stateDefinition.any().setValue(NORTH, false).setValue(EAST, false).setValue(SOUTH, false).setValue(WEST, false));
+    }
+
+    private static Map<Direction, BooleanProperty> sideProperties() {
+        Map<Direction, BooleanProperty> properties = new EnumMap<>(Direction.class);
+        properties.put(Direction.NORTH, NORTH);
+        properties.put(Direction.EAST, EAST);
+        properties.put(Direction.SOUTH, SOUTH);
+        properties.put(Direction.WEST, WEST);
+        return properties;
+    }
+
+    private static VoxelShape[] buildShapes() {
+        VoxelShape body = Shapes.join(Block.box(1, 0, 1, 15, 16, 15), Block.box(5, 15, 5, 11, 16, 11), BooleanOp.ONLY_FIRST);
+        VoxelShape window = Block.box(3, 2, 1, 13, 14, 2);
+        VoxelShape spigot = Shapes.or(Block.box(5, 5, 0, 11, 11, 1), Block.box(6, 6, 1, 10, 10, 2));
+        VoxelShape[] spigots = new VoxelShape[SIDES.length];
+        for (int i = 0; i < SIDES.length; i++) {
+            body = Shapes.join(body, DeviceShapes.rotate(window, 0, i), BooleanOp.ONLY_FIRST);
+            spigots[i] = DeviceShapes.rotate(spigot, 0, i);
+        }
+        VoxelShape[] shapes = new VoxelShape[1 << SIDES.length];
+        for (int mask = 0; mask < shapes.length; mask++) {
+            VoxelShape shape = body;
+            for (int i = 0; i < SIDES.length; i++) {
+                if ((mask & (1 << i)) != 0) {
+                    shape = Shapes.or(shape, spigots[i]);
+                }
+            }
+            shapes[mask] = shape;
+        }
+        return shapes;
     }
 
     @Override
@@ -74,24 +90,31 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        if (level instanceof Level lvl) {
-            if (directionToNeighbour.getStepY() != 0)
-                return state;
-            boolean connect = canConnectTo(lvl, neighbourPos, directionToNeighbour.getOpposite());
-            return state.setValue(propertyFor(directionToNeighbour), connect);
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        if (direction.getAxis().isVertical() || !(level instanceof Level world)) {
+            return state;
+        }
+        return state.setValue(SIDE_PROPERTIES.get(direction), connectsTo(world, pos, direction));
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        BlockState state = defaultBlockState();
+        for (Direction side : SIDES) {
+            state = state.setValue(SIDE_PROPERTIES.get(side), connectsTo(level, pos, side));
         }
         return state;
     }
 
-    @Override
-    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = super.getStateForPlacement(context);
-        if (state == null)
-            return null;
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        return recomputeConnections(state, level, pos, Direction.UP, Direction.DOWN);
+    private static boolean connectsTo(Level level, BlockPos pos, Direction side) {
+        BlockPos neighborPos = pos.relative(side);
+        if (!level.hasChunkAt(neighborPos)) {
+            return false;
+        }
+        IEssentiaTransport node = EssentiaAccess.transport(level, neighborPos, side.getOpposite());
+        return node != null && node.isConnectable(side.getOpposite());
     }
 
     @Override
@@ -100,92 +123,55 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new BlockEntityAlembic(blockPos, blockState);
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new BlockEntityAlembic(pos, state);
     }
 
     @Override
     public boolean applyLabel(Player player, BlockPos pos, Direction face, ItemStack stack) {
-        if (!(player.level().getBlockEntity(pos) instanceof BlockEntityAlembic alembic))
+        if (!(player.level().getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) {
             return false;
-        if (!(stack.getItem() instanceof ILabel label))
+        }
+        ResourceKey<IAspect> chosen = LabelledVesselActions.aspectToLabel(stack, face, alembic.aspectFilterKey(), alembic.aspectKey(), alembic.amount());
+        if (chosen == null) {
             return false;
-        if (face.getStepY() != 0)
-            return false;
-        if (alembic.aspectFilterKey() != null)
-            return false;
-        ResourceKey<IAspect> labelAspect = label.getFilteredAspect(stack);
-
-        if (alembic.amount() == 0 && labelAspect == null)
-            return false;
-
-        ResourceKey<IAspect> aspect = null;
-        if (alembic.amount() == 0 && labelAspect != null)
-            aspect = labelAspect;
-        if (alembic.amount() > 0)
-            aspect = alembic.aspectKey();
-
-        if (aspect == null)
-            return false;
-        if (labelAspect != null && !labelAspect.equals(aspect))
-            return false;
-
-        BlockState state = player.level().getBlockState(pos);
-        setPlacedBy(player.level(), pos, state, player, stack);
-        alembic.setAspectFilter(aspect);
-        alembic.setFacing(face);
-        alembic.setChanged();
-        alembic.syncToClient();
-        player.level().playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
+        alembic.setAspectFilter(chosen);
+        alembic.aimSpout(face);
+        LabelledVesselActions.playLabelSound(player.level(), pos);
         return true;
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic))
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) {
             return InteractionResult.PASS;
-        if (level.isClientSide())
+        }
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
-        if (!player.isCrouching())
+        }
+        if (!player.isShiftKeyDown()) {
             return InteractionResult.PASS;
-
-        if (alembic.aspectFilterKey() != null && hitResult.getDirection() == alembic.facing()) {
+        }
+        if (alembic.aspectFilterKey() != null && hit.getDirection() == alembic.spoutSide()) {
             alembic.setAspectFilter(null);
-            alembic.setChanged();
-            alembic.syncToClient();
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.PAGE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            BlockAlembic.popResourceFromFace(level, pos, hitResult.getDirection(), new ItemStack(TTItems.LABEL.get()));
+            LabelledVesselActions.removeLabel(level, pos, hit.getDirection());
         } else {
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, TTSounds.JAR.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
-            float pitch = 1.0F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.3F;
-            level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.5F, pitch);
-            AuraHelper.polluteAura(level, pos, alembic.amount(), true);
+            LabelledVesselActions.pourOut(level, pos, alembic.amount());
             alembic.clearAspect();
         }
-        return InteractionResult.SUCCESS;
-    }
-
-    private static VoxelShape body() {
-        VoxelShape cutouts = box(5.0, 15.0, 5.0, 11.0, 16.0, 11.0);
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            cutouts = Shapes.or(cutouts, PANE_RECESSES.get(direction));
-        }
-        return Shapes.join(box(1.0, 0.0, 1.0, 15.0, 16.0, 15.0), cutouts, BooleanOp.ONLY_FIRST);
-    }
-
-    private static VoxelShape shapeFor(BlockState state) {
-        VoxelShape shape = BODY;
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            if (state.getValue(propertyFor(direction))) {
-                shape = Shapes.or(shape, SPIGOTS.get(direction));
-            }
-        }
-        return shape.optimize();
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapes.apply(state);
+        int mask = 0;
+        for (int i = 0; i < SIDES.length; i++) {
+            if (state.getValue(SIDE_PROPERTIES.get(SIDES[i]))) {
+                mask |= 1 << i;
+            }
+        }
+        return SHAPES[mask];
     }
 
     @Override
@@ -195,19 +181,16 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic))
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) {
             return 0;
-        float r = (float) alembic.amount() / BlockEntityAlembic.CAPACITY;
-        return Mth.floor(r * 14) + (alembic.amount() > 0 ? 1 : 0);
+        }
+        int stored = alembic.amount();
+        return (int) Math.floor((double) stored / BlockEntityAlembic.CAPACITY * COMPARATOR_STEPS) + (stored > 0 ? 1 : 0);
     }
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (level.isClientSide())
-            return super.playerWillDestroy(level, pos, state, player);
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic))
-            return super.playerWillDestroy(level, pos, state, player);
-        if (alembic.aspectFilterKey() != null) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic && alembic.aspectFilterKey() != null) {
             popResource(level, pos, new ItemStack(TTItems.LABEL.get()));
         }
         return super.playerWillDestroy(level, pos, state, player);

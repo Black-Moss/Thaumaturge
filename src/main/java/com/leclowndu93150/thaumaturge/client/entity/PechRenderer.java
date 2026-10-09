@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
-import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -20,20 +19,20 @@ import net.minecraft.world.item.Items;
 
 public final class PechRenderer extends MobRenderer<EntityPech, PechRenderState, PechModel> {
     private static final Identifier[] TEXTURES = {TTIds.rl("textures/entity/pech_forage.png"), TTIds.rl("textures/entity/pech_thaum.png"), TTIds.rl("textures/entity/pech_stalker.png")};
-    private static final float SHADOW = 0.5F;
-    private static final float ITEM_LIFT = -0.1F;
-    private static final float ITEM_FORWARD = 0.0625F;
-    private static final float BOW_SHIFT_X = -0.075F;
-    private static final float BOW_SHIFT_Y = -0.1F;
-    private static final float HAND_SIDE_OFFSET = 0.0625F;
-    private static final float HAND_DOWN_OFFSET = 0.125F;
-    private static final float HAND_OUT_OFFSET = -0.625F;
-
-    private final ItemModelResolver itemModelResolver;
+    private static final float SHADOW_RADIUS = 0.5F;
+    private static final float MODEL_FLIP = -1.0F;
+    private static final float MODEL_LIFT = -1.501F;
+    private static final float RIGHT_HAND_X = 0.0625F;
+    private static final float LEFT_HAND_X = -0.0625F;
+    private static final float HAND_Y = 0.025F;
+    private static final float HAND_Z = -0.5625F;
+    private static final float BOW_OFFSET_X = -0.075F;
+    private static final float BOW_OFFSET_Y = -0.1F;
+    private static final float ITEM_PITCH_DEGREES = -90.0F;
+    private static final float ITEM_YAW_DEGREES = 180.0F;
 
     public PechRenderer(EntityRendererProvider.Context context) {
-        super(context, new PechModel(context.bakeLayer(TTModelLayers.PECH)), SHADOW);
-        this.itemModelResolver = context.getItemModelResolver();
+        super(context, new PechModel(context.bakeLayer(TTModelLayers.PECH)), SHADOW_RADIUS);
     }
 
     @Override
@@ -44,42 +43,50 @@ public final class PechRenderer extends MobRenderer<EntityPech, PechRenderState,
     @Override
     public void extractRenderState(EntityPech entity, PechRenderState state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
-        ArmedEntityRenderState.extractArmedEntityRenderState(entity, state, this.itemModelResolver, partialTicks);
-        state.pechType = entity.getPechType();
-        state.mumble = entity.mumble;
+        ArmedEntityRenderState.extractArmedEntityRenderState(entity, state, itemModelResolver, partialTicks);
+        state.pechType = entity.variant();
+        state.mumble = entity.chatterLevel;
         state.holdingBow = entity.getMainHandItem().is(Items.BOW);
     }
 
     @Override
     public void submit(PechRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        submitHandItem(state, state.rightHandItemState, HumanoidArm.RIGHT, this.model.rightArm, state.mainArm == HumanoidArm.RIGHT && state.holdingBow, poseStack, collector);
-        submitHandItem(state, state.leftHandItemState, HumanoidArm.LEFT, this.model.leftArm, state.mainArm == HumanoidArm.LEFT && state.holdingBow, poseStack, collector);
-    }
-
-    private void submitHandItem(PechRenderState state, ItemStackRenderState item, HumanoidArm arm, ModelPart armPart, boolean bow, PoseStack poseStack, SubmitNodeCollector collector) {
-        if (item.isEmpty()) {
+        if (state.rightHandItemState.isEmpty() && state.leftHandItemState.isEmpty()) {
             return;
         }
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - state.bodyRot));
-        poseStack.scale(-1.0F, -1.0F, 1.0F);
-        poseStack.translate(0.0F, -1.501F, 0.0F);
-        this.model.setupAnim(state);
-        armPart.translateAndRotate(poseStack);
-        poseStack.translate(0.0F, ITEM_LIFT, ITEM_FORWARD);
-        if (bow) {
-            poseStack.translate(BOW_SHIFT_X, BOW_SHIFT_Y, 0.0F);
+        poseStack.scale(state.scale, state.scale, state.scale);
+        setupRotations(state, poseStack, state.bodyRot, state.scale);
+        poseStack.scale(MODEL_FLIP, MODEL_FLIP, 1.0F);
+        poseStack.translate(0.0F, MODEL_LIFT, 0.0F);
+        model.setupAnim(state);
+        submitHand(state, state.rightHandItemState, HumanoidArm.RIGHT, model.rightArm, poseStack, collector);
+        submitHand(state, state.leftHandItemState, HumanoidArm.LEFT, model.leftArm, poseStack, collector);
+        poseStack.popPose();
+    }
+
+    private static void submitHand(PechRenderState state, ItemStackRenderState item, HumanoidArm hand, ModelPart arm, PoseStack poseStack, SubmitNodeCollector collector) {
+        if (item.isEmpty()) {
+            return;
         }
-        poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        poseStack.translate(arm == HumanoidArm.LEFT ? -HAND_SIDE_OFFSET : HAND_SIDE_OFFSET, HAND_DOWN_OFFSET, HAND_OUT_OFFSET);
-        item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        float x = hand == HumanoidArm.RIGHT ? RIGHT_HAND_X : LEFT_HAND_X;
+        float y = HAND_Y;
+        if (state.holdingBow && state.mainArm == hand) {
+            x += BOW_OFFSET_X;
+            y += BOW_OFFSET_Y;
+        }
+        poseStack.pushPose();
+        arm.translateAndRotate(poseStack);
+        poseStack.translate(x, y, HAND_Z);
+        poseStack.mulPose(Axis.XP.rotationDegrees(ITEM_PITCH_DEGREES));
+        poseStack.mulPose(Axis.YP.rotationDegrees(ITEM_YAW_DEGREES));
+        item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
         poseStack.popPose();
     }
 
     @Override
     public Identifier getTextureLocation(PechRenderState state) {
-        return TEXTURES[Math.min(state.pechType, TEXTURES.length - 1)];
+        return TEXTURES[Math.clamp(state.pechType, 0, TEXTURES.length - 1)];
     }
 }

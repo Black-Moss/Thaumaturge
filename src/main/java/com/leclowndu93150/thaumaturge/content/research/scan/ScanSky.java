@@ -4,21 +4,23 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.research.scan.IScannable;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScannedSky;
-import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.content.item.CelestialBody;
 import com.leclowndu93150.thaumaturge.content.item.CelestialNotesItem;
-import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -27,37 +29,176 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public final class ScanSky implements IScannable {
-    private static final int TICKS_PER_DAY = 24000;
-    private static final int YAW_TOLERANCE = 10;
-    private static final int PITCH_TOLERANCE = 7;
-    private static final Identifier NODES_RESEARCH = TTIds.rl("nodes");
+    private static final Identifier NODES = TTIds.rl("nodes");
+    private static final int FULL_TURN = 360;
+    private static final int HALF_TURN = 180;
+    private static final int QUARTER_TURN = 90;
+    private static final int FACING_OFFSET = 90;
+    private static final int DIRECTION_TOLERANCE = 10;
+    private static final int ELEVATION_TOLERANCE = 7;
+    private static final int DAY_LAST_CYCLE = 180;
+    private static final int NIGHT_FIRST_CYCLE = 181;
+    private static final int NIGHT_ARC_BASE = 180;
+    private static final long TICKS_PER_DAY = 24000L;
+    private static final String SUN_NAME = "sun";
+    private static final String MOON_PREFIX = "moon";
+    private static final String STAR_PREFIX = "star";
+    private static final String CELESTIAL_SEGMENT = "celestial/";
+    private static final String ALREADY_STUDIED_KEY = "message.thaumaturge.celestial.already_studied";
+    private static final String CANNOT_NOTE_KEY = "message.thaumaturge.celestial.cannot_note";
+    private static final int NO_SLOT = -1;
+    private static final Map<Direction, Integer> STAR_QUADRANTS = Map.of(Direction.NORTH, 0, Direction.SOUTH, 1, Direction.WEST, 2, Direction.EAST, 3);
+    private static final SkyState[] SKY_TABLE = buildSkyTable();
+
+    public ScanSky() {}
+
+    @FunctionalInterface
+    private interface BodyResolver {
+        @Nullable
+        Observation resolve(ServerPlayer player, boolean aligned);
+    }
+
+    private enum SkyPhase {
+        DAY(0, DAY_LAST_CYCLE, 0, false, ScanSky::resolveDaylight), NIGHT(NIGHT_FIRST_CYCLE, FULL_TURN - 1, NIGHT_ARC_BASE, true, ScanSky::resolveNight);
+
+        private final int firstCycle;
+        private final int lastCycle;
+        private final int arcBase;
+        private final boolean scannableOffAxis;
+        private final BodyResolver resolver;
+
+        SkyPhase(int firstCycle, int lastCycle, int arcBase, boolean scannableOffAxis, BodyResolver resolver) {
+            this.firstCycle = firstCycle;
+            this.lastCycle = lastCycle;
+            this.arcBase = arcBase;
+            this.scannableOffAxis = scannableOffAxis;
+            this.resolver = resolver;
+        }
+    }
+
+    private enum ArcLeg {
+        RISING(QUARTER_TURN, 0, 1, 0), SETTING(HALF_TURN, HALF_TURN, -1, HALF_TURN);
+
+        private final int lastArc;
+        private final int elevationBase;
+        private final int elevationSlope;
+        private final int heading;
+
+        ArcLeg(int lastArc, int elevationBase, int elevationSlope, int heading) {
+            this.lastArc = lastArc;
+            this.elevationBase = elevationBase;
+            this.elevationSlope = elevationSlope;
+            this.heading = heading;
+        }
+
+        static ArcLeg at(int arc) {
+            for (ArcLeg leg : values()) {
+                if (arc <= leg.lastArc) {
+                    return leg;
+                }
+            }
+            return SETTING;
+        }
+    }
+
+    private record SkyState(SkyPhase phase, int elevation, int heading) {
+        boolean alignedWith(Player player) {
+            int headingGap = turnGap((int) (player.getYRot() + FACING_OFFSET), heading);
+            int elevationGap = Math.abs((int) Math.abs(player.getXRot()) - elevation);
+            return headingGap < DIRECTION_TOLERANCE && elevationGap < ELEVATION_TOLERANCE;
+        }
+
+        boolean scannable(Player player) {
+            return phase.scannableOffAxis || alignedWith(player);
+        }
+    }
+
+    private record Observation(String name, CelestialBody body) {
+    }
+
+    private enum Filing {
+        ALREADY_STUDIED(ALREADY_STUDIED_KEY), NO_MATERIALS(CANNOT_NOTE_KEY), NOTED(null);
+
+        private final @Nullable String messageKey;
+
+        Filing(@Nullable String messageKey) {
+            this.messageKey = messageKey;
+        }
+
+        void announce(ServerPlayer player) {
+            if (messageKey != null) {
+                player.sendOverlayMessage(Component.translatable(messageKey).withStyle(ChatFormatting.DARK_PURPLE));
+            }
+        }
+    }
+
+    private static final class NoteLedger {
+        private final ServerPlayer player;
+        private final IPlayerKnowledge knowledge;
+        private final int worldDay;
+
+        NoteLedger(ServerPlayer player) {
+            this.player = player;
+            this.knowledge = KnowledgeAccess.of(player);
+            this.worldDay = (int) (player.level().getGameTime() / TICKS_PER_DAY);
+        }
+
+        Filing settle(Observation observation) {
+            Identifier key = ScanKeys.celestial(worldDay, observation.name());
+            if (knowledge.isResearchKnown(key)) {
+                Filing.ALREADY_STUDIED.announce(player);
+                return Filing.ALREADY_STUDIED;
+            }
+            Filing filing = file(observation, key);
+            filing.announce(player);
+            purgeOtherDays();
+            return filing;
+        }
+
+        private Filing file(Observation observation, Identifier key) {
+            Inventory inventory = player.getInventory();
+            int paperSlot = firstSlot(inventory, Items.PAPER);
+            boolean hasTools = firstSlot(inventory, TTItems.SCRIBING_TOOLS.get()) != NO_SLOT;
+            if (!hasTools || paperSlot == NO_SLOT) {
+                return Filing.NO_MATERIALS;
+            }
+            inventory.getItem(paperSlot).shrink(1);
+            ItemStack note = CelestialNotesItem.stackOf(observation.body());
+            if (!inventory.add(note)) {
+                player.drop(note, false);
+            }
+            ScanningManager.progressResearch(player, key);
+            return Filing.NOTED;
+        }
+
+        private void purgeOtherDays() {
+            String todayPrefix = ScanKeys.celestial(worldDay, "").getPath();
+            List<Identifier> outdated = knowledge.researchList().stream().filter(id -> id.getNamespace().equals(TTIds.MODID))
+                    .filter(id -> id.getPath().contains(CELESTIAL_SEGMENT) && !id.getPath().startsWith(todayPrefix)).toList();
+            if (outdated.isEmpty()) {
+                return;
+            }
+            outdated.forEach(knowledge::removeResearch);
+            knowledge.sync(player);
+        }
+    }
 
     @Override
     public boolean matches(Player player, ScanTarget target) {
-        if (!(target instanceof ScannedSky) || !isLookingSkyward(player)) {
-            return false;
-        }
-        SkyAngles angles = SkyAngles.of(player);
-        return angles.onBody() || angles.night();
+        return gateOpen(player, target) && skyAt(player).scannable(player);
     }
 
     @Override
     public void onScanned(Player player, ScanTarget target) {
-        if (!(target instanceof ScannedSky) || !(player instanceof ServerPlayer serverPlayer) || !isLookingSkyward(player)) {
+        if (!gateOpen(player, target) || !(player instanceof ServerPlayer viewer)) {
             return;
         }
-        SkyAngles angles = SkyAngles.of(player);
-        int worldDay = (int) (player.level().getGameTime() / TICKS_PER_DAY);
-        if (angles.onBody()) {
-            int moonPhase = player.level().environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, player.position()).index();
-            String body = angles.night() ? "moon" + moonPhase : "sun";
-            CelestialBody note = angles.night() ? CelestialBody.moon(moonPhase) : CelestialBody.SUN;
-            observe(serverPlayer, worldDay, body, note);
-        } else if (angles.night()) {
-            Direction facing = player.getDirection();
-            int num = facing.get3DDataValue() - 2;
-            observe(serverPlayer, worldDay, "star" + num, CelestialBody.star(num));
+        SkyState sky = skyAt(viewer);
+        Observation observation = sky.phase.resolver.resolve(viewer, sky.alignedWith(viewer));
+        if (observation == null) {
+            return;
         }
+        new NoteLedger(viewer).settle(observation);
     }
 
     @Override
@@ -65,86 +206,53 @@ public final class ScanSky implements IScannable {
         return null;
     }
 
-    private static void observe(ServerPlayer player, int worldDay, String body, CelestialBody note) {
-        Identifier key = ScanKeys.celestial(worldDay, body);
-        if (KnowledgeAccess.of(player).isResearchKnown(key)) {
-            player.sendOverlayMessage(Component.translatable("message.thaumaturge.celestial.already_studied"));
-            return;
+    private static boolean gateOpen(Player player, ScanTarget target) {
+        if (!(target instanceof ScannedSky) || player.getXRot() > 0) {
+            return false;
         }
-        if (isCarrying(player, TTItems.SCRIBING_TOOLS.get()) && consume(player, Items.PAPER)) {
-            ItemStack stack = CelestialNotesItem.stackOf(note);
-            if (!player.getInventory().add(stack)) {
-                player.drop(stack, false);
-            }
-            ScanningManager.progressResearch(player, key);
-        } else {
-            player.sendOverlayMessage(Component.translatable("message.thaumaturge.celestial.cannot_note"));
+        Level level = player.level();
+        if (level.dimension() != Level.OVERWORLD || !level.canSeeSky(player.blockPosition().above())) {
+            return false;
         }
-        cleanResearch(player, worldDay);
+        return KnowledgeAccess.of(player).isResearchComplete(NODES);
     }
 
-    private static void cleanResearch(ServerPlayer player, int worldDay) {
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        String dayPrefix = ScanKeys.celestialDayPrefix(worldDay);
-        List<Identifier> stale = new ArrayList<>();
-        for (Identifier key : knowledge.researchList()) {
-            if (ScanKeys.isCelestial(key) && !key.getPath().startsWith(dayPrefix)) {
-                stale.add(key);
-            }
-        }
-        for (Identifier key : stale) {
-            knowledge.removeResearch(key);
-        }
-        if (!stale.isEmpty() && knowledge instanceof PlayerKnowledge concrete) {
-            concrete.sync(player);
-        }
+    private static SkyState skyAt(Player player) {
+        int sunAngle = player.level().environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, player.position()).intValue();
+        return SKY_TABLE[Math.floorMod(sunAngle + QUARTER_TURN, FULL_TURN)];
     }
 
-    private static boolean isLookingSkyward(Player player) {
-        return !(player.getXRot() > 0.0F) && player.level().canSeeSky(player.blockPosition().above()) && player.level().dimension() == Level.OVERWORLD
-                && KnowledgeAccess.of(player).isResearchComplete(NODES_RESEARCH);
-    }
-
-    private static boolean isCarrying(Player player, Item item) {
-        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
-            if (player.getInventory().getItem(slot).is(item)) {
-                return true;
+    private static SkyState[] buildSkyTable() {
+        SkyState[] table = new SkyState[FULL_TURN];
+        for (SkyPhase phase : SkyPhase.values()) {
+            for (int cycle = phase.firstCycle; cycle <= phase.lastCycle; cycle++) {
+                int arc = cycle - phase.arcBase;
+                ArcLeg leg = ArcLeg.at(arc);
+                table[cycle] = new SkyState(phase, leg.elevationBase + leg.elevationSlope * arc, leg.heading);
             }
         }
-        return false;
+        return table;
     }
 
-    private static boolean consume(Player player, Item item) {
-        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
-            ItemStack stack = player.getInventory().getItem(slot);
-            if (stack.is(item)) {
-                stack.shrink(1);
-                return true;
-            }
-        }
-        return false;
+    private static int turnGap(int first, int second) {
+        int forward = Math.floorMod(first - second, FULL_TURN);
+        return Math.min(forward, FULL_TURN - forward);
     }
 
-    private record SkyAngles(boolean night, boolean onBody) {
-        static SkyAngles of(Player player) {
-            int yaw = (int) (player.getYRot() + 90.0F) % 360;
-            int pitch = (int) Math.abs(player.getXRot());
-            float sunAngle = player.level().environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, player.position());
-            int celestialAngle = (int) (sunAngle + 90.0F) % 360;
-            boolean night = celestialAngle > 180;
-            if (night) {
-                celestialAngle -= 180;
-            }
-            boolean inRangeYaw;
-            boolean inRangePitch;
-            if (celestialAngle > 90) {
-                inRangeYaw = Math.abs(Math.abs(yaw) - 180) < YAW_TOLERANCE;
-                inRangePitch = Math.abs(180 - celestialAngle - pitch) < PITCH_TOLERANCE;
-            } else {
-                inRangeYaw = Math.abs(yaw) < YAW_TOLERANCE;
-                inRangePitch = Math.abs(celestialAngle - pitch) < PITCH_TOLERANCE;
-            }
-            return new SkyAngles(night, inRangeYaw && inRangePitch);
+    private static @Nullable Observation resolveDaylight(ServerPlayer player, boolean aligned) {
+        return aligned ? new Observation(SUN_NAME, CelestialBody.SUN) : null;
+    }
+
+    private static Observation resolveNight(ServerPlayer player, boolean aligned) {
+        if (aligned) {
+            int phase = player.level().environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, player.position()).index();
+            return new Observation(MOON_PREFIX + phase, CelestialBody.moon(phase));
         }
+        int quadrant = STAR_QUADRANTS.getOrDefault(player.getDirection(), 0);
+        return new Observation(STAR_PREFIX + quadrant, CelestialBody.star(quadrant));
+    }
+
+    private static int firstSlot(Inventory inventory, Item item) {
+        return IntStream.range(0, inventory.getContainerSize()).filter(slot -> inventory.getItem(slot).is(item)).findFirst().orElse(NO_SLOT);
     }
 }

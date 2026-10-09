@@ -7,24 +7,38 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 public final class AltarFocusGoal extends Goal {
-    private static final int CHECK_INTERVAL_TICKS = 40;
-    private static final double MAX_DISTANCE_SQ = 16.0;
+    private static final int CHECK_INTERVAL = 40;
+    private static final double ANCHOR_RANGE = 4.0;
+    private static final double ANCHOR_RANGE_SQR = ANCHOR_RANGE * ANCHOR_RANGE;
+    private static final EnumSet<Goal.Flag> FLAGS = EnumSet.of(Goal.Flag.JUMP, Goal.Flag.LOOK, Goal.Flag.MOVE);
 
-    private final EntityCultistCleric cleric;
+    private int phase;
+    private final EntityCultistCleric priest;
 
-    public AltarFocusGoal(EntityCultistCleric cleric) {
-        this.cleric = cleric;
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK, Goal.Flag.JUMP));
-    }
-
-    @Override
-    public boolean canUse() {
-        return cleric.isRitualist() && cleric.hasHome();
+    public AltarFocusGoal(EntityCultistCleric priest) {
+        setFlags(FLAGS);
+        this.priest = priest;
     }
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        return priest.isRitualist();
+    }
+
+    @Override
+    public boolean canUse() {
+        return priest.isRitualist() && priest.hasHome();
+    }
+
+    private boolean isAtAltar() {
+        if (!priest.hasHome()) {
+            return false;
+        }
+        BlockPos altar = priest.getHomePosition();
+        if (priest.blockPosition().distSqr(altar) > ANCHOR_RANGE_SQR) {
+            return false;
+        }
+        return priest.level().getBlockState(altar).is(TTBlocks.ELDRITCH_ALTAR);
     }
 
     @Override
@@ -34,12 +48,9 @@ public final class AltarFocusGoal extends Goal {
 
     @Override
     public void tick() {
-        if (cleric.tickCount % CHECK_INTERVAL_TICKS != 0) {
-            return;
-        }
-        BlockPos home = cleric.getHomePosition();
-        if (home.distSqr(cleric.blockPosition()) > MAX_DISTANCE_SQ || !cleric.level().getBlockState(home).is(TTBlocks.ELDRITCH_ALTAR.get())) {
-            cleric.setRitualist(false);
+        phase = (phase + 1) % CHECK_INTERVAL;
+        if (phase == 0 && !isAtAltar()) {
+            priest.setRitualist(false);
         }
     }
 }

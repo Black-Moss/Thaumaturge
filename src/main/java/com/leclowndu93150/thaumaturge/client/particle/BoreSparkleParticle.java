@@ -5,20 +5,23 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.util.LightCoordsUtil;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 public final class BoreSparkleParticle extends SeekerParticle {
+    private static final float DRIFT_STRENGTH = 0.01F;
+    private static final float SIZE_BASE = 0.5F;
+    private static final float SIZE_RANGE = 0.5F;
+    private static final float SIZE_UNIT = 0.1F;
+    private static final float PULSE_DIVISOR = 3.0F;
+    private static final float PULSE_AMPLITUDE = 0.5F;
     private static final int FRAME_COUNT = 4;
-    private static final float MIN_SCALE = 0.5F;
-    private static final float SCALE_RANGE = 0.5F;
-    private static final float DRIFT = 0.01F;
 
     private BoreSparkleParticle(ClientLevel level, double x, double y, double z, BoreSparkleParticleOptions options, ParticleSheet sheet) {
-        super(level, x, y, z, sheet, options.targetEntityId(), new Vec3(options.tx(), options.ty(), options.tz()), Vec3.ZERO, DRIFT);
+        super(level, x, y, z, sheet, options.targetEntityId(), new Vec3(options.tx(), options.ty(), options.tz()), Vec3.ZERO, DRIFT_STRENGTH);
         setColor(options.r(), options.g(), options.b());
-        this.quadSize = MIN_SCALE + this.random.nextFloat() * SCALE_RANGE;
+        this.alpha = 1.0F;
+        this.quadSize = SIZE_BASE + this.random.nextFloat() * SIZE_RANGE;
     }
 
     @Override
@@ -28,8 +31,7 @@ public final class BoreSparkleParticle extends SeekerParticle {
 
     @Override
     public float getQuadSize(float partialTick) {
-        float pulse = Mth.sin(this.age / 3.0F) * 0.5F + 1.0F;
-        return this.quadSize * 0.1F * pulse;
+        return this.quadSize * SIZE_UNIT * (1.0F + PULSE_AMPLITUDE * (float) Math.sin(this.age / PULSE_DIVISOR));
     }
 
     @Override

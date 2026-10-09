@@ -3,21 +3,26 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
+import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeType;
 import com.leclowndu93150.thaumaturge.client.casters.WandTipTracker;
 import com.leclowndu93150.thaumaturge.client.effect.FloatyLineRenderer;
 import com.leclowndu93150.thaumaturge.client.effect.LateWorldRenderQueue;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.compat.iris.IrisCompat;
-import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityJarNode;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
+import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -26,58 +31,82 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
+import org.joml.Quaternionf;
 import org.jspecify.annotations.Nullable;
 
 public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, NodeRenderState> {
-    private static final Identifier NODES_TEXTURE = TTIds.rl("textures/misc/auranodes.png");
+    @FunctionalInterface
+    public interface LayerSink {
+        void layer(int index, RenderType type, float angle, float halfSize, float alpha, int rgb, int row, int column);
+    }
 
-    private static final RenderType NODE_ADDITIVE = TTFXRenderTypes.additive(NODES_TEXTURE);
-    private static final RenderType NODE_ADDITIVE_NO_DEPTH = TTFXRenderTypes.additiveNoDepth(NODES_TEXTURE);
-    private static final RenderType NODE_TRANSLUCENT = TTFXRenderTypes.translucent(NODES_TEXTURE);
-    private static final RenderType NODE_TRANSLUCENT_NO_DEPTH = TTFXRenderTypes.translucentNoDepth(NODES_TEXTURE);
-
-    private static final int GRID = 32;
-    private static final double VIEW_DISTANCE = 64.0;
-    private static final double THAUMOMETER_VIEW_DISTANCE = 48.0;
-    private static final float BASE_LAYER_SCALE = 0.25F;
-    private static final int MAX_RENDERED_ASPECT_AMOUNT = 50;
-    private static final float FAINT_ALPHA = 0.0066F;
-    private static final float FAINT_SCALE = 0.5F;
-    private static final float SHADER_PACK_FAINT_LEVEL = 0.4F;
-    private static final int FAINT_SHADER_PACK_COLOR = ARGB.gray(SHADER_PACK_FAINT_LEVEL);
-    private static final float HIDDEN_BRIGHTNESS_MULTIPLIER = 0.10F;
-    private static final float REVEALED_BRIGHTNESS_MULTIPLIER = 0.5F;
-    private static final float JARRED_SIZE = 0.7F;
-    private static final float JARRED_HEIGHT = 0.4F;
-    private static final int STRIP_ASPECT = 0;
-    private static final int STRIP_NORMAL = 7;
-    private static final int STRIP_DARK = 2;
-    private static final int STRIP_HUNGRY = 8;
-    private static final int STRIP_PURE = 9;
-    private static final int STRIP_TAINTED = 5;
-    private static final int STRIP_UNSTABLE = 6;
-    private static final int EMISSIVE_LIGHT = 0x00F000F0;
-    private static final float FRAME_ADVANCE_PER_TICK = 1.25F;
-    private static final float TICKS_TO_CLOCK_UNITS = 10.0F;
-    private static final float LAYER_PERIOD_BASE = 5000.0F;
-    private static final float LAYER_PERIOD_STEP = 500.0F;
+    private static final Identifier AURA_TEXTURE = TTIds.rl("textures/misc/auranodes.png");
+    private static final Map<NodeType, CoreStyle> CORE_STYLES = coreStyles();
+    private static final int ATLAS_CELLS = 32;
     private static final int TRANSLUCENT_BLEND = 771;
-    private static final float TRANSLUCENT_ALPHA_BOOST = 1.5F;
-    private static final float WHITE_ALPHA_CLAMP = 1.0F;
-    private static final float DRAIN_LINE_SPEED = -0.02F;
-    private static final float DRAIN_LINE_WIDTH = 0.15F;
-    private static final float ENERGIZED_SPIN_FACTOR = 2.0F;
-    private static final float ENERGIZED_LAYER_CONTRACTION = 0.6F;
-    private static final float ENERGIZED_CORE_SCALE = 1.35F;
-    private static final float ENERGIZED_PULSE_PERIOD = 4.0F;
+    private static final int ASPECT_ROW = 0;
+    private static final int ENERGIZED_ROW = 6;
+    private static final int FALLBACK_ROW = 7;
+    private static final int WHITE_RGB = 0xFFFFFF;
+    private static final int ENERGIZED_RGB = 0x99CCFF;
+    private static final int FALLBACK_SHADER_RGB = 0x666666;
+    private static final float FALLBACK_ALPHA = 0.0066F;
+    private static final float FALLBACK_HALF = 0.5F;
+    private static final float FALLBACK_SHADER_ALPHA = 1.0F;
+    private static final float CENTER = 0.5F;
+    private static final float JAR_CENTER_Y = 0.4F;
+    private static final float JARRED_VIEW = 64.0F;
+    private static final float GOGGLES_VIEW = 64.0F;
+    private static final float THAUMOMETER_VIEW = 48.0F;
+    private static final float JARRED_SIZE = 0.7F;
+    private static final float BRIGHT_FACTOR = 1.5F;
+    private static final float PALE_FACTOR = 0.66F;
+    private static final float FADING_AMPLITUDE = 0.25F;
+    private static final float FADING_BASE = 0.33F;
+    private static final float FADING_PERIOD = 3.0F;
+    private static final float FRAME_RATE = 1.25F;
+    private static final float CLOCK_RATE = 10.0F;
+    private static final float ENERGIZED_CLOCK_FACTOR = 2.0F;
+    private static final float ENERGIZED_CONTRACTION = 0.6F;
+    private static final float DISPLAY_CAP = 50.0F;
+    private static final float ASPECT_BASE_HALF = 0.2F;
+    private static final float ASPECT_PULSE_AMPLITUDE = 0.25F;
+    private static final float ASPECT_PULSE_BASE = 0.5F;
+    private static final float PULSE_PERIOD = 14.0F;
+    private static final float ROTATION_PERIOD_BASE = 5000.0F;
+    private static final float ROTATION_PERIOD_STEP = 500.0F;
+    private static final float TRANSLUCENT_BOOST = 1.5F;
+    private static final float CORE_BASE_HALF = 0.1F;
+    private static final float CORE_AMOUNT_DIVISOR = 150.0F;
     private static final float ENERGIZED_PULSE_AMPLITUDE = 0.25F;
-    private static final double ORB_SWEEP = (ENERGIZED_CORE_SCALE + ENERGIZED_PULSE_AMPLITUDE) * Mth.SQRT_OF_TWO;
-    private static final int ENERGIZED_CORE_COLOR = 0x99CCFF;
+    private static final float ENERGIZED_PULSE_PERIOD = 4.0F;
+    private static final float ENERGIZED_PULSE_BASE = 1.35F;
+    private static final float HIDDEN_BRIGHTNESS = 0.10F;
+    private static final float DEPTHLESS_BRIGHTNESS = 0.5F;
+    private static final float BYTE_RANGE = 255.0F;
+    private static final double BOUNDS_MARGIN = 2.2627;
+    private static final float LINE_SPEED = -0.02F;
+    private static final float LINE_WIDTH = 0.15F;
+    private static final float LINE_RAMP_TICKS = 10.0F;
+    private static final float WAVE_AMPLITUDE = 10.0F;
+    private static final float WAVE_PERIOD = 10.0F;
+    private static final float YAW_WOBBLE = 0.01F;
+    private static final float PITCH_WOBBLE = 0.015F;
+    private static final float HAND_X = -0.1F;
+    private static final float HAND_Y = -0.1F;
+    private static final float HAND_Z = 0.5F;
+    private static final int SMOOTHING_WEIGHT = 4;
+    private static final int SMOOTHING_DIVISOR = 5;
+    private static final int CHANNEL_MASK = 0xFF;
+    private static final int RED_SHIFT = 16;
+    private static final int GREEN_SHIFT = 8;
 
     public NodeRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -88,7 +117,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
 
     @Override
     public AABB getRenderBoundingBox(BlockEntityNode node) {
-        return new AABB(node.getBlockPos()).inflate(ORB_SWEEP);
+        return new AABB(node.getBlockPos()).inflate(BOUNDS_MARGIN);
     }
 
     @Override
@@ -99,244 +128,259 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
     @Override
     public void extractRenderState(BlockEntityNode node, NodeRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(node, state, partialTicks, cameraPosition, breakProgress);
-        state.layers.clear();
-        state.type = node.getNodeType();
-        state.modifier = node.getNodeModifier();
+        Minecraft minecraft = Minecraft.getInstance();
+        LocalPlayer player = minecraft.player;
+        Level level = node.getLevel();
+        state.jarred = node.getType() == TTBlockEntities.JAR_NODE.get();
+        state.type = node.kind();
+        state.modifier = node.trait();
+        state.energized = node.isEnergized();
+        state.shaderPack = IrisCompat.shaderPackInUse();
+        state.frameSeed = node.getBlockPos().getX();
+        state.time = level == null ? 0L : level.getGameTime();
         state.visible = false;
         state.depthIgnore = false;
         state.alpha = 0.0F;
-        state.shaderPack = IrisCompat.shaderPackInUse();
-        LocalPlayer player = Minecraft.getInstance().player;
+        state.size = 1.0F;
+        state.draining = false;
+        state.ticks = 0.0F;
+        syncLayers(node, state);
         if (player == null) {
             return;
         }
-        Vec3 center = Vec3.atCenterOf(node.getBlockPos());
-        double distance = Math.sqrt(player.distanceToSqr(center));
-        double viewDistance = VIEW_DISTANCE;
-        state.size = 1.0F;
-        state.jarred = node instanceof BlockEntityJarNode;
-        state.energized = node.isEnergized();
-        if (state.jarred) {
-            state.visible = true;
-            state.size = JARRED_SIZE;
-        } else if (GogglesAccess.wearsRevealingGear(player)) {
-            state.visible = true;
-            state.depthIgnore = true;
-        } else if (player.getMainHandItem().getItem() instanceof ThaumometerItem || player.getOffhandItem().getItem() instanceof ThaumometerItem) {
-            state.visible = true;
-            state.depthIgnore = true;
-            viewDistance = THAUMOMETER_VIEW_DISTANCE;
-        }
-        if (distance > viewDistance) {
-            state.visible = false;
-        }
-        float alpha = (float) ((viewDistance - distance) / viewDistance);
-        if (state.modifier != null) {
-            alpha = switch (state.modifier) {
-                case BRIGHT -> alpha * 1.5F;
-                case PALE -> alpha * 0.66F;
-                case FADING -> alpha * (Mth.sin((player.tickCount + partialTicks) / 3.0F) * 0.25F + 0.33F);
-            };
-        }
-        state.alpha = Math.min(alpha, WHITE_ALPHA_CLAMP);
         state.ticks = player.tickCount + partialTicks;
-        state.time = player.level().getGameTime();
-        state.frameSeed = node.getBlockPos().getX();
-        state.draining = false;
-        if (node.getDrainPlayer() != null && player.level().getPlayerByUUID(node.getDrainPlayer()) instanceof Player drainer && drainer.isUsingItem()) {
-            float useTicks = drainer.getTicksUsingItem() + partialTicks;
-            float wave = Mth.sin(useTicks / 10.0F) * 10.0F;
-            float pitch = Mth.lerp(partialTicks, drainer.xRotO, drainer.getXRot());
-            float yaw = Mth.lerp(partialTicks, drainer.yRotO, drainer.getYRot());
-            Vec3 offset = new Vec3(-0.1, -0.1, 0.5).xRot(-pitch * Mth.DEG_TO_RAD).yRot(-yaw * Mth.DEG_TO_RAD).yRot(-wave * 0.01F).xRot(-wave * 0.015F);
-            Vec3 hand = new Vec3(Mth.lerp(partialTicks, drainer.xo, drainer.getX()), Mth.lerp(partialTicks, drainer.yo, drainer.getY()) + drainer.getEyeHeight(),
-                    Mth.lerp(partialTicks, drainer.zo, drainer.getZ())).add(offset);
-            if (drainer == player && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
-                Vec3 tip = WandTipTracker.firstPersonTip();
-                if (tip != null) {
-                    hand = tip;
-                }
-            }
-            Vec3 nodeCenter = Vec3.atCenterOf(node.getBlockPos());
-            state.draining = true;
-            state.drainFromX = hand.x - nodeCenter.x;
-            state.drainFromY = hand.y - nodeCenter.y;
-            state.drainFromZ = hand.z - nodeCenter.z;
-            state.drainTime = Math.min(drainer.getTicksUsingItem() + partialTicks, 10.0F) / 10.0F;
-            node.clientDrainRed = (((node.getDrainColor() >> 16) & 0xFF) + node.clientDrainRed * 4) / 5;
-            node.clientDrainGreen = (((node.getDrainColor() >> 8) & 0xFF) + node.clientDrainGreen * 4) / 5;
-            node.clientDrainBlue = ((node.getDrainColor() & 0xFF) + node.clientDrainBlue * 4) / 5;
-            state.drainColor = (node.clientDrainRed << 16) | (node.clientDrainGreen << 8) | node.clientDrainBlue;
+        applyVisibility(node, state, player);
+        extractDrain(node, state, level, minecraft, partialTicks);
+    }
+
+    private static void syncLayers(BlockEntityNode node, NodeRenderState state) {
+        List<AspectInstance> entries = node.getAspects().entries();
+        while (state.layers.size() > entries.size()) {
+            state.layers.remove(state.layers.size() - 1);
         }
-        for (AspectInstance entry : node.getAspects().entries()) {
-            NodeRenderState.AspectLayer layer = new NodeRenderState.AspectLayer();
+        for (int index = 0; index < entries.size(); index++) {
+            if (index >= state.layers.size()) {
+                state.layers.add(new NodeRenderState.AspectLayer());
+            }
+            NodeRenderState.AspectLayer layer = state.layers.get(index);
+            AspectInstance entry = entries.get(index);
             layer.color = entry.aspect().value().color();
             layer.amount = entry.amount();
             layer.blend = entry.aspect().value().blend();
-            state.layers.add(layer);
         }
+    }
+
+    private static void applyVisibility(BlockEntityNode node, NodeRenderState state, LocalPlayer player) {
+        float view;
+        if (state.jarred) {
+            state.visible = true;
+            state.size = JARRED_SIZE;
+            view = JARRED_VIEW;
+        } else if (GogglesAccess.wearsRevealingGear(player)) {
+            state.visible = true;
+            state.depthIgnore = true;
+            view = GOGGLES_VIEW;
+        } else if (player.getMainHandItem().getItem() instanceof ThaumometerItem || player.getOffhandItem().getItem() instanceof ThaumometerItem) {
+            state.visible = true;
+            state.depthIgnore = true;
+            view = THAUMOMETER_VIEW;
+        } else {
+            return;
+        }
+        double distance = player.position().distanceTo(Vec3.atCenterOf(node.getBlockPos()));
+        if (distance > view) {
+            state.visible = false;
+            state.depthIgnore = false;
+            return;
+        }
+        float base = (float) ((view - distance) / view);
+        state.alpha = Math.min(base * modifierFactor(state.modifier, state.ticks), 1.0F);
+    }
+
+    private static float modifierFactor(@Nullable NodeModifier modifier, float time) {
+        if (modifier == null) {
+            return 1.0F;
+        }
+        return switch (modifier) {
+            case BRIGHT -> BRIGHT_FACTOR;
+            case PALE -> PALE_FACTOR;
+            case FADING -> FADING_AMPLITUDE * Mth.sin(time / FADING_PERIOD) + FADING_BASE;
+        };
+    }
+
+    private static void extractDrain(BlockEntityNode node, NodeRenderState state, @Nullable Level level, Minecraft minecraft, float partialTicks) {
+        UUID drainId = node.getDrainPlayer();
+        if (drainId == null || level == null) {
+            return;
+        }
+        Player drainer = level.getPlayerByUUID(drainId);
+        if (drainer == null || !drainer.isUsingItem()) {
+            return;
+        }
+        float useTime = drainer.getTicksUsingItem() + partialTicks;
+        float wave = WAVE_AMPLITUDE * Mth.sin(useTime / WAVE_PERIOD);
+        float pitch = Mth.lerp(partialTicks, drainer.xRotO, drainer.getXRot()) * Mth.DEG_TO_RAD;
+        float yaw = Mth.lerp(partialTicks, drainer.yRotO, drainer.getYRot()) * Mth.DEG_TO_RAD;
+        Vec3 offset = new Vec3(HAND_X, HAND_Y, HAND_Z).xRot(-pitch).yRot(-(yaw + YAW_WOBBLE * wave)).xRot(-PITCH_WOBBLE * wave);
+        Vec3 hand = new Vec3(Mth.lerp((double) partialTicks, drainer.xo, drainer.getX()), Mth.lerp((double) partialTicks, drainer.yo, drainer.getY()) + drainer.getEyeHeight(),
+                Mth.lerp((double) partialTicks, drainer.zo, drainer.getZ())).add(offset);
+        if (drainer == minecraft.player && minecraft.options.getCameraType().isFirstPerson()) {
+            Vec3 tip = WandTipTracker.firstPersonTip();
+            if (tip != null) {
+                hand = tip;
+            }
+        }
+        Vec3 from = hand.subtract(Vec3.atCenterOf(node.getBlockPos()));
+        state.draining = true;
+        state.drainFromX = from.x;
+        state.drainFromY = from.y;
+        state.drainFromZ = from.z;
+        state.drainTime = useTime;
+        state.drainColor = smoothDrainColor(node);
+    }
+
+    private static int smoothDrainColor(BlockEntityNode node) {
+        int target = node.getDrainColor();
+        node.clientDrainRed = (((target >> RED_SHIFT) & CHANNEL_MASK) + SMOOTHING_WEIGHT * node.clientDrainRed) / SMOOTHING_DIVISOR;
+        node.clientDrainGreen = (((target >> GREEN_SHIFT) & CHANNEL_MASK) + SMOOTHING_WEIGHT * node.clientDrainGreen) / SMOOTHING_DIVISOR;
+        node.clientDrainBlue = ((target & CHANNEL_MASK) + SMOOTHING_WEIGHT * node.clientDrainBlue) / SMOOTHING_DIVISOR;
+        return (node.clientDrainRed << RED_SHIFT) | (node.clientDrainGreen << GREEN_SHIFT) | node.clientDrainBlue;
     }
 
     @Override
     public void submit(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        Vec3 origin = Vec3.atCenterOf(state.blockPos);
-        NodeRenderState snapshot = snapshot(state);
+        Quaternionf orientation = new Quaternionf(camera.orientation);
+        Vec3 center = Vec3.atCenterOf(state.blockPos);
+        Vec3 from = new Vec3(state.drainFromX, state.drainFromY, state.drainFromZ);
+        boolean draining = state.draining;
+        float lineTime = FloatyLineRenderer.time(state.time, state.ticks - (float) Math.floor(state.ticks));
+        float lineProgress = Math.min(state.drainTime, LINE_RAMP_TICKS) / LINE_RAMP_TICKS;
+        int lineColor = state.drainColor;
         if (state.jarred) {
-            drawJarred(snapshot, poseStack, collector, camera);
-            if (snapshot.draining) {
-                LateWorldRenderQueue.enqueue(origin, (latePose, buffers) -> drawDrainLine(snapshot, latePose, buffers));
+            poseStack.pushPose();
+            poseStack.translate(CENTER, JAR_CENTER_Y, CENTER);
+            poseStack.mulPose(orientation);
+            submitLayers(state, poseStack, collector, 0);
+            poseStack.popPose();
+            if (draining) {
+                LateWorldRenderQueue.enqueue(center, (late, buffers) -> FloatyLineRenderer.draw(late, buffers, from, lineTime, lineColor, LINE_SPEED, lineProgress, LINE_WIDTH));
             }
             return;
         }
-        LateWorldRenderQueue.enqueue(origin, (latePose, buffers) -> drawLate(snapshot, latePose, buffers));
-    }
-
-    private static void drawJarred(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        poseStack.pushPose();
-        poseStack.translate(0.5F, JARRED_HEIGHT, 0.5F);
-        poseStack.mulPose(camera.orientation);
-        submitLayers(state, poseStack, collector, 0);
-        poseStack.popPose();
+        List<LayerDraw> draws = new ArrayList<>();
+        float brightness = brightness(state);
+        forEachLayer(state, (index, type, angle, halfSize, alpha, rgb, row, column) -> draws.add(new LayerDraw(type, angle, halfSize, tint(alpha, rgb, brightness), row, column)));
+        LateWorldRenderQueue.enqueue(center, (late, buffers) -> {
+            if (draining) {
+                FloatyLineRenderer.draw(late, buffers, from, lineTime, lineColor, LINE_SPEED, lineProgress, LINE_WIDTH);
+            }
+            late.pushPose();
+            late.mulPose(orientation);
+            for (LayerDraw draw : draws) {
+                late.pushPose();
+                late.mulPose(Axis.ZP.rotation(draw.angle()));
+                emitQuad(late.last().pose(), buffers.getBuffer(draw.type()), draw.halfSize(), draw.tint(), draw.row(), draw.column());
+                late.popPose();
+            }
+            late.popPose();
+        });
     }
 
     public static void submitLayers(NodeRenderState state, PoseStack poseStack, SubmitNodeCollector collector, int orderBase) {
         float brightness = brightness(state);
-        forEachLayer(state, (index, type, angle, scale, alpha, layerColor, strip, frame) -> {
-            int color = ARGB.scaleRGB(layerColor, brightness);
+        forEachLayer(state, (index, type, angle, halfSize, alpha, rgb, row, column) -> {
+            int tint = tint(alpha, rgb, brightness);
             poseStack.pushPose();
-            if (angle != 0.0F) {
-                poseStack.mulPose(Axis.ZP.rotation(angle));
-            }
-            int tint = ARGB.color((int) (Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F), color);
-            collector.order(orderBase + index).submitCustomGeometry(poseStack, type, (pose, buffer) -> emitQuad(pose.pose(), buffer, scale, tint, strip, frame));
+            poseStack.mulPose(Axis.ZP.rotation(angle));
+            collector.order(orderBase + index).submitCustomGeometry(poseStack, type, (pose, buffer) -> emitQuad(pose.pose(), buffer, halfSize, tint, row, column));
             poseStack.popPose();
         });
     }
 
-    private static NodeRenderState snapshot(NodeRenderState state) {
-        NodeRenderState copy = new NodeRenderState();
-        copy.type = state.type;
-        copy.modifier = state.modifier;
-        copy.visible = state.visible;
-        copy.depthIgnore = state.depthIgnore;
-        copy.shaderPack = state.shaderPack;
-        copy.alpha = state.alpha;
-        copy.size = state.size;
-        copy.ticks = state.ticks;
-        copy.time = state.time;
-        copy.frameSeed = state.frameSeed;
-        copy.draining = state.draining;
-        copy.drainFromX = state.drainFromX;
-        copy.drainFromY = state.drainFromY;
-        copy.drainFromZ = state.drainFromZ;
-        copy.drainTime = state.drainTime;
-        copy.drainColor = state.drainColor;
-        copy.jarred = state.jarred;
-        copy.energized = state.energized;
-        copy.layers.addAll(state.layers);
-        return copy;
+    public static void forEachLayer(NodeRenderState state, LayerSink sink) {
+        float time = state.ticks;
+        int count = state.layers.size();
+        int column = Math.floorMod((int) Math.floor(time * FRAME_RATE + state.frameSeed), ATLAS_CELLS);
+        if (!state.visible || count == 0) {
+            sink.layer(0, additive(state), 0.0F, FALLBACK_HALF, state.shaderPack ? FALLBACK_SHADER_ALPHA : FALLBACK_ALPHA, state.shaderPack ? FALLBACK_SHADER_RGB : WHITE_RGB, FALLBACK_ROW, column);
+            return;
+        }
+        float clock = time * CLOCK_RATE * (state.energized ? ENERGIZED_CLOCK_FACTOR : 1.0F);
+        float contraction = state.energized ? ENERGIZED_CONTRACTION : 1.0F;
+        float layerAlpha = state.alpha / Math.max(1.0F, count / 2.0F);
+        float displaySum = 0.0F;
+        float lastAngle = 0.0F;
+        for (int index = 0; index < count; index++) {
+            NodeRenderState.AspectLayer layer = state.layers.get(index);
+            float display = Math.min(layer.amount, DISPLAY_CAP);
+            float divisor = PULSE_PERIOD - index;
+            float pulse = divisor == 0.0F ? 0.0F : Mth.sin(time / divisor);
+            float halfSize = (ASPECT_BASE_HALF + (ASPECT_PULSE_AMPLITUDE * pulse + ASPECT_PULSE_BASE) * display / DISPLAY_CAP) * state.size * contraction;
+            float period = ROTATION_PERIOD_BASE + ROTATION_PERIOD_STEP * index;
+            lastAngle = clock % period / period * Mth.TWO_PI;
+            boolean translucent = layer.blend == TRANSLUCENT_BLEND;
+            sink.layer(index, translucent ? translucent(state) : additive(state), lastAngle, halfSize, translucent ? layerAlpha * TRANSLUCENT_BOOST : layerAlpha, layer.color, ASPECT_ROW, column);
+            displaySum += display;
+        }
+        CoreStyle style = CORE_STYLES.get(state.type);
+        float coreHalf = (CORE_BASE_HALF + displaySum / count / CORE_AMOUNT_DIVISOR) * state.size * style.scale();
+        float coreAngle = style.spins() ? lastAngle : 0.0F;
+        sink.layer(count, style.translucent() ? translucent(state) : additive(state), coreAngle, coreHalf, state.alpha, WHITE_RGB, style.row(), column);
+        if (state.energized) {
+            float energizedHalf = coreHalf * (ENERGIZED_PULSE_AMPLITUDE * Mth.sin(time / ENERGIZED_PULSE_PERIOD) + ENERGIZED_PULSE_BASE);
+            sink.layer(count + 1, additive(state), -coreAngle, energizedHalf, state.alpha, ENERGIZED_RGB, ENERGIZED_ROW, column);
+        }
+    }
+
+    public static void emitQuad(Matrix4fc matrix, VertexConsumer consumer, float halfSize, int tint, int row, int column) {
+        float u0 = (float) column / ATLAS_CELLS;
+        float u1 = (float) (column + 1) / ATLAS_CELLS;
+        float v0 = (float) row / ATLAS_CELLS;
+        float v1 = (float) (row + 1) / ATLAS_CELLS;
+        vertex(matrix, consumer, -halfSize, -halfSize, u1, v1, tint);
+        vertex(matrix, consumer, -halfSize, halfSize, u1, v0, tint);
+        vertex(matrix, consumer, halfSize, halfSize, u0, v0, tint);
+        vertex(matrix, consumer, halfSize, -halfSize, u0, v1, tint);
+    }
+
+    private static void vertex(Matrix4fc matrix, VertexConsumer consumer, float x, float y, float u, float v, int tint) {
+        consumer.addVertex(matrix, x, y, 0.0F).setUv(u, v).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
     }
 
     private static float brightness(NodeRenderState state) {
         if (!state.visible) {
-            return HIDDEN_BRIGHTNESS_MULTIPLIER;
+            return HIDDEN_BRIGHTNESS;
         }
-        return state.depthIgnore ? REVEALED_BRIGHTNESS_MULTIPLIER : 1.0F;
+        return state.depthIgnore ? DEPTHLESS_BRIGHTNESS : 1.0F;
     }
 
-    public interface LayerSink {
-        void layer(int index, RenderType type, float angle, float scale, float alpha, int color, int strip, int frame);
+    private static int tint(float alpha, int rgb, float brightness) {
+        int alphaByte = (int) (Mth.clamp(alpha, 0.0F, 1.0F) * BYTE_RANGE);
+        return ARGB.color(alphaByte, (int) (ARGB.red(rgb) * brightness), (int) (ARGB.green(rgb) * brightness), (int) (ARGB.blue(rgb) * brightness));
     }
 
-    public static void forEachLayer(NodeRenderState state, LayerSink sink) {
-        int frame = (int) ((state.ticks * FRAME_ADVANCE_PER_TICK + state.frameSeed) % GRID + GRID) % GRID;
-        if (!state.visible || state.layers.isEmpty()) {
-            if (state.shaderPack) {
-                sink.layer(0, NODE_ADDITIVE, 0.0F, FAINT_SCALE, 1.0F, FAINT_SHADER_PACK_COLOR, STRIP_NORMAL, frame);
-            } else {
-                sink.layer(0, NODE_ADDITIVE, 0.0F, FAINT_SCALE, FAINT_ALPHA, 0xFFFFFF, STRIP_NORMAL, frame);
-            }
-            return;
-        }
-        float average = 0.0F;
-        int count = 0;
-        float layerAlpha = state.alpha / Math.max(1.0F, state.layers.size() / 2.0F);
-        RenderType aspectType = state.depthIgnore ? NODE_ADDITIVE_NO_DEPTH : NODE_ADDITIVE;
-        RenderType translucentType = state.depthIgnore ? NODE_TRANSLUCENT_NO_DEPTH : NODE_TRANSLUCENT;
-        float clock = state.ticks * TICKS_TO_CLOCK_UNITS * (state.energized ? ENERGIZED_SPIN_FACTOR : 1.0F);
-        float layerContraction = state.energized ? ENERGIZED_LAYER_CONTRACTION : 1.0F;
-        float angle = 0.0F;
-        for (NodeRenderState.AspectLayer layer : state.layers) {
-            int displayAmount = Math.min(layer.amount, MAX_RENDERED_ASPECT_AMOUNT);
-            average += displayAmount;
-            float scale = Mth.sin(state.ticks / (14.0F - count)) * BASE_LAYER_SCALE + BASE_LAYER_SCALE * 2.0F;
-            scale = (0.2F + scale * (displayAmount / (float) MAX_RENDERED_ASPECT_AMOUNT)) * state.size * layerContraction;
-            float period = LAYER_PERIOD_BASE + LAYER_PERIOD_STEP * count;
-            angle = (clock % period) / period * Mth.TWO_PI;
-            boolean translucent = layer.blend == TRANSLUCENT_BLEND;
-            sink.layer(count, translucent ? translucentType : aspectType, angle, scale, layerAlpha * (translucent ? TRANSLUCENT_ALPHA_BOOST : 1.0F), layer.color, STRIP_ASPECT, frame);
-            count++;
-        }
-        average /= state.layers.size();
-        float coreScale = (0.1F + average / 150.0F) * state.size;
-        float coreAngle = angle;
-        int strip = switch (state.type) {
-            case NORMAL -> STRIP_NORMAL;
-            case UNSTABLE -> STRIP_UNSTABLE;
-            case DARK -> STRIP_DARK;
-            case TAINTED -> STRIP_TAINTED;
-            case PURE -> STRIP_PURE;
-            case HUNGRY -> STRIP_HUNGRY;
-        };
-        if (state.type == NodeType.HUNGRY) {
-            coreScale *= 0.75F;
-        }
-        if (state.type == NodeType.UNSTABLE) {
-            coreAngle = 0.0F;
-        }
-        boolean translucentCore = state.type == NodeType.DARK || state.type == NodeType.TAINTED;
-        RenderType coreType = translucentCore ? translucentType : aspectType;
-        sink.layer(count, coreType, coreAngle, coreScale, state.alpha, 0xFFFFFF, strip, frame);
-        if (state.energized) {
-            float pulse = Mth.sin(state.ticks / ENERGIZED_PULSE_PERIOD) * ENERGIZED_PULSE_AMPLITUDE + ENERGIZED_CORE_SCALE;
-            sink.layer(count + 1, aspectType, -coreAngle, coreScale * pulse, state.alpha, ENERGIZED_CORE_COLOR, STRIP_UNSTABLE, frame);
-        }
+    private static RenderType additive(NodeRenderState state) {
+        return state.depthIgnore ? TTFXRenderTypes.additiveNoDepth(AURA_TEXTURE) : TTFXRenderTypes.additive(AURA_TEXTURE);
     }
 
-    private static void drawLate(NodeRenderState state, PoseStack poseStack, MultiBufferSource buffers) {
-        if (state.draining) {
-            drawDrainLine(state, poseStack, buffers);
-        }
-        poseStack.pushPose();
-        poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
-        float brightness = brightness(state);
-        forEachLayer(state, (index, type, angle, scale, alpha, color, strip, frame) -> drawLayer(poseStack, buffers, type, angle, scale, alpha, ARGB.scaleRGB(color, brightness), strip, frame));
-        poseStack.popPose();
+    private static RenderType translucent(NodeRenderState state) {
+        return state.depthIgnore ? TTFXRenderTypes.translucentNoDepth(AURA_TEXTURE) : TTFXRenderTypes.translucent(AURA_TEXTURE);
     }
 
-    private static void drawDrainLine(NodeRenderState state, PoseStack poseStack, MultiBufferSource buffers) {
-        FloatyLineRenderer.draw(poseStack, buffers, new Vec3(state.drainFromX, state.drainFromY, state.drainFromZ), FloatyLineRenderer.time(state.time, state.ticks % 1.0F), state.drainColor,
-                DRAIN_LINE_SPEED, state.drainTime, DRAIN_LINE_WIDTH);
+    private static Map<NodeType, CoreStyle> coreStyles() {
+        Map<NodeType, CoreStyle> styles = new EnumMap<>(NodeType.class);
+        styles.put(NodeType.NORMAL, new CoreStyle(7, false, 1.0F, true));
+        styles.put(NodeType.UNSTABLE, new CoreStyle(6, false, 1.0F, false));
+        styles.put(NodeType.DARK, new CoreStyle(2, true, 1.0F, true));
+        styles.put(NodeType.TAINTED, new CoreStyle(5, true, 1.0F, true));
+        styles.put(NodeType.PURE, new CoreStyle(9, false, 1.0F, true));
+        styles.put(NodeType.HUNGRY, new CoreStyle(8, false, 0.75F, true));
+        return styles;
     }
 
-    private static void drawLayer(PoseStack poseStack, MultiBufferSource buffers, RenderType renderType, float angle, float scale, float alpha, int color, int strip, int frame) {
-        int tint = ARGB.color((int) (Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F), color);
-        poseStack.pushPose();
-        if (angle != 0.0F) {
-            poseStack.mulPose(Axis.ZP.rotation(angle));
-        }
-        emitQuad(poseStack.last().pose(), buffers.getBuffer(renderType), scale, tint, strip, frame);
-        poseStack.popPose();
+    private record CoreStyle(int row, boolean translucent, float scale, boolean spins) {
     }
 
-    public static void emitQuad(Matrix4fc mat, VertexConsumer buffer, float half, int tint, int strip, int frame) {
-        float u0 = frame / (float) GRID;
-        float u1 = (frame + 1) / (float) GRID;
-        float v0 = strip / (float) GRID;
-        float v1 = (strip + 1) / (float) GRID;
-        buffer.addVertex(mat, -half, -half, 0.0F).setUv(u1, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
-        buffer.addVertex(mat, -half, half, 0.0F).setUv(u1, v0).setColor(tint).setLight(EMISSIVE_LIGHT);
-        buffer.addVertex(mat, half, half, 0.0F).setUv(u0, v0).setColor(tint).setLight(EMISSIVE_LIGHT);
-        buffer.addVertex(mat, half, -half, 0.0F).setUv(u0, v1).setColor(tint).setLight(EMISSIVE_LIGHT);
+    private record LayerDraw(RenderType type, float angle, float halfSize, int tint, int row, int column) {
     }
 }

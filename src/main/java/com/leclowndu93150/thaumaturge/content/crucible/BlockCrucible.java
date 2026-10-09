@@ -3,6 +3,8 @@ package com.leclowndu93150.thaumaturge.content.crucible;
 import com.leclowndu93150.thaumaturge.content.entity.EntitySpecialItem;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.mojang.serialization.MapCodec;
+import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -27,25 +29,43 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 public class BlockCrucible extends BaseEntityBlock {
-    private static final int LAVA_HURT_INTERVAL = 10;
+    private static final double[][] SHAPE_BOXES = {{0.0, 0.1875, 0.0, 0.125, 1.0, 1.0}, {0.125, 0.1875, 0.125, 0.875, 0.19, 0.875}, {0.875, 0.1875, 0.0, 1.0, 1.0, 1.0},
+            {0.125, 0.1875, 0.0, 0.875, 1.0, 0.125}, {0.125, 0.1875, 0.875, 0.875, 1.0, 1.0}, {0.0, 0.0, 0.0, 0.1875, 0.1875, 0.125}, {0.0, 0.0, 0.125, 0.125, 0.1875, 0.1875},
+            {0.8125, 0.0, 0.0, 1.0, 0.1875, 0.125}, {0.875, 0.0, 0.125, 1.0, 0.1875, 0.1875}, {0.0, 0.0, 0.875, 0.1875, 0.1875, 1.0}, {0.0, 0.0, 0.8125, 0.125, 0.1875, 0.875},
+            {0.8125, 0.0, 0.875, 1.0, 0.1875, 1.0}, {0.875, 0.0, 0.8125, 1.0, 0.1875, 0.875}};
 
     public static final MapCodec<BlockCrucible> CODEC = simpleCodec(BlockCrucible::new);
+    public static final VoxelShape SHAPE = buildShape();
 
-    public static final VoxelShape SHAPE = Shapes.or(Shapes.box(0, 0.1875, 0, 0.125, 1, 1), Shapes.box(0.125, 0.1875, 0.125, 0.875, 0.19, 0.875), Shapes.box(0.875, 0.1875, 0, 1, 1, 1),
-            Shapes.box(0.125, 0.1875, 0, 0.875, 1, 0.125), Shapes.box(0.125, 0.1875, 0.875, 0.875, 1, 1), Shapes.box(0, 0, 0, 0.1875, 0.1875, 0.125), Shapes.box(0, 0, 0.125, 0.125, 0.1875, 0.1875),
-            Shapes.box(0.8125, 0, 0, 1, 0.1875, 0.125), Shapes.box(0.875, 0, 0.125, 1, 0.1875, 0.1875), Shapes.box(0, 0, 0.875, 0.1875, 0.1875, 1), Shapes.box(0, 0, 0.8125, 0.125, 0.1875, 0.875),
-            Shapes.box(0.8125, 0, 0.875, 1, 0.1875, 1), Shapes.box(0.875, 0, 0.8125, 1, 0.1875, 0.875));
+    private static final List<InsideBlockEffectType> CONTACT_EFFECTS = List.of(InsideBlockEffectType.EXTINGUISH, InsideBlockEffectType.CLEAR_FREEZE);
+    private static final int TANK_SLOT = 0;
+    private static final int ANALOG_STEPS = 14;
+    private static final int CONTACT_INTERVAL = 10;
+    private static final float CONTACT_VOLUME = 0.4F;
+    private static final float CONTACT_PITCH_BASE = 2.0F;
+    private static final float CONTACT_PITCH_SPREAD = 0.4F;
 
     public BlockCrucible(Properties properties) {
         super(properties);
+    }
+
+    private static VoxelShape buildShape() {
+        VoxelShape shape = Shapes.empty();
+        for (double[] box : SHAPE_BOXES) {
+            shape = Shapes.or(shape, Shapes.box(box[0], box[1], box[2], box[3], box[4], box[5]));
+        }
+        return shape;
     }
 
     @Override
@@ -54,8 +74,8 @@ public class BlockCrucible extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new BlockEntityCrucible(blockPos, blockState);
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new BlockEntityCrucible(pos, state);
     }
 
     @Override
@@ -65,34 +85,90 @@ public class BlockCrucible extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return SHAPE;
+        return getShape(state, level, pos, context);
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (level.isClientSide())
-            return InteractionResult.SUCCESS;
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible))
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        return level.isClientSide() ? InteractionResult.SUCCESS : serverUseItem(stack, level, pos, player, hand, hit);
+    }
+
+    private static InteractionResult serverUseItem(ItemStack stack, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        BlockEntityCrucible crucible = crucibleAt(level, pos);
+        if (crucible == null) {
             return InteractionResult.PASS;
-        FluidStack fs = FluidUtil.getFirstStackContained(itemStack);
-        if (fs.is(Fluids.WATER) && fs.amount() >= BlockEntityCrucible.TANK_CAPACITY) {
-            if (crucible.getTank().getAmountAsInt(0) < BlockEntityCrucible.TANK_CAPACITY) {
-                if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection(), null)) {
-                    return InteractionResult.SUCCESS;
-                }
-            }
-        } else if (!player.isCrouching() && hitResult.getDirection() == Direction.UP) {
-            ItemStack input = itemStack.copyWithCount(1);
-            if (crucible.getHeat() > 150 && crucible.getTank().getAmountAsInt(0) > 0 && crucible.attemptSmelt(input, player) == null) {
-                itemStack.shrink(1);
-                return InteractionResult.SUCCESS_SERVER;
-            }
         }
-        return super.useItemOn(itemStack, state, level, pos, player, hand, hitResult);
+        boolean handled = isWaterFill(stack) ? tryFill(pos, crucible, hand, player) : tryDropIn(crucible, stack, player, hit);
+        return handled ? InteractionResult.SUCCESS_SERVER : InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    private static boolean tryDropIn(BlockEntityCrucible crucible, ItemStack stack, Player player, BlockHitResult hit) {
+        boolean dropAllowed = hit.getDirection() == Direction.UP && !player.isShiftKeyDown() && crucible.isBoiling();
+        if (!dropAllowed || crucible.dropIn(stack.copyWithCount(1), player) != null) {
+            return false;
+        }
+        stack.shrink(1);
+        return true;
+    }
+
+    private static boolean tryFill(BlockPos pos, BlockEntityCrucible crucible, InteractionHand hand, Player player) {
+        FluidStacksResourceHandler tank = crucible.getTank();
+        boolean hasRoom = tank.getAmountAsInt(TANK_SLOT) < BlockEntityCrucible.TANK_CAPACITY;
+        return hasRoom && FluidUtil.interactWithFluidHandler(player, hand, pos, tank);
+    }
+
+    private static boolean isWaterFill(ItemStack stack) {
+        FluidStack contained = FluidUtil.getFirstStackContained(stack);
+        boolean fullBucket = contained.getAmount() >= FluidType.BUCKET_VOLUME;
+        return fullBucket && contained.getFluid() == Fluids.WATER;
+    }
+
+    private static @Nullable BlockEntityCrucible crucibleAt(BlockGetter level, BlockPos pos) {
+        return level.getBlockEntity(pos, TTBlockEntities.CRUCIBLE.get()).orElse(null);
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> type) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!level.isClientSide()) {
+            return player.isShiftKeyDown() ? emptyCrucible(level, pos) : InteractionResult.PASS;
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult emptyCrucible(Level level, BlockPos pos) {
+        Optional.ofNullable(crucibleAt(level, pos)).ifPresent(BlockEntityCrucible::emptyOut);
+        return InteractionResult.SUCCESS_SERVER;
+    }
+
+    @Override
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean intersects) {
+        if (level instanceof ServerLevel serverLevel) {
+            Optional.ofNullable(crucibleAt(serverLevel, pos)).filter(BlockEntityCrucible::isBoiling).ifPresent(crucible -> applyContact(serverLevel, pos, entity, effectApplier, crucible));
+        }
+        super.entityInside(state, level, pos, entity, effectApplier, intersects);
+    }
+
+    private static void applyContact(ServerLevel level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, BlockEntityCrucible crucible) {
+        if (entity instanceof ItemEntity itemEntity && !(entity instanceof EntitySpecialItem)) {
+            crucible.absorbThrown(itemEntity);
+        } else if (entity instanceof LivingEntity living && entity.tickCount % CONTACT_INTERVAL == 0) {
+            scald(level, pos, living, effectApplier);
+        }
+    }
+
+    private static void scald(ServerLevel level, BlockPos pos, LivingEntity living, InsideBlockEffectApplier effectApplier) {
+        if (living.isInvulnerableTo(level, level.damageSources().lava())) {
+            return;
+        }
+        living.lavaHurt();
+        CONTACT_EFFECTS.forEach(effectApplier::apply);
+        Vec3 center = Vec3.atCenterOf(pos);
+        float pitch = CONTACT_PITCH_BASE + level.getRandom().nextFloat() * CONTACT_PITCH_SPREAD;
+        level.playSound(null, center.x, center.y, center.z, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, CONTACT_VOLUME, pitch);
+    }
+
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return createTickerHelper(type, TTBlockEntities.CRUCIBLE.get(), BlockEntityCrucible::staticTick);
     }
 
@@ -103,46 +179,11 @@ public class BlockCrucible extends BaseEntityBlock {
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible))
+        BlockEntityCrucible crucible = crucibleAt(level, pos);
+        int total = crucible == null ? 0 : crucible.getAspects().totalAmount();
+        if (total <= 0) {
             return 0;
-        float ratio = (float) crucible.getAspects().totalAmount() / BlockEntityCrucible.MAX_ASPECT;
-
-        return Mth.floor(ratio * 14.0F) + (crucible.getAspects().totalAmount() > 0 ? 1 : 0);
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide())
-            return InteractionResult.SUCCESS;
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible))
-            return InteractionResult.PASS;
-        if (!player.isCrouching())
-            return InteractionResult.PASS;
-        crucible.spillRemnants();
-        return InteractionResult.SUCCESS;
-    }
-
-    @Override
-    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        if (level.isClientSide())
-            return;
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityCrucible crucible))
-            return;
-        if (crucible.getHeat() <= 150 || crucible.getTank().getAmountAsInt(0) <= 0)
-            return;
-        if (entity instanceof ItemEntity it && !(it instanceof EntitySpecialItem)) {
-            crucible.attemptSmelt(it);
-        } else {
-            if (entity.tickCount % LAVA_HURT_INTERVAL != 0)
-                return;
-            if (entity instanceof LivingEntity e && !e.isInvulnerableTo((ServerLevel) level, level.damageSources().lava())) {
-                entity.lavaHurt();
-                effectApplier.apply(InsideBlockEffectType.EXTINGUISH);
-                effectApplier.apply(InsideBlockEffectType.CLEAR_FREEZE);
-                level.playSound(null, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.4F, 2.0F + level.getRandom().nextFloat() * 0.4F);
-            }
         }
-
-        super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
+        return Mth.floor((float) total / BlockEntityCrucible.MAX_ASPECT * ANALOG_STEPS) + 1;
     }
 }

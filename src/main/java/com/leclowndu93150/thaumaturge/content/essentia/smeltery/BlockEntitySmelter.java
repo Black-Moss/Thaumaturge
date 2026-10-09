@@ -11,9 +11,6 @@ import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.essentia.BellowsHelper;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -21,314 +18,414 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
-import org.jspecify.annotations.Nullable;
 
 public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements MenuProvider {
-    private static final int MAX_VIS = 256;
-
-    public AspectList aspects = AspectList.EMPTY;
+    public int fuelCapacity;
+    public int fuelRemaining;
+    public int cookElapsed;
+    public int cookTarget;
+    public AspectList essentiaStock = AspectList.EMPTY;
     public int vis;
-    public int smeltTime = 100;
-    public int furnaceBurnTime;
-    public int currentItemBurnTime;
-    public int furnaceCookTime;
-    private final SmelterInventory inventory = new SmelterInventory();
-    boolean speedBoost = false;
-    int count = 0;
-    int bellows = -1;
 
-    public BlockEntitySmelter(BlockPos worldPosition, BlockState blockState) {
-        super(TTBlockEntities.SMELTER.get(), worldPosition, blockState);
+    static final int INPUT_SLOT = 0;
+    static final int FUEL_SLOT = 1;
+    static final int SLOT_COUNT = 2;
+
+    private static final int MAX_ESSENTIA = 256;
+    private static final int DEFAULT_BURN_TIME = 200;
+    private static final int BASE_COOK_PER_ESSENTIA = 2;
+    private static final double BELLOWS_COOK_REDUCTION = 0.125;
+    private static final double SPEED_BOOST_FACTOR = 0.8;
+    private static final float VITIUM_RETENTION_FACTOR = 0.66F;
+    private static final int VENT_ODDS = 3;
+    private static final float VENT_SOUND_VOLUME = 0.25F;
+    private static final float VENT_SOUND_PITCH_BASE = 2.6F;
+    private static final float VENT_SOUND_PITCH_SPREAD = 0.8F;
+    private static final int VENT_PUFFS = 4;
+    private static final double VENT_PUFF_JITTER = 0.1;
+    private static final double VENT_PUFF_SPEED = 0.25;
+    private static final double VENT_PUFF_MOTION_JITTER = 0.1;
+    private static final double VENT_FACE_OFFSET = 0.5;
+    private static final int VENT_COLOR = 11184810;
+    private static final String ASPECTS_KEY = "Aspects";
+    private static final String BURN_TIME_KEY = "BurnTime";
+    private static final String COOK_TIME_KEY = "CookTime";
+    private static final String SMELT_TIME_KEY = "SmeltTime";
+    private static final String CURRENT_BURN_TIME_KEY = "CurrentItemBurnTime";
+    private static final String SPEED_BOOST_KEY = "SpeedBoost";
+    private static final int UNKNOWN_BELLOWS = -1;
+
+    private final SmelterItems items = new SmelterItems();
+    private boolean speedBoost;
+    private int tickCounter;
+    private int bellows = UNKNOWN_BELLOWS;
+
+    public BlockEntitySmelter(BlockPos pos, BlockState state) {
+        this(TTBlockEntities.SMELTER.get(), pos, state);
     }
 
-    protected BlockEntitySmelter(BlockEntityType<?> type, BlockPos worldPosition, BlockState blockState) {
-        super(type, worldPosition, blockState);
+    protected BlockEntitySmelter(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
-    public ItemStacksResourceHandler getInventory() {
-        return inventory;
+    public ItemStacksResourceHandler itemSlots() {
+        return items;
+    }
+
+    static boolean isInputValid(ItemStack stack) {
+        return !stack.isEmpty() && !AspectIndexAccess.of(stack).isEmpty();
+    }
+
+    static boolean isFuelValid(Level level, ItemStack stack) {
+        return !stack.isEmpty() && burnTimeOf(level, stack) > 0;
+    }
+
+    private static int burnTimeOf(Level level, ItemStack stack) {
+        return stack.getBurnTime(null, level.fuelValues());
     }
 
     public static void staticTick(Level level, BlockPos pos, BlockState state, BlockEntitySmelter smelter) {
-        smelter.tick();
-    }
-
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.store("Aspects", AspectList.CODEC, aspects);
-        output.putInt("BurnTime", this.furnaceBurnTime);
-        output.putBoolean("SpeedBoost", this.speedBoost);
-        output.putInt("CookTime", this.furnaceCookTime);
-        output.putInt("SmeltTime", this.smeltTime);
-        output.putInt("CurrentItemBurnTime", this.currentItemBurnTime);
-        this.inventory.serialize(output);
-    }
-
-    @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        aspects = input.read("Aspects", AspectList.CODEC).orElse(AspectList.EMPTY);
-        this.vis = aspects.totalAmount();
-        this.furnaceBurnTime = input.getIntOr("BurnTime", 0);
-        this.speedBoost = input.getBooleanOr("SpeedBoost", false);
-        this.furnaceCookTime = input.getIntOr("CookTime", 0);
-        this.smeltTime = input.getIntOr("SmeltTime", 0);
-        this.currentItemBurnTime = input.getIntOr("CurrentItemBurnTime", 0);
-        inventory.deserialize(input);
-    }
-
-    @Override
-    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        super.preRemoveSideEffects(pos, state);
-        if (level == null || level.isClientSide())
-            return;
-        Containers.dropContents(level, getBlockPos(), getInventory().copyToList());
-        if (aspects.totalAmount() > 0) {
-            AuraHelper.polluteAura(level, getBlockPos(), aspects.totalAmount(), true);
-            setChanged();
-            syncToClient();
+        if (level instanceof ServerLevel server) {
+            smelter.serverTick(server, pos, state);
         }
     }
 
-    private void tick() {
-
-        if (level == null || level.isClientSide())
-            return;
-
-        boolean wasBurning = this.furnaceBurnTime > 0;
+    private void serverTick(ServerLevel server, BlockPos pos, BlockState state) {
+        tickCounter++;
+        if (bellows < 0) {
+            refreshBellows();
+        }
+        boolean wasLit = state.getValue(BlockSmelter.LIT);
         boolean dirty = false;
-
-        if (this.furnaceBurnTime > 0) {
-            this.furnaceBurnTime--;
+        if (fuelRemaining > 0) {
+            fuelRemaining--;
+            dirty = true;
         }
-
-        count++;
-
-        if (bellows < 0)
-            checkNeighbours();
-
-        int speed = this.getSpeed();
-        if (this.speedBoost)
-            speed = (int) (speed * 0.8);
-
-        if (this.count % speed == 0 && !this.aspects.isEmpty()) {
-            for (AspectInstance instance : aspects.entries()) {
-                if (instance.amount() > 0 && BlockEntityAlembic.processAlembics(level, getBlockPos(), instance.aspect())) {
-                    takeAspect(instance.aspect(), 1);
-                    break;
-                }
-            }
-
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                if (getBlockState().getValue(BlockSmelter.FACING) != dir) {
-                    BlockPos pos = getBlockPos().relative(dir);
-                    BlockState state = level.getBlockState(pos);
-                    if (state.getBlock() instanceof BlockSmelterAux && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == dir.getOpposite()) {
-                        for (AspectInstance instance : aspects.entries()) {
-                            if (instance.amount() > 0 && BlockEntityAlembic.processAlembics(level, getBlockPos().relative(dir), instance.aspect())) {
-                                takeAspect(instance.aspect(), 1);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+        boolean canSmelt = canSmelt();
+        if (fuelRemaining == 0 && canSmelt && igniteFuel(server)) {
+            dirty = true;
         }
-
-        if (furnaceBurnTime == 0) {
-            if (canSmelt()) {
-                currentItemBurnTime = furnaceBurnTime = inventory.getResource(1).toStack().getBurnTime(null, level.fuelValues());
-                if (furnaceBurnTime > 0) {
-                    level.setBlock(getBlockPos(), getBlockState().setValue(BlockSmelter.LIT, true), 3);
-                    dirty = true;
-                    this.speedBoost = false;
-                    ItemStack fuel = inventory.getResource(1).toStack(inventory.getAmountAsInt(1));
-                    ItemStack copy = fuel.copy();
-                    if (!fuel.isEmpty()) {
-                        if (fuel.is(TTItems.ALUMENTUM))
-                            this.speedBoost = true;
-
-                        Item item = fuel.getItem();
-                        Transaction transaction = Transaction.openRoot();
-                        inventory.extract(1, ItemResource.of(fuel), 1, transaction);
-                        transaction.commit();
-                        if (inventory.getAmountAsInt(1) <= 0) {
-                            ItemStackTemplate containerItem = item.getCraftingRemainder(copy);
-                            if (containerItem != null) {
-                                Transaction t = Transaction.openRoot();
-                                inventory.set(1, ItemResource.of(containerItem), containerItem.count());
-                                t.commit();
-                            }
-                        }
-                    }
-                } else {
-                    level.setBlock(getBlockPos(), getBlockState().setValue(BlockSmelter.LIT, false), 3);
-                    dirty = true;
-                }
-            } else {
-                level.setBlock(getBlockPos(), getBlockState().setValue(BlockSmelter.LIT, false), 3);
+        if (fuelRemaining > 0 && canSmelt) {
+            cookElapsed++;
+            dirty = true;
+            if (cookElapsed >= cookTarget) {
+                cookElapsed = 0;
+                smeltOne(server, pos, state);
                 dirty = true;
             }
+        } else {
+            dirty |= cookElapsed != 0;
+            cookElapsed = 0;
         }
-
-        if (getBlockState().getValue(BlockSmelter.LIT) && this.canSmelt()) {
-            this.furnaceCookTime++;
-            if (furnaceCookTime >= smeltTime) {
-                furnaceCookTime = 0;
-                smeltItem();
-            }
+        dirty |= handOverEssentia(server, pos);
+        boolean lit = fuelRemaining > 0;
+        if (lit != wasLit) {
+            server.setBlock(pos, state.setValue(BlockSmelter.LIT, lit), Block.UPDATE_ALL);
             dirty = true;
-        } else
-            furnaceCookTime = 0;
-
-        if (wasBurning != furnaceBurnTime > 0)
-            dirty = true;
-
+        }
         if (dirty) {
             setChanged();
         }
         syncToClient();
     }
 
-    private void smeltItem() {
-        if (!this.canSmelt())
-            return;
-        int flux = 0;
-        AspectList aspects = AspectIndexAccess.index().of(inventory.getResource(0).toStack());
-        for (AspectInstance instance : aspects.entries()) {
-            if (getEfficiency() < 1.0F) {
-                int amount = instance.amount();
-
-                for (int q = 0; q < amount; q++) {
-                    if (level.getRandom().nextFloat() > (Objects.equals(instance.aspect().getKey(), TTAspects.VITIUM) ? getEfficiency() * 0.66F : getEfficiency())) {
-                        aspects = aspects.reduce(instance.aspect(), 1);
-                        flux++;
-                    }
-                }
-            }
-        }
-
-        this.aspects = this.aspects.add(aspects);
-
-        if (flux > 0) {
-            int pp = 0;
-
-            ventfor : for (int c = 0; c < flux; c++) {
-                for (Direction dir : Direction.Plane.HORIZONTAL) {
-                    if (getBlockState().getValue(BlockSmelter.FACING) != dir) {
-                        BlockPos pos = getBlockPos().relative(dir);
-                        BlockState state = level.getBlockState(pos);
-                        if (state.getBlock() instanceof BlockSmelterVent && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == dir.getOpposite() && level.getRandom().nextFloat() < 1 / 3F) {
-                            level.playSound(null, getBlockPos().getX() + 0.5D + dir.getStepX(), getBlockPos().getY() + 0.5D, getBlockPos().getZ() + 0.5D + dir.getStepZ(), SoundEvents.LAVA_EXTINGUISH,
-                                    SoundSource.BLOCKS, 0.25F, 2.6F + (level.getRandom().nextFloat() - level.getRandom().nextFloat()) * 0.8F);
-                            for (int i = 0; i < 4; i++) {
-                                float fx = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
-                                float fz = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
-                                float fy = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
-                                float fx2 = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
-                                float fz2 = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
-                                float fy2 = 0.1F - this.level.getRandom().nextFloat() * 0.2F;
-                                int color = 11184810;
-                                Effects.vent((ServerLevel) level,
-                                        new Vec3(this.getBlockPos().getX() + 0.5F + fx + dir.getStepX(), this.getBlockPos().getY() + 0.5F + fy, this.getBlockPos().getZ() + 0.5F + fz + dir.getStepZ()))
-                                        .motion(dir.getStepX() / 4F + fx2, dir.getStepY() / 4F + fy2, dir.getStepZ() / 4F + fz2).color(color).send();
-                            }
-                            continue ventfor;
-                        }
-                    }
-                }
-                pp++;
-            }
-
-            AuraHelper.polluteAura(level, getBlockPos(), pp, true);
-        }
-        this.vis = this.aspects.totalAmount();
-        Transaction transaction = Transaction.openRoot();
-        inventory.extract(0, inventory.getResource(0), 1, transaction);
-        transaction.commit();
+    private ItemStack stackIn(int slot) {
+        return items.getResource(slot).toStack(items.getAmountAsInt(slot));
     }
 
-    public boolean takeAspect(Holder<IAspect> aspect, int amount) {
-        if (!aspects.isEmpty() && aspects.amountOf(aspect) >= amount) {
-            aspects = aspects.remove(aspect, amount);
-            this.vis = aspects.totalAmount();
-            setChanged();
-            syncToClient();
-            return true;
+    private void putStack(int slot, ItemStack stack) {
+        if (stack.isEmpty()) {
+            items.set(slot, ItemResource.EMPTY, 0);
+        } else {
+            items.set(slot, ItemResource.of(stack), stack.getCount());
         }
-        return false;
     }
 
     private boolean canSmelt() {
-        if (inventory.getAmountAsInt(0) <= 0)
+        ItemStack input = stackIn(INPUT_SLOT);
+        if (input.isEmpty()) {
             return false;
-        this.vis = aspects.totalAmount();
-        AspectList aspects = AspectIndexAccess.index().of(inventory.getResource(0).toStack());
-        if (!aspects.isEmpty()) {
-            int total = aspects.totalAmount();
-            if (total > MAX_VIS - vis)
-                return false;
+        }
+        int total = AspectIndexAccess.of(input).totalAmount();
+        int headroom = MAX_ESSENTIA - vis;
+        if (total <= 0 || total > headroom) {
+            return false;
+        }
+        double bellowsFactor = 1.0 - BELLOWS_COOK_REDUCTION * Math.max(bellows, 0);
+        cookTarget = Math.max(1, (int) (total * BASE_COOK_PER_ESSENTIA * bellowsFactor));
+        return true;
+    }
 
-            this.smeltTime = (int) (total * 2 * (1.0F - 0.125F * this.bellows));
-            return true;
+    private boolean igniteFuel(Level level) {
+        ItemStack fuel = stackIn(FUEL_SLOT);
+        int burn = fuel.isEmpty() ? 0 : burnTimeOf(level, fuel);
+        if (burn <= 0) {
+            return false;
+        }
+        ItemStackTemplate leftover = fuel.getCraftingRemainder();
+        boolean boosted = fuel.is(TTItems.ALUMENTUM.get());
+        fuel.shrink(1);
+        ItemStack remaining = fuel.isEmpty() && leftover != null ? leftover.create() : fuel;
+        putStack(FUEL_SLOT, remaining);
+        speedBoost = boosted;
+        fuelCapacity = burn;
+        fuelRemaining = burn;
+        return true;
+    }
+
+    private void smeltOne(ServerLevel server, BlockPos pos, BlockState state) {
+        ItemStack input = stackIn(INPUT_SLOT);
+        RandomSource random = server.getRandom();
+        float yield = essentiaYield();
+        Direction[] vents = sidesWith(state.getValue(BlockSmelter.FACING), false);
+        FateTally tally = new FateTally();
+        for (AspectInstance entry : AspectIndexAccess.of(input).entries()) {
+            float chance = entry.aspect().is(TTAspects.VITIUM) ? yield * VITIUM_RETENTION_FACTOR : yield;
+            int keptBefore = tally.kept;
+            for (int remaining = entry.amount(); remaining > 0; remaining--) {
+                tally.record(rollFate(server, pos, vents, random, yield, chance));
+            }
+            int keptNow = tally.kept - keptBefore;
+            if (keptNow > 0) {
+                essentiaStock = essentiaStock.add(entry.aspect(), keptNow);
+            }
+        }
+        input.shrink(1);
+        putStack(INPUT_SLOT, input);
+        vis = essentiaStock.totalAmount();
+        pollute(server, pos, tally.polluted);
+    }
+
+    private static void pollute(ServerLevel server, BlockPos pos, int points) {
+        if (points > 0) {
+            AuraHelper.polluteAura(server, pos, points, true);
+        }
+    }
+
+    private PointFate rollFate(ServerLevel server, BlockPos pos, Direction[] vents, RandomSource random, float yield, float chance) {
+        if (yield >= 1.0F || random.nextFloat() < chance) {
+            return PointFate.KEPT;
+        }
+        return ventAbsorbs(server, pos, vents, random) ? PointFate.VENTED : PointFate.POLLUTED;
+    }
+
+    private Direction[] sidesWith(Direction facing, boolean aux) {
+        Direction[] found = new Direction[Direction.Plane.HORIZONTAL.length()];
+        int count = 0;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            if (side != facing && isPartFacingBack(side, aux)) {
+                found[count++] = side;
+            }
+        }
+        Direction[] result = new Direction[count];
+        System.arraycopy(found, 0, result, 0, count);
+        return result;
+    }
+
+    private boolean isPartFacingBack(Direction side, boolean aux) {
+        BlockState neighbour = level.getBlockState(worldPosition.relative(side));
+        if (aux) {
+            return neighbour.getBlock() instanceof BlockSmelterAux && neighbour.getValue(BlockSmelterAux.FACING) == side.getOpposite();
+        }
+        return neighbour.getBlock() instanceof BlockSmelterVent && neighbour.getValue(BlockSmelterVent.FACING) == side.getOpposite();
+    }
+
+    private boolean ventAbsorbs(ServerLevel server, BlockPos pos, Direction[] vents, RandomSource random) {
+        for (Direction side : vents) {
+            if (random.nextInt(VENT_ODDS) == 0) {
+                emitVent(server, pos, side, random);
+                return true;
+            }
         }
         return false;
     }
 
-    public void checkNeighbours() {
-        List<Direction> facesToCheck = new ArrayList<>(Direction.Plane.HORIZONTAL.stream().toList());
-        facesToCheck.remove(getBlockState().getValue(BlockSmelter.FACING));
-        this.bellows = BellowsHelper.countBellows(level, getBlockPos(), facesToCheck.toArray(new Direction[0]));
+    private static void emitVent(ServerLevel server, BlockPos pos, Direction side, RandomSource random) {
+        float pitch = VENT_SOUND_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * VENT_SOUND_PITCH_SPREAD;
+        Vec3 outward = new Vec3(side.getStepX(), 0.0, side.getStepZ());
+        Vec3 centre = Vec3.atCenterOf(pos);
+        playVentSound(server, centre.add(outward), pitch);
+        emitPuffs(server, centre, outward, random);
     }
 
-    public int getSpeed() {
-        return stats().smeltInterval();
+    private static void playVentSound(ServerLevel server, Vec3 at, float pitch) {
+        server.playSound(null, at.x, at.y, at.z, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, VENT_SOUND_VOLUME, pitch);
     }
 
-    public float getEfficiency() {
-        return stats().efficiency();
+    private static void emitPuffs(ServerLevel server, Vec3 centre, Vec3 outward, RandomSource random) {
+        Vec3 mouth = centre.add(outward.scale(VENT_FACE_OFFSET));
+        Vec3 base = new Vec3(outward.x * VENT_PUFF_SPEED, 0.0, outward.z * VENT_PUFF_SPEED);
+        for (int puff = 0; puff < VENT_PUFFS; puff++) {
+            emitPuff(server, mouth, base, random);
+        }
+    }
+
+    private static void emitPuff(ServerLevel server, Vec3 mouth, Vec3 base, RandomSource random) {
+        Vec3 offset = jitterVector(random, VENT_PUFF_JITTER);
+        Vec3 motion = base.add(jitterVector(random, VENT_PUFF_MOTION_JITTER));
+        Effects.vent(server, mouth.add(offset)).motion(motion.x, motion.y, motion.z).color(VENT_COLOR).send();
+    }
+
+    private static Vec3 jitterVector(RandomSource random, double range) {
+        double x = jitter(random, range);
+        double y = jitter(random, range);
+        double z = jitter(random, range);
+        return new Vec3(x, y, z);
+    }
+
+    private static double jitter(RandomSource random, double range) {
+        return (random.nextDouble() * 2.0 - 1.0) * range;
+    }
+
+    private boolean handOverEssentia(ServerLevel server, BlockPos pos) {
+        if (vis <= 0 || tickCounter % handOverInterval() != 0) {
+            return false;
+        }
+        Direction[] auxSides = sidesWith(getBlockState().getValue(BlockSmelter.FACING), true);
+        boolean moved = feedColumn(server, pos);
+        for (int index = 0; index < auxSides.length; index++) {
+            moved = feedColumn(server, pos.relative(auxSides[index])) || moved;
+        }
+        return moved;
+    }
+
+    private int handOverInterval() {
+        int interval = ventInterval();
+        return speedBoost ? Math.max(1, (int) (interval * SPEED_BOOST_FACTOR)) : interval;
+    }
+
+    private boolean feedColumn(ServerLevel server, BlockPos start) {
+        for (AspectInstance entry : essentiaStock.sortedByAmount()) {
+            if (BlockEntityAlembic.feedColumn(server, start, entry.aspect())) {
+                essentiaStock = essentiaStock.remove(entry.aspect(), 1);
+                vis = essentiaStock.totalAmount();
+                setChanged();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.store(ASPECTS_KEY, AspectList.CODEC, essentiaStock);
+        output.putInt(BURN_TIME_KEY, fuelRemaining);
+        output.putInt(COOK_TIME_KEY, cookElapsed);
+        output.putInt(SMELT_TIME_KEY, cookTarget);
+        output.putInt(CURRENT_BURN_TIME_KEY, fuelCapacity);
+        output.putBoolean(SPEED_BOOST_KEY, speedBoost);
+        items.serialize(output);
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        items.deserialize(input);
+        loadFurnaceState(input);
+        essentiaStock = input.read(ASPECTS_KEY, AspectList.CODEC).orElse(AspectList.EMPTY);
+        vis = essentiaStock.totalAmount();
+    }
+
+    private void loadFurnaceState(ValueInput input) {
+        cookElapsed = input.getIntOr(COOK_TIME_KEY, 0);
+        speedBoost = input.getBooleanOr(SPEED_BOOST_KEY, false);
+        loadFuelState(input);
+        cookTarget = input.getIntOr(SMELT_TIME_KEY, 0);
+    }
+
+    private void loadFuelState(ValueInput input) {
+        fuelCapacity = input.getIntOr(CURRENT_BURN_TIME_KEY, 0);
+        fuelRemaining = input.getIntOr(BURN_TIME_KEY, 0);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level instanceof ServerLevel server) {
+            spillItems(server, pos);
+            releaseEssentia(server, pos);
+        }
+    }
+
+    private void spillItems(ServerLevel server, BlockPos pos) {
+        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+            Containers.dropItemStack(server, pos.getX(), pos.getY(), pos.getZ(), stackIn(slot));
+            putStack(slot, ItemStack.EMPTY);
+        }
+    }
+
+    private void releaseEssentia(ServerLevel server, BlockPos pos) {
+        if (vis <= 0) {
+            return;
+        }
+        AuraHelper.polluteAura(server, pos, vis, true);
+        essentiaStock = AspectList.EMPTY;
+        vis = 0;
+        setChangedAndSync();
+    }
+
+    public boolean takeAspect(Holder<IAspect> aspect, int amount) {
+        if (essentiaStock.amountOf(aspect) < amount) {
+            return false;
+        }
+        essentiaStock = essentiaStock.remove(aspect, amount);
+        vis = essentiaStock.totalAmount();
+        setChangedAndSync();
+        return true;
+    }
+
+    public void refreshBellows() {
+        if (level == null) {
+            return;
+        }
+        Direction facing = getBlockState().getValue(BlockSmelter.FACING);
+        Direction[] sides = new Direction[Direction.Plane.HORIZONTAL.length() - 1];
+        int count = 0;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            if (side != facing) {
+                sides[count++] = side;
+            }
+        }
+        bellows = BellowsHelper.countBellows(level, worldPosition, sides);
     }
 
     private SmelterStats stats() {
-        SmelterStats stats = getBlockState().typeHolder().getData(SmelterDataMaps.SMELTER_STATS);
+        SmelterStats stats = getBlockState().getBlock().builtInRegistryHolder().getData(SmelterDataMaps.SMELTER_STATS);
         return stats == null ? SmelterStats.DEFAULT : stats;
     }
 
-    public int getCookProgressScaled(int scale) {
-        if (smeltTime <= 0)
-            this.smeltTime = 1;
-        return this.furnaceCookTime * scale / this.smeltTime;
+    public int ventInterval() {
+        return stats().smeltInterval();
     }
 
-    public int getVisScaled(int scale) {
-        return this.vis * scale / this.MAX_VIS;
+    public float essentiaYield() {
+        return stats().efficiency();
     }
 
-    public int getBurnTimeRemainingScaled(int scale) {
-        if (this.currentItemBurnTime == 0) {
-            this.currentItemBurnTime = 200;
-        }
-
-        return this.furnaceBurnTime * scale / this.currentItemBurnTime;
+    public int scaled(SmelterGauge gauge, int scale) {
+        return switch (gauge) {
+            case COOK -> cookElapsed * scale / Math.max(cookTarget, 1);
+            case ESSENTIA -> vis * scale / MAX_ESSENTIA;
+            case FUEL -> fuelRemaining * scale / (fuelCapacity == 0 ? DEFAULT_BURN_TIME : fuelCapacity);
+        };
     }
 
     @Override
@@ -337,28 +434,42 @@ public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements Men
     }
 
     @Override
-    public @Nullable AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-        return new MenuSmelter(i, inventory, this);
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new MenuSmelter(containerId, playerInventory, this);
     }
 
-    private final class SmelterInventory extends ItemStacksResourceHandler {
+    private enum PointFate {
+        KEPT, VENTED, POLLUTED
+    }
 
-        public SmelterInventory() {
-            super(2);
+    private static final class FateTally {
+        private int kept;
+        private int polluted;
+
+        void record(PointFate fate) {
+            switch (fate) {
+                case KEPT -> kept++;
+                case POLLUTED -> polluted++;
+                case VENTED -> {
+                }
+            }
+        }
+    }
+
+    private final class SmelterItems extends ItemStacksResourceHandler {
+        SmelterItems() {
+            super(SLOT_COUNT);
+        }
+
+        @Override
+        public boolean isValid(int index, ItemResource resource) {
+            ItemStack stack = resource.toStack(1);
+            return index == INPUT_SLOT ? isInputValid(stack) : level != null && isFuelValid(level, stack);
         }
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
             setChanged();
-        }
-
-        @Override
-        public boolean isValid(int index, ItemResource resource) {
-            return switch (index) {
-                case 0 -> !AspectIndexAccess.index().of(resource.toStack()).isEmpty();
-                case 1 -> resource.toStack().getBurnTime(null, level.fuelValues()) > 0;
-                default -> false;
-            };
         }
     }
 }

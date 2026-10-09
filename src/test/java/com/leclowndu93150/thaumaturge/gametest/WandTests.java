@@ -17,8 +17,8 @@ public final class WandTests {
     public static void register(TTTestRegistrar r) {
         r.add("wand/vis_store_roundtrip", 20, helper -> {
             ItemStack wand = new ItemStack(TTItems.WAND.get());
-            int leftover = WandVisHelper.addVis(wand, TTAspects.IGNIS, 50, true);
-            int storedCentivis = WandVisHelper.getVis(wand, TTAspects.IGNIS);
+            int leftover = WandVisHelper.topUp(wand, TTAspects.IGNIS, 50, true);
+            int storedCentivis = WandVisHelper.storedIn(wand, TTAspects.IGNIS);
             int expected = (50 - leftover) * WandEconomy.CENTIVIS_PER_VIS;
             if (storedCentivis != expected) {
                 helper.fail("Stored " + storedCentivis + " centivis, expected " + expected);
@@ -36,7 +36,7 @@ public final class WandTests {
             WandParts parts = wand.getOrDefault(TTDataComponents.WAND_PARTS.get(), WandParts.starter());
             int capacity = parts.maxCentivis();
             int flood = capacity * 2;
-            int leftover = WandVisHelper.addVis(wand, TTAspects.IGNIS, flood, true);
+            int leftover = WandVisHelper.topUp(wand, TTAspects.IGNIS, flood, true);
             if (leftover <= 0) {
                 helper.fail("Flooding " + flood + " vis into capacity " + capacity + " left no remainder");
                 return;

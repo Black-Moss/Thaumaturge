@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
+import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
@@ -8,6 +9,8 @@ import com.leclowndu93150.thaumaturge.content.golem.logistics.LogisticsTarget;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealAccess;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import java.util.Arrays;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -24,30 +27,39 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class ItemGolemBell extends Item implements ISealDisplayer {
-    private static final double AIM_RANGE = 5.0;
-    private static final double AIM_STEP = 0.1;
+    private static final double AIM_LENGTH = 5.0D;
+    private static final double AIM_STEP = 0.1D;
+    private static final int AIM_SAMPLES = (int) Math.round(AIM_LENGTH / AIM_STEP);
+    private static final float CHIME_VOLUME = 0.6F;
+    private static final float CHIME_PITCH_SPREAD = 0.1F;
+    private static final float ZAP_VOLUME = 0.5F;
 
-    public ItemGolemBell(Properties properties) {
+    public ItemGolemBell(Item.Properties properties) {
         super(properties);
     }
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        player.swing(hand, true);
+        player.swing(hand);
         if (level.isClientSide()) {
-            player.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 0.6F, 1.0F + level.getRandom().nextFloat() * 0.1F);
+            chime(level, player);
             return InteractionResult.SUCCESS;
         }
-        ISealEntity seal = getAimedSeal(player);
-        if (seal != null) {
-            useOnSeal((ServerLevel) level, player, seal);
-            return InteractionResult.FAIL;
+        ISealEntity aimed = getAimedSeal(player);
+        if (aimed == null && !LogisticsGuiOpener.canOpen(player)) {
+            return super.use(level, player, hand);
         }
-        if (LogisticsGuiOpener.canOpen(player)) {
+        if (aimed == null) {
             LogisticsGuiOpener.open(player, null);
-            return InteractionResult.FAIL;
+        } else {
+            act((ServerLevel) level, player, aimed);
         }
-        return super.use(level, player, hand);
+        return InteractionResult.FAIL;
+    }
+
+    private static void chime(Level level, Player player) {
+        float pitch = 1.0F + level.getRandom().nextFloat() * CHIME_PITCH_SPREAD;
+        level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.PLAYERS, CHIME_VOLUME, pitch);
     }
 
     @Override
@@ -57,75 +69,65 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
             return InteractionResult.PASS;
         }
         Level level = context.getLevel();
-        ISealEntity seal = SealHandler.getSealEntity(level, new SealPos(context.getClickedPos(), context.getClickedFace()));
-        if (seal == null) {
-            if (!LogisticsGuiOpener.canOpen(player)) {
-                return InteractionResult.PASS;
-            }
-            player.swing(context.getHand(), true);
-            if (level.isClientSide()) {
-                return InteractionResult.SUCCESS;
-            }
-            LogisticsGuiOpener.open(player, new LogisticsTarget(context.getClickedPos(), context.getClickedFace()));
-            return InteractionResult.SUCCESS_SERVER;
+        BlockPos pos = context.getClickedPos();
+        Direction face = context.getClickedFace();
+        ISealEntity seal = GolemHelper.getSealEntity(level, new SealPos(pos, face));
+        if (seal == null && !LogisticsGuiOpener.canOpen(player)) {
+            return InteractionResult.PASS;
         }
-        player.swing(context.getHand(), true);
+        player.swing(context.getHand());
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        useOnSeal((ServerLevel) level, player, seal);
+        if (seal == null) {
+            LogisticsGuiOpener.open(player, new LogisticsTarget(pos, face));
+        } else {
+            act((ServerLevel) level, player, seal);
+        }
         return InteractionResult.SUCCESS_SERVER;
     }
 
-    private static void useOnSeal(ServerLevel level, Player player, ISealEntity seal) {
+    public static @Nullable ISealEntity getAimedSeal(Player player) {
+        Level level = player.level();
+        Vec3 origin = player.getEyePosition();
+        Vec3 direction = player.getLookAngle();
+        BlockPos behind = BlockPos.containing(origin);
+        int step = 0;
+        while (++step <= AIM_SAMPLES) {
+            BlockPos ahead = BlockPos.containing(origin.add(direction.scale(step * AIM_STEP)));
+            if (ahead.equals(behind)) {
+                continue;
+            }
+            ISealEntity found = sealOnEnteredFace(level, behind, ahead);
+            if (found != null) {
+                return found;
+            }
+            if (!level.getBlockState(ahead).getCollisionShape(level, ahead).isEmpty()) {
+                break;
+            }
+            behind = ahead;
+        }
+        return null;
+    }
+
+    private static @Nullable ISealEntity sealOnEnteredFace(Level level, BlockPos from, BlockPos cell) {
+        return Arrays.stream(Direction.values()).filter(face -> crossedOnAxis(from, cell, face)).map(face -> GolemHelper.getSealEntity(level, new SealPos(cell, face))).filter(Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    private static boolean crossedOnAxis(BlockPos from, BlockPos cell, Direction face) {
+        int delta = cell.get(face.getAxis()) - from.get(face.getAxis());
+        return delta != 0 && Integer.signum(delta) == -face.getAxisDirection().getStep();
+    }
+
+    private static void act(ServerLevel level, Player player, ISealEntity seal) {
         if (!player.isShiftKeyDown()) {
             SealGuiOpener.open(player, seal);
-        } else if (SealAccess.mayEdit(player, seal)) {
-            SealHandler.removeSealEntity(level, seal.pos(), false);
-            level.playSound(null, seal.pos().pos(), TTSounds.ZAP.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+            return;
         }
-    }
-
-    public static @Nullable ISealEntity getAimedSeal(Player player) {
-        Vec3 start = player.getEyePosition();
-        Vec3 look = player.getLookAngle().scale(AIM_RANGE);
-        Vec3 step = look.scale(AIM_STEP);
-        Vec3 probe = start.add(step);
-        BlockPos previous = BlockPos.containing(start);
-        for (int i = 0; i < (int) (look.length() * 10.0); i++) {
-            BlockPos cell = BlockPos.containing(probe);
-            if (!cell.equals(previous)) {
-                BlockPos delta = cell.subtract(previous);
-                ISealEntity seal = sealOnEntryFace(player, cell, delta);
-                if (seal != null) {
-                    return seal;
-                }
-                if (!player.level().getBlockState(cell).getCollisionShape(player.level(), cell).isEmpty()) {
-                    return null;
-                }
-                previous = cell;
-            }
-            probe = probe.add(step);
+        if (SealAccess.mayEdit(player, seal)) {
+            SealHandler.withdraw(level, seal.pos(), false);
+            level.playSound(null, seal.pos().pos(), TTSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, 1.0F);
         }
-        return null;
-    }
-
-    private static @Nullable ISealEntity sealOnEntryFace(Player player, BlockPos cell, BlockPos delta) {
-        if (delta.getX() != 0) {
-            ISealEntity seal = SealHandler.getSealEntity(player.level(), new SealPos(cell, delta.getX() > 0 ? Direction.WEST : Direction.EAST));
-            if (seal != null) {
-                return seal;
-            }
-        }
-        if (delta.getY() != 0) {
-            ISealEntity seal = SealHandler.getSealEntity(player.level(), new SealPos(cell, delta.getY() > 0 ? Direction.DOWN : Direction.UP));
-            if (seal != null) {
-                return seal;
-            }
-        }
-        if (delta.getZ() != 0) {
-            return SealHandler.getSealEntity(player.level(), new SealPos(cell, delta.getZ() > 0 ? Direction.NORTH : Direction.SOUTH));
-        }
-        return null;
     }
 }

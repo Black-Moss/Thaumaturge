@@ -7,23 +7,28 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 
 public final class GolemTrailParticle extends TTParticle {
-    private static final int BASE_LIFETIME = 20;
-    private static final float START_ALPHA = 0.3F;
+    private static final int LIFETIME_BASE = 20;
+    private static final int LIFETIME_RANGE = 5;
+    private static final float START_SIZE = 0.15F;
+    private static final float MID_SIZE = 0.3F;
+    private static final float END_SIZE = 0.8F;
+    private static final float ALPHA_SCALE = 0.3F;
+    private static final float SPIN_SPEED = 1.0F;
     private static final double WIND_SCALE = 0.001;
 
     private GolemTrailParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
-        this.lifetime = BASE_LIFETIME + this.random.nextInt(5);
-        this.quadSize = 0.15F;
-        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? -1.0F : 1.0F);
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
+        this.quadSize = START_SIZE;
+        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? SPIN_SPEED : -SPIN_SPEED);
         setMoonWind(WIND_SCALE);
     }
 
     @Override
     protected void update() {
         float t = progress();
-        this.alpha = START_ALPHA * (1.0F - t);
-        this.quadSize = Keyframes.sample(t, 0.15F, 0.3F, 0.8F);
+        this.alpha = ALPHA_SCALE * (1.0F - t);
+        this.quadSize = Keyframes.sample(t, START_SIZE, MID_SIZE, END_SIZE);
     }
 
     public static final class Provider implements ParticleProvider<SimpleParticleType> {

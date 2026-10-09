@@ -7,28 +7,40 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
-import org.joml.Vector3f;
 
 public final class EssentiaDropParticle extends SingleQuadParticle {
+    private static final double VELOCITY_NOISE = 0.005;
+    private static final int LIFETIME_BASE = 20;
+    private static final int LIFETIME_RANGE = 10;
+    private static final float SIZE_BASE = 0.4F;
+    private static final float SIZE_RANGE = 0.2F;
+    private static final float GRAVITY = 0.01F;
+    private static final float FRICTION = 0.98F;
+    private static final float GRAVITY_FACTOR = 0.04F;
+    private static final float SIZE_FADE_SHARE = 0.5F;
+
     private final ParticleSheet sheet;
     private final float baseAlpha;
-    private final float baseScale;
+    private final float baseSize;
 
-    private EssentiaDropParticle(ClientLevel level, double x, double y, double z, EssentiaDropParticleOptions data, ParticleSheet sheet) {
-        super(level, x, y, z, level.getRandom().nextGaussian() * 0.005, level.getRandom().nextGaussian() * 0.005, level.getRandom().nextGaussian() * 0.005, null);
+    private EssentiaDropParticle(ClientLevel level, double x, double y, double z, EssentiaDropParticleOptions options, ParticleSheet sheet) {
+        super(level, x, y, z, null);
         this.sheet = sheet;
-        Vector3f rgb = ARGB.vector3fFromRGB24(data.color());
-        this.rCol = rgb.x();
-        this.gCol = rgb.y();
-        this.bCol = rgb.z();
-        this.baseAlpha = data.alpha();
-        this.alpha = data.alpha();
-        this.lifetime = 20 + level.getRandom().nextInt(10);
-        this.baseScale = 0.4F + level.getRandom().nextFloat() * 0.2F;
-        this.quadSize = this.baseScale;
-        this.gravity = 0.01F;
+        RandomSource levelRandom = level.getRandom();
+        this.xd = levelRandom.nextGaussian() * VELOCITY_NOISE;
+        this.yd = levelRandom.nextGaussian() * VELOCITY_NOISE;
+        this.zd = levelRandom.nextGaussian() * VELOCITY_NOISE;
+        this.rCol = ARGB.red(options.color()) / 255.0F;
+        this.gCol = ARGB.green(options.color()) / 255.0F;
+        this.bCol = ARGB.blue(options.color()) / 255.0F;
+        this.baseAlpha = options.alpha();
+        this.alpha = this.baseAlpha;
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
+        this.baseSize = SIZE_BASE + this.random.nextFloat() * SIZE_RANGE;
+        this.quadSize = this.baseSize;
+        this.gravity = GRAVITY;
+        this.friction = FRICTION;
         this.hasPhysics = true;
-        this.friction = 0.98F;
     }
 
     @Override
@@ -37,17 +49,17 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
         this.yo = this.y;
         this.zo = this.z;
         if (this.age++ >= this.lifetime) {
-            this.remove();
+            remove();
             return;
         }
-        this.yd -= 0.04 * this.gravity;
-        this.move(this.xd, this.yd, this.zd);
+        this.yd -= GRAVITY_FACTOR * this.gravity;
+        move(this.xd, this.yd, this.zd);
         this.xd *= this.friction;
         this.yd *= this.friction;
         this.zd *= this.friction;
         float fade = 1.0F - (float) this.age / this.lifetime;
         this.alpha = this.baseAlpha * fade;
-        this.quadSize = this.baseScale * (0.5F + fade * 0.5F);
+        this.quadSize = this.baseSize * (1.0F - SIZE_FADE_SHARE + SIZE_FADE_SHARE * fade);
     }
 
     @Override
@@ -79,7 +91,7 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
         private static final ParticleSheet SHEET = TTParticleSheets.sheet("essentia_drop");
 
         @Override
-        public Particle createParticle(EssentiaDropParticleOptions options, ClientLevel level, double x, double y, double z, double xAux, double yAux, double zAux, RandomSource random) {
+        public Particle createParticle(EssentiaDropParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
             return new EssentiaDropParticle(level, x, y, z, options, SHEET);
         }
     }

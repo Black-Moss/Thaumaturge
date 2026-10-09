@@ -10,10 +10,8 @@ import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNodeStabilize
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -21,59 +19,73 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4fc;
+import org.joml.Quaternionf;
 import org.jspecify.annotations.Nullable;
 
 public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEntityNodeStabilizer, NodeStabilizerRenderState> {
-    private static final Identifier MODEL = TTIds.rl("models/mesh/node_stabilizer.ttmesh");
-    private static final Identifier TEXTURE = TTIds.rl("textures/block/node_stabilizer.png");
-    private static final Identifier OVERLAY_TEXTURE = TTIds.rl("textures/block/node_stabilizer_over.png");
-
-    private static final RenderType BASE = RenderTypes.entityCutout(TEXTURE);
-    private static final RenderType OVERLAY = RenderTypes.entityTranslucent(OVERLAY_TEXTURE);
-    private static final Identifier TRANSDUCER_TEXTURE = TTIds.rl("textures/block/node_converter.png");
-    private static final Identifier TRANSDUCER_OVERLAY_TEXTURE = TTIds.rl("textures/block/node_converter_over.png");
-    private static final RenderType TRANSDUCER_BASE = RenderTypes.entityCutout(TRANSDUCER_TEXTURE);
-    private static final RenderType TRANSDUCER_OVERLAY = RenderTypes.entityTranslucent(TRANSDUCER_OVERLAY_TEXTURE);
-    private static final int TRANSDUCER_EXTEND_CAP = 50;
-    private static final float TRANSDUCER_EXTEND_DIVISOR = 137.0F;
-    private static final int TRANSDUCER_TINT_IDLE = 0xFF80FF80;
-    private static final int TRANSDUCER_TINT_NODE = 0xFFFF991A;
-    private static final int TRANSDUCER_TINT_ENERGIZED = 0xFFFF004D;
-    private static final int TRANSDUCER_STATUS_NODE = 1;
-    private static final int TRANSDUCER_STATUS_ENERGIZED = 2;
-    private static final float TRANSDUCER_GLOW_GAIN = 2.5F;
+    private static final Identifier MESH = TTIds.rl("models/mesh/node_stabilizer.ttmesh");
+    private static final Skin STABILIZER_SKIN = new Skin(TTIds.rl("textures/block/node_stabilizer.png"), TTIds.rl("textures/block/node_stabilizer_over.png"));
+    private static final Skin TRANSDUCER_SKIN = new Skin(TTIds.rl("textures/block/node_converter.png"), TTIds.rl("textures/block/node_converter_over.png"));
     private static final Identifier BUBBLE_TEXTURE = TTIds.rl("textures/misc/node_bubble.png");
-    private static final RenderType BUBBLE = TTFXRenderTypes.additiveSorted(BUBBLE_TEXTURE);
-
-    private static final String PART_LOCK = "lock";
-    private static final String PART_PISTON = "piston";
-    private static final int ARM_COUNT = 4;
-    private static final float ARM_ANGLE_STEP = 90.0F;
-    private static final float ARM_TWIST = 45.0F;
-    private static final float EXTEND_DIVISOR = 100.0F;
-    private static final int ADVANCED_TINT = 0xFFFF3333;
+    private static final String LOCK_PART = "lock";
+    private static final String PISTON_PART = "piston";
     private static final int WHITE = 0xFFFFFFFF;
-    private static final int OVERLAY_LIGHT_BASE = 50;
-    private static final int OVERLAY_LIGHT_RANGE = 170;
-    private static final float BUBBLE_HALF = 0.9F;
-    private static final float BUBBLE_LIFT = 1.5F;
-    private static final float BUBBLE_ALPHA_BASE = 0.5F;
-    private static final float BUBBLE_ALPHA_PULSE = 0.1F;
-    private static final float BUBBLE_PULSE_PERIOD = 8.0F;
-    private static final int BUBBLE_ADVANCED_TINT = 0xFF4444;
+    private static final int ADVANCED_TINT = 0xFFFF3333;
+    private static final int TRANSDUCER_ENERGIZED_TINT = 0xFFFF004D;
+    private static final int TRANSDUCER_ATTACHED_TINT = 0xFFFF991A;
+    private static final int TRANSDUCER_IDLE_TINT = 0xFF80FF80;
+    private static final int STATUS_ATTACHED = 1;
+    private static final int STATUS_ENERGIZED = 2;
+    private static final int BUBBLE_ADVANCED_RGB = 0xFF4444;
+    private static final int BUBBLE_PLAIN_RGB = 0xFFFFFF;
     private static final int BUBBLE_LIGHT = 220;
-    private static final double BUBBLE_SWEEP = BUBBLE_HALF * Mth.SQRT_OF_TWO;
+    private static final int ARM_COUNT = 4;
+    private static final float ARM_AZIMUTH_STEP = 90.0F;
+    private static final float ARM_TILT = 45.0F;
+    private static final float ARM_EXTENSION_DIVISOR = 100.0F;
+    private static final float TRANSDUCER_EXTENSION_CAP = 50.0F;
+    private static final float TRANSDUCER_EXTENSION_DIVISOR = 137.0F;
+    private static final float TRANSDUCER_GLOW_GAIN = 2.5F;
+    private static final int OVERLAY_LIGHT_BASE = 50;
+    private static final float OVERLAY_LIGHT_RANGE = 170.0F;
+    private static final float PULSE_AMPLITUDE = 0.1F;
+    private static final float PULSE_BASE = 0.9F;
+    private static final float PULSE_PERIOD = 3.0F;
+    private static final float PULSE_ARM_PHASE = 5.0F;
+    private static final float BUBBLE_PULSE_PERIOD = 8.0F;
+    private static final float BUBBLE_PULSE_BASE = 0.5F;
+    private static final float BUBBLE_HALF = 0.9F;
+    private static final float BUBBLE_HEIGHT = 1.5F;
+    private static final float CENTER = 0.5F;
+    private static final float STAND_UP = -90.0F;
+    private static final float BYTE_RANGE = 255.0F;
+    private static final double BOUNDS_CENTER_LIFT = 1.0;
+    private static final double BOUNDS_SIDE = 2.0 * BUBBLE_HALF * Math.sqrt(2.0);
 
     public NodeStabilizerRenderer(BlockEntityRendererProvider.Context context) {}
 
     @Override
     public NodeStabilizerRenderState createRenderState() {
         return new NodeStabilizerRenderState();
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(BlockEntityNodeStabilizer stabilizer) {
+        BlockPos pos = stabilizer.getBlockPos();
+        AABB bubble = AABB.ofSize(Vec3.atCenterOf(pos).add(0.0, BOUNDS_CENTER_LIFT, 0.0), BOUNDS_SIDE, BOUNDS_SIDE, BOUNDS_SIDE);
+        return new AABB(pos).minmax(bubble);
     }
 
     @Override
@@ -89,106 +101,58 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
     @Override
     public void submit(NodeStabilizerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
-        poseStack.translate(0.5F, 0.0F, 0.5F);
-        poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
+        poseStack.translate(CENTER, 0.0F, CENTER);
+        poseStack.mulPose(Axis.XP.rotationDegrees(STAND_UP));
         submitParts(state.count, state.advanced, state.ticks, poseStack, collector, state.light);
         poseStack.popPose();
         if (state.count > 0) {
-            float pulse = Mth.sin(state.ticks / BUBBLE_PULSE_PERIOD) * BUBBLE_ALPHA_PULSE + BUBBLE_ALPHA_BASE;
-            float alpha = state.count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse;
-            int tint = state.advanced ? BUBBLE_ADVANCED_TINT : 0xFFFFFF;
-            int color = ARGB.color((int) (alpha * 255.0F), tint);
-            Vec3 origin = Vec3.atCenterOf(state.blockPos).add(0.0, BUBBLE_LIFT - 0.5, 0.0);
-            LateWorldRenderQueue.enqueue(origin, (latePose, buffers) -> drawBubble(latePose, buffers, color));
+            queueBubble(state, camera);
         }
-    }
-
-    private static void drawBubble(PoseStack poseStack, MultiBufferSource buffers, int color) {
-        poseStack.pushPose();
-        poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
-        PoseStack.Pose pose = poseStack.last();
-        VertexConsumer buffer = buffers.getBuffer(BUBBLE);
-        buffer.addVertex(pose, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(0.0F, 1.0F).setColor(color).setLight(BUBBLE_LIGHT);
-        buffer.addVertex(pose, BUBBLE_HALF, -BUBBLE_HALF, 0.0F).setUv(1.0F, 1.0F).setColor(color).setLight(BUBBLE_LIGHT);
-        buffer.addVertex(pose, BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(1.0F, 0.0F).setColor(color).setLight(BUBBLE_LIGHT);
-        buffer.addVertex(pose, -BUBBLE_HALF, BUBBLE_HALF, 0.0F).setUv(0.0F, 0.0F).setColor(color).setLight(BUBBLE_LIGHT);
-        poseStack.popPose();
     }
 
     public static void submitParts(int count, boolean advanced, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        TTMesh mesh = GolemMeshes.get(MODEL);
-        TTMeshPart lock = findPart(mesh, PART_LOCK);
-        TTMeshPart piston = findPart(mesh, PART_PISTON);
-        if (lock != null) {
-            PoseStack.Pose lockPose = poseStack.last().copy();
-            collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) -> GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
-        }
-        if (piston != null) {
-            for (int arm = 0; arm < ARM_COUNT; arm++) {
-                poseStack.pushPose();
-                poseStack.mulPose(Axis.ZP.rotationDegrees(ARM_ANGLE_STEP * arm));
-                poseStack.mulPose(Axis.YP.rotationDegrees(ARM_TWIST));
-                poseStack.translate(0.0F, 0.0F, count / EXTEND_DIVISOR);
-                PoseStack.Pose armPose = poseStack.last().copy();
-                collector.submitCustomGeometry(poseStack, BASE, (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
-                float pulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
-                int glowLight = OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (count / (float) BlockEntityNodeStabilizer.MAX_COUNT * pulse));
-                int tint = advanced ? ADVANCED_TINT : WHITE;
-                collector.submitCustomGeometry(poseStack, OVERLAY, (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, glowLight, tint));
-                poseStack.popPose();
-            }
-        }
+        submitMesh(STABILIZER_SKIN, count / ARM_EXTENSION_DIVISOR, (float) count / BlockEntityNodeStabilizer.MAX_COUNT, false, advanced ? ADVANCED_TINT : WHITE, ticks, poseStack, collector, light);
     }
 
     public static void submitTransducerParts(int count, int status, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        TTMesh mesh = GolemMeshes.get(MODEL);
-        TTMeshPart lock = findPart(mesh, PART_LOCK);
-        TTMeshPart piston = findPart(mesh, PART_PISTON);
-        float extend = Math.min(TRANSDUCER_EXTEND_CAP, count) / TRANSDUCER_EXTEND_DIVISOR;
-        int tint = statusTint(status);
+        float extension = Math.min(TRANSDUCER_EXTENSION_CAP, count) / TRANSDUCER_EXTENSION_DIVISOR;
+        int tint = status == STATUS_ENERGIZED ? TRANSDUCER_ENERGIZED_TINT : status == STATUS_ATTACHED ? TRANSDUCER_ATTACHED_TINT : TRANSDUCER_IDLE_TINT;
+        submitMesh(TRANSDUCER_SKIN, extension, extension * TRANSDUCER_GLOW_GAIN, true, tint, ticks, poseStack, collector, light);
+    }
+
+    private static void submitMesh(Skin skin, float extension, float glow, boolean glowingLock, int tint, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        TTMesh mesh = GolemMeshes.get(MESH);
+        TTMeshPart lock = findPart(mesh, LOCK_PART);
+        TTMeshPart piston = findPart(mesh, PISTON_PART);
+        RenderType base = RenderTypes.entityCutout(skin.base());
+        RenderType overlay = RenderTypes.entityTranslucent(skin.overlay());
         if (lock != null) {
-            PoseStack.Pose lockPose = poseStack.last().copy();
-            collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) -> GolemMeshes.renderPart(lock, lockPose, buffer, light, WHITE));
-            int glowLight = statusGlow(extend, ticks, 0);
-            collector.submitCustomGeometry(poseStack, TRANSDUCER_OVERLAY, (pose, buffer) -> GolemMeshes.renderPart(lock, lockPose, buffer, glowLight, tint));
-        }
-        if (piston != null) {
-            for (int arm = 0; arm < ARM_COUNT; arm++) {
-                poseStack.pushPose();
-                poseStack.mulPose(Axis.ZP.rotationDegrees(ARM_ANGLE_STEP * arm));
-                poseStack.mulPose(Axis.YP.rotationDegrees(ARM_TWIST));
-                poseStack.translate(0.0F, 0.0F, extend);
-                PoseStack.Pose armPose = poseStack.last().copy();
-                collector.submitCustomGeometry(poseStack, TRANSDUCER_BASE, (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, light, WHITE));
-                int glowLight = statusGlow(extend, ticks, arm);
-                collector.submitCustomGeometry(poseStack, TRANSDUCER_OVERLAY, (pose, buffer) -> GolemMeshes.renderPart(piston, armPose, buffer, glowLight, tint));
-                poseStack.popPose();
+            drawPart(lock, base, WHITE, light, poseStack, collector);
+            if (glowingLock) {
+                drawPart(lock, overlay, tint, overlayLight(glow, ticks, 0), poseStack, collector);
             }
         }
-    }
-
-    private static int statusTint(int status) {
-        if (status == TRANSDUCER_STATUS_ENERGIZED) {
-            return TRANSDUCER_TINT_ENERGIZED;
+        if (piston == null) {
+            return;
         }
-        return status == TRANSDUCER_STATUS_NODE ? TRANSDUCER_TINT_NODE : TRANSDUCER_TINT_IDLE;
+        for (int arm = 0; arm < ARM_COUNT; arm++) {
+            poseStack.pushPose();
+            poseStack.mulPose(Axis.ZP.rotationDegrees(arm * ARM_AZIMUTH_STEP));
+            poseStack.mulPose(Axis.XP.rotationDegrees(ARM_TILT));
+            poseStack.translate(0.0F, 0.0F, extension);
+            drawPart(piston, base, WHITE, light, poseStack, collector);
+            drawPart(piston, overlay, tint, overlayLight(glow, ticks, arm), poseStack, collector);
+            poseStack.popPose();
+        }
     }
 
-    private static int statusGlow(float extend, float ticks, int arm) {
-        float pulse = Mth.sin((ticks + arm * 5) / 3.0F) * 0.1F + 0.9F;
-        return OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (extend * TRANSDUCER_GLOW_GAIN * pulse));
+    private static int overlayLight(float glow, float ticks, int arm) {
+        float pulse = PULSE_AMPLITUDE * Mth.sin((ticks + PULSE_ARM_PHASE * arm) / PULSE_PERIOD) + PULSE_BASE;
+        return OVERLAY_LIGHT_BASE + (int) (OVERLAY_LIGHT_RANGE * (glow * pulse));
     }
 
-    @Override
-    public boolean shouldRenderOffScreen() {
-        return true;
-    }
-
-    @Override
-    public AABB getRenderBoundingBox(BlockEntityNodeStabilizer stabilizer) {
-        BlockPos pos = stabilizer.getBlockPos();
-        Vec3 bubble = Vec3.atCenterOf(pos).add(0.0, BUBBLE_LIFT - 0.5, 0.0);
-        return new AABB(pos).minmax(AABB.ofSize(bubble, BUBBLE_SWEEP * 2.0, BUBBLE_SWEEP * 2.0, BUBBLE_SWEEP * 2.0));
+    private static void drawPart(TTMeshPart part, RenderType type, int color, int light, PoseStack poseStack, SubmitNodeCollector collector) {
+        collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
     }
 
     private static @Nullable TTMeshPart findPart(TTMesh mesh, String name) {
@@ -198,5 +162,33 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
             }
         }
         return null;
+    }
+
+    private static void queueBubble(NodeStabilizerRenderState state, CameraRenderState camera) {
+        float pulse = PULSE_AMPLITUDE * Mth.sin(state.ticks / BUBBLE_PULSE_PERIOD) + BUBBLE_PULSE_BASE;
+        float alpha = (float) state.count / BlockEntityNodeStabilizer.MAX_COUNT * pulse;
+        int color = ARGB.color((int) (alpha * BYTE_RANGE), state.advanced ? BUBBLE_ADVANCED_RGB : BUBBLE_PLAIN_RGB);
+        Quaternionf orientation = new Quaternionf(camera.orientation);
+        Vec3 origin = Vec3.atBottomCenterOf(state.blockPos).add(0.0, BUBBLE_HEIGHT, 0.0);
+        LateWorldRenderQueue.enqueue(origin, (poseStack, buffers) -> {
+            poseStack.pushPose();
+            poseStack.mulPose(orientation);
+            bubbleQuad(poseStack.last().pose(), buffers.getBuffer(TTFXRenderTypes.additiveSorted(BUBBLE_TEXTURE)), color);
+            poseStack.popPose();
+        });
+    }
+
+    private static void bubbleQuad(Matrix4fc matrix, VertexConsumer buffer, int color) {
+        bubbleVertex(matrix, buffer, -BUBBLE_HALF, -BUBBLE_HALF, 0.0F, 1.0F, color);
+        bubbleVertex(matrix, buffer, BUBBLE_HALF, -BUBBLE_HALF, 1.0F, 1.0F, color);
+        bubbleVertex(matrix, buffer, BUBBLE_HALF, BUBBLE_HALF, 1.0F, 0.0F, color);
+        bubbleVertex(matrix, buffer, -BUBBLE_HALF, BUBBLE_HALF, 0.0F, 0.0F, color);
+    }
+
+    private static void bubbleVertex(Matrix4fc matrix, VertexConsumer buffer, float x, float y, float u, float v, int color) {
+        buffer.addVertex(matrix, x, y, 0.0F).setUv(u, v).setColor(color).setLight(BUBBLE_LIGHT);
+    }
+
+    private record Skin(Identifier base, Identifier overlay) {
     }
 }

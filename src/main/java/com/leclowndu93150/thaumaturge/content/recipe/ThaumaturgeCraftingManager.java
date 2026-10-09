@@ -7,39 +7,38 @@ import com.leclowndu93150.thaumaturge.content.recipe.crucible.CrucibleRecipeInpu
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingRecipe;
 import com.leclowndu93150.thaumaturge.registry.TTRecipeTypes;
+import java.util.Comparator;
+import java.util.Optional;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public final class ThaumaturgeCraftingManager {
+    public ThaumaturgeCraftingManager() {}
 
-    @SuppressWarnings("unchecked")
     public static @Nullable ArcaneCraftingRecipe findMatchingArcaneRecipe(Level level, ArcaneCraftingInput input, Player player) {
-        RecipeMap recipes = level.isClientSide() ? TTClientRecipes.getRecipeMapForType(level, TTRecipeTypes.ARCANE.get()) : ((ServerLevel) level).recipeAccess().recipeMap();
-        return recipes.byType(TTRecipeTypes.ARCANE.get()).stream().filter(r -> r.value().matches(input, level)).filter(r -> r.value().doesPassGate(player)).findFirst().map(RecipeHolder::value)
-                .orElse(null);
+        return arcaneRecipes(level).byType(TTRecipeTypes.ARCANE.get()).stream().map(RecipeHolder::value).filter(candidate -> candidate.matches(input, level) && candidate.doesPassGate(player))
+                .findFirst().orElse(null);
     }
 
-    public static @Nullable CrucibleRecipe findMatchingCrucibleRecipe(ServerLevel level, Player player, AspectList aspects, ItemStack lastDrop) {
-        int highest = 0;
-        CrucibleRecipe out = null;
+    public static @Nullable CrucibleRecipe findMatchingCrucibleRecipe(ServerLevel level, @Nullable Player player, AspectList aspects, ItemStack catalyst) {
+        return Optional.ofNullable(player).map(gated -> richestCrucibleMatch(level, gated, new CrucibleRecipeInput(catalyst, aspects))).orElse(null);
+    }
 
-        CrucibleRecipeInput input = new CrucibleRecipeInput(lastDrop, aspects);
-        for (RecipeHolder<CrucibleRecipe> holder : level.recipeAccess().recipeMap().byType(TTRecipeTypes.CRUCIBLE.get())) {
-            CrucibleRecipe recipe = holder.value();
-            if (player != null && recipe.matches(input, level) && recipe.doesPassGate(player)) {
-                int result = recipe.aspects().totalAmount();
-                if (result > highest) {
-                    highest = result;
-                    out = recipe;
-                }
-            }
+    private static @Nullable CrucibleRecipe richestCrucibleMatch(ServerLevel level, Player player, CrucibleRecipeInput input) {
+        return level.recipeAccess().recipeMap().byType(TTRecipeTypes.CRUCIBLE.get()).stream().map(RecipeHolder::value)
+                .filter(candidate -> candidate.matches(input, level) && candidate.doesPassGate(player)).filter(candidate -> candidate.aspects().totalAmount() > 0)
+                .max(Comparator.comparingInt(candidate -> candidate.aspects().totalAmount())).orElse(null);
+    }
+
+    private static RecipeMap arcaneRecipes(Level level) {
+        if (level instanceof ServerLevel serverLevel) {
+            return serverLevel.recipeAccess().recipeMap();
         }
-
-        return out;
+        return TTClientRecipes.getRecipeMapForType(level, TTRecipeTypes.ARCANE.get());
     }
 }

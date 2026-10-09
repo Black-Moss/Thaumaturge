@@ -2,13 +2,13 @@ package com.leclowndu93150.thaumaturge.content.aura.node;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 
 public final class NodeFeature extends Feature<NodeFeatureConfig> {
-    private static final int MAX_RISE = 4;
+    private static final int MAXIMUM_RISE = 4;
 
     public NodeFeature(Codec<NodeFeatureConfig> codec) {
         super(codec);
@@ -17,20 +17,14 @@ public final class NodeFeature extends Feature<NodeFeatureConfig> {
     @Override
     public boolean place(FeaturePlaceContext<NodeFeatureConfig> context) {
         WorldGenLevel level = context.level();
-        RandomSource random = context.random();
         NodeFeatureConfig config = context.config();
-        BlockPos pos = context.origin();
-        if (level.getBlockState(pos.above()).isAir()) {
-            pos = pos.above();
-        }
-        int rise = random.nextInt(MAX_RISE);
-        BlockPos risen = pos.above(rise);
-        if (level.getBlockState(risen).isAir() || level.getBlockState(risen).canBeReplaced()) {
-            pos = risen;
-        }
-        if (pos.getY() > level.getMaxY()) {
+        BlockPos start = level.getBlockState(context.origin().above()).isAir() ? context.origin().above() : context.origin();
+        BlockPos raised = start.above(context.random().nextInt(MAXIMUM_RISE));
+        BlockState raisedState = level.getBlockState(raised);
+        BlockPos target = raisedState.isAir() || raisedState.canBeReplaced() ? raised : start;
+        if (target.getY() > level.getMaxY()) {
             return false;
         }
-        return NodeGenerator.createRandomNodeAt(level, pos, random, config.silverwood(), config.eerie(), config.small(), config.specialRarity(), config.baseAura());
+        return NodeGenerator.createRandomNodeAt(level, target, context.random(), config.silverwood(), config.eerie(), config.small(), config.specialRarity(), config.baseAura());
     }
 }

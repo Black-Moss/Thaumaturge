@@ -11,10 +11,13 @@ import com.leclowndu93150.thaumaturge.content.spell.engine.SpellAnalyzer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
 
@@ -45,124 +48,167 @@ public final class NodeInspector {
     private static final int COST_TEXT_Y = 1;
     private static final int DIVIDER_STEP = 6;
 
-    private final DraftHost host;
-    private final List<Spinner> spinners = new ArrayList<>();
-    private final List<AspectCell> aspects = new ArrayList<>();
+    private final DraftHost session;
+    private final List<StepHit> stepHits = new ArrayList<>();
+    private final List<AspectHit> aspectHits = new ArrayList<>();
 
-    public NodeInspector(DraftHost host) {
-        this.host = host;
+    public NodeInspector(DraftHost session) {
+        this.session = session;
     }
 
     public int render(GuiGraphicsExtractor graphics, FocalLayout layout, int mouseX, int mouseY) {
-        spinners.clear();
-        aspects.clear();
-        int x = layout.rightX0();
-        int right = layout.rightX1();
-        int y = layout.bodyY0();
-        FocalDraw.text(graphics, host.font(), SpellText.inspectorLabel("selected"), x, y, FocalColors.LABEL);
-        y += LABEL_STEP;
-        FocalDraw.field(graphics, x, y, FocalLayout.RIGHT_W, CARD_H);
-        Selection selection = host.selection();
-        SpellNode node = SpellPaths.at(host.draft().root(), selection.path());
-        Optional<SpellPart> part = selection.ghost() ? Optional.empty() : host.part(node.part());
+        aspectHits.clear();
+        stepHits.clear();
+        Pane pane = new Pane(graphics, layout.rightX0(), layout.rightX1(), mouseX, mouseY);
+        int cardY = layout.bodyY0() + LABEL_STEP;
+        pane.label(session.font(), SpellText.inspectorLabel("selected"), layout.bodyY0());
+        FocalDraw.field(graphics, pane.left(), cardY, FocalLayout.RIGHT_W, CARD_H);
+        Selection selection = session.selection();
+        SpellNode node = SpellPaths.at(session.draft().root(), selection.path());
+        Optional<SpellPart> part = selection.ghost() ? Optional.empty() : session.part(node.part());
+        int y = cardY + CARD_STEP;
         if (part.isPresent()) {
-            SpellPartIcons.draw(graphics, host.registries(), node, x + CARD_ICON, y + CARD_ICON, CARD_BACK, CARD_GLYPH, CARD_BACK, 1.0F);
-            FocalDraw.text(graphics, host.font(), SpellText.partName(node.part()), x + CARD_TEXT_X, y + CARD_NAME_Y, FocalColors.WHITE);
-            Optional<ResourceKey<IAspect>> aspect = part.get().aspect().resolve(node.aspect(), host.registries());
-            Component kind = aspect.isPresent() && part.get().aspect().selectable() ? SpellText.kindWithAspect(part.get().kind(), aspect.get()) : SpellText.kind(part.get().kind());
-            FocalDraw.text(graphics, host.font(), kind, x + CARD_TEXT_X, y + CARD_KIND_Y, FocalColors.GREY);
+            drawCard(pane, cardY, node, part.get());
+            y = drawBody(pane, y, node, part.get());
         } else {
-            FocalDraw.text(graphics, host.font(), SpellText.emptySlot(), x + CARD_TEXT_X, y + CARD_NAME_Y, FocalColors.GREY);
+            FocalDraw.text(graphics, session.font(), SpellText.emptySlot(), pane.left() + CARD_TEXT_X, cardY + CARD_NAME_Y, FocalColors.GREY);
         }
-        y += CARD_STEP;
-        if (part.isPresent() && part.get().aspect().selectable()) {
-            y = aspectGrid(graphics, x, y, node, part.get(), mouseX, mouseY);
-        }
-        if (part.isPresent()) {
-            for (SettingSpec spec : part.get().settings()) {
-                spinner(graphics, x, right, y, node, spec, mouseX, mouseY);
-                y += ROW_STEP;
-            }
-            FocalDraw.text(graphics, host.font(), SpellText.inspectorLabel("node_cost"), x, y + COST_TEXT_Y, FocalColors.GREY);
-            int cost = Math.round(SpellAnalyzer.nodeComplexity(node, part.get(), host.registries()));
-            FocalDraw.textRight(graphics, host.font(), Component.literal(Integer.toString(cost)), right, y + COST_TEXT_Y, FocalColors.WHITE);
-            y += COST_STEP;
-        }
-        FocalDraw.sprite(graphics, FocalSprites.DIVIDER, x, y, FocalLayout.RIGHT_W, FocalSprites.DIVIDER_H);
+        FocalDraw.sprite(graphics, FocalSprites.DIVIDER, pane.left(), y, FocalLayout.RIGHT_W, FocalSprites.DIVIDER_H);
         return y + DIVIDER_STEP;
     }
 
-    private int aspectGrid(GuiGraphicsExtractor graphics, int x, int y, SpellNode node, SpellPart part, int mouseX, int mouseY) {
-        FocalDraw.text(graphics, host.font(), SpellText.inspectorLabel("aspect"), x, y, FocalColors.LABEL);
-        y += LABEL_STEP;
-        List<Holder.Reference<IAspect>> known = new ArrayList<>();
-        for (ResourceKey<IAspect> key : part.aspect().options(host.registries())) {
-            host.registries().lookupOrThrow(IAspect.REGISTRY_KEY).get(key).filter(holder -> AspectPoolAccess.isDiscovered(host.player(), holder)).ifPresent(known::add);
-        }
-        Optional<ResourceKey<IAspect>> chosen = part.aspect().resolve(node.aspect(), host.registries());
-        for (int index = 0; index < known.size(); index++) {
-            Holder.Reference<IAspect> aspect = known.get(index);
-            int ax = x + index % ASPECT_COLUMNS * ASPECT_PITCH_X;
-            int ay = y + index / ASPECT_COLUMNS * ASPECT_PITCH_Y;
-            FocalDraw.sprite(graphics, FocalSprites.SLOT, ax, ay, FocalSprites.SLOT_SIZE, FocalSprites.SLOT_SIZE);
-            graphics.blit(RenderPipelines.GUI_TEXTURED, aspect.value().texture(), ax + 1, ay + 1, 0.0F, 0.0F, ASPECT_ICON, ASPECT_ICON, ASPECT_TEXTURE, ASPECT_TEXTURE, ASPECT_TEXTURE, ASPECT_TEXTURE,
-                    ARGB.opaque(aspect.value().color()));
-            if (chosen.isPresent() && chosen.get().equals(aspect.key())) {
-                FocalDraw.sprite(graphics, FocalSprites.SELECTION, ax - ASPECT_SELECT_OFFSET, ay - ASPECT_SELECT_OFFSET, FocalSprites.SELECTION_SIZE, FocalSprites.SELECTION_SIZE);
-            }
-            aspects.add(new AspectCell(aspect.key(), ax, ay));
-            if (FocalDraw.over(mouseX, mouseY, ax, ay, FocalSprites.SLOT_SIZE, FocalSprites.SLOT_SIZE)) {
-                graphics.setTooltipForNextFrame(host.font(), SpellText.aspectName(aspect.key()), mouseX, mouseY);
-            }
-        }
-        int rows = Math.max(1, (known.size() + ASPECT_COLUMNS - 1) / ASPECT_COLUMNS);
-        return y + rows * ASPECT_PITCH_Y + ASPECT_TAIL;
+    private void drawCard(Pane pane, int cardY, SpellNode node, SpellPart part) {
+        Font font = session.font();
+        int iconX = pane.left() + CARD_ICON;
+        int iconY = cardY + CARD_ICON;
+        SpellPartIcons.draw(pane.graphics(), session.registries(), node, iconX, iconY, CARD_BACK, CARD_GLYPH, CARD_BACK, 1.0F);
+        int textX = pane.left() + CARD_TEXT_X;
+        FocalDraw.text(pane.graphics(), font, SpellText.partName(node.part()), textX, cardY + CARD_NAME_Y, FocalColors.WHITE);
+        FocalDraw.text(pane.graphics(), font, kindLine(node, part), textX, cardY + CARD_KIND_Y, FocalColors.GREY);
     }
 
-    private void spinner(GuiGraphicsExtractor graphics, int x, int right, int y, SpellNode node, SettingSpec spec, int mouseX, int mouseY) {
-        FocalDraw.text(graphics, host.font(), SpellText.setting(spec), x, y + ROW_TEXT_Y, FocalColors.GREY);
-        int value = spec.clamp(node.settings().getOrDefault(spec.key(), spec.defaultValue()));
-        Component label = spec.label(value);
-        int valueW = Math.max(VALUE_MIN_W, host.font().width(label) + VALUE_PAD);
-        int plusX = right - SPIN;
-        int fieldX = plusX - SPIN_GAP - valueW;
-        int minusX = fieldX - SPIN_GAP - SPIN;
-        FocalDraw.button(graphics, minusX, y, SPIN, SPIN, FocalSprites.GLYPH_LEFT, FocalSprites.GLYPH_SIZE, FocalDraw.over(mouseX, mouseY, minusX, y, SPIN, SPIN), false);
-        FocalDraw.field(graphics, fieldX, y, valueW, SPIN);
-        FocalDraw.text(graphics, host.font(), label, fieldX + (valueW - host.font().width(label)) / 2, y + ROW_TEXT_Y, FocalColors.WHITE);
-        FocalDraw.button(graphics, plusX, y, SPIN, SPIN, FocalSprites.GLYPH_RIGHT, FocalSprites.GLYPH_SIZE, FocalDraw.over(mouseX, mouseY, plusX, y, SPIN, SPIN), false);
-        spinners.add(new Spinner(spec, minusX, y, -1));
-        spinners.add(new Spinner(spec, plusX, y, 1));
+    private Component kindLine(SpellNode node, SpellPart part) {
+        if (!part.aspect().selectable()) {
+            return SpellText.kind(part.kind());
+        }
+        return part.aspect().resolve(node.aspect(), session.registries()).map(key -> SpellText.kindWithAspect(part.kind(), key)).orElseGet(() -> SpellText.kind(part.kind()));
+    }
+
+    private int drawBody(Pane pane, int startY, SpellNode node, SpellPart part) {
+        int y = part.aspect().selectable() ? aspectGrid(pane, startY, node, part) : startY;
+        for (SettingSpec spec : part.settings()) {
+            settingRow(pane, y, node, spec);
+            y += ROW_STEP;
+        }
+        int cost = Math.round(SpellAnalyzer.nodeComplexity(node, part, session.registries()));
+        int costY = y + COST_TEXT_Y;
+        FocalDraw.text(pane.graphics(), session.font(), SpellText.inspectorLabel("node_cost"), pane.left(), costY, FocalColors.GREY);
+        FocalDraw.textRight(pane.graphics(), session.font(), Component.literal(Integer.toString(cost)), pane.right(), costY, FocalColors.WHITE);
+        return y + COST_STEP;
+    }
+
+    private List<Holder.Reference<IAspect>> discoveredAspects(SpellPart part) {
+        return part.aspect().options(session.registries()).stream().flatMap(key -> session.registries().lookupOrThrow(IAspect.REGISTRY_KEY).get(key).stream())
+                .filter(holder -> AspectPoolAccess.isDiscovered(session.player(), holder)).toList();
+    }
+
+    private int aspectGrid(Pane pane, int startY, SpellNode node, SpellPart part) {
+        pane.label(session.font(), SpellText.inspectorLabel("aspect"), startY);
+        int gridY = startY + LABEL_STEP;
+        List<Holder.Reference<IAspect>> options = discoveredAspects(part);
+        Optional<ResourceKey<IAspect>> chosen = part.aspect().resolve(node.aspect(), session.registries());
+        int slot = 0;
+        for (Holder.Reference<IAspect> option : options) {
+            int cellX = pane.left() + slot % ASPECT_COLUMNS * ASPECT_PITCH_X;
+            int cellY = gridY + slot / ASPECT_COLUMNS * ASPECT_PITCH_Y;
+            boolean picked = chosen.map(option.key()::equals).orElse(false);
+            drawAspectCell(pane, option, cellX, cellY, picked);
+            slot++;
+        }
+        int rowCount = Math.max(1, Math.ceilDiv(options.size(), ASPECT_COLUMNS));
+        return gridY + rowCount * ASPECT_PITCH_Y + ASPECT_TAIL;
+    }
+
+    private void drawAspectCell(Pane pane, Holder.Reference<IAspect> option, int cellX, int cellY, boolean selected) {
+        GuiGraphicsExtractor graphics = pane.graphics();
+        IAspect value = option.value();
+        FocalDraw.sprite(graphics, FocalSprites.SLOT, cellX, cellY, FocalSprites.SLOT_SIZE, FocalSprites.SLOT_SIZE);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, value.texture(), cellX + 1, cellY + 1, 0.0F, 0.0F, ASPECT_ICON, ASPECT_ICON, ASPECT_TEXTURE, ASPECT_TEXTURE, ASPECT_TEXTURE, ASPECT_TEXTURE,
+                ARGB.opaque(value.color()));
+        if (selected) {
+            int ringX = cellX - ASPECT_SELECT_OFFSET;
+            int ringY = cellY - ASPECT_SELECT_OFFSET;
+            FocalDraw.sprite(graphics, FocalSprites.SELECTION, ringX, ringY, FocalSprites.SELECTION_SIZE, FocalSprites.SELECTION_SIZE);
+        }
+        aspectHits.add(new AspectHit(option.key(), cellX, cellY));
+        if (FocalDraw.over(pane.mouseX(), pane.mouseY(), cellX, cellY, FocalSprites.SLOT_SIZE, FocalSprites.SLOT_SIZE)) {
+            graphics.setTooltipForNextFrame(session.font(), SpellText.aspectName(option.key()), pane.mouseX(), pane.mouseY());
+        }
+    }
+
+    private void settingRow(Pane pane, int y, SpellNode node, SettingSpec spec) {
+        FocalDraw.text(pane.graphics(), session.font(), SpellText.setting(spec), pane.left(), y + ROW_TEXT_Y, FocalColors.GREY);
+        Component label = spec.label(currentValue(node, spec));
+        int labelWidth = session.font().width(label);
+        int valueW = Math.max(VALUE_MIN_W, labelWidth + VALUE_PAD);
+        int incX = pane.right() - SPIN;
+        int valueX = incX - SPIN_GAP - valueW;
+        int decX = valueX - SPIN_GAP - SPIN;
+        stepButton(pane, decX, y, FocalSprites.GLYPH_LEFT);
+        FocalDraw.field(pane.graphics(), valueX, y, valueW, SPIN);
+        FocalDraw.text(pane.graphics(), session.font(), label, valueX + (valueW - labelWidth) / 2, y + ROW_TEXT_Y, FocalColors.WHITE);
+        stepButton(pane, incX, y, FocalSprites.GLYPH_RIGHT);
+        stepHits.add(new StepHit(spec, decX, y, -1));
+        stepHits.add(new StepHit(spec, incX, y, 1));
+    }
+
+    private void stepButton(Pane pane, int x, int y, Identifier glyph) {
+        boolean hovered = FocalDraw.over(pane.mouseX(), pane.mouseY(), x, y, SPIN, SPIN);
+        FocalDraw.button(pane.graphics(), x, y, SPIN, SPIN, glyph, FocalSprites.GLYPH_SIZE, hovered, false);
+    }
+
+    private static int currentValue(SpellNode node, SettingSpec spec) {
+        return spec.clamp(node.settings().getOrDefault(spec.key(), spec.defaultValue()));
     }
 
     public boolean mouseClicked(double mouseX, double mouseY) {
-        Selection selection = host.selection();
+        Selection selection = session.selection();
         if (selection.ghost()) {
             return false;
         }
-        for (AspectCell cell : aspects) {
-            if (FocalDraw.over(mouseX, mouseY, cell.x(), cell.y(), FocalSprites.SLOT_SIZE, FocalSprites.SLOT_SIZE)) {
-                host.edit(spell -> spell.withRoot(SpellPaths.update(spell.root(), selection.path(), node -> node.withAspect(Optional.of(cell.aspect())))));
-                host.playClick();
-                return true;
-            }
+        Optional<AspectHit> aspectHit = aspectHits.stream().filter(hit -> FocalDraw.over(mouseX, mouseY, hit.x(), hit.y(), FocalSprites.SLOT_SIZE, FocalSprites.SLOT_SIZE)).findFirst();
+        if (aspectHit.isPresent()) {
+            ResourceKey<IAspect> picked = aspectHit.get().aspect();
+            editNode(selection, node -> node.withAspect(Optional.of(picked)));
+            return true;
         }
-        for (Spinner spinner : spinners) {
-            if (FocalDraw.over(mouseX, mouseY, spinner.x(), spinner.y(), SPIN, SPIN)) {
-                host.edit(spell -> spell.withRoot(SpellPaths.update(spell.root(), selection.path(), node -> {
-                    int current = node.settings().getOrDefault(spinner.spec().key(), spinner.spec().defaultValue());
-                    return node.withSetting(spinner.spec().key(), spinner.spec().offset(current, spinner.delta()));
-                })));
-                host.playClick();
-                return true;
-            }
+        Optional<StepHit> stepHit = stepHits.stream().filter(hit -> FocalDraw.over(mouseX, mouseY, hit.x(), hit.y(), SPIN, SPIN)).findFirst();
+        if (stepHit.isPresent()) {
+            SettingSpec spec = stepHit.get().spec();
+            int delta = stepHit.get().delta();
+            editNode(selection, node -> {
+                int current = node.settings().getOrDefault(spec.key(), spec.defaultValue());
+                return node.withSetting(spec.key(), spec.offset(current, delta));
+            });
+            return true;
         }
         return false;
     }
 
-    private record Spinner(SettingSpec spec, int x, int y, int delta) {
+    private void editNode(Selection selection, UnaryOperator<SpellNode> change) {
+        session.edit(spell -> spell.withRoot(SpellPaths.update(spell.root(), selection.path(), change)));
+        session.playClick();
     }
 
-    private record AspectCell(ResourceKey<IAspect> aspect, int x, int y) {
+    private record Pane(GuiGraphicsExtractor graphics, int left, int right, int mouseX, int mouseY) {
+        void label(Font font, Component title, int y) {
+            FocalDraw.text(graphics, font, title, left, y, FocalColors.LABEL);
+        }
+    }
+
+    private record StepHit(SettingSpec spec, int x, int y, int delta) {
+    }
+
+    private record AspectHit(ResourceKey<IAspect> aspect, int x, int y) {
     }
 }

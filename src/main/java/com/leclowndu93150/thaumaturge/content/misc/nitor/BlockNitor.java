@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -20,24 +19,28 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockNitor extends BaseEntityBlock {
-    public static final MapCodec<BlockNitor> CODEC = RecordCodecBuilder
-            .mapCodec(inst -> inst.group(DyeColor.CODEC.fieldOf("dye").forGetter(BlockNitor::dye), propertiesCodec()).apply(inst, BlockNitor::new));
+    private static final String DYE_FIELD = "dye";
 
-    private static final VoxelShape SHAPE = box(5.28, 5.28, 5.28, 10.56, 10.56, 10.56);
+    public static final MapCodec<BlockNitor> CODEC = RecordCodecBuilder
+            .mapCodec(instance -> instance.group(DyeColor.CODEC.fieldOf(DYE_FIELD).forGetter(BlockNitor::dye), propertiesCodec()).apply(instance, BlockNitor::new));
+
+    private static final double SHAPE_MIN = 5.28;
+    private static final double SHAPE_MAX = 10.56;
+    private static final VoxelShape SHAPE = box(SHAPE_MIN, SHAPE_MIN, SHAPE_MIN, SHAPE_MAX, SHAPE_MAX, SHAPE_MAX);
 
     private final DyeColor dye;
 
-    public BlockNitor(DyeColor dye, BlockBehaviour.Properties properties) {
+    public BlockNitor(DyeColor dye, Properties properties) {
         super(properties);
         this.dye = dye;
     }
 
     public DyeColor dye() {
-        return this.dye;
+        return dye;
     }
 
     public int dyeColor() {
-        return this.dye.getMapColor().col;
+        return dye.getMapColor().col;
     }
 
     @Override
