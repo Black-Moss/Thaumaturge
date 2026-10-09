@@ -39,7 +39,12 @@ These replacements were drawn by community contributors on the Thaumaturge asset
 | Minecraft `furnace_top.png`, Mojang Studios | Minecraft EULA | https://www.minecraft.net/eula | `textures/block/al_furnace_side.png`, `textures/block/golem_fetter.png`, `textures/block/golem_fetter_active.png` (with an original powered channel) |
 | Minecraft `furnace_side.png`, Mojang Studios | Minecraft EULA | https://www.minecraft.net/eula | `textures/block/golem_fetter_side.png` (with an original iron strap) |
 | Minecraft `water_bucket.png`, Mojang Studios (water recoloured to the purifying fluid) | Minecraft EULA | https://www.minecraft.net/eula | `textures/item/purifying_bucket.png` |
+| Thaum pack v3.1 elemental axe, hoe and shovel textures, zozozrob (derivatives) | used with permission | Thaum pack v3.1 | `textures/item/elemental_axe.png`, `textures/item/elemental_hoe.png`, `textures/item/elemental_shovel.png` |
 | Temphis Sweatermonkey font (runes) | used under a licence purchased by the contributor | https://www.cumberlandgames.com | `textures/block/advanced_alchemical_furnace.png`, `textures/block/advanced_alchemical_furnace_on.png` |
+
+## Rune sheets rendered from a font
+
+`textures/misc/script.png` and `textures/particle/rift_shard.png` were rendered for Thaumaturge from the Temphis Sweatermonkey font by S. John Ross (Cumberland Games & Diversions, https://www.cumberlandgames.com). The glyphs A to M, G, H and X are set one per 16-pixel cell at 16.5 px, drawn at 8x resolution and box-filtered down, then the alpha is eased with a 1.4 gamma to keep the strokes thin. Both files are the same 256x16 sheet of white glyphs on transparency.
 
 ## Third-party models
 
@@ -50,6 +55,7 @@ These replacements were drawn by community contributors on the Thaumaturge asset
 | Thaum pack v3.1 void siphon model and texture, zozozrob | used with permission | Thaum pack v3.1 | `models/block/void_siphon.json`, `textures/block/void_siphon.png` |
 | Thaum pack v3.1 arcane workbench charger model and texture, zozozrob | used with permission | Thaum pack v3.1 | `models/mesh/arcane_workbench_charger.ttmesh`, `textures/block/arcane_workbench_charger.png` |
 | Thaum pack v3.1 essentia tube models and `tube_2` texture, zozozrob | used with permission | Thaum pack v3.1 | `models/block/tube_*.json`, `textures/block/tube_2.png` |
+| Thaum pack v3.1 essentia tube, resonator, mechanism, golem bell, crimson armor, void robe, focus and mirror textures, zozozrob | used with permission | Thaum pack v3.1 | `textures/item/tube.png`, `textures/item/tube_buffer.png`, `textures/item/tube_oneway.png`, `textures/item/tube_restrict.png`, `textures/item/resonator.png`, `textures/item/mechanism_simple.png`, `textures/item/mechanism_complex.png`, `textures/item/golem_bell.png`, `textures/item/crimson_robe_chest.png`, `textures/item/crimson_praetor_legs.png`, `textures/item/crimson_plate_legs.png`, `textures/item/crimson_boots.png`, `textures/item/void_robe_helm.png`, `textures/item/void_robe_chest.png`, `textures/item/void_robe_chest_over.png`, `textures/item/void_robe_legs.png`, `textures/item/void_robe_legs_over.png`, `textures/item/focus_1.png`, `textures/item/focus_2.png`, `textures/item/focus_3.png`, `textures/item/mirrored_glass.png`, `textures/block/mirrorframe2.png`, `textures/block/mirrorpane.png`, `textures/block/mirrorpaneopen.png` |
 | ArcanaEx infusion matrix layout and motion, l-Luna | CC0 1.0 | https://github.com/l-Luna/ArcanaEx | `models/block/infusion_matrix.json`, infusion matrix renderer |
 | ArcanaEx warded jar, l-Luna | CC0 1.0 | https://github.com/l-Luna/ArcanaEx | `models/block/jar_normal.json`, `models/block/jar_void.json` |
 
