@@ -1514,7 +1514,7 @@ public final class TTModelProvider extends ModelProvider {
         flatItemFromBlock(itemModels, TTItems.SAPLING_GREATWOOD.get(), TTBlocks.SAPLING_GREATWOOD.get());
         flatItemFromBlock(itemModels, TTItems.SAPLING_SILVERWOOD.get(), TTBlocks.SAPLING_SILVERWOOD.get());
         simpleCube(blockModels, TTBlocks.PLANK_GREATWOOD.get(), "plank_greatwood");
-        connectedCube(blockModels, TTBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
+        simpleCube(blockModels, TTBlocks.PLANK_SILVERWOOD.get(), "plank_silverwood");
         simpleCube(blockModels, TTBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
         simpleCube(blockModels, TTBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
         itemModels.itemModelOutput.accept(TTBlocks.LEAVES_GREATWOOD.get().asItem(), ItemModelUtils.tintedModel(TTIds.rl("block/leaves_greatwood"), new Constant(FOLIAGE_DEFAULT_COLOR)));
