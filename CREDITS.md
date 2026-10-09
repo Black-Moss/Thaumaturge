@@ -62,7 +62,7 @@ Every aspect icon and the focus icons come from [game-icons.net](https://game-ic
 | `textures/aspects/_back.png` | game-icons.net contributors, edited by woxayz | https://game-icons.net |
 | `textures/aspects/_unknown.png` | game-icons.net contributors, edited by woxayz | https://game-icons.net |
 | `textures/aspects/aer.png` | game-icons.net contributors, edited by woxayz | https://game-icons.net |
-| `textures/aspects/alienis.png` | game-icons.net contributors | https://game-icons.net |
+| `textures/aspects/alienis.png` | Lorc | https://game-icons.net/1x1/lorc/orbital.html |
 | `textures/aspects/alkimia.png` | Lorc, edited by woxayz | https://game-icons.net/1x1/lorc/bubbling-flask.html |
 | `textures/aspects/aqua.png` | game-icons.net contributors, edited by woxayz | https://game-icons.net |
 | `textures/aspects/auram.png` | Lorc, edited by woxayz | https://game-icons.net/1x1/lorc/sun.html |
@@ -294,6 +294,12 @@ tag_x.png (for golems) https://opengameart.org/content/700-rpg-icons
 gui_golembuilder.png craft button anvil: https://github.com/SlimeKnights/TinkersConstruct textures/item/slot/upgrade.png (MIT, Copyright (c) 2022 SlimeKnights)
 
 
+## Text
+
+### Thaumcraft 6 localization (MIT)
+
+Part of the English text and its translations (Thaumonomicon research pages, item, block and interface strings in `lang/` and in the generated `en_us.json`) is adapted from the Thaumcraft 6 localization files, which were published under the MIT license (text below). The license file shipped with them names the year 2017 and no copyright holder.
+
 ## License texts
 
 ### Saereth replacement sounds (MIT)
@@ -376,3 +382,29 @@ SOFTWARE.
 
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 - CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
+### Thaumcraft 6 localization (MIT)
+
+```
+MIT License
+
+Copyright (c) 2017 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
