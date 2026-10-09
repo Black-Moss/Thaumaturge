@@ -142,8 +142,12 @@ final class NodeUpkeep {
             return;
         }
         transfer(node, donor, random);
-        donor.refillWait = donor.refillInterval() / 2;
-        donor.changed();
+        if (donor.held.isEmpty() && !donor.isEnergized()) {
+            donor.collapse(level, partnerPos);
+        } else {
+            donor.refillWait = donor.refillInterval() / 2;
+            donor.changed();
+        }
         level.playSound(null, partnerPos, TTSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_VOLUME, ZAP_PITCH_BASE + random.nextFloat() * ZAP_PITCH_SPREAD);
         Effects.boltStrike(level, Vec3.atCenterOf(partnerPos)).to(Vec3.atCenterOf(pos)).width(DISCHARGE_BOLT_WIDTH).send();
         node.invalidateRefill();

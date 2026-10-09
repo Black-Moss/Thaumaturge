@@ -317,6 +317,14 @@ public class BlockEntityNode extends AbstractSyncedBlockEntity implements IAspec
         }
     }
 
+    void collapse(ServerLevel serverLevel, BlockPos pos) {
+        if (getBlockState().getBlock() instanceof NodeHostBlock) {
+            removeDepleted(serverLevel, pos);
+        } else {
+            serverLevel.destroyBlock(pos, true);
+        }
+    }
+
     public void serverTick(Level tickLevel, BlockPos pos) {
         if (!(tickLevel instanceof ServerLevel serverLevel)) {
             return;
