@@ -38,7 +38,10 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.ambient.BatModel;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.renderer.entity.ChickenRenderer;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
+import net.minecraft.client.renderer.entity.PigRenderer;
+import net.minecraft.client.renderer.entity.SheepRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -98,6 +101,9 @@ public final class TTEntityRenderers {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(TTEntities.HIEROPHANT_HAMMER.get(), HierophantHammerRenderer::new);
         event.registerEntityRenderer(TTEntities.ELDRITCH_HIEROPHANT.get(), HierophantRenderer::new);
+        event.registerEntityRenderer(TTEntities.LEGACY_TAINT_CHICKEN.get(), ChickenRenderer::new);
+        event.registerEntityRenderer(TTEntities.LEGACY_TAINT_PIG.get(), PigRenderer::new);
+        event.registerEntityRenderer(TTEntities.LEGACY_TAINT_SHEEP.get(), SheepRenderer::new);
         event.registerEntityRenderer(TTEntities.HIEROPHANT_CRESCENT.get(), context -> new HierophantSpellRenderer<>(context, HierophantSpellRenderer.Shape.CRESCENT));
         event.registerEntityRenderer(TTEntities.HIEROPHANT_SIGIL.get(), context -> new HierophantSpellRenderer<>(context, HierophantSpellRenderer.Shape.SIGIL));
         event.registerEntityRenderer(TTEntities.HIEROPHANT_NOVA.get(), context -> new HierophantSpellRenderer<>(context, HierophantSpellRenderer.Shape.NOVA));

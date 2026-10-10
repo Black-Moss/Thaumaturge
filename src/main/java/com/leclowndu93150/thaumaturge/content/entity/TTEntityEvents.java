@@ -20,6 +20,9 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.world.entity.animal.chicken.Chicken;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 
@@ -84,6 +87,9 @@ public final class TTEntityEvents {
         event.put(TTEntities.SPELL_BAT.get(), SpellBat.createAttributes().build());
         event.put(TTEntities.THAUMATURGE_GOLEM.get(), EntityThaumaturgeGolem.createAttributes().build());
         event.put(TTEntities.PECH.get(), EntityPech.createAttributes().build());
+        event.put(TTEntities.LEGACY_TAINT_CHICKEN.get(), Chicken.createAttributes().build());
+        event.put(TTEntities.LEGACY_TAINT_PIG.get(), Pig.createAttributes().build());
+        event.put(TTEntities.LEGACY_TAINT_SHEEP.get(), Sheep.createAttributes().build());
         event.put(TTEntities.ELDRITCH_CRAB.get(), EntityEldritchCrab.createAttributes().build());
         event.put(TTEntities.INHABITED_ZOMBIE.get(), EntityInhabitedZombie.createAttributes().build());
         event.put(TTEntities.ELDRITCH_GUARDIAN.get(), EntityEldritchGuardian.createAttributes().build());

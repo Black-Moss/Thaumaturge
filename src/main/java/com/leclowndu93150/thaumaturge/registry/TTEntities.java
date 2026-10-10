@@ -62,6 +62,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.animal.chicken.Chicken;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -110,6 +113,15 @@ public final class TTEntities {
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintSwarm>> TAINT_SWARM = register("taint_swarm",
             () -> EntityType.Builder.of(EntityTaintSwarm::new, MobCategory.MONSTER).sized(2.0F, 2.0F).notInPeaceful().clientTrackingRange(8));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<Chicken>> LEGACY_TAINT_CHICKEN = register("taint_chicken",
+            () -> EntityType.Builder.of(Chicken::new, MobCategory.CREATURE).sized(0.4F, 0.7F).noSummon().clientTrackingRange(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<Pig>> LEGACY_TAINT_PIG = register("taint_pig",
+            () -> EntityType.Builder.of(Pig::new, MobCategory.CREATURE).sized(0.9F, 0.9F).noSummon().clientTrackingRange(10));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<Sheep>> LEGACY_TAINT_SHEEP = register("taint_sheep",
+            () -> EntityType.Builder.of(Sheep::new, MobCategory.CREATURE).sized(0.9F, 1.3F).noSummon().clientTrackingRange(10));
 
     public static final DeferredHolder<EntityType<?>, EntityType<EntityTaintacle>> TAINTACLE = register("taintacle",
             () -> EntityType.Builder.of(EntityTaintacle::new, MobCategory.MONSTER).sized(0.8F, 3.0F).notInPeaceful().clientTrackingRange(8));
