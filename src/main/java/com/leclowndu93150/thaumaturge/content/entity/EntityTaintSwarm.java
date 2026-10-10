@@ -46,7 +46,6 @@ public final class EntityTaintSwarm extends Monster {
     private static final double FOLLOW_RANGE = 8.0;
     private static final int EXPERIENCE_REWARD = 4;
     private static final int MAX_TURN = 20;
-    private static final double VERTICAL_DAMPING = 0.6;
     private static final int RETALIATE_PRIORITY = 1;
     private static final int HUNT_PRIORITY = 2;
     private static final int COOLDOWN_BASE = 15;
@@ -54,11 +53,7 @@ public final class EntityTaintSwarm extends Monster {
     private static final float SUMMONED_DECAY_DAMAGE = 5.0F;
     private static final int MAX_FLIGHT_HEIGHT = 8;
     private static final double TARGET_REACHED_DISTANCE_SQR = 4.0;
-    private static final int RETARGET_ODDS = 30;
     private static final int TARGET_ATTEMPTS = 8;
-    private static final int TARGET_HORIZONTAL_SPREAD = 7;
-    private static final int TARGET_VERTICAL_RANGE = 6;
-    private static final int TARGET_VERTICAL_BELOW = 2;
     private static final double WANDER_SPEED = 0.55;
     private static final double WANDER_LIFT = 0.1;
     private static final double HUNT_SPEED = 1.0;
@@ -70,6 +65,12 @@ public final class EntityTaintSwarm extends Monster {
     private static final float ATTACK_SOUND_PITCH_SPREAD = 0.2F;
     private static final float SOUND_VOLUME = 0.1F;
     private static final double HALF = 0.5;
+    private static final double VERTICAL_DAMPING = 0.55;
+    private static final int RETARGET_ODDS = 30;
+    private static final int TARGET_HORIZONTAL_SPREAD = 6;
+    private static final int TARGET_VERTICAL_RANGE = 6;
+    private static final int TARGET_VERTICAL_BELOW = 2;
+    private static final int CLOUD_PARTICLES_PER_TICK = 3;
 
     private int attackCooldown;
     private int damageBonus;
@@ -153,21 +154,24 @@ public final class EntityTaintSwarm extends Monster {
         this.targetSelector.addGoal(HUNT_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        this.setDeltaMovement(this.getDeltaMovement().multiply(1.0, VERTICAL_DAMPING, 1.0));
-        Level world = this.level();
-        if (!(world instanceof ServerLevel server)) {
-            spawnSwarmCloud(world);
-            return;
-        }
-        serverBehaviour(server);
-    }
-
     private void spawnSwarmCloud(Level world) {
         Vec3 centre = this.position().add(0.0, this.getBbHeight() * HALF, 0.0);
         world.addParticle(new TaintSwarmParticleOptions(this.getId()), centre.x, centre.y, centre.z, 0.0, 0.0, 0.0);
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        Vec3 motion = this.getDeltaMovement();
+        this.setDeltaMovement(motion.x, motion.y * VERTICAL_DAMPING, motion.z);
+        Level world = this.level();
+        if (world instanceof ServerLevel server) {
+            serverBehaviour(server);
+            return;
+        }
+        for (int i = 0; i < CLOUD_PARTICLES_PER_TICK; i++) {
+            spawnSwarmCloud(world);
+        }
     }
 
     private void serverBehaviour(ServerLevel server) {
@@ -205,67 +209,71 @@ public final class EntityTaintSwarm extends Monster {
         }
     }
 
-    private boolean overlapsVertically(LivingEntity target) {
-        AABB mine = this.getBoundingBox();
-        AABB theirs = target.getBoundingBox();
-        return theirs.minY <= mine.maxY && mine.minY <= theirs.maxY;
-    }
-
-    private void bite(ServerLevel level, LivingEntity target) {
-        int pause = this.random.nextInt(COOLDOWN_SPREAD);
-        this.attackCooldown = COOLDOWN_BASE + pause;
-        Vec3 preservedMotion = target.getDeltaMovement();
-        boolean hit = this.doHurtTarget(level, target);
-        target.setDeltaMovement(preservedMotion);
-        if (hit) {
-            target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, WEAKNESS_DURATION, WEAKNESS_AMPLIFIER, true, false, false));
+    private void wander(ServerLevel server) {
+        BlockPos goal = currentGoal(server);
+        if (goal == null) {
+            return;
         }
-        level.playSound(null, this.getX(), this.getY(), this.getZ(), TTSounds.SWARMATTACK.get(), SoundSource.HOSTILE, ATTACK_SOUND_VOLUME,
-                ATTACK_SOUND_PITCH_BASE + this.random.nextFloat() * ATTACK_SOUND_PITCH_SPREAD);
+        this.getMoveControl().setWantedPosition(goal.getX() + HALF, goal.getY() + WANDER_LIFT, goal.getZ() + HALF, WANDER_SPEED);
     }
 
-    private void wander(ServerLevel level) {
-        BlockPos goal = currentGoal(level);
-        if (goal != null) {
-            Vec3 aim = Vec3.atBottomCenterOf(goal).add(0.0, WANDER_LIFT, 0.0);
-            this.getMoveControl().setWantedPosition(aim.x, aim.y, aim.z, WANDER_SPEED);
-        }
-    }
-
-    private @Nullable BlockPos currentGoal(ServerLevel level) {
-        BlockPos origin = this.blockPosition();
-        if (needsNewFlightTarget(level, origin)) {
-            this.flightTarget = pickFlightTarget(level, origin);
+    private @Nullable BlockPos currentGoal(ServerLevel server) {
+        if (needsNewFlightTarget(server)) {
+            this.flightTarget = pickFlightTarget(server);
         }
         return this.flightTarget;
     }
 
-    private boolean needsNewFlightTarget(ServerLevel level, BlockPos origin) {
-        BlockPos current = this.flightTarget;
-        if (current == null || !isValidFlightTarget(level, current)) {
+    private boolean needsNewFlightTarget(ServerLevel server) {
+        BlockPos goal = this.flightTarget;
+        if (goal == null || this.random.nextInt(RETARGET_ODDS) == 0) {
             return true;
         }
-        return current.distSqr(origin) < TARGET_REACHED_DISTANCE_SQR || this.random.nextInt(RETARGET_ODDS) == 0;
+        double dx = goal.getX() + HALF - this.getX();
+        double dy = goal.getY() + WANDER_LIFT - this.getY();
+        double dz = goal.getZ() + HALF - this.getZ();
+        return dx * dx + dy * dy + dz * dz < TARGET_REACHED_DISTANCE_SQR || !isValidFlightTarget(server, goal);
     }
 
-    private @Nullable BlockPos pickFlightTarget(ServerLevel level, BlockPos origin) {
+    private @Nullable BlockPos pickFlightTarget(ServerLevel server) {
+        BlockPos home = this.blockPosition();
         for (int attempt = 0; attempt < TARGET_ATTEMPTS; attempt++) {
-            BlockPos candidate = origin.offset(this.random.nextInt(TARGET_HORIZONTAL_SPREAD) - this.random.nextInt(TARGET_HORIZONTAL_SPREAD),
-                    this.random.nextInt(TARGET_VERTICAL_RANGE) - TARGET_VERTICAL_BELOW, this.random.nextInt(TARGET_HORIZONTAL_SPREAD) - this.random.nextInt(TARGET_HORIZONTAL_SPREAD));
-            if (isValidFlightTarget(level, candidate)) {
+            int dx = this.random.nextInt(TARGET_HORIZONTAL_SPREAD + 1) - this.random.nextInt(TARGET_HORIZONTAL_SPREAD + 1);
+            int dz = this.random.nextInt(TARGET_HORIZONTAL_SPREAD + 1) - this.random.nextInt(TARGET_HORIZONTAL_SPREAD + 1);
+            int dy = this.random.nextInt(TARGET_VERTICAL_RANGE) - TARGET_VERTICAL_BELOW;
+            BlockPos candidate = home.offset(dx, dy, dz);
+            if (isValidFlightTarget(server, candidate)) {
                 return candidate;
             }
         }
         return null;
     }
 
-    private boolean isValidFlightTarget(ServerLevel level, BlockPos pos) {
-        if (!level.hasChunkAt(pos)) {
+    private static boolean isValidFlightTarget(ServerLevel server, BlockPos pos) {
+        if (!server.hasChunkAt(pos) || pos.getY() <= server.getMinY() || !server.getBlockState(pos).isAir()) {
             return false;
         }
-        BlockState state = level.getBlockState(pos);
-        return state.isAir() && pos.getY() > level.getMinY() && pos.getY() <= level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ()) + MAX_FLIGHT_HEIGHT
-                && TaintBiomeManager.isTainted(level, pos);
+        int surface = server.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
+        return pos.getY() <= surface + MAX_FLIGHT_HEIGHT && TaintBiomeManager.isTainted(server, pos);
+    }
+
+    private void bite(ServerLevel server, LivingEntity prey) {
+        this.attackCooldown = COOLDOWN_BASE + this.random.nextInt(COOLDOWN_SPREAD);
+        Vec3 motion = prey.getDeltaMovement();
+        boolean connected = prey.hurtServer(server, this.damageSources().mobAttack(this), effectiveAttackDamage());
+        prey.setDeltaMovement(motion);
+        if (connected) {
+            this.setLastHurtMob(prey);
+            prey.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, WEAKNESS_DURATION, WEAKNESS_AMPLIFIER, false, false, false), this);
+        }
+        float pitch = ATTACK_SOUND_PITCH_BASE + this.random.nextFloat() * ATTACK_SOUND_PITCH_SPREAD;
+        server.playSound(null, this.getX(), this.getY(), this.getZ(), attackSound(), SoundSource.HOSTILE, ATTACK_SOUND_VOLUME, pitch);
+    }
+
+    private boolean overlapsVertically(LivingEntity target) {
+        AABB mine = this.getBoundingBox();
+        AABB theirs = target.getBoundingBox();
+        return theirs.minY <= mine.maxY && mine.minY <= theirs.maxY;
     }
 
     @Override

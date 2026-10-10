@@ -37,16 +37,22 @@ public abstract class AbstractTaintSeed extends AbstractRootedTaint {
     private static final int SPREAD_HORIZONTAL_REACH = 3;
     private static final int AURA_REACH = 4;
     private static final int AURA_EFFECT_TICKS = 100;
+    private static final int FULL_SPREAD_ATTEMPTS = 1 + SPREAD_EXTRA_LIMIT;
 
     public float attackAnim;
 
     private boolean registered;
+    private int headStartTicks;
 
     protected AbstractTaintSeed(EntityType<? extends AbstractTaintSeed> type, Level level) {
         super(type, level);
     }
 
     public abstract int getArea();
+
+    public void grantHeadStart(int ticks) {
+        this.headStartTicks = Math.max(this.headStartTicks, ticks);
+    }
 
     public static AttributeSupplier.Builder createSeedAttributes(double maxHealth, double attackDamage) {
         return createRootedAttributes(maxHealth, attackDamage, SEED_FOLLOW_RANGE);
@@ -77,18 +83,19 @@ public abstract class AbstractTaintSeed extends AbstractRootedTaint {
             this.registered = true;
             TaintApi.addTaintSeed(level, pos);
         }
+        boolean boosted = this.headStartTicks > 0;
+        if (boosted) {
+            this.headStartTicks--;
+            spreadFibres(level, pos, FULL_SPREAD_ATTEMPTS);
+        }
         if (this.tickCount % PULSE_INTERVAL != 0) {
             return;
         }
         emitFumes(level);
         TaintEcology.touchActiveSeed(level, pos);
         TaintBiomeManager.taintColumn(level, pos);
-        float saturation = Math.max(0.0F, AuraHelper.getFluxSaturation(level, pos));
-        if (saturation <= 0.0F) {
-            this.hurtServer(level, level.damageSources().starve(), STARVATION_DAMAGE);
-            AuraHelper.polluteAura(level, pos, STARVATION_FLUX, false);
-        } else {
-            spreadFibres(level, pos, saturation);
+        if (!boosted) {
+            feedOrStarve(level, pos);
         }
         afflictNearby(level);
     }
@@ -110,10 +117,19 @@ public abstract class AbstractTaintSeed extends AbstractRootedTaint {
         }
     }
 
-    private void spreadFibres(ServerLevel level, BlockPos pos, float saturation) {
+    private void feedOrStarve(ServerLevel level, BlockPos pos) {
+        float saturation = Math.max(0.0F, AuraHelper.getFluxSaturation(level, pos));
+        if (saturation <= 0.0F) {
+            this.hurtServer(level, level.damageSources().starve(), STARVATION_DAMAGE);
+            AuraHelper.polluteAura(level, pos, STARVATION_FLUX, false);
+        } else {
+            spreadFibres(level, pos, 1 + Math.min(SPREAD_EXTRA_LIMIT, (int) Math.floor(saturation * SPREAD_SATURATION_FACTOR)));
+        }
+    }
+
+    private void spreadFibres(ServerLevel level, BlockPos pos, int attempts) {
         RandomSource random = this.getRandom();
         int area = this.getArea();
-        int attempts = 1 + Math.min(SPREAD_EXTRA_LIMIT, (int) Math.floor(saturation * SPREAD_SATURATION_FACTOR));
         int horizontal = SPREAD_HORIZONTAL_REACH * area;
         for (int i = 0; i < attempts; i++) {
             BlockPos target = pos.offset(offset(random, horizontal), offset(random, area), offset(random, horizontal));
