@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBiomeManager;
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityEvent;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.level.Level;
@@ -14,44 +15,26 @@ import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class TaintGrazeGoal extends Goal {
-    private static final int START_ONE_IN = 250;
+    private static final int GRAZE_ODDS = 250;
     private static final int GRAZE_TICKS = 40;
-    private static final int CONVERT_AT_TICK = 4;
-    private static final byte EAT_ANIMATION_EVENT = 10;
+    private static final int BITE_AT_REMAINING = 4;
 
     private final Sheep sheep;
-    private int grazeTicks;
+    private int grazeTicksLeft;
 
     public TaintGrazeGoal(Sheep sheep) {
         this.sheep = sheep;
-        setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
+        setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK, Goal.Flag.JUMP));
     }
 
     @Override
     public boolean canUse() {
-        Level level = sheep.level();
-        if (level.isClientSide() || sheep.getRandom().nextInt(START_ONE_IN) != 0) {
-            return false;
-        }
-        BlockPos pos = sheep.blockPosition();
-        return level.getBlockState(pos).is(Blocks.SHORT_GRASS) || level.getBlockState(pos.below()).is(Blocks.GRASS_BLOCK);
-    }
-
-    @Override
-    public void start() {
-        grazeTicks = GRAZE_TICKS;
-        sheep.level().broadcastEntityEvent(sheep, EAT_ANIMATION_EVENT);
-        sheep.getNavigation().stop();
-    }
-
-    @Override
-    public void stop() {
-        grazeTicks = 0;
+        return sheep.getRandom().nextInt(reducedTickDelay(GRAZE_ODDS)) == 0 && pasture() != Pasture.NONE;
     }
 
     @Override
     public boolean canContinueToUse() {
-        return grazeTicks > 0;
+        return grazeTicksLeft > 0;
     }
 
     @Override
@@ -60,28 +43,59 @@ public final class TaintGrazeGoal extends Goal {
     }
 
     @Override
+    public void start() {
+        grazeTicksLeft = GRAZE_TICKS;
+        sheep.getNavigation().stop();
+        sheep.level().broadcastEntityEvent(sheep, EntityEvent.EAT_GRASS);
+    }
+
+    @Override
+    public void stop() {
+        grazeTicksLeft = 0;
+    }
+
+    @Override
     public void tick() {
-        grazeTicks = Math.max(0, grazeTicks - 1);
-        if (grazeTicks == CONVERT_AT_TICK && sheep.level() instanceof ServerLevel level) {
-            graze(level);
+        grazeTicksLeft--;
+        if (grazeTicksLeft == BITE_AT_REMAINING && sheep.level() instanceof ServerLevel level && bite(level)) {
+            spreadTaint(level, sheep.blockPosition());
+            sheep.ate();
         }
     }
 
-    private void graze(ServerLevel level) {
-        BlockPos pos = sheep.blockPosition();
-        if (level.getBlockState(pos).is(Blocks.SHORT_GRASS)) {
-            level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(Blocks.GRASS_BLOCK.defaultBlockState()));
-            level.removeBlock(pos, false);
-        } else if (level.getBlockState(pos.below()).is(Blocks.GRASS_BLOCK)) {
-            level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos.below(), Block.getId(Blocks.GRASS_BLOCK.defaultBlockState()));
-        } else {
-            return;
+    private Pasture pasture() {
+        Level level = sheep.level();
+        BlockPos feet = sheep.blockPosition();
+        if (level.getBlockState(feet).is(Blocks.SHORT_GRASS)) {
+            return Pasture.TUFT;
         }
-        TaintBiomeManager.taintColumn(level, pos);
-        BlockState state = level.getBlockState(pos);
-        if (state.canBeReplaced() && state.getFluidState().isEmpty() && BlockTaintFibre.hasSolidAttachment(level, pos)) {
-            level.setBlock(pos, BlockTaintFibre.stateForWorld(level, pos), Block.UPDATE_ALL);
+        return level.getBlockState(feet.below()).is(Blocks.GRASS_BLOCK) ? Pasture.TURF : Pasture.NONE;
+    }
+
+    private boolean bite(ServerLevel level) {
+        BlockPos feet = sheep.blockPosition();
+        switch (pasture()) {
+            case TUFT -> level.destroyBlock(feet, false, sheep);
+            case TURF -> {
+                BlockPos below = feet.below();
+                level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, below, Block.getId(level.getBlockState(below)));
+            }
+            case NONE -> {
+                return false;
+            }
         }
-        sheep.ate();
+        return true;
+    }
+
+    private static void spreadTaint(ServerLevel level, BlockPos feet) {
+        TaintBiomeManager.taintColumn(level, feet);
+        BlockState here = level.getBlockState(feet);
+        if (here.canBeReplaced() && here.getFluidState().isEmpty() && BlockTaintFibre.hasSolidAttachment(level, feet)) {
+            level.setBlock(feet, BlockTaintFibre.stateForWorld(level, feet), Block.UPDATE_ALL);
+        }
+    }
+
+    private enum Pasture {
+        TUFT, TURF, NONE
     }
 }
