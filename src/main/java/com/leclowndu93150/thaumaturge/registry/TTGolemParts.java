@@ -8,8 +8,8 @@ import com.leclowndu93150.thaumaturge.api.golems.parts.GolemHead;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemLeg;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemMaterial;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPartModel;
-import com.leclowndu93150.thaumaturge.content.golem.parts.GolemArmDart;
-import com.leclowndu93150.thaumaturge.content.golem.parts.GolemLegLevitator;
+import com.leclowndu93150.thaumaturge.content.golem.parts.DartLauncherArms;
+import com.leclowndu93150.thaumaturge.content.golem.parts.FlyerLegWisps;
 import com.leclowndu93150.thaumaturge.content.golem.parts.GolemLegWheels;
 import java.util.List;
 import java.util.function.Supplier;
@@ -99,7 +99,7 @@ public final class TTGolemParts {
     public static final DeferredHolder<GolemArm, GolemArm> ARMS_DARTS = ARMS.register("darts", () -> new GolemArm(List.of(TTIds.rl("golem_combat_adv")), partIcon("arms_darts"),
             new GolemPartModel(obj("golem_arms_darter"), null, GolemPartModel.AttachPoint.ARMS), List.of(stackComponent(TTItems.MODULE_AGGRESSION),
                     GolemComponent.of(() -> new ItemStack(Blocks.DISPENSER, 2)), GolemComponent.of(() -> new ItemStack(Items.ARROW, 32)), GolemComponent.mechanism()),
-            new GolemArmDart(), List.of(TTGolemTraits.FIGHTER, TTGolemTraits.CLUMSY, TTGolemTraits.RANGED, TTGolemTraits.FRAGILE)));
+            new DartLauncherArms(), List.of(TTGolemTraits.FIGHTER, TTGolemTraits.CLUMSY, TTGolemTraits.RANGED, TTGolemTraits.FRAGILE)));
 
     public static final DeferredHolder<GolemLeg, GolemLeg> LEGS_WALKER = LEGS.register("walker",
             () -> new GolemLeg(List.of(TTIds.rl("mind_clockwork")), partIcon("legs_walker"), null, List.of(GolemComponent.base(), GolemComponent.mechanism()), null, List.of()));
@@ -116,7 +116,7 @@ public final class TTGolemParts {
     public static final DeferredHolder<GolemLeg, GolemLeg> LEGS_FLYER = LEGS.register("flyer", () -> new GolemLeg(List.of(TTIds.rl("golem_flyer")), partIcon("legs_flyer"),
             new GolemPartModel(obj("golem_legs_floater"), null, GolemPartModel.AttachPoint.BODY), List.of(stackComponent(TTBlocks.LEVITATOR),
                     GolemComponent.of(() -> new ItemStack(TTItems.PLATE_BRASS.get(), 4)), GolemComponent.of(() -> new ItemStack(Items.SLIME_BALL)), GolemComponent.mechanism()),
-            new GolemLegLevitator(), List.of(TTGolemTraits.FLYER, TTGolemTraits.FRAGILE)));
+            new FlyerLegWisps(), List.of(TTGolemTraits.FLYER, TTGolemTraits.FRAGILE)));
 
     public static final DeferredHolder<GolemAddon, GolemAddon> ADDON_NONE = ADDONS.register("none",
             () -> new GolemAddon(List.of(TTIds.rl("mind_clockwork")), TTIds.rl("textures/block/base_metal.png"), null, List.of(), null, List.of()));
