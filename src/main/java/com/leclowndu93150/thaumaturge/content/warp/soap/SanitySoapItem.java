@@ -17,22 +17,23 @@ public final class SanitySoapItem extends Item {
     private static final int SCRUB_COMPLETE_TICKS = 95;
     private static final int CONSUMED = 1;
 
-    private static final int SCRUB_BUBBLES = 10;
-    private static final double SCRUB_SPREAD = 1.0;
-    private static final float SCRUB_SOUND_CHANCE = 0.2F;
+    private static final int SCRUB_BUBBLES = 3;
+    private static final double SCRUB_COLUMN_WIDTH = 1.0;
+    private static final float SCRUB_SQUELCH_CHANCE = 0.2F;
     private static final float SCRUB_VOLUME = 0.1F;
-    private static final float SCRUB_BASE_PITCH = 1.5F;
-    private static final float SCRUB_PITCH_SPREAD = 0.2F;
+    private static final float SCRUB_PITCH = 1.6F;
+    private static final float SCRUB_PITCH_VARIATION = 0.3F;
+
     private static final int RINSE_BUBBLES = 40;
-    private static final double RINSE_SPREAD = 1.5;
+    private static final double RINSE_COLUMN_WIDTH = 1.4;
     private static final float RINSE_SOUND_CHANCE = 1.0F;
-    private static final float RINSE_VOLUME = 0.25F;
+    private static final float RINSE_VOLUME = 0.6F;
     private static final float RINSE_PITCH = 1.0F;
     private static final float RINSE_PITCH_SPREAD = 0.0F;
 
-    private static final SoapLather SCRUB_LATHER = new SoapLather(SCRUB_BUBBLES, SCRUB_SPREAD, () -> SoundEvents.CHORUS_FLOWER_DEATH, SCRUB_SOUND_CHANCE, SCRUB_VOLUME, SCRUB_BASE_PITCH,
-            SCRUB_PITCH_SPREAD);
-    private static final SoapLather RINSE_LATHER = new SoapLather(RINSE_BUBBLES, RINSE_SPREAD, TTSounds.CRAFTSTART, RINSE_SOUND_CHANCE, RINSE_VOLUME, RINSE_PITCH, RINSE_PITCH_SPREAD);
+    private static final SoapLather SCRUBBING = new SoapLather(SCRUB_BUBBLES, SCRUB_COLUMN_WIDTH, () -> SoundEvents.CHORUS_FLOWER_DEATH, SCRUB_SQUELCH_CHANCE, SCRUB_VOLUME, SCRUB_PITCH,
+            SCRUB_PITCH_VARIATION);
+    private static final SoapLather RINSING = new SoapLather(RINSE_BUBBLES, RINSE_COLUMN_WIDTH, TTSounds.CRAFTSTART, RINSE_SOUND_CHANCE, RINSE_VOLUME, RINSE_PITCH, RINSE_PITCH_SPREAD);
 
     public SanitySoapItem(Properties properties) {
         super(properties);
@@ -58,20 +59,21 @@ public final class SanitySoapItem extends Item {
     public void onUseTick(Level level, LivingEntity user, ItemStack stack, int ticksRemaining) {
         if (scrubbedLongEnough(ticksRemaining)) {
             user.releaseUsingItem();
+            return;
         }
-        SCRUB_LATHER.play(level, user);
+        SCRUBBING.play(level, user);
     }
 
     @Override
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity user, int ticksRemaining) {
-        if (!scrubbedLongEnough(ticksRemaining) || !(user instanceof Player player)) {
+        if (!scrubbedLongEnough(ticksRemaining)) {
             return false;
         }
-        RINSE_LATHER.play(level, player);
-        if (player instanceof ServerPlayer serverPlayer) {
-            SoapCleanse.SANITY_SOAP.apply(serverPlayer);
+        RINSING.play(level, user);
+        if (user instanceof ServerPlayer player) {
+            SoapCleanse.SANITY_SOAP.apply(player);
+            stack.consume(CONSUMED, player);
         }
-        stack.shrink(CONSUMED);
         return true;
     }
 

@@ -9,24 +9,21 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 
 public final class SpiderSummons {
-    private static final int HORIZONTAL_SPREAD = 15;
-    private static final int VERTICAL_SPREAD = 5;
-
     private SpiderSummons() {}
 
     public static boolean summon(ServerLevel level, ServerPlayer player, RandomSource random, boolean illusory) {
+        EntityMindSpider spider = TTEntities.MIND_SPIDER.get().create(level, EntitySpawnReason.EVENT);
+        if (spider == null) {
+            return false;
+        }
+        BlockPos origin = player.blockPosition();
         for (int attempt = 0; attempt < SpawnSpots.PLACEMENT_ATTEMPTS; attempt++) {
-            EntityMindSpider spider = TTEntities.MIND_SPIDER.get().create(level, EntitySpawnReason.EVENT);
-            if (spider == null) {
-                return false;
+            BlockPos cell = SpawnSpots.ringCell(origin, random);
+            if (!SpawnSpots.standsOnFullBlock(level, cell)) {
+                continue;
             }
-            double x = player.getX() + SpawnSpots.symmetricSpread(random, HORIZONTAL_SPREAD);
-            double y = player.getY() + SpawnSpots.symmetricSpread(random, VERTICAL_SPREAD);
-            double z = player.getZ() + SpawnSpots.symmetricSpread(random, HORIZONTAL_SPREAD);
-            spider.snapTo(x, y, z, random.nextFloat() * SpawnSpots.FULL_TURN_DEGREES, 0.0F);
-            BlockPos cell = spider.blockPosition();
-            if (!SpawnSpots.standsOnFullBlock(level, cell) || !SpawnSpots.hasFreeSpace(level, spider)) {
-                spider.discard();
+            spider.snapTo(cell.getX() + SpawnSpots.CELL_CENTER, cell.getY(), cell.getZ() + SpawnSpots.CELL_CENTER, random.nextFloat() * SpawnSpots.FULL_TURN_DEGREES, 0.0F);
+            if (!SpawnSpots.hasFreeSpace(level, spider)) {
                 continue;
             }
             if (illusory) {

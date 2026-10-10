@@ -72,7 +72,7 @@ public final class WarpGameEvents {
             return;
         }
         ItemStack used = event.getItem();
-        if (used.is(TTItems.BRAIN.get()) && !ThaumaturgeCommonConfig.WUSS_MODE.get()) {
+        if (used.is(TTItems.BRAIN.get())) {
             WarpFoodReactions.brainEaten(player);
         }
         WarpFoodReactions.consumed(player, used);

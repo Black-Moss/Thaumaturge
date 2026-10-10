@@ -5,32 +5,37 @@ import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.warp.WarpNotices;
+import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class WarpMilestones {
-    private static final Identifier BATH_SALTS_RESEARCH = TTIds.rl("bath_salts");
+    private static final int HEADACHE_THRESHOLD = 10;
+    private static final Identifier BATH_SALTS = TTIds.rl("bath_salts");
     private static final Identifier BATH_SALTS_HINT = TTIds.rl("bathsalts");
+    private static final String HEADACHE_NOTICE = "warp.thaumaturge.text.8";
+    private static final int MINOR_ELDRITCH_THRESHOLD = 25;
+    private static final int MAJOR_ELDRITCH_THRESHOLD = 50;
     private static final Identifier MINOR_ELDRITCH = TTIds.rl("eldritchminor");
     private static final Identifier MAJOR_ELDRITCH = TTIds.rl("eldritchmajor");
-    private static final int HINT_THRESHOLD = 10;
-    private static final int MINOR_THRESHOLD = 25;
-    private static final int MAJOR_THRESHOLD = 50;
-    private static final String HINT_NOTICE = "warp.thaumaturge.text.8";
+
+    private static final List<Threshold> ELDRITCH_THRESHOLDS = List.of(new Threshold(MINOR_ELDRITCH_THRESHOLD, MINOR_ELDRITCH), new Threshold(MAJOR_ELDRITCH_THRESHOLD, MAJOR_ELDRITCH));
 
     private WarpMilestones() {}
 
-    public static void reach(ServerPlayer player, int actualWarp) {
+    public static void review(ServerPlayer player, int actualWarp) {
         IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        if (actualWarp > HINT_THRESHOLD && !knowledge.isResearchKnown(BATH_SALTS_RESEARCH) && !knowledge.isResearchKnown(BATH_SALTS_HINT)) {
-            WarpNotices.send(player, HINT_NOTICE);
+        if (actualWarp > HEADACHE_THRESHOLD && !knowledge.isResearchKnown(BATH_SALTS) && !knowledge.isResearchKnown(BATH_SALTS_HINT)) {
+            WarpNotices.send(player, HEADACHE_NOTICE);
             ResearchManager.complete(player, BATH_SALTS_HINT);
         }
-        if (actualWarp > MINOR_THRESHOLD && !knowledge.isResearchKnown(MINOR_ELDRITCH)) {
-            ResearchManager.complete(player, MINOR_ELDRITCH);
+        for (Threshold threshold : ELDRITCH_THRESHOLDS) {
+            if (actualWarp > threshold.above() && !knowledge.isResearchKnown(threshold.research())) {
+                ResearchManager.complete(player, threshold.research());
+            }
         }
-        if (actualWarp > MAJOR_THRESHOLD && !knowledge.isResearchKnown(MAJOR_ELDRITCH)) {
-            ResearchManager.complete(player, MAJOR_ELDRITCH);
-        }
+    }
+
+    private record Threshold(int above, Identifier research) {
     }
 }

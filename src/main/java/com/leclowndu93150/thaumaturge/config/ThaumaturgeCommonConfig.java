@@ -72,9 +72,11 @@ public final class ThaumaturgeCommonConfig {
     static {
         ModConfigSpec.Builder spec = new ModConfigSpec.Builder();
         spec.push("world");
-        WUSS_MODE = flag(spec, "wussMode", false, "Setting this to true disables Warp, Taint spread and similar mechanics. You wuss.");
-        TAINT_SPREAD_RATE = percent(spec, "taintSpreadRate", PERCENT_MAX, "The % chance of taint fibres spreading on a block tick. Setting this to 0 will effectively stop taint fibre spread.");
-        TAINT_SPREAD_AREA = whole(spec, "taintSpreadArea", 32, 1, 128, "The range at which taint can spread from a taint seed. This value is only a base and will be modified by flux levels.");
+        WUSS_MODE = flag(spec, "wussMode", false, "Turn off warp gain and warp events, flux rifts and flux events, and all taint growth and spread, including tainted nodes and taint worldgen.");
+        TAINT_SPREAD_RATE = percent(spec, "taintSpreadRate", PERCENT_MAX,
+                "Percent chance that each natural taint growth attempt goes ahead. 100 is full speed and 0 stops natural spread. Growth forced by nodes and other sources ignores this.");
+        TAINT_SPREAD_AREA = whole(spec, "taintSpreadArea", 32, 1, 128,
+                "Radius in blocks around each taint seed inside which taint is sustained. Taint outside this radius and outside tainted biomes decays over time.");
         TAINT_FRONTIER_RATE = whole(spec, "taintFrontierRate", 200, 0, 100000,
                 "How quickly the Tainted Lands biome spreads outward, Thaumcraft 4 style. Fibrous taint tries to take over a neighbouring column with a chance of 1 in (taintFrontierRate * 5) per random tick, and only with at least two adjacent taint blocks. Higher is slower. 0 stops the biome from spreading while existing taint stays active.");
         TAINT_FROM_FLUX = flag(spec, "taintFromFlux", true, "Whether deep, exposed Flux Goo can fester into Fibrous Taint and Tainted Lands, as in Thaumcraft 4.");
@@ -129,7 +131,8 @@ public final class ThaumaturgeCommonConfig {
         SHIELD_WAIT = whole(spec, "shieldWait", 80, 0, TICKS_MAX, "Ticks runic shielding waits before recharging after being fully depleted.");
         SHIELD_COST = percent(spec, "shieldCost", 1.0, "Vis drained from the local aura per point of runic shielding recharged. 0 makes recharging free.");
         ALLOW_CHAMPION_MOBS = flag(spec, "allowChampionMobs", true, "Setting this to false will disable spawning champion mobs.");
-        NO_SLEEP = flag(spec, "noSleep", false, "Setting this to true will make you get the recipe book for salis mundus without having to sleep first.");
+        NO_SLEEP = flag(spec, "noSleep", false,
+                "Give the dream journal as soon as an essentia crystal is first picked up, instead of after the player next wakes from sleep. For servers where players cannot sleep.");
         spec.pop();
 
         spec.push("sounds");
@@ -137,7 +140,7 @@ public final class ThaumaturgeCommonConfig {
         spec.pop();
 
         spec.push("golems");
-        SHOW_GOLEM_EMOTES = flag(spec, "showGolemEmotes", true, "Will golems display emote particles if they receive orders or encounter problems.");
+        SHOW_GOLEM_EMOTES = flag(spec, "showGolemEmotes", true, "Show the particles golems give off when they take, finish or fail a task, change orders or rank up, and play the rank up sound.");
         spec.pop();
 
         spec.push("fluxScrubber");

@@ -11,11 +11,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
 public record SoapLather(int bubbles, double spread, Supplier<SoundEvent> sound, float soundChance, float volume, float basePitch, float pitchSpread) {
-    private static final double CORNER_OFFSET = -0.5;
     private static final double BUBBLE_RISE = 0.02;
     private static final double NO_DRIFT = 0.0;
     private static final float CERTAIN = 1.0F;
     private static final float FLAT = 0.0F;
+    private static final double HALF = 0.5;
 
     public void play(Level level, LivingEntity user) {
         if (!level.isClientSide()) {
@@ -27,12 +27,11 @@ public record SoapLather(int bubbles, double spread, Supplier<SoundEvent> sound,
             level.playLocalSound(user.getX(), user.getY(), user.getZ(), sound.get(), SoundSource.PLAYERS, volume, pitch, false);
         }
         AABB body = user.getBoundingBox();
-        double cornerX = user.getX() + CORNER_OFFSET;
-        double cornerZ = user.getZ() + CORNER_OFFSET;
+        double halfWidth = spread * HALF;
         for (int i = 0; i < bubbles; i++) {
-            double x = cornerX + random.nextDouble() * spread;
+            double x = user.getX() + Mth.nextDouble(random, -halfWidth, halfWidth);
             double y = Mth.nextDouble(random, body.minY, body.maxY);
-            double z = cornerZ + random.nextDouble() * spread;
+            double z = user.getZ() + Mth.nextDouble(random, -halfWidth, halfWidth);
             level.addParticle(ParticleTypes.BUBBLE_POP, x, y, z, NO_DRIFT, BUBBLE_RISE, NO_DRIFT);
         }
     }

@@ -22,7 +22,7 @@ public final class GuardianSummons {
             if (!SpawnSpots.standsOnFullBlock(level, cell)) {
                 continue;
             }
-            guardian.snapTo(cell.getX(), cell.getY(), cell.getZ(), random.nextFloat() * SpawnSpots.FULL_TURN_DEGREES, 0.0F);
+            guardian.snapTo(cell.getX() + SpawnSpots.CELL_CENTER, cell.getY(), cell.getZ() + SpawnSpots.CELL_CENTER, random.nextFloat() * SpawnSpots.FULL_TURN_DEGREES, 0.0F);
             if (!SpawnSpots.hasFreeSpace(level, guardian)) {
                 continue;
             }
