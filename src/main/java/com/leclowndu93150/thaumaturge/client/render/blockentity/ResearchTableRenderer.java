@@ -46,13 +46,13 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
     private static final float QUILL_SCALE = 0.5F;
     private static final float QUILL_THICKNESS = 0.025F;
     private static final int QUILL_TEXELS = 16;
-    private static final float SHEET_X = 0.1F;
-    private static final float SHEET_Z = 0.35F;
-    private static final float SHEET_WIDTH = 0.5F;
-    private static final float SHEET_LENGTH = 0.6F;
-    private static final float SHEET_BASE_HEIGHT = 1.010F;
-    private static final float SHEET_STEP = 0.015F;
-    private static final float[] SHEET_TILTS = {15.0F, 17.0F, 19.0F, 15.0F, 17.0F, 19.0F};
+    private static final float SHEET_X = 0.12F;
+    private static final float SHEET_Z = 0.32F;
+    private static final float SHEET_WIDTH = 0.48F;
+    private static final float SHEET_LENGTH = 0.56F;
+    private static final float SHEET_BASE_HEIGHT = 1.008F;
+    private static final float SHEET_STEP = 0.013F;
+    private static final float[] SHEET_TILTS = {-6.0F, 8.0F, 14.0F, -3.0F, 11.0F};
     private static final float LAY_FLAT = -90.0F;
     private static final float RIBBON_SCALE = 1.2F;
 
