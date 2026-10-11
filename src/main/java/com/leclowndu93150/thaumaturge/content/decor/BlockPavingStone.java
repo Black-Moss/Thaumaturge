@@ -37,14 +37,12 @@ public final class BlockPavingStone extends BaseEntityBlock {
     private static final int STEP_EFFECT_TICKS = 40;
     private static final int COLUMN_HEIGHT = 2;
     private static final double RUNE_CENTER = 0.5;
-    private static final double RUNE_HEIGHT = 1.2;
-    private static final RuneStyle POWERED_STYLE = new RuneStyle(4, 0.2F, 0.4F, 0.0F, 0.3F, 0.8F, 0.2F, 20, -0.02F);
-    private static final RuneStyle ACTIVE_STYLE = new RuneStyle(6, 0.9F, 0.1F, 0.0F, 0.3F, 0.0F, 0.3F, 24, -0.02F);
-    private static final RuneStyle WARNING_STYLE = new RuneStyle(1, 0.6F, 0.4F, 0.0F, 0.0F, 0.3F, 0.7F, 20, 0.0F);
-    private static final double WARNING_MARGIN = 1.0;
-    private static final double WARNING_BASE_HEIGHT = 0.6;
-    private static final double WARNING_MIN_SPREAD = 0.8;
-    private static final double WARNING_EXTRA_HEIGHT = 0.5;
+    private static final double RUNE_HEIGHT = 1.05;
+    private static final RuneStyle POWERED_STYLE = new RuneStyle(0.3F, 0.4F, 0.2F, 0.25F, 0.85F, 0.15F, 2, 8, -0.06F);
+    private static final RuneStyle ACTIVE_STYLE = new RuneStyle(0.85F, 0.15F, 0.0F, 0.2F, 0.0F, 0.15F, 4, 8, -0.06F);
+    private static final RuneStyle WARNING_STYLE = new RuneStyle(0.8F, 0.2F, 0.2F, 0.3F, 0.6F, 0.4F, 1, 10, 0.0F);
+    private static final double WARNING_RANGE = 1.0;
+    private static final double WARNING_MIN_SPREAD = 0.75;
 
     private final boolean barrier;
 
@@ -104,6 +102,31 @@ public final class BlockPavingStone extends BaseEntityBlock {
         }
     }
 
+    private static void spawnRunes(Level level, BlockPos pos, RandomSource random, RuneStyle style) {
+        for (int i = 0; i < style.count(); i++) {
+            emitRune(level, pos.getX() + RUNE_CENTER, pos.getY() + RUNE_HEIGHT, pos.getZ() + RUNE_CENTER, random, style);
+        }
+    }
+
+    private static void spawnWarning(Level level, BlockPos pos, RandomSource random) {
+        AABB nearby = new AABB(pos).inflate(WARNING_RANGE);
+        List<LivingEntity> intruders = level.getEntitiesOfClass(LivingEntity.class, nearby, candidate -> !(candidate instanceof Player) && candidate.isAlive());
+        if (intruders.isEmpty()) {
+            return;
+        }
+        LivingEntity intruder = intruders.get(random.nextInt(intruders.size()));
+        double base = pos.getY() + RUNE_HEIGHT;
+        double spread = Math.max(WARNING_MIN_SPREAD, intruder.getEyeY() - base);
+        emitRune(level, pos.getX() + RUNE_CENTER, base + random.nextDouble() * spread, pos.getZ() + RUNE_CENTER, random, WARNING_STYLE);
+    }
+
+    private static void emitRune(Level level, double x, double y, double z, RandomSource random, RuneStyle style) {
+        float red = style.redBase() + random.nextFloat() * style.redSpread();
+        float green = style.greenBase() + random.nextFloat() * style.greenSpread();
+        float blue = style.blueBase() + random.nextFloat() * style.blueSpread();
+        level.addParticle(new BlockRunesParticleOptions(red, green, blue, style.duration(), style.gravity(), false), x, y, z, 0.0, 0.0, 0.0);
+    }
+
     private static boolean hasColumn(Level level, BlockPos pos) {
         for (int height = 1; height <= COLUMN_HEIGHT; height++) {
             if (level.getBlockState(pos.above(height)).is(TTBlocks.BARRIER.get())) {
@@ -113,25 +136,6 @@ public final class BlockPavingStone extends BaseEntityBlock {
         return false;
     }
 
-    private static void spawnRunes(Level level, BlockPos pos, RandomSource random, RuneStyle style) {
-        for (int i = 0; i < style.count(); i++) {
-            level.addParticle(style.create(random), pos.getX() + RUNE_CENTER, pos.getY() + RUNE_HEIGHT, pos.getZ() + RUNE_CENTER, 0.0, 0.0, 0.0);
-        }
-    }
-
-    private static void spawnWarning(Level level, BlockPos pos, RandomSource random) {
-        List<LivingEntity> nearby = level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(WARNING_MARGIN), candidate -> !(candidate instanceof Player));
-        if (nearby.isEmpty()) {
-            return;
-        }
-        double height = pos.getY() + WARNING_BASE_HEIGHT + random.nextDouble() * Math.max(WARNING_MIN_SPREAD, nearby.getFirst().getEyeHeight()) + WARNING_EXTRA_HEIGHT;
-        level.addParticle(WARNING_STYLE.create(random), pos.getX() + RUNE_CENTER, height, pos.getZ() + RUNE_CENTER, 0.0, 0.0, 0.0);
-    }
-
-    private record RuneStyle(int count, float redMin, float redRange, float greenMin, float greenRange, float blueMin, float blueRange, int duration, float gravity) {
-        BlockRunesParticleOptions create(RandomSource random) {
-            return new BlockRunesParticleOptions(redMin + random.nextFloat() * redRange, greenMin + random.nextFloat() * greenRange, blueMin + random.nextFloat() * blueRange, duration, gravity,
-                    false);
-        }
+    private record RuneStyle(float redBase, float redSpread, float greenBase, float greenSpread, float blueBase, float blueSpread, int count, int duration, float gravity) {
     }
 }

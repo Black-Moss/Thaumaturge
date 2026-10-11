@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.entity.EntityCultistPortalLesser;
+import com.leclowndu93150.thaumaturge.content.entity.boss.EntityThaumaturgeBoss;
 import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTLootTables;
 import java.util.Collection;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
@@ -36,10 +38,10 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 public final class ChampionEvents {
     private static final int ROLL_BOUND = 100;
     private static final double MIN_BASE_HEALTH = 10.0;
-    private static final int LENIENT_BONUS = 2;
-    private static final int HARD_PENALTY = 2;
-    private static final int SPOOKY_PENALTY = 2;
-    private static final int SPOOKY_PENALTY_DISABLED = 1;
+    private static final int EASY_OR_DISABLED_PENALTY = 2;
+    private static final int HARD_BONUS = 2;
+    private static final int SPOOKY_BONUS = 2;
+    private static final int SPOOKY_BONUS_DISABLED = 1;
     private static final int WHITELIST_FLOOR = 1;
     private static final int KILL_EXPERIENCE_BASE = 5;
     private static final int KILL_EXPERIENCE_SPREAD = 3;
@@ -85,6 +87,37 @@ public final class ChampionEvents {
         table.getRandomItems(bagParams(level, victim, killer, event.getSource()), reward -> drops.add(rewardEntity(level, victim, reward)));
     }
 
+    private static boolean winsRoll(Level level, Monster mob) {
+        Integer weight = mob.getType().builtInRegistryHolder().getData(ChampionDataMaps.CHAMPION_WHITELIST);
+        if (weight == null || mob.getAttributeBaseValue(Attributes.MAX_HEALTH) < MIN_BASE_HEALTH) {
+            return false;
+        }
+        return mob.getRandom().nextInt(ROLL_BOUND) <= rollModifier(level, mob, weight);
+    }
+
+    private static int rollModifier(Level level, Monster mob, int weight) {
+        boolean enabled = ThaumaturgeCommonConfig.ALLOW_CHAMPION_MOBS.get();
+        Difficulty difficulty = level.getDifficulty();
+        int bonus = 0;
+        if (!enabled || difficulty == Difficulty.EASY) {
+            bonus -= EASY_OR_DISABLED_PENALTY;
+        }
+        if (enabled && difficulty == Difficulty.HARD) {
+            bonus += HARD_BONUS;
+        }
+        if (isSpooky(level, mob)) {
+            bonus += enabled ? SPOOKY_BONUS : SPOOKY_BONUS_DISABLED;
+        }
+        if ((enabled || isBoss(mob)) && weight > WHITELIST_FLOOR) {
+            bonus += weight - WHITELIST_FLOOR;
+        }
+        return bonus;
+    }
+
+    private static boolean isBoss(Monster mob) {
+        return mob instanceof EntityThaumaturgeBoss || mob.getType().builtInRegistryHolder().is(Tags.EntityTypes.BOSSES);
+    }
+
     private static ItemEntity rewardEntity(ServerLevel level, LivingEntity victim, ItemStack reward) {
         return new ItemEntity(level, victim.getX(), victim.getY(), victim.getZ(), reward);
     }
@@ -103,35 +136,6 @@ public final class ChampionEvents {
         builder.withParameter(LootContextParams.ORIGIN, victim.position());
         builder.withParameter(LootContextParams.THIS_ENTITY, victim);
         return builder.create(LootContextParamSets.ENTITY);
-    }
-
-    private static boolean winsRoll(Level level, Monster mob) {
-        Integer weight = mob.getType().builtInRegistryHolder().getData(ChampionDataMaps.CHAMPION_WHITELIST);
-        boolean eligible = weight != null && mob.getAttributeBaseValue(Attributes.MAX_HEALTH) >= MIN_BASE_HEALTH;
-        if (!eligible) {
-            return false;
-        }
-        boolean enabled = ThaumaturgeCommonConfig.ALLOW_CHAMPION_MOBS.get();
-        int roll = mob.getRandom().nextInt(ROLL_BOUND);
-        return roll + rollModifier(level, mob, enabled, weight) <= 0;
-    }
-
-    private static int rollModifier(Level level, Monster mob, boolean enabled, int weight) {
-        int modifier = 0;
-        Difficulty difficulty = level.getDifficulty();
-        if (difficulty == Difficulty.EASY || !enabled) {
-            modifier += LENIENT_BONUS;
-        }
-        if (difficulty == Difficulty.HARD && enabled) {
-            modifier -= HARD_PENALTY;
-        }
-        if (isSpooky(level, mob)) {
-            modifier -= enabled ? SPOOKY_PENALTY : SPOOKY_PENALTY_DISABLED;
-        }
-        if (enabled && weight > WHITELIST_FLOOR) {
-            modifier -= weight - WHITELIST_FLOOR;
-        }
-        return modifier;
     }
 
     private static boolean isSpooky(Level level, Monster mob) {

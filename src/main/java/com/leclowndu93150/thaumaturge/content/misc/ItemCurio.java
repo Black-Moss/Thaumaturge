@@ -18,7 +18,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -37,10 +36,13 @@ public final class ItemCurio extends Item {
     private static final int NORMAL_WARP = 1;
     private static final int TEMPORARY_WARP = 5;
     private static final int PERMANENT_WARP = 1;
+    private static final float PERMANENT_WARP_CHANCE = 0.5F;
+    private static final int GRANT_ROUNDS = 2;
     private static final float SOUND_VOLUME = 0.5F;
-    private static final float SOUND_PITCH_NUMERATOR = 0.4F;
-    private static final float SOUND_DIVISOR_MIN = 0.8F;
-    private static final float SOUND_DIVISOR_MAX = 1.2F;
+    private static final float SOUND_PITCH = 0.45F;
+    private static final float SOUND_PITCH_SPREAD = 0.1F;
+    private static final String RITES_UNREADABLE_KEY = "message.thaumaturge.curio.crimson_rites";
+    private static final String KNOWLEDGE_GAINED_KEY = "message.thaumaturge.curio.knowledge_gained";
 
     private final Variant variant;
 
@@ -54,40 +56,56 @@ public final class ItemCurio extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, builder, flag);
-        builder.accept(Component.translatable("tooltip.thaumaturge.curio.read"));
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (!(player instanceof ServerPlayer reader)) {
+            return InteractionResult.SUCCESS;
+        }
+        RandomSource random = reader.getRandom();
+        float pitch = SOUND_PITCH + (random.nextFloat() - random.nextFloat()) * SOUND_PITCH_SPREAD;
+        level.playSound(null, reader.getX(), reader.getY(), reader.getZ(), TTSounds.LEARN.get(), SoundSource.PLAYERS, SOUND_VOLUME, pitch);
+        if (variant.demandsWarp() && !unlockRites(reader)) {
+            reader.sendSystemMessage(Component.translatable(RITES_UNREADABLE_KEY).withStyle(ChatFormatting.DARK_PURPLE));
+            return InteractionResult.FAIL;
+        }
+        for (int round = 0; round < GRANT_ROUNDS; round++) {
+            OBSERVATION_GRANT.award(reader);
+            THEORY_GRANT.award(reader);
+        }
+        if (variant.warping()) {
+            WarpHelper.addWarp(reader, NORMAL_WARP, WarpType.NORMAL);
+            WarpHelper.addWarp(reader, TEMPORARY_WARP, WarpType.TEMPORARY);
+        }
+        if (variant.demandsWarp() && random.nextFloat() < PERMANENT_WARP_CHANCE) {
+            WarpHelper.addWarp(reader, PERMANENT_WARP, WarpType.PERMANENT);
+        }
+        reader.getItemInHand(hand).consume(1, reader);
+        reader.sendSystemMessage(Component.translatable(KNOWLEDGE_GAINED_KEY).withStyle(ChatFormatting.DARK_PURPLE));
+        reader.awardStat(Stats.ITEM_USED.get(this));
+        return InteractionResult.SUCCESS_SERVER;
+    }
+
+    private static boolean unlockRites(ServerPlayer reader) {
+        if (totalWarp(reader) <= RITES_WARP_THRESHOLD) {
+            return false;
+        }
+        if (!KnowledgeAccess.of(reader).isResearchKnown(RITES_RESEARCH)) {
+            ResearchManager.complete(reader, RITES_RESEARCH);
+        }
+        return true;
+    }
+
+    private static int totalWarp(ServerPlayer reader) {
+        int total = 0;
+        for (WarpType type : WarpType.values()) {
+            total += WarpHelper.getWarp(reader).get(type);
+        }
+        return total;
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        if (level.isClientSide() || !(player instanceof ServerPlayer user)) {
-            player.awardStat(Stats.ITEM_USED.get(this));
-            return InteractionResult.SUCCESS;
-        }
-        RandomSource random = user.getRandom();
-        float pitch = SOUND_PITCH_NUMERATOR / Mth.randomBetween(random, SOUND_DIVISOR_MIN, SOUND_DIVISOR_MAX);
-        level.playSound(null, user.getX(), user.getY(), user.getZ(), TTSounds.LEARN.get(), SoundSource.NEUTRAL, SOUND_VOLUME, pitch);
-        if (variant.rites && WarpHelper.getActualWarp(user) <= RITES_WARP_THRESHOLD) {
-            user.sendSystemMessage(Component.translatable("message.thaumaturge.curio.crimson_rites").withStyle(ChatFormatting.DARK_PURPLE));
-            return InteractionResult.SUCCESS;
-        }
-        if (variant.rites && !KnowledgeAccess.of(user).isResearchKnown(RITES_RESEARCH)) {
-            ResearchManager.complete(user, RITES_RESEARCH);
-        }
-        OBSERVATION_GRANT.award(user);
-        THEORY_GRANT.award(user);
-        if (variant.warp) {
-            WarpHelper.addWarp(user, NORMAL_WARP, WarpType.NORMAL);
-            WarpHelper.addWarp(user, TEMPORARY_WARP, WarpType.TEMPORARY);
-            if (variant.rites && random.nextBoolean()) {
-                WarpHelper.addWarp(user, PERMANENT_WARP, WarpType.PERMANENT);
-            }
-        }
-        user.getItemInHand(hand).consume(1, user);
-        user.sendSystemMessage(Component.translatable("message.thaumaturge.curio.knowledge_gained").withStyle(ChatFormatting.DARK_PURPLE));
-        user.awardStat(Stats.ITEM_USED.get(this));
-        return InteractionResult.SUCCESS;
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        builder.accept(Component.translatable("tooltip.thaumaturge.curio.read"));
     }
 
     public enum Variant {
@@ -95,14 +113,27 @@ public final class ItemCurio extends Item {
                 TTResearchCategories.ELDRITCH, true,
                 false), KNOWLEDGE(TTResearchCategories.INFUSION, false, false), TWISTED(TTResearchCategories.ARTIFICE, false, false), RITES(TTResearchCategories.ELDRITCH, true, true);
 
-        private final ResourceKey<IResearchCategory> category;
-        private final boolean warp;
-        private final boolean rites;
+        private final ResourceKey<IResearchCategory> field;
+        private final boolean warping;
+        private final boolean demandsWarp;
 
-        Variant(ResourceKey<IResearchCategory> category, boolean warp, boolean rites) {
-            this.category = category;
-            this.warp = warp;
-            this.rites = rites;
+        Variant(ResourceKey<IResearchCategory> field, boolean warping, boolean demandsWarp) {
+            this.field = field;
+            this.warping = warping;
+            this.demandsWarp = demandsWarp;
+        }
+
+        public ResourceKey<IResearchCategory> field() {
+            return field;
+        }
+
+        public boolean warping() {
+            return warping;
+        }
+
+        public boolean demandsWarp() {
+            return demandsWarp;
         }
     }
+
 }

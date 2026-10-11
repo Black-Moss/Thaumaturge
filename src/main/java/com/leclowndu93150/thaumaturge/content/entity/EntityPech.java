@@ -240,7 +240,7 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
     }
 
     @Override
-    protected float getSoundVolume() {
+    public float getSoundVolume() {
         return SOUND_VOLUME;
     }
 
@@ -349,11 +349,6 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
     @Override
     public boolean holdingStill() {
         return isDomesticated() && this.atTradeTable;
-    }
-
-    @Override
-    public void releaseHold() {
-        this.atTradeTable = false;
     }
 
     @Override

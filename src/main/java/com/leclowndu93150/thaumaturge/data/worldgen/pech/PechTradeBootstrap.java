@@ -48,10 +48,9 @@ public final class PechTradeBootstrap {
 
         TradeListBuilder forager = new TradeListBuilder(aspects, enchantments);
         forager.items(TIER_COMMON, TTItems.CLUSTER_IRON.get(), TTItems.CLUSTER_GOLD.get(), TTItems.CLUSTER_CINNABAR.get(), TTItems.CLUSTER_QUARTZ.get(), TTItems.CLUSTER_COPPER.get())
-                .items(TIER_UNCOMMON, Items.BLAZE_ROD, TTBlocks.SAPLING_GREATWOOD.get(), Items.DRAGON_BREATH, Items.COMPASS)
-                .items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE, Items.GOLDEN_APPLE)
-                .items(TIER_RARE, TTItems.THAUMIUM_PICKAXE.get(), TTItems.THAUMIUM_AXE.get(), TTItems.THAUMIUM_HOE.get(), Items.SPECTRAL_ARROW)
-                .items(TIER_EPIC, Items.ENCHANTED_GOLDEN_APPLE, TTBlocks.SAPLING_SILVERWOOD.get(), Items.TOTEM_OF_UNDYING, TTItems.CURIO_KNOWLEDGE.get());
+                .items(TIER_UNCOMMON, Items.BLAZE_ROD, TTBlocks.SAPLING_GREATWOOD.get(), Items.DRAGON_BREATH).items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE, Items.GOLDEN_APPLE)
+                .items(TIER_RARE, TTItems.THAUMIUM_PICKAXE.get(), TTItems.THAUMIUM_AXE.get(), TTItems.THAUMIUM_HOE.get())
+                .items(TIER_EPIC, Items.ENCHANTED_GOLDEN_APPLE, TTBlocks.SAPLING_SILVERWOOD.get(), TTItems.CURIO_KNOWLEDGE.get());
         forager.registerAs(ctx, "forager");
 
         TradeListBuilder mage = new TradeListBuilder(aspects, enchantments);
@@ -61,13 +60,13 @@ public final class PechTradeBootstrap {
         mage.potion(TIER_UNCOMMON, Potions.REGENERATION).potion(TIER_UNCOMMON, Potions.HEALING).crystal(TIER_UNCOMMON, TTAspects.VITIUM)
                 .items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE).crystal(TIER_FAIR, TTAspects.AURAM).items(TIER_FAIR, Items.GOLDEN_APPLE)
                 .items(TIER_RARE, TTItems.CLOTH_BOOTS.get(), TTItems.CLOTH_CHEST.get(), TTItems.CLOTH_LEGS.get())
-                .items(TIER_EPIC, Items.ENCHANTED_GOLDEN_APPLE, TTItems.PECH_WAND.get(), TTItems.CURIO_KNOWLEDGE.get());
+                .items(TIER_EPIC, Items.ENCHANTED_GOLDEN_APPLE, TTItems.PECH_WAND.get(), TTItems.CURIO_KNOWLEDGE.get(), Items.TOTEM_OF_UNDYING);
         mage.registerAs(ctx, "mage");
 
         TradeListBuilder stalker = new TradeListBuilder(aspects, enchantments);
         Arrays.stream(DyeColor.values()).filter(dye -> dye != DyeColor.WHITE).forEach(dye -> stalker.items(TIER_COMMON, TTBlocks.CANDLES.get(dye).get()));
-        stalker.items(TIER_UNCOMMON, Items.GHAST_TEAR).book(TIER_UNCOMMON, Enchantments.POWER).items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE, Items.GOLDEN_APPLE)
-                .items(TIER_RARE, TTItems.ELDRITCH_EYE.get(), Items.ENCHANTED_GOLDEN_APPLE).book(TIER_EPIC, Enchantments.FLAME).book(TIER_EPIC, Enchantments.INFINITY)
+        stalker.items(TIER_UNCOMMON, Items.GHAST_TEAR, Items.COMPASS).book(TIER_UNCOMMON, Enchantments.POWER).items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE, Items.GOLDEN_APPLE)
+                .items(TIER_RARE, TTItems.ELDRITCH_EYE.get(), Items.ENCHANTED_GOLDEN_APPLE, Items.SPECTRAL_ARROW).book(TIER_EPIC, Enchantments.FLAME).book(TIER_EPIC, Enchantments.INFINITY)
                 .items(TIER_EPIC, TTItems.CURIO_KNOWLEDGE.get());
         stalker.registerAs(ctx, "stalker");
     }
