@@ -42,6 +42,10 @@ public final class FloatyLineRenderer {
         collector.submitCustomGeometry(poseStack, renderType(), (pose, buffer) -> emit(pose.pose(), buffer, offset, time, color, scrollSpeed, fraction, halfWidth));
     }
 
+    public static void submitShaded(PoseStack poseStack, SubmitNodeCollector collector, Vec3 offset, float time, int color, float scrollSpeed, float fraction, float halfWidth) {
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.translucent(WISPY_TEXTURE), (pose, buffer) -> emit(pose.pose(), buffer, offset, time, color, scrollSpeed, fraction, halfWidth));
+    }
+
     public static void draw(PoseStack poseStack, MultiBufferSource buffers, Vec3 offset, float time, int color, float scrollSpeed, float fraction, float halfWidth) {
         emit(poseStack.last().pose(), buffers.getBuffer(renderType()), offset, time, color, scrollSpeed, fraction, halfWidth);
     }

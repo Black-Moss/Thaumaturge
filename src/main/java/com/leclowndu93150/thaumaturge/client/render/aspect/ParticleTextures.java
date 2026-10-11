@@ -13,12 +13,14 @@ public final class ParticleTextures {
     public static final Identifier LIGHTNING_RING = TTIds.rl("textures/effect/lightning_ring.png");
     public static final Identifier FRAME_CORNER = TTIds.rl("textures/misc/frame_corner.png");
     public static final Identifier WHITE = TTIds.rl("textures/misc/white.png");
+    public static final Identifier CULTIST_PORTAL = TTIds.rl("textures/misc/cultist_portal.png");
 
     public static final int ORB_GLOW_FRAMES = 16;
     public static final int STAR_GLINT_FRAMES = 16;
     public static final int ELDRITCH_ORB_FRAMES = 13;
     public static final int GOLEM_ORB_FRAMES = 6;
     public static final int LIGHTNING_RING_FRAMES = 16;
+    public static final int CULTIST_PORTAL_FRAMES = 32;
 
     private ParticleTextures() {}
 }

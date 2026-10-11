@@ -111,7 +111,7 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
         }
     }
 
-    private Vec3 ritualFocus() {
+    public Vec3 ritualFocus() {
         BlockPos anchor = this.ritualAnchor();
         return new Vec3(anchor.getX() + ALTAR_FOCUS_CENTER, anchor.getY() + ALTAR_FOCUS_HEIGHT, anchor.getZ() + ALTAR_FOCUS_CENTER);
     }

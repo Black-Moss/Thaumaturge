@@ -11,21 +11,21 @@ public interface GolemPartRenderHook {
         return rotation;
     }
 
-    default float armRotationZ(GolemRenderState golem, GolemPartModel.LimbSide limb, float current) {
-        return unchanged(current);
+    default void posePiece(String piece, GolemRenderState state, PoseStack pose, GolemPartModel.LimbSide side) {}
+
+    default void decoratePiece(String piece, GolemRenderState state, PoseStack pose, SubmitNodeCollector collector, GolemPartModel.LimbSide side) {}
+
+    default float aimArmPitch(GolemRenderState state, GolemPartModel.LimbSide side, float rigPitch) {
+        return unchanged(rigPitch);
     }
 
-    default float armRotationY(GolemRenderState golem, GolemPartModel.LimbSide limb, float current) {
-        return unchanged(current);
+    default float aimArmYaw(GolemRenderState state, GolemPartModel.LimbSide side, float rigYaw) {
+        return unchanged(rigYaw);
     }
 
-    default float armRotationX(GolemRenderState golem, GolemPartModel.LimbSide limb, float current) {
-        return unchanged(current);
+    default float aimArmRoll(GolemRenderState state, GolemPartModel.LimbSide side, float rigRoll) {
+        return unchanged(rigRoll);
     }
-
-    default void postRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, SubmitNodeCollector collector, GolemPartModel.LimbSide side) {}
-
-    default void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, GolemPartModel.LimbSide side, float partialTick) {}
 
     enum Noop implements GolemPartRenderHook {
         INSTANCE

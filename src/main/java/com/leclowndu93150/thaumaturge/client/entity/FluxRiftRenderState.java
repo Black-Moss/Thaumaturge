@@ -1,14 +1,11 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.world.phys.Vec3;
 
 public final class FluxRiftRenderState extends EntityRenderState {
-    public final List<Vec3> points = new ArrayList<>();
-    public final List<Float> widths = new ArrayList<>();
-    public float stability;
-    public float animationTime;
+    public float[] path = new float[0];
+    public float[] radii = new float[0];
+    public float[] rings = new float[0];
+    public int count;
     public boolean goggles;
 }

@@ -36,26 +36,33 @@ public final class TTGolemParts {
     private static final Registry<GolemLeg> LEG_REGISTRY = LEGS.makeRegistry(builder -> builder.sync(false));
     private static final Registry<GolemAddon> ADDON_REGISTRY = ADDONS.makeRegistry(builder -> builder.sync(false));
 
+    private static final int TINT_WOOD = 0x6B4A2E;
+    private static final int TINT_IRON = 0xFFFFFF;
+    private static final int TINT_CLAY = 0xC8693F;
+    private static final int TINT_BRASS = 0xE0A23A;
+    private static final int TINT_THAUMIUM = 0x5B3A8C;
+    private static final int TINT_VOID = 0x2A1A33;
+
     public static final DeferredHolder<GolemMaterial, GolemMaterial> WOOD = MATERIALS.register("wood", () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_wood")),
-            Identifier.parse("thaumaturge:textures/block/base_wood.png"), 5059370, 6, 2, 1, stack(TTBlocks.PLANK_GREATWOOD), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.LIGHT)));
+            Identifier.parse("thaumaturge:textures/block/base_wood.png"), TINT_WOOD, 6, 2, 1, stack(TTBlocks.PLANK_GREATWOOD), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.LIGHT)));
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> IRON = MATERIALS.register("iron",
-            () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_iron")), Identifier.parse("minecraft:textures/block/iron_block.png"), 16777215, 20, 8, 3, stack(TTItems.PLATE_IRON),
+            () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_iron")), Identifier.parse("minecraft:textures/block/iron_block.png"), TINT_IRON, 20, 8, 3, stack(TTItems.PLATE_IRON),
                     stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.HEAVY, TTGolemTraits.FIREPROOF, TTGolemTraits.BLASTPROOF)));
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> CLAY = MATERIALS.register("clay",
-            () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_clay")), Identifier.parse("minecraft:textures/block/terracotta.png"), 13071447, 10, 4, 2, () -> new ItemStack(Blocks.TERRACOTTA),
+            () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_clay")), Identifier.parse("minecraft:textures/block/terracotta.png"), TINT_CLAY, 10, 4, 2, () -> new ItemStack(Blocks.TERRACOTTA),
                     stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.FIREPROOF)));
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> BRASS = MATERIALS.register("brass", () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_brass")),
-            Identifier.parse("thaumaturge:textures/block/metal_brass.png"), 15638812, 16, 6, 3, stack(TTItems.PLATE_BRASS), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.LIGHT)));
+            Identifier.parse("thaumaturge:textures/block/metal_brass.png"), TINT_BRASS, 16, 6, 3, stack(TTItems.PLATE_BRASS), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.LIGHT)));
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> THAUMIUM = MATERIALS.register("thaumium",
-            () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_thaumium")), Identifier.parse("thaumaturge:textures/block/metal_thaumium.png"), 5257074, 24, 10, 4, stack(TTItems.PLATE_THAUMIUM),
+            () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_thaumium")), Identifier.parse("thaumaturge:textures/block/metal_thaumium.png"), TINT_THAUMIUM, 24, 10, 4, stack(TTItems.PLATE_THAUMIUM),
                     stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.HEAVY, TTGolemTraits.FIREPROOF, TTGolemTraits.BLASTPROOF)));
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> VOID = MATERIALS.register("void", () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_void")),
-            Identifier.parse("thaumaturge:textures/block/metal_void.png"), 1445161, 20, 6, 4, stack(TTItems.PLATE_VOID), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.REPAIR)));
+            Identifier.parse("thaumaturge:textures/block/metal_void.png"), TINT_VOID, 20, 6, 4, stack(TTItems.PLATE_VOID), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.REPAIR)));
 
     public static final DeferredHolder<GolemHead, GolemHead> HEAD_BASIC = HEADS.register("basic",
             () -> new GolemHead(List.of(TTIds.rl("mind_clockwork")), partIcon("head_basic"), null, List.of(stackComponent(TTItems.MIND_CLOCKWORK)), null, List.of()));

@@ -1,141 +1,141 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
-import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
+import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPartModel;
-import com.leclowndu93150.thaumaturge.registry.TTGolemParts;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import org.jspecify.annotations.Nullable;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
 public final class GolemPartRenderHooks {
-    private static final String WHEEL_GROUP = "wheel";
-    private static final String CLAW_PREFIX = "claw";
-    private static final String FIRST_CLAW_SUFFIX = "1";
-    private static final String GRINDER_GROUP = "grinder";
-    private static final String CARGO_GROUP = "cargo";
-    private static final String OUTER_SUFFIX = "_outer";
+    private static final Identifier CLAWS_MESH = TTIds.rl("models/mesh/golem_arms_claws.ttmesh");
+    private static final Identifier BREAKERS_MESH = TTIds.rl("models/mesh/golem_arms_breakers.ttmesh");
+    private static final Identifier DARTS_MESH = TTIds.rl("models/mesh/golem_arms_darter.ttmesh");
+    private static final Identifier WHEEL_MESH = TTIds.rl("models/mesh/golem_legs_wheel.ttmesh");
+    private static final Identifier HAULER_MESH = TTIds.rl("models/mesh/golem_hauler.ttmesh");
+    private static final Identifier PAULDRONS_MESH = TTIds.rl("models/mesh/golem_armor_pauldrons.ttmesh");
 
-    private static final float PIXEL = 1.0F / 16.0F;
-    private static final float WHEEL_PIVOT_DROP = 2.5F * PIXEL;
-    private static final float CLAW_PIVOT_DROP = 1.5F * PIXEL;
-    private static final float GRINDER_PIVOT_DROP = PIXEL;
-    private static final float CLAW_OPENING_FACTOR = 4.1F;
-    private static final float GRINDER_BASE_DEGREES_PER_TICK = 0.5F;
-    private static final float LEFT_GRINDER_PHASE = 22.0F;
-    private static final float DART_AIM_BASE = 90.0F;
-    private static final float DART_INPUT_DIVISOR = 10.0F;
-    private static final float HALF_TURN = 180.0F;
-    private static final float CARGO_LIFT = 3.0F * PIXEL;
-    private static final float CARGO_FORWARD = 6.5F * PIXEL;
-    private static final float CARGO_SCALE = 0.45F;
-
-    private static final Map<GolemPartModel, GolemPartRenderHook> HOOKS = new IdentityHashMap<>();
-    private static boolean filled;
+    private static final Map<Identifier, GolemPartRenderHook> HOOKS = Map.of(CLAWS_MESH, new ClawJaws(), BREAKERS_MESH, new GrinderSpin(), DARTS_MESH, new LauncherAim(), WHEEL_MESH, new WheelRoll(),
+            HAULER_MESH, new BasketCargo(), PAULDRONS_MESH, new ShoulderMirror());
 
     private GolemPartRenderHooks() {}
 
     public static GolemPartRenderHook hookFor(GolemPartModel model) {
-        if (!filled) {
-            fill();
-        }
-        return HOOKS.getOrDefault(model, GolemPartRenderHook.NONE);
+        return HOOKS.getOrDefault(model.objModel(), GolemPartRenderHook.NONE);
     }
 
-    private static void fill() {
-        register(TTGolemParts.LEGS_ROLLER.get(), null, new WheelHook());
-        register(TTGolemParts.ARMS_CLAWS.get(), null, new ClawsHook());
-        register(TTGolemParts.ARMS_BREAKERS.get(), null, new BreakersHook());
-        register(TTGolemParts.ARMS_DARTS.get(), null, new DartsHook());
-        register(TTGolemParts.ADDON_HAULER.get(), null, new HaulerHook());
-        register(TTGolemParts.ADDON_ARMORED.get(), GolemPartModel.AttachPoint.ARMS, new PauldronHook());
-        filled = true;
-    }
-
-    private static void register(GolemPart part, GolemPartModel.@Nullable AttachPoint only, GolemPartRenderHook hook) {
-        for (GolemPartModel model : part.models()) {
-            if (only == null || model.attachPoint() == only) {
-                HOOKS.put(model, hook);
-            }
-        }
-    }
-
-    private static void spinAboutX(PoseStack pose, float pivotDrop, float degrees) {
-        pose.translate(0.0F, -pivotDrop, 0.0F);
+    private static void rotateAboutX(PoseStack pose, float pivotY, float pivotZ, float degrees) {
+        pose.translate(0.0F, pivotY, pivotZ);
         pose.mulPose(Axis.XP.rotationDegrees(degrees));
+        pose.translate(0.0F, -pivotY, -pivotZ);
     }
 
-    static final class WheelHook implements GolemPartRenderHook {
-        @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, GolemPartModel.LimbSide side, float partialTick) {
-            if (WHEEL_GROUP.equals(partName)) {
-                spinAboutX(poseStack, WHEEL_PIVOT_DROP, -state.wheelRotation);
-            }
-        }
-    }
+    private static final class ClawJaws implements GolemPartRenderHook {
+        private static final String FRONT_HALF = "claw001";
+        private static final String BACK_HALF = "claw002";
+        private static final float HINGE_Y = 0.01F;
+        private static final float HINGE_Z = 0.0F;
+        private static final float MAX_OPEN_DEGREES = 34.0F;
 
-    static final class ClawsHook implements GolemPartRenderHook {
         @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, GolemPartModel.LimbSide side, float partialTick) {
-            if (!partName.startsWith(CLAW_PREFIX)) {
+        public void posePiece(String piece, GolemRenderState state, PoseStack pose, GolemPartModel.LimbSide side) {
+            float direction = FRONT_HALF.equals(piece) ? 1.0F : BACK_HALF.equals(piece) ? -1.0F : 0.0F;
+            if (direction == 0.0F || state.attackTime <= 0.0F) {
                 return;
             }
-            float swing = CLAW_OPENING_FACTOR * state.attackTime;
-            float opening = swing * swing;
-            spinAboutX(poseStack, CLAW_PIVOT_DROP, partName.endsWith(FIRST_CLAW_SUFFIX) ? opening : -opening);
+            float swing = state.attackTime * state.attackTime;
+            float open = MAX_OPEN_DEGREES * Mth.sin(swing * Mth.PI);
+            rotateAboutX(pose, HINGE_Y, HINGE_Z, direction * open);
         }
     }
 
-    static final class BreakersHook implements GolemPartRenderHook {
+    private static final class GrinderSpin implements GolemPartRenderHook {
+        private static final String GRINDER = "grinder";
+        private static final float HUB_Y = 0.0F;
+        private static final float HUB_Z = 0.0F;
+        private static final float LEFT_LAG_DEGREES = 25.0F;
+
         @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, GolemPartModel.LimbSide side, float partialTick) {
-            if (!GRINDER_GROUP.equals(partName)) {
+        public void posePiece(String piece, GolemRenderState state, PoseStack pose, GolemPartModel.LimbSide side) {
+            if (!GRINDER.equals(piece)) {
                 return;
             }
-            float spin = state.grinderRot + GRINDER_BASE_DEGREES_PER_TICK * state.ageInTicks;
-            spinAboutX(poseStack, GRINDER_PIVOT_DROP, side == GolemPartModel.LimbSide.LEFT ? -(spin + LEFT_GRINDER_PHASE) : spin);
+            float angle = side == GolemPartModel.LimbSide.LEFT ? -(state.grinderRot + LEFT_LAG_DEGREES) : state.grinderRot;
+            rotateAboutX(pose, HUB_Y, HUB_Z, angle);
         }
     }
 
-    static final class DartsHook implements GolemPartRenderHook {
+    private static final class LauncherAim implements GolemPartRenderHook {
+        private static final float LEVEL_AIM = -Mth.HALF_PI;
+        private static final float SWAY_KEPT = 0.12F;
+
         @Override
-        public float armRotationX(GolemRenderState state, GolemPartModel.LimbSide side, float inputRot) {
-            return state.combat ? DART_AIM_BASE - state.pitch + inputRot / DART_INPUT_DIVISOR : inputRot;
+        public float aimArmPitch(GolemRenderState state, GolemPartModel.LimbSide side, float rigPitch) {
+            return state.combat ? LEVEL_AIM + state.xRot * Mth.DEG_TO_RAD + rigPitch * SWAY_KEPT : rigPitch;
         }
 
         @Override
-        public float armRotationY(GolemRenderState state, GolemPartModel.LimbSide side, float inputRot) {
-            return state.combat ? inputRot / DART_INPUT_DIVISOR : inputRot;
+        public float aimArmYaw(GolemRenderState state, GolemPartModel.LimbSide side, float rigYaw) {
+            return state.combat ? rigYaw * SWAY_KEPT : rigYaw;
         }
 
         @Override
-        public float armRotationZ(GolemRenderState state, GolemPartModel.LimbSide side, float inputRot) {
-            return state.combat ? inputRot / DART_INPUT_DIVISOR : inputRot;
+        public float aimArmRoll(GolemRenderState state, GolemPartModel.LimbSide side, float rigRoll) {
+            return state.combat ? rigRoll * SWAY_KEPT : rigRoll;
         }
     }
 
-    static final class HaulerHook implements GolemPartRenderHook {
+    private static final class WheelRoll implements GolemPartRenderHook {
+        private static final String WHEEL = "wheel";
+        private static final float AXLE_Y = 0.0F;
+        private static final float AXLE_Z = 0.0F;
+
         @Override
-        public void postRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, SubmitNodeCollector collector, GolemPartModel.LimbSide side) {
-            if (!CARGO_GROUP.equals(partName) || !state.haulingItem) {
+        public void posePiece(String piece, GolemRenderState state, PoseStack pose, GolemPartModel.LimbSide side) {
+            if (WHEEL.equals(piece)) {
+                rotateAboutX(pose, AXLE_Y, AXLE_Z, -state.wheelRotation);
+            }
+        }
+    }
+
+    private static final class BasketCargo implements GolemPartRenderHook {
+        private static final String BASKET = "basket";
+        private static final float SEAT_Z = 0.38F;
+        private static final float BLOCK_SEAT_Y = 0.15F;
+        private static final float BLOCK_SCALE = 0.5F;
+        private static final float FLAT_SEAT_Y = 0.07F;
+        private static final float FLAT_SCALE = 0.6F;
+        private static final float LAY_FLAT_DEGREES = 90.0F;
+
+        @Override
+        public void decoratePiece(String piece, GolemRenderState state, PoseStack pose, SubmitNodeCollector collector, GolemPartModel.LimbSide side) {
+            if (!BASKET.equals(piece) || !state.haulingItem) {
                 return;
             }
-            poseStack.pushPose();
-            poseStack.translate(0.0F, CARGO_LIFT, CARGO_FORWARD);
-            poseStack.scale(CARGO_SCALE, CARGO_SCALE, CARGO_SCALE);
-            state.haulerItem.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
-            poseStack.popPose();
+            pose.pushPose();
+            if (state.haulerItemIsBlock) {
+                pose.translate(0.0F, BLOCK_SEAT_Y, SEAT_Z);
+                pose.scale(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
+            } else {
+                pose.translate(0.0F, FLAT_SEAT_Y, SEAT_Z);
+                pose.mulPose(Axis.XP.rotationDegrees(LAY_FLAT_DEGREES));
+                pose.scale(FLAT_SCALE, FLAT_SCALE, FLAT_SCALE);
+            }
+            state.haulerItem.submit(pose, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
+            pose.popPose();
         }
     }
 
-    static final class PauldronHook implements GolemPartRenderHook {
+    private static final class ShoulderMirror implements GolemPartRenderHook {
+        private static final float HALF_TURN_DEGREES = 180.0F;
+
         @Override
-        public void preRenderObjectPart(String partName, GolemRenderState state, PoseStack poseStack, GolemPartModel.LimbSide side, float partialTick) {
-            if (side == GolemPartModel.LimbSide.LEFT && partName.endsWith(OUTER_SUFFIX)) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN));
+        public void posePiece(String piece, GolemRenderState state, PoseStack pose, GolemPartModel.LimbSide side) {
+            if (side == GolemPartModel.LimbSide.LEFT) {
+                pose.mulPose(Axis.YP.rotationDegrees(HALF_TURN_DEGREES));
             }
         }
     }
