@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumaturge.client.extensions;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
+import com.leclowndu93150.thaumaturge.client.model.gear.ClericArmorModel;
+import com.leclowndu93150.thaumaturge.client.model.gear.CrimsonBootsModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.FortressArmorModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.KnightArmorModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.PraetorArmorModel;
@@ -33,8 +35,9 @@ public final class CultistArmorClientExtensions {
     public static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
         event.registerItem(new CustomArmorExtension(KnightArmorModel::new, TTModelLayers.KNIGHT_ARMOR_HEAD, TTModelLayers.KNIGHT_ARMOR_CHEST, TTModelLayers.KNIGHT_ARMOR_LEGS),
                 TTItems.CRIMSON_PLATE_HELM.get(), TTItems.CRIMSON_PLATE_CHEST.get(), TTItems.CRIMSON_PLATE_LEGS.get());
-        event.registerItem(new CustomArmorExtension(RobeArmorModel::new, TTModelLayers.ROBE_ARMOR_HEAD, TTModelLayers.ROBE_ARMOR_CHEST, TTModelLayers.ROBE_ARMOR_LEGS), TTItems.CRIMSON_ROBE_HELM.get(),
-                TTItems.CRIMSON_ROBE_CHEST.get(), TTItems.CRIMSON_ROBE_LEGS.get());
+        event.registerItem(new CustomArmorExtension(ClericArmorModel::new, TTModelLayers.CLERIC_ARMOR_HEAD, TTModelLayers.CLERIC_ARMOR_CHEST, TTModelLayers.CLERIC_ARMOR_LEGS),
+                TTItems.CRIMSON_ROBE_HELM.get(), TTItems.CRIMSON_ROBE_CHEST.get(), TTItems.CRIMSON_ROBE_LEGS.get());
+        event.registerItem(new SingleLayerArmorExtension(CrimsonBootsModel::new, TTModelLayers.CRIMSON_BOOTS), TTItems.CRIMSON_BOOTS.get());
         event.registerItem(new CustomArmorExtension(RobeArmorModel::new, TTModelLayers.ROBE_ARMOR_HEAD, TTModelLayers.ROBE_ARMOR_CHEST, TTModelLayers.ROBE_ARMOR_LEGS), TTItems.VOID_ROBE_HELM.get(),
                 TTItems.VOID_ROBE_CHEST.get(), TTItems.VOID_ROBE_LEGS.get());
         event.registerItem(new CustomArmorExtension(PraetorArmorModel::new, TTModelLayers.PRAETOR_ARMOR_HEAD, TTModelLayers.PRAETOR_ARMOR_CHEST, TTModelLayers.PRAETOR_ARMOR_LEGS),

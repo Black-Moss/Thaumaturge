@@ -144,11 +144,11 @@ public final class RobeArmorModel extends AbstractTTArmorModel {
     }
 
     private static MeshDefinition createMesh() {
-        MeshDefinition mesh = KnightArmorModel.emptyMesh();
+        MeshDefinition mesh = emptyMesh();
         PartDefinition torso = mesh.getRoot().getChild("body");
         for (String side : SIDES) {
             String tail = "tail_" + side;
-            KnightArmorModel.emptyChild(KnightArmorModel.emptyChild(torso, tail + "_upper"), tail + "_lower");
+            emptyChain(torso, tail + "_upper", tail + "_lower");
         }
         return mesh;
     }

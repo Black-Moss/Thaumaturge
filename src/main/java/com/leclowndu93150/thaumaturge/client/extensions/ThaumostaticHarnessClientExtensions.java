@@ -4,14 +4,9 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.gear.ThaumostaticHarnessModel;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.Model;
-import net.minecraft.client.resources.model.EquipmentClientInfo;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
@@ -20,18 +15,6 @@ public final class ThaumostaticHarnessClientExtensions {
 
     @SubscribeEvent
     public static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
-        event.registerItem(new HarnessExtension(), TTItems.THAUMOSTATIC_HARNESS.get());
-    }
-
-    private static final class HarnessExtension implements IClientItemExtensions {
-        private ThaumostaticHarnessModel model;
-
-        @Override
-        public Model getHumanoidArmorModel(ItemStack stack, EquipmentClientInfo.LayerType layerType, Model original) {
-            if (model == null) {
-                model = new ThaumostaticHarnessModel(Minecraft.getInstance().getEntityModels().bakeLayer(TTModelLayers.THAUMOSTATIC_HARNESS));
-            }
-            return model;
-        }
+        event.registerItem(new SingleLayerArmorExtension(ThaumostaticHarnessModel::new, TTModelLayers.THAUMOSTATIC_HARNESS), TTItems.THAUMOSTATIC_HARNESS.get());
     }
 }

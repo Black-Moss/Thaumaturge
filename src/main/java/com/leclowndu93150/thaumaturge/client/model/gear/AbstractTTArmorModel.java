@@ -3,6 +3,10 @@ package com.leclowndu93150.thaumaturge.client.model.gear;
 import net.minecraft.client.model.AnimationUtils;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.ZombieRenderState;
@@ -24,6 +28,27 @@ public abstract class AbstractTTArmorModel extends HumanoidModel<HumanoidRenderS
         if (state instanceof ArmorStandRenderState stand) {
             applyStandPose(stand);
         }
+    }
+
+    protected static MeshDefinition emptyMesh() {
+        MeshDefinition mesh = new MeshDefinition();
+        PartDefinition root = mesh.getRoot();
+        PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.ZERO);
+        head.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+        root.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.ZERO);
+        root.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offset(-5.0F, 2.0F, 0.0F));
+        root.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offset(5.0F, 2.0F, 0.0F));
+        root.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offset(-1.9F, 12.0F, 0.0F));
+        root.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offset(1.9F, 12.0F, 0.0F));
+        return mesh;
+    }
+
+    protected static PartDefinition emptyChain(PartDefinition parent, String... names) {
+        PartDefinition part = parent;
+        for (String name : names) {
+            part = part.addOrReplaceChild(name, CubeListBuilder.create(), PartPose.ZERO);
+        }
+        return part;
     }
 
     private void applyStandPose(ArmorStandRenderState stand) {
