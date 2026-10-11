@@ -34,10 +34,12 @@ import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItemTags;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTWandParts;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
@@ -93,6 +95,8 @@ public final class TTRecipeProvider extends RecipeProvider {
             new GearShape(RecipeCategory.COMBAT, false, List.of("I I", "III", "III")), new GearShape(RecipeCategory.COMBAT, false, List.of("III", "I I", "I I")),
             new GearShape(RecipeCategory.COMBAT, false, List.of("I I", "I I")));
     private static final int ELEMENTAL_TOOL_INSTABILITY = 1;
+    private static final int SEAL_UPGRADE_INSIGHT = 10;
+    private static final int GUARD_UPGRADE_INSIGHT = 20;
     private static final int CLOTH_VIS = 100;
 
     private TTRecipeProvider(HolderLookup.Provider provider, RecipeOutput output) {
@@ -543,18 +547,18 @@ public final class TTRecipeProvider extends RecipeProvider {
 
     private static List<ElementalToolSpec> elementalToolSpecs() {
         return List.of(
-                elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_AXE.get(), Map.of(InfusionEnchantment.COLLECTOR, 1, InfusionEnchantment.BURROWING, 1)), TTItems.THAUMIUM_AXE.get(),
-                        TTAspects.AQUA, TTAspects.AQUA, cost(TTAspects.AQUA, 60), cost(TTAspects.HERBA, 30)),
                 elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_PICKAXE.get(), Map.of(InfusionEnchantment.REFINING, 1, InfusionEnchantment.SOUNDING, 2)),
                         TTItems.THAUMIUM_PICKAXE.get(), TTAspects.IGNIS, TTAspects.IGNIS, cost(TTAspects.IGNIS, 30), cost(TTAspects.METALLUM, 30), cost(TTAspects.SENSUS, 30)),
-                elemental(RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SWORD.get(), Map.of(InfusionEnchantment.ARCING, 2)), TTItems.THAUMIUM_SWORD.get(), TTAspects.AER, TTAspects.AER,
-                        cost(TTAspects.AER, 30), cost(TTAspects.MOTUS, 30), cost(TTAspects.AVERSIO, 30)),
-                elemental(RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SPEAR.get(), Map.of(InfusionEnchantment.ESSENCE, 2)), TTItems.THAUMIUM_SPEAR.get(), TTAspects.AER, TTAspects.AER,
-                        cost(TTAspects.MOTUS, 60), cost(TTAspects.AER, 30), cost(TTAspects.POTENTIA, 30)),
                 elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_SHOVEL.get(), Map.of(InfusionEnchantment.DESTRUCTIVE, 1)), TTItems.THAUMIUM_SHOVEL.get(), TTAspects.TERRA,
                         TTAspects.TERRA, cost(TTAspects.TERRA, 60), cost(TTAspects.FABRICO, 30)),
-                elemental(RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ELEMENTAL_HOE.get()), TTItems.THAUMIUM_HOE.get(), TTAspects.ORDO, TTAspects.PERDITIO, cost(TTAspects.ORDO, 30),
-                        cost(TTAspects.HERBA, 30), cost(TTAspects.PERDITIO, 30)));
+                elemental(RecipeCategory.TOOLS, enchantedTool(TTItems.ELEMENTAL_AXE.get(), Map.of(InfusionEnchantment.BURROWING, 1, InfusionEnchantment.COLLECTOR, 1)), TTItems.THAUMIUM_AXE.get(),
+                        TTAspects.AQUA, TTAspects.AQUA, cost(TTAspects.AQUA, 60), cost(TTAspects.HERBA, 30)),
+                elemental(RecipeCategory.TOOLS, new ItemStackTemplate(TTItems.ELEMENTAL_HOE.get()), TTItems.THAUMIUM_HOE.get(), TTAspects.ORDO, TTAspects.PERDITIO, cost(TTAspects.HERBA, 30),
+                        cost(TTAspects.ORDO, 30), cost(TTAspects.PERDITIO, 30)),
+                elemental(RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SWORD.get(), Map.of(InfusionEnchantment.ARCING, 2)), TTItems.THAUMIUM_SWORD.get(), TTAspects.AER, TTAspects.AER,
+                        cost(TTAspects.AER, 30), cost(TTAspects.AVERSIO, 30), cost(TTAspects.MOTUS, 30)),
+                elemental(RecipeCategory.COMBAT, enchantedTool(TTItems.ELEMENTAL_SPEAR.get(), Map.of(InfusionEnchantment.ESSENCE, 2)), TTItems.THAUMIUM_SPEAR.get(), TTAspects.AER, TTAspects.AER,
+                        cost(TTAspects.MOTUS, 60), cost(TTAspects.AER, 30), cost(TTAspects.POTENTIA, 30)));
     }
 
     private void elementalTool(ElementalToolSpec spec) {
@@ -604,14 +608,14 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private List<EnchantStep> enchantSteps() {
-        return List.of(enchantStep(InfusionEnchantment.BURROWING, Items.WOODEN_PICKAXE, single(Items.RABBIT_FOOT), cost(TTAspects.SENSUS, 80), cost(TTAspects.TERRA, 150)),
-                enchantStep(InfusionEnchantment.COLLECTOR, Items.STONE_AXE, single(Items.LEAD), cost(TTAspects.DESIDERIUM, 80), cost(TTAspects.AQUA, 100)),
-                enchantStep(InfusionEnchantment.DESTRUCTIVE, Items.STONE_PICKAXE, single(Items.TNT), cost(TTAspects.AVERSIO, 200), cost(TTAspects.PERDITIO, 250)),
+        return List.of(enchantStep(InfusionEnchantment.ARCING, Items.IRON_SWORD, tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), cost(TTAspects.AER, 60), cost(TTAspects.POTENTIA, 40)),
+                enchantStep(InfusionEnchantment.ESSENCE, Items.GOLDEN_SWORD, single(TTItems.ESSENTIA_CRYSTAL.get()), cost(TTAspects.VITIUM, 60), cost(TTAspects.BESTIA, 40)),
+                enchantStep(InfusionEnchantment.SOUNDING, Items.STONE_PICKAXE, single(Items.MAP), cost(TTAspects.IGNIS, 60), cost(TTAspects.SENSUS, 40)),
                 enchantStep(InfusionEnchantment.REFINING, Items.IRON_PICKAXE, single(TTItems.SALIS_MUNDUS.get()), cost(TTAspects.ORDO, 80), cost(TTAspects.PERMUTATIO, 60)),
-                enchantStep(InfusionEnchantment.SOUNDING, Items.GOLDEN_PICKAXE, single(Items.MAP), cost(TTAspects.SENSUS, 40), cost(TTAspects.IGNIS, 60)),
-                enchantStep(InfusionEnchantment.ARCING, Items.WOODEN_SWORD, tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), cost(TTAspects.POTENTIA, 40), cost(TTAspects.AER, 60)),
-                enchantStep(InfusionEnchantment.ESSENCE, Items.STONE_SWORD, single(TTItems.ESSENTIA_CRYSTAL.get()), cost(TTAspects.BESTIA, 40), cost(TTAspects.VITIUM, 60)),
-                enchantStep(InfusionEnchantment.LAMPLIGHT, Items.GOLDEN_PICKAXE, tagged(TTItemTags.NITORS), cost(TTAspects.LUX, 80), cost(TTAspects.AER, 20)));
+                enchantStep(InfusionEnchantment.DESTRUCTIVE, Items.IRON_SHOVEL, single(Items.TNT), cost(TTAspects.PERDITIO, 250), cost(TTAspects.AVERSIO, 200)),
+                enchantStep(InfusionEnchantment.BURROWING, Items.STONE_AXE, single(Items.RABBIT_FOOT), cost(TTAspects.TERRA, 150), cost(TTAspects.SENSUS, 80)),
+                enchantStep(InfusionEnchantment.COLLECTOR, Items.GOLDEN_AXE, single(Items.LEAD), cost(TTAspects.AQUA, 100), cost(TTAspects.DESIDERIUM, 80)),
+                enchantStep(InfusionEnchantment.LAMPLIGHT, Items.WOODEN_PICKAXE, tagged(TTItemTags.NITORS), cost(TTAspects.LUX, 80), cost(TTAspects.AER, 20)));
     }
 
     private void buildInfusionEnchantmentRecipes() {
@@ -1089,20 +1093,23 @@ public final class TTRecipeProvider extends RecipeProvider {
         return new SealStep(research, result, catalyst, List.of(costs));
     }
 
+    private static SealStep sealUpgrade(String research, DeferredItem<ItemSealPlacer> result, DeferredItem<ItemSealPlacer> plain, int insight, AspectCost... extra) {
+        return new SealStep(research, result, plain, Stream.concat(Stream.of(cost(TTAspects.COGNITIO, insight), cost(TTAspects.SENSUS, insight)), Arrays.stream(extra)).toList());
+    }
+
     private static List<SealStep> sealSteps() {
         return List.of(seal("seal_collect", TTItems.SEAL_PICKUP, TTItems.SEAL_BLANK, cost(TTAspects.DESIDERIUM, 10)),
-                seal("seal_collect", TTItems.SEAL_PICKUP_ADVANCED, TTItems.SEAL_PICKUP, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10)),
-                seal("seal_store", TTItems.SEAL_FILL, TTItems.SEAL_BLANK, cost(TTAspects.AVERSIO, 10)),
-                seal("seal_store", TTItems.SEAL_FILL_ADVANCED, TTItems.SEAL_FILL, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10)),
-                seal("seal_empty", TTItems.SEAL_EMPTY, TTItems.SEAL_BLANK, cost(TTAspects.VACUOS, 10)),
-                seal("seal_empty", TTItems.SEAL_EMPTY_ADVANCED, TTItems.SEAL_EMPTY, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10)),
-                seal("seal_provide", TTItems.SEAL_PROVIDER, TTItems.SEAL_EMPTY_ADVANCED, cost(TTAspects.PERMUTATIO, 10), cost(TTAspects.DESIDERIUM, 10)),
-                seal("seal_stock", TTItems.SEAL_STOCK, TTItems.SEAL_FILL, cost(TTAspects.COGNITIO, 10), cost(TTAspects.DESIDERIUM, 10)),
+                seal("seal_store", TTItems.SEAL_FILL, TTItems.SEAL_BLANK, cost(TTAspects.AVERSIO, 10)), seal("seal_empty", TTItems.SEAL_EMPTY, TTItems.SEAL_BLANK, cost(TTAspects.VACUOS, 10)),
                 seal("seal_guard", TTItems.SEAL_GUARD, TTItems.SEAL_BLANK, cost(TTAspects.AVERSIO, 20), cost(TTAspects.PRAEMUNIO, 20)),
-                seal("seal_guard", TTItems.SEAL_GUARD_ADVANCED, TTItems.SEAL_GUARD, cost(TTAspects.SENSUS, 20), cost(TTAspects.COGNITIO, 20)),
+                seal("seal_use", TTItems.SEAL_USE, TTItems.SEAL_BLANK, cost(TTAspects.COGNITIO, 20), cost(TTAspects.FABRICO, 20), cost(TTAspects.SENSUS, 10)),
+                seal("seal_stock", TTItems.SEAL_STOCK, TTItems.SEAL_FILL, cost(TTAspects.COGNITIO, 10), cost(TTAspects.DESIDERIUM, 10)),
                 seal("seal_lumber", TTItems.SEAL_LUMBER, TTItems.SEAL_BREAKER, cost(TTAspects.HERBA, 40), cost(TTAspects.SENSUS, 20)),
-                seal("seal_use", TTItems.SEAL_USE, TTItems.SEAL_BLANK, cost(TTAspects.FABRICO, 20), cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 20)),
-                seal("seal_break", TTItems.SEAL_BREAKER_ADVANCED, TTItems.SEAL_BREAKER, cost(TTAspects.SENSUS, 10), cost(TTAspects.COGNITIO, 10), cost(TTAspects.INSTRUMENTUM, 20)));
+                seal("seal_provide", TTItems.SEAL_PROVIDER, TTItems.SEAL_EMPTY_ADVANCED, cost(TTAspects.DESIDERIUM, 10), cost(TTAspects.PERMUTATIO, 10)),
+                sealUpgrade("seal_collect", TTItems.SEAL_PICKUP_ADVANCED, TTItems.SEAL_PICKUP, SEAL_UPGRADE_INSIGHT),
+                sealUpgrade("seal_store", TTItems.SEAL_FILL_ADVANCED, TTItems.SEAL_FILL, SEAL_UPGRADE_INSIGHT),
+                sealUpgrade("seal_empty", TTItems.SEAL_EMPTY_ADVANCED, TTItems.SEAL_EMPTY, SEAL_UPGRADE_INSIGHT),
+                sealUpgrade("seal_guard", TTItems.SEAL_GUARD_ADVANCED, TTItems.SEAL_GUARD, GUARD_UPGRADE_INSIGHT),
+                sealUpgrade("seal_break", TTItems.SEAL_BREAKER_ADVANCED, TTItems.SEAL_BREAKER, SEAL_UPGRADE_INSIGHT, cost(TTAspects.INSTRUMENTUM, 20)));
     }
 
     private void sealCrucible(SealStep step) {
