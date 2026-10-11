@@ -29,6 +29,7 @@ import com.leclowndu93150.thaumaturge.client.model.entity.TaintSporeModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.TaintSporeSwarmerModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.TaintacleModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.ClericArmorModel;
+import com.leclowndu93150.thaumaturge.client.model.gear.CrimsonBootsModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.FortressArmorModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.KnightArmorModel;
 import com.leclowndu93150.thaumaturge.client.model.gear.PraetorArmorModel;
@@ -94,6 +95,7 @@ public final class TTEntityRenderers {
         event.registerLayerDefinition(TTModelLayers.CLERIC_ARMOR_HEAD, ClericArmorModel::createHead);
         event.registerLayerDefinition(TTModelLayers.CLERIC_ARMOR_CHEST, ClericArmorModel::createChest);
         event.registerLayerDefinition(TTModelLayers.CLERIC_ARMOR_LEGS, ClericArmorModel::createLegs);
+        event.registerLayerDefinition(TTModelLayers.CRIMSON_BOOTS, CrimsonBootsModel::createFeet);
         event.registerLayerDefinition(TTModelLayers.THAUMOSTATIC_HARNESS, ThaumostaticHarnessModel::createChest);
         event.registerLayerDefinition(TTModelLayers.TURRET_CROSSBOW, CrossbowModel::createLayer);
         event.registerLayerDefinition(TTModelLayers.ARCANE_BORE, ArcaneBoreModel::createLayer);

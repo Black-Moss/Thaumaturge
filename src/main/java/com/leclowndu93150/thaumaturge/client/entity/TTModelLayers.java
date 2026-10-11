@@ -37,6 +37,7 @@ public final class TTModelLayers {
     public static final ModelLayerLocation CLERIC_ARMOR_HEAD = new ModelLayerLocation(TTIds.rl("cleric_armor"), "head");
     public static final ModelLayerLocation CLERIC_ARMOR_CHEST = new ModelLayerLocation(TTIds.rl("cleric_armor"), "chest");
     public static final ModelLayerLocation CLERIC_ARMOR_LEGS = new ModelLayerLocation(TTIds.rl("cleric_armor"), "legs");
+    public static final ModelLayerLocation CRIMSON_BOOTS = new ModelLayerLocation(TTIds.rl("crimson_boots"), "feet");
     public static final ModelLayerLocation THAUMOSTATIC_HARNESS = new ModelLayerLocation(TTIds.rl("thaumostatic_harness"), "chest");
     public static final ModelLayerLocation PECH = new ModelLayerLocation(TTIds.rl("pech"), "main");
     public static final ModelLayerLocation ELDRITCH_CRAB = new ModelLayerLocation(TTIds.rl("eldritch_crab"), "main");
