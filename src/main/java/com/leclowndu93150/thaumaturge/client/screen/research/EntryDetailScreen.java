@@ -143,14 +143,18 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         int displayedStage = model.displayedStage(player);
         int progressStage = model.progressStage(player);
         List<ResearchAddendum> addenda = model.unlockedAddenda(player);
-        model.replacePages(composePages(player, displayedStage, progressStage, addenda));
+        model.replacePages(composePages(player, displayedStage, addenda));
         model.markBuilt(displayedStage, progressStage, addenda.size());
     }
 
-    private List<PageParser.Page> composePages(@Nullable Player player, int displayedStage, int progressStage, List<ResearchAddendum> addenda) {
+    private List<PageParser.Page> composePages(@Nullable Player player, int displayedStage, List<ResearchAddendum> addenda) {
         IResearchStage shown = model.stages().get(displayedStage);
-        int knowledgeTypes = KnowledgeGridRenderer.activeTypeCount(player);
-        return PageTextLayout.compose(font, model.entryId(), shown, addenda, knowledgeTypes, model.stages().size(), progressStage);
+        int knowledgeRows = showsKnowledgeGrid(player) ? KnowledgeGridRenderer.activeTypeCount(player) : 0;
+        return PageTextLayout.compose(font, shown, addenda, knowledgeRows);
+    }
+
+    private boolean showsKnowledgeGrid(@Nullable Player player) {
+        return model.isKnowledgeTypesEntry() && EntryDetailModel.knowsResearch(player, EntryDetailModel.KNOWLEDGE_TYPES_RESEARCH);
     }
 
     @Override
@@ -184,7 +188,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (insertOpen) {
             hits.clear();
         }
-        if (EntryDetailModel.knowsResearch(player, EntryDetailModel.KNOWLEDGE_TYPES_RESEARCH) && model.isKnowledgeTypesEntry()) {
+        if (model.leftPage() == 0 && showsKnowledgeGrid(player)) {
             KnowledgeGridRenderer.drawInPage(graphics, frame, pageMouseX, pageMouseY);
         }
         drawInsert(graphics, frame, stage, mouseX, mouseY);

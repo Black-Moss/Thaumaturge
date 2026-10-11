@@ -1,374 +1,370 @@
 package com.leclowndu93150.thaumaturge.client.render.research;
 
-import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
+import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookSprites;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
-import net.minecraft.client.StringSplitter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.minecraft.client.gui.Font;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.FormattedCharSequence;
 import org.jspecify.annotations.Nullable;
 
 public final class PageParser {
-    public static final int PAGE_HEIGHT = 210;
     public static final int PAGE_WIDTH = 140;
+    public static final int PAGE_HEIGHT = 210;
+    public static final int LINE_HEIGHT = 9;
 
-    private static final int REQUIREMENT_ROW_HEIGHT = 18;
-    private static final int KNOWLEDGE_ROW_HEIGHT = 20;
-    private static final int KNOWLEDGE_TOP_PADDING = 2;
-    private static final int FIRST_PAGE_HEIGHT = 182;
-    private static final int KNOWLEDGE_DIVIDER_ALLOWANCE = 12;
-    private static final int REQUIREMENT_DIVIDER_ALLOWANCE = 24;
-    private static final int HISTORY_GAP = 5;
+    private static final int PARAGRAPH_GAP = LINE_HEIGHT * 2 / 3;
     private static final int IMAGE_GAP = 2;
-    private static final int MAX_IMAGE_HEIGHT = 208;
-    private static final int MAX_IMAGE_WIDTH = PAGE_WIDTH;
-    private static final int DESCRIPTOR_FIELDS = 6;
-    private static final float PARAGRAPH_EXTRA = 0.66F;
-    private static final Identifier KNOWLEDGE_TYPES = TTIds.rl("knowledge_types");
-    private static final String ADDENDUM_KEY = "gui.thaumaturge.thaumonomicon.addendum";
-    private static final char TAG_OPEN = '<';
+    private static final int IMAGE_MAX_HEIGHT = PAGE_HEIGHT - IMAGE_GAP;
+    private static final int IMAGE_SHEET_SIZE = 256;
+    private static final int RULE_SPACE = LINE_HEIGHT;
+    private static final int DIVIDER_SPACE = 13;
+    private static final int HALF = 2;
+
+    private static final int RULE_U = 28;
+    private static final int RULE_V = 192;
+    private static final int RULE_WIDTH = 56;
+    private static final int RULE_HEIGHT = 4;
+    private static final int RULE_DRAW_Y = 3;
+    private static final int DIVIDER_DRAW_Y = 2;
+
+    private static final String BREAK_TAG = "<BR>";
+    private static final String PAGE_TAG = "<PAGE>";
+    private static final String RULE_TAG = "<LINE>";
+    private static final String DIVIDER_TAG = "<DIV>";
     private static final String IMAGE_OPEN = "<IMG>";
     private static final String IMAGE_CLOSE = "</IMG>";
-    private static final String DESCRIPTOR_SEPARATOR = ":";
-    private static final Map<String, Kind> SIMPLE_TAGS = Map.of("<BR>", Kind.PARAGRAPH, "<LINE>", Kind.RULE, "<DIV>", Kind.DIVIDER, "<PAGE>", Kind.PAGE);
-
-    private enum Kind {
-        TEXT, NEWLINE, PARAGRAPH, RULE, DIVIDER, PAGE, IMAGE
-    }
-
-    private record Token(Kind kind, String text, @Nullable PageImage image, Style style) {
-        static Token of(Kind kind) {
-            return new Token(kind, "", null, Style.EMPTY);
-        }
-
-        boolean divider() {
-            return kind == Kind.RULE || kind == Kind.DIVIDER;
-        }
-
-        boolean blank() {
-            return kind == Kind.PARAGRAPH || kind == Kind.NEWLINE || kind == Kind.TEXT && text.isBlank();
-        }
-    }
-
-    public static final class Page {
-        private final List<PageElement> elements;
-
-        public Page() {
-            this.elements = new ArrayList<>();
-        }
-
-        void add(PageElement element) {
-            elements.add(element);
-        }
-
-        public List<PageElement> elements() {
-            return elements;
-        }
-    }
-
-    public sealed interface PageElement permits PageElement.Text, PageElement.Image {
-        record Text(String content, Style style, boolean paragraphBreak) implements PageElement {
-        }
-
-        record Image(PageImage image) implements PageElement {
-        }
-    }
-
-    public static final class PageImage {
-        public static final PageImage LINE_DIVIDER = new PageImage(TTScreenTextures.RESEARCH_BOOK, 24, 184, 95, 6, 1.0F);
-        public static final PageImage SECTION_DIVIDER = new PageImage(TTScreenTextures.RESEARCH_BOOK, 28, 192, 140, 6, 1.0F);
-
-        public final Identifier texture;
-        public final int u;
-        public final int v;
-        public final int w;
-        public final int h;
-        public final float scale;
-        public final int renderedWidth;
-        public final int renderedHeight;
-
-        public PageImage(Identifier texture, int u, int v, int w, int h, float scale) {
-            this.renderedWidth = (int) (w * scale);
-            this.renderedHeight = (int) (h * scale);
-            this.scale = scale;
-            this.texture = texture;
-            this.u = u;
-            this.v = v;
-            this.w = w;
-            this.h = h;
-        }
-
-        public int renderedHeight() {
-            return renderedHeight;
-        }
-
-        public int renderedWidth() {
-            return renderedWidth;
-        }
-
-        public static @Nullable PageImage parse(String descriptor) {
-            String[] parts = descriptor.split(DESCRIPTOR_SEPARATOR, -1);
-            if (parts.length != DESCRIPTOR_FIELDS + 1) {
-                return null;
-            }
-            Identifier texture = Identifier.tryParse(parts[0].trim() + DESCRIPTOR_SEPARATOR + parts[1].trim());
-            if (texture == null) {
-                return null;
-            }
-            PageImage candidate = readNumbers(texture, parts);
-            return candidate != null && candidate.fitsPage() ? candidate : null;
-        }
-
-        private static @Nullable PageImage readNumbers(Identifier texture, String[] parts) {
-            try {
-                int[] ints = new int[4];
-                for (int slot = 0; slot < ints.length; slot++) {
-                    ints[slot] = Integer.parseInt(parts[slot + 2].trim());
-                }
-                float scale = Float.parseFloat(parts[DESCRIPTOR_FIELDS].trim());
-                return new PageImage(texture, ints[0], ints[1], ints[2], ints[3], scale);
-            } catch (NumberFormatException invalid) {
-                return null;
-            }
-        }
-
-        private boolean fitsPage() {
-            if (renderedWidth <= 0 || renderedHeight <= 0) {
-                return false;
-            }
-            return renderedHeight <= MAX_IMAGE_HEIGHT && renderedWidth <= MAX_IMAGE_WIDTH;
-        }
-    }
+    private static final Pattern IMAGE_DESCRIPTOR = Pattern.compile("^\\s*(.+?):(\\d{1,4}):(\\d{1,4}):(\\d{1,4}):(\\d{1,4}):(\\d{0,4}\\.?\\d{1,6})\\s*$");
 
     private PageParser() {}
 
-    public static List<Page> parse(Font font, String textKey, int budget) {
-        return new Layout(font, budget).run(tokens(textKey, List.of()));
+    public static String headed(String heading, String text) {
+        return heading + BREAK_TAG + text;
     }
 
-    public static List<Page> parse(Font font, Identifier entryId, String stageTextKey, List<String> addendaTextKeys, int knowledgeRows, boolean complete, boolean hasRequiredResearch, boolean hasObtain, boolean hasCraft, boolean hasKnowledge, boolean reserveHistoryGap) {
-        boolean knowledgeTypes = KNOWLEDGE_TYPES.equals(entryId);
-        int reserved = 0;
-        if (knowledgeTypes) {
-            reserved += KNOWLEDGE_TOP_PADDING + KNOWLEDGE_ROW_HEIGHT * knowledgeRows;
+    public static List<Page> paginate(Font font, List<String> texts, int firstPageTop, int firstPageBudget) {
+        Paginator paginator = new Paginator(font, firstPageTop, firstPageBudget);
+        for (int index = 0; index < texts.size(); index++) {
+            if (index > 0) {
+                paginator.forcedBreak();
+            }
+            for (Block block : read(texts.get(index))) {
+                block.layout(paginator);
+            }
         }
-        boolean anyRequirement = false;
-        if (!complete) {
-            for (boolean present : new boolean[]{hasCraft, hasObtain, hasKnowledge, hasRequiredResearch}) {
-                if (present) {
-                    reserved += REQUIREMENT_ROW_HEIGHT;
-                    anyRequirement = true;
+        return paginator.finish();
+    }
+
+    private static List<Block> read(String text) {
+        List<Block> blocks = new ArrayList<>();
+        StringBuilder run = new StringBuilder();
+        int cursor = 0;
+        while (cursor < text.length()) {
+            if (text.startsWith(IMAGE_OPEN, cursor)) {
+                int close = text.indexOf(IMAGE_CLOSE, cursor + IMAGE_OPEN.length());
+                int descriptorEnd = close < 0 ? text.length() : close;
+                closeRun(blocks, run);
+                blocks.add(imageBlock(text.substring(cursor + IMAGE_OPEN.length(), descriptorEnd)));
+                cursor = close < 0 ? text.length() : close + IMAGE_CLOSE.length();
+            } else if (text.startsWith(BREAK_TAG, cursor)) {
+                if (run.isEmpty()) {
+                    blocks.add(Blank.INSTANCE);
                 }
-            }
-        }
-        if (anyRequirement) {
-            reserved += REQUIREMENT_DIVIDER_ALLOWANCE;
-        } else if (knowledgeTypes) {
-            reserved += KNOWLEDGE_DIVIDER_ALLOWANCE;
-        }
-        if (reserveHistoryGap) {
-            reserved += HISTORY_GAP;
-        }
-        return new Layout(font, FIRST_PAGE_HEIGHT - reserved).run(tokens(stageTextKey, addendaTextKeys));
-    }
-
-    private static List<Token> tokens(String textKey, List<String> addendaTextKeys) {
-        List<Token> tokens = new ArrayList<>();
-        appendMarkup(tokens, Component.translatable(textKey).getString());
-        for (int i = 0; i < addendaTextKeys.size(); i++) {
-            tokens.add(Token.of(Kind.PAGE));
-            tokens.add(new Token(Kind.TEXT, Component.translatable(ADDENDUM_KEY, i + 1).getString(), null, Style.EMPTY.withItalic(true)));
-            tokens.add(Token.of(Kind.PARAGRAPH));
-            appendMarkup(tokens, Component.translatable(addendaTextKeys.get(i)).getString());
-        }
-        return tokens;
-    }
-
-    private static void appendMarkup(List<Token> tokens, String markup) {
-        List<Token> parsed = new ArrayList<>();
-        StringBuilder text = new StringBuilder();
-        int i = 0;
-        while (i < markup.length()) {
-            int consumed = 0;
-            if (markup.charAt(i) == TAG_OPEN) {
-                consumed = tagLength(markup, i, text, parsed);
-            }
-            if (consumed > 0) {
-                i += consumed;
+                closeRun(blocks, run);
+                cursor += BREAK_TAG.length();
+            } else if (text.startsWith(PAGE_TAG, cursor)) {
+                closeRun(blocks, run);
+                blocks.add(PageBreak.INSTANCE);
+                cursor += PAGE_TAG.length();
+            } else if (text.startsWith(RULE_TAG, cursor)) {
+                closeRun(blocks, run);
+                blocks.add(Rule.INSTANCE);
+                cursor += RULE_TAG.length();
+            } else if (text.startsWith(DIVIDER_TAG, cursor)) {
+                closeRun(blocks, run);
+                blocks.add(Divider.INSTANCE);
+                cursor += DIVIDER_TAG.length();
             } else {
-                text.append(markup.charAt(i));
-                i++;
+                run.append(text.charAt(cursor));
+                cursor++;
             }
         }
-        flushText(text, parsed);
-        for (int last = parsed.size() - 1; last >= 0; last--) {
-            if (!parsed.get(last).blank()) {
-                if (parsed.get(last).divider()) {
-                    parsed.remove(last);
-                }
-                break;
-            }
+        closeRun(blocks, run);
+        while (!blocks.isEmpty() && blocks.getLast().trailingOrnament()) {
+            blocks.removeLast();
         }
-        tokens.addAll(parsed);
+        return blocks;
     }
 
-    private static int tagLength(String markup, int at, StringBuilder text, List<Token> out) {
-        for (Map.Entry<String, Kind> tag : SIMPLE_TAGS.entrySet()) {
-            if (markup.startsWith(tag.getKey(), at)) {
-                flushText(text, out);
-                out.add(Token.of(tag.getValue()));
-                return tag.getKey().length();
-            }
-        }
-        if (markup.startsWith(IMAGE_CLOSE, at)) {
-            return IMAGE_CLOSE.length();
-        }
-        if (markup.startsWith(IMAGE_OPEN, at)) {
-            int bodyStart = at + IMAGE_OPEN.length();
-            int close = markup.indexOf(IMAGE_CLOSE, bodyStart);
-            if (close < 0) {
-                return IMAGE_OPEN.length();
-            }
-            flushText(text, out);
-            PageImage image = PageImage.parse(markup.substring(bodyStart, close));
-            out.add(image == null ? Token.of(Kind.NEWLINE) : new Token(Kind.IMAGE, "", image, Style.EMPTY));
-            return close + IMAGE_CLOSE.length() - at;
-        }
-        return 0;
+    public static void drawRule(GuiGraphicsExtractor graphics, int centerX, int y) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, centerX - RULE_WIDTH / HALF, y, (float) RULE_U, (float) RULE_V, RULE_WIDTH, RULE_HEIGHT, TTScreenTextures.TEX_SIZE,
+                TTScreenTextures.TEX_SIZE);
     }
 
-    private static void flushText(StringBuilder text, List<Token> out) {
-        if (!text.isEmpty()) {
-            out.add(new Token(Kind.TEXT, text.toString(), null, Style.EMPTY));
-            text.setLength(0);
+    private static void closeRun(List<Block> blocks, StringBuilder run) {
+        if (!run.isEmpty()) {
+            blocks.add(new Paragraph(run.toString()));
+            run.setLength(0);
         }
     }
 
-    private record Line(String content, Style style) {
+    private static Block imageBlock(String descriptor) {
+        PageImage image = PageImage.parse(descriptor);
+        return image != null && image.fitsPage() ? new Picture(image) : Blank.INSTANCE;
     }
 
-    private static final class Layout {
-        private static final Line BLANK_LINE = new Line("", Style.EMPTY);
+    public interface PageElement {
+        void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop);
+    }
 
+    public record Page(List<PageElement> elements) {
+        public Page {
+            elements = List.copyOf(elements);
+        }
+
+        public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
+            for (PageElement element : elements) {
+                element.draw(graphics, font, columnLeft, pageTop);
+            }
+        }
+    }
+
+    public record PageImage(Identifier texture, int u, int v, int width, int height, float scale) {
+        public static @Nullable PageImage parse(String descriptor) {
+            Matcher matcher = IMAGE_DESCRIPTOR.matcher(descriptor);
+            if (!matcher.matches()) {
+                return null;
+            }
+            Identifier texture = Identifier.tryParse(matcher.group(1).trim());
+            if (texture == null) {
+                return null;
+            }
+            return new PageImage(texture, Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(5)),
+                    Float.parseFloat(matcher.group(6)));
+        }
+
+        public int renderedWidth() {
+            return Math.round(width * scale);
+        }
+
+        public int renderedHeight() {
+            return Math.round(height * scale);
+        }
+
+        boolean fitsPage() {
+            int drawnWidth = renderedWidth();
+            int drawnHeight = renderedHeight();
+            return drawnWidth > 0 && drawnHeight > 0 && drawnWidth <= PAGE_WIDTH && drawnHeight <= IMAGE_MAX_HEIGHT;
+        }
+
+        int footprint() {
+            return renderedHeight() + IMAGE_GAP;
+        }
+    }
+
+    private record TextLine(FormattedCharSequence text, int y) implements PageElement {
+        @Override
+        public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
+            graphics.text(font, text, columnLeft, pageTop + y, BookSprites.INK_COLOR, false);
+        }
+    }
+
+    private record RuleMark(int y) implements PageElement {
+        @Override
+        public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
+            drawRule(graphics, columnLeft + PAGE_WIDTH / HALF, pageTop + y + RULE_DRAW_Y);
+        }
+    }
+
+    private record DividerMark(int y) implements PageElement {
+        @Override
+        public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, columnLeft + (PAGE_WIDTH - BookSprites.DIVIDER_WIDTH) / HALF, pageTop + y + DIVIDER_DRAW_Y,
+                    (float) BookSprites.DIVIDER_U, (float) BookSprites.DIVIDER_V, BookSprites.DIVIDER_WIDTH, BookSprites.DIVIDER_TALL_HEIGHT, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
+        }
+    }
+
+    private record ImageMark(PageImage image, int y) implements PageElement {
+        @Override
+        public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
+            float left = columnLeft + (PAGE_WIDTH - image.width() * image.scale()) / HALF;
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(left, (float) (pageTop + y));
+            graphics.pose().scale(image.scale(), image.scale());
+            graphics.blit(RenderPipelines.GUI_TEXTURED, image.texture(), 0, 0, (float) image.u(), (float) image.v(), image.width(), image.height(), IMAGE_SHEET_SIZE, IMAGE_SHEET_SIZE);
+            graphics.pose().popMatrix();
+        }
+    }
+
+    private interface Block {
+        void layout(Paginator paginator);
+
+        default boolean trailingOrnament() {
+            return false;
+        }
+    }
+
+    private record Paragraph(String text) implements Block {
+        @Override
+        public void layout(Paginator paginator) {
+            paginator.paragraph(text);
+        }
+    }
+
+    private enum Blank implements Block {
+        INSTANCE;
+
+        @Override
+        public void layout(Paginator paginator) {
+            paginator.blankLine();
+        }
+    }
+
+    private enum PageBreak implements Block {
+        INSTANCE;
+
+        @Override
+        public void layout(Paginator paginator) {
+            paginator.forcedBreak();
+        }
+    }
+
+    private enum Rule implements Block {
+        INSTANCE;
+
+        @Override
+        public void layout(Paginator paginator) {
+            paginator.ornament(new RuleMark(paginator.cursorAfterRoom(RULE_SPACE)), RULE_SPACE);
+        }
+
+        @Override
+        public boolean trailingOrnament() {
+            return true;
+        }
+    }
+
+    private enum Divider implements Block {
+        INSTANCE;
+
+        @Override
+        public void layout(Paginator paginator) {
+            paginator.ornament(new DividerMark(paginator.cursorAfterRoom(DIVIDER_SPACE)), DIVIDER_SPACE);
+        }
+
+        @Override
+        public boolean trailingOrnament() {
+            return true;
+        }
+    }
+
+    private record Picture(PageImage image) implements Block {
+        @Override
+        public void layout(Paginator paginator) {
+            paginator.image(image);
+        }
+    }
+
+    private static final class Paginator {
+        private final Font font;
         private final List<Page> pages = new ArrayList<>();
-        private final Deque<PageImage> queue = new ArrayDeque<>();
-        private final StringSplitter splitter;
-        private final int lineHeight;
-        private final StringBuilder paragraph = new StringBuilder();
-        private Style paragraphStyle = Style.EMPTY;
-        private Page page = new Page();
+        private final Deque<PageImage> waiting = new ArrayDeque<>();
+        private List<PageElement> current = new ArrayList<>();
+        private int cursor;
         private int remaining;
-        private boolean breakPending;
+        private boolean bodyEmpty = true;
 
-        Layout(Font font, int firstPageHeight) {
-            this.splitter = font.getSplitter();
-            this.lineHeight = font.lineHeight;
-            this.remaining = firstPageHeight;
-            pages.add(page);
+        private Paginator(Font font, int firstPageTop, int firstPageBudget) {
+            this.font = font;
+            this.cursor = firstPageTop;
+            this.remaining = firstPageBudget;
         }
 
-        List<Page> run(List<Token> tokens) {
-            for (Token token : tokens) {
-                switch (token.kind) {
-                    case TEXT -> {
-                        if (paragraph.isEmpty()) {
-                            paragraphStyle = token.style;
-                        }
-                        paragraph.append(token.text);
-                    }
-                    case NEWLINE -> paragraph.append('\n');
-                    case PARAGRAPH -> endParagraph();
-                    case PAGE -> {
-                        flushParagraph(false);
-                        breakPending = true;
-                    }
-                    case RULE -> enqueue(PageImage.LINE_DIVIDER);
-                    case DIVIDER -> enqueue(PageImage.SECTION_DIVIDER);
-                    case IMAGE -> enqueue(token.image);
-                }
-            }
-            flushParagraph(false);
-            while (!queue.isEmpty()) {
-                drain();
-                if (!queue.isEmpty()) {
-                    openNewPage();
-                }
-            }
-            return pages;
-        }
-
-        private void enqueue(PageImage image) {
-            flushParagraph(false);
-            queue.add(image);
-            drain();
-        }
-
-        private boolean closed() {
-            return !page.elements().isEmpty() && (breakPending || remaining < lineHeight);
-        }
-
-        private void openNewPage() {
-            page = new Page();
-            pages.add(page);
-            remaining = PAGE_HEIGHT;
-            breakPending = false;
-            drain();
-        }
-
-        private void drain() {
-            while (!queue.isEmpty() && !closed()) {
-                PageImage head = queue.peek();
-                int need = head.renderedHeight + IMAGE_GAP;
-                if (need > remaining) {
-                    return;
-                }
-                page.add(new PageElement.Image(head));
-                remaining -= need;
-                queue.poll();
-            }
-        }
-
-        private void endParagraph() {
-            if (paragraph.isEmpty()) {
-                placeLine(BLANK_LINE, true);
-            } else {
-                flushParagraph(true);
-            }
-        }
-
-        private void flushParagraph(boolean endsParagraph) {
-            if (paragraph.isEmpty()) {
+        void paragraph(String text) {
+            List<FormattedCharSequence> lines = font.split(FormattedText.of(text), PAGE_WIDTH);
+            if (lines.isEmpty()) {
                 return;
             }
-            String text = paragraph.toString();
-            Style startStyle = paragraphStyle;
-            paragraph.setLength(0);
-            paragraphStyle = Style.EMPTY;
-            List<Line> lines = new ArrayList<>();
-            splitter.splitLines(text, PAGE_WIDTH, startStyle, false, (style, start, end) -> {
-                String content = text.substring(start, end).trim();
-                if (!content.isEmpty()) {
-                    lines.add(new Line(content, style));
-                }
-            });
-            for (int i = 0; i < lines.size(); i++) {
-                placeLine(lines.get(i), endsParagraph && i == lines.size() - 1);
+            for (FormattedCharSequence line : lines) {
+                makeRoom(LINE_HEIGHT);
+                current.add(new TextLine(line, cursor));
+                advance(LINE_HEIGHT);
+            }
+            advance(PARAGRAPH_GAP);
+        }
+
+        void blankLine() {
+            makeRoom(LINE_HEIGHT);
+            advance(LINE_HEIGHT);
+        }
+
+        int cursorAfterRoom(int space) {
+            makeRoom(space);
+            return cursor;
+        }
+
+        void ornament(PageElement mark, int space) {
+            current.add(mark);
+            advance(space);
+        }
+
+        void image(PageImage image) {
+            if (waiting.isEmpty() && image.footprint() <= remaining) {
+                place(image);
+            } else {
+                waiting.addLast(image);
             }
         }
 
-        private void placeLine(Line line, boolean paragraphBreak) {
-            while (closed()) {
-                openNewPage();
+        void forcedBreak() {
+            if (!bodyEmpty) {
+                turnPage();
             }
-            page.add(new PageElement.Text(line.content, line.style, paragraphBreak));
-            float used = paragraphBreak ? lineHeight + lineHeight * PARAGRAPH_EXTRA : lineHeight;
-            remaining = (int) (remaining - used);
+        }
+
+        List<Page> finish() {
+            while (!waiting.isEmpty()) {
+                turnPage();
+            }
+            if (!current.isEmpty() || pages.isEmpty()) {
+                pages.add(new Page(current));
+            }
+            return List.copyOf(pages);
+        }
+
+        private void makeRoom(int space) {
+            if (remaining < space) {
+                turnPage();
+            }
+        }
+
+        private void place(PageImage image) {
+            current.add(new ImageMark(image, cursor));
+            advance(image.footprint());
+        }
+
+        private void advance(int space) {
+            cursor += space;
+            remaining -= space;
+            bodyEmpty = false;
+        }
+
+        private void turnPage() {
+            pages.add(new Page(current));
+            current = new ArrayList<>();
+            cursor = 0;
+            remaining = PAGE_HEIGHT;
+            bodyEmpty = true;
+            while (!waiting.isEmpty() && waiting.peekFirst().footprint() <= remaining) {
+                place(waiting.pollFirst());
+            }
         }
     }
 }

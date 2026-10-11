@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.effect.manager;
 
-import com.leclowndu93150.thaumaturge.client.effect.geometry.TubeMesh;
+import com.leclowndu93150.thaumaturge.client.effect.geometry.PolyCone;
 import com.leclowndu93150.thaumaturge.client.effect.instance.ArcInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.BeamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.BoltInstance;
@@ -33,7 +33,6 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
 
     private static final float BOLT_TEX_SLICE = 1.0F;
     private static final float BOLT_TEX_START = 0.0F;
-    private static final int BOLT_SIDES = 6;
     private static final int TRUNK_SLOTS = 4;
     private static final int STRIPS = 3;
     private static final float STRIP_STEP_DEGREES = 60.0F;
@@ -185,8 +184,8 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             Vec3 origin = bolt.origin();
             poseStack.pushPose();
             poseStack.translate(origin.x - cameraPos.x, origin.y - cameraPos.y, origin.z - cameraPos.z);
-            TubeMesh.draw(poseStack, consumer, bolt.points(), bolt.sheathColours(), bolt.sheathRadii(), LightCoordsUtil.FULL_BRIGHT, BOLT_TEX_SLICE, BOLT_TEX_START, BOLT_SIDES);
-            TubeMesh.draw(poseStack, consumer, bolt.points(), bolt.coreColours(), bolt.coreRadii(), LightCoordsUtil.FULL_BRIGHT, BOLT_TEX_SLICE, BOLT_TEX_START, BOLT_SIDES);
+            PolyCone.render(poseStack, consumer, bolt.points(), bolt.sheathColours(), bolt.sheathRadii(), LightCoordsUtil.FULL_BRIGHT, BOLT_TEX_SLICE, BOLT_TEX_START);
+            PolyCone.render(poseStack, consumer, bolt.points(), bolt.coreColours(), bolt.coreRadii(), LightCoordsUtil.FULL_BRIGHT, BOLT_TEX_SLICE, BOLT_TEX_START);
             poseStack.popPose();
         }
         buffers.endBatch(type);

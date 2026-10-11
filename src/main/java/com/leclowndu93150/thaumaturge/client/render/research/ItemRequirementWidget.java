@@ -7,7 +7,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Util;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -35,8 +34,6 @@ public final class ItemRequirementWidget {
     private static final int TICK_DX = 8;
 
     private static final long ROTATE_MILLIS = 1000L;
-    private static final long WEAR_SWEEP_MILLIS = 5000L;
-    private static final int ANY_DAMAGE = 32767;
 
     private ItemRequirementWidget() {}
 
@@ -106,17 +103,7 @@ public final class ItemRequirementWidget {
         long position = Math.floorMod(slotIndex + now / ROTATE_MILLIS, (long) candidates.size());
         ItemStack stack = new ItemStack(candidates.get((int) position));
         stack.applyComponents(requirement.components());
-        sweepWear(stack, now);
         return stack;
-    }
-
-    private static void sweepWear(ItemStack stack, long now) {
-        int limit = stack.getMaxDamage();
-        boolean wildcard = stack.isDamageableItem() && limit > 0 && stack.getOrDefault(DataComponents.DAMAGE, 0) == ANY_DAMAGE;
-        if (wildcard) {
-            long interval = Math.max(1L, WEAR_SWEEP_MILLIS / limit);
-            stack.setDamageValue((int) (now / interval % limit));
-        }
     }
 
     private static void drawTick(GuiGraphicsExtractor graphics, int x, int y) {

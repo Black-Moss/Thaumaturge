@@ -3,9 +3,9 @@ package com.leclowndu93150.thaumaturge.client.hud.knowledge.entry;
 import net.minecraft.util.ARGB;
 
 public record GainRolls(int tiltDegrees, int startX, int startY, int endX, int endY, GlintRoll appear, GlintRoll arrival) {
-    private static final int TILT_BASE = 6;
-    private static final int GREEN_BASE = 189;
-    private static final int BLUE_BASE = 64;
+    private static final int TILT_BASE = 7;
+    private static final int GREEN_BASE = 200;
+    private static final int BLUE_BASE = 110;
     private static final int FULL_CHANNEL = 255;
 
     public static GainRolls of(long seed) {

@@ -22,6 +22,8 @@ public final class TTScreenTextures {
     public static final Identifier RESEARCH_PREREQ_MAP = research("rd_map.png");
     public static final Identifier RESEARCH_PREREQ_FLASK = research("rd_flask.png");
     public static final Identifier RESEARCH_PREREQ_CHEST = research("rd_chest.png");
+    public static final Identifier RESEARCH_KNOWLEDGE_THEORY = research("knowledge_theory.png");
+    public static final Identifier RESEARCH_KNOWLEDGE_OBSERVATION = research("knowledge_observation.png");
 
     public static final Identifier GRINDSTONE = Identifier.withDefaultNamespace("textures/gui/container/grindstone.png");
     public static final Identifier GRINDSTONE_ERROR = Identifier.withDefaultNamespace("container/grindstone/error");

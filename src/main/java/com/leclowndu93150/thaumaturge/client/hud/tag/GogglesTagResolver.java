@@ -21,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 
 public final class GogglesTagResolver {
     private static final double TOP_LIFT = 0.4;
+    private static final double FACE_HALF = 0.5;
 
     private GogglesTagResolver() {}
 
@@ -53,7 +54,7 @@ public final class GogglesTagResolver {
         boolean topFree = level.getBlockState(pos.above()).isAir();
         Direction face = topFree ? Direction.UP : player.getDirection().getOpposite();
         double originY = topFree ? pos.getY() + TOP_LIFT : pos.getY();
-        return Optional.of(new GogglesTagTarget(pos, aspects, showAmounts, face, new Vec3(pos.getX(), originY, pos.getZ())));
+        return Optional.of(new GogglesTagTarget(pos, aspects, showAmounts, face, new Vec3(pos.getX() + FACE_HALF * face.getStepX(), originY, pos.getZ() + FACE_HALF * face.getStepZ())));
     }
 
     private static boolean holdsScanner(LocalPlayer player) {

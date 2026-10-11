@@ -51,25 +51,26 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private static final int MARGIN = 16;
     private static final int VIEW_TRIM = 2 * MARGIN;
     private static final int CELL = 24;
-    private static final int BOUND_NEAR_PAD = 48;
-    private static final int BOUND_FAR_PAD = 24;
     private static final float ZOOM_MIN = 1.0F;
     private static final float ZOOM_MAX = 2.0F;
     private static final float ZOOM_STEP = 0.25F;
-    private static final double INERTIA_SNAP_SQUARED = 4.0;
-    private static final double INERTIA_FACTOR = 0.85;
     private static final int BACKGROUND_GROW = 2;
     private static final int BACKGROUND_OFFSET = MARGIN - BACKGROUND_GROW;
     private static final int BACKGROUND_EXTRA = 2 * BACKGROUND_GROW;
-    private static final double PARALLAX_BASE = 2.0;
-    private static final double PARALLAX_OVERLAY = 1.5;
     private static final int HOVER_BOX_NEAR = -2;
     private static final int HOVER_BOX_FAR = 18;
+    private static final double INERTIA_SNAP_SQUARED = 4.0;
+    private static final double INERTIA_FACTOR = 0.6;
+    private static final double PARALLAX_BASE = 0.14;
+    private static final double PARALLAX_OVERLAY = 0.3;
+    private static final int BOUND_NEAR_PAD = 20;
+    private static final int BOUND_FAR_PAD = 52;
 
-    private static final int COLOR_PARENT_DONE = 0xFF999999;
-    private static final int COLOR_PARENT_OPEN = 0xFF333333;
-    private static final int COLOR_SIBLING_DONE = 0xFF4C4C66;
-    private static final int COLOR_SIBLING_OPEN = 0xFF2F2F3F;
+    private static final int COLOR_PARENT_DONE = 0xFFD2D2D2;
+    private static final int COLOR_PARENT_OPEN = 0xFF5C5C5C;
+    private static final int COLOR_SIBLING_DONE = 0xFF92A2BE;
+    private static final int COLOR_SIBLING_OPEN = 0xFF4C5870;
+
     private static final float LAYER_PARENT_DONE = 3.0F;
     private static final float LAYER_PARENT_OPEN = 2.0F;
     private static final float LAYER_SIBLING_DONE = 1.0F;
@@ -91,9 +92,11 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private static final int TAB_PITCH = 24;
     private static final int TAB_PAGE_MARGIN = 28;
     private static final int TAB_FRAME_PAD = 3;
-    private static final int TAB_FRAME_ACTIVE_TINT = 0xFF99FFFF;
+    private static final int TAB_FIRST_Y = TAB_Y_BASE + TAB_PITCH;
+    private static final int TAB_CENTRING_DIVISOR = 2;
     private static final int TINT_WHITE = 0xFFFFFFFF;
-    private static final int TAB_ICON_DIM_TINT = 0xCCA8A8A8;
+    private static final int TAB_FRAME_ACTIVE_TINT = 0xFF86E0F2;
+    private static final int TAB_ICON_DIM_TINT = 0xBFA4A4A4;
     private static final int BADGE_SIZE = 32;
     private static final float BADGE_SCALE = 0.25F;
     private static final int BADGE_TINT = 0xB3FFFFFF;
@@ -156,6 +159,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private @Nullable EditBox searchBox;
     private @Nullable EntryNode hovered;
     private final DragTracker drag = new DragTracker();
+    private final ConnectorRenderer connectors = new ConnectorRenderer();
     private final MapAxis axisX = new MapAxis(rememberedX);
     private final MapAxis axisY = new MapAxis(rememberedY);
     private int boundLeft;
@@ -220,13 +224,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     public void onClose() {
         storeState();
         super.onClose();
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        tickCounter++;
-        MapAxis.follow(axisX, axisY, INERTIA_SNAP_SQUARED, INERTIA_FACTOR);
     }
 
     @Override
@@ -331,6 +328,92 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             }
         }
         drawChrome(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        tickCounter++;
+        MapAxis.follow(axisX, axisY, INERTIA_SNAP_SQUARED, INERTIA_FACTOR);
+    }
+
+    private void drawMap(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        CategoryRef category = Objects.requireNonNull(active);
+        int drawnX = drawnPosition(axisX.previous(), axisX.current(), partialTick, boundLeft, boundRight);
+        int drawnY = drawnPosition(axisY.previous(), axisY.current(), partialTick, boundTop, boundBottom);
+        double shiftX = drawnX / (double) zoom - (boundLeft + boundRight) / 2.0;
+        double shiftY = drawnY / (double) zoom - (boundTop + boundBottom) / 2.0;
+        graphics.enableScissor(BACKGROUND_OFFSET, BACKGROUND_OFFSET, BACKGROUND_OFFSET + viewWidth() + BACKGROUND_EXTRA, BACKGROUND_OFFSET + viewHeight() + BACKGROUND_EXTRA);
+        drawParallax(graphics, category.data().background(), shiftX * PARALLAX_BASE, shiftY * PARALLAX_BASE);
+        Optional<Identifier> overlay = category.data().overlayBackground();
+        if (overlay.isPresent()) {
+            drawParallax(graphics, overlay.get(), shiftX * PARALLAX_OVERLAY, shiftY * PARALLAX_OVERLAY);
+        }
+        graphics.disableScissor();
+        graphics.enableScissor(MARGIN, MARGIN, MARGIN + viewWidth(), MARGIN + viewHeight());
+        List<EntryNode> nodes = model().entriesOf(category.id());
+        float shrink = 1.0F / zoom;
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(shrink, shrink);
+        drawConnectors(graphics, nodes, MARGIN - drawnX, MARGIN - drawnY);
+        connectors.flush(graphics);
+        drawNodes(graphics, nodes, drawnX, drawnY, mouseX, mouseY);
+        graphics.pose().popMatrix();
+        graphics.disableScissor();
+    }
+
+    private void drawParallax(GuiGraphicsExtractor graphics, Identifier texture, double offsetX, double offsetY) {
+        int reachX = (int) Math.ceil(Math.abs(offsetX));
+        int reachY = (int) Math.ceil(Math.abs(offsetY));
+        int span = Math.max(viewWidth(), viewHeight()) + BACKGROUND_EXTRA + 2 * Math.max(reachX, reachY);
+        int left = MARGIN + (viewWidth() - span) / 2 - (int) Math.round(offsetX);
+        int top = MARGIN + (viewHeight() - span) / 2 - (int) Math.round(offsetY);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, left, top, 0.0F, 0.0F, span, span, 1, 1, 1, 1);
+    }
+
+    private List<Tab> layoutTabs() {
+        List<Tab> tabs = new ArrayList<>();
+        List<CategoryRef> builtIn = model().shownBuiltIn();
+        for (int slot = 0; slot < builtIn.size(); slot++) {
+            tabs.add(new Tab(builtIn.get(slot), TAB_BUILT_IN_X, TAB_FIRST_Y + TAB_PITCH * slot, 0, false));
+        }
+        List<CategoryRef> addOn = model().shownAddOn();
+        int perPage = tabsPerPage();
+        int shift = scrollButtonsVisible() ? (viewHeight() - TAB_PAGE_MARGIN - perPage * TAB_PITCH) / TAB_CENTRING_DIVISOR : 0;
+        int first = Math.min(scroll, Math.max(0, addOn.size() - 1));
+        for (int index = first; index < addOn.size() && index - first < perPage; index++) {
+            tabs.add(new Tab(addOn.get(index), width - TAB_ADD_ON_X_OFFSET, TAB_FIRST_Y + TAB_PITCH * (index - first), shift, true));
+        }
+        return tabs;
+    }
+
+    private void computeBounds() {
+        int minCol = Integer.MAX_VALUE;
+        int minRow = Integer.MAX_VALUE;
+        int maxCol = Integer.MIN_VALUE;
+        int maxRow = Integer.MIN_VALUE;
+        if (active != null) {
+            for (EntryNode node : model().entriesOf(active.id())) {
+                if (model().visible(node)) {
+                    IResearchEntry entry = node.value();
+                    minCol = Math.min(minCol, entry.column());
+                    minRow = Math.min(minRow, entry.row());
+                    maxCol = Math.max(maxCol, entry.column());
+                    maxRow = Math.max(maxRow, entry.row());
+                }
+            }
+        }
+        if (minCol > maxCol) {
+            boundLeft = 0;
+            boundRight = 0;
+            boundTop = 0;
+            boundBottom = 0;
+            return;
+        }
+        boundLeft = CELL * minCol - viewWidth() + BOUND_FAR_PAD;
+        boundTop = CELL * minRow - viewHeight() + BOUND_FAR_PAD;
+        boundRight = CELL * maxCol - BOUND_NEAR_PAD;
+        boundBottom = CELL * maxRow - BOUND_NEAR_PAD;
     }
 
     private static float steppedZoom(float from, double wheel) {
@@ -443,25 +526,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         }
     }
 
-    private List<Tab> layoutTabs() {
-        List<Tab> tabs = new ArrayList<>();
-        int n = 0;
-        for (CategoryRef category : model().shownBuiltIn()) {
-            n++;
-            tabs.add(new Tab(category, TAB_BUILT_IN_X, TAB_Y_BASE + TAB_PITCH * n, 0, false));
-        }
-        List<CategoryRef> shownAddOn = model().shownAddOn();
-        int perPage = tabsPerPage();
-        int count = shownAddOn.size();
-        int shift = count > perPage || count < scroll ? (viewHeight() - TAB_PAGE_MARGIN) % TAB_PITCH / 2 : 0;
-        for (int k = 1; k <= count; k++) {
-            if (k > scroll && k <= scroll + perPage) {
-                tabs.add(new Tab(shownAddOn.get(k - 1), width - TAB_ADD_ON_X_OFFSET, TAB_Y_BASE + TAB_PITCH * (k - scroll), shift, true));
-            }
-        }
-        return tabs;
-    }
-
     private void selectCategory(CategoryRef category) {
         playSound(TTSounds.CLACK, CLACK_VOLUME);
         setSearchMode(false);
@@ -486,32 +550,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private void onSearchChanged(String query) {
         model().clearVisibilityCache();
         search().rebuild(query);
-    }
-
-    private void computeBounds() {
-        model().clearVisibilityCache();
-        boundLeft = 0;
-        boundRight = 0;
-        boundTop = 0;
-        boundBottom = 0;
-        if (active == null) {
-            return;
-        }
-        boolean first = true;
-        for (EntryNode node : model().entriesOf(active.id())) {
-            if (!model().visible(node)) {
-                continue;
-            }
-            int left = CELL * node.value().column() - viewWidth() + BOUND_NEAR_PAD;
-            int right = CELL * node.value().column() - BOUND_FAR_PAD;
-            int top = CELL * node.value().row() - viewHeight() + BOUND_NEAR_PAD;
-            int bottom = CELL * node.value().row() - BOUND_FAR_PAD;
-            boundLeft = first ? left : Math.min(boundLeft, left);
-            boundRight = first ? right : Math.max(boundRight, right);
-            boundTop = first ? top : Math.min(boundTop, top);
-            boundBottom = first ? bottom : Math.max(boundBottom, bottom);
-            first = false;
-        }
     }
 
     private void updateDrag(int mouseX, int mouseY) {
@@ -541,33 +579,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         int lowLimit = (int) (low * (double) zoom);
         int highLimit = (int) (high * (double) zoom - MAP_UPPER_BOUND_INSET);
         return lowLimit > highLimit ? value : Mth.clamp(value, lowLimit, highLimit);
-    }
-
-    private void drawMap(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        int drawnX = drawnPosition(axisX.previous(), axisX.current(), partialTick, boundLeft, boundRight);
-        int drawnY = drawnPosition(axisY.previous(), axisY.current(), partialTick, boundTop, boundBottom);
-        float inverse = 1.0F / zoom;
-        IResearchCategory category = active.data();
-        graphics.pose().pushMatrix();
-        graphics.pose().scale(inverse, inverse);
-        drawParallax(graphics, category.background(), drawnX / PARALLAX_BASE, drawnY / PARALLAX_BASE);
-        category.overlayBackground().ifPresent(overlay -> drawParallax(graphics, overlay, drawnX / PARALLAX_OVERLAY, drawnY / PARALLAX_OVERLAY));
-        graphics.pose().popMatrix();
-        graphics.enableScissor(MARGIN, MARGIN, MARGIN + viewWidth(), MARGIN + viewHeight());
-        graphics.pose().pushMatrix();
-        graphics.pose().scale(inverse, inverse);
-        List<EntryNode> nodes = model().entriesOf(active.id());
-        drawConnectors(graphics, nodes, MARGIN - drawnX, MARGIN - drawnY);
-        ConnectorRenderer.flush(graphics);
-        drawNodes(graphics, nodes, drawnX, drawnY, mouseX, mouseY);
-        graphics.pose().popMatrix();
-        graphics.disableScissor();
-    }
-
-    private void drawParallax(GuiGraphicsExtractor graphics, Identifier texture, double offsetX, double offsetY) {
-        int w = (int) ((viewWidth() + BACKGROUND_EXTRA) * zoom);
-        int h = (int) ((viewHeight() + BACKGROUND_EXTRA) * zoom);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, (int) (BACKGROUND_OFFSET * zoom), (int) (BACKGROUND_OFFSET * zoom), (float) offsetX, (float) offsetY, w, h, w, h, TEX, TEX);
     }
 
     private void drawConnectors(GuiGraphicsExtractor graphics, List<EntryNode> nodes, int originX, int originY) {
@@ -604,8 +615,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         }
     }
 
-    private static void link(GuiGraphicsExtractor graphics, EntryNode from, EntryNode to, int originX, int originY, int color, float layer, boolean arrow, boolean flipped) {
-        ConnectorRenderer.draw(graphics, from.value().column(), from.value().row(), to.value().column(), to.value().row(), originX, originY, color, layer, arrow, flipped);
+    private void link(GuiGraphicsExtractor graphics, EntryNode from, EntryNode to, int originX, int originY, int color, float layer, boolean arrow, boolean flipped) {
+        connectors.draw(graphics, from.value().column(), from.value().row(), to.value().column(), to.value().row(), originX, originY, color, layer, arrow, flipped);
     }
 
     private void drawNodes(GuiGraphicsExtractor graphics, List<EntryNode> nodes, int drawnX, int drawnY, int mouseX, int mouseY) {

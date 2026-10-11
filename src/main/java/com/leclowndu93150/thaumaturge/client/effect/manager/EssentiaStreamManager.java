@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.effect.manager;
 
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStreamPort;
-import com.leclowndu93150.thaumaturge.client.effect.geometry.TubeMesh;
+import com.leclowndu93150.thaumaturge.client.effect.geometry.PolyCone;
 import com.leclowndu93150.thaumaturge.client.effect.instance.EssentiaStreamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.StreamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.EssentiaStreamRenderType;
@@ -132,7 +132,7 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
                 continue;
             poseStack.pushPose();
             poseStack.translate(snap.originX() - cx, snap.originY() - cy, snap.originZ() - cz);
-            TubeMesh.draw(poseStack, consumer, snap.points(), snap.colours(), snap.radii(), 0x00F000F0, snap.texSlice(), snap.start());
+            PolyCone.render(poseStack, consumer, snap.points(), snap.colours(), snap.radii(), 0x00F000F0, snap.texSlice(), snap.start());
             poseStack.popPose();
         }
         bufferSource.endBatch(EssentiaStreamRenderType.RENDER_TYPE);
