@@ -129,6 +129,48 @@ public final class TTTooltips {
         return entryNameKey(id).map(Component::translatable).orElseGet(() -> Component.translatableWithFallback("research." + id.getNamespace() + "." + path + ".title", "?"));
     }
 
+    public static List<Component> workbenchAuraVis(boolean insufficient) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.vis_available.tooltip.title").withStyle(ChatFormatting.AQUA));
+        lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.vis_available.tooltip").withStyle(ChatFormatting.GRAY));
+        if (insufficient) {
+            lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.vis_available.tooltip.short").withStyle(ChatFormatting.RED));
+        }
+        return lines;
+    }
+
+    public static List<Component> workbenchVisCost() {
+        return workbenchVisCostLines();
+    }
+
+    public static List<Component> workbenchVisCostDiscounted(int percent) {
+        List<Component> lines = workbenchVisCostLines();
+        lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.required_vis_discount.tooltip", percent).withStyle(ChatFormatting.GREEN));
+        return lines;
+    }
+
+    public static List<Component> workbenchVisCostUnfocused(int surchargePercent) {
+        List<Component> lines = workbenchVisCostLines();
+        lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.required_vis_crude.tooltip", surchargePercent).withStyle(ChatFormatting.GOLD));
+        return lines;
+    }
+
+    public static List<Component> workbenchWandVis(int visPerCrystal) {
+        return List.of(Component.translatable("gui.thaumaturge.arcane_workbench.wand_pay.tooltip.title").withStyle(ChatFormatting.AQUA),
+                Component.translatable("gui.thaumaturge.arcane_workbench.wand_pay.tooltip", visPerCrystal).withStyle(ChatFormatting.GRAY));
+    }
+
+    public static Component workbenchCrystalNeeded(int visPerCrystal) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.crystal_needed.tooltip", visPerCrystal);
+    }
+
+    private static List<Component> workbenchVisCostLines() {
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.required_vis.tooltip.title").withStyle(ChatFormatting.AQUA));
+        lines.add(Component.translatable("gui.thaumaturge.arcane_workbench.required_vis.tooltip").withStyle(ChatFormatting.GRAY));
+        return lines;
+    }
+
     private static Optional<String> entryNameKey(Identifier id) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {

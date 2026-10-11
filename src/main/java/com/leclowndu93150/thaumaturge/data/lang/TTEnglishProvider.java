@@ -201,6 +201,15 @@ public final class TTEnglishProvider extends LanguageProvider {
         add("gui.thaumaturge.arcane_workbench.required_vis_crude", "%s vis (unfocused)");
         add("gui.thaumaturge.arcane_workbench.wand_pay.tooltip", "Primal vis the wand will contribute in place of crystals (%s per crystal)");
         add("gui.thaumaturge.arcane_workbench.crystal_needed.tooltip", "Needs a vis crystal, or %s vis of this primal from a wand in the wand slot");
+        add("gui.thaumaturge.arcane_workbench.vis_available.tooltip.title", "Aura Vis");
+        add("gui.thaumaturge.arcane_workbench.vis_available.tooltip", "Vis in the aura around this workbench. Crafting drains the vis cost from it");
+        add("gui.thaumaturge.arcane_workbench.vis_available.tooltip.short", "Not enough vis here for this craft");
+        add("gui.thaumaturge.arcane_workbench.required_vis.tooltip.title", "Vis Cost");
+        add("gui.thaumaturge.arcane_workbench.required_vis.tooltip", "Drained from the aura when you take the crafted item");
+        add("gui.thaumaturge.arcane_workbench.required_vis_discount.tooltip", "%s%% cheaper thanks to your wand caps and vis discount gear");
+        add("gui.thaumaturge.arcane_workbench.required_vis_crude.tooltip",
+                "Unfocused: crystals are paying the primal cost, which raises the vis cost by %s%%. A wand holding enough primal vis in the wand slot focuses the craft");
+        add("gui.thaumaturge.arcane_workbench.wand_pay.tooltip.title", "Wand Vis");
         add("button.thaumaturge.create_theory", "Create Theory");
         add("button.thaumaturge.complete_theory", "Complete Theory");
         add("button.thaumaturge.scrap_theory", "Scrap Theory");
