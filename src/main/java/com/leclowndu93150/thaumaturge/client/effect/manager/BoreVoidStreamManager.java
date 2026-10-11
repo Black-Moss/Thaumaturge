@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.effect.manager;
 
-import com.leclowndu93150.thaumaturge.client.effect.geometry.PolyCone;
+import com.leclowndu93150.thaumaturge.client.effect.geometry.TubeMesh;
 import com.leclowndu93150.thaumaturge.client.effect.instance.BoreStreamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.StreamInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.VoidStreamInstance;
@@ -116,7 +116,7 @@ public final class BoreVoidStreamManager extends AbstractFXManager<IFXInstance> 
         }
         poseStack.pushPose();
         poseStack.translate(snapshot.originX() - camX, snapshot.originY() - camY, snapshot.originZ() - camZ);
-        PolyCone.render(poseStack, consumer, snapshot.points(), snapshot.colours(), snapshot.radii(), UNUSED_LIGHT, snapshot.texSlice(), snapshot.start());
+        TubeMesh.draw(poseStack, consumer, snapshot.points(), snapshot.colours(), snapshot.radii(), UNUSED_LIGHT, snapshot.texSlice(), snapshot.start());
         poseStack.popPose();
     }
 

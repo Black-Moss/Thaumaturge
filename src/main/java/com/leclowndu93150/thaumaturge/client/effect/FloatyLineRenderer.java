@@ -16,17 +16,8 @@ import org.joml.Matrix4fc;
 public final class FloatyLineRenderer {
     private static final Identifier WISPY_TEXTURE = TTIds.rl("textures/misc/wispy.png");
 
-    private static final float CLOCK_SCALE_NUMERATOR = 50.0F;
-    private static final float CLOCK_SCALE_DENOMINATOR = 30.0F;
     private static final double MIN_LINE_LENGTH = 0.1;
     private static final int MIN_SEGMENTS = 2;
-    private static final int SEGMENTS_PER_ROUND_BLOCK = 2;
-    private static final double MID_POINT = 0.5;
-    private static final double TAPER_SLOPE = 2.0;
-    private static final double SWAY_BLOCKS = 0.5;
-    private static final double PHASE_LENGTH_FACTOR = 2.0;
-    private static final double PHASE_CLOCK_DIVISOR = 5.0;
-    private static final double[] AXIS_PERIODS = {4.0, 3.0, 2.0};
     private static final double TAIL_GLOW_START = 0.7;
     private static final double TAIL_GLOW_RANGE = 0.3;
     private static final double TAIL_GLOW_PEAK = 0.8;
@@ -35,6 +26,15 @@ public final class FloatyLineRenderer {
     private static final int FULL_BRIGHT = LightCoordsUtil.pack(MAX_BLOCK_SKY_LIGHT, MAX_BLOCK_SKY_LIGHT);
     private static final float EDGE_LOW_V = 1.0F;
     private static final float EDGE_HIGH_V = 0.0F;
+    private static final int SEGMENTS_PER_ROUND_BLOCK = 4;
+    private static final long CLOCK_WRAP = 72000L;
+    private static final double PERIOD_X = 40.0;
+    private static final double PERIOD_Y = 60.0;
+    private static final double PERIOD_Z = 90.0;
+    private static final double WAVES_ALONG_LINE = 1.5;
+    private static final double SWAY_BLOCKS = 0.18;
+    private static final double TAPER_SLOPE = 2.5;
+    private static final double TWO_PI = Math.PI * 2.0;
 
     private FloatyLineRenderer() {}
 
@@ -44,10 +44,6 @@ public final class FloatyLineRenderer {
 
     public static void draw(PoseStack poseStack, MultiBufferSource buffers, Vec3 offset, float time, int color, float scrollSpeed, float fraction, float halfWidth) {
         emit(poseStack.last().pose(), buffers.getBuffer(renderType()), offset, time, color, scrollSpeed, fraction, halfWidth);
-    }
-
-    public static float time(long gameTime, float partialTick) {
-        return (gameTime + partialTick) * CLOCK_SCALE_NUMERATOR / CLOCK_SCALE_DENOMINATOR;
     }
 
     private static RenderType renderType() {
@@ -70,24 +66,27 @@ public final class FloatyLineRenderer {
         }
     }
 
+    public static float time(long gameTime, float partialTick) {
+        return Math.floorMod(gameTime, CLOCK_WRAP) + partialTick;
+    }
+
     private static RibbonSample[] sampleCurve(Vec3 offset, double span, int segments, int count, float time, float scrollSpeed) {
-        double[] reach = {offset.x, offset.y, offset.z};
         RibbonSample[] samples = new RibbonSample[count];
+        float scroll = time * scrollSpeed;
         for (int index = 0; index < count; index++) {
-            double t = (double) index / segments;
-            double taper = 1.0 - TAPER_SLOPE * Math.abs(t - MID_POINT);
-            double sway = SWAY_BLOCKS * taper;
-            double phase = span * (1.0 - t) * PHASE_LENGTH_FACTOR - time / PHASE_CLOCK_DIVISOR;
-            double[] position = new double[AXIS_PERIODS.length];
-            for (int axis = 0; axis < AXIS_PERIODS.length; axis++) {
-                position[axis] = (reach[axis] + sway * Math.sin(phase / AXIS_PERIODS[axis])) * t;
+            double along = index / (double) segments;
+            double envelope = Math.sin(along * Math.PI);
+            double sway = SWAY_BLOCKS * envelope;
+            double travel = along * WAVES_ALONG_LINE;
+            double x = offset.x * along + sway * Math.sin(TWO_PI * (time / PERIOD_X - travel));
+            double y = offset.y * along + sway * Math.sin(TWO_PI * (time / PERIOD_Y - travel));
+            double z = offset.z * along + sway * Math.sin(TWO_PI * (time / PERIOD_Z - travel));
+            double alpha = Math.min(1.0, envelope * TAPER_SLOPE);
+            if (along > TAIL_GLOW_START) {
+                alpha = Math.max(alpha, (along - TAIL_GLOW_START) / TAIL_GLOW_RANGE * TAIL_GLOW_PEAK);
             }
-            double alpha = Math.max(taper, 0.0);
-            if (t > TAIL_GLOW_START) {
-                alpha = Math.max(alpha, (t - TAIL_GLOW_START) / TAIL_GLOW_RANGE * TAIL_GLOW_PEAK);
-            }
-            float u = (float) ((1.0 - t) * span - time * scrollSpeed);
-            samples[index] = new RibbonSample(position[0], position[1], position[2], u, (float) alpha);
+            float u = (float) (along * span) + scroll;
+            samples[index] = new RibbonSample(x, y, z, u, (float) Math.min(1.0, alpha));
         }
         return samples;
     }

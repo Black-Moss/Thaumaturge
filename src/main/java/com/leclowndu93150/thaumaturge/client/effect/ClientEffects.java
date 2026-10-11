@@ -21,38 +21,38 @@ public final class ClientEffects {
     private static final float CHANNEL_MAX = ColorRange.CHANNEL_MAX;
     private static final float OPAQUE = 1.0F;
 
-    private static final float DROP_SCALE_BASE = 0.4F;
-    private static final float DROP_SCALE_SPREAD = 0.2F;
-    private static final int DROP_AGE_BASE = 20;
-    private static final int DROP_AGE_RANGE = 10;
-    private static final float DROP_BUOYANCY = 0.01F;
-    private static final double DROP_DRIFT = 0.005;
-
-    private static final float FOLLOW_RED = 0.33F;
-    private static final float FOLLOW_GREEN = 0.33F;
-    private static final float FOLLOW_BLUE = 1.0F;
-    private static final float FOLLOW_SCALE_BASE = 0.3F;
-    private static final float FOLLOW_SCALE_SPREAD = 0.3F;
-    private static final int FOLLOW_AGE_BASE = 15;
-    private static final int FOLLOW_AGE_RANGE = 10;
-    private static final float FOLLOW_BUOYANCY = -0.001F;
-    private static final double FOLLOW_SPREAD = 0.2;
-
-    private static final float FLAME_ALPHA = 0.66F;
-    private static final float FLAME_SCALE_BASE = 3.0F;
-    private static final float FLAME_END_SCALE = 0.05F;
-
     private static final double RUNE_CENTRE = 0.5;
 
-    private static final float SCAN_SCALE_BASE = 0.4F;
-    private static final float SCAN_SCALE_DEVIATION = 0.1F;
-    private static final ColorRange SCAN_RED = new ColorRange(16, 32);
-    private static final ColorRange SCAN_GREEN = new ColorRange(132, 165);
-    private static final ColorRange SCAN_BLUE = new ColorRange(223, 239);
-    private static final int SCAN_DELAY_RANGE = 10;
     private static final float SCAN_DECAY = 1.0F;
     private static final float SCAN_GRAVITY = 0.0F;
+    private static final ColorRange SCAN_RED = new ColorRange(70, 110);
+    private static final ColorRange SCAN_GREEN = new ColorRange(165, 205);
+    private static final ColorRange SCAN_BLUE = new ColorRange(235, 255);
+    private static final float SCAN_SCALE_BASE = 0.55F;
+    private static final float SCAN_SCALE_DEVIATION = 0.08F;
+    private static final int SCAN_DELAY_RANGE = 10;
     private static final int SCAN_BASE_AGE = 4;
+
+    private static final float DROP_SCALE_BASE = 0.4F;
+    private static final float DROP_SCALE_SPREAD = 0.3F;
+    private static final int DROP_AGE_BASE = 20;
+    private static final int DROP_AGE_RANGE = 11;
+    private static final float DROP_BUOYANCY = 0.15F;
+    private static final double DROP_DRIFT = 0.004;
+
+    private static final float FOLLOW_RED = 0.68F;
+    private static final float FOLLOW_GREEN = 0.74F;
+    private static final float FOLLOW_BLUE = 1.0F;
+    private static final float FOLLOW_SCALE_BASE = 0.6F;
+    private static final float FOLLOW_SCALE_SPREAD = 0.4F;
+    private static final int FOLLOW_AGE_BASE = 16;
+    private static final int FOLLOW_AGE_RANGE = 9;
+    private static final float FOLLOW_BUOYANCY = -0.02F;
+    private static final double FOLLOW_SPREAD = 0.15;
+
+    private static final float FLAME_ALPHA = 0.75F;
+    private static final float FLAME_SCALE_BASE = 1.2F;
+    private static final float FLAME_END_SCALE = 0.05F;
 
     private static final int RED_SHIFT = 16;
     private static final int GREEN_SHIFT = 8;
