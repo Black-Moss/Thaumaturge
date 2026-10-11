@@ -37,9 +37,7 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
     private static final float CENTER = 0.5F;
     private static final float FRAME_HEIGHT = 1.0F;
     private static final float HALF_TURN = 180.0F;
-    private static final float YAW_NORTH = 270.0F;
-    private static final float YAW_SOUTH = 90.0F;
-    private static final float YAW_WEST = 180.0F;
+    private static final float EXTENSION_SIDE_YAW = 90.0F;
     private static final float BOUNDS_MARGIN = 0.5F;
     private static final float QUILL_X = -0.23F;
     private static final float QUILL_Y = -0.095F;
@@ -97,7 +95,8 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
         int light = state.lightCoords;
         poseStack.pushPose();
         poseStack.translate(CENTER, FRAME_HEIGHT, CENTER);
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw(state.facing)));
+        BlockFacingPose.northBased(poseStack, state.facing);
+        poseStack.mulPose(Axis.YP.rotationDegrees(EXTENSION_SIDE_YAW));
         poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
         if (state.hasTools) {
             collector.submitModelPart(model.inkwell, poseStack, RenderTypes.entityCutout(TABLE_TEXTURE), light, OverlayTexture.NO_OVERLAY, null);
@@ -193,14 +192,5 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
 
     private static Direction facingOf(BlockState state) {
         return state.hasProperty(BlockResearchTable.FACING) ? state.getValue(BlockResearchTable.FACING) : Direction.NORTH;
-    }
-
-    private static float yaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> YAW_NORTH;
-            case SOUTH -> YAW_SOUTH;
-            case WEST -> YAW_WEST;
-            default -> 0.0F;
-        };
     }
 }
