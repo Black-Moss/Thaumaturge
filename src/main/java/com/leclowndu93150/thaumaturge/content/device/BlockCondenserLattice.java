@@ -48,12 +48,13 @@ public final class BlockCondenserLattice extends Block {
 
     private static final Direction[] DIRECTIONS = Direction.values();
     private static final int MASK_COUNT = 1 << DIRECTIONS.length;
-    private static final double FACE_SHIFT_DIVISOR = 3.0;
     private static final float CLEAN_SOUND_VOLUME = 0.5F;
     private static final float CLEAN_SOUND_PITCH = 1.0F;
     private static final int CRYSTAL_AMOUNT = 1;
-    private static final VoxelShape CORE = Shapes.or(box(5.0, 6.0, 6.0, 11.0, 10.0, 10.0), box(6.0, 5.0, 6.0, 10.0, 6.0, 10.0), box(6.0, 6.0, 5.0, 10.0, 10.0, 6.0),
-            box(6.0, 6.0, 10.0, 10.0, 10.0, 11.0), box(6.0, 10.0, 6.0, 10.0, 11.0, 10.0));
+    private static final double FACE_SHIFT_DIVISOR = 1.6;
+    private static final VoxelShape CORE = Shapes.or(Block.box(5.0, 6.0, 6.0, 11.0, 10.0, 10.0), Block.box(6.0, 5.0, 6.0, 10.0, 11.0, 10.0), Block.box(6.0, 6.0, 5.0, 10.0, 10.0, 11.0));
+    private static final VoxelShape CONDUIT_ROD = Block.box(7.0, 1.0, 7.0, 9.0, 5.0, 9.0);
+    private static final VoxelShape COUPLING_COLLAR = Block.box(6.0, 0.0, 6.0, 10.0, 1.0, 10.0);
     private static final Map<Direction, VoxelShape> ARMS = buildArms();
 
     private final boolean dirty;
@@ -78,12 +79,7 @@ public final class BlockCondenserLattice extends Block {
 
     private static Map<Direction, VoxelShape> buildArms() {
         Map<Direction, VoxelShape> arms = new EnumMap<>(Direction.class);
-        arms.put(Direction.DOWN, Shapes.or(box(6.0, 0.0, 6.0, 10.0, 1.0, 10.0), box(7.0, 1.0, 7.0, 9.0, 5.0, 9.0)));
-        arms.put(Direction.UP, Shapes.or(box(6.0, 15.0, 6.0, 10.0, 16.0, 10.0), box(7.0, 11.0, 7.0, 9.0, 15.0, 9.0)));
-        arms.put(Direction.NORTH, Shapes.or(box(6.0, 6.0, 0.0, 10.0, 10.0, 1.0), box(7.0, 7.0, 1.0, 9.0, 9.0, 5.0)));
-        arms.put(Direction.SOUTH, Shapes.or(box(6.0, 6.0, 15.0, 10.0, 10.0, 16.0), box(7.0, 7.0, 11.0, 9.0, 9.0, 15.0)));
-        arms.put(Direction.WEST, Shapes.or(box(0.0, 6.0, 6.0, 1.0, 10.0, 10.0), box(1.0, 7.0, 7.0, 5.0, 9.0, 9.0)));
-        arms.put(Direction.EAST, Shapes.or(box(15.0, 6.0, 6.0, 16.0, 10.0, 10.0), box(11.0, 7.0, 7.0, 15.0, 9.0, 9.0)));
+        DeviceShapes.facingShapesFromDown(Shapes.or(CONDUIT_ROD, COUPLING_COLLAR)).forEach((direction, arm) -> arms.put(direction, arm.optimize()));
         return arms;
     }
 

@@ -25,6 +25,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -32,61 +33,60 @@ import org.jspecify.annotations.Nullable;
 public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, JarRenderState> {
     public static final Identifier ANIMATED_GLOW_LOCATION = TTIds.rl("block/animatedglow");
     public static final SpriteId ANIMATED_GLOW_SPRITE = new SpriteId(TextureAtlas.LOCATION_BLOCKS, ANIMATED_GLOW_LOCATION);
-    public static final float FLUID_MIN = 0.25F;
-    public static final float FLUID_MAX = 0.75F;
-    public static final float FLUID_BASE_Y = 0.0625F;
-    public static final float FLUID_MAX_HEIGHT = 0.625F;
 
     private static final Identifier LABEL_TEXTURE = TTIds.rl("textures/entity/label.png");
     private static final Identifier BRINE_TEXTURE = TTIds.rl("textures/entity/jarbrine.png");
     private static final int OPAQUE = 0xFF000000;
     private static final int WHITE = 0xFFFFFFFF;
-    private static final float SIDE_V_BOTTOM = 0.9375F;
+    private static final float PIXEL = 1.0F / 16.0F;
     private static final float CENTER = 0.5F;
-    private static final float PLATE_HEIGHT = 0.4F;
-    private static final float PLATE_NEAR = 0.184F;
-    private static final float PLATE_FAR = 0.816F;
+    private static final float FLUID_MIN = 4.5F * PIXEL;
+    private static final float FLUID_MAX = 11.5F * PIXEL;
+    private static final float FLUID_BASE_Y = 1.0F * PIXEL;
+    private static final float FLUID_MAX_HEIGHT = 10.5F * PIXEL;
+    private static final float FULL_V = 1.0F;
+    private static final float SIDE_V_BOTTOM = FULL_V - FLUID_BASE_Y;
+    private static final float BRACE_HALF = 3.1F * PIXEL;
+    private static final float BRACE_BOTTOM_Y = 11.95F * PIXEL;
+    private static final float BRACE_TOP_Y = 14.05F * PIXEL;
+    private static final int BRACE_U = 32;
+    private static final int BRACE_V = 24;
+    private static final int BRACE_WIDTH_PX = 6;
+    private static final int BRACE_HEIGHT_PX = 2;
+    private static final float LID_MIN = 6.0F * PIXEL;
+    private static final float LID_MAX = 10.0F * PIXEL;
+    private static final float LID_BOTTOM_Y = 14.0F * PIXEL;
+    private static final float LID_TOP_Y = 16.0F * PIXEL;
+    private static final int LID_U = 0;
+    private static final int LID_V = 23;
+    private static final int LID_WIDTH_PX = 4;
+    private static final int LID_HEIGHT_PX = 2;
+    private static final float PLATE_HEIGHT = 6.0F * PIXEL;
+    private static final float PLATE_NEAR = 2.95F * PIXEL;
+    private static final float PLATE_FAR = 13.05F * PIXEL;
+    private static final int TILT_PERIOD = 7;
+    private static final float TILT_BIAS = 3.0F;
     private static final float PLATE_HALF = 0.25F;
     private static final float ICON_HALF = 0.19F;
     private static final float ICON_LIFT = 0.001F;
     private static final float YAW_NORTH = 180.0F;
     private static final float YAW_EAST = 90.0F;
     private static final float YAW_WEST = 270.0F;
-    private static final int TILT_PERIOD = 4;
-    private static final float TILT_BIAS = 2.0F;
-    private static final float BRACE_HALF = 0.5F * 0.390625F * 1.001F;
-    private static final float BRACE_MIN = CENTER - BRACE_HALF;
-    private static final float BRACE_MAX = CENTER + BRACE_HALF;
-    private static final float BRACE_BOTTOM_Y = 0.75F;
-    private static final float BRACE_TOP_Y = 0.890625F;
-    private static final float LID_MIN = 0.375F;
-    private static final float LID_MAX = 0.625F;
-    private static final float LID_BOTTOM_Y = 0.875F;
-    private static final float LID_TOP_Y = 1.0F;
     private static final float BRINE_TEXTURE_WIDTH = 64.0F;
     private static final float BRINE_TEXTURE_HEIGHT = 32.0F;
     private static final int BIT_X = 4;
     private static final int BIT_Y = 2;
     private static final int BIT_Z = 1;
     private static final int FALLBACK_PLATE_INDEX = 0;
+    private static final Prism BRACE = boxPrism(CENTER - BRACE_HALF, BRACE_BOTTOM_Y, CENTER - BRACE_HALF, CENTER + BRACE_HALF, BRACE_TOP_Y, CENTER + BRACE_HALF, BRACE_U, BRACE_V, BRACE_WIDTH_PX,
+            BRACE_HEIGHT_PX, BRACE_WIDTH_PX);
+    private static final Prism LID = boxPrism(LID_MIN, LID_BOTTOM_Y, LID_MIN, LID_MAX, LID_TOP_Y, LID_MAX, LID_U, LID_V, LID_WIDTH_PX, LID_HEIGHT_PX, LID_WIDTH_PX);
     private static final float[][] FLUID_RING_TOP = {{FLUID_MIN, FLUID_MIN}, {FLUID_MIN, FLUID_MAX}, {FLUID_MAX, FLUID_MAX}, {FLUID_MAX, FLUID_MIN}};
     private static final float[][] FLUID_RING_BOTTOM = {{FLUID_MIN, FLUID_MIN}, {FLUID_MAX, FLUID_MIN}, {FLUID_MAX, FLUID_MAX}, {FLUID_MIN, FLUID_MAX}};
     private static final Wall[] FLUID_WALLS = {new Wall(FLUID_MIN, FLUID_MIN, FLUID_MIN, FLUID_MAX, -1.0F, 0.0F, 0.0F), new Wall(FLUID_MAX, FLUID_MAX, FLUID_MAX, FLUID_MIN, 1.0F, 0.0F, 0.0F),
             new Wall(FLUID_MAX, FLUID_MIN, FLUID_MIN, FLUID_MIN, 0.0F, 0.0F, -1.0F), new Wall(FLUID_MIN, FLUID_MAX, FLUID_MAX, FLUID_MAX, 0.0F, 0.0F, 1.0F)};
     private static final Plate[] PLATES_BY_HORIZONTAL_INDEX = {new Plate(CENTER, PLATE_FAR, 0.0F), new Plate(PLATE_NEAR, CENTER, YAW_WEST), new Plate(CENTER, PLATE_NEAR, YAW_NORTH),
             new Plate(PLATE_FAR, CENTER, YAW_EAST)};
-
-    private static final Prism BRACE = new Prism(BRACE_MIN, BRACE_BOTTOM_Y, BRACE_MIN, BRACE_MAX, BRACE_TOP_Y, BRACE_MAX,
-            List.of(panel(0, 1, 0, corner(BIT_Y, 38, 24), corner(BIT_Y | BIT_Z, 38, 30), corner(BIT_X | BIT_Y | BIT_Z, 44, 30), corner(BIT_X | BIT_Y, 44, 24)),
-                    panel(0, 0, -1, corner(0, 32, 32), corner(BIT_Y, 32, 30), corner(BIT_X | BIT_Y, 38, 30), corner(BIT_X, 38, 32)),
-                    panel(0, 0, 1, corner(BIT_X | BIT_Z, 50, 32), corner(BIT_X | BIT_Y | BIT_Z, 50, 30), corner(BIT_Y | BIT_Z, 44, 30), corner(BIT_Z, 44, 32)),
-                    panel(-1, 0, 0, corner(BIT_Z, 38, 32), corner(BIT_Y | BIT_Z, 38, 30), corner(BIT_Y, 44, 30), corner(0, 44, 32)),
-                    panel(1, 0, 0, corner(BIT_X, 56, 32), corner(BIT_X | BIT_Y, 56, 30), corner(BIT_X | BIT_Y | BIT_Z, 50, 30), corner(BIT_X | BIT_Z, 50, 32))));
-    private static final Prism LID = new Prism(LID_MIN, LID_BOTTOM_Y, LID_MIN, LID_MAX, LID_TOP_Y, LID_MAX,
-            List.of(panel(0, 0, -1, corner(0, 0, 29), corner(BIT_Y, 0, 27), corner(BIT_X | BIT_Y, 4, 27), corner(BIT_X, 4, 29)),
-                    panel(0, 0, 1, corner(BIT_X | BIT_Z, 8, 29), corner(BIT_X | BIT_Y | BIT_Z, 8, 27), corner(BIT_Y | BIT_Z, 12, 27), corner(BIT_Z, 12, 29)),
-                    panel(-1, 0, 0, corner(BIT_Z, 4, 29), corner(BIT_Y | BIT_Z, 4, 27), corner(BIT_Y, 8, 27), corner(0, 8, 29)),
-                    panel(1, 0, 0, corner(BIT_X, 12, 29), corner(BIT_X | BIT_Y, 12, 27), corner(BIT_X | BIT_Y | BIT_Z, 16, 27), corner(BIT_X | BIT_Z, 16, 29))));
 
     private static final List<Prism> PRISMS_BOTH = List.of(BRACE, LID);
     private static final List<Prism> PRISMS_BRACE_ONLY = List.of(BRACE);
@@ -144,7 +144,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
             return;
         }
         TextureAtlasSprite glow = sprites.get(ANIMATED_GLOW_SPRITE);
-        submitFluid(state.amount, state.capacity, state.aspectColor, state.lightCoords, glow, poseStack, collector);
+        submitFluid(state.amount, state.capacity, state.aspectColor, LightCoordsUtil.FULL_BRIGHT, glow, poseStack, collector);
     }
 
     private static List<Prism> activePrisms(JarRenderState state) {
@@ -182,12 +182,12 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     }
 
     public static void fluidQuadSide(VertexConsumer buffer, PoseStack.Pose pose, float startX, float startZ, float endX, float endZ, float height, int colour, int light, float nx, float ny, float nz) {
-        float vLow = SIDE_V_BOTTOM - height;
+        float vTop = FULL_V - height;
         float[] xs = {startX, endX, endX, startX};
         float[] zs = {startZ, endZ, endZ, startZ};
         float[] ys = {FLUID_BASE_Y, FLUID_BASE_Y, height, height};
         float[] us = {FLUID_MIN, FLUID_MAX, FLUID_MAX, FLUID_MIN};
-        float[] vs = {vLow, vLow, SIDE_V_BOTTOM, SIDE_V_BOTTOM};
+        float[] vs = {SIDE_V_BOTTOM, SIDE_V_BOTTOM, vTop, vTop};
         for (int slot = 0; slot < xs.length; slot++) {
             addVertex(buffer, pose, xs[slot], ys[slot], zs[slot], us[slot], vs[slot], colour, light, nx, ny, nz);
         }
@@ -200,7 +200,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     private static void submitLabel(JarRenderState state, Identifier iconTexture, PoseStack poseStack, SubmitNodeCollector collector) {
         Direction facing = state.facing;
         Plate plate = PLATES_BY_HORIZONTAL_INDEX[facing.getAxis().isHorizontal() ? facing.get2DDataValue() : FALLBACK_PLATE_INDEX];
-        float tilt = (state.blockPos.getX() + facing.ordinal()) % TILT_PERIOD - TILT_BIAS;
+        float tilt = Math.floorMod(state.blockPos.getX() + state.blockPos.getZ() + facing.ordinal(), TILT_PERIOD) - TILT_BIAS;
         int light = state.lightCoords;
         int iconColour = state.filterColor;
         poseStack.pushPose();
@@ -232,6 +232,26 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
                 }
             }
         });
+    }
+
+    private static Prism boxPrism(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, int u, int v, int width, int height, int depth) {
+        int sideTop = v + depth;
+        int sideBottom = sideTop + height;
+        int westRight = u + depth;
+        int northRight = westRight + width;
+        int eastRight = northRight + depth;
+        int southRight = eastRight + width;
+        List<Panel> panels = List.of(face(0.0F, 1.0F, 0.0F, BIT_Y, BIT_Y | BIT_Z, BIT_X | BIT_Y | BIT_Z, BIT_X | BIT_Y, westRight, v, northRight, sideTop),
+                face(0.0F, -1.0F, 0.0F, BIT_Z, 0, BIT_X, BIT_X | BIT_Z, northRight, v, northRight + width, sideTop),
+                face(-1.0F, 0.0F, 0.0F, BIT_Y, 0, BIT_Z, BIT_Y | BIT_Z, u, sideTop, westRight, sideBottom),
+                face(0.0F, 0.0F, -1.0F, BIT_X | BIT_Y, BIT_X, 0, BIT_Y, westRight, sideTop, northRight, sideBottom),
+                face(1.0F, 0.0F, 0.0F, BIT_X | BIT_Y | BIT_Z, BIT_X | BIT_Z, BIT_X, BIT_X | BIT_Y, northRight, sideTop, eastRight, sideBottom),
+                face(0.0F, 0.0F, 1.0F, BIT_Y | BIT_Z, BIT_Z, BIT_X | BIT_Z, BIT_X | BIT_Y | BIT_Z, eastRight, sideTop, southRight, sideBottom));
+        return new Prism(minX, minY, minZ, maxX, maxY, maxZ, panels);
+    }
+
+    private static Panel face(float nx, float ny, float nz, int topLeft, int bottomLeft, int bottomRight, int topRight, int u0, int v0, int u1, int v1) {
+        return panel(nx, ny, nz, corner(topLeft, u0, v0), corner(bottomLeft, u0, v1), corner(bottomRight, u1, v1), corner(topRight, u1, v0));
     }
 
     private static Corner corner(int mask, int pixelU, int pixelV) {

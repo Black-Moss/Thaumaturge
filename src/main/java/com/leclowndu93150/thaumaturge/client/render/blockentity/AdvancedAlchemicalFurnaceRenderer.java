@@ -55,36 +55,37 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
     private static final float SAMPLE_QUARTER_TURN = Mth.HALF_PI;
     private static final int GOO_BLOCK_LIGHT = 12;
     private static final int BACKING_BLOCK_LIGHT = 9;
-    private static final int FLAME_BLOCK_LIGHT = 14;
+    private static final int FLAME_BLOCK_LIGHT = 15;
+    private static final float BACKING_LIFT = 0.003F;
+    private static final float FRONT_LIFT = 0.006F;
+    private static final float GOO_SURFACE_Y = 1.9375F;
+    private static final float GOO_SURFACE_HALF = 0.375F;
+    private static final float WINDOW_FACE_X = 1.875F;
+    private static final float WINDOW_BOTTOM = 1.1875F;
+    private static final float WINDOW_HEIGHT = 0.5F;
+    private static final float WINDOW_SPAN = 0.25F;
+    private static final float WINDOW_A_Z = -0.375F;
+    private static final float WINDOW_B_Z = 1.625F;
+    private static final float VENT_FACE_X = 1.9375F;
+    private static final float VENT_BOTTOM = 0.4375F;
+    private static final float VENT_HEIGHT = 0.25F;
+    private static final float VENT_SPAN = 0.25F;
+    private static final float VENT_LEFT_Z = 0.625F;
+    private static final float FULL_SHARE = 1.0F;
     private static final int GOO_LIGHT = LightCoordsUtil.pack(GOO_BLOCK_LIGHT, 0);
     private static final int BACKING_LIGHT = LightCoordsUtil.pack(BACKING_BLOCK_LIGHT, 0);
     private static final int FLAME_LIGHT = LightCoordsUtil.pack(FLAME_BLOCK_LIGHT, 0);
-    private static final float WINDOW_TOP = 1.8F;
-    private static final float WINDOW_HEIGHT = 0.6F;
-    private static final float GOO_SURFACE_Y = 1.1F;
-    private static final float WINDOW_A_X = 1.35F;
-    private static final float WINDOW_B_X = 1.65F;
-    private static final float WINDOW_SPAN = 0.3F;
-    private static final float WINDOW_A_Z = 1.9F;
-    private static final float WINDOW_B_Z = -0.9F;
-    private static final float WINDOW_GOO_DEPTH = 0.01F;
-    private static final PanelPlane GOO_SURFACE = new PanelPlane(1.0F, GOO_SURFACE_Y, 1.0F, -1.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F);
-    private static final PanelPlane WINDOW_A_BACKING = windowPlane(WINDOW_A_X, WINDOW_SPAN, WINDOW_A_Z);
-    private static final PanelPlane WINDOW_A_GOO = windowPlane(WINDOW_A_X, WINDOW_SPAN, WINDOW_A_Z + WINDOW_GOO_DEPTH);
-    private static final PanelPlane WINDOW_B_BACKING = windowPlane(WINDOW_B_X, -WINDOW_SPAN, WINDOW_B_Z);
-    private static final PanelPlane WINDOW_B_GOO = windowPlane(WINDOW_B_X, -WINDOW_SPAN, WINDOW_B_Z - WINDOW_GOO_DEPTH);
-    private static final float FLAME_TOP_Y = 1.7071F;
-    private static final float FLAME_FAR_Z = -0.2071F;
-    private static final float FLAME_SLOPE = 0.7071F;
-    private static final float FLAME_BACKING_SHIFT = 0.0354F;
-    private static final PanelPlane FLAME = new PanelPlane(1.0F, FLAME_TOP_Y, FLAME_FAR_Z, -1.0F, 0.0F, 0.0F, 0.0F, -FLAME_SLOPE, -FLAME_SLOPE);
-    private static final PanelPlane FLAME_BACKING = new PanelPlane(1.0F, FLAME_TOP_Y - FLAME_BACKING_SHIFT, FLAME_FAR_Z + FLAME_BACKING_SHIFT, -1.0F, 0.0F, 0.0F, 0.0F, -FLAME_SLOPE, -FLAME_SLOPE);
     private static final float PANEL_FULL = 0.0F;
     private static final float BOUNDS_MARGIN_LOW = 1.0F;
     private static final float BOUNDS_MARGIN_HIGH = 2.0F;
     private static final float BOUNDS_HEIGHT = 2.0F;
     private static final int QUAD_VERTICES = 4;
     private static final float QUAD_VERTEX_COUNT = QUAD_VERTICES;
+    private static final PanelPlane GOO_SURFACE = new PanelPlane(CENTER - GOO_SURFACE_HALF, GOO_SURFACE_Y, CENTER - GOO_SURFACE_HALF, GOO_SURFACE_HALF * 2.0F, 0.0F, 0.0F, 0.0F, 0.0F,
+            GOO_SURFACE_HALF * 2.0F);
+    private static final PanelPlane WINDOW_A_BACKING = windowPlane(WINDOW_A_Z, BACKING_LIFT, FULL_SHARE);
+    private static final PanelPlane WINDOW_B_BACKING = windowPlane(WINDOW_B_Z, BACKING_LIFT, FULL_SHARE);
+    private static final PanelPlane FLAME_BACKING = ventPlane(BACKING_LIFT, FULL_SHARE);
 
     private final SpriteGetter sprites;
 
@@ -208,28 +209,50 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
     }
 
     private void submitEssentia(AdvancedAlchemicalFurnaceRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
-        float empty = 1.0F - Math.min(1.0F, (float) state.stored / BlockEntityAdvancedAlchemicalFurnace.MAX_ESSENTIA);
-        submitPanel(poseStack, collector, Sheets.translucentBlockItemSheet(), GOO_SPRITE, GOO_LIGHT, GOO_SURFACE, PANEL_FULL);
+        float share = Mth.clamp((float) state.stored / BlockEntityAdvancedAlchemicalFurnace.MAX_ESSENTIA, 0.0F, FULL_SHARE);
+        RenderType goo = Sheets.translucentBlockItemSheet();
+        RenderType backing = Sheets.cutoutBlockSheet();
+        submitPanel(poseStack, collector, goo, GOO_SPRITE, GOO_LIGHT, GOO_SURFACE, PANEL_FULL);
+        PanelPlane gooA = windowPlane(WINDOW_A_Z, FRONT_LIFT, share);
+        PanelPlane gooB = windowPlane(WINDOW_B_Z, FRONT_LIFT, share);
         for (int side = 0; side < SIDE_COUNT; side++) {
             poseStack.pushPose();
             turnAboutCenter(poseStack, side);
-            submitPanel(poseStack, collector, Sheets.cutoutBlockItemSheet(), BACKING_SPRITE, BACKING_LIGHT, WINDOW_A_BACKING, PANEL_FULL);
-            submitPanel(poseStack, collector, Sheets.translucentBlockItemSheet(), GOO_SPRITE, GOO_LIGHT, WINDOW_A_GOO, empty);
-            submitPanel(poseStack, collector, Sheets.cutoutBlockItemSheet(), BACKING_SPRITE, BACKING_LIGHT, WINDOW_B_BACKING, PANEL_FULL);
-            submitPanel(poseStack, collector, Sheets.translucentBlockItemSheet(), GOO_SPRITE, GOO_LIGHT, WINDOW_B_GOO, empty);
+            submitPanel(poseStack, collector, backing, BACKING_SPRITE, BACKING_LIGHT, WINDOW_A_BACKING, PANEL_FULL);
+            submitPanel(poseStack, collector, backing, BACKING_SPRITE, BACKING_LIGHT, WINDOW_B_BACKING, PANEL_FULL);
+            if (share > 0.0F) {
+                submitPanel(poseStack, collector, goo, GOO_SPRITE, GOO_LIGHT, gooA, PANEL_FULL);
+                submitPanel(poseStack, collector, goo, GOO_SPRITE, GOO_LIGHT, gooB, PANEL_FULL);
+            }
             poseStack.popPose();
         }
     }
 
     private void submitVents(AdvancedAlchemicalFurnaceRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
-        float cooled = 1.0F - Math.min(1.0F, (float) state.heat / BlockEntityAdvancedAlchemicalFurnace.MAX_POWER);
+        float share = Mth.clamp((float) state.heat / BlockEntityAdvancedAlchemicalFurnace.MAX_POWER, 0.0F, FULL_SHARE);
+        RenderType cutout = Sheets.cutoutBlockSheet();
+        PanelPlane flame = ventPlane(FRONT_LIFT, share);
         for (int side = 0; side < SIDE_COUNT; side++) {
             poseStack.pushPose();
             turnAboutCenter(poseStack, side);
-            submitPanel(poseStack, collector, Sheets.translucentBlockItemSheet(), FLAME_SPRITE, FLAME_LIGHT, FLAME, cooled);
-            submitPanel(poseStack, collector, Sheets.cutoutBlockItemSheet(), BACKING_SPRITE, BACKING_LIGHT, FLAME_BACKING, PANEL_FULL);
+            submitPanel(poseStack, collector, cutout, BACKING_SPRITE, BACKING_LIGHT, FLAME_BACKING, PANEL_FULL);
+            if (share > 0.0F) {
+                submitPanel(poseStack, collector, cutout, FLAME_SPRITE, FLAME_LIGHT, flame, PANEL_FULL);
+            }
             poseStack.popPose();
         }
+    }
+
+    private static PanelPlane windowPlane(float leftZ, float lift, float share) {
+        return risingPlane(WINDOW_FACE_X + lift, WINDOW_BOTTOM, leftZ, WINDOW_SPAN, WINDOW_HEIGHT * share);
+    }
+
+    private static PanelPlane ventPlane(float lift, float share) {
+        return risingPlane(VENT_FACE_X + lift, VENT_BOTTOM, VENT_LEFT_Z, VENT_SPAN, VENT_HEIGHT * share);
+    }
+
+    private static PanelPlane risingPlane(float faceX, float bottomY, float leftZ, float span, float height) {
+        return new PanelPlane(faceX, bottomY, leftZ, 0.0F, 0.0F, -span, 0.0F, height, 0.0F);
     }
 
     private static void turnAboutCenter(PoseStack poseStack, int side) {
@@ -260,10 +283,6 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
 
     private static void panelVertex(VertexConsumer buffer, PoseStack.Pose pose, PanelPlane plane, float px, float py, float u, float v, int light, float nx, float ny, float nz) {
         buffer.addVertex(pose, plane.x(px, py), plane.y(px, py), plane.z(px, py)).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
-    }
-
-    private static PanelPlane windowPlane(float startX, float spanX, float z) {
-        return new PanelPlane(startX, WINDOW_TOP, z, spanX, 0.0F, 0.0F, 0.0F, -WINDOW_HEIGHT, 0.0F);
     }
 
     private record PanelPlane(float originX, float originY, float originZ, float rightX, float rightY, float rightZ, float downX, float downY, float downZ) {

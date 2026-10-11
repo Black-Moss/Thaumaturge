@@ -34,9 +34,17 @@ public final class BlockPatternCrafter extends BaseEntityBlock {
     public static final MapCodec<BlockPatternCrafter> CODEC = simpleCodec(BlockPatternCrafter::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    private static final Map<Direction, VoxelShape> SHAPES = DeviceShapes.facingShapesFromNorth(Shapes.or(box(0.0, 8.0, 0.0, 16.0, 16.0, 2.0), box(0.0, 10.0, 2.0, 2.0, 16.0, 16.0),
-            box(2.0, 0.0, 2.0, 14.0, 1.0, 14.0), box(2.0, 10.0, 2.0, 16.0, 11.0, 16.0), box(2.0, 11.0, 14.0, 16.0, 16.0, 16.0), box(4.0, 1.0, 4.0, 12.0, 10.0, 12.0),
-            box(6.0, 3.0, 12.0, 10.0, 7.0, 14.0), box(6.0, 6.0, 3.0, 10.0, 10.0, 4.0), box(14.0, 11.0, 2.0, 16.0, 16.0, 14.0)));
+    private static final VoxelShape PLINTH = Block.box(2.0, 0.0, 2.0, 14.0, 1.0, 14.0);
+    private static final VoxelShape PANEL_COLUMN = Block.box(4.0, 1.0, 4.0, 12.0, 10.0, 12.0);
+    private static final VoxelShape DISPLAY_FASCIA = Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 2.0);
+    private static final VoxelShape BASIN_FLOOR = Block.box(2.0, 10.0, 2.0, 14.0, 11.0, 14.0);
+    private static final VoxelShape BASIN_WALL_WEST = Block.box(0.0, 10.0, 2.0, 2.0, 16.0, 16.0);
+    private static final VoxelShape BASIN_WALL_EAST = Block.box(14.0, 10.0, 2.0, 16.0, 16.0, 16.0);
+    private static final VoxelShape BASIN_WALL_BACK = Block.box(2.0, 10.0, 14.0, 14.0, 16.0, 16.0);
+    private static final VoxelShape SELECTOR_KNOB = Block.box(6.0, 3.0, 12.0, 10.0, 7.0, 14.0);
+    private static final VoxelShape FRONT_NODE = Block.box(6.0, 6.0, 3.0, 10.0, 10.0, 5.0);
+    private static final Map<Direction, VoxelShape> SHAPES = DeviceShapes
+            .facingShapesFromNorth(Shapes.or(PLINTH, PANEL_COLUMN, DISPLAY_FASCIA, BASIN_FLOOR, BASIN_WALL_WEST, BASIN_WALL_EAST, BASIN_WALL_BACK, SELECTOR_KNOB, FRONT_NODE));
 
     public BlockPatternCrafter(Properties properties) {
         super(properties);

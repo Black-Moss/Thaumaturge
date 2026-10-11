@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -24,19 +23,22 @@ public final class PatternCrafterRenderer implements BlockEntityRenderer<BlockEn
     private static final Identifier GEAR_TEXTURE = TTIds.rl("textures/misc/gear_brass.png");
     private static final int WHITE = 0xFFFFFFFF;
     private static final float CENTER = 0.5F;
-    private static final float YAW_SOUTH = 180.0F;
-    private static final float YAW_WEST = 90.0F;
-    private static final float YAW_EAST = 270.0F;
     private static final float FULL_TURN = 360.0F;
     private static final int MODE_FRAMES = 10;
-    private static final float SYMBOL_PLANE = -0.501F;
-    private static final float SYMBOL_HALF_WIDTH = 0.25F;
-    private static final float SYMBOL_BOTTOM = 0.5F;
-    private static final float SYMBOL_TOP = 1.0F;
-    private static final float GEAR_PLANE = -0.505F;
-    private static final float GEAR_OFFSET_X = 0.2F;
-    private static final float GEAR_HEIGHT = 0.34375F;
-    private static final float GEAR_HALF = 0.25F;
+    private static final float PIXEL = 1.0F / 16.0F;
+    private static final float FRONT_TURN = 180.0F;
+    private static final float FASCIA_FRONT = 0.5F;
+    private static final float FASCIA_BOTTOM = 8.0F * PIXEL;
+    private static final float FASCIA_TOP = 16.0F * PIXEL;
+    private static final float FASCIA_MIDDLE = (FASCIA_BOTTOM + FASCIA_TOP) / 2.0F;
+    private static final float SYMBOL_HALF_WIDTH = 3.0F * PIXEL;
+    private static final float SYMBOL_BOTTOM = FASCIA_MIDDLE - SYMBOL_HALF_WIDTH;
+    private static final float SYMBOL_TOP = FASCIA_MIDDLE + SYMBOL_HALF_WIDTH;
+    private static final float SYMBOL_PLANE = FASCIA_FRONT + 0.0015F;
+    private static final float GEAR_HEIGHT = FASCIA_MIDDLE;
+    private static final float GEAR_OFFSET_X = 5.5F * PIXEL;
+    private static final float GEAR_HALF = 2.25F * PIXEL;
+    private static final float GEAR_PLANE = FASCIA_FRONT + 0.0025F;
 
     public PatternCrafterRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -60,7 +62,8 @@ public final class PatternCrafterRenderer implements BlockEntityRenderer<BlockEn
         float u1 = (float) (state.patternType + 1) / MODE_FRAMES;
         poseStack.pushPose();
         poseStack.translate(CENTER, 0.0F, CENTER);
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw(state.facing)));
+        BlockFacingPose.northBased(poseStack, state.facing);
+        poseStack.mulPose(Axis.YP.rotationDegrees(FRONT_TURN));
         RenderType modes = RenderTypes.entityCutout(MODES_TEXTURE);
         collector.submitCustomGeometry(poseStack, modes, (pose, buffer) -> symbol(pose, buffer, u0, u1, light));
         RenderType gear = RenderTypes.entityCutout(GEAR_TEXTURE);
@@ -75,15 +78,6 @@ public final class PatternCrafterRenderer implements BlockEntityRenderer<BlockEn
         poseStack.mulPose(Axis.ZP.rotationDegrees(angle));
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> gearQuad(pose, buffer, light));
         poseStack.popPose();
-    }
-
-    private static float yaw(Direction facing) {
-        return switch (facing) {
-            case SOUTH -> YAW_SOUTH;
-            case WEST -> YAW_WEST;
-            case EAST -> YAW_EAST;
-            default -> 0.0F;
-        };
     }
 
     private static void symbol(PoseStack.Pose pose, VertexConsumer buffer, float u0, float u1, int light) {

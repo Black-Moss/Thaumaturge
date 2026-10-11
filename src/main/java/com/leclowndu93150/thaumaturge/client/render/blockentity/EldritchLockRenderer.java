@@ -6,13 +6,19 @@ import com.leclowndu93150.thaumaturge.content.eldritch.lock.BlockEntityEldritchL
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -22,52 +28,56 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEntityEldritchLock, EldritchLockRenderState> {
     private static final Identifier CUBE_TEXTURE = TTIds.rl("textures/entity/eldritch_cube.png");
-    private static final int ARM_COUNT = 4;
-    private static final int ARM_STAGGER = 5;
-    private static final int CUBE_LIFETIME = 20;
-    private static final int MAX_CUBES = 4;
-    private static final int LAST_CUBE = 4;
-    private static final float PULSE_AMPLITUDE = 0.1F;
-    private static final float PULSE_PERIOD = 20.0F;
-    private static final float PULSE_CUBE_STEP = 10.0F;
-    private static final float PULSE_ARM_STEP = 20.0F;
-    private static final float END_CUBE_PULSE_BASE = 0.2F;
-    private static final float CUBE_LENGTH = 0.5F;
-    private static final float CUBE_OFFSET = 0.25F;
+    private static final String CUBE_PART = "cube";
+    private static final int CUBE_TEXTURE_SIZE = 64;
+    private static final float CUBE_PIXELS = 16.0F;
+    private static final float CUBE_ORIGIN = -CUBE_PIXELS / 2.0F;
+
     private static final float CENTER = 0.5F;
-    private static final float HALF = 0.5F;
-    private static final float TEXTURE_SIZE = 64.0F;
-    private static final int[][] FACE_RECTANGLES = {{16, 0, 32, 16}, {32, 0, 48, 16}, {0, 16, 16, 32}, {16, 16, 32, 32}, {32, 16, 48, 32}, {48, 16, 64, 32}};
-    private static final Direction[] FACE_DIRECTIONS = {Direction.UP, Direction.DOWN, Direction.WEST, Direction.NORTH, Direction.EAST, Direction.SOUTH};
-    private static final int[][] CORNERS = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
-    private static final float[] LOCAL_UP = {0.0F, 1.0F, 0.0F};
-    private static final int WHITE = 0xFFFFFFFF;
-    private static final float TABLET_REACH = 0.525F;
-    private static final float TABLET_Y = 0.41F;
-    private static final float TABLET_SCALE = 1.025641F;
-    private static final float FLIP_DEGREES = 180.0F;
-    private static final float NORTH_YAW = 180.0F;
-    private static final float WEST_YAW = 270.0F;
-    private static final float EAST_YAW = 90.0F;
-    private static final float DOOR_NEAR = -2.0F;
-    private static final float DOOR_FAR = 3.0F;
-    private static final float DOOR_PLANE = 0.5F;
-    private static final float BOUNDS_MARGIN = 2.5F;
-    private static final int VIEW_DISTANCE = 64;
+    private static final float DOOR_HALF_SIZE = 2.5F;
+    private static final float DOOR_LOW = CENTER - DOOR_HALF_SIZE;
+    private static final float DOOR_HIGH = CENTER + DOOR_HALF_SIZE;
+
+    private static final int CUBES_PER_ARM = 4;
+    private static final float CUBE_SIZE = 0.5F;
+    private static final float FIRST_CUBE_REACH = CENTER + CUBE_SIZE / 2.0F;
+    private static final int[][] ARM_STEPS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+    private static final int BREATH_PERIOD_TICKS = 70;
+    private static final float WAVE_STEP_RADIANS = 0.9F;
+    private static final float ARM_PHASE_RADIANS = Mth.HALF_PI;
+    private static final float MIDDLE_WIDTH = 0.72F;
+    private static final float MIDDLE_SWELL = 0.16F;
+    private static final float END_WIDTH = 0.94F;
+    private static final float END_SWELL = 0.05F;
+
+    private static final int RETRACT_INTERVAL_TICKS = 20;
+    private static final int ARM_STAGGER_TICKS = 5;
+
+    private static final float TABLET_DROP = 0.16F;
+    private static final float TABLET_STANDOFF = 0.02F;
+    private static final float TABLET_SCALE = 0.5F;
+
     private static final int OUTLINE_NONE = 0;
     private static final int DISPLAY_SEED = 0;
+    private static final int VIEW_DISTANCE = 64;
 
+    private final ModelPart cube;
     private final ItemModelResolver itemModelResolver;
     private @Nullable ItemStack tabletStack;
 
     public EldritchLockRenderer(BlockEntityRendererProvider.Context context) {
         this.itemModelResolver = context.itemModelResolver();
+        MeshDefinition mesh = new MeshDefinition();
+        mesh.getRoot().addOrReplaceChild(CUBE_PART, CubeListBuilder.create().texOffs(0, 0).addBox(CUBE_ORIGIN, CUBE_ORIGIN, CUBE_ORIGIN, CUBE_PIXELS, CUBE_PIXELS, CUBE_PIXELS), PartPose.ZERO);
+        this.cube = LayerDefinition.create(mesh, CUBE_TEXTURE_SIZE, CUBE_TEXTURE_SIZE).bakeRoot().getChild(CUBE_PART);
     }
 
     @Override
@@ -78,37 +88,84 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
     @Override
     public void extractRenderState(BlockEntityEldritchLock lock, EldritchLockRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(lock, state, partialTicks, cameraPosition, breakProgress);
-        state.count = lock.getCount();
         state.facing = lock.getBlockState().getValue(BlockEldritchLock.FACING);
-        state.animationTime = EldritchObeliskRenderer.animationTime(partialTicks);
-        state.tablet = null;
-        if (state.count >= 0) {
-            if (tabletStack == null) {
-                tabletStack = new ItemStack(TTItems.RUNED_TABLET.get());
-            }
-            state.tablet = new ItemStackRenderState();
-            itemModelResolver.updateForTopItem(state.tablet, tabletStack, ItemDisplayContext.FIXED, lock.getLevel(), null, DISPLAY_SEED);
+        state.count = lock.getCount();
+        Level level = lock.getLevel();
+        long gameTime = level == null ? 0L : level.getGameTime();
+        state.animationTime = Math.floorMod(gameTime, BREATH_PERIOD_TICKS) + partialTicks;
+        if (level != null) {
+            state.lightCoords = LevelRenderer.getLightCoords(level, lock.getBlockPos().relative(state.facing));
         }
+        state.tablet = state.count >= 0 ? resolveTablet(level) : null;
+    }
+
+    private ItemStackRenderState resolveTablet(@Nullable Level level) {
+        if (tabletStack == null) {
+            tabletStack = new ItemStack(TTItems.RUNED_TABLET.get());
+        }
+        ItemStackRenderState resolved = new ItemStackRenderState();
+        itemModelResolver.updateForTopItem(resolved, tabletStack, ItemDisplayContext.FIXED, level, null, DISPLAY_SEED);
+        return resolved;
     }
 
     @Override
     public void submit(EldritchLockRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        int light = state.lightCoords;
-        Direction facing = state.facing;
-        int count = state.count;
-        float time = state.animationTime;
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(CUBE_TEXTURE), (pose, buffer) -> writeArms(pose, buffer, facing, count, time, light));
-        if (state.tablet != null) {
+        BlockPos pos = state.blockPos;
+        Direction.Axis axis = state.facing.getAxis();
+        collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> writeDoor(pose, buffer, pos, axis));
+        poseStack.pushPose();
+        poseStack.translate(CENTER, CENTER, CENTER);
+        BlockFacingPose.northBased(poseStack, state.facing);
+        submitArms(state, poseStack, collector);
+        ItemStackRenderState tablet = state.tablet;
+        if (tablet != null) {
             poseStack.pushPose();
-            poseStack.translate(CENTER + TABLET_REACH * facing.getStepX(), TABLET_Y, CENTER + TABLET_REACH * facing.getStepZ());
-            poseStack.mulPose(Axis.YP.rotationDegrees(tabletYaw(facing) + FLIP_DEGREES));
+            poseStack.translate(0.0F, -TABLET_DROP, -(CENTER + TABLET_STANDOFF));
             poseStack.scale(TABLET_SCALE, TABLET_SCALE, TABLET_SCALE);
-            state.tablet.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);
+            tablet.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);
             poseStack.popPose();
         }
-        BlockPos pos = state.blockPos;
-        boolean alongZ = facing.getAxis() == Direction.Axis.Z;
-        collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> writeDoor(pose, buffer, pos, alongZ));
+        poseStack.popPose();
+    }
+
+    private void submitArms(EldritchLockRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
+        RenderType type = RenderTypes.entitySolid(CUBE_TEXTURE);
+        float cycle = state.animationTime / BREATH_PERIOD_TICKS * Mth.TWO_PI;
+        for (int arm = 0; arm < ARM_STEPS.length; arm++) {
+            int stepX = ARM_STEPS[arm][0];
+            int stepY = ARM_STEPS[arm][1];
+            int remaining = cubesLeft(state.count, arm);
+            for (int index = 0; index < remaining; index++) {
+                float reach = FIRST_CUBE_REACH + index * CUBE_SIZE;
+                float across = CUBE_SIZE * width(index, cycle - index * WAVE_STEP_RADIANS - arm * ARM_PHASE_RADIANS);
+                poseStack.pushPose();
+                poseStack.translate(stepX * reach, stepY * reach, 0.0F);
+                poseStack.scale(stepX != 0 ? CUBE_SIZE : across, stepY != 0 ? CUBE_SIZE : across, across);
+                collector.submitModelPart(cube, poseStack, type, state.lightCoords, OverlayTexture.NO_OVERLAY, null);
+                poseStack.popPose();
+            }
+        }
+    }
+
+    private static int cubesLeft(int count, int arm) {
+        if (count < 0) {
+            return CUBES_PER_ARM;
+        }
+        return Mth.clamp(CUBES_PER_ARM - Math.floorDiv(count - arm * ARM_STAGGER_TICKS, RETRACT_INTERVAL_TICKS), 0, CUBES_PER_ARM);
+    }
+
+    private static float width(int index, float phase) {
+        boolean end = index == 0 || index == CUBES_PER_ARM - 1;
+        float swell = Mth.sin(phase);
+        return end ? END_WIDTH + END_SWELL * swell : MIDDLE_WIDTH + MIDDLE_SWELL * swell;
+    }
+
+    private static void writeDoor(PoseStack.Pose pose, VertexConsumer buffer, BlockPos pos, Direction.Axis axis) {
+        switch (axis) {
+            case X -> EldritchPortalSurface.quad(pose, buffer, pos, CENTER, DOOR_LOW, DOOR_LOW, CENTER, DOOR_HIGH, DOOR_LOW, CENTER, DOOR_HIGH, DOOR_HIGH, CENTER, DOOR_LOW, DOOR_HIGH);
+            case Y -> EldritchPortalSurface.quad(pose, buffer, pos, DOOR_LOW, CENTER, DOOR_LOW, DOOR_HIGH, CENTER, DOOR_LOW, DOOR_HIGH, CENTER, DOOR_HIGH, DOOR_LOW, CENTER, DOOR_HIGH);
+            case Z -> EldritchPortalSurface.quad(pose, buffer, pos, DOOR_LOW, DOOR_LOW, CENTER, DOOR_LOW, DOOR_HIGH, CENTER, DOOR_HIGH, DOOR_HIGH, CENTER, DOOR_HIGH, DOOR_LOW, CENTER);
+        }
     }
 
     @Override
@@ -118,89 +175,11 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
 
     @Override
     public AABB getRenderBoundingBox(BlockEntityEldritchLock lock) {
-        return new AABB(lock.getBlockPos()).inflate(BOUNDS_MARGIN);
+        return new AABB(lock.getBlockPos()).inflate(DOOR_HALF_SIZE - CENTER);
     }
 
     @Override
     public int getViewDistance() {
         return VIEW_DISTANCE;
-    }
-
-    private static float tabletYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> NORTH_YAW;
-            case WEST -> WEST_YAW;
-            case EAST -> EAST_YAW;
-            default -> 0.0F;
-        };
-    }
-
-    private static void writeDoor(PoseStack.Pose pose, VertexConsumer buffer, BlockPos pos, boolean alongZ) {
-        if (alongZ) {
-            EldritchPortalSurface.quad(pose, buffer, pos, DOOR_NEAR, DOOR_NEAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE);
-        } else {
-            EldritchPortalSurface.quad(pose, buffer, pos, DOOR_PLANE, DOOR_NEAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR, DOOR_FAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR);
-        }
-    }
-
-    private static void writeArms(PoseStack.Pose pose, VertexConsumer buffer, Direction facing, int count, float time, int light) {
-        float[] axis = {facing.getStepX(), facing.getStepY(), facing.getStepZ()};
-        boolean vertical = facing.getAxis() == Direction.Axis.Y;
-        for (int index = 0; index < ARM_COUNT; index++) {
-            int turns = vertical ? 0 : index;
-            int cubes = MAX_CUBES - (count + ARM_STAGGER * index) / CUBE_LIFETIME;
-            for (int cube = 1; cube <= cubes; cube++) {
-                float pulse = PULSE_AMPLITUDE * Mth.sin((time + PULSE_CUBE_STEP * cube + PULSE_ARM_STEP * index) / PULSE_PERIOD);
-                if (cube == 1 || cube == LAST_CUBE) {
-                    pulse = pulse / 2.0F + END_CUBE_PULSE_BASE;
-                }
-                writeCube(pose, buffer, axis, turns, cube, pulse, light);
-            }
-        }
-    }
-
-    private static float[] turn(float[] axis, float[] vector, int turns) {
-        float[] result = vector;
-        for (int step = 0; step < turns; step++) {
-            result = quarterTurn(axis, result);
-        }
-        return result;
-    }
-
-    private static float[] quarterTurn(float[] axis, float[] vector) {
-        float dot = axis[0] * vector[0] + axis[1] * vector[1] + axis[2] * vector[2];
-        return new float[]{axis[1] * vector[2] - axis[2] * vector[1] + axis[0] * dot, axis[2] * vector[0] - axis[0] * vector[2] + axis[1] * dot,
-                axis[0] * vector[1] - axis[1] * vector[0] + axis[2] * dot};
-    }
-
-    private static void writeCube(PoseStack.Pose pose, VertexConsumer buffer, float[] axis, int turns, int cube, float pulse, int light) {
-        float[] direction = turn(axis, LOCAL_UP, turns);
-        float distance = CUBE_OFFSET + CUBE_LENGTH * cube;
-        float[] centre = {CENTER + direction[0] * distance, CENTER + direction[1] * distance, CENTER + direction[2] * distance};
-        float[] half = {(CUBE_LENGTH + pulse) * HALF, CUBE_LENGTH * HALF, (CUBE_LENGTH + pulse) * HALF};
-        for (int face = 0; face < FACE_DIRECTIONS.length; face++) {
-            writeFace(pose, buffer, FACE_DIRECTIONS[face], FACE_RECTANGLES[face], half, centre, axis, turns, light);
-        }
-    }
-
-    private static void writeFace(PoseStack.Pose pose, VertexConsumer buffer, Direction face, int[] rectangle, float[] half, float[] centre, float[] axis, int turns, int light) {
-        float[] normal = {face.getStepX(), face.getStepY(), face.getStepZ()};
-        float[] up = face.getAxis() == Direction.Axis.Y ? new float[]{0.0F, 0.0F, 1.0F} : LOCAL_UP;
-        float[] right = {up[1] * normal[2] - up[2] * normal[1], up[2] * normal[0] - up[0] * normal[2], up[0] * normal[1] - up[1] * normal[0]};
-        float[] worldNormal = turn(axis, normal, turns);
-        float uMin = rectangle[0] / TEXTURE_SIZE;
-        float vMin = rectangle[1] / TEXTURE_SIZE;
-        float uMax = rectangle[2] / TEXTURE_SIZE;
-        float vMax = rectangle[3] / TEXTURE_SIZE;
-        float[] us = {uMin, uMax, uMax, uMin};
-        float[] vs = {vMax, vMax, vMin, vMin};
-        for (int corner = 0; corner < CORNERS.length; corner++) {
-            int r = CORNERS[corner][0];
-            int u = CORNERS[corner][1];
-            float[] offset = {half[0] * (normal[0] + r * right[0] + u * up[0]), half[1] * (normal[1] + r * right[1] + u * up[1]), half[2] * (normal[2] + r * right[2] + u * up[2])};
-            float[] world = turn(axis, offset, turns);
-            buffer.addVertex(pose, centre[0] + world[0], centre[1] + world[1], centre[2] + world[2]).setColor(WHITE).setUv(us[corner], vs[corner]).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
-                    .setNormal(pose, worldNormal[0], worldNormal[1], worldNormal[2]);
-        }
     }
 }

@@ -4,8 +4,9 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.BrainModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.JarBrineModel;
+import com.leclowndu93150.thaumaturge.client.render.blockentity.JarBrainRenderState;
+import com.leclowndu93150.thaumaturge.client.render.blockentity.JarBrainRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.mojang.serialization.MapCodec;
 import java.util.function.Consumer;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -23,17 +24,15 @@ import org.joml.Vector3fc;
 public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRenderer {
     private static final Identifier BRAIN_TEXTURE = TTIds.rl("textures/entity/brain2.png");
     private static final Identifier BRINE_TEXTURE = TTIds.rl("textures/entity/jarbrine.png");
-    private static final float CENTER = 0.5F;
-    private static final float FRAME_Y = 0.01F;
-    private static final float FLIP_DEGREES = 180.0F;
-    private static final float BRAIN_Y = -0.77F;
-    private static final float BRAIN_YAW_DEGREES = -90.0F;
-    private static final float BRAIN_SCALE = 0.4F;
     private static final int BRINE_ORDER = 1;
+    private static final float BRAIN_LIFT = 0.0F;
+    private static final float BRAIN_YAW_DEGREES = 155.0F;
+    private static final int OUTLINE_NONE = 0;
     private static final float[][] EXTENT_CORNERS = {{0.1875F, 0.0625F, 0.1875F}, {0.8125F, 0.6875F, 0.8125F}};
 
     private final BrainModel brain;
     private final JarBrineModel brine;
+    private final JarBrainRenderState restPose = new JarBrainRenderState();
 
     public JarBrainItemSpecialRenderer(BrainModel brain, JarBrineModel brine) {
         this.brain = brain;
@@ -43,21 +42,17 @@ public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRend
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
         poseStack.pushPose();
-        poseStack.translate(CENTER, FRAME_Y, CENTER);
-        poseStack.mulPose(Axis.XP.rotationDegrees(FLIP_DEGREES));
+        JarBrainRenderer.poseBrain(poseStack, BRAIN_LIFT, BRAIN_YAW_DEGREES);
         submitBrain(poseStack, collector, lightCoords);
+        poseStack.popPose();
+        poseStack.pushPose();
+        JarBrainRenderer.poseBrine(poseStack);
         submitBrine(poseStack, collector, lightCoords);
         poseStack.popPose();
     }
 
     private void submitBrain(PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        poseStack.pushPose();
-        poseStack.translate(0.0F, BRAIN_Y, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(BRAIN_YAW_DEGREES));
-        poseStack.scale(BRAIN_SCALE, BRAIN_SCALE, BRAIN_SCALE);
-        RenderType type = RenderTypes.entityCutout(BRAIN_TEXTURE);
-        collector.submitModelPart(brain.root(), poseStack, type, light, OverlayTexture.NO_OVERLAY, null);
-        poseStack.popPose();
+        collector.submitModel(brain, restPose, poseStack, BRAIN_TEXTURE, light, OverlayTexture.NO_OVERLAY, OUTLINE_NONE, null);
     }
 
     private void submitBrine(PoseStack poseStack, SubmitNodeCollector collector, int light) {

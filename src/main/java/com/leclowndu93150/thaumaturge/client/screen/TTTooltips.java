@@ -137,6 +137,30 @@ public final class TTTooltips {
         return player.registryAccess().lookup(IResearchEntry.REGISTRY_KEY).flatMap(lookup -> lookup.get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, id))).map(holder -> holder.value().nameKey());
     }
 
+    public static Component workbenchVisAvailable(int vis) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.vis_available", vis);
+    }
+
+    public static Component workbenchVisCost(int vis) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.required_vis", vis);
+    }
+
+    public static Component workbenchVisCostDiscounted(int vis, int discountPercent) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.required_vis_discount", vis, discountPercent);
+    }
+
+    public static Component workbenchVisCostUnfocused(int vis) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.required_vis_crude", vis);
+    }
+
+    public static Component workbenchCrystalNeeded(int visPerCrystal) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.crystal_needed.tooltip", visPerCrystal).withStyle(ChatFormatting.GRAY);
+    }
+
+    public static Component workbenchWandPayment(int visPerCrystal) {
+        return Component.translatable("gui.thaumaturge.arcane_workbench.wand_pay.tooltip", visPerCrystal);
+    }
+
     public enum EntryStatus {
         CAN_UNLOCK, MISSING_PREREQ, COMPLETE
     }

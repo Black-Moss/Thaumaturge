@@ -25,7 +25,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
+import org.joml.Matrix4fc;
 import org.jspecify.annotations.Nullable;
 
 public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEntityInfusionMatrix, InfusionMatrixRenderState> {
@@ -50,36 +50,7 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
     private static final float IDLE_BOB_DIVISOR = 4.5F;
     private static final float CRAFT_BOB_DIVISOR = 3.5F;
     private static final float BOB_BLEND_TICKS = 15.0F;
-    private static final float INSTABILITY_RAMP_TICKS = 50.0F;
-    private static final float INSTABILITY_CAP = 6.0F;
-    private static final float UNSTABLE_GAIN = 0.66F;
-    private static final float JITTER_SCALE = 0.01F;
-    private static final float JITTER_PERIOD_X = 15.0F;
-    private static final float JITTER_PERIOD_Y = 14.0F;
-    private static final float JITTER_PERIOD_Z = 13.0F;
-    private static final float JITTER_PHASE = 10.0F;
-    private static final float GLOW_RED = 0.8F;
-    private static final float GLOW_GREEN = 0.1F;
-    private static final float GLOW_BLUE = 1.0F;
-    private static final float GLOW_AMPLITUDE = 0.1F;
-    private static final float GLOW_BASE = 0.2F;
-    private static final float GLOW_PERIOD = 4.0F;
     private static final int SATELLITE_COUNT = 8;
-    private static final int GLOW_PHASE_X = 2;
-    private static final int GLOW_PHASE_Y = 3;
-    private static final int GLOW_PHASE_Z = 4;
-    private static final int FANCY_FANS = 20;
-    private static final int PLAIN_FANS = 10;
-    private static final float HALO_DURATION = 500.0F;
-    private static final float HALO_RAMP_TICKS = 50.0F;
-    private static final float FAN_LENGTH_BASE = 5.0F;
-    private static final float FAN_LENGTH_RANGE = 20.0F;
-    private static final float FAN_LENGTH_DIVISOR = 20.0F;
-    private static final float FAN_WIDTH_BASE = 1.0F;
-    private static final float FAN_WIDTH_RANGE = 2.0F;
-    private static final float FAN_WIDTH_DIVISOR = 20.0F;
-    private static final float FAN_HALF_SPREAD = 0.866F;
-    private static final float FAN_DEPTH_SPREAD = 0.5F;
     private static final int SALT_X = 0;
     private static final int SALT_Y = 1;
     private static final int SALT_Z = 2;
@@ -88,6 +59,42 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
     private static final int SALT_STRIDE = 8;
     private static final float HASH_RANGE = 1 << 24;
     private static final int HASH_SHIFT = 8;
+    private static final int SALT_PHASE = 5;
+    private static final int QUARTER_TURNS = 4;
+    private static final float CUBE_SCALE = 1.0F;
+    private static final int GLOW_INDEX_BASE = 1;
+
+    private static final float JITTER_SCALE = 0.025F;
+    private static final float CRAFT_SWAY = 2.2F;
+    private static final float UNSTABLE_GAIN = 0.12F;
+    private static final float INSTABILITY_CAP = 8.0F;
+    private static final float INSTABILITY_RAMP_TICKS = 50.0F;
+    private static final int DRIFT_INDEX_BASE = 8;
+    private static final float DRIFT_PERIOD_MIN = 28.0F;
+    private static final float DRIFT_PERIOD_SPREAD = 22.0F;
+
+    private static final int GLOW_RGB = 0xC54CFF;
+    private static final float GLOW_BASE = 0.32F;
+    private static final float GLOW_SWING = 0.14F;
+    private static final float GLOW_PERIOD = 56.0F;
+    private static final float GLOW_PHASE_STEP = 0.8F;
+
+    private static final int FANCY_SPIKES = 40;
+    private static final int PLAIN_SPIKES = 14;
+    private static final int SPIKE_INDEX_BASE = 16;
+    private static final int SPIKE_CORNERS = 3;
+    private static final int AXES = 3;
+    private static final int SPIKE_STRIDE = AXES + AXES * SPIKE_CORNERS;
+    private static final float SPIKE_REACH = 1.6F;
+    private static final float SPIKE_SHORTEST = 0.45F;
+    private static final float SPIKE_WIDTH_MIN = 0.025F;
+    private static final float SPIKE_WIDTH_SPREAD = 0.035F;
+    private static final float VERTICAL_AXIS_LIMIT = 0.9F;
+    private static final float HALO_GROW_TICKS = 80.0F;
+    private static final float HALO_TURN_TICKS = 1600.0F;
+    private static final float HALO_CORE_ALPHA = 0.85F;
+    private static final int HALO_TIP_RGB = 0xE23CC9;
+    private static final float[] SPIKES = buildSpikes();
 
     private final MatrixCubeModel model;
 
@@ -140,7 +147,7 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
         float startUp = state.startUp;
         float jitter = state.active ? JITTER_SCALE * startUp * instability(state) : 0.0F;
         poseStack.pushPose();
-        poseStack.translate(CENTER, CENTER + (HOVER_BASE + bob(time, state.craftTicks)) * startUp, CENTER);
+        poseStack.translate(CENTER, lift(state), CENTER);
         poseStack.mulPose(Axis.YP.rotationDegrees((time % FULL_TURN) * startUp));
         poseStack.mulPose(Axis.ZP.rotationDegrees((time / PRECESSION_DIVISOR % FULL_TURN) * startUp));
         poseStack.mulPose(Axis.XP.rotationDegrees(TILT * startUp));
@@ -156,10 +163,121 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
         }
     }
 
+    private static float lift(InfusionMatrixRenderState state) {
+        return CENTER + (HOVER_BASE + bob(state.animationTime, state.craftTicks)) * state.startUp;
+    }
+
     private static float instability(InfusionMatrixRenderState state) {
-        float gain = state.stability < 0.0F ? -state.stability * UNSTABLE_GAIN : 1.0F;
-        float scaled = gain * Math.min(state.craftTicks, INSTABILITY_RAMP_TICKS) / INSTABILITY_RAMP_TICKS;
-        return Math.min(INSTABILITY_CAP, 1.0F + scaled);
+        float target = state.stability >= 0.0F ? CRAFT_SWAY : Math.min(INSTABILITY_CAP, CRAFT_SWAY - state.stability * UNSTABLE_GAIN);
+        float ramp = Math.min(state.craftTicks, INSTABILITY_RAMP_TICKS) / INSTABILITY_RAMP_TICKS;
+        return Mth.lerp(ramp, 1.0F, target);
+    }
+
+    private void submitSatellite(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector, float time, float jitter, int fx, int fy, int fz) {
+        int index = fx << 2 | fy << 1 | fz;
+        float x = offset(fx) * (1.0F + jitter * drift(time, index, SALT_X));
+        float y = offset(fy) * (1.0F + jitter * drift(time, index, SALT_Y));
+        float z = offset(fz) * (1.0F + jitter * drift(time, index, SALT_Z));
+        submitCube(state, poseStack, collector, x, y, z, quarterTurns(index, SALT_X), quarterTurns(index, SALT_Y), quarterTurns(index, SALT_Z), CUBE_SCALE, index + GLOW_INDEX_BASE);
+    }
+
+    private static float drift(float time, int index, int salt) {
+        int key = DRIFT_INDEX_BASE + index;
+        float period = DRIFT_PERIOD_MIN + DRIFT_PERIOD_SPREAD * unit(key, salt);
+        return Mth.sin(Mth.TWO_PI * (time / period + unit(key, SALT_PHASE + salt)));
+    }
+
+    private static int quarterTurns(int index, int salt) {
+        return (int) (unit(index, salt) * QUARTER_TURNS);
+    }
+
+    private void submitCube(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector, float x, float y, float z, int turnsX, int turnsY, int turnsZ, float scale, int index) {
+        poseStack.pushPose();
+        poseStack.translate(x, y, z);
+        poseStack.mulPose(Axis.XP.rotationDegrees(turnsX * QUARTER_TURN));
+        poseStack.mulPose(Axis.YP.rotationDegrees(turnsY * QUARTER_TURN));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(turnsZ * QUARTER_TURN));
+        float size = SATELLITE_SCALE * scale;
+        poseStack.scale(size, size, size);
+        collector.submitModelPart(model.cube, poseStack, RenderTypes.entityCutout(state.texture), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
+        float glow = state.startUp * (GLOW_BASE + GLOW_SWING * Mth.sin(Mth.TWO_PI * state.animationTime / GLOW_PERIOD + index * GLOW_PHASE_STEP));
+        if (glow > 0.0F) {
+            int tint = ARGB.color(Math.clamp(glow, 0.0F, 1.0F), GLOW_RGB);
+            collector.submitModelPart(model.glow, poseStack, TTFXRenderTypes.entityAdditive(state.texture), LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, null, tint, null);
+        }
+        poseStack.popPose();
+    }
+
+    private static void submitHalo(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
+        float coreFade = Math.max(0.0F, 1.0F - state.craftTicks / HALO_TURN_TICKS);
+        float coreAlpha = HALO_CORE_ALPHA * coreFade * state.startUp;
+        float grow = Math.min(state.craftTicks, HALO_GROW_TICKS) / HALO_GROW_TICKS;
+        if (coreAlpha <= 0.0F || grow <= 0.0F) {
+            return;
+        }
+        int spikes = state.fancyGraphics ? FANCY_SPIKES : PLAIN_SPIKES;
+        int coreColor = ARGB.white(Math.clamp(coreAlpha, 0.0F, 1.0F));
+        int tipColor = ARGB.color(0, HALO_TIP_RGB);
+        float reach = SPIKE_REACH * grow;
+        poseStack.pushPose();
+        poseStack.translate(CENTER, lift(state), CENTER);
+        poseStack.mulPose(Axis.YP.rotationDegrees(state.craftTicks / HALO_TURN_TICKS * FULL_TURN));
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.SPARKLE, (pose, buffer) -> writeSpikes(buffer, pose.pose(), spikes, reach, coreColor, tipColor));
+        poseStack.popPose();
+    }
+
+    private static void writeSpikes(VertexConsumer buffer, Matrix4fc matrix, int spikes, float reach, int coreColor, int tipColor) {
+        for (int spike = 0; spike < spikes; spike++) {
+            int base = spike * SPIKE_STRIDE + AXES;
+            for (int corner = 0; corner < SPIKE_CORNERS; corner++) {
+                int from = base + corner * AXES;
+                int to = base + (corner + 1) % SPIKE_CORNERS * AXES;
+                buffer.addVertex(matrix, 0.0F, 0.0F, 0.0F).setColor(coreColor);
+                buffer.addVertex(matrix, SPIKES[to] * reach, SPIKES[to + 1] * reach, SPIKES[to + 2] * reach).setColor(tipColor);
+                buffer.addVertex(matrix, SPIKES[from] * reach, SPIKES[from + 1] * reach, SPIKES[from + 2] * reach).setColor(tipColor);
+            }
+        }
+    }
+
+    private static float[] buildSpikes() {
+        float[] spikes = new float[FANCY_SPIKES * SPIKE_STRIDE];
+        for (int spike = 0; spike < FANCY_SPIKES; spike++) {
+            int key = SPIKE_INDEX_BASE + spike;
+            float dy = 1.0F - 2.0F * unit(key, SALT_Y);
+            float ring = Mth.sqrt(Math.max(0.0F, 1.0F - dy * dy));
+            float heading = Mth.TWO_PI * unit(key, SALT_X);
+            float dx = Mth.cos(heading) * ring;
+            float dz = Mth.sin(heading) * ring;
+            float length = Mth.lerp(unit(key, SALT_LENGTH), SPIKE_SHORTEST, 1.0F);
+            float width = (SPIKE_WIDTH_MIN + SPIKE_WIDTH_SPREAD * unit(key, SALT_WIDTH)) / SPIKE_REACH;
+            boolean steep = Math.abs(dy) > VERTICAL_AXIS_LIMIT;
+            float helperX = steep ? 1.0F : 0.0F;
+            float helperY = steep ? 0.0F : 1.0F;
+            float px = helperY * dz;
+            float py = -helperX * dz;
+            float pz = helperX * dy - helperY * dx;
+            float pLength = Mth.sqrt(px * px + py * py + pz * pz);
+            px /= pLength;
+            py /= pLength;
+            pz /= pLength;
+            float qx = dy * pz - dz * py;
+            float qy = dz * px - dx * pz;
+            float qz = dx * py - dy * px;
+            int base = spike * SPIKE_STRIDE;
+            spikes[base] = dx;
+            spikes[base + 1] = dy;
+            spikes[base + 2] = dz;
+            for (int corner = 0; corner < SPIKE_CORNERS; corner++) {
+                float turn = Mth.TWO_PI * corner / SPIKE_CORNERS;
+                float across = Mth.cos(turn) * width;
+                float along = Mth.sin(turn) * width;
+                int at = base + AXES + corner * AXES;
+                spikes[at] = dx * length + px * across + qx * along;
+                spikes[at + 1] = dy * length + py * across + qy * along;
+                spikes[at + 2] = dz * length + pz * across + qz * along;
+            }
+        }
+        return spikes;
     }
 
     private static float bob(float time, int craftTicks) {
@@ -172,82 +290,8 @@ public final class InfusionMatrixRenderer implements BlockEntityRenderer<BlockEn
         return Mth.sin(Mth.TWO_PI * (time % period) / period);
     }
 
-    private void submitSatellite(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector, float time, float jitter, int a, int b, int c) {
-        float x = drift(a, time, jitter, JITTER_PERIOD_X);
-        float y = drift(b, time, jitter, JITTER_PERIOD_Y);
-        float z = drift(c, time, jitter, JITTER_PERIOD_Z);
-        int glowPhase = GLOW_PHASE_X * a + GLOW_PHASE_Y * b + GLOW_PHASE_Z * c;
-        submitCube(state, poseStack, collector, x, y, z, a, b, c, SATELLITE_SCALE, glowPhase);
-    }
-
-    private static float drift(int flag, float time, float jitter, float period) {
-        return offset(flag) + jitter * Mth.sin((time + JITTER_PHASE * flag) / period);
-    }
-
     private static float offset(int flag) {
         return flag == 1 ? SATELLITE_OFFSET : -SATELLITE_OFFSET;
-    }
-
-    private void submitCube(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector, float x, float y, float z, int a, int b, int c, float scale, int glowPhase) {
-        poseStack.pushPose();
-        poseStack.translate(x, y, z);
-        poseStack.mulPose(Axis.XP.rotationDegrees(QUARTER_TURN * a));
-        poseStack.mulPose(Axis.YP.rotationDegrees(QUARTER_TURN * b));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(QUARTER_TURN * c));
-        poseStack.scale(scale, scale, scale);
-        collector.submitModelPart(model.cube, poseStack, RenderTypes.entityCutout(state.texture), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
-        if (state.active) {
-            float alpha = (GLOW_AMPLITUDE * Mth.sin((state.animationTime + glowPhase) / GLOW_PERIOD) + GLOW_BASE) * state.startUp;
-            int tint = ARGB.colorFromFloat(alpha, GLOW_RED, GLOW_GREEN, GLOW_BLUE);
-            collector.submitModelPart(model.glow, poseStack, TTFXRenderTypes.entityAdditiveUnlit(state.texture), LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, null, tint, null);
-        }
-        poseStack.popPose();
-    }
-
-    private void submitHalo(InfusionMatrixRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
-        float progress = state.craftTicks / HALO_DURATION;
-        float ramp = Math.min(state.craftTicks, HALO_RAMP_TICKS) / HALO_RAMP_TICKS;
-        float centerAlpha = Math.max(0.0F, 1.0F - progress);
-        int fanCount = state.fancyGraphics ? FANCY_FANS : PLAIN_FANS;
-        for (int fan = 0; fan < fanCount; fan++) {
-            float length = fanExtent(fan, SALT_LENGTH, FAN_LENGTH_RANGE, FAN_LENGTH_BASE, FAN_LENGTH_DIVISOR) * ramp;
-            float width = fanExtent(fan, SALT_WIDTH, FAN_WIDTH_RANGE, FAN_WIDTH_BASE, FAN_WIDTH_DIVISOR) * ramp;
-            poseStack.pushPose();
-            poseStack.translate(CENTER, CENTER, CENTER);
-            poseStack.mulPose(orientation(fan));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(progress * FULL_TURN));
-            collector.submitCustomGeometry(poseStack, TTFXRenderTypes.SPARKLE, new FanGeometry(length, width, centerAlpha));
-            poseStack.popPose();
-        }
-    }
-
-    private static float fanExtent(int fan, int salt, float range, float base, float divisor) {
-        return (unit(fan, salt) * range + base) / divisor;
-    }
-
-    private record FanGeometry(float length, float width, float centerAlpha) implements SubmitNodeCollector.CustomGeometryRenderer {
-        @Override
-        public void render(PoseStack.Pose pose, VertexConsumer buffer) {
-            float side = FAN_HALF_SPREAD * width;
-            float depth = FAN_DEPTH_SPREAD * width;
-            float[] rimX = {-side, side, 0.0F};
-            float[] rimZ = {-depth, -depth, width};
-            for (int corner = 0; corner < rimX.length; corner++) {
-                int next = (corner + 1) % rimX.length;
-                buffer.addVertex(pose, 0.0F, 0.0F, 0.0F).setColor(1.0F, 1.0F, 1.0F, centerAlpha);
-                buffer.addVertex(pose, rimX[corner], length, rimZ[corner]).setColor(1.0F, 0.0F, 1.0F, 0.0F);
-                buffer.addVertex(pose, rimX[next], length, rimZ[next]).setColor(1.0F, 0.0F, 1.0F, 0.0F);
-            }
-        }
-    }
-
-    private static Quaternionf orientation(int fan) {
-        float first = unit(fan, SALT_X);
-        float angleY = Mth.TWO_PI * unit(fan, SALT_Y);
-        float angleZ = Mth.TWO_PI * unit(fan, SALT_Z);
-        float outer = Mth.sqrt(1.0F - first);
-        float inner = Mth.sqrt(first);
-        return new Quaternionf(outer * Mth.sin(angleY), outer * Mth.cos(angleY), inner * Mth.sin(angleZ), inner * Mth.cos(angleZ));
     }
 
     private static float unit(int index, int salt) {
