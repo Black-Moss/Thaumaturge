@@ -5,7 +5,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectSource;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -31,11 +32,12 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityEssentiaReservoir extends BlockEntity implements IEssentiaTransport, IAspectSource {
+public final class BlockEntityEssentiaReservoir extends BlockEntity implements IEssentiaConduit, IAspectSource {
     public static final int CAPACITY = 256;
 
     private static final String ESSENTIA_KEY = "Essentia";
     private static final int SUCTION = 24;
+    private static final EssentiaPull ACTIVE_PULL = EssentiaPull.any(SUCTION);
     private static final int PULL_INTERVAL = 5;
     private static final float CREAK_VOLUME = 1.0F;
     private static final float FLUX_PER_ESSENTIA = 0.25F;
@@ -86,26 +88,26 @@ public final class BlockEntityEssentiaReservoir extends BlockEntity implements I
     private void pullFromNeighbour(Level level, BlockPos pos) {
         Direction face = facing();
         Direction back = face.getOpposite();
-        IEssentiaTransport source = EssentiaFlowHandler.transport(level, pos.relative(face), back);
-        if (source == null || !source.isConnectable(back) || !sourceCanOutput(source, back) || !sourceHasStock(source, back) || !withinSuctionWindow(source, back)) {
+        IEssentiaConduit source = EssentiaFlowHandler.conduit(level, pos.relative(face), back);
+        if (source == null || !source.connectsOn(back) || !sourceCanOutput(source, back) || !sourceHasStock(source, back) || !withinSuctionWindow(source, back)) {
             return;
         }
-        Holder<IAspect> offered = source.getEssentiaType(back);
-        if (offered != null && source.takeEssentia(offered, UNIT, back) == UNIT) {
+        Holder<IAspect> offered = source.heldAspect(back);
+        if (offered != null && source.extract(offered, UNIT, back, false) == UNIT) {
             store(offered, UNIT);
         }
     }
 
-    private static boolean withinSuctionWindow(IEssentiaTransport source, Direction face) {
-        return source.getSuctionAmount(face) < SUCTION && source.getMinimumSuction() <= SUCTION;
+    private static boolean withinSuctionWindow(IEssentiaConduit source, Direction face) {
+        return source.pull(face).strength() < SUCTION && source.pullThreshold() <= SUCTION;
     }
 
-    private static boolean sourceCanOutput(IEssentiaTransport source, Direction face) {
-        return source.canOutputTo(face);
+    private static boolean sourceCanOutput(IEssentiaConduit source, Direction face) {
+        return source.releasesOn(face);
     }
 
-    private static boolean sourceHasStock(IEssentiaTransport source, Direction face) {
-        return source.getEssentiaAmount(face) > 0;
+    private static boolean sourceHasStock(IEssentiaConduit source, Direction face) {
+        return source.heldAmount(face) > 0;
     }
 
     private static AspectList keepWithinCapacity(AspectList loaded) {
@@ -211,75 +213,67 @@ public final class BlockEntityEssentiaReservoir extends BlockEntity implements I
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return null;
-    }
-
-    @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return face == facing();
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return face == facing();
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return face == facing();
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return SUCTION;
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> aspect, Direction face) {
-        if (!canInputFrom(face)) {
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
+        if (!receivesOn(face)) {
             return 0;
         }
         return Math.max(0, CAPACITY - getStoredAmount());
     }
 
     @Override
-    public int getSuctionAmount(@Nullable Direction face) {
+    public EssentiaPull pull(@Nullable Direction face) {
         if (!isOutlet(face) || getStoredAmount() >= CAPACITY) {
-            return 0;
+            return EssentiaPull.NONE;
         }
-        return SUCTION;
+        return ACTIVE_PULL;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         AspectInstance lead = leadingStock(face);
         return lead == null ? null : lead.aspect();
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         AspectInstance lead = leadingStock(face);
         return lead == null ? 0 : lead.amount();
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        int room = isOutlet(face) ? spaceFor(aspect, face) : 0;
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        int room = isOutlet(face) ? roomFor(aspect, face) : 0;
         int accepted = Math.clamp(amount, 0, room);
-        if (accepted > 0) {
+        if (accepted > 0 && !simulate) {
             store(aspect, accepted);
         }
         return accepted;
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int extract(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         boolean available = isOutlet(face) && amount > 0 && contents.amountOf(aspect) >= amount;
-        if (available) {
+        if (available && !simulate) {
             withdraw(aspect, amount);
         }
         return available ? amount : 0;

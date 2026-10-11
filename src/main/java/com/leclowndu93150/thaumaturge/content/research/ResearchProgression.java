@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
@@ -30,7 +30,7 @@ public final class ResearchProgression {
     private ResearchProgression() {}
 
     public static void reset(ServerPlayer player) {
-        KnowledgeAccess.of(player).clear();
+        PlayerResearchAccess.of(player).wipe();
         ResearchManager.applyAutoUnlock(player);
     }
 
@@ -55,19 +55,19 @@ public final class ResearchProgression {
                 dependents.computeIfAbsent(requirement, key -> new ArrayList<>()).add(dependent);
             }
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         int removed = 0;
         for (Identifier id : transitiveDependents(research, dependents)) {
-            if (knowledge.removeResearch(id) && !id.equals(research)) {
+            if (knowledge.forget(id) && !id.equals(research)) {
                 removed++;
             }
         }
-        knowledge.sync(player);
+        knowledge.queueSync(player);
         return removed;
     }
 
     private static void forgetAndResync(ServerPlayer player, Identifier research) {
-        Optional.of(KnowledgeAccess.of(player)).filter(knowledge -> knowledge.removeResearch(research)).ifPresent(knowledge -> knowledge.sync(player));
+        Optional.of(PlayerResearchAccess.of(player)).filter(knowledge -> knowledge.forget(research)).ifPresent(knowledge -> knowledge.queueSync(player));
     }
 
     public static int completeCategory(ServerPlayer player, ResourceKey<IResearchCategory> category) {

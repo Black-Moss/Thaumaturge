@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.essentia.tube;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
 import com.leclowndu93150.thaumaturge.api.essentia.IAspectQuery;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.behaviour.FilterTubeBehaviour;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
@@ -47,9 +48,14 @@ public final class BlockEntityTubeFilter extends BlockEntityTube implements IAsp
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
+    public EssentiaPull pull(@Nullable Direction face) {
+        EssentiaPull inherited = super.pull(face);
         ResourceKey<IAspect> configured = filter.suctionFilter();
-        return configured != null ? resolve(configured) : super.getSuctionType(face);
+        Holder<IAspect> wanted = inherited.aspect();
+        if (configured == null || !inherited.isActive() || wanted != null && wanted.is(configured)) {
+            return inherited;
+        }
+        return EssentiaPull.of(resolve(configured), inherited.strength());
     }
 
     @Override

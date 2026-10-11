@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.content.essentia.thaumatorium;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.work.AdjacentEssentiaDraw;
@@ -293,38 +294,39 @@ public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity imp
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return isSideAllowed(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return isSideAllowed(face);
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {
-        selection.request(aspect == null ? null : aspect.unwrapKey().orElse(null));
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
+    public EssentiaPull pull(@Nullable Direction face) {
         ResourceKey<IAspect> requested = selection.requested();
-        return requested == null ? null : Aspects.resolve(level, requested);
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        if (selection.requested() == null) {
-            return NOTHING;
+        if (requested == null) {
+            return EssentiaPull.NONE;
         }
-        return AdjacentEssentiaDraw.DRAW_SUCTION;
+        return EssentiaPull.of(Aspects.resolve(level, requested), AdjacentEssentiaDraw.DRAW_SUCTION);
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
         if (selection.recipe() == null || !isSideAllowed(face)) {
             return NOTHING;
+        }
+        return requirements.shortfall(aspect);
+    }
+
+    @Override
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        if (selection.recipe() == null || !isSideAllowed(face)) {
+            return NOTHING;
+        }
+        if (simulate) {
+            return Math.max(NOTHING, Math.min(amount, requirements.shortfall(aspect)));
         }
         int stored = requirements.accept(aspect, amount);
         if (stored <= NOTHING) {

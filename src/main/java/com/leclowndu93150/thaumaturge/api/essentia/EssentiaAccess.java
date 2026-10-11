@@ -11,11 +11,11 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Convenience lookups for the sided essentia transport capability, and access to the aspect
+ * Convenience lookups for the sided essentia conduit capability, and access to the aspect
  * filter that labels set on jars and other items.
  *
- * <p>The transport lookups wrap {@link EssentiaCapabilities#TRANSPORT} so that tooltip, JEI, and
- * integration code can ask "does this block expose essentia transport on this face" without
+ * <p>The conduit lookups wrap {@link EssentiaCapabilities#CONDUIT} so that tooltip, JEI, and
+ * integration code can ask "does this block take part in essentia transport on this face" without
  * repeating the capability query. The {@code face} argument is the side of the queried block that
  * the caller is approaching from, matching the sided-capability convention.
  *
@@ -30,13 +30,48 @@ public final class EssentiaAccess {
     private EssentiaAccess() {}
 
     /**
+     * Returns the essentia conduit exposed by the block at {@code pos} on the given face.
+     *
+     * <p>Providers registered under {@link EssentiaCapabilities#CONDUIT} are found first. A block
+     * that only registered the deprecated {@link EssentiaCapabilities#TRANSPORT} capability is
+     * found as well, since every {@link IEssentiaTransport} is a conduit.
+     *
+     * @param level the level
+     * @param pos   the block position
+     * @param face  the side of the block being approached, or {@code null} for the whole device
+     * @return the conduit, or {@code null} when the block exposes none on that face
+     * @since 1.1.0
+     */
+    @SuppressWarnings("removal")
+    public static @Nullable IEssentiaConduit conduit(Level level, BlockPos pos, @Nullable Direction face) {
+        IEssentiaConduit conduit = level.getCapability(EssentiaCapabilities.CONDUIT, pos, face);
+        return conduit != null ? conduit : level.getCapability(EssentiaCapabilities.TRANSPORT, pos, face);
+    }
+
+    /**
+     * Whether the block at {@code pos} exposes an essentia conduit on the given face.
+     *
+     * @param level the level
+     * @param pos   the block position
+     * @param face  the side of the block being approached
+     * @return {@code true} when {@link #conduit} finds one on that face
+     * @since 1.1.0
+     */
+    public static boolean hasConduit(Level level, BlockPos pos, Direction face) {
+        return conduit(level, pos, face) != null;
+    }
+
+    /**
      * Returns the essentia transport exposed by the block at {@code pos} on the given face.
      *
      * @param level the level
      * @param pos   the block position
      * @param face  the side of the block being approached
      * @return the transport, or {@code null} when the block exposes none on that face
+     * @deprecated Use {@link #conduit(Level, BlockPos, Direction)}. Removed in 2.0.
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    @SuppressWarnings("removal")
     public static @Nullable IEssentiaTransport transport(Level level, BlockPos pos, Direction face) {
         return level.getCapability(EssentiaCapabilities.TRANSPORT, pos, face);
     }
@@ -48,7 +83,10 @@ public final class EssentiaAccess {
      * @param pos   the block position
      * @param face  the side of the block being approached
      * @return {@code true} when a transport capability is present on that face
+     * @deprecated Use {@link #hasConduit(Level, BlockPos, Direction)}. Removed in 2.0.
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    @SuppressWarnings("removal")
     public static boolean isEssentiaTransport(Level level, BlockPos pos, Direction face) {
         return transport(level, pos, face) != null;
     }

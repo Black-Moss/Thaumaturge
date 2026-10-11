@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.casters.architect;
 
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.List;
@@ -20,12 +20,12 @@ public final class PreviewRefresher {
     private int lastBucket;
     private PreviewSnapshot current = PreviewSnapshot.EMPTY;
 
-    public PreviewSnapshot update(IArchitect architect, ItemStack stack, ClientLevel level, BlockPos anchor, Direction face, Player player, int bucket) {
+    public PreviewSnapshot update(AreaPreviewer architect, ItemStack stack, ClientLevel level, BlockPos anchor, Direction face, Player player, int bucket) {
         if (!anchor.equals(lastAnchor) || face != lastFace || bucket != lastBucket) {
             lastAnchor = anchor.immutable();
             lastFace = face;
             lastBucket = bucket;
-            current = build(architect.previewBlocks(stack, level, anchor, face, player));
+            current = build(architect.previewArea(stack, level, anchor, face, player));
         }
         return current;
     }

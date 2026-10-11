@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessories;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessory;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
@@ -31,7 +31,7 @@ final class GolemOwnerActions {
         if (player.isShiftKeyDown()) {
             pickUp(golem, player, hand);
         } else if (held.is(TTItems.GOLEM_BELL.get())) {
-            if (KnowledgeAccess.of(player).isResearchComplete(MASTERY_RESEARCH)) {
+            if (PlayerResearchAccess.of(player).hasCompleted(MASTERY_RESEARCH)) {
                 toggleFollow(golem, player, hand);
             }
         } else if (!tryFitAccessory(golem, player, hand, held)) {

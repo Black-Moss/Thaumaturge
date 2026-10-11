@@ -2,8 +2,8 @@ package com.leclowndu93150.thaumaturge.content.research.scan;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
@@ -11,13 +11,13 @@ import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.ResearchGrants;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 
 public final class ScanBindings implements ScanningManager.Bindings {
     @Override
@@ -26,9 +26,9 @@ public final class ScanBindings implements ScanningManager.Bindings {
             return false;
         }
         boolean hasEntry = serverPlayer.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research)).isPresent();
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(serverPlayer);
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(serverPlayer);
         if (hasEntry) {
-            if (!knowledge.isResearchKnown(research)) {
+            if (!knowledge.knows(research)) {
                 if (!ResearchManager.unlock(serverPlayer, research)) {
                     return false;
                 }
@@ -37,12 +37,12 @@ public final class ScanBindings implements ScanningManager.Bindings {
             }
             return ResearchManager.advanceStage(serverPlayer, research);
         }
-        if (knowledge.isResearchKnown(research)) {
+        if (knowledge.knows(research)) {
             return false;
         }
-        knowledge.addResearch(research);
+        knowledge.learn(research);
         knowledge.markComplete(research);
-        knowledge.sync(serverPlayer);
+        knowledge.queueSync(serverPlayer);
         return true;
     }
 

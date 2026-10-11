@@ -1,14 +1,14 @@
 package com.leclowndu93150.thaumaturge.content.casters;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
-import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat.CurioPouchRef;
+import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTAttributes;
@@ -104,11 +104,11 @@ public final class CasterManager {
     }
 
     private static boolean canPay(ItemStack stack, Player player, float cost) {
-        return stack.getItem() instanceof ICaster caster && caster.consumeVis(stack, player, cost, true, false);
+        return stack.getItem() instanceof FocusCaster caster && caster.drawVis(stack, player, cost, true, false);
     }
 
     public static void applyFocusChoice(ItemStack casterStack, Level level, Player player, @Nullable String focusKey) {
-        if (level.isClientSide() || !(casterStack.getItem() instanceof ICaster caster)) {
+        if (level.isClientSide() || !(casterStack.getItem() instanceof FocusCaster caster)) {
             return;
         }
         TreeMap<String, FocusLocation> carried = carriedFoci(player);
@@ -116,7 +116,7 @@ public final class CasterManager {
             removeFocus(casterStack, caster, level, player);
             return;
         }
-        selectFocus(casterStack, caster, level, player, choose(carried, focusKey, caster.getFocusStack(casterStack)));
+        selectFocus(casterStack, caster, level, player, choose(carried, focusKey, caster.socketedFocus(casterStack)));
     }
 
     private static FocusLocation choose(TreeMap<String, FocusLocation> carried, @Nullable String focusKey, ItemStack equipped) {
@@ -129,21 +129,21 @@ public final class CasterManager {
         return (next != null ? next : carried.firstEntry()).getValue();
     }
 
-    private static void removeFocus(ItemStack casterStack, ICaster caster, Level level, Player player) {
-        ItemStack equipped = caster.getFocusStack(casterStack);
+    private static void removeFocus(ItemStack casterStack, FocusCaster caster, Level level, Player player) {
+        ItemStack equipped = caster.socketedFocus(casterStack);
         if (equipped.isEmpty() || !storeAway(player, equipped.copy())) {
             return;
         }
-        caster.setFocus(casterStack, ItemStack.EMPTY);
+        caster.socketFocus(casterStack, ItemStack.EMPTY);
         playSwapSound(level, player, REMOVAL_PITCH);
     }
 
-    private static void selectFocus(ItemStack casterStack, ICaster caster, Level level, Player player, FocusLocation chosen) {
+    private static void selectFocus(ItemStack casterStack, FocusCaster caster, Level level, Player player, FocusLocation chosen) {
         ItemStack picked = chosen.get();
         if (!FocusItems.isFocus(picked)) {
             return;
         }
-        ItemStack previous = caster.getFocusStack(casterStack).copy();
+        ItemStack previous = caster.socketedFocus(casterStack).copy();
         chosen.set(ItemStack.EMPTY);
         if (previous.isEmpty() || storeAway(player, previous)) {
             equip(casterStack, caster, level, player, picked);
@@ -152,8 +152,8 @@ public final class CasterManager {
         chosen.set(picked);
     }
 
-    private static void equip(ItemStack casterStack, ICaster caster, Level level, Player player, ItemStack focus) {
-        caster.setFocus(casterStack, focus);
+    private static void equip(ItemStack casterStack, FocusCaster caster, Level level, Player player, ItemStack focus) {
+        caster.socketFocus(casterStack, focus);
         playSwapSound(level, player, SWAP_PITCH);
     }
 
@@ -233,7 +233,7 @@ public final class CasterManager {
     }
 
     public static void adjustArchitectArea(ItemStack stack, Level level, Player player, int mod) {
-        if (level.isClientSide() || !(stack.getItem() instanceof ICaster caster) || !hasArchitect(caster.getFocusStack(stack), level.registryAccess())) {
+        if (level.isClientSide() || !(stack.getItem() instanceof FocusCaster caster) || !hasArchitect(caster.socketedFocus(stack), level.registryAccess())) {
             return;
         }
         CasterArea area = storedArea(stack);
@@ -257,7 +257,7 @@ public final class CasterManager {
     }
 
     private static boolean isArchitectPart(HolderLookup.Provider registries, SpellNode node) {
-        return Spells.part(registries, node.part()).map(SpellPart::behavior).filter(IArchitect.class::isInstance).isPresent();
+        return Spells.part(registries, node.part()).map(SpellPart::behavior).filter(AreaPreviewer.class::isInstance).isPresent();
     }
 
     private static CasterArea growExtents(CasterArea area) {
@@ -284,7 +284,7 @@ public final class CasterManager {
     }
 
     private static int cappedExtent(ItemStack stack, int stored) {
-        int ceiling = stack.getItem() instanceof ICaster ? MAX_AREA : 0;
+        int ceiling = stack.getItem() instanceof FocusCaster ? MAX_AREA : 0;
         return Mth.clamp(stored, 0, ceiling);
     }
 

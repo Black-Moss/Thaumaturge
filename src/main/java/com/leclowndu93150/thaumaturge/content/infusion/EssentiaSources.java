@@ -3,8 +3,9 @@ package com.leclowndu93150.thaumaturge.content.infusion;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectSource;
-import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -138,8 +139,12 @@ public final class EssentiaSources {
     }
 
     private static int suction(ServerLevel level, BlockPos pos, Holder<IAspect> aspect) {
-        IEssentiaTransport transport = level.getCapability(EssentiaCapabilities.TRANSPORT, pos, null);
-        return transport != null && aspect.equals(transport.getSuctionType(null)) ? transport.getSuctionAmount(null) : 0;
+        IEssentiaConduit conduit = EssentiaAccess.conduit(level, pos, null);
+        if (conduit == null) {
+            return 0;
+        }
+        EssentiaPull pull = conduit.pull(null);
+        return aspect.equals(pull.aspect()) ? pull.strength() : 0;
     }
 
     private List<BlockPos> scan(ServerLevel level) {

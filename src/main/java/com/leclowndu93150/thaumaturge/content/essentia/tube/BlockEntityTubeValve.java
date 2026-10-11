@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
 import com.leclowndu93150.thaumaturge.content.essentia.cadence.CadencePhase;
 import com.leclowndu93150.thaumaturge.content.essentia.cadence.TickCadence;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.facing.SideRanking;
@@ -84,8 +85,8 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
-        return super.isConnectable(face) && face != flowSide();
+    public boolean connectsOn(Direction face) {
+        return super.connectsOn(face) && face != flowSide();
     }
     @Override
     public boolean rotateFacing() {
@@ -113,36 +114,36 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
-        return allowFlow() && super.canInputFrom(face);
+    public boolean receivesOn(Direction face) {
+        return allowFlow() && super.receivesOn(face);
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
-        return allowFlow() && super.canOutputTo(face);
+    public boolean releasesOn(Direction face) {
+        return allowFlow() && super.releasesOn(face);
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         if (!allowFlow()) {
             return 0;
         }
-        return super.addEssentia(aspect, amount, face);
+        return super.insert(aspect, amount, face, simulate);
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int extract(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         if (!allowFlow()) {
             return 0;
         }
-        return super.takeEssentia(aspect, amount, face);
+        return super.extract(aspect, amount, face, simulate);
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> type, int strength) {
+    public void assignPull(@Nullable Holder<IAspect> type, int strength) {
         boolean flowing = allowFlow();
         if (flowing) {
-            super.setSuction(type, strength);
+            super.assignPull(type, strength);
         }
         if (!flowing && strength < 1) {
             clearSuction();
@@ -150,16 +151,8 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return allowFlow() ? super.getSuctionType(face) : null;
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        if (!allowFlow()) {
-            return 0;
-        }
-        return super.getSuctionAmount(face);
+    public EssentiaPull pull(@Nullable Direction face) {
+        return allowFlow() ? super.pull(face) : EssentiaPull.NONE;
     }
 
     @Override

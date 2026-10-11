@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.essentia.advancedfurnace;
 
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEssentiaTransport;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import net.minecraft.core.BlockPos;
@@ -84,11 +84,11 @@ public final class AdvancedAlchemicalFurnaceStructure {
         }
     }
 
-    public static @Nullable IEssentiaTransport nozzle(Level level, BlockPos nozzle, @Nullable Direction side) {
+    public static @Nullable IEssentiaConduit nozzle(Level level, BlockPos nozzle, @Nullable Direction side) {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             if (level.getBlockEntity(nozzle.relative(direction)) instanceof BlockEntityAdvancedAlchemicalFurnace furnace) {
                 AdvancedFurnaceNozzle port = furnace.nozzle(direction.getOpposite());
-                return side == null || port.isConnectable(side) ? port : null;
+                return side == null || port.connectsOn(side) ? port : null;
             }
         }
         return null;

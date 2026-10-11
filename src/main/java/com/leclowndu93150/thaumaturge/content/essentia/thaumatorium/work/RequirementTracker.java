@@ -45,8 +45,12 @@ public final class RequirementTracker {
         return null;
     }
 
+    public int shortfall(Holder<IAspect> aspect) {
+        return Math.max(NOTHING, required.amountOf(aspect) - received.amountOf(aspect));
+    }
+
     public int accept(Holder<IAspect> aspect, int offered) {
-        int accepted = Math.min(offered, required.amountOf(aspect) - received.amountOf(aspect));
+        int accepted = Math.min(offered, shortfall(aspect));
         if (accepted <= NOTHING) {
             return NOTHING;
         }

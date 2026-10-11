@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumaturge.client.hud;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
 import com.leclowndu93150.thaumaturge.api.spell.SpellSummary;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
@@ -96,7 +96,7 @@ public final class CasterHudOverlay implements GuiLayer {
     public static boolean isVisible(Minecraft mc) {
         LocalPlayer player = mc.player;
         return player != null && !mc.options.hideGui && mc.mouseHandler.isMouseGrabbed()
-                && (player.getMainHandItem().getItem() instanceof ICaster || player.getOffhandItem().getItem() instanceof ICaster);
+                && (player.getMainHandItem().getItem() instanceof FocusCaster || player.getOffhandItem().getItem() instanceof FocusCaster);
     }
 
     public static LeftHudStack.Gauge dialGauge() {
@@ -117,11 +117,11 @@ public final class CasterHudOverlay implements GuiLayer {
 
     private void drawDial(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, int dialY, boolean bottomMode) {
         ItemStack mainStack = player.getMainHandItem();
-        ItemStack casterStack = mainStack.getItem() instanceof ICaster ? mainStack : player.getOffhandItem();
-        if (!(casterStack.getItem() instanceof ICaster caster)) {
+        ItemStack casterStack = mainStack.getItem() instanceof FocusCaster ? mainStack : player.getOffhandItem();
+        if (!(casterStack.getItem() instanceof FocusCaster caster)) {
             return;
         }
-        ItemStack focus = caster.getFocusStack(casterStack);
+        ItemStack focus = caster.socketedFocus(casterStack);
         boolean hasFocus = FocusItems.isFocus(focus);
         float[] costs = hasFocus ? primalCosts(mc, player, caster, casterStack, focus) : new float[PRIMALS];
         int maxVis = WandVisHelper.capacityOf(casterStack);
@@ -205,10 +205,10 @@ public final class CasterHudOverlay implements GuiLayer {
     }
 
     private static ItemStack pickedStack(ItemStack mainStack) {
-        if (!(mainStack.getItem() instanceof ICaster caster)) {
+        if (!(mainStack.getItem() instanceof FocusCaster caster)) {
             return ItemStack.EMPTY;
         }
-        BlockState state = caster.getPickedBlock(mainStack);
+        BlockState state = caster.rememberedBlock(mainStack);
         return state == null ? ItemStack.EMPTY : new ItemStack(state.getBlock());
     }
 
@@ -222,7 +222,7 @@ public final class CasterHudOverlay implements GuiLayer {
         return total;
     }
 
-    private static float[] primalCosts(Minecraft mc, LocalPlayer player, ICaster caster, ItemStack casterStack, ItemStack focus) {
+    private static float[] primalCosts(Minecraft mc, LocalPlayer player, FocusCaster caster, ItemStack casterStack, ItemStack focus) {
         float[] costs = new float[PRIMALS];
         if (mc.level == null) {
             return costs;
@@ -233,7 +233,7 @@ public final class CasterHudOverlay implements GuiLayer {
             return costs;
         }
         Map<ResourceKey<IAspect>, Integer> split = FocusItems.visSplit(summary.get(), 1.0F, registries);
-        float modifier = caster.getConsumptionModifier(casterStack, player, false);
+        float modifier = caster.visCostFactor(casterStack, player, false);
         for (int i = 0; i < PRIMALS; i++) {
             int amount = split.getOrDefault(TTAspects.PRIMALS.get(i), 0);
             if (amount > 0) {

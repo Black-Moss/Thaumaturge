@@ -5,7 +5,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.cadence.IntervalTimer;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.BufferSides;
@@ -36,7 +37,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity implements IEssentiaTransport, IInteractWithCaster {
+public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity implements IEssentiaConduit, IInteractWithCaster {
     public static final int MAX_AMOUNT = 10;
 
     private static final String CONTENTS_KEY = "Contents";
@@ -50,7 +51,6 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
     private static final int FIRST_SIDE = 0;
     private static final int NO_ARM = -1;
     private static final int NO_SUCTION = 0;
-    private static final @Nullable Holder<IAspect> NO_SUCTION_TYPE = null;
     private static final float SQUEAK_VOLUME = 0.5F;
     private static final float SQUEAK_PITCH_BASE = 1.6F;
     private static final float SQUEAK_PITCH_SPREAD = 0.2F;
@@ -183,10 +183,10 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
 
     public int fill(ResourceKey<IAspect> aspect, int amount) {
         Holder<IAspect> resolved = Aspects.resolve(level, aspect);
-        return resolved == null ? 0 : insert(resolved, amount);
+        return resolved == null ? 0 : addUnit(resolved, amount);
     }
 
-    private int insert(Holder<IAspect> aspect, int amount) {
+    private int addUnit(Holder<IAspect> aspect, int amount) {
         if (amount != SINGLE_UNIT || isFull()) {
             return 0;
         }
@@ -218,44 +218,36 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
 
     private boolean transfer(PullCandidate candidate) {
         Direction towardPeer = candidate.side().getOpposite();
-        if (candidate.peer().takeEssentia(candidate.aspect(), SINGLE_UNIT, towardPeer) <= 0) {
+        if (candidate.peer().extract(candidate.aspect(), SINGLE_UNIT, towardPeer, false) <= 0) {
             return false;
         }
-        insert(candidate.aspect(), SINGLE_UNIT);
+        addUnit(candidate.aspect(), SINGLE_UNIT);
         return true;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction side) {
-        return NO_SUCTION_TYPE;
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction side) {
+    public EssentiaPull pull(@Nullable Direction side) {
         ChokeLevel level = side == null ? ChokeLevel.NORMAL : sides.choke(side);
-        return suctionPolicy.offered(level);
+        return EssentiaPull.any(suctionPolicy.offered(level));
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return NO_SUCTION;
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> type, int strength) {}
-
-    @Override
-    public boolean isConnectable(Direction side) {
+    public boolean connectsOn(Direction side) {
         return openOn(side);
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction side) {
+    public int heldAmount(@Nullable Direction side) {
         return heldTotal();
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction side) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction side) {
         if (contents.isEmpty()) {
             return null;
         }
@@ -265,8 +257,8 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> kind, int amount, Direction side) {
-        if (side == null || !canOutputTo(side)) {
+    public int extract(Holder<IAspect> kind, int amount, Direction side, boolean simulate) {
+        if (side == null || !releasesOn(side)) {
             return 0;
         }
         boolean outbid = level != null && strongerPull.verdict(level, worldPosition, kind, side) == TakeVerdict.OUTBID;
@@ -274,23 +266,37 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
         if (outbid || moved < SINGLE_UNIT) {
             return 0;
         }
+        if (simulate) {
+            return moved;
+        }
         boolean removed = drain(kind, moved);
         return removed ? moved : 0;
     }
 
     @Override
-    public boolean canOutputTo(Direction side) {
+    public boolean releasesOn(Direction side) {
         return openOn(side);
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> kind, int amount, Direction side) {
-        boolean accepted = side != null && canInputFrom(side) && kind.unwrapKey().isPresent();
-        return accepted ? insert(kind, amount) : 0;
+    public int insert(Holder<IAspect> kind, int amount, Direction side, boolean simulate) {
+        boolean accepted = side != null && receivesOn(side) && kind.unwrapKey().isPresent();
+        if (!accepted) {
+            return 0;
+        }
+        if (simulate) {
+            return amount == SINGLE_UNIT && !isFull() ? SINGLE_UNIT : 0;
+        }
+        return addUnit(kind, amount);
     }
 
     @Override
-    public boolean canInputFrom(Direction side) {
+    public int roomFor(Holder<IAspect> kind, Direction side) {
+        return side != null && receivesOn(side) ? Math.max(0, MAX_AMOUNT - heldTotal()) : 0;
+    }
+
+    @Override
+    public boolean receivesOn(Direction side) {
         return side != null && sides.isOpen(side);
     }
 

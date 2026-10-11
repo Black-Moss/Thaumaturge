@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube;
 
-import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.spill.EssentiaSpill;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -101,8 +101,8 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     }
 
     public static boolean canConnectTo(Level level, BlockPos neighbourPos, Direction faceFromNeighbour) {
-        IEssentiaTransport peer = level.getCapability(EssentiaCapabilities.TRANSPORT, neighbourPos, faceFromNeighbour);
-        return peer != null && peer.isConnectable(faceFromNeighbour);
+        IEssentiaConduit peer = EssentiaAccess.conduit(level, neighbourPos, faceFromNeighbour);
+        return peer != null && peer.connectsOn(faceFromNeighbour);
     }
 
     @Override
@@ -127,8 +127,8 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     }
 
     protected static void spillEssentiaOnBreak(Level level, BlockPos pos) {
-        if (level instanceof ServerLevel server && level.getBlockEntity(pos) instanceof IEssentiaTransport transport) {
-            EssentiaSpill.PIPE.release(server, pos, transport.getEssentiaAmount(null));
+        if (level instanceof ServerLevel server && level.getBlockEntity(pos) instanceof IEssentiaConduit conduit) {
+            EssentiaSpill.PIPE.release(server, pos, conduit.heldAmount(null));
         }
     }
 
@@ -172,7 +172,7 @@ public abstract class BlockEssentiaTransport extends BaseEntityBlock {
     }
 
     private static boolean connects(Level level, BlockPos pos, Direction side) {
-        if (level.getBlockEntity(pos) instanceof IEssentiaTransport transport && !transport.isConnectable(side)) {
+        if (level.getBlockEntity(pos) instanceof IEssentiaConduit conduit && !conduit.connectsOn(side)) {
             return false;
         }
         return canConnectTo(level, pos.relative(side), side.getOpposite());

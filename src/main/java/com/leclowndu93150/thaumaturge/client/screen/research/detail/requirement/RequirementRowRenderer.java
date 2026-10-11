@@ -4,9 +4,9 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.KnowledgeReward;
@@ -89,7 +89,7 @@ public final class RequirementRowRenderer {
         }
         Player player = frame.player();
         boolean completedStage = model.completedStageView(player);
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         RequirementLayout layout = RequirementLayout.of(stage, frame.top());
         boolean allMet = true;
         if (layout.hasResearch()) {
@@ -111,7 +111,7 @@ public final class RequirementRowRenderer {
         if (layout.any()) {
             drawCompletionBar(graphics, frame, model, layout, allMet, completedStage, mouseX, mouseY);
         } else if (!completedStage) {
-            int storedStage = knowledge.researchStage(model.entryId());
+            int storedStage = knowledge.stageOf(model.entryId());
             if (model.claimAutoAdvance(storedStage)) {
                 ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(model.entryId()));
             }
@@ -149,14 +149,14 @@ public final class RequirementRowRenderer {
         }
     }
 
-    private boolean drawResearchRow(GuiGraphicsExtractor graphics, DetailFrame frame, List<Identifier> prerequisites, IPlayerKnowledge knowledge, int rowY, boolean completedStage, int mouseX, int mouseY) {
+    private boolean drawResearchRow(GuiGraphicsExtractor graphics, DetailFrame frame, List<Identifier> prerequisites, PlayerResearch knowledge, int rowY, boolean completedStage, int mouseX, int mouseY) {
         int spacing = RequirementLayout.spacingFor(prerequisites.size());
         boolean allMet = true;
         for (int index = 0; index < prerequisites.size(); index++) {
             Identifier prerequisite = prerequisites.get(index);
             int slotX = RequirementLayout.slotX(frame.left(), index, spacing);
             drawPrerequisiteIcon(graphics, frame, slotX, rowY, prerequisite);
-            boolean met = completedStage || knowledge.isResearchComplete(prerequisite);
+            boolean met = completedStage || knowledge.hasCompleted(prerequisite);
             allMet &= met;
             if (met) {
                 BookBlit.checkmark(graphics, slotX, rowY);
@@ -221,7 +221,7 @@ public final class RequirementRowRenderer {
             }
             boolean met = completedStage || (obtainRow
                     ? StageRequirementCheck.countMatching(player, requirement) >= requirement.amount()
-                    : ResearchManager.isCraftSatisfied(player, KnowledgeAccess.of(player), requirement));
+                    : ResearchManager.isCraftSatisfied(player, PlayerResearchAccess.of(player), requirement));
             allMet &= met;
             if (met) {
                 BookBlit.checkmark(graphics, slotX, rowY);
@@ -247,7 +247,7 @@ public final class RequirementRowRenderer {
         return new ItemStack(requirement.items().get(pick), Math.max(1, requirement.amount()), requirement.components());
     }
 
-    private boolean drawKnowledgeRow(GuiGraphicsExtractor graphics, DetailFrame frame, EntryDetailModel model, IResearchStage stage, int displayedStage, int rowY, IPlayerKnowledge knowledge, boolean completedStage, int mouseX, int mouseY) {
+    private boolean drawKnowledgeRow(GuiGraphicsExtractor graphics, DetailFrame frame, EntryDetailModel model, IResearchStage stage, int displayedStage, int rowY, PlayerResearch knowledge, boolean completedStage, int mouseX, int mouseY) {
         Player player = frame.player();
         List<KnowledgeReward> rewards = stage.requiredKnowledge();
         AspectList observationCost = ResearchNotes.stageObservationCost(model.research(), stage);
@@ -273,9 +273,9 @@ public final class RequirementRowRenderer {
         return allMet;
     }
 
-    private boolean drawTheoryNote(GuiGraphicsExtractor graphics, DetailFrame frame, EntryDetailModel model, KnowledgeReward reward, Identifier learnKey, int slotX, int rowY, IPlayerKnowledge knowledge, boolean completedStage, int mouseX, int mouseY) {
+    private boolean drawTheoryNote(GuiGraphicsExtractor graphics, DetailFrame frame, EntryDetailModel model, KnowledgeReward reward, Identifier learnKey, int slotX, int rowY, PlayerResearch knowledge, boolean completedStage, int mouseX, int mouseY) {
         Font font = frame.font();
-        boolean met = completedStage || knowledge.isResearchKnown(learnKey);
+        boolean met = completedStage || knowledge.knows(learnKey);
         ItemStack note = new ItemStack(TTItems.RESEARCH_NOTE.get());
         hits.recordItem(note, slotX, rowY);
         graphics.item(note, slotX, rowY);

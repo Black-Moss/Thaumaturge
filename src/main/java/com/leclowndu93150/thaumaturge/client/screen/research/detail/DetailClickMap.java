@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.screen.research.detail;
 
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumaturge.client.render.research.RecipeDisplayCache;
@@ -173,7 +173,7 @@ public final class DetailClickMap {
 
     private boolean requestNote(Player player, int ordinal) {
         Identifier learnKey = ResearchNoteData.learnKey(model.entryId(), ordinal);
-        if (KnowledgeAccess.of(player).isResearchKnown(learnKey) || ResearchNotes.hasNoteFor(player, learnKey)) {
+        if (PlayerResearchAccess.of(player).knows(learnKey) || ResearchNotes.hasNoteFor(player, learnKey)) {
             return false;
         }
         actions.obtainNote(ordinal);

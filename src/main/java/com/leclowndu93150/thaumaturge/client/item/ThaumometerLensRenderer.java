@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
@@ -103,7 +103,7 @@ public final class ThaumometerLensRenderer {
     }
 
     private static AspectList knownOrEmpty(AbstractClientPlayer player, Identifier researchKey, Supplier<AspectList> aspects) {
-        return KnowledgeAccess.of(player).isResearchKnown(researchKey) ? aspects.get() : AspectList.EMPTY;
+        return PlayerResearchAccess.of(player).knows(researchKey) ? aspects.get() : AspectList.EMPTY;
     }
 
     private static Readout blockReadout(ClientLevel level, AbstractClientPlayer player, ScanTarget target, BlockPos pos) {
@@ -121,7 +121,7 @@ public final class ThaumometerLensRenderer {
 
     private static Readout nodeReadout(ClientLevel level, AbstractClientPlayer player, BlockPos pos, BlockEntityNode node) {
         Component name = Component.translatable(node.isEnergized() ? ENERGIZED_NODE_KEY : NODE_KEY);
-        if (KnowledgeAccess.of(player).isResearchKnown(ScanNode.researchKey(level, pos))) {
+        if (PlayerResearchAccess.of(player).knows(ScanNode.researchKey(level, pos))) {
             return new Readout(name, nodeLine(node), node.getAspects());
         }
         return Readout.plain(name, AspectList.EMPTY);

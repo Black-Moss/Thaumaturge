@@ -3,7 +3,8 @@ package com.leclowndu93150.thaumaturge.content.essentia;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.legacy.LegacyIds;
@@ -23,7 +24,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity implements IEssentiaTransport {
+public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity implements IEssentiaConduit {
     private static final String INPUT_KEY = "AspectIn";
     private static final String OUTPUT_KEY = "AspectOut";
     private static final Direction INTAKE = Direction.DOWN;
@@ -140,19 +141,19 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
 
     private void drawFromBelow(ServerLevel server, BlockPos pos) {
         Direction touching = INTAKE.getOpposite();
-        IEssentiaTransport source = EssentiaFlowHandler.transport(server, pos.relative(INTAKE), touching);
-        if (source == null || !source.isConnectable(touching) || !source.canOutputTo(touching)) {
+        IEssentiaConduit source = EssentiaFlowHandler.conduit(server, pos.relative(INTAKE), touching);
+        if (source == null || !source.connectsOn(touching) || !source.releasesOn(touching)) {
             return;
         }
-        Holder<IAspect> offered = source.getEssentiaType(touching);
-        if (!isCompound(offered) || source.getEssentiaAmount(touching) < ONE_POINT) {
+        Holder<IAspect> offered = source.heldAspect(touching);
+        if (!isCompound(offered) || source.heldAmount(touching) < ONE_POINT) {
             return;
         }
-        int pull = getSuctionAmount(INTAKE);
-        if (source.getSuctionAmount(touching) >= pull || pull < source.getMinimumSuction()) {
+        int ownPull = pullStrength(INTAKE);
+        if (source.pull(touching).strength() >= ownPull || ownPull < source.pullThreshold()) {
             return;
         }
-        if (source.takeEssentia(offered, ONE_POINT, touching) == ONE_POINT) {
+        if (source.extract(offered, ONE_POINT, touching, false) == ONE_POINT) {
             begin(offered);
         }
     }
@@ -185,50 +186,45 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> type, int count, Direction side) {
+    public int insert(Holder<IAspect> type, int count, Direction side, boolean simulate) {
         if (count < ONE_POINT || side != INTAKE || intake != null || !isCompound(type)) {
             return NONE;
         }
-        begin(type);
+        if (!simulate) {
+            begin(type);
+        }
         return ONE_POINT;
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> type, Direction side) {
+    public int roomFor(Holder<IAspect> type, Direction side) {
         return side == INTAKE && intake == null && isCompound(type) ? ONE_POINT : NONE;
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> type, int count, Direction side) {
+    public int extract(Holder<IAspect> type, int count, Direction side, boolean simulate) {
         if (count < ONE_POINT || side != OUTLET || product == null || !type.is(product)) {
             return NONE;
         }
-        product = null;
-        setChangedAndSync();
+        if (!simulate) {
+            product = null;
+            setChangedAndSync();
+        }
         return ONE_POINT;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction side) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction side) {
         return side == INTAKE ? resolve(intake) : resolve(product);
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction side) {
+    public int heldAmount(@Nullable Direction side) {
         ResourceKey<IAspect> held = side == INTAKE ? intake : product;
         return held == null ? NONE : ONE_POINT;
     }
 
-    @Override
-    public void setSuction(@Nullable Holder<IAspect> type, int count) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction side) {
-        return null;
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction side) {
+    private int pullStrength(@Nullable Direction side) {
         if (side == OUTLET || isPowered()) {
             return NO_SUCTION;
         }
@@ -236,22 +232,27 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
     }
 
     @Override
-    public int getMinimumSuction() {
+    public EssentiaPull pull(@Nullable Direction side) {
+        return EssentiaPull.any(pullStrength(side));
+    }
+
+    @Override
+    public int pullThreshold() {
         return NO_SUCTION;
     }
 
     @Override
-    public boolean canOutputTo(Direction side) {
+    public boolean releasesOn(Direction side) {
         return side == OUTLET;
     }
 
     @Override
-    public boolean canInputFrom(Direction side) {
+    public boolean receivesOn(Direction side) {
         return side == INTAKE;
     }
 
     @Override
-    public boolean isConnectable(Direction side) {
+    public boolean connectsOn(Direction side) {
         return side == INTAKE || side == OUTLET;
     }
 

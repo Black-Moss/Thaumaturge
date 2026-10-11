@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
@@ -45,8 +45,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import org.jspecify.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public final class EntryDetailScreen extends AbstractTTScreen {
@@ -482,7 +482,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         public void submitStageCompletion() {
             Player player = localPlayer();
             Identifier id = model.entryId();
-            model.beginHold(KnowledgeAccess.of(player).researchStage(id), player.level().getGameTime());
+            model.beginHold(PlayerResearchAccess.of(player).stageOf(id), player.level().getGameTime());
             ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(id));
             player.playSound(TTSounds.WRITE.get(), WRITE.volume(), WRITE.pitch());
         }

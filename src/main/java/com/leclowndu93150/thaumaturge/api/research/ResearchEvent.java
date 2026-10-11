@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +13,7 @@ import net.neoforged.neoforge.common.NeoForge;
  * Base class for research-related events fired on the {@link NeoForge#EVENT_BUS NeoForge event bus}.
  *
  * <p>Concrete events are cancellable. Cancelling a research event prevents the corresponding
- * mutation from being applied to the player's {@link IPlayerKnowledge knowledge record}.
+ * mutation from being applied to the player's {@link PlayerResearch research progress}.
  *
  * @since 1.0.0
  */

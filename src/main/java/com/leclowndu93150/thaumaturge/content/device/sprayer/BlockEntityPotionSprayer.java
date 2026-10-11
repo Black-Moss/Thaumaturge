@@ -4,7 +4,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
@@ -32,7 +33,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity implements IEssentiaTransport {
+public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity implements IEssentiaConduit {
     public static final int MAX_CHARGES = 8;
 
     private static final int CHARGE_INTERVAL = 5;
@@ -64,8 +65,7 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     private AspectList stored = AspectList.EMPTY;
     private int charges;
     private int color = NO_POTION_COLOR;
-    private @Nullable Holder<IAspect> suctionType;
-    private int suction;
+    private EssentiaPull wanted = EssentiaPull.NONE;
     private boolean powered;
     private boolean redstoneKnown;
     private int ticks;
@@ -160,8 +160,8 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
             setChangedAndSync();
             return;
         }
-        setSuction(shortfall.aspect(), SUCTION);
-        pull(serverLevel, shortfall.aspect());
+        wanted = EssentiaPull.of(shortfall.aspect(), SUCTION);
+        drawAspect(serverLevel, shortfall.aspect());
     }
 
     private @Nullable AspectInstance firstShortfall() {
@@ -178,11 +178,10 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     }
 
     private void dropSuction() {
-        suctionType = null;
-        suction = 0;
+        wanted = EssentiaPull.NONE;
     }
 
-    private void pull(ServerLevel serverLevel, Holder<IAspect> aspect) {
+    private void drawAspect(ServerLevel serverLevel, Holder<IAspect> aspect) {
         Direction front = front();
         for (Direction side : DIRECTIONS) {
             if (side != front && pullFrom(serverLevel, worldPosition.relative(side), side.getOpposite(), aspect)) {
@@ -201,14 +200,14 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
         if (!serverLevel.hasChunkAt(sourcePos)) {
             return false;
         }
-        IEssentiaTransport source = EssentiaAccess.transport(serverLevel, sourcePos, face);
-        if (source == null || !source.canOutputTo(face) || source.getEssentiaAmount(face) <= 0 || !aspect.equals(source.getEssentiaType(face))) {
+        IEssentiaConduit source = EssentiaAccess.conduit(serverLevel, sourcePos, face);
+        if (source == null || !source.releasesOn(face) || source.heldAmount(face) <= 0 || !aspect.equals(source.heldAspect(face))) {
             return false;
         }
-        if (source.getSuctionAmount(face) >= SUCTION || SUCTION < source.getMinimumSuction()) {
+        if (source.pull(face).strength() >= SUCTION || SUCTION < source.pullThreshold()) {
             return false;
         }
-        int taken = source.takeEssentia(aspect, PULL_AMOUNT, face);
+        int taken = source.extract(aspect, PULL_AMOUNT, face, false);
         if (taken <= 0) {
             return false;
         }
@@ -266,12 +265,12 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> type, int count, Direction side) {
-        if (!canInputFrom(side) || potion.isEmpty() || charges >= MAX_CHARGES || count <= 0) {
+    public int insert(Holder<IAspect> type, int count, Direction side, boolean simulate) {
+        if (!receivesOn(side) || potion.isEmpty() || charges >= MAX_CHARGES || count <= 0) {
             return 0;
         }
         int accepted = Math.min(count, shortBy(type));
-        if (accepted > 0) {
+        if (accepted > 0 && !simulate) {
             stored = stored.add(type, accepted);
             setChangedAndSync();
         }
@@ -279,58 +278,47 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> type, Direction side) {
-        return canInputFrom(side) && !potion.isEmpty() && charges < MAX_CHARGES ? shortBy(type) : 0;
+    public int roomFor(Holder<IAspect> type, Direction side) {
+        return receivesOn(side) && !potion.isEmpty() && charges < MAX_CHARGES ? shortBy(type) : 0;
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> type, int count, Direction side) {
+    public int extract(Holder<IAspect> type, int count, Direction side, boolean simulate) {
         return 0;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction side) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction side) {
         return null;
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction side) {
+    public int heldAmount(@Nullable Direction side) {
         return 0;
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> type, int count) {
-        suctionType = type;
-        suction = Math.max(0, count);
+    public EssentiaPull pull(@Nullable Direction side) {
+        return side == front() ? EssentiaPull.NONE : wanted;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction side) {
-        return suctionType;
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction side) {
-        return side == front() ? 0 : suction;
-    }
-
-    @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return 0;
     }
 
     @Override
-    public boolean canOutputTo(Direction side) {
+    public boolean releasesOn(Direction side) {
         return false;
     }
 
     @Override
-    public boolean canInputFrom(Direction side) {
+    public boolean receivesOn(Direction side) {
         return side != front();
     }
 
     @Override
-    public boolean isConnectable(Direction side) {
+    public boolean connectsOn(Direction side) {
         return side != front();
     }
 

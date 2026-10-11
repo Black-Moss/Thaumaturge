@@ -114,7 +114,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
         state.capacity = jar.capacity();
         state.amount = held != null ? jar.amount() : 0;
         state.aspectColor = held != null ? OPAQUE | held.value().color() : 0;
-        state.connectedAbove = level != null && EssentiaFlowHandler.transport(level, jar.getBlockPos().above(), Direction.DOWN) != null;
+        state.connectedAbove = level != null && EssentiaFlowHandler.conduit(level, jar.getBlockPos().above(), Direction.DOWN) != null;
         Direction facing = jar.facing();
         state.facing = facing != null ? facing : Direction.NORTH;
         state.filterAspect = filter;

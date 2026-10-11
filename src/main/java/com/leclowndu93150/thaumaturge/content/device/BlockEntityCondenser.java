@@ -5,7 +5,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
@@ -33,7 +34,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityCondenser extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityCondenser extends BlockEntity implements IEssentiaConduit {
     private static final int CAPACITY = 100;
     private static final int INTAKE_INTERVAL = 5;
     private static final int RECHECK_INTERVAL = 100;
@@ -112,28 +113,28 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     }
 
     private void draw(Level level) {
-        List<IEssentiaTransport> sources = new ArrayList<>(HORIZONTALS.length);
+        List<IEssentiaConduit> sources = new ArrayList<>(HORIZONTALS.length);
         for (Direction side : HORIZONTALS) {
-            IEssentiaTransport source = neighbour(level, side);
-            if (source != null && !source.canOutputTo(side.getOpposite())) {
+            IEssentiaConduit source = neighbour(level, side);
+            if (source != null && !source.releasesOn(side.getOpposite())) {
                 return;
             }
             sources.add(source);
         }
         for (int slot = 0; slot < HORIZONTALS.length && essentia < CAPACITY; slot++) {
-            IEssentiaTransport source = sources.get(slot);
+            IEssentiaConduit source = sources.get(slot);
             if (source != null) {
                 drawFrom(level, source, HORIZONTALS[slot]);
             }
         }
     }
 
-    private void drawFrom(Level level, IEssentiaTransport source, Direction side) {
+    private void drawFrom(Level level, IEssentiaConduit source, Direction side) {
         Direction face = side.getOpposite();
-        if (!isWilling(source, face, getSuctionAmount(side))) {
+        if (!isWilling(source, face, pullStrength(side))) {
             return;
         }
-        Holder<IAspect> offered = source.getEssentiaType(face);
+        Holder<IAspect> offered = source.heldAspect(face);
         if (offered == null) {
             return;
         }
@@ -141,7 +142,7 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
             makeDirty(level);
             return;
         }
-        absorb(source.takeEssentia(offered, ABSORB_AMOUNT, face));
+        absorb(source.extract(offered, ABSORB_AMOUNT, face, false));
     }
 
     private void condense(Level level) {
@@ -222,16 +223,16 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         cost = BASE_COST + (int) Math.sqrt(depth.size());
     }
 
-    private @Nullable IEssentiaTransport neighbour(Level level, Direction side) {
+    private @Nullable IEssentiaConduit neighbour(Level level, Direction side) {
         BlockPos pos = worldPosition.relative(side);
         if (!level.hasChunkAt(pos)) {
             return null;
         }
-        return EssentiaAccess.transport(level, pos, side.getOpposite());
+        return EssentiaAccess.conduit(level, pos, side.getOpposite());
     }
 
-    private static boolean isWilling(IEssentiaTransport source, Direction face, int ownSuction) {
-        return source.getEssentiaAmount(face) > 0 && source.getSuctionAmount(face) < ownSuction && ownSuction >= source.getMinimumSuction();
+    private static boolean isWilling(IEssentiaConduit source, Direction face, int ownSuction) {
+        return source.heldAmount(face) > 0 && source.pull(face).strength() < ownSuction && ownSuction >= source.pullThreshold();
     }
 
     private void absorb(int received) {
@@ -325,27 +326,26 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return !Direction.UP.equals(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return face.getAxis() != Direction.Axis.Y;
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return Direction.DOWN.equals(face);
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return 0;
     }
 
-    @Override
-    public int getSuctionAmount(@Nullable Direction face) {
+    private int pullStrength(@Nullable Direction face) {
         if (Direction.DOWN.equals(face)) {
             return 0;
         }
@@ -353,32 +353,29 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return null;
+    public EssentiaPull pull(@Nullable Direction face) {
+        return EssentiaPull.any(pullStrength(face));
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         boolean bottomOrUnspecified = face == null || face == Direction.DOWN;
         return bottomOrUnspecified && flux > 0 ? Aspects.resolve(level, TTAspects.VITIUM) : null;
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return face == null || face == Direction.DOWN ? flux : 0;
     }
 
     @Override
-    public int takeEssentia(@Nullable Holder<IAspect> aspect, int amount, Direction face) {
+    public int extract(@Nullable Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         if (face != Direction.DOWN || aspect != null && !aspect.is(TTAspects.VITIUM)) {
             return 0;
         }
         int removed = Math.min(amount, flux);
-        if (removed <= 0) {
-            return removed;
+        if (removed <= 0 || simulate) {
+            return Math.max(removed, 0);
         }
         flux -= removed;
         setChanged();
@@ -386,12 +383,12 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     }
 
     @Override
-    public int addEssentia(@Nullable Holder<IAspect> aspect, int amount, Direction face) {
-        if (!canInputFrom(face)) {
+    public int insert(@Nullable Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        if (!receivesOn(face)) {
             return 0;
         }
         if (aspect != null && aspect.is(TTAspects.VITIUM)) {
-            if (level != null && !level.isClientSide()) {
+            if (!simulate && level != null && !level.isClientSide()) {
                 makeDirty(level);
             }
             return 0;
@@ -401,13 +398,15 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
             return 0;
         }
         int accepted = Math.min(amount, room);
-        absorb(accepted);
+        if (!simulate) {
+            absorb(accepted);
+        }
         return accepted;
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> aspect, Direction face) {
-        return canInputFrom(face) ? Math.max(0, CAPACITY - essentia) : 0;
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
+        return receivesOn(face) ? Math.max(0, CAPACITY - essentia) : 0;
     }
 
     @Override

@@ -3,7 +3,8 @@ package com.leclowndu93150.thaumaturge.content.device.fluxscrubber;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
@@ -29,7 +30,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityFluxScrubber extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityFluxScrubber extends BlockEntity implements IEssentiaConduit {
     public static final int WORK_POWER = 5;
 
     private static final int NONE = 0;
@@ -86,22 +87,22 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     }
 
     @Override
-    public boolean isConnectable(final Direction face) {
+    public boolean connectsOn(final Direction face) {
         return isOutputSide(face);
     }
 
     @Override
-    public boolean canOutputTo(final Direction face) {
+    public boolean releasesOn(final Direction face) {
         return isOutputSide(face);
     }
 
     @Override
-    public boolean canInputFrom(final Direction face) {
+    public boolean receivesOn(final Direction face) {
         return false;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable final Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable final Direction face) {
         if (essentia <= 0 || !isOutputSide(face)) {
             return null;
         }
@@ -109,47 +110,42 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable final Direction face) {
+    public int heldAmount(@Nullable final Direction face) {
         return isOutputSide(face) ? essentia : NONE;
     }
 
     @Override
-    public int takeEssentia(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face) {
+    public int extract(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face, final boolean simulate) {
         boolean allowed = isOutputSide(face) && aspect.is(TTAspects.PRAECANTATIO);
         if (!allowed || amount <= 0 || essentia <= 0) {
             return NONE;
         }
         int taken = Math.min(amount, essentia);
+        if (simulate) {
+            return taken;
+        }
         essentia -= taken;
         setChangedAndSend();
         return taken;
     }
 
     @Override
-    public int addEssentia(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face) {
+    public int insert(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face, final boolean simulate) {
         return NONE;
     }
 
     @Override
-    public void setSuction(@Nullable final Holder<IAspect> aspect, final int amount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable final Direction face) {
-        return passiveSuctionType();
+    public EssentiaPull pull(@Nullable final Direction face) {
+        return EssentiaPull.NONE;
     }
 
     @Override
-    public int getSuctionAmount(@Nullable final Direction face) {
+    public int pullThreshold() {
         return NONE;
     }
 
     @Override
-    public int getMinimumSuction() {
-        return NONE;
-    }
-
-    @Override
-    public int spaceFor(final Holder<IAspect> aspect, @Nullable final Direction face) {
+    public int roomFor(final Holder<IAspect> aspect, @Nullable final Direction face) {
         return NONE;
     }
 
@@ -185,10 +181,6 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
         output.putInt(ESSENTIA_KEY, essentia);
         output.putInt(CHARGES_KEY, charges);
         output.putInt(POWER_KEY, power);
-    }
-
-    private static @Nullable Holder<IAspect> passiveSuctionType() {
-        return null;
     }
 
     private boolean isOutputSide(@Nullable Direction face) {

@@ -4,7 +4,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCrystalAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
@@ -37,7 +38,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements IEssentiaConduit {
     public static final int TARGET_PROGRESS = 200;
 
     private static final String ASPECT_KEY = "Aspect";
@@ -126,19 +127,19 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
 
     private void pullFromInput(ServerLevel server, Direction inputFace) {
         Direction touching = inputFace.getOpposite();
-        IEssentiaTransport source = EssentiaFlowHandler.transport(server, worldPosition.relative(inputFace), touching);
-        if (source == null || !source.canOutputTo(touching)) {
+        IEssentiaConduit source = EssentiaFlowHandler.conduit(server, worldPosition.relative(inputFace), touching);
+        if (source == null || !source.releasesOn(touching)) {
             return;
         }
-        Holder<IAspect> offered = source.getEssentiaType(touching);
-        if (offered == null || source.getEssentiaAmount(touching) < ONE_POINT) {
+        Holder<IAspect> offered = source.heldAspect(touching);
+        if (offered == null || source.heldAmount(touching) < ONE_POINT) {
             return;
         }
-        int ownPull = getSuctionAmount(inputFace);
-        if (source.getSuctionAmount(touching) >= ownPull || ownPull < source.getMinimumSuction()) {
+        int ownPull = pullStrength(inputFace);
+        if (source.pull(touching).strength() >= ownPull || ownPull < source.pullThreshold()) {
             return;
         }
-        if (source.takeEssentia(offered, ONE_POINT, touching) == ONE_POINT) {
+        if (source.extract(offered, ONE_POINT, touching, false) == ONE_POINT) {
             hold(offered.unwrapKey().orElse(null));
         }
     }
@@ -214,17 +215,12 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> candidate, Direction side) {
+    public int roomFor(Holder<IAspect> candidate, Direction side) {
         return heldPoints() == NOTHING_MOVED && isInputSide(side) ? ONE_POINT : NOTHING_MOVED;
     }
 
     private static double jitter(RandomSource random) {
         return (random.nextDouble() * 2.0 - 1.0) * VENT_JITTER;
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return null;
     }
 
     private void changedForClients() {
@@ -236,7 +232,7 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return OUTPUT_ALLOWED;
     }
 
@@ -284,31 +280,33 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return face == inputFace();
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> offered, int count, Direction side) {
-        return admit(offered, count, side) ? ONE_POINT : NOTHING_MOVED;
+    public int insert(Holder<IAspect> offered, int count, Direction side, boolean simulate) {
+        return admit(offered, count, side, simulate) ? ONE_POINT : NOTHING_MOVED;
     }
 
-    private boolean admit(Holder<IAspect> offered, int count, Direction side) {
+    private boolean admit(Holder<IAspect> offered, int count, Direction side, boolean simulate) {
         if (aspect != null || count <= 0 || !isInputSide(side)) {
             return false;
         }
         Optional<ResourceKey<IAspect>> key = offered.unwrapKey();
-        key.ifPresent(this::hold);
+        if (!simulate) {
+            key.ifPresent(this::hold);
+        }
         return key.isPresent();
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> wanted, int count, Direction side) {
+    public int extract(Holder<IAspect> wanted, int count, Direction side, boolean simulate) {
         return NOTHING_MOVED;
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return isInputSide(face);
     }
 
@@ -316,18 +314,19 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
         return aspect == null ? null : Aspects.resolve(level, aspect);
     }
 
-    @Override
-    public int getSuctionAmount(@Nullable Direction face) {
+    private int pullStrength(@Nullable Direction face) {
         int base = aspect == null ? IDLE_SUCTION : BUSY_SUCTION;
         boolean listening = isInputSide(face) && level != null && !level.hasNeighborSignal(worldPosition);
         return listening ? base : SUCTION_FLOOR;
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> suctionAspect, int amount) {}
+    public EssentiaPull pull(@Nullable Direction face) {
+        return EssentiaPull.any(pullStrength(face));
+    }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return SUCTION_FLOOR;
     }
 
@@ -349,12 +348,12 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return heldPoints();
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return heldHolder();
     }
 

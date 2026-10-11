@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.device;
 
-import com.leclowndu93150.thaumaturge.api.infusion.IInfusionStabiliser;
+import com.leclowndu93150.thaumaturge.api.infusion.AltarStabiliser;
 import com.leclowndu93150.thaumaturge.content.infusion.BlockPedestal;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayDeque;
@@ -28,7 +28,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockInlay extends Block implements IInfusionStabiliser {
+public final class BlockInlay extends Block implements AltarStabiliser {
     private static final int MAX_CHARGE = 15;
     private static final int NO_CHARGE = -1;
     private static final int NETWORK_ITERATION_LIMIT = 4096;
@@ -166,12 +166,12 @@ public final class BlockInlay extends Block implements IInfusionStabiliser {
     }
 
     @Override
-    public float getStabilizationAmount(Level level, BlockPos pos) {
+    public float pairValue(Level level, BlockPos pos) {
         return STABILISATION;
     }
 
     @Override
-    public boolean canStabiliseInfusion(Level level, BlockPos pos) {
+    public boolean stabilisesNow(Level level, BlockPos pos) {
         return STABILISATION > 0.0F;
     }
 

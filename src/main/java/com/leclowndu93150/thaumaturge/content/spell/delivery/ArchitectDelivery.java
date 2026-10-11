@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.spell.delivery;
 
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
@@ -37,7 +37,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-public record ArchitectDelivery(double range) implements SpellBehavior, IArchitect {
+public record ArchitectDelivery(double range) implements SpellBehavior, AreaPreviewer {
     private static final double MIN_RANGE = 1.0;
     private static final double MAX_RANGE = 64.0;
     private static final double DEFAULT_RANGE = 16.0;
@@ -87,20 +87,20 @@ public record ArchitectDelivery(double range) implements SpellBehavior, IArchite
     }
 
     @Override
-    public HitResult aim(ItemStack stack, Level level, LivingEntity caster) {
+    public HitResult traceAnchor(ItemStack stack, Level level, LivingEntity caster) {
         return probe(level, caster, caster.getEyePosition(), caster.getLookAngle());
     }
 
     @Override
-    public List<BlockPos> previewBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+    public List<BlockPos> previewArea(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
         return stack.isEmpty() ? List.of() : blocks(level, pos, side, methodOf(stack, level), stack);
     }
 
     public static int methodOf(ItemStack stack, Level level) {
-        if (!(stack.getItem() instanceof ICaster caster)) {
+        if (!(stack.getItem() instanceof FocusCaster caster)) {
             return METHOD_FULL;
         }
-        ItemStack focus = caster.getFocusStack(stack);
+        ItemStack focus = caster.socketedFocus(stack);
         Spell spell = focus.isEmpty() ? null : Spells.spellOf(focus);
         return spell == null ? METHOD_FULL : methodOfSpell(spell, level.registryAccess());
     }
@@ -116,12 +116,12 @@ public record ArchitectDelivery(double range) implements SpellBehavior, IArchite
     }
 
     @Override
-    public boolean replacesBlockHighlight(ItemStack stack) {
+    public boolean hidesBlockOutline(ItemStack stack) {
         return false;
     }
 
     @Override
-    public boolean showsAxis(ItemStack stack, Level level, Player player, Direction side, Direction.Axis axis) {
+    public boolean showsAxisArrows(ItemStack stack, Level level, Player player, Direction side, Direction.Axis axis) {
         if (stack.isEmpty()) {
             return false;
         }

@@ -1,7 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube.buffer;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,14 +38,15 @@ public final class StrongerPullCheck {
 
     private static int pullOn(Level level, BlockPos pos, Direction side, @Nullable Holder<IAspect> aspect) {
         Direction facingBack = side.getOpposite();
-        IEssentiaTransport neighbour = EssentiaFlowHandler.transport(level, pos.relative(side), facingBack);
-        if (neighbour == null || !neighbour.isConnectable(facingBack)) {
+        IEssentiaConduit neighbour = EssentiaFlowHandler.conduit(level, pos.relative(side), facingBack);
+        if (neighbour == null || !neighbour.connectsOn(facingBack)) {
             return 0;
         }
-        Holder<IAspect> wanted = neighbour.getSuctionType(facingBack);
+        EssentiaPull pull = neighbour.pull(facingBack);
+        Holder<IAspect> wanted = pull.aspect();
         if (aspect != null && wanted != null && !wanted.equals(aspect)) {
             return 0;
         }
-        return neighbour.getSuctionAmount(facingBack);
+        return pull.strength();
     }
 }

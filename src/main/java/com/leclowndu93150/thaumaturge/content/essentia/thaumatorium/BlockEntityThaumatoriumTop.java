@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.thaumatorium;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -27,30 +28,28 @@ public final class BlockEntityThaumatoriumTop extends BlockEntity implements Sin
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        return Optional.ofNullable(lowerFor(face)).filter(machine -> machine.canInputFrom(face)).map(machine -> machine.addEssentia(aspect, amount, face)).orElse(NOTHING);
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        return Optional.ofNullable(lowerFor(face)).filter(machine -> machine.receivesOn(face)).map(machine -> machine.insert(aspect, amount, face, simulate)).orElse(NOTHING);
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return Optional.ofNullable(lower()).map(machine -> machine.getSuctionType(face)).orElse(null);
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
+        return Optional.ofNullable(lowerFor(face)).filter(machine -> machine.receivesOn(face)).map(machine -> machine.roomFor(aspect, face)).orElse(NOTHING);
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
-        return lowerFor(face) instanceof BlockEntityThaumatorium machine && machine.isConnectable(face);
+    public EssentiaPull pull(@Nullable Direction face) {
+        BlockEntityThaumatorium machine = lower();
+        return machine == null ? EssentiaPull.NONE : machine.pull(face);
     }
 
     @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        return Optional.ofNullable(lower()).map(machine -> machine.getSuctionAmount(face)).orElse(NOTHING);
+    public boolean connectsOn(Direction face) {
+        return lowerFor(face) instanceof BlockEntityThaumatorium machine && machine.connectsOn(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
-        return lowerFor(face) instanceof BlockEntityThaumatorium machine && machine.canInputFrom(face);
+    public boolean receivesOn(Direction face) {
+        return lowerFor(face) instanceof BlockEntityThaumatorium machine && machine.receivesOn(face);
     }
 }

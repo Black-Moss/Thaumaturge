@@ -9,7 +9,8 @@ import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStorage;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectEssentiaHost;
@@ -32,7 +33,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssentiaTransport, IAspectSource, SingleAspectEssentiaHost {
+public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssentiaConduit, IAspectSource, SingleAspectEssentiaHost {
     public static final int CAPACITY = IEssentiaJar.DEFAULT_CAPACITY;
 
     private static final String ASPECT_KEY = "Aspect";
@@ -149,12 +150,12 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
     }
 
     private void pullFromAbove(Level level, BlockPos pos) {
-        IEssentiaTransport source = EssentiaFlowHandler.transport(level, pos.above(), Direction.DOWN);
-        if (source == null || !source.canOutputTo(Direction.DOWN)) {
+        IEssentiaConduit source = EssentiaFlowHandler.conduit(level, pos.above(), Direction.DOWN);
+        if (source == null || !source.releasesOn(Direction.DOWN)) {
             return;
         }
-        int ownPull = getSuctionAmount(Direction.UP);
-        if (ownPull <= source.getSuctionAmount(Direction.DOWN)) {
+        int ownPull = pullStrength();
+        if (ownPull <= source.pull(Direction.DOWN).strength()) {
             return;
         }
         Holder<IAspect> chosen = pickPulledAspect(level, source, ownPull);
@@ -162,27 +163,38 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
             return;
         }
         Optional<ResourceKey<IAspect>> key = chosen.unwrapKey();
-        if (key.isEmpty() || source.takeEssentia(chosen, FILL_POINTS, Direction.DOWN) != FILL_POINTS) {
+        if (key.isEmpty() || source.extract(chosen, FILL_POINTS, Direction.DOWN, false) != FILL_POINTS) {
             return;
         }
         doAddToContainer(key.get(), FILL_POINTS);
     }
 
-    private @Nullable Holder<IAspect> pickPulledAspect(Level level, IEssentiaTransport source, int ownPull) {
+    private @Nullable Holder<IAspect> pickPulledAspect(Level level, IEssentiaConduit source, int ownPull) {
         ResourceKey<IAspect> fixed = aspectFilter != null ? aspectFilter : aspect;
         if (fixed != null) {
             return Aspects.resolve(level, fixed);
         }
-        Holder<IAspect> offered = source.getEssentiaType(Direction.DOWN);
-        boolean sourceTooThin = source.getEssentiaAmount(Direction.DOWN) < FILL_POINTS;
-        return sourceTooThin || ownPull < source.getMinimumSuction() ? null : offered;
+        Holder<IAspect> offered = source.heldAspect(Direction.DOWN);
+        boolean sourceTooThin = source.heldAmount(Direction.DOWN) < FILL_POINTS;
+        return sourceTooThin || ownPull < source.pullThreshold() ? null : offered;
+    }
+
+    protected boolean refuses(ResourceKey<IAspect> key) {
+        return aspectFilter != null && !aspectFilter.equals(key) || amount > 0 && !key.equals(aspect);
+    }
+
+    protected int acceptable(ResourceKey<IAspect> key, int requested) {
+        if (requested <= 0 || refuses(key)) {
+            return 0;
+        }
+        return Math.max(0, Math.min(requested, capacity() - amount));
     }
 
     protected int doAddToContainer(ResourceKey<IAspect> key, int requested) {
         if (requested <= 0) {
             return 0;
         }
-        if (aspectFilter != null && !aspectFilter.equals(key) || amount > 0 && !key.equals(aspect)) {
+        if (refuses(key)) {
             return requested;
         }
         int stored = Math.max(0, Math.min(requested, capacity() - amount));
@@ -256,31 +268,21 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return isTopFace(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return isTopFace(face);
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return isTopFace(face);
     }
 
-    @Override
-    public void setSuction(@Nullable Holder<IAspect> suctionAspect, int suctionAmount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        ResourceKey<IAspect> wanted = aspectFilter != null ? aspectFilter : aspect;
-        return wanted == null ? null : Aspects.resolve(level, wanted);
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction face) {
+    protected int pullStrength() {
         if (amount >= capacity()) {
             return 0;
         }
@@ -288,12 +290,22 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
     }
 
     @Override
-    public int getMinimumSuction() {
+    public EssentiaPull pull(@Nullable Direction face) {
+        int strength = pullStrength();
+        if (strength <= 0) {
+            return EssentiaPull.NONE;
+        }
+        ResourceKey<IAspect> wanted = aspectFilter != null ? aspectFilter : aspect;
+        return EssentiaPull.of(wanted == null ? null : Aspects.resolve(level, wanted), strength);
+    }
+
+    @Override
+    public int pullThreshold() {
         return aspectFilter != null ? FILTERED_SUCTION : UNFILTERED_SUCTION;
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> taken, int requested, Direction face) {
+    public int extract(Holder<IAspect> taken, int requested, Direction face, boolean simulate) {
         if (!isTopFace(face) || requested <= 0) {
             return 0;
         }
@@ -301,25 +313,37 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
         if (key.isEmpty()) {
             return 0;
         }
+        if (simulate) {
+            return amount >= requested && key.get().equals(aspect) ? requested : 0;
+        }
         return doTakeFromContainer(key.get(), requested) ? requested : 0;
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> added, int requested, Direction face) {
+    public int insert(Holder<IAspect> added, int requested, Direction face, boolean simulate) {
         ResourceKey<IAspect> key = added.unwrapKey().orElse(null);
         if (key == null || face != Direction.UP) {
             return 0;
+        }
+        if (simulate) {
+            return acceptable(key, requested);
         }
         return requested - doAddToContainer(key, requested);
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public int roomFor(Holder<IAspect> candidate, Direction face) {
+        ResourceKey<IAspect> key = candidate.unwrapKey().orElse(null);
+        return key == null || !isTopFace(face) ? 0 : acceptable(key, Integer.MAX_VALUE);
+    }
+
+    @Override
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return aspect == null ? null : Aspects.resolve(level, aspect);
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return amount;
     }
 

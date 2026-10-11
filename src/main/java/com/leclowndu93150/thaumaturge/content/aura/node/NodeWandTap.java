@@ -4,8 +4,8 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.wands.WandParts;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import com.leclowndu93150.thaumaturge.registry.TTWandParts;
@@ -32,11 +32,11 @@ final class NodeWandTap {
         if (remainingUse % TAP_INTERVAL != 0) {
             return false;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        int strength = BASE_STRENGTH + (knowledge.isResearchComplete(RESEARCH_TAPPER_ONE) ? 1 : 0) + (knowledge.isResearchComplete(RESEARCH_TAPPER_TWO) ? 1 : 0);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        int strength = BASE_STRENGTH + (knowledge.hasCompleted(RESEARCH_TAPPER_ONE) ? 1 : 0) + (knowledge.hasCompleted(RESEARCH_TAPPER_TWO) ? 1 : 0);
         WandParts parts = WandVisHelper.partsOf(wand);
         boolean starter = parts.cap() == TTWandParts.CAP_IRON.get() && parts.rod() == TTWandParts.ROD_WOOD.get();
-        boolean preserve = !player.isShiftKeyDown() && !starter && knowledge.isResearchComplete(RESEARCH_PRESERVE);
+        boolean preserve = !player.isShiftKeyDown() && !starter && knowledge.hasCompleted(RESEARCH_PRESERVE);
         int minimumStock = preserve ? PRESERVE_MINIMUM_STOCK : 1;
         int wandMax = WandVisHelper.capacityOf(wand);
         List<Holder<IAspect>> tappable = new ArrayList<>();

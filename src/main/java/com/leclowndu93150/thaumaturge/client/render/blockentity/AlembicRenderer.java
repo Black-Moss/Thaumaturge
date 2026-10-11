@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -124,8 +124,8 @@ public class AlembicRenderer implements BlockEntityRenderer<BlockEntityAlembic, 
         List<Direction> connected = new ArrayList<>();
         for (Direction side : Direction.Plane.HORIZONTAL) {
             Direction back = side.getOpposite();
-            IEssentiaTransport transport = EssentiaAccess.transport(level, pos.relative(side), back);
-            if (transport != null && transport.isConnectable(back)) {
+            IEssentiaConduit conduit = EssentiaAccess.conduit(level, pos.relative(side), back);
+            if (conduit != null && conduit.connectsOn(back)) {
                 connected.add(side);
             }
         }

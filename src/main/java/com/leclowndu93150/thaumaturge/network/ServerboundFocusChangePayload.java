@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.network;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
 import com.leclowndu93150.thaumaturge.content.casters.CasterManager;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -23,8 +23,8 @@ public record ServerboundFocusChangePayload(String focusKey) implements CustomPa
         context.enqueueWork(() -> {
             Player player = context.player();
             ItemStack main = player.getMainHandItem();
-            ItemStack target = main.getItem() instanceof ICaster ? main : player.getOffhandItem();
-            if (target.getItem() instanceof ICaster) {
+            ItemStack target = main.getItem() instanceof FocusCaster ? main : player.getOffhandItem();
+            if (target.getItem() instanceof FocusCaster) {
                 CasterManager.applyFocusChoice(target, player.level(), player, payload.focusKey());
             }
         });

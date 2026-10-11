@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumaturge.content.eldritch.altar;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthPhase;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeServerConfig;
 import com.leclowndu93150.thaumaturge.config.labyrinth.LabyrinthConfig;
@@ -48,7 +48,7 @@ final class AltarRituals {
             TTActionBar.sendPurple(player, "gui.thaumaturge.altar.need_eyes");
             return;
         }
-        if (!KnowledgeAccess.of(player).isResearchComplete(TTIds.RESEARCH_OCULUS)) {
+        if (!PlayerResearchAccess.of(player).hasCompleted(TTIds.RESEARCH_OCULUS)) {
             TTActionBar.sendPurple(player, "gui.thaumaturge.altar.ritual_unknown");
             return;
         }

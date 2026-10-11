@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.toast;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.client.render.research.EntryIconRenderer;
@@ -44,16 +44,16 @@ public final class ResearchToastEvents {
             return;
         }
         ticksSinceScan = 0;
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         List<Identifier> flagged = new ArrayList<>();
-        for (Identifier research : knowledge.researchList()) {
-            if (knowledge.hasResearchFlag(research, ResearchFlag.POPUP)) {
+        for (Identifier research : knowledge.knownEntries()) {
+            if (knowledge.hasFlag(research, ResearchFlag.POPUP)) {
                 flagged.add(research);
             }
         }
         for (Identifier research : flagged) {
             raiseToast(minecraft, player, research);
-            knowledge.clearResearchFlag(research, ResearchFlag.POPUP);
+            knowledge.removeFlag(research, ResearchFlag.POPUP);
         }
         for (Identifier research : flagged) {
             ClientPacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(research, List.of(ResearchFlag.POPUP)));

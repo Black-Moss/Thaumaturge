@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.work;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,15 +35,14 @@ public final class AdjacentEssentiaDraw {
     private boolean takeFrom(ServerLevel level, BlockPos body, Direction side, Holder<IAspect> wanted) {
         probe.setWithOffset(body, side);
         Direction touching = side.getOpposite();
-        IEssentiaTransport neighbour = EssentiaFlowHandler.transport(level, probe, touching);
+        IEssentiaConduit neighbour = EssentiaFlowHandler.conduit(level, probe, touching);
         if (neighbour == null || !willGive(neighbour, touching)) {
             return false;
         }
-        return neighbour.takeEssentia(wanted, ONE_POINT, touching) == ONE_POINT;
+        return neighbour.extract(wanted, ONE_POINT, touching, false) == ONE_POINT;
     }
 
-    private static boolean willGive(IEssentiaTransport neighbour, Direction touching) {
-        return neighbour.canOutputTo(touching) && neighbour.getEssentiaAmount(touching) >= ONE_POINT && neighbour.getSuctionAmount(touching) < DRAW_SUCTION
-                && neighbour.getMinimumSuction() <= DRAW_SUCTION;
+    private static boolean willGive(IEssentiaConduit neighbour, Direction touching) {
+        return neighbour.releasesOn(touching) && neighbour.heldAmount(touching) >= ONE_POINT && neighbour.pull(touching).strength() < DRAW_SUCTION && neighbour.pullThreshold() <= DRAW_SUCTION;
     }
 }

@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.client.screen.research.detail.knowledge;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.client.screen.TTTooltips;
@@ -59,18 +59,18 @@ public final class KnowledgeGridRenderer {
         if (player == null) {
             return 0;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         return categories(player).map(KnowledgeGridRenderer::keysOf)
-                .map(keys -> (int) Arrays.stream(KnowledgeType.values()).filter(type -> keys.stream().anyMatch(key -> knowledge.rawKnowledge(type, key) > 0)).count()).orElse(0);
+                .map(keys -> (int) Arrays.stream(KnowledgeType.values()).filter(type -> keys.stream().anyMatch(key -> knowledge.knowledgePoints(type, key) > 0)).count()).orElse(0);
     }
 
     public static boolean hasAnyKnowledge(@Nullable Player player) {
         if (player == null) {
             return false;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         return categories(player).map(KnowledgeGridRenderer::keysOf)
-                .map(keys -> keys.stream().anyMatch(key -> Arrays.stream(KnowledgeType.values()).anyMatch(type -> knowledge.rawKnowledge(type, key) > 0))).orElse(false);
+                .map(keys -> keys.stream().anyMatch(key -> Arrays.stream(KnowledgeType.values()).anyMatch(type -> knowledge.knowledgePoints(type, key) > 0))).orElse(false);
     }
 
     public static void drawInPage(GuiGraphicsExtractor graphics, DetailFrame frame, int mouseX, int mouseY) {
@@ -88,7 +88,7 @@ public final class KnowledgeGridRenderer {
 
     private static void draw(GuiGraphicsExtractor graphics, DetailFrame frame, int originX, int originY, int mouseX, int mouseY, KnowledgeGridLayout layout) {
         Player player = frame.player();
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         List<Holder.Reference<IResearchCategory>> categories = categories(player).orElse(null);
         if (categories == null || categories.isEmpty()) {
             return;
@@ -105,8 +105,8 @@ public final class KnowledgeGridRenderer {
                 if (categoryKey == null) {
                     continue;
                 }
-                int amount = knowledge.knowledge(type, categoryKey);
-                int partial = type.progression() > 0 ? knowledge.rawKnowledge(type, categoryKey) % type.progression() : 0;
+                int amount = knowledge.knowledgeLevel(type, categoryKey);
+                int partial = type.progression() > 0 ? knowledge.knowledgePoints(type, categoryKey) % type.progression() : 0;
                 if (amount <= 0 && partial <= 0) {
                     continue;
                 }

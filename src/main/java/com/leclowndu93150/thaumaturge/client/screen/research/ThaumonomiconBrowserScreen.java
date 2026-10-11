@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
@@ -572,7 +572,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
 
     private void drawConnectors(GuiGraphicsExtractor graphics, List<EntryNode> nodes, int originX, int originY) {
         BrowserModel data = model();
-        IPlayerKnowledge knowledge = data.knowledge();
+        PlayerResearch knowledge = data.knowledge();
         for (EntryNode node : nodes) {
             if (!data.visible(node)) {
                 continue;
@@ -584,7 +584,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
                 if (parent.inherit() || other == null || !other.categoryId().equals(node.categoryId()) || other.value().siblings().contains(node.id())) {
                     continue;
                 }
-                if (knowledge.isResearchComplete(other.id())) {
+                if (knowledge.hasCompleted(other.id())) {
                     link(graphics, node, other, originX, originY, COLOR_PARENT_DONE, LAYER_PARENT_DONE, true, reverse);
                 } else if (data.visible(other)) {
                     link(graphics, node, other, originX, originY, COLOR_PARENT_OPEN, LAYER_PARENT_OPEN, true, reverse);
@@ -595,7 +595,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
                 if (other == null || !other.categoryId().equals(node.categoryId())) {
                     continue;
                 }
-                if (knowledge.isResearchComplete(other.id())) {
+                if (knowledge.hasCompleted(other.id())) {
                     link(graphics, other, node, originX, originY, COLOR_SIBLING_DONE, LAYER_SIBLING_DONE, false, reverse);
                 } else if (data.visible(other)) {
                     link(graphics, other, node, originX, originY, COLOR_SIBLING_OPEN, LAYER_SIBLING_OPEN, false, reverse);
@@ -610,7 +610,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
 
     private void drawNodes(GuiGraphicsExtractor graphics, List<EntryNode> nodes, int drawnX, int drawnY, int mouseX, int mouseY) {
         BrowserModel data = model();
-        IPlayerKnowledge knowledge = data.knowledge();
+        PlayerResearch knowledge = data.knowledge();
         boolean pointerInside = inViewport(mouseX, mouseY);
         for (EntryNode node : nodes) {
             if (!data.visible(node)) {
@@ -625,15 +625,14 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             int originX = MARGIN + relX;
             int originY = MARGIN + relY;
             EntryIconRenderer.Status status = EntryIconRenderer.Status.UNKNOWN;
-            if (knowledge.isResearchComplete(node.id())) {
+            if (knowledge.hasCompleted(node.id())) {
                 status = EntryIconRenderer.Status.COMPLETE;
             } else if (data.canUnlock(node)) {
                 status = EntryIconRenderer.Status.IN_PROGRESS;
             }
             boolean warp = entry.stages().stream().anyMatch(stage -> stage.warp() > 0);
             Object icon = EntryIconRenderer.resolveIcon(entry, tickCounter);
-            EntryIconRenderer.render(graphics, originX, originY, entry, status, icon, warp, knowledge.hasResearchFlag(node.id(), ResearchFlag.RESEARCH),
-                    knowledge.hasResearchFlag(node.id(), ResearchFlag.PAGE));
+            EntryIconRenderer.render(graphics, originX, originY, entry, status, icon, warp, knowledge.hasFlag(node.id(), ResearchFlag.RESEARCH), knowledge.hasFlag(node.id(), ResearchFlag.PAGE));
             if (pointerInside && mouseX >= (originX + HOVER_BOX_NEAR) / zoom && mouseX <= (originX + HOVER_BOX_FAR) / zoom && mouseY >= (originY + HOVER_BOX_NEAR) / zoom
                     && mouseY <= (originY + HOVER_BOX_FAR) / zoom) {
                 hovered = node;
@@ -665,20 +664,20 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     }
 
     private TabStats statsOf(CategoryRef category) {
-        IPlayerKnowledge knowledge = model().knowledge();
+        PlayerResearch knowledge = model().knowledge();
         boolean newResearch = false;
         boolean newPage = false;
         int known = 0;
         int counted = 0;
         for (EntryNode node : model().entriesOf(category.id())) {
-            boolean isKnown = knowledge.isResearchKnown(node.id());
+            boolean isKnown = knowledge.knows(node.id());
             if (!node.value().hasMeta(ResearchEntryMeta.AUTOUNLOCK)) {
                 counted++;
                 known += isKnown ? 1 : 0;
             }
             if (isKnown) {
-                newResearch |= knowledge.hasResearchFlag(node.id(), ResearchFlag.RESEARCH);
-                newPage |= knowledge.hasResearchFlag(node.id(), ResearchFlag.PAGE);
+                newResearch |= knowledge.hasFlag(node.id(), ResearchFlag.RESEARCH);
+                newPage |= knowledge.hasFlag(node.id(), ResearchFlag.PAGE);
             }
         }
         return new TabStats(newResearch, newPage, counted == 0 ? 0 : (int) ((double) known / counted * PERCENT_SCALE));
@@ -779,13 +778,13 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     }
 
     private boolean clickEntry(EntryNode node) {
-        IPlayerKnowledge knowledge = model().knowledge();
+        PlayerResearch knowledge = model().knowledge();
         Identifier id = node.id();
-        if (knowledge.isResearchKnown(id)) {
-            knowledge.clearResearchFlag(id, ResearchFlag.RESEARCH);
-            knowledge.clearResearchFlag(id, ResearchFlag.PAGE);
+        if (knowledge.knows(id)) {
+            knowledge.removeFlag(id, ResearchFlag.RESEARCH);
+            knowledge.removeFlag(id, ResearchFlag.PAGE);
             ClientPacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(id, List.of(ResearchFlag.RESEARCH, ResearchFlag.PAGE)));
-            int stage = knowledge.researchStage(id);
+            int stage = knowledge.stageOf(id);
             if (stage > 0 && stage >= node.value().stages().size() - 1) {
                 ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(id));
             }
@@ -803,14 +802,14 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
 
     private List<TooltipLine> tooltipLines(EntryNode node) {
         BrowserModel data = model();
-        IPlayerKnowledge knowledge = data.knowledge();
+        PlayerResearch knowledge = data.knowledge();
         IResearchEntry entry = node.value();
         Identifier id = node.id();
         List<TooltipLine> lines = new ArrayList<>();
         lines.add(new TooltipLine(TTTooltips.entryNameGold(Component.translatable(entry.nameKey())), TooltipLineScale.NORMAL));
         if (data.canUnlock(node)) {
-            int stage = knowledge.researchStage(id);
-            boolean inProgress = !knowledge.isResearchComplete(id) && !entry.stages().isEmpty();
+            int stage = knowledge.stageOf(id);
+            boolean inProgress = !knowledge.hasCompleted(id) && !entry.stages().isEmpty();
             if (inProgress && stage < 0) {
                 lines.add(new TooltipLine(TTTooltips.beginResearch(), TooltipLineScale.HALF));
             } else if (inProgress) {
@@ -832,7 +831,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             }
         }
         for (ResearchFlag flag : FLAG_NOTE_ORDER) {
-            if (knowledge.hasResearchFlag(id, flag)) {
+            if (knowledge.hasFlag(id, flag)) {
                 Component note = flag == ResearchFlag.RESEARCH ? TTTooltips.researchNew() : TTTooltips.pageNew();
                 lines.add(new TooltipLine(note, TooltipLineScale.HALF));
             }

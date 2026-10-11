@@ -2,9 +2,10 @@ package com.leclowndu93150.thaumaturge.content.golem.press;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
@@ -37,7 +38,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity implements IEssentiaTransport, MenuProvider {
+public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity implements IEssentiaConduit, MenuProvider {
     public static final int SLOT_OUTPUT = 0;
 
     private static final String KEY_GOLEM = "golem";
@@ -150,8 +151,8 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
             return false;
         }
         for (Direction side : DRAIN_ORDER) {
-            IEssentiaTransport source = drainSource(level, side);
-            if (source != null && source.takeEssentia(machina, UNIT, side.getOpposite()) == UNIT) {
+            IEssentiaConduit source = drainSource(level, side);
+            if (source != null && source.extract(machina, UNIT, side.getOpposite(), false) == UNIT) {
                 return true;
             }
         }
@@ -214,14 +215,14 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
         }
     }
 
-    private @Nullable IEssentiaTransport drainSource(Level level, Direction side) {
+    private @Nullable IEssentiaConduit drainSource(Level level, Direction side) {
         BlockPos neighbour = worldPosition.relative(side);
-        if (!isConnectable(side) || !level.hasChunkAt(neighbour)) {
+        if (!connectsOn(side) || !level.hasChunkAt(neighbour)) {
             return null;
         }
         Direction facing = side.getOpposite();
-        IEssentiaTransport candidate = level.getCapability(EssentiaCapabilities.TRANSPORT, neighbour, facing);
-        boolean usable = candidate != null && candidate.isConnectable(facing) && candidate.canOutputTo(facing) && candidate.getSuctionAmount(facing) < WORKING_SUCTION;
+        IEssentiaConduit candidate = EssentiaAccess.conduit(level, neighbour, facing);
+        boolean usable = candidate != null && candidate.connectsOn(facing) && candidate.releasesOn(facing) && candidate.pull(facing).strength() < WORKING_SUCTION;
         return usable ? candidate : null;
     }
 
@@ -259,7 +260,7 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
         if (level == null || level.isClientSide() || cost != 0 || pending != null) {
             return false;
         }
-        if (!props.isKnownBy(KnowledgeAccess.of(player))) {
+        if (!props.isKnownBy(PlayerResearchAccess.of(player))) {
             return false;
         }
         GolemProperties design = props.withRank(RANK_ZERO);
@@ -323,59 +324,58 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return face != Direction.UP;
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
-        return isConnectable(face);
+    public boolean receivesOn(Direction face) {
+        return connectsOn(face);
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         boolean acceptable = isWorking() && !buffered && amount > 0 && aspect.is(TTAspects.MACHINA);
-        buffered = buffered || acceptable;
+        if (!simulate) {
+            buffered = buffered || acceptable;
+        }
         return acceptable ? UNIT : NOTHING;
     }
 
     @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        return isWorking() ? WORKING_SUCTION : NOTHING;
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
+        return isWorking() && !buffered && aspect.is(TTAspects.MACHINA) ? UNIT : NOTHING;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return EssentiaTransportHelper.resolve(level, TTAspects.MACHINA);
+    public EssentiaPull pull(@Nullable Direction face) {
+        return isWorking() ? EssentiaPull.of(EssentiaTransportHelper.resolve(level, TTAspects.MACHINA), WORKING_SUCTION) : EssentiaPull.NONE;
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return PASSIVE_OUTPUT;
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int extract(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         return NOTHING;
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return NOTHING;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return null;
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return NOTHING;
     }
-
-    @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
 
     private final class OutputSlot extends ItemStacksResourceHandler {
         OutputSlot() {

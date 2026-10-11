@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube.buffer;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,13 +28,13 @@ public final class PullSelector {
                 continue;
             }
             Direction back = side.getOpposite();
-            IEssentiaTransport peer = EssentiaFlowHandler.transport(level, pos.relative(side), back);
-            if (peer == null || !peer.isConnectable(back)) {
+            IEssentiaConduit peer = EssentiaFlowHandler.conduit(level, pos.relative(side), back);
+            if (peer == null || !peer.connectsOn(back)) {
                 continue;
             }
-            Holder<IAspect> offered = peer.getEssentiaType(back);
+            Holder<IAspect> offered = peer.heldAspect(back);
             int offer = policy.offered(sides.choke(side));
-            if (offered != null && peer.getEssentiaAmount(back) >= MIN_UNITS && peer.canOutputTo(back) && peer.getSuctionAmount(back) < offer && offer >= peer.getMinimumSuction()) {
+            if (offered != null && peer.heldAmount(back) >= MIN_UNITS && peer.releasesOn(back) && peer.pull(back).strength() < offer && offer >= peer.pullThreshold()) {
                 return new PullCandidate(side, peer, offered);
             }
         }

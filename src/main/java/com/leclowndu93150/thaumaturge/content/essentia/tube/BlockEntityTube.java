@@ -3,7 +3,8 @@ package com.leclowndu93150.thaumaturge.content.essentia.tube;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.cadence.CadencePhase;
 import com.leclowndu93150.thaumaturge.content.essentia.cadence.TickCadence;
@@ -47,7 +48,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssentiaTransport, IInteractWithCaster {
+public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssentiaConduit, IInteractWithCaster {
     protected static final Codec<ResourceKey<IAspect>> ASPECT_KEY_CODEC = LegacyIds.ASPECT_KEY_CODEC;
 
     private static final String ESSENTIA_TYPE_KEY = "EssentiaType";
@@ -85,7 +86,8 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     private final TubeBehaviour behaviour;
     private final TickCadence cadence;
     private TubeCell cell = TubeCell.EMPTY;
-    private TubeSuction pull = TubeSuction.NONE;
+    private TubeSuction suction = TubeSuction.NONE;
+    private @Nullable EssentiaPull exposedPull = EssentiaPull.NONE;
     private int ventPauseLeft;
     private int jetTicksLeft;
     private int ventTint = DEFAULT_VENT_COLOR;
@@ -145,8 +147,9 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     }
 
     private boolean inspectPressure(Level level, BlockPos pos) {
-        Holder<IAspect> wanted = getSuctionType(null);
-        if (!PressureClash.assess(level, pos, this, getSuctionAmount(null), wanted).isClash()) {
+        EssentiaPull own = pull(null);
+        Holder<IAspect> wanted = own.aspect();
+        if (!PressureClash.assess(level, pos, this, own.strength(), wanted).isClash()) {
             return false;
         }
         ventPauseLeft = VENT_PAUSE_TICKS;
@@ -261,7 +264,7 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     }
 
     protected boolean hasTransportNeighbour(Direction side) {
-        return level != null && EssentiaFlowHandler.transport(level, worldPosition.relative(side), side.getOpposite()) != null;
+        return level != null && EssentiaFlowHandler.conduit(level, worldPosition.relative(side), side.getOpposite()) != null;
     }
 
     @Override
@@ -312,81 +315,86 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return face != null && isSideOpen(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return face != null && isSideOpen(face);
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return face != null && isSideOpen(face);
     }
 
-    @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {
-        pull = TubeSuction.of(aspect, amount);
+    public void assignPull(@Nullable Holder<IAspect> aspect, int strength) {
+        suction = TubeSuction.of(aspect, strength);
+        exposedPull = suction.isPulling() ? null : EssentiaPull.NONE;
     }
 
     protected void clearSuction() {
-        pull = TubeSuction.NONE;
+        suction = TubeSuction.NONE;
+        exposedPull = EssentiaPull.NONE;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return resolve(pull.aspect());
+    public EssentiaPull pull(@Nullable Direction face) {
+        EssentiaPull cached = exposedPull;
+        if (cached == null) {
+            cached = EssentiaPull.of(resolve(suction.aspect()), suction.strength());
+            exposedPull = cached;
+        }
+        return cached;
     }
 
     @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        return pull.strength();
-    }
-
-    @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return resolve(cell.aspect());
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return cell.amount();
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return 0;
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (amount < MIN_TRANSFER || face == null || !canOutputTo(face) || !cell.hasUnit() || !cell.holds(aspect)) {
+    public int extract(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        if (amount < MIN_TRANSFER || face == null || !releasesOn(face) || !cell.hasUnit() || !cell.holds(aspect)) {
             return 0;
         }
-        cell = TubeCell.EMPTY;
-        setChanged();
+        if (!simulate) {
+            cell = TubeCell.EMPTY;
+            setChanged();
+        }
         return TubeCell.CAPACITY;
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (amount < MIN_TRANSFER || face == null || !canInputFrom(face) || cell.isOccupied()) {
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        if (amount < MIN_TRANSFER || face == null || !receivesOn(face) || cell.isOccupied()) {
             return 0;
         }
         ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
         if (key == null) {
             return 0;
         }
-        cell = TubeCell.holding(key);
-        setChanged();
+        if (!simulate) {
+            cell = TubeCell.holding(key);
+            setChanged();
+        }
         return TubeCell.CAPACITY;
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> aspect, Direction face) {
-        return face != null && canInputFrom(face) && !cell.isOccupied() ? TubeCell.CAPACITY : 0;
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
+        return face != null && receivesOn(face) && !cell.isOccupied() ? TubeCell.CAPACITY : 0;
     }
 
     public @Nullable ResourceKey<IAspect> essentiaKey() {
@@ -398,11 +406,11 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     }
 
     public @Nullable ResourceKey<IAspect> suctionKey() {
-        return pull.aspect();
+        return suction.aspect();
     }
 
     public int suctionRaw() {
-        return pull.strength();
+        return suction.strength();
     }
 
     protected @Nullable Holder<IAspect> resolve(@Nullable ResourceKey<IAspect> key) {
@@ -414,8 +422,8 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
         super.saveAdditional(output);
         output.storeNullable(ESSENTIA_TYPE_KEY, ASPECT_KEY_CODEC, cell.aspect());
         output.putInt(ESSENTIA_AMOUNT_KEY, cell.amount());
-        output.storeNullable(SUCTION_TYPE_KEY, ASPECT_KEY_CODEC, pull.aspect());
-        output.putInt(SUCTION_KEY, pull.strength());
+        output.storeNullable(SUCTION_TYPE_KEY, ASPECT_KEY_CODEC, suction.aspect());
+        output.putInt(SUCTION_KEY, suction.strength());
         output.putInt(FACING_KEY, flowSide.ordinal());
         writeOpenSides(output);
     }
@@ -424,7 +432,8 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         cell = new TubeCell(input.read(ESSENTIA_TYPE_KEY, ASPECT_KEY_CODEC).orElse(null), input.getIntOr(ESSENTIA_AMOUNT_KEY, 0));
-        pull = new TubeSuction(input.read(SUCTION_TYPE_KEY, ASPECT_KEY_CODEC).orElse(null), input.getIntOr(SUCTION_KEY, 0));
+        suction = new TubeSuction(input.read(SUCTION_TYPE_KEY, ASPECT_KEY_CODEC).orElse(null), input.getIntOr(SUCTION_KEY, 0));
+        exposedPull = null;
         flowSide = BlockEssentiaTransport.directionOrNorth(input.getIntOr(FACING_KEY, Direction.NORTH.ordinal()));
         readOpenSides(input);
     }

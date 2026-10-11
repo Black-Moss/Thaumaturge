@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.casters;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.client.casters.architect.AxisArrowPass;
 import com.leclowndu93150.thaumaturge.client.casters.architect.CornerFramePass;
 import com.leclowndu93150.thaumaturge.client.casters.architect.PreviewRefresher;
@@ -63,8 +63,8 @@ public final class ArchitectOverlayRenderer {
     public static void onBlockOutline(ExtractBlockOutlineRenderStateEvent event) {
         Player viewer = Minecraft.getInstance().player;
         ItemStack held = viewer == null ? ItemStack.EMPTY : heldArchitect(viewer);
-        if (held.getItem() instanceof IArchitect architect && architect.replacesBlockHighlight(held)
-                && !architect.previewBlocks(held, event.getLevel(), event.getBlockPos(), event.getHitResult().getDirection(), viewer).isEmpty()) {
+        if (held.getItem() instanceof AreaPreviewer architect && architect.hidesBlockOutline(held)
+                && !architect.previewArea(held, event.getLevel(), event.getBlockPos(), event.getHitResult().getDirection(), viewer).isEmpty()) {
             event.setCanceled(true);
         }
     }
@@ -76,10 +76,10 @@ public final class ArchitectOverlayRenderer {
             return null;
         }
         ItemStack held = heldArchitect(player);
-        if (!(held.getItem() instanceof IArchitect architect)) {
+        if (!(held.getItem() instanceof AreaPreviewer architect)) {
             return null;
         }
-        if (architect.aim(held, level, player) instanceof BlockHitResult hit && hit.getType() == HitResult.Type.BLOCK) {
+        if (architect.traceAnchor(held, level, player) instanceof BlockHitResult hit && hit.getType() == HitResult.Type.BLOCK) {
             return new AimedArchitect(level, player, held, architect, hit.getBlockPos(), hit.getDirection());
         }
         return null;
@@ -90,7 +90,7 @@ public final class ArchitectOverlayRenderer {
         boolean[] visible = new boolean[axes.length];
         boolean any = false;
         for (Direction.Axis axis : axes) {
-            boolean shows = aimed.architect().showsAxis(aimed.stack(), aimed.level(), aimed.player(), aimed.face(), axis);
+            boolean shows = aimed.architect().showsAxisArrows(aimed.stack(), aimed.level(), aimed.player(), aimed.face(), axis);
             visible[axis.ordinal()] = shows;
             any |= shows;
         }
@@ -100,13 +100,13 @@ public final class ArchitectOverlayRenderer {
     private static ItemStack heldArchitect(Player player) {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack candidate = player.getItemInHand(hand);
-            if (candidate.getItem() instanceof IArchitect) {
+            if (candidate.getItem() instanceof AreaPreviewer) {
                 return candidate;
             }
         }
         return ItemStack.EMPTY;
     }
 
-    private record AimedArchitect(ClientLevel level, LocalPlayer player, ItemStack stack, IArchitect architect, BlockPos anchor, Direction face) {
+    private record AimedArchitect(ClientLevel level, LocalPlayer player, ItemStack stack, AreaPreviewer architect, BlockPos anchor, Direction face) {
     }
 }

@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.misc;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.TTResearchCategories;
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
@@ -88,7 +88,7 @@ public final class ItemCurio extends Item {
         if (totalWarp(reader) <= RITES_WARP_THRESHOLD) {
             return false;
         }
-        if (!KnowledgeAccess.of(reader).isResearchKnown(RITES_RESEARCH)) {
+        if (!PlayerResearchAccess.of(reader).knows(RITES_RESEARCH)) {
             ResearchManager.complete(reader, RITES_RESEARCH);
         }
         return true;

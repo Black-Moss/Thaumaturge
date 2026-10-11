@@ -47,16 +47,16 @@ final class JadeEssentiaDetails {
     }
     static void centrifuge(BlockEntityCentrifuge machine, JadeDetailBuilder data) {
         AspectList contents = AspectList.EMPTY;
-        if (machine.getEssentiaType(Direction.UP) != null && machine.getEssentiaAmount(Direction.UP) > 0) {
-            contents = contents.add(machine.getEssentiaType(Direction.UP), machine.getEssentiaAmount(Direction.UP));
+        if (machine.heldAspect(Direction.UP) != null && machine.heldAmount(Direction.UP) > 0) {
+            contents = contents.add(machine.heldAspect(Direction.UP), machine.heldAmount(Direction.UP));
         }
         data.storage(contents, 1, false);
         data.summary("jade.thaumaturge.centrifuge.state", Component.translatable(machine.isSpinning() ? "jade.thaumaturge.state.processing" : "jade.thaumaturge.state.idle"));
     }
     static void crystalizer(BlockEntityEssentiaCrystalizer machine, JadeDetailBuilder data) {
         AspectList contents = AspectList.EMPTY;
-        if (machine.getEssentiaType(Direction.UP) != null) {
-            contents = contents.add(machine.getEssentiaType(Direction.UP), 1);
+        if (machine.heldAspect(Direction.UP) != null) {
+            contents = contents.add(machine.heldAspect(Direction.UP), 1);
         }
         data.summary(contents.isEmpty() ? "jade.thaumaturge.state.idle" : "jade.thaumaturge.state.processing");
         data.storage(contents, 1, false);

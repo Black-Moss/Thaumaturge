@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.decon;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
@@ -57,7 +57,7 @@ public final class BlockDeconstructionTable extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide()) {
-            if (player instanceof ServerPlayer serverPlayer && !KnowledgeAccess.of(serverPlayer).isResearchComplete(DECONSTRUCTOR_RESEARCH)) {
+            if (player instanceof ServerPlayer serverPlayer && !PlayerResearchAccess.of(serverPlayer).hasCompleted(DECONSTRUCTOR_RESEARCH)) {
                 serverPlayer.connection
                         .send(new ClientboundSetActionBarTextPacket(Component.translatable("message.thaumaturge.device.not_understood").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC)));
                 return InteractionResult.SUCCESS;

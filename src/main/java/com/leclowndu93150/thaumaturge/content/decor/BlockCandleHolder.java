@@ -106,7 +106,7 @@ public final class BlockCandleHolder extends AbstractCandleBlock implements IRes
     }
 
     @Override
-    public boolean canStabiliseInfusion(Level level, BlockPos pos) {
+    public boolean stabilisesNow(Level level, BlockPos pos) {
         return level.getBlockState(pos).getValue(CANDLE).isPresent();
     }
 
@@ -116,22 +116,22 @@ public final class BlockCandleHolder extends AbstractCandleBlock implements IRes
     }
 
     @Override
-    public float getStabilizationAmount(Level level, BlockPos pos) {
+    public float pairValue(Level level, BlockPos pos) {
         return material.stabilization();
     }
 
     @Override
-    public boolean hasSymmetryPenalty(Level level, BlockPos pos, BlockPos mirrored) {
+    public boolean penalisesPairWith(Level level, BlockPos pos, BlockPos mirrored) {
         return level.getBlockState(mirrored).getBlock() != this;
     }
 
     @Override
-    public float getSymmetryPenalty(Level level, BlockPos pos) {
+    public float penaltyValue(Level level, BlockPos pos) {
         return material.stabilization();
     }
 
     @Override
-    public Block stabiliserIdentity(Level level, BlockPos pos) {
+    public Block countsAs(Level level, BlockPos pos) {
         return level.getBlockState(pos).getValue(CANDLE).candle().<Block>map(candle -> candle).orElse(this);
     }
 }

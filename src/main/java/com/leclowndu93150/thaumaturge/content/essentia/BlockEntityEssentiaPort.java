@@ -2,7 +2,8 @@ package com.leclowndu93150.thaumaturge.content.essentia;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.infusion.EssentiaSources;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
@@ -17,10 +18,11 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityEssentiaPort extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityEssentiaPort extends BlockEntity implements IEssentiaConduit {
     private static final int SOURCE_RANGE = 16;
     private static final int WORK_INTERVAL = 5;
     private static final int INTAKE_SUCTION = 128;
+    private static final EssentiaPull INTAKE_PULL = EssentiaPull.any(INTAKE_SUCTION);
     private static final int SINGLE_POINT = 1;
     private static final int VISUAL_EXTENSION = 10;
     private static final long SEARCH_BACKOFF_TICKS = 200L;
@@ -47,8 +49,8 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
         }
         Direction toTube = port.tubeSide();
         Direction tubeFace = toTube.getOpposite();
-        IEssentiaTransport tube = EssentiaFlowHandler.transport(server, pos.relative(toTube), tubeFace);
-        if (tube == null || !tube.isConnectable(tubeFace)) {
+        IEssentiaConduit tube = EssentiaFlowHandler.conduit(server, pos.relative(toTube), tubeFace);
+        if (tube == null || !tube.connectsOn(tubeFace)) {
             return;
         }
         if (port.input) {
@@ -62,34 +64,35 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
         port.searchFailed = false;
     }
 
-    private boolean pushIntoSources(ServerLevel server, IEssentiaTransport tube, Direction tubeFace) {
-        if (!tube.canOutputTo(tubeFace) || tube.getEssentiaAmount(tubeFace) < SINGLE_POINT || tube.getSuctionAmount(tubeFace) >= INTAKE_SUCTION || tube.getMinimumSuction() > INTAKE_SUCTION) {
+    private boolean pushIntoSources(ServerLevel server, IEssentiaConduit tube, Direction tubeFace) {
+        if (!tube.releasesOn(tubeFace) || tube.heldAmount(tubeFace) < SINGLE_POINT || tube.pull(tubeFace).strength() >= INTAKE_SUCTION || tube.pullThreshold() > INTAKE_SUCTION) {
             return false;
         }
-        Holder<IAspect> aspect = tube.getEssentiaType(tubeFace);
-        if (aspect == null || tube.takeEssentia(aspect, SINGLE_POINT, tubeFace) != SINGLE_POINT) {
+        Holder<IAspect> aspect = tube.heldAspect(tubeFace);
+        if (aspect == null || tube.extract(aspect, SINGLE_POINT, tubeFace, false) != SINGLE_POINT) {
             return false;
         }
         if (sources.insert(server, aspect, VISUAL_EXTENSION)) {
             return true;
         }
         searchFailed = true;
-        if (tube.addEssentia(aspect, SINGLE_POINT, tubeFace) != SINGLE_POINT) {
+        if (tube.insert(aspect, SINGLE_POINT, tubeFace, false) != SINGLE_POINT) {
             AuraHelper.addFlux(server, worldPosition, SINGLE_POINT);
         }
         return false;
     }
 
-    private boolean pullFromSources(ServerLevel server, BlockPos pos, IEssentiaTransport tube, Direction tubeFace) {
-        Holder<IAspect> wanted = tube.getSuctionType(tubeFace);
-        if (wanted == null || !tube.canInputFrom(tubeFace) || tube.getSuctionAmount(tubeFace) <= 0 || tube.addEssentia(wanted, SINGLE_POINT, tubeFace, true) < SINGLE_POINT) {
+    private boolean pullFromSources(ServerLevel server, BlockPos pos, IEssentiaConduit tube, Direction tubeFace) {
+        EssentiaPull tubePull = tube.pull(tubeFace);
+        Holder<IAspect> wanted = tubePull.aspect();
+        if (wanted == null || !tube.receivesOn(tubeFace) || !tubePull.isActive() || tube.insert(wanted, SINGLE_POINT, tubeFace, true) < SINGLE_POINT) {
             return false;
         }
         if (!sources.drain(server, wanted, VISUAL_EXTENSION)) {
             searchFailed = true;
             return false;
         }
-        if (tube.addEssentia(wanted, SINGLE_POINT, tubeFace) == SINGLE_POINT) {
+        if (tube.insert(wanted, SINGLE_POINT, tubeFace, false) == SINGLE_POINT) {
             return true;
         }
         if (!sources.insert(server, wanted, VISUAL_EXTENSION)) {
@@ -108,32 +111,32 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         return touchesTube(face);
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return touchesTube(face) && input;
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return touchesTube(face) && !input;
     }
 
     @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        if (input && touchesTube(face)) {
-            return INTAKE_SUCTION;
-        }
-        return 0;
+    public EssentiaPull pull(@Nullable Direction face) {
+        return input && touchesTube(face) ? INTAKE_PULL : EssentiaPull.NONE;
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int insert(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         if (amount != SINGLE_POINT || !input || !touchesTube(face)) {
             return 0;
+        }
+        if (simulate) {
+            return SINGLE_POINT;
         }
         if (level instanceof ServerLevel server && sources.insert(server, aspect, VISUAL_EXTENSION)) {
             return SINGLE_POINT;
@@ -142,35 +145,27 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
+    public int extract(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         return 0;
     }
 
     @Override
-    public int spaceFor(Holder<IAspect> aspect, Direction face) {
+    public int roomFor(Holder<IAspect> aspect, Direction face) {
         return input && touchesTube(face) ? SINGLE_POINT : 0;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return null;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
-        return null;
-    }
-
-    @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return 0;
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> aspect, int amount) {}
-
-    @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return 0;
     }
 }

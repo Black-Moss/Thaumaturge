@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.infusion;
 
-import com.leclowndu93150.thaumaturge.api.infusion.IInfusionStabiliser;
+import com.leclowndu93150.thaumaturge.api.infusion.AltarStabiliser;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +56,7 @@ public final class InfusionStabilitySurvey {
             return false;
         }
         BlockState state = level.getBlockState(pos);
-        return state.is(TTBlockTags.INFUSION_STABILISERS) || state.getBlock() instanceof IInfusionStabiliser behaviour && behaviour.canStabiliseInfusion(level, pos);
+        return state.is(TTBlockTags.INFUSION_STABILISERS) || state.getBlock() instanceof AltarStabiliser behaviour && behaviour.stabilisesNow(level, pos);
     }
 
     private static float scorePair(Level level, BlockPos pos, BlockPos mirror, Map<Block, Integer> ranks, List<BlockPos> problems) {
@@ -75,32 +75,32 @@ public final class InfusionStabilitySurvey {
     }
 
     private static boolean penalised(Level level, Profile profile, BlockPos pos, BlockPos other) {
-        IInfusionStabiliser behaviour = profile.behaviour();
-        return behaviour != null && behaviour.hasSymmetryPenalty(level, pos, other);
+        AltarStabiliser behaviour = profile.behaviour();
+        return behaviour != null && behaviour.penalisesPairWith(level, pos, other);
     }
 
     private static float penaltyOf(Level level, Profile profile, BlockPos pos) {
-        IInfusionStabiliser behaviour = profile.behaviour();
-        return behaviour == null ? 0.0F : behaviour.getSymmetryPenalty(level, pos);
+        AltarStabiliser behaviour = profile.behaviour();
+        return behaviour == null ? 0.0F : behaviour.penaltyValue(level, pos);
     }
 
     private static Profile profile(Level level, BlockPos pos) {
         if (!level.hasChunkAt(pos)) {
-            return new Profile(Blocks.AIR, IInfusionStabiliser.DEFAULT_STABILIZATION, false, null);
+            return new Profile(Blocks.AIR, AltarStabiliser.STANDARD_PAIR_VALUE, false, null);
         }
         Block block = level.getBlockState(pos).getBlock();
         boolean stabiliser = isStabiliser(level, pos);
-        if (stabiliser && block instanceof IInfusionStabiliser behaviour) {
-            return new Profile(normalise(behaviour.stabiliserIdentity(level, pos)), behaviour.getStabilizationAmount(level, pos), true, behaviour);
+        if (stabiliser && block instanceof AltarStabiliser behaviour) {
+            return new Profile(normalise(behaviour.countsAs(level, pos)), behaviour.pairValue(level, pos), true, behaviour);
         }
-        return new Profile(normalise(block), IInfusionStabiliser.DEFAULT_STABILIZATION, stabiliser, null);
+        return new Profile(normalise(block), AltarStabiliser.STANDARD_PAIR_VALUE, stabiliser, null);
     }
 
     private static Block normalise(Block block) {
         return block instanceof AbstractSkullBlock ? Blocks.SKELETON_SKULL : block;
     }
 
-    private record Profile(Block identity, float amount, boolean stabiliser, @Nullable IInfusionStabiliser behaviour) {
+    private record Profile(Block identity, float amount, boolean stabiliser, @Nullable AltarStabiliser behaviour) {
     }
 
     public record Result(float stabilityReplenish, List<BlockPos> problemBlocks) {

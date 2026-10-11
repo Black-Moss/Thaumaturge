@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.warp.WarpNotices;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
@@ -102,7 +102,7 @@ final class RiftSpawner {
 
     private static void warnNewcomers(ServerLevel level, Vec3 centre) {
         for (ServerPlayer player : level.players()) {
-            if (player.distanceToSqr(centre) > NOTICE_REACH_SQR || KnowledgeAccess.of(player).isResearchComplete(FLUX_AWARENESS_RESEARCH)) {
+            if (player.distanceToSqr(centre) > NOTICE_REACH_SQR || PlayerResearchAccess.of(player).hasCompleted(FLUX_AWARENESS_RESEARCH)) {
                 continue;
             }
             if (ResearchManager.complete(player, FLUX_AWARENESS_RESEARCH)) {

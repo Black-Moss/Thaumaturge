@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.casters;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
 import com.leclowndu93150.thaumaturge.client.input.TTKeybinds;
 import com.leclowndu93150.thaumaturge.content.casters.CasterManager;
 import com.leclowndu93150.thaumaturge.network.ServerboundCasterKeyPayload;
@@ -52,15 +52,15 @@ public final class CasterKeyHandler {
 
     static ItemStack heldCaster(Player player) {
         ItemStack main = player.getMainHandItem();
-        if (main.getItem() instanceof ICaster) {
+        if (main.getItem() instanceof FocusCaster) {
             return main;
         }
         ItemStack off = player.getOffhandItem();
-        return off.getItem() instanceof ICaster ? off : ItemStack.EMPTY;
+        return off.getItem() instanceof FocusCaster ? off : ItemStack.EMPTY;
     }
 
     static ItemStack socketedFocus(ItemStack caster) {
-        return caster.getItem() instanceof ICaster icaster ? icaster.getFocusStack(caster) : ItemStack.EMPTY;
+        return caster.getItem() instanceof FocusCaster icaster ? icaster.socketedFocus(caster) : ItemStack.EMPTY;
     }
 
     static void requestFocus(String focusKey) {

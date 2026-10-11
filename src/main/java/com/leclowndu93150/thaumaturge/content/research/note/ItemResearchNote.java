@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.research.note;
 
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
@@ -34,13 +34,13 @@ public final class ItemResearchNote extends Item {
             return InteractionResult.PASS;
         }
         Identifier learnKey = data.learnKey();
-        if (KnowledgeAccess.of(player).isResearchKnown(learnKey)) {
+        if (PlayerResearchAccess.of(player).knows(learnKey)) {
             return InteractionResult.PASS;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(serverPlayer);
-            knowledge.addResearch(learnKey);
-            knowledge.sync(serverPlayer);
+            PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(serverPlayer);
+            knowledge.learn(learnKey);
+            knowledge.queueSync(serverPlayer);
             AspectPools.data(serverPlayer).incrementCompletedNotes();
             AspectPools.sync(serverPlayer);
             stack.shrink(1);
