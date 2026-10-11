@@ -48,7 +48,7 @@ public final class GrappleGunItem extends Item {
             float pitch = FIRE_PITCH_BASE + server.getRandom().nextFloat() * FIRE_PITCH_SPREAD;
             server.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.ICE.get(), SoundSource.PLAYERS, FIRE_VOLUME, pitch);
             ItemStack stack = player.getItemInHand(hand);
-            if (RechargeAccess.getCharge(stack) >= CHARGE_COST) {
+            if (RechargeAccess.storedVis(stack) >= CHARGE_COST) {
                 fire(server, player, hand, stack);
             }
         }
@@ -74,7 +74,7 @@ public final class GrappleGunItem extends Item {
         grapple.setPos(spawn.x, grapple.getY(), spawn.z);
         launch(grapple, player, LAUNCH);
         if (level.addFreshEntity(grapple)) {
-            onSpawned(stack, player);
+            onSpawned(stack);
         }
     }
 
@@ -96,8 +96,8 @@ public final class GrappleGunItem extends Item {
         grapple.shootFromRotation(player, player.getXRot(), player.getYRot(), parameters.pitchOffset(), parameters.speed(), parameters.inaccuracy());
     }
 
-    private static void onSpawned(ItemStack stack, Player player) {
-        RechargeAccess.consumeCharge(stack, player, CHARGE_COST);
+    private static void onSpawned(ItemStack stack) {
+        RechargeAccess.spendVis(stack, CHARGE_COST);
         LoadedState.set(stack);
     }
 

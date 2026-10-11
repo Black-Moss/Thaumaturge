@@ -5,8 +5,8 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealFilter;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealSetting;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
-import com.leclowndu93150.thaumaturge.api.items.InvHelper;
-import com.leclowndu93150.thaumaturge.api.items.InvHelper.InvFilter;
+import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
+import com.leclowndu93150.thaumaturge.api.items.StackFilter;
 import com.leclowndu93150.thaumaturge.content.casters.BlockBreakerEngine;
 import com.leclowndu93150.thaumaturge.server.TTFakePlayer;
 import net.minecraft.core.BlockPos;
@@ -55,7 +55,7 @@ public final class BreakBehavior extends CellWorkBehavior {
         if (!isWorkable(level, seal, pos)) {
             return retire(task);
         }
-        golem.swingArm();
+        golem.animateSwing();
         BlockState state = level.getBlockState(pos);
         boolean silk = seal.setting(SILK_TOUCH);
         int strike = silk ? SILK_STRIKE_POWER : STRIKE_POWER;
@@ -69,7 +69,7 @@ public final class BreakBehavior extends CellWorkBehavior {
         }
         BlockBreakerEngine.harvestBlock(level, TTFakePlayer.GOLEM.at(level, golem.asEntity()), pos, silk, NO_FORTUNE);
         level.destroyBlockProgress(crackId, pos, CRACK_CLEARED);
-        golem.addRankXp(BREAK_XP);
+        golem.grantRankExperience(BREAK_XP);
         return retire(task);
     }
 
@@ -95,8 +95,8 @@ public final class BreakBehavior extends CellWorkBehavior {
             return filter.isBlacklist();
         }
         boolean exact = seal.setting(ItemMatchSettings.MATCH_DAMAGE);
-        InvFilter match = new InvFilter(!exact, !exact, false, false);
-        return InvHelper.matchesFilters(filter.stacks(), filter.isBlacklist(), form, match);
+        ItemMatch match = ItemMatch.EXACT.ignoringDamage(!exact).ignoringComponents(!exact);
+        return StackFilter.of(filter.stacks(), filter.isBlacklist(), match).accepts(form);
     }
 
     private static ItemStack itemForm(Level level, BlockPos pos, BlockState state) {

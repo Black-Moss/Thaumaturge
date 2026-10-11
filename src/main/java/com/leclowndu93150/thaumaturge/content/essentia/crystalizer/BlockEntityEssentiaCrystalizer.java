@@ -163,7 +163,7 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
         progress = 0;
         if (held != null) {
             ItemStack crystal = EssentiaCrystalAccess.create(held, ONE_POINT);
-            ItemStack leftover = InvHelper.insertStackAt(server, worldPosition.relative(output), output.getOpposite(), crystal, false);
+            ItemStack leftover = InvHelper.insertAt(server, worldPosition.relative(output), output.getOpposite(), crystal, false);
             if (!leftover.isEmpty()) {
                 dropOutward(server, output, leftover);
                 ventTicks = VENT_TICKS;

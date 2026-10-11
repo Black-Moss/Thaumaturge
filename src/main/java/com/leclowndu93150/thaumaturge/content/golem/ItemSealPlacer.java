@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealType;
@@ -47,7 +47,7 @@ public final class ItemSealPlacer extends Item implements ISealDisplayer {
         if (!player.mayUseItemAt(pos.relative(face), face, stack)) {
             return InteractionResult.FAIL;
         }
-        Optional<SealType> type = GolemHelper.sealType(sealKey);
+        Optional<SealType> type = GolemDispatch.sealType(sealKey);
         if (type.isEmpty() || !type.get().placement().allows(level, pos, face)) {
             return InteractionResult.FAIL;
         }

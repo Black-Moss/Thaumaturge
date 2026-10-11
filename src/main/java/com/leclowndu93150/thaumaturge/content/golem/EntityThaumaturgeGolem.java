@@ -224,11 +224,6 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         entityData.set(DATA_PROPERTIES, value);
     }
 
-    @Override
-    public void swingArm() {
-        swing(InteractionHand.MAIN_HAND, false);
-    }
-
     public void paint(byte color) {
         entityData.set(DATA_COLOR, color);
     }
@@ -437,11 +432,6 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     }
 
     @Override
-    public boolean isInCombat() {
-        return hasFlag(FLAG_COMBAT);
-    }
-
-    @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
         boolean connected = super.doHurtTarget(level, target);
         if (connected) {
@@ -456,8 +446,40 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         }
         Optional.ofNullable(properties().arms().ability()).ifPresent(arm -> arm.onMeleeHit(this, target));
         if (target instanceof Mob mob && mob.isDeadOrDying()) {
-            addRankXp(MELEE_KILL_XP);
+            grantRankExperience(MELEE_KILL_XP);
         }
+    }
+
+    @Override
+    public boolean isFighting() {
+        return hasFlag(FLAG_COMBAT);
+    }
+
+    @Override
+    public void animateSwing() {
+        swing(InteractionHand.MAIN_HAND);
+    }
+
+    @Override
+    public void grantRankExperience(int amount) {
+        if (amount <= 0 || !canEarnRank()) {
+            return;
+        }
+        rankXp = (int) Math.min((long) rankXp + amount, Integer.MAX_VALUE);
+        int threshold = xpForNextRank(properties().rank());
+        if (rankXp >= threshold) {
+            rankXp -= threshold;
+            rankUp();
+        }
+    }
+
+    @Override
+    public void applyBuild(IGolemProperties build) {
+        if (level().isClientSide()) {
+            return;
+        }
+        storeProperties(GolemProperties.of(build));
+        refreshStats(true);
     }
 
     @Override
@@ -482,26 +504,6 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
             return;
         }
         finished.release();
-    }
-
-    @Override
-    public void addRankXp(int gained) {
-        if (!canEarnRank()) {
-            return;
-        }
-        int total = rankXp + gained;
-        int cost = xpForNextRank(properties().rank());
-        if (total < cost) {
-            rankXp = total;
-            return;
-        }
-        rankXp = total - cost;
-        rankUp();
-    }
-
-    @Override
-    public void setProperties(IGolemProperties properties) {
-        storeProperties(GolemProperties.of(properties));
     }
 
     public int getRankXp() {

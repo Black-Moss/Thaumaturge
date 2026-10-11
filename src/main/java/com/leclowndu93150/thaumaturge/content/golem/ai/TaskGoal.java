@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.ai;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
@@ -84,13 +84,13 @@ public abstract class TaskGoal extends Goal {
 
     protected boolean mayTake(Task task, BlockPos where) {
         SealPos origin = task.origin();
-        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        ISealEntity seal = origin == null ? null : GolemDispatch.sealAt(golem.level(), origin).orElse(null);
         return SealAccess.allows(seal, golem) && task.canBePerformedBy(golem) && golem.isWithinHome(where);
     }
 
     protected void take(Task task) {
         SealPos origin = task.origin();
-        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        ISealEntity seal = origin == null ? null : GolemDispatch.sealAt(golem.level(), origin).orElse(null);
         if (seal != null && golem.level() instanceof ServerLevel level) {
             seal.behavior().onTaskStarted(level, seal, golem, task);
         }

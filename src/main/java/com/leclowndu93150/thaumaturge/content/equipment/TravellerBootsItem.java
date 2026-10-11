@@ -65,13 +65,13 @@ public final class TravellerBootsItem extends Item {
         int energy = stack.getOrDefault(TTDataComponents.ENERGY.get(), EMPTY_ENERGY);
         if (energy > EMPTY_ENERGY) {
             stack.set(TTDataComponents.ENERGY.get(), energy - 1);
-        } else if (RechargeAccess.consumeCharge(stack, player, CHARGE_PER_REFILL)) {
+        } else if (RechargeAccess.spendVis(stack, CHARGE_PER_REFILL)) {
             stack.set(TTDataComponents.ENERGY.get(), ENERGY_SECONDS_PER_CHARGE);
         }
     }
 
     private static boolean isCharged(ItemStack boots) {
-        return RechargeAccess.getCharge(boots) >= CHARGE_PER_REFILL;
+        return RechargeAccess.storedVis(boots) >= CHARGE_PER_REFILL;
     }
 
     private static boolean isActive(Player player, ItemStack boots) {

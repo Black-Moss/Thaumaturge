@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -39,7 +39,7 @@ public final class UseBehavior implements ISealBehavior {
         if (isReady(level, seal)) {
             Task task = Task.atBlock(seal.pos(), seal.pos().pos());
             task.setPriority(seal.priority());
-            GolemHelper.addGolemTask(level, task);
+            GolemDispatch.postTask(level, task);
             pending = task;
         }
     }
@@ -73,7 +73,7 @@ public final class UseBehavior implements ISealBehavior {
             }
         }
         if (seal.setting(REQUEST_ITEMS) && !filter.isBlacklist()) {
-            GolemHelper.requestProvisioning(golem.level(), seal, required);
+            GolemDispatch.orderSupply(golem.level(), seal, required);
         }
         return false;
     }

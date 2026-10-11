@@ -30,10 +30,10 @@ public enum InfusionEnchantment implements StringRepresentable {
     ARCING("arcing", Tokens.MAX_FOUR, Tokens.WEAPON),
     /** Drops aspect crystals distilled from slain creatures. */
     ESSENCE("essence", Tokens.MAX_FIVE, Tokens.WEAPON),
-    /** Raises the vis capacity of a chargeable item. */
-    VISBATTERY("visbattery", Tokens.MAX_THREE, Tokens.CHARGABLE),
-    /** Raises the recharge rate of a chargeable item. */
-    VISCHARGE("vischarge", Tokens.MAX_ONE, Tokens.CHARGABLE),
+    /** Raises the vis capacity of a rechargeable item. */
+    VISBATTERY("visbattery", Tokens.MAX_THREE, Tokens.RECHARGEABLE),
+    /** Raises the recharge rate of a rechargeable item. */
+    VISCHARGE("vischarge", Tokens.MAX_ONE, Tokens.RECHARGEABLE),
     /** Boots movement enchant. */
     SWIFT("swift", Tokens.MAX_FOUR, Tokens.BOOTS),
     /** Leggings movement enchant. */
@@ -83,10 +83,10 @@ public enum InfusionEnchantment implements StringRepresentable {
         static final String PICKAXE = "pickaxe";
         static final String SHOVEL = "shovel";
         static final String WEAPON = "weapon";
-        static final String CHARGABLE = "chargable";
         static final String BOOTS = "boots";
         static final String LEGS = "legs";
         static final String CHEST = "chest";
+        static final String RECHARGEABLE = "rechargeable";
         static final int MAX_ONE = 1;
         static final int MAX_THREE = 3;
         static final int MAX_FOUR = 4;

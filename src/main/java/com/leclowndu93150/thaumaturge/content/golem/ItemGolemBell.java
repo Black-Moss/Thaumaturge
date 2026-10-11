@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
@@ -71,7 +71,7 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Direction face = context.getClickedFace();
-        ISealEntity seal = GolemHelper.getSealEntity(level, new SealPos(pos, face));
+        ISealEntity seal = GolemDispatch.sealAt(level, new SealPos(pos, face)).orElse(null);
         if (seal == null && !LogisticsGuiOpener.canOpen(player)) {
             return InteractionResult.PASS;
         }
@@ -111,7 +111,7 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
     }
 
     private static @Nullable ISealEntity sealOnEnteredFace(Level level, BlockPos from, BlockPos cell) {
-        return Arrays.stream(Direction.values()).filter(face -> crossedOnAxis(from, cell, face)).map(face -> GolemHelper.getSealEntity(level, new SealPos(cell, face))).filter(Objects::nonNull)
+        return Arrays.stream(Direction.values()).filter(face -> crossedOnAxis(from, cell, face)).map(face -> GolemDispatch.sealAt(level, new SealPos(cell, face)).orElse(null)).filter(Objects::nonNull)
                 .findFirst().orElse(null);
     }
 

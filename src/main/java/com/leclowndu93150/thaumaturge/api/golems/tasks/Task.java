@@ -1,8 +1,9 @@
 package com.leclowndu93150.thaumaturge.api.golems.tasks;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.ProvisionRequest;
+import com.leclowndu93150.thaumaturge.api.golems.SupplyOrder;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import java.util.EnumSet;
@@ -15,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * One unit of golem work on a level's task board.
  *
- * <p>Tasks are created with the static factories and posted through {@link GolemHelper#addGolemTask}, which gives them
+ * <p>Tasks are created with the static factories and posted through {@link GolemDispatch#postTask}, which gives them
  * their id. They live on the server only, are never saved or synchronised, and must be used from the server thread. Life
  * counts board sweeps, one per second.
  *
@@ -38,7 +39,7 @@ public final class Task {
     private byte rank;
     private final Set<Status> status = EnumSet.noneOf(Status.class);
     private @Nullable UUID reservedFor;
-    private @Nullable ProvisionRequest servedRequest;
+    private @Nullable SupplyOrder servedOrder;
 
     private Task(TaskTarget target, @Nullable SealPos origin) {
         this.target = target;
@@ -262,10 +263,10 @@ public final class Task {
     }
 
     /**
-     * Ends the task for good and clears its link to a provisioning request. The board drops it at the next sweep.
+     * Ends the task for good and clears its link to a supply order. The board drops it at the next sweep.
      */
     public void end() {
-        servedRequest = null;
+        servedOrder = null;
         status.add(Status.ENDED);
     }
 
@@ -311,19 +312,41 @@ public final class Task {
     }
 
     /**
-     * @return the provisioning request this task serves, or null
+     * @return the supply order this task serves, or null
+     * @since 1.1.0
      */
-    public @Nullable ProvisionRequest linkedProvision() {
-        return servedRequest;
+    public @Nullable SupplyOrder servedOrder() {
+        return servedOrder;
     }
 
     /**
-     * Sets only this task's pointer; {@link ProvisionRequest#link} sets both sides.
+     * Sets only this task's pointer; {@link SupplyOrder#assign} sets both sides.
+     *
+     * @param order the order this task serves, or null
+     * @since 1.1.0
+     */
+    public void serveOrder(@Nullable SupplyOrder order) {
+        servedOrder = order;
+    }
+
+    /**
+     * @return the provisioning request this task serves, or null
+     * @deprecated use {@link #servedOrder()}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    public @Nullable ProvisionRequest linkedProvision() {
+        return servedOrder instanceof ProvisionRequest request ? request : null;
+    }
+
+    /**
+     * Sets only this task's pointer; {@link SupplyOrder#assign} sets both sides.
      *
      * @param request the request this task serves, or null
+     * @deprecated use {@link #serveOrder(SupplyOrder)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void linkProvision(@Nullable ProvisionRequest request) {
-        servedRequest = request;
+        serveOrder(request);
     }
 
     /**
@@ -334,7 +357,7 @@ public final class Task {
      * @return whether the golem may perform the task
      */
     public boolean canBePerformedBy(IGolemAPI golem) {
-        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        ISealEntity seal = origin == null ? null : GolemDispatch.sealAt(golem.level(), origin).orElse(null);
         if (seal == null) {
             return true;
         }

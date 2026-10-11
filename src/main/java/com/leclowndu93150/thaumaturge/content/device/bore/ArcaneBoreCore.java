@@ -369,7 +369,7 @@ public final class ArcaneBoreCore {
             }
             BlockPos neighbor = host.borePos().relative(direction);
             if (level.hasChunkAt(neighbor)) {
-                rest = InvHelper.insertStackAt(level, neighbor, direction.getOpposite(), rest, false);
+                rest = InvHelper.insertAt(level, neighbor, direction.getOpposite(), rest, false);
             }
         }
         if (!rest.isEmpty()) {

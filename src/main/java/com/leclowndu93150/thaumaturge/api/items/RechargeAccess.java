@@ -13,16 +13,23 @@ import org.jspecify.annotations.Nullable;
 /**
  * Static facade over the vis charge of rechargeable stacks.
  *
- * <p>A stack is rechargeable exactly when it carries a {@link ChargeProfile}. The charge lives in the {@code thaumaturge:charge}
- * component, defaults to zero and is never removed by this class. Every mutation changes the passed stack in place and sends no
- * sync; the normal container update carries the new component to the client. The query members are safe on both sides, and
- * {@link #rechargeItem} must run on the logical server.
+ * <p>A stack is rechargeable exactly when it carries a {@link ChargeProfile}. The charge is held in the {@code thaumaturge:charge}
+ * component as a whole number of vis, defaults to zero and is never removed by this class. Every mutation changes the passed stack in
+ * place and sends no sync; the normal container update carries the new component to the client. The query members are safe on both
+ * sides, and {@link #drawFromAura} must run on the logical server.
  *
  * @since 1.0.0
  */
 public final class RechargeAccess {
+    /**
+     * The value the 1.0 query members return for a stack that is not rechargeable.
+     *
+     * @deprecated test with {@link #isRechargeable(ItemStack)} instead
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    public static final int NOT_RECHARGEABLE = -1;
+
     private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("RechargeAccess");
-    private static final int NOT_RECHARGEABLE = -1;
     private static final int NO_CHARGE = 0;
 
     private RechargeAccess() {}
@@ -54,60 +61,140 @@ public final class RechargeAccess {
     }
 
     /**
-     * Drains vis from the aura at a position into the stack. The drain is real. Vis is drained as a fraction and rounded down to a
-     * whole number when added, so a fractional remainder is lost.
-     *
-     * @param level  the level holding the aura; the logical server
-     * @param stack  the stack to recharge, changed in place
-     * @param pos    the position whose aura is drained
-     * @param player the player the aura must be preserved for, or null
-     * @param amount the most vis to add; zero or negative adds nothing
-     * @return the vis added, zero when the stack is not rechargeable, the aura is preserved or nothing was drained
+     * @param stack the stack to read
+     * @return the stored vis; zero for a stack that was never charged or is not rechargeable
+     * @apiNote Use {@link #isRechargeable(ItemStack)} to tell an empty store from a stack that has none.
+     * @since 1.1.0
      */
-    public static float rechargeItem(Level level, ItemStack stack, BlockPos pos, @Nullable Player player, int amount) {
-        ChargeProfile profile = profile(stack);
-        if (profile == null || amount <= 0 || (player != null && AuraHelper.shouldPreserveAura(level, player, pos))) {
-            return NO_CHARGE;
-        }
-        int charge = storedCharge(stack);
-        int room = profile.capacity() - charge;
-        if (room <= 0) {
-            return NO_CHARGE;
-        }
-        int gained = Math.min((int) AuraHelper.drainVis(level, pos, Math.min(amount, room), false), room);
-        if (gained <= 0) {
-            return NO_CHARGE;
-        }
-        stack.set(BINDING.get().charge(), charge + gained);
-        return gained;
-    }
-
-    /**
-     * Adds charge without touching the aura.
-     *
-     * @param stack  the stack to recharge, changed in place
-     * @param entity unused
-     * @param amount the vis to add
-     * @return the vis added when positive; zero or negative when the stack is unchanged, which includes a non-rechargeable stack, a
-     *         stored charge above capacity and a negative request
-     */
-    public static float rechargeItemBlindly(ItemStack stack, @Nullable LivingEntity entity, int amount) {
-        ChargeProfile profile = profile(stack);
-        if (profile == null) {
-            return NO_CHARGE;
-        }
-        int charge = storedCharge(stack);
-        int added = Math.min(amount, profile.capacity() - charge);
-        if (added > 0) {
-            stack.set(BINDING.get().charge(), charge + added);
-        }
-        return added;
+    public static int storedVis(ItemStack stack) {
+        return isRechargeable(stack) ? storedCharge(stack) : NO_CHARGE;
     }
 
     /**
      * @param stack the stack to read
-     * @return the stored vis, zero when none is stored, or minus one for a non-rechargeable stack
+     * @return how much more vis the stack can take before reaching its capacity; zero when full, above capacity or not rechargeable
+     * @since 1.1.0
      */
+    public static int roomFor(ItemStack stack) {
+        ChargeProfile profile = profile(stack);
+        return profile == null ? NO_CHARGE : Math.max(NO_CHARGE, profile.capacity() - storedCharge(stack));
+    }
+
+    /**
+     * @param stack the stack to read
+     * @return the stored vis divided by the capacity, which exceeds one when the stored charge is above capacity; zero for a stack that
+     *         is not rechargeable
+     * @since 1.1.0
+     */
+    public static float fillFraction(ItemStack stack) {
+        ChargeProfile profile = profile(stack);
+        return profile == null ? NO_CHARGE : (float) storedCharge(stack) / profile.capacity();
+    }
+
+    /**
+     * Tops a stack up from the vis aura at a position. The request is first limited to the room left in the stack. When a player is
+     * given and the aura there must be preserved for that player, nothing is drained. Only whole vis is drained from the aura, so no
+     * fraction is lost, and exactly what is drained is added.
+     *
+     * @param level  the level holding the aura
+     * @param stack  the stack to recharge, changed in place
+     * @param pos    the position whose aura is drained
+     * @param player the player the aura may have to be preserved for, or null to skip that check
+     * @param amount the most vis to add; zero or negative adds nothing
+     * @return the vis added; zero when the stack is not rechargeable or full, the aura is preserved or empty, or on the client
+     * @since 1.1.0
+     */
+    public static int drawFromAura(Level level, ItemStack stack, BlockPos pos, @Nullable Player player, int amount) {
+        int request = Math.min(amount, roomFor(stack));
+        if (level.isClientSide() || request <= 0) {
+            return NO_CHARGE;
+        }
+        if (player != null && AuraHelper.shouldPreserveAura(level, player, pos)) {
+            return NO_CHARGE;
+        }
+        int available = (int) AuraHelper.drainVis(level, pos, request, true);
+        if (available <= 0) {
+            return NO_CHARGE;
+        }
+        int drained = Math.round(AuraHelper.drainVis(level, pos, available, false));
+        if (drained > 0) {
+            stack.set(BINDING.get().charge(), storedCharge(stack) + drained);
+        }
+        return Math.max(NO_CHARGE, drained);
+    }
+
+    /**
+     * Adds charge without touching the aura, limited to the room left in the stack.
+     *
+     * @param stack  the stack to charge, changed in place
+     * @param amount the most vis to add; zero or negative adds nothing
+     * @return the vis added; never negative, and zero for a stack that is not rechargeable, full or above capacity
+     * @since 1.1.0
+     */
+    public static int addVis(ItemStack stack, int amount) {
+        int added = Math.min(amount, roomFor(stack));
+        if (added <= 0) {
+            return NO_CHARGE;
+        }
+        stack.set(BINDING.get().charge(), storedCharge(stack) + added);
+        return added;
+    }
+
+    /**
+     * Pays a cost from the stored charge. All or nothing.
+     *
+     * @param stack the stack to charge against, changed in place on success
+     * @param cost  the vis to deduct; a negative cost is refused
+     * @return whether the cost was paid; false leaves the stack unchanged, which includes a stack that is not rechargeable, a charge
+     *         below the cost and a negative cost
+     * @since 1.1.0
+     */
+    public static boolean spendVis(ItemStack stack, int cost) {
+        if (cost < 0 || !isRechargeable(stack)) {
+            return false;
+        }
+        int stored = storedCharge(stack);
+        if (stored < cost) {
+            return false;
+        }
+        if (cost > 0) {
+            stack.set(BINDING.get().charge(), stored - cost);
+        }
+        return true;
+    }
+
+    /**
+     * @param level  the level holding the aura
+     * @param stack  the stack to recharge
+     * @param pos    the position whose aura is drained
+     * @param player the player the aura may have to be preserved for, or null
+     * @param amount the most vis to add
+     * @return the vis added
+     * @deprecated use {@link #drawFromAura(Level, ItemStack, BlockPos, Player, int)}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    public static float rechargeItem(Level level, ItemStack stack, BlockPos pos, @Nullable Player player, int amount) {
+        return drawFromAura(level, stack, pos, player, amount);
+    }
+
+    /**
+     * @param stack  the stack to recharge
+     * @param entity unused
+     * @param amount the most vis to add
+     * @return the vis added; never negative
+     * @deprecated use {@link #addVis(ItemStack, int)}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    public static float rechargeItemBlindly(ItemStack stack, @Nullable LivingEntity entity, int amount) {
+        return addVis(stack, amount);
+    }
+
+    /**
+     * @param stack the stack to read
+     * @return the stored vis, or {@link #NOT_RECHARGEABLE} for a stack that is not rechargeable
+     * @deprecated use {@link #storedVis(ItemStack)} together with {@link #isRechargeable(ItemStack)}
+     */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static int getCharge(ItemStack stack) {
         return isRechargeable(stack) ? storedCharge(stack) : NOT_RECHARGEABLE;
     }
@@ -115,31 +202,24 @@ public final class RechargeAccess {
     /**
      * @param stack  the stack to read
      * @param entity unused
-     * @return the stored charge divided by capacity, which may exceed one, or minus one for a non-rechargeable stack
+     * @return the fill fraction, or {@link #NOT_RECHARGEABLE} for a stack that is not rechargeable
+     * @deprecated use {@link #fillFraction(ItemStack)} together with {@link #isRechargeable(ItemStack)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static float getChargePercentage(ItemStack stack, @Nullable LivingEntity entity) {
-        ChargeProfile profile = profile(stack);
-        return profile == null ? NOT_RECHARGEABLE : (float) storedCharge(stack) / profile.capacity();
+        return isRechargeable(stack) ? fillFraction(stack) : NOT_RECHARGEABLE;
     }
 
     /**
-     * Pays a cost from the stored charge. Negative costs are not guarded.
-     *
-     * @param stack  the stack to charge against, changed in place on success
+     * @param stack  the stack to charge against
      * @param entity unused
-     * @param cost   the vis to deduct
-     * @return whether the cost was paid; false leaves the stack unchanged
+     * @param cost   the vis to deduct; a negative cost is refused
+     * @return whether the cost was paid
+     * @deprecated use {@link #spendVis(ItemStack, int)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static boolean consumeCharge(ItemStack stack, @Nullable LivingEntity entity, int cost) {
-        if (!isRechargeable(stack)) {
-            return false;
-        }
-        int charge = storedCharge(stack);
-        if (charge < NO_CHARGE || charge < cost) {
-            return false;
-        }
-        stack.set(BINDING.get().charge(), charge - cost);
-        return true;
+        return spendVis(stack, cost);
     }
 
     private static int storedCharge(ItemStack stack) {

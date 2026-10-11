@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.api.golems;
 
-import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealType;
@@ -18,43 +17,45 @@ import org.jspecify.annotations.Nullable;
 /**
  * Static facade for the golem system: seal lookup, task posting and the provisioning queue.
  *
- * <p>The mod binds the implementation once during construction. Calls made before that throw
- * {@link IllegalStateException}. Posting tasks and provisioning requests is server side and must run on the server thread;
- * only {@link #getSealEntity} also works on the client.
+ * <p>Every method forwards to {@link GolemDispatch}.
  *
  * @since 1.0.0
+ * @deprecated use {@link GolemDispatch}; this class is removed in 2.0.0
  */
+@Deprecated(since = "1.1.0", forRemoval = true)
 public final class GolemHelper {
-    private static final int QUEUE_LIMIT = 1000;
-    private static final int DEFAULT_BATCH = 0;
-    private static final ApiBinding<Bindings> BINDING = new ApiBinding<>("GolemHelper");
-
     private GolemHelper() {}
 
     /**
-     * Installs the implementation. Called once by the mod.
+     * Installs an implementation by adapting it to {@link GolemDispatch.Bindings}.
      *
      * @param bindings the implementation
      * @throws IllegalStateException when an implementation is already bound
+     * @deprecated the mod binds {@link GolemDispatch#bind}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void bind(Bindings bindings) {
-        BINDING.bind(bindings);
+        GolemDispatch.bind(new LegacyDispatchBindings(bindings));
     }
 
     /**
      * @param id a seal type id
      * @return the seal type, or empty for an unknown id
+     * @deprecated use {@link GolemDispatch#sealType(Identifier)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static Optional<SealType> sealType(Identifier id) {
-        return bound().sealType(id);
+        return GolemDispatch.sealType(id);
     }
 
     /**
      * @param id a seal type id
      * @return one placer item of the type, or the empty stack for an unknown id
+     * @deprecated use {@link GolemDispatch#sealItem(Identifier)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static ItemStack getSealStack(Identifier id) {
-        return sealType(id).map(type -> new ItemStack(type.placer())).orElse(ItemStack.EMPTY);
+        return GolemDispatch.sealItem(id);
     }
 
     /**
@@ -63,9 +64,11 @@ public final class GolemHelper {
      * @param level the level
      * @param pos   the seal placement, or null
      * @return the seal, or null when there is none or {@code pos} is null
+     * @deprecated use {@link GolemDispatch#sealAt(Level, SealPos)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static @Nullable ISealEntity getSealEntity(Level level, @Nullable SealPos pos) {
-        return bound().getSealEntity(level, pos);
+        return pos == null ? null : GolemDispatch.sealAt(level, pos).orElse(null);
     }
 
     /**
@@ -73,9 +76,11 @@ public final class GolemHelper {
      *
      * @param level the level
      * @param task  the task
+     * @deprecated use {@link GolemDispatch#postTask(Level, Task)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void addGolemTask(Level level, Task task) {
-        bound().addGolemTask(level, task);
+        GolemDispatch.postTask(level, task);
     }
 
     /**
@@ -84,9 +89,11 @@ public final class GolemHelper {
      * @param level the level
      * @param seal  the seal that needs the items
      * @param stack the stack; copied
+     * @deprecated use {@link GolemDispatch#orderSupply(Level, ISealEntity, ItemStack)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void requestProvisioning(Level level, ISealEntity seal, ItemStack stack) {
-        submit(level, DEFAULT_BATCH, new ProvisionRequest(level, seal, stack));
+        GolemDispatch.orderSupply(level, seal, stack);
     }
 
     /**
@@ -96,9 +103,11 @@ public final class GolemHelper {
      * @param pos   the target block
      * @param side  the face the stack is inserted through
      * @param stack the stack; copied
+     * @deprecated use {@link GolemDispatch#orderSupply(Level, BlockPos, Direction, ItemStack)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void requestProvisioning(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        requestProvisioning(level, pos, side, stack, DEFAULT_BATCH);
+        GolemDispatch.orderSupply(level, pos, side, stack);
     }
 
     /**
@@ -107,9 +116,11 @@ public final class GolemHelper {
      * @param level  the level
      * @param entity the target entity
      * @param stack  the stack; copied
+     * @deprecated use {@link GolemDispatch#orderSupply(Level, Entity, ItemStack)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void requestProvisioning(Level level, Entity entity, ItemStack stack) {
-        requestProvisioning(level, entity, stack, DEFAULT_BATCH);
+        GolemDispatch.orderSupply(level, entity, stack);
     }
 
     /**
@@ -121,9 +132,11 @@ public final class GolemHelper {
      * @param side  the face the stack is inserted through
      * @param stack the stack; copied
      * @param batch the batch number
+     * @deprecated use {@link GolemDispatch#orderSupply(Level, BlockPos, Direction, ItemStack, int)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void requestProvisioning(Level level, BlockPos pos, Direction side, ItemStack stack, int batch) {
-        submit(level, batch, new ProvisionRequest(level, pos, side, stack));
+        GolemDispatch.orderSupply(level, pos, side, stack, batch);
     }
 
     /**
@@ -134,42 +147,32 @@ public final class GolemHelper {
      * @param entity the target entity
      * @param stack  the stack; copied
      * @param batch  the batch number
+     * @deprecated use {@link GolemDispatch#orderSupply(Level, Entity, ItemStack, int)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static void requestProvisioning(Level level, Entity entity, ItemStack stack, int batch) {
-        submit(level, batch, new ProvisionRequest(level, entity, stack));
+        GolemDispatch.orderSupply(level, entity, stack, batch);
     }
 
     /**
      * @param level the level
      * @return the level's live provisioning queue in posting order, not a copy; it supports removal by predicate and by
      *         index and concurrent iteration
+     * @deprecated use {@link GolemDispatch#supplyQueue(Level)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    @SuppressWarnings("unchecked")
     public static List<ProvisionRequest> getProvisionRequests(Level level) {
-        return bound().getProvisionRequests(level);
-    }
-
-    private static Bindings bound() {
-        return BINDING.get();
-    }
-
-    private static void submit(Level level, int batch, ProvisionRequest request) {
-        request.withBatch(batch);
-        List<ProvisionRequest> pending = getProvisionRequests(level);
-        if (pending.contains(request)) {
-            return;
-        }
-        int overflow = pending.size() - QUEUE_LIMIT + 1;
-        for (int i = 0; i < overflow; i++) {
-            pending.remove(0);
-        }
-        pending.add(request);
+        return (List<ProvisionRequest>) (List<?>) GolemDispatch.supplyQueue(level);
     }
 
     /**
      * The implementation behind {@link GolemHelper}, bound by the mod once.
      *
      * @since 1.0.0
+     * @deprecated implement {@link GolemDispatch.Bindings}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public interface Bindings {
         /**
          * @param id a seal type id

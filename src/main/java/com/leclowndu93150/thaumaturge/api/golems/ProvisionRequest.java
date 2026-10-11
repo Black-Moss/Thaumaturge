@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.api.golems;
 
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
-import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -13,60 +12,18 @@ import org.jspecify.annotations.Nullable;
 /**
  * A queued request to bring an item stack to a seal, a block face or an entity.
  *
- * <p>Requests are created through {@link GolemHelper}. They live on the server only, are never saved or synchronised, and
- * must be used from the server thread. All timing follows the level's game time.
- *
- * <p>Two requests are equal when their batch numbers, stack counts, items with data components and targets match. Expiry,
- * links and the spent flag do not take part.
+ * <p>Every {@link SupplyOrder} the mod creates is also a {@code ProvisionRequest}, so code written against 1.0 keeps seeing
+ * the same objects through {@link GolemHelper#getProvisionRequests} and {@link Task#linkedProvision()}.
  *
  * @since 1.0.0
+ * @deprecated use {@link SupplyOrder}, placed through {@link GolemDispatch}; this type is removed in 2.0.0
  */
-public final class ProvisionRequest {
-    private static final long INITIAL_LIFETIME_TICKS = 200L;
-    private static final long EXTENDED_LIFETIME_TICKS = 2400L;
-
-    private final Level level;
-    private final ItemStack stack;
-    private Target target;
-    private @Nullable Task linkedTask;
-    private long expiresAt;
-    private int batch;
+@Deprecated(since = "1.1.0", forRemoval = true)
+public final class ProvisionRequest extends SupplyOrder {
     private int legacyId;
-    private boolean spent;
 
-    ProvisionRequest(Level level, ISealEntity seal, ItemStack stack) {
-        this(level, stack, new Target(seal, null, null, null));
-    }
-
-    ProvisionRequest(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        this(level, stack, new Target(null, pos.immutable(), side, null));
-    }
-
-    ProvisionRequest(Level level, Entity entity, ItemStack stack) {
-        this(level, stack, new Target(null, null, null, entity));
-    }
-
-    private ProvisionRequest(Level level, ItemStack stack, Target target) {
-        this.target = target;
-        this.stack = stack.copy();
-        this.level = level;
-        this.expiresAt = deadline(INITIAL_LIFETIME_TICKS);
-    }
-
-    ProvisionRequest withBatch(int number) {
-        batch = number;
-        return this;
-    }
-
-    private long deadline(long lifetimeTicks) {
-        return level.getGameTime() + lifetimeTicks;
-    }
-
-    /**
-     * @return the game time after which the request leaves the queue
-     */
-    public long expiresAt() {
-        return expiresAt;
+    ProvisionRequest(Level level, ItemStack stack, Destination destination, int batch) {
+        super(level, stack, destination, batch);
     }
 
     /**
@@ -75,14 +32,17 @@ public final class ProvisionRequest {
      */
     @Deprecated
     public long getTimeout() {
-        return expiresAt;
+        return expiresAt();
     }
 
     /**
      * Moves the expiry to two minutes after the current game time.
+     *
+     * @deprecated the expiry moves by itself on {@link #assign(Task)} and {@link #release()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void extendTimeout() {
-        expiresAt = deadline(EXTENDED_LIFETIME_TICKS);
+        prolong();
     }
 
     /**
@@ -95,7 +55,7 @@ public final class ProvisionRequest {
     }
 
     /**
-     * @param id a number the mod never reads
+     * @param value a number the mod never reads
      * @deprecated carries no meaning
      */
     @Deprecated
@@ -104,137 +64,126 @@ public final class ProvisionRequest {
     }
 
     /**
-     * @return the batch number, which is part of the request's identity
-     */
-    public int batch() {
-        return batch;
-    }
-
-    /**
-     * @param batch the new batch number
-     * @deprecated pass the batch number to {@link GolemHelper#requestProvisioning}
+     * @param value the new batch number
+     * @deprecated pass the batch number to {@link GolemDispatch#orderSupply}
      */
     @Deprecated
     public void setBatch(int value) {
-        batch = value;
+        rebatch(value);
     }
 
     /**
      * @param batch the new batch number
-     * @deprecated pass the batch number to {@link GolemHelper#requestProvisioning}
+     * @deprecated pass the batch number to {@link GolemDispatch#orderSupply}
      */
     @Deprecated
     public void setUI(int batch) {
-        setBatch(batch);
+        rebatch(batch);
     }
 
     /**
      * @return the seal the stack goes to, or null
+     * @deprecated use {@link #requestingSeal()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public @Nullable ISealEntity getSeal() {
-        return target.seal();
+        return requestingSeal();
     }
 
     /**
      * @return the entity the stack goes to, or null
+     * @deprecated use {@link #recipient()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public @Nullable Entity getEntity() {
-        return target.entity();
+        return recipient();
     }
 
     /**
      * @return the requested stack; a copy owned by this request
+     * @deprecated use {@link #wanted()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public ItemStack getStack() {
-        return stack;
+        return wanted();
     }
 
     /**
      * @return the block the stack goes to, or null
+     * @deprecated use {@link #destinationBlock()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public @Nullable BlockPos getPos() {
-        return target.pos();
+        return destinationBlock();
     }
 
     /**
-     * @param pos the new target block, or null
-     * @deprecated request a new target through {@link GolemHelper}
+     * @param newPos the new target block, or null
+     * @deprecated place a new order through {@link GolemDispatch}
      */
     @Deprecated
     public void setPos(@Nullable BlockPos newPos) {
-        target = target.withPos(newPos);
+        moveBlock(newPos);
     }
 
     /**
      * @return the face of the target block the stack is inserted through, or null
+     * @deprecated use {@link #destinationFace()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public @Nullable Direction getSide() {
-        return target.side();
+        return destinationFace();
     }
 
     /**
-     * @param side the new target face, or null
-     * @deprecated request a new target through {@link GolemHelper}
+     * @param newSide the new target face, or null
+     * @deprecated place a new order through {@link GolemDispatch}
      */
     @Deprecated
     public void setSide(@Nullable Direction newSide) {
-        target = target.withSide(newSide);
+        moveFace(newSide);
     }
 
     /**
      * @return the task serving this request, or null
+     * @deprecated use {@link #servingTask()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public @Nullable Task getLinkedTask() {
-        return linkedTask;
+        return servingTask();
     }
 
     /**
      * Records the task as serving this request, tells the task, and extends the timeout.
      *
      * @param task the serving task
+     * @deprecated use {@link #assign(Task)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void link(Task task) {
-        linkedTask = task;
-        task.linkProvision(this);
-        extendTimeout();
+        assign(task);
     }
 
     /**
      * Releases the serving task, if any, so the request can be claimed again, and extends the timeout.
+     *
+     * @deprecated use {@link #release()}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public void unlink() {
-        Task served = linkedTask;
-        if (served != null && served.linkedProvision() == this) {
-            served.linkProvision(null);
-        }
-        linkedTask = null;
-        extendTimeout();
+        release();
     }
 
     /**
      * Sets only this request's pointer to the serving task and extends the timeout.
      *
      * @param task the serving task, or null
-     * @deprecated use {@link #link(Task)}
+     * @deprecated use {@link #assign(Task)}
      */
     @Deprecated
     public void setLinkedTask(@Nullable Task task) {
-        linkedTask = task;
-        extendTimeout();
-    }
-
-    /**
-     * @return whether the stack has been delivered and the request awaits removal
-     */
-    public boolean isSpent() {
-        return spent;
-    }
-
-    /**
-     * Marks the stack as delivered.
-     */
-    public void markSpent() {
-        spent = true;
+        pointServingTask(task);
+        prolong();
     }
 
     /**
@@ -255,48 +204,7 @@ public final class ProvisionRequest {
         if (invalid) {
             markSpent();
         } else {
-            spent = false;
-        }
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return this == other || other instanceof ProvisionRequest request && batch == request.batch && stack.getCount() == request.stack.getCount() && target.matches(request.target)
-                && ItemStack.isSameItemSameComponents(stack, request.stack);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(target.identityHash(), target.side(), batch, stack.getCount(), ItemStack.hashItemAndComponents(stack));
-    }
-
-    private record Target(@Nullable ISealEntity seal, @Nullable BlockPos pos, @Nullable Direction side, @Nullable Entity entity) {
-        Target withPos(@Nullable BlockPos newPos) {
-            return new Target(seal, newPos, side, entity);
-        }
-
-        Target withSide(@Nullable Direction newSide) {
-            return new Target(seal, pos, newSide, entity);
-        }
-
-        boolean matches(Target other) {
-            if (seal != null || other.seal != null) {
-                return seal != null && other.seal != null && seal.pos().equals(other.seal.pos());
-            }
-            if (entity != null || other.entity != null) {
-                return entity == other.entity;
-            }
-            return side == other.side && Objects.equals(pos, other.pos);
-        }
-
-        int identityHash() {
-            if (seal != null) {
-                return seal.pos().hashCode();
-            }
-            if (entity != null) {
-                return System.identityHashCode(entity);
-            }
-            return Objects.hashCode(pos);
+            clearSpent();
         }
     }
 }

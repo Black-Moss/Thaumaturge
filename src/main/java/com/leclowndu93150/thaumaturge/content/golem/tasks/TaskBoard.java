@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.golem.tasks;
 
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
-import com.leclowndu93150.thaumaturge.api.golems.ProvisionRequest;
+import com.leclowndu93150.thaumaturge.api.golems.SupplyOrder;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
@@ -27,7 +27,7 @@ public final class TaskBoard {
     private static final int LIFE_DECAY = 1;
 
     private final ConcurrentHashMap<Integer, Task> tasks = new ConcurrentHashMap<>();
-    private final List<ProvisionRequest> wants = new CopyOnWriteArrayList<>();
+    private final List<SupplyOrder> supplyOrders = new CopyOnWriteArrayList<>();
     private final AtomicInteger lastId = new AtomicInteger();
 
     public TaskBoard() {}
@@ -36,8 +36,8 @@ public final class TaskBoard {
         return level.getData(TTAttachments.GOLEM_TASKS);
     }
 
-    public List<ProvisionRequest> wants() {
-        return wants;
+    public List<SupplyOrder> supplyOrders() {
+        return supplyOrders;
     }
 
     public void post(Task task) {

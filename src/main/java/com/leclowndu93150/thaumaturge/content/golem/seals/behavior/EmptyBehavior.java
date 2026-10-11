@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -9,7 +9,8 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealSetting;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
-import com.leclowndu93150.thaumaturge.api.items.InvHelper.InvFilter;
+import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
+import com.leclowndu93150.thaumaturge.api.items.StackFilter;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
@@ -42,19 +43,19 @@ public final class EmptyBehavior implements ISealBehavior {
             return;
         }
         SealPos at = seal.pos();
-        ResourceHandler<ItemResource> container = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
+        ResourceHandler<ItemResource> container = InvHelper.handlerAt(level, at.pos(), at.face());
         if (container == null) {
             return;
         }
         ISealFilter filter = ItemMatchSettings.filterOf(seal);
-        ItemStack found = InvHelper.findFirstMatchFromFilter(scanGhosts(seal, filter), filter.isBlacklist(), container, ItemMatchSettings.of(seal), seal.setting(LEAVE_ONE));
+        ItemStack found = StackFilter.of(scanGhosts(seal, filter), filter.isBlacklist(), ItemMatchSettings.of(seal)).firstAccepted(container, seal.setting(LEAVE_ONE));
         if (found.isEmpty()) {
             return;
         }
         Task task = Task.atBlock(at, at.pos());
         task.setPriority(seal.priority());
         task.setLife(TASK_LIFE);
-        GolemHelper.addGolemTask(level, task);
+        GolemDispatch.postTask(level, task);
         wanted.record(task, found.copy());
     }
 
@@ -94,14 +95,14 @@ public final class EmptyBehavior implements ISealBehavior {
 
     private static void takeOut(ServerLevel level, ISealEntity seal, IGolemAPI golem, ItemStack remembered) {
         SealPos at = seal.pos();
-        ResourceHandler<ItemResource> container = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
+        ResourceHandler<ItemResource> container = InvHelper.handlerAt(level, at.pos(), at.face());
         if (container == null) {
             return;
         }
-        InvFilter match = ItemMatchSettings.of(seal);
+        ItemMatch match = ItemMatchSettings.of(seal);
         int amount = Math.min(remembered.getCount(), golem.hands().room(remembered));
         if (seal.setting(LEAVE_ONE)) {
-            amount = Math.min(amount, InvHelper.countTotalItemsIn(container, remembered, match) - 1);
+            amount = Math.min(amount, InvHelper.count(container, remembered, match) - 1);
         }
         if (amount <= 0) {
             return;
@@ -115,16 +116,16 @@ public final class EmptyBehavior implements ISealBehavior {
             LooseItems.spawn(level, front, golem.hands().hold(stack), Vec3.ZERO);
         }
         HandlingSound.play(golem, HandlingSound.HIGH);
-        golem.swingArm();
+        golem.animateSwing();
     }
 
-    private static List<ItemStack> extract(ResourceHandler<ItemResource> container, ItemStack remembered, InvFilter match, int amount) {
+    private static List<ItemStack> extract(ResourceHandler<ItemResource> container, ItemStack remembered, ItemMatch match, int amount) {
         List<ItemStack> taken = new ArrayList<>();
         int left = amount;
         try (Transaction transaction = Transaction.openRoot()) {
             for (int slot = 0; slot < container.size() && left > 0; slot++) {
                 ItemResource resource = container.getResource(slot);
-                if (resource.isEmpty() || !InvHelper.areItemStacksEqual(remembered, resource.toStack(), match)) {
+                if (resource.isEmpty() || !match.test(remembered, resource.toStack())) {
                     continue;
                 }
                 int pulled = container.extract(slot, resource, left, transaction);

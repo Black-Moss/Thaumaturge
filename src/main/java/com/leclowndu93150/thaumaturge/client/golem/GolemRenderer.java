@@ -122,7 +122,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         state.yawDelta = golem.getYRot() - golem.yRotO;
         state.wheelRotation = golem.wheelRotation;
         state.grinderRot = GRINDER_DEGREES_PER_TICK * state.ageInTicks + GRINDER_ATTACK_DEGREES * state.attackTime;
-        state.combat = golem.isInCombat();
+        state.combat = golem.isFighting();
     }
 
     private static void extractBuild(EntityThaumaturgeGolem golem, GolemRenderState state) {

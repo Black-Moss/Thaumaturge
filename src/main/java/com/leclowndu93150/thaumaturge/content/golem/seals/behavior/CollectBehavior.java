@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -34,7 +34,7 @@ public final class CollectBehavior implements ISealBehavior {
             if (isCollectable(seal, item)) {
                 Task task = Task.onEntity(seal.pos(), item);
                 task.setPriority(seal.priority());
-                GolemHelper.addGolemTask(level, task);
+                GolemDispatch.postTask(level, task);
                 targets.record(task, item.getUUID());
                 return;
             }
@@ -86,7 +86,7 @@ public final class CollectBehavior implements ISealBehavior {
             item.setItem(rest);
         }
         HandlingSound.play(golem, HandlingSound.HIGH);
-        golem.swingArm();
+        golem.animateSwing();
     }
 
     private static @Nullable ItemEntity droppedItem(Task task) {

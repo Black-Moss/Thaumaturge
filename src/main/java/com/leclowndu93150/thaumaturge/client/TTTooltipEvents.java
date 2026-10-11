@@ -89,7 +89,7 @@ public final class TTTooltipEvents {
         if (profile == null) {
             return null;
         }
-        return Component.translatable(CHARGE_KEY, RechargeAccess.getCharge(subject), profile.capacity()).withStyle(ChatFormatting.AQUA);
+        return Component.translatable(CHARGE_KEY, RechargeAccess.storedVis(subject), profile.capacity()).withStyle(ChatFormatting.AQUA);
     }
 
     private static boolean isUnlockedStabiliser(ItemStack subject, Player viewer) {

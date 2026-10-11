@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -10,7 +10,8 @@ import com.leclowndu93150.thaumaturge.api.golems.seals.SealSetting;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper.FilterMatch;
-import com.leclowndu93150.thaumaturge.api.items.InvHelper.InvFilter;
+import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
+import com.leclowndu93150.thaumaturge.api.items.StackFilter;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskBoard;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -48,7 +49,7 @@ public final class StoreBehavior implements ISealBehavior {
     private void post(ServerLevel level, ISealEntity seal) {
         Task task = Task.atBlock(seal.pos(), seal.pos().pos());
         task.setPriority(seal.priority());
-        GolemHelper.addGolemTask(level, task);
+        GolemDispatch.postTask(level, task);
         standing = task;
     }
 
@@ -67,11 +68,11 @@ public final class StoreBehavior implements ISealBehavior {
         }
         Level level = golem.level();
         SealPos at = seal.pos();
-        ResourceHandler<ItemResource> container = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
+        ResourceHandler<ItemResource> container = InvHelper.handlerAt(level, at.pos(), at.face());
         if (container == null) {
             return load.limit() <= 0 || load.present(level, seal, null) < load.limit();
         }
-        if (!InvHelper.hasRoomForSome(level, at.pos(), at.face(), load.stack().copyWithCount(1))) {
+        if (!InvHelper.acceptsAny(level, at.pos(), at.face(), load.stack().copyWithCount(1))) {
             return false;
         }
         int present = load.present(level, seal, container);
@@ -93,7 +94,7 @@ public final class StoreBehavior implements ISealBehavior {
 
     private static void unload(ServerLevel level, ISealEntity seal, IGolemAPI golem, Load load) {
         SealPos at = seal.pos();
-        ResourceHandler<ItemResource> container = InvHelper.getItemHandlerAt(level, at.pos(), at.face());
+        ResourceHandler<ItemResource> container = InvHelper.handlerAt(level, at.pos(), at.face());
         int amount = load.limit() > 0 ? load.limit() - load.present(level, seal, container) : load.stack().getCount();
         if (amount <= 0) {
             return;
@@ -105,8 +106,8 @@ public final class StoreBehavior implements ISealBehavior {
         int placed = container == null ? drop(level, seal, given) : insert(level, golem, container, given);
         if (placed > 0) {
             HandlingSound.play(golem, HandlingSound.LOW);
-            golem.addRankXp(STORE_XP);
-            golem.swingArm();
+            golem.grantRankExperience(STORE_XP);
+            golem.animateSwing();
         }
     }
 
@@ -128,7 +129,7 @@ public final class StoreBehavior implements ISealBehavior {
 
     private static @Nullable Load loadOf(ISealEntity seal, IGolemAPI golem) {
         ISealFilter filter = ItemMatchSettings.filterOf(seal);
-        FilterMatch match = InvHelper.findFirstMatchFromFilterWithSize(filter.stacks(), filter.limits(), filter.isBlacklist(), golem.hands().contents(), ItemMatchSettings.of(seal));
+        FilterMatch match = new StackFilter(filter.stacks(), filter.limits(), filter.isBlacklist(), ItemMatchSettings.of(seal)).firstAcceptedWithLimit(golem.hands().contents());
         if (match.stack().isEmpty()) {
             return null;
         }
@@ -137,11 +138,11 @@ public final class StoreBehavior implements ISealBehavior {
 
     private record Load(ItemStack stack, int limit) {
         int present(Level level, ISealEntity seal, @Nullable ResourceHandler<ItemResource> container) {
-            InvFilter match = ItemMatchSettings.of(seal);
+            ItemMatch match = ItemMatchSettings.of(seal);
             if (container != null) {
-                return InvHelper.countTotalItemsIn(container, stack, match);
+                return InvHelper.count(container, stack, match);
             }
-            return InvHelper.countStackInWorld(level, seal.pos().pos(), stack, LOOSE_RANGE, match);
+            return InvHelper.countDropped(level, seal.pos().pos(), stack, LOOSE_RANGE, match);
         }
     }
 }

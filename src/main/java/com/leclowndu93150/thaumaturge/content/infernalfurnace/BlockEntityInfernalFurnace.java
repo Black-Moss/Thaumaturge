@@ -178,7 +178,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
             return;
         }
         BlockPos outside = core.relative(side, OUTSIDE_DISTANCE);
-        ItemStack rest = InvHelper.insertStackAt(level, outside, side.getOpposite(), stack, false);
+        ItemStack rest = InvHelper.insertAt(level, outside, side.getOpposite(), stack, false);
         if (rest.isEmpty()) {
             return;
         }

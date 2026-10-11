@@ -31,11 +31,11 @@ public final class FellBehavior extends CellWorkBehavior {
         if (!state.is(BlockTags.LOGS)) {
             return retire(task);
         }
-        golem.swingArm();
+        golem.animateSwing();
         if (!EnchantMining.breakFurthest(level, stump, state, TTFakePlayer.GOLEM.at(level, golem.asEntity()))) {
             return retire(task);
         }
-        golem.addRankXp(CHOP_XP);
+        golem.grantRankExperience(CHOP_XP);
         keepAlive(task);
         return false;
     }

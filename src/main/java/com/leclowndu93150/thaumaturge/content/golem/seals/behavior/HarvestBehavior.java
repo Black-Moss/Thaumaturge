@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
 import com.leclowndu93150.thaumaturge.Thaumaturge;
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -95,7 +95,7 @@ public final class HarvestBehavior implements ISealBehavior {
         Task task = Task.atBlock(seal.pos(), cell);
         task.setPriority(seal.priority());
         task.setData(HARVEST_JOB);
-        GolemHelper.addGolemTask(level, task);
+        GolemDispatch.postTask(level, task);
         crops.record(task, cell);
     }
 
@@ -104,7 +104,7 @@ public final class HarvestBehavior implements ISealBehavior {
         task.setPriority(priority);
         task.setLife(REPLANT_LIFE);
         task.setData(REPLANT_JOB);
-        GolemHelper.addGolemTask(level, task);
+        GolemDispatch.postTask(level, task);
         sites.put(site.pos(), site.withTask(task));
     }
 
@@ -148,7 +148,7 @@ public final class HarvestBehavior implements ISealBehavior {
             return true;
         }
         if (seal.setting(REQUEST_SEEDS)) {
-            GolemHelper.requestProvisioning(golem.level(), seal, site.seed().copyWithCount(1));
+            GolemDispatch.orderSupply(golem.level(), seal, site.seed().copyWithCount(1));
         }
         return false;
     }
@@ -200,8 +200,8 @@ public final class HarvestBehavior implements ISealBehavior {
             return;
         }
         BlockBreakerEngine.harvestBlock(level, TTFakePlayer.GOLEM.at(level, golem.asEntity()), pos, false, NO_FORTUNE);
-        golem.addRankXp(BREAK_XP);
-        golem.swingArm();
+        golem.grantRankExperience(BREAK_XP);
+        golem.animateSwing();
         if (seal.setting(REPLANT) && !seed.isEmpty() && support.isPresent() && level.getBlockState(pos).isAir()) {
             Direction side = support.get();
             postReplant(level, seal, new ReplantSite(pos.immutable(), side, seed.copyWithCount(1), side == Direction.DOWN && tilled, null), task.priority());

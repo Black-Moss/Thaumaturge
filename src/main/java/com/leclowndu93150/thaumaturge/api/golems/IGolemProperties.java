@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
  * The build of a golem: its material, four parts and experience rank.
  *
  * <p>Builds are immutable values. The {@code with} methods return a new build and leave this one untouched, so a build can be
- * shared between an entity and an item data component. Apply a changed build with {@link IGolemAPI#setProperties}.
+ * shared between an entity and an item data component. Apply a changed build with {@link IGolemAPI#applyBuild}.
  *
  * @since 1.0.0
  */

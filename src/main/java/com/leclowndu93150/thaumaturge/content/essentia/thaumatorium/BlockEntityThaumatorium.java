@@ -228,7 +228,7 @@ public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity imp
         useCatalyst(inSlot);
         requirements.clearReceived();
         credit(level, result);
-        InvHelper.ejectStackAt(level, pos, front(), result);
+        InvHelper.eject(level, pos, front(), result);
         float pitch = HISS_PITCH_LOW + level.getRandom().nextFloat() * HISS_PITCH_RANGE;
         level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, pitch);
         setChangedAndSync();

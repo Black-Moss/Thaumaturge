@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.device.patterncrafter;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
+import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -107,8 +108,8 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     }
 
     private void work(ServerLevel level, BlockPos pos) {
-        ResourceHandler<ItemResource> input = InvHelper.getItemHandlerAt(level, pos.above(), TAKE_FACE);
-        ResourceHandler<ItemResource> output = InvHelper.getItemHandlerAt(level, pos.below(), GIVE_FACE);
+        ResourceHandler<ItemResource> input = InvHelper.handlerAt(level, pos.above(), TAKE_FACE);
+        ResourceHandler<ItemResource> output = InvHelper.handlerAt(level, pos.below(), GIVE_FACE);
         if (input == null || output == null) {
             return;
         }
@@ -158,7 +159,7 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     private boolean craft(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> input, ResourceHandler<ItemResource> output, ItemStack sample) {
         int[] cells = PATTERNS[type];
         ItemStack required = sample.copyWithCount(cells.length);
-        if (InvHelper.removeStackFrom(input, required, InvHelper.InvFilter.STRICT, true).getCount() < cells.length) {
+        if (InvHelper.extract(input, required, ItemMatch.EXACT, true).getCount() < cells.length) {
             return false;
         }
         CraftingInput grid = gridFor(cells, sample);
@@ -171,7 +172,7 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
         if (!canStoreAll(output, result, leftovers)) {
             return false;
         }
-        InvHelper.removeStackFrom(input, required, InvHelper.InvFilter.STRICT, false);
+        InvHelper.extract(input, required, ItemMatch.EXACT, false);
         store(level, pos, output, result);
         for (ItemStack leftover : leftovers) {
             if (!leftover.isEmpty()) {
@@ -187,7 +188,7 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     private static void store(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> output, ItemStack stack) {
         ItemStack overflow = InvHelper.insertStack(output, stack, false);
         if (!overflow.isEmpty()) {
-            InvHelper.ejectStackAt(level, pos, Direction.DOWN, overflow);
+            InvHelper.eject(level, pos, Direction.DOWN, overflow);
         }
     }
 

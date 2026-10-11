@@ -7,7 +7,7 @@ import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCrystalAccess;
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
@@ -167,7 +167,7 @@ public final class Thaumaturge {
         MobTraits.bind(new MobTraitBindings());
         WarpHelper.bind(new WarpBindings());
         ScanningManager.bind(new ScanBindings());
-        GolemHelper.bind(new GolemBindings());
+        GolemDispatch.bind(new GolemBindings());
         AspectPoolAccess.bind(new AspectPoolBindings());
         ResearchGate.bind(ResearchManager::doesPassGate);
         RechargeAccess.bind(new RechargeBindings());

@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.logistics;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealEntity;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
@@ -109,9 +109,9 @@ public final class MenuGolemLogistics extends AbstractContainerMenu {
         for (int batch = 0; remaining > 0; batch++) {
             ItemStack part = template.copyWithCount(Math.min(stackSize, remaining));
             if (target != null) {
-                GolemHelper.requestProvisioning(level, target.pos(), target.face(), part, batch);
+                GolemDispatch.orderSupply(level, target.pos(), target.face(), part, batch);
             } else {
-                GolemHelper.requestProvisioning(level, player, part, batch);
+                GolemDispatch.orderSupply(level, player, part, batch);
             }
             remaining -= part.getCount();
         }
@@ -190,7 +190,7 @@ public final class MenuGolemLogistics extends AbstractContainerMenu {
             if (!SealHandler.isSealOwner(seal, player.getUUID()) || !(seal.behavior() instanceof ProvideBehavior)) {
                 continue;
             }
-            ResourceHandler<ItemResource> inventory = InvHelper.getItemHandlerAt(level, seal.pos().pos(), seal.pos().face());
+            ResourceHandler<ItemResource> inventory = InvHelper.handlerAt(level, seal.pos().pos(), seal.pos().face());
             if (inventory == null) {
                 continue;
             }
