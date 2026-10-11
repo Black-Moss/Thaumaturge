@@ -7,14 +7,14 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 
 public final class GolemTrailParticle extends TTParticle {
-    private static final int LIFETIME_BASE = 20;
-    private static final int LIFETIME_RANGE = 5;
-    private static final float START_SIZE = 0.15F;
-    private static final float MID_SIZE = 0.3F;
-    private static final float END_SIZE = 0.8F;
+    private static final int LIFETIME_BASE = 16;
+    private static final int LIFETIME_RANGE = 8;
+    private static final float START_SIZE = 0.1F;
+    private static final float MID_SIZE = 0.25F;
+    private static final float END_SIZE = 0.45F;
     private static final float ALPHA_SCALE = 0.3F;
-    private static final float SPIN_SPEED = 1.0F;
-    private static final double WIND_SCALE = 0.001;
+    private static final float SPIN_SPEED = 0.15F;
+    private static final double WIND_SCALE = 4.0E-4;
 
     private GolemTrailParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);

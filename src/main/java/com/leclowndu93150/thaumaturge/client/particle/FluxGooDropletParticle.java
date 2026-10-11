@@ -35,12 +35,23 @@ public final class FluxGooDropletParticle extends BreakingItemParticle {
     }
 
     public static final class Provider extends BreakingItemParticle.ItemParticleProvider<FluxGooDropletParticleOptions> implements ParticleProvider<FluxGooDropletParticleOptions> {
-        @Nullable
+        private static final int SKEWED_LIFETIME_BASE = 50;
+        private static final int SKEWED_LIFETIME_EXTRA = 550;
+        private static final int SKEW_POWER = 4;
+
         @Override
-        public Particle createParticle(FluxGooDropletParticleOptions options, ClientLevel level, double x, double y, double z, double xa, double ya, double za, RandomSource random) {
-            TextureAtlasSprite sprite = this.getSprite(new ItemStackTemplate(Items.SLIME_BALL), level, random);
-            int lifetime = options.lifetime() > 0 ? options.lifetime() : (int) (66.0F / (random.nextFloat() * 0.9F + 0.1F));
-            return new FluxGooDropletParticle(level, x, y, z, xa, ya, za, sprite, options.color(), options.alpha(), lifetime);
+        public @Nullable Particle createParticle(FluxGooDropletParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
+            int lifetime = options.lifetime() > 0 ? options.lifetime() : skewedLifetime(random);
+            return new FluxGooDropletParticle(level, x, y, z, vx, vy, vz, getSprite(new ItemStackTemplate(Items.SLIME_BALL), level, random), options.color(), options.alpha(), lifetime);
+        }
+
+        private static int skewedLifetime(RandomSource random) {
+            float roll = random.nextFloat();
+            float skewed = roll;
+            for (int i = 1; i < SKEW_POWER; i++) {
+                skewed *= roll;
+            }
+            return SKEWED_LIFETIME_BASE + (int) (skewed * SKEWED_LIFETIME_EXTRA);
         }
     }
 }

@@ -15,16 +15,16 @@ public final class BlockRunesParticle extends TTParticle {
     private static final int SIDE_COUNT = 4;
     private static final float QUARTER_TURN = (float) (Math.PI / 2.0);
     private static final int LIFETIME_FACTOR = 3;
-    private static final float PEAK_ALPHA = 0.5F;
-    private static final float PEAK_PROGRESS = 0.2F;
-    private static final float BASE_SIZE = 0.3F;
+    private static final float HITBOX = 0.01F;
+    private static final float BASE_SIZE = 0.17F;
     private static final float NORMAL_SIZE_MEAN = 1.0F;
     private static final float VARIANT_SIZE_MEAN = 0.5F;
-    private static final float SIZE_DEVIATION = 0.1F;
-    private static final float FACE_DISTANCE = 0.51F;
+    private static final float SIZE_DEVIATION = 0.08F;
     private static final float SIDE_RANGE = 0.3F;
     private static final float LIFT_RANGE = 0.2F;
-    private static final float HITBOX = 0.01F;
+    private static final float FACE_DISTANCE = 0.505F;
+    private static final float PEAK_ALPHA = 0.5F;
+    private static final float PEAK_PROGRESS = 0.2F;
 
     private final Quaternionf orientation;
     private final float offsetX;

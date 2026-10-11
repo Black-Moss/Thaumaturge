@@ -4,13 +4,15 @@ import com.leclowndu93150.thaumaturge.content.particle.ScanGlyphParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 
 public final class ScanGlyphParticle extends TTParticle {
-    private static final int FRAME_COUNT = 15;
     private static final int LIFETIME = 44;
     private static final float SIZE = 0.9F;
+    private static final float HOLD_ALPHA = 0.9F;
+    private static final int TICKS_PER_FRAME = 2;
 
     private final boolean additive;
 
@@ -26,18 +28,18 @@ public final class ScanGlyphParticle extends TTParticle {
 
     @Override
     protected void update() {
-        frame(this.age % FRAME_COUNT);
-        this.alpha = Keyframes.sample(progress(), 0.0F, 1.0F, 0.8F, 0.0F);
+        frame(this.age / TICKS_PER_FRAME % sheetFrames());
+        this.alpha = HOLD_ALPHA * Keyframes.sample(progress(), 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F);
+    }
+
+    @Override
+    public SingleQuadParticle.Layer getLayer() {
+        return this.additive ? TTParticleLayers.additiveNoDepth(this.sheet) : TTParticleLayers.translucentNoDepth(this.sheet);
     }
 
     @Override
     protected int getLightCoords(float partialTick) {
         return LightCoordsUtil.FULL_BRIGHT;
-    }
-
-    @Override
-    public Layer getLayer() {
-        return this.additive ? TTParticleLayers.additiveNoDepth(this.sheet) : TTParticleLayers.translucentNoDepth(this.sheet);
     }
 
     public static final class Provider implements ParticleProvider<ScanGlyphParticleOptions> {

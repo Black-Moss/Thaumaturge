@@ -10,9 +10,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 public final class NitorCoreParticle extends SingleQuadParticle {
-    private final ParticleSheet sheet;
-    private static final int LIFETIME = 10;
     private static final float QUAD_RADIUS = 0.1F;
+    private static final int LIFETIME = 10;
+    private static final float PULSE_DEVIATION = 0.12F;
+    private static final double POSITION_JITTER = 0.004;
+
+    private final ParticleSheet sheet;
     private final float midBoost;
 
     private NitorCoreParticle(ClientLevel level, double x, double y, double z, NitorCoreParticleOptions data, ParticleSheet sheet) {
@@ -21,15 +24,16 @@ public final class NitorCoreParticle extends SingleQuadParticle {
         this.xd = 0.0;
         this.yd = 0.0;
         this.zd = 0.0;
-        this.xo = x;
-        this.yo = y;
-        this.zo = z;
+        setPos(x + this.random.nextGaussian() * POSITION_JITTER, y + this.random.nextGaussian() * POSITION_JITTER, z + this.random.nextGaussian() * POSITION_JITTER);
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
         this.rCol = data.r();
         this.gCol = data.g();
         this.bCol = data.b();
         this.alpha = 1.0F;
         this.lifetime = LIFETIME;
-        this.midBoost = 1.0F + (float) level.getRandom().nextGaussian() * 0.1F;
+        this.midBoost = 1.0F + (float) this.random.nextGaussian() * PULSE_DEVIATION;
         this.quadSize = 1.0F;
         this.hasPhysics = false;
         this.gravity = 0.0F;
@@ -41,22 +45,11 @@ public final class NitorCoreParticle extends SingleQuadParticle {
         this.yo = this.y;
         this.zo = this.z;
         if (this.age++ >= this.lifetime) {
-            this.remove();
+            remove();
             return;
         }
-        this.xd += (this.random.nextDouble() - 0.5) * 2.0E-4;
-        this.yd += (this.random.nextDouble() - 0.5) * 2.0E-4;
-        this.zd += (this.random.nextDouble() - 0.5) * 2.0E-4;
-        this.move(this.xd, this.yd, this.zd);
-        this.xd *= 0.98;
-        this.yd *= 0.98;
-        this.zd *= 0.98;
-        float frac = (float) this.age / this.lifetime;
-        if (frac < 0.5F) {
-            this.quadSize = Mth.lerp(frac * 2.0F, 1.0F, this.midBoost);
-        } else {
-            this.quadSize = Mth.lerp((frac - 0.5F) * 2.0F, this.midBoost, 1.0F);
-        }
+        float t = Mth.clamp((float) this.age / this.lifetime, 0.0F, 1.0F);
+        this.quadSize = 1.0F + (this.midBoost - 1.0F) * Mth.sin(t * Mth.PI);
     }
 
     @Override

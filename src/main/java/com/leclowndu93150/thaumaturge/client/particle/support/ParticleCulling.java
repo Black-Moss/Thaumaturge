@@ -12,13 +12,17 @@ public final class ParticleCulling {
     private ParticleCulling() {}
 
     public static boolean beyondSpawnRange(double x, double y, double z) {
+        return beyondSpawnRange(x, y, z, RANGE_FANCY, RANGE_FAST);
+    }
+
+    public static boolean beyondSpawnRange(double x, double y, double z, double fancyRange, double fastRange) {
         Minecraft minecraft = Minecraft.getInstance();
         Camera camera = minecraft.gameRenderer.getMainCamera();
         if (!camera.isInitialized()) {
             return false;
         }
         Vec3 position = camera.position();
-        double range = minecraft.options.graphicsPreset().get() == GraphicsPreset.FAST ? RANGE_FAST : RANGE_FANCY;
+        double range = minecraft.options.graphicsPreset().get() == GraphicsPreset.FAST ? fastRange : fancyRange;
         return position.distanceToSqr(x, y, z) > range * range;
     }
 }

@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.particle;
 
+import com.leclowndu93150.thaumaturge.client.particle.support.HomingPhase;
+import com.leclowndu93150.thaumaturge.client.particle.support.HomingSteering;
+import com.leclowndu93150.thaumaturge.client.particle.support.HomingTuning;
 import com.leclowndu93150.thaumaturge.content.particle.VisSparkleParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
@@ -9,78 +12,68 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 public final class VisSparkleParticle extends TTParticle {
-    private static final float DEFAULT_RED = 0.2F;
-    private static final float DEFAULT_GREEN_BASE = 0.6F;
-    private static final float DEFAULT_GREEN_SPAN = 0.3F;
-    private static final float DEFAULT_BLUE = 0.2F;
-    private static final float ALPHA = 0.5F;
-    private static final int LIFETIME = 1000;
-    private static final float INITIAL_NOISE = 0.01F;
-    private static final float FRICTION = 0.985F;
-    private static final int RAMP_DIVISOR_BASE = 45;
-    private static final int RAMP_DIVISOR_RANGE = 15;
-    private static final int RAMP_TICKS = 10;
-    private static final double ARRIVAL_DISTANCE = 0.2;
-    private static final double SHRINK_DISTANCE = 2.0;
-    private static final float SHRINK = 0.95F;
-    private static final double STEER = 0.1;
-    private static final double MAX_SPEED = 0.1;
-    private static final double MIN_DISTANCE = 1.0E-4;
-    private static final int FRAME_COUNT = 16;
-    private static final float SIZE_SCALE = 0.1F;
-    private static final float SIZE_BASE = 6.0F;
-    private static final float SIZE_PULSE = 0.3F;
-    private static final float PULSE_PERIOD = 3.0F;
+    private static final HomingTuning HOMING = new HomingTuning(0.15, 2.0, 0.004, 0.006, 0.08);
+    private static final int SAFETY_LIFETIME = 900;
+    private static final int GROW_TICKS = 10;
+    private static final float SIZE = 0.09F;
+    private static final float PULSE_AMPLITUDE = 0.15F;
+    private static final float PULSE_RATE = 0.4F;
+    private static final float NEAR_SHRINK = 0.96F;
+    private static final float DRAG = 0.95F;
+    private static final double SPAWN_KICK = 0.015;
+    private static final double TARGET_JITTER = 0.06;
+    private static final float GREEN_RED = 0.35F;
+    private static final float GREEN_GREEN = 0.9F;
+    private static final float GREEN_BLUE = 0.3F;
+    private static final float GREEN_VARIATION = 0.08F;
 
+    private final HomingSteering homing = new HomingSteering(HOMING);
     private final double targetX;
     private final double targetY;
     private final double targetZ;
-    private final int rampDivisor;
-    private float size;
+    private final float pulsePhase;
+    private float proximityScale = 1.0F;
 
     private VisSparkleParticle(ClientLevel level, double x, double y, double z, VisSparkleParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
-        this.targetX = options.tx();
-        this.targetY = options.ty();
-        this.targetZ = options.tz();
-        if (options.color() >= 0) {
-            setColor(options.color());
+        if (options.color() == VisSparkleParticleOptions.DEFAULT_COLOR) {
+            setColor(vary(GREEN_RED), vary(GREEN_GREEN), vary(GREEN_BLUE));
         } else {
-            setColor(DEFAULT_RED, DEFAULT_GREEN_BASE + this.random.nextFloat() * DEFAULT_GREEN_SPAN, DEFAULT_BLUE);
+            setColor(options.color());
         }
-        this.alpha = ALPHA;
-        this.lifetime = LIFETIME;
-        this.friction = FRICTION;
-        this.rampDivisor = RAMP_DIVISOR_BASE + this.random.nextInt(RAMP_DIVISOR_RANGE);
-        drift(INITIAL_NOISE, INITIAL_NOISE, INITIAL_NOISE);
+        this.targetX = options.tx() + this.random.nextGaussian() * TARGET_JITTER;
+        this.targetY = options.ty() + this.random.nextGaussian() * TARGET_JITTER;
+        this.targetZ = options.tz() + this.random.nextGaussian() * TARGET_JITTER;
+        this.friction = DRAG;
+        this.lifetime = SAFETY_LIFETIME;
+        this.alpha = 1.0F;
+        this.quadSize = 0.0F;
+        this.pulsePhase = this.random.nextFloat() * Mth.TWO_PI;
+        jitterVelocity(SPAWN_KICK);
+        frame(this.random.nextInt(sheetFrames()));
+    }
+
+    private float vary(float channel) {
+        return Mth.clamp(channel + (this.random.nextFloat() * 2.0F - 1.0F) * GREEN_VARIATION, 0.0F, 1.0F);
     }
 
     @Override
     protected void update() {
-        frame(this.age % FRAME_COUNT);
-        if (this.age < RAMP_TICKS) {
-            this.size = (float) this.age / this.rampDivisor;
-        }
-        double dx = this.targetX - this.x;
-        double dy = this.targetY - this.y;
-        double dz = this.targetZ - this.z;
-        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (distance < ARRIVAL_DISTANCE) {
+        frame(this.age % sheetFrames());
+        HomingPhase phase = this.homing.step(this.x, this.y, this.z, this.targetX, this.targetY, this.targetZ, this.xd, this.yd, this.zd);
+        if (phase == HomingPhase.ARRIVED) {
             remove();
             return;
         }
-        if (distance < SHRINK_DISTANCE) {
-            this.size *= SHRINK;
+        this.xd = this.homing.velocityX();
+        this.yd = this.homing.velocityY();
+        this.zd = this.homing.velocityZ();
+        if (phase == HomingPhase.NEAR) {
+            this.proximityScale *= NEAR_SHRINK;
         }
-        double inverse = STEER / Math.max(distance, MIN_DISTANCE);
-        this.xd = Mth.clamp(this.xd + dx * inverse, -MAX_SPEED, MAX_SPEED);
-        this.yd = Mth.clamp(this.yd + dy * inverse, -MAX_SPEED, MAX_SPEED);
-        this.zd = Mth.clamp(this.zd + dz * inverse, -MAX_SPEED, MAX_SPEED);
-    }
-
-    @Override
-    public float getQuadSize(float partialTick) {
-        return SIZE_SCALE * this.size * (SIZE_BASE + SIZE_PULSE * Mth.sin(this.age / PULSE_PERIOD));
+        float growth = Math.min(1.0F, (float) this.age / GROW_TICKS);
+        float pulse = 1.0F + PULSE_AMPLITUDE * Mth.sin(this.age * PULSE_RATE + this.pulsePhase);
+        this.quadSize = SIZE * growth * pulse * this.proximityScale;
     }
 
     @Override

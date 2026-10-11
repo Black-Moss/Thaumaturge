@@ -3,39 +3,52 @@ package com.leclowndu93150.thaumaturge.client.particle;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 public final class PuffParticle extends TTParticle {
-    private static final int FRAME_COUNT = 5;
-    private static final int BASE_LIFETIME = 20;
-    private static final float START_SIZE = 0.3F;
-    private static final float ALPHA_END = 0.1F;
-    private static final float FRICTION = 0.7F;
+    private static final int LIFETIME_BASE = 20;
+    private static final int LIFETIME_RANGE = 18;
+    private static final float START_SIZE = 0.12F;
+    private static final float END_SIZE_BASE = 0.24F;
+    private static final float END_SIZE_RANGE = 0.12F;
+    private static final float START_ALPHA = 1.0F;
+    private static final float END_ALPHA = 0.12F;
+    private static final float DRAG = 0.72F;
+    private static final float SPIN_BASE = 0.004F;
+    private static final float SPIN_RANGE = 0.004F;
+    private static final float SHADE_JITTER = 0.03F;
 
     private final float endSize;
 
     private PuffParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ColorParticleOption options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
-        setColor(options.getRed(), options.getGreen(), options.getBlue());
-        this.lifetime = BASE_LIFETIME + this.random.nextInt(15);
-        this.friction = FRICTION;
-        this.endSize = 0.4F + this.random.nextFloat() * 0.3F;
+        setColor(shade(options.getRed()), shade(options.getGreen()), shade(options.getBlue()));
+        this.alpha = START_ALPHA;
+        this.friction = DRAG;
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
         this.quadSize = START_SIZE;
-        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? -1.0F : 1.0F);
-        frameByProgress();
+        this.endSize = END_SIZE_BASE + this.random.nextFloat() * END_SIZE_RANGE;
+        float spin = SPIN_BASE + this.random.nextFloat() * SPIN_RANGE;
+        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? spin : -spin);
+    }
+
+    private float shade(float channel) {
+        return Mth.clamp(channel + (this.random.nextFloat() * 2.0F - 1.0F) * SHADE_JITTER, 0.0F, 1.0F);
     }
 
     @Override
     protected void update() {
         float t = progress();
-        this.alpha = Keyframes.sample(t, 1.0F, ALPHA_END);
-        this.quadSize = Keyframes.sample(t, START_SIZE, this.endSize);
-        frame((int) (t * FRAME_COUNT));
+        frameByProgress();
+        this.quadSize = Mth.lerp(t, START_SIZE, this.endSize);
+        this.alpha = Mth.lerp(t, START_ALPHA, END_ALPHA);
     }
 
     @Override
-    public Layer getLayer() {
+    public SingleQuadParticle.Layer getLayer() {
         return TTParticleLayers.translucent(this.sheet);
     }
 
