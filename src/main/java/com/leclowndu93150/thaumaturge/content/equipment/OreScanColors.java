@@ -8,11 +8,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.Tags;
 
 public final class OreScanColors {
-    public static final int DEFAULT = 0xC0C0C0;
+    public static final int DEFAULT = 0xC4C4C4;
 
-    private static final List<Entry> TABLE = List.of(new Entry(Tags.Blocks.ORES_IRON, 0xD8AF93), new Entry(Tags.Blocks.ORES_COAL, 0x101010), new Entry(Tags.Blocks.ORES_REDSTONE, 0xFF0000),
-            new Entry(Tags.Blocks.ORES_GOLD, 0xFCEE4B), new Entry(Tags.Blocks.ORES_LAPIS, 0x1445BC), new Entry(Tags.Blocks.ORES_DIAMOND, 0x5DECF5), new Entry(Tags.Blocks.ORES_EMERALD, 0x17DD62),
-            new Entry(Tags.Blocks.ORES_QUARTZ, 0xE5DED5), new Entry(Tags.Blocks.ORES_COPPER, 0xFD9C55), new Entry(TTBlockTags.ORES_AMBER, 0xFDB325), new Entry(TTBlockTags.ORES_CINNABAR, 0x9B0508));
+    private static final List<Entry> TABLE = List.of(new Entry(Tags.Blocks.ORES_IRON, 0xD8B49C), new Entry(Tags.Blocks.ORES_COAL, 0x1C1A1E), new Entry(Tags.Blocks.ORES_REDSTONE, 0xF0140E),
+            new Entry(Tags.Blocks.ORES_GOLD, 0xFFD23A), new Entry(Tags.Blocks.ORES_LAPIS, 0x1E3CC0), new Entry(Tags.Blocks.ORES_DIAMOND, 0x8CF2F4), new Entry(Tags.Blocks.ORES_EMERALD, 0x22DC5A),
+            new Entry(Tags.Blocks.ORES_QUARTZ, 0xF2E8DA), new Entry(Tags.Blocks.ORES_COPPER, 0xE89A62), new Entry(TTBlockTags.ORES_AMBER, 0xF0A01E), new Entry(TTBlockTags.ORES_CINNABAR, 0x8A0E14));
 
     private OreScanColors() {}
 

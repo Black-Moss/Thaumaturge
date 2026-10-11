@@ -119,8 +119,8 @@ public final class RobeArmorModel extends AbstractTTArmorModel {
                 Cube.faced(SKIP_SOUTH, 104, 47, -1.0F, 10.125F, -3.0F, 2.0F, 2.0F, 0.5F), Cube.of(110, 47, -4.375F, 11.75F, -3.375F, 2.5F, 3.0F, 1.5F),
                 Cube.of(119, 47, 1.875F, 11.75F, -3.375F, 2.5F, 3.0F, 1.5F));
         part(torso, "sash", tilted(0.0F, 6.0F, -2.625F, 0.0F, 0.0F, -0.6108652F), Cube.faced(SKIP_SOUTH, 76, 20, -1.0F, -7.0F, -0.25F, 2.0F, 13.5F, 0.5F));
-        part(torso, "back_scroll", tilted(0.0F, 9.5F, 4.0F, 0.0F, 0.0F, -0.1919862F), Cube.of(102, 59, -3.75F, -1.375F, -0.875F, 7.5F, 2.5F, 2.5F));
-        part(torso, "void_tome", tilted(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.7679449F), Cube.of(1, 72, 1.0F, 0.0F, 3.1875F, 5.0F, 7.0F, 2.0F));
+        part(torso, "back_scroll", tilted(0.0F, 8.75F, 4.3F, 0.0F, 0.0F, -0.19F), Cube.of(102, 59, -3.75F, -1.25F, -1.25F, 7.5F, 2.5F, 2.5F));
+        part(torso, "void_tome", tilted(-5.75F, 12.6F, 0.25F, 1.5707964F, 1.3507963F, 1.6907964F), Cube.of(1, 72, -2.5F, 0.0F, -1.0F, 5.0F, 7.0F, 2.0F));
         PartDefinition rightUpper = part(torso, "tail_right_upper", tilted(-2.25F, 11.25F, 3.0F, 0.1047198F, 0.0F, 0.0F), Cube.of(1, 59, -1.5F, 0.0F, -0.125F, 3.0F, 7.0F, 0.5F));
         part(rightUpper, "tail_right_lower", tilted(0.0F, 7.0F, 0.0F, 0.0698132F, 0.0F, 0.0F), Cube.of(9, 59, -1.25F, -0.125F, -0.0625F, 2.5F, 6.0F, 0.5F));
         PartDefinition leftUpper = part(torso, "tail_left_upper", tilted(2.25F, 11.25F, 3.0F, 0.1047198F, 0.0F, 0.0F), Cube.of(16, 59, -1.5F, 0.0F, -0.125F, 3.0F, 7.0F, 0.5F));

@@ -6,6 +6,9 @@ import net.minecraft.resources.Identifier;
 public final class TTScreenTextures {
     public static final int TEX_SIZE = 256;
 
+    public static final Identifier RADIAL_INNER = misc("radial.png");
+    public static final Identifier RADIAL_OUTER = misc("radial2.png");
+
     public static final Identifier ARCANE_WORKBENCH = gui("arcane_workbench.png");
     public static final Identifier GUI_BASE = gui("gui_base.png");
     public static final Identifier GUI_LOGISTICS = gui("gui_logistics.png");
@@ -19,6 +22,8 @@ public final class TTScreenTextures {
     public static final Identifier HUD = gui("hud.png");
     public static final Identifier HUD_HOVER_SPARK = gui("hud_hover_spark.png");
     public static final Identifier THAUMOSTATIC_HARNESS = gui("gui_thaumostatic_harness.png");
+    public static final Identifier FOCAL_STRIP = gui("gui_wandtable.png");
+    public static final Identifier FOCAL_CABINET = gui("gui_wandtable3.png");
     public static final Identifier RESEARCH_PREREQ_MAP = research("rd_map.png");
     public static final Identifier RESEARCH_PREREQ_FLASK = research("rd_flask.png");
     public static final Identifier RESEARCH_PREREQ_CHEST = research("rd_chest.png");
@@ -32,6 +37,10 @@ public final class TTScreenTextures {
 
     private static Identifier gui(String name) {
         return TTIds.rl("textures/gui/" + name);
+    }
+
+    private static Identifier misc(String name) {
+        return TTIds.rl("textures/misc/" + name);
     }
 
     private static Identifier research(String name) {
