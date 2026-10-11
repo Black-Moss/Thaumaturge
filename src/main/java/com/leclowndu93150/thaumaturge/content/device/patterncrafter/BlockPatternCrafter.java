@@ -63,10 +63,7 @@ public final class BlockPatternCrafter extends BaseEntityBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getHorizontalDirection();
-        if (context.getPlayer() != null) {
-            facing = context.getPlayer().getDirection();
-        }
+        Direction facing = context.getHorizontalDirection().getOpposite();
         return defaultBlockState().setValue(FACING, facing).setValue(BlockStateProperties.ENABLED, !context.getLevel().hasNeighborSignal(context.getClickedPos()));
     }
 

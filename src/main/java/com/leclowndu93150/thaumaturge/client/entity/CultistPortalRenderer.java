@@ -79,10 +79,10 @@ public final class CultistPortalRenderer extends EntityRenderer<EntityCultistPor
     }
 
     private static void writeQuad(VertexConsumer buffer, Matrix4fc matrix, float halfWidth, float halfHeight, float u0, float u1, int tint) {
-        buffer.addVertex(matrix, -halfWidth, -halfHeight, 0.0F).setUv(u0, StripUv.V1).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
-        buffer.addVertex(matrix, halfWidth, -halfHeight, 0.0F).setUv(u1, StripUv.V1).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
-        buffer.addVertex(matrix, halfWidth, halfHeight, 0.0F).setUv(u1, StripUv.V0).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
-        buffer.addVertex(matrix, -halfWidth, halfHeight, 0.0F).setUv(u0, StripUv.V0).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, -halfWidth, -halfHeight, 0.0F).setUv(u0, StripUv.V0).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, halfWidth, -halfHeight, 0.0F).setUv(u1, StripUv.V0).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, halfWidth, halfHeight, 0.0F).setUv(u1, StripUv.V1).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, -halfWidth, halfHeight, 0.0F).setUv(u0, StripUv.V1).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
     }
 
     public static final class State extends EntityRenderState {

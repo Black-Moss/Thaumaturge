@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.FluidModel;
@@ -59,7 +60,8 @@ public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCr
         int base = OPAQUE_WHITE;
         if (model.tintSource() != null) {
             BlockState fluidBlock = fluid.defaultFluidState().createLegacyBlock();
-            base = ARGB.opaque(model.tintSource().color(fluidBlock));
+            int tint = crucible.getLevel() instanceof ClientLevel level ? model.tintSource().colorInWorld(fluidBlock, level, crucible.getBlockPos()) : model.tintSource().color(fluidBlock);
+            base = ARGB.opaque(tint);
         }
         state.color = tinted(base, crucible.getAspects().totalAmount());
     }
