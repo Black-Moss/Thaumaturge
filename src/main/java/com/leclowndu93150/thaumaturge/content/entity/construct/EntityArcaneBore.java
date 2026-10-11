@@ -31,7 +31,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -51,14 +53,18 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
     private static final double FOLLOW_RANGE = 32.0;
     private static final int HEAL_INTERVAL = 50;
     private static final float HEAL_AMOUNT = 1.0F;
-    private static final double MOVE_DAMPING = 5.0;
     private static final int MAX_HEAD_PITCH = 90;
-    private static final int HEAD_TURN_SPEED = 10;
-    private static final byte EVENT_DIG_START = 16;
-    private static final byte EVENT_DIG_STOP = 17;
     private static final int SMOOTHING_TICKS = 4;
     private static final double OUTPUT_BACK_OFFSET = 0.75;
     private static final double OUTPUT_HEIGHT = 0.5;
+    private static final double MOVE_DAMPING = 4.0;
+    private static final double KNOCKBACK_SHARE = 0.3;
+    private static final int HEAD_TURN_SPEED = 6;
+    private static final byte EVENT_DIG_START = 82;
+    private static final byte EVENT_DIG_STOP = 83;
+    private static final double OWNER_NEAR_RANGE = 2.0;
+    private static final double OWNER_ABOVE_RANGE = 2.0;
+    private static final double BLOCK_CENTER = 0.5;
 
     public boolean remoteDigFlag;
 
@@ -69,6 +75,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
 
     public EntityArcaneBore(EntityType<? extends EntityArcaneBore> type, Level level) {
         super(type, level);
+        this.lookControl = new ConstructLookControl(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -103,34 +110,119 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
     }
 
     private void serverUpdate(ServerLevel server) {
-        setYBodyRot(getYHeadRot());
-        regenerate();
-        followRailSignal(server);
-        engine.serverTick(this, server, tickCount);
-    }
-
-    private void regenerate() {
-        if (tickCount % HEAL_INTERVAL != 0) {
-            return;
+        regenerate(HEAL_INTERVAL, HEAL_AMOUNT);
+        if (!followRailSignal(server) && !isOnPlainRail(server) && !isPassenger()) {
+            followBlockBelow(server);
         }
-        heal(HEAL_AMOUNT);
+        engine.serverTick(this, server, tickCount);
+        swivelWithHead();
     }
 
-    private void followRailSignal(ServerLevel server) {
+    private boolean followRailSignal(ServerLevel server) {
         BlockState rail = ActivatorRails.find(server, blockPosition(), scratchPos);
         if (rail == null) {
-            followBlockBelow(server);
-            return;
+            return false;
         }
         setActive(!ActivatorRails.powered(rail));
+        return true;
+    }
+
+    private boolean isOnPlainRail(ServerLevel server) {
+        BlockPos pos = blockPosition();
+        return BaseRailBlock.isRail(server, pos) || BaseRailBlock.isRail(server, scratchPos.setWithOffset(pos, Direction.DOWN));
     }
 
     private void followBlockBelow(ServerLevel server) {
-        if (isPassenger()) {
+        setActive(server.hasNeighborSignal(scratchPos.setWithOffset(blockPosition(), Direction.DOWN)));
+    }
+
+    private void faceToward(LivingEntity owner) {
+        Direction facing = placementFacing(owner);
+        if (facing != Direction.DOWN) {
+            turnTo(facing);
+        }
+    }
+
+    private Direction placementFacing(LivingEntity owner) {
+        BlockPos pos = blockPosition();
+        boolean near = Math.abs(owner.getX() - (pos.getX() + BLOCK_CENTER)) < OWNER_NEAR_RANGE && Math.abs(owner.getZ() - (pos.getZ() + BLOCK_CENTER)) < OWNER_NEAR_RANGE;
+        if (near) {
+            double rise = owner.getEyeY() - pos.getY();
+            if (rise > OWNER_ABOVE_RANGE) {
+                return Direction.UP;
+            }
+            if (rise < 0.0) {
+                return Direction.DOWN;
+            }
+        }
+        return owner.getDirection().getOpposite();
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        if (source.getEntity() instanceof LivingEntity attacker && isOwner(attacker)) {
+            faceToward(attacker);
+            return false;
+        }
+        jolt();
+        return super.hurtServer(level, source, amount);
+    }
+
+    @Override
+    public void die(DamageSource source) {
+        if (!dead && !isRemoved()) {
+            dropHeld();
+        }
+        super.die(source);
+    }
+
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (isRemoved() || !isOwner(player) || player.getItemInHand(hand).is(Items.NAME_TAG)) {
+            return super.mobInteract(player, hand);
+        }
+        if (!level().isClientSide()) {
+            useAsOwner(player, hand);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    private void useAsOwner(Player player, InteractionHand hand) {
+        if (player.isShiftKeyDown()) {
+            dropHeld();
+            dismantle(player, hand, new ItemStack(TTItems.ARCANE_BORE.get()));
             return;
         }
-        scratchPos.setWithOffset(blockPosition(), Direction.DOWN);
-        setActive(server.hasNeighborSignal(scratchPos));
+        MenuArcaneBore.open(player, this);
+    }
+
+    @Override
+    public void knockback(double power, double xd, double zd) {
+        super.knockback(power * KNOCKBACK_SHARE, xd, zd);
+        capRise();
+    }
+
+    @Override
+    public void move(MoverType type, Vec3 delta) {
+        super.move(type, type == MoverType.SELF ? dampHorizontal(delta, MOVE_DAMPING) : delta);
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        if (id == EVENT_DIG_START) {
+            remoteDigFlag = true;
+            return;
+        }
+        if (id == EVENT_DIG_STOP) {
+            remoteDigFlag = false;
+            lastDigEndTick = tickCount;
+            return;
+        }
+        super.handleEntityEvent(id);
+    }
+
+    public boolean clientDiggingSmoothed() {
+        return remoteDigFlag || tickCount - lastDigEndTick <= SMOOTHING_TICKS;
     }
 
     @Override
@@ -148,59 +240,6 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
         return entityData.get(ACTIVE);
     }
 
-    private void faceToward(LivingEntity attacker) {
-        Vec3 offset = attacker.position().subtract(position());
-        Direction nearest = Direction.getApproximateNearest(offset.x, offset.y, offset.z);
-        if (nearest != Direction.DOWN) {
-            turnTo(nearest);
-        }
-    }
-
-    @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        if (source.getEntity() instanceof LivingEntity attacker && isOwner(attacker)) {
-            faceToward(attacker);
-            return false;
-        }
-        jolt();
-        return super.hurtServer(level, source, damage);
-    }
-
-    @Override
-    public void die(DamageSource source) {
-        dropHeld();
-        super.die(source);
-    }
-
-    @Override
-    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (level().isClientSide() || !isAlive() || !isOwner(player)) {
-            return super.mobInteract(player, hand);
-        }
-        return useAsOwner(player, hand);
-    }
-
-    private InteractionResult useAsOwner(Player player, InteractionHand hand) {
-        if (player.isShiftKeyDown()) {
-            dropHeld();
-            dismantle(player, hand, new ItemStack(TTItems.ARCANE_BORE.get()));
-        } else {
-            MenuArcaneBore.open(player, this);
-        }
-        return InteractionResult.SUCCESS;
-    }
-
-    @Override
-    public void move(MoverType type, Vec3 delta) {
-        super.move(type, dampHorizontal(delta, MOVE_DAMPING));
-    }
-
-    @Override
-    public void knockback(double strength, double dx, double dz) {
-        super.knockback(strength, dx, dz);
-        capRise();
-    }
-
     @Override
     public int getMaxHeadXRot() {
         return MAX_HEAD_PITCH;
@@ -209,23 +248,6 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
     @Override
     public int getHeadRotSpeed() {
         return HEAD_TURN_SPEED;
-    }
-
-    public boolean clientDiggingSmoothed() {
-        long sinceDigEnd = level().getGameTime() - lastDigEndTick;
-        return remoteDigFlag || sinceDigEnd <= SMOOTHING_TICKS;
-    }
-
-    @Override
-    public void handleEntityEvent(byte id) {
-        switch (id) {
-            case EVENT_DIG_START -> remoteDigFlag = true;
-            case EVENT_DIG_STOP -> {
-                remoteDigFlag = false;
-                lastDigEndTick = level().getGameTime();
-            }
-            default -> super.handleEntityEvent(id);
-        }
     }
 
     @Override
