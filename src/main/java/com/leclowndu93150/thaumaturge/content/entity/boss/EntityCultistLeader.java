@@ -6,6 +6,8 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
+import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakTracker;
+import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakWearer;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitNames;
 import com.leclowndu93150.thaumaturge.registry.TTLootTables;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -44,7 +46,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public class EntityCultistLeader extends EntityThaumaturgeBoss implements RangedAttackMob {
+public class EntityCultistLeader extends EntityThaumaturgeBoss implements RangedAttackMob, CloakWearer {
     private static final String NAME_KEY = "entity.thaumaturge.cultist_leader.name.custom";
     private static final List<String> TITLE_NAMES = List.of("Alberic", "Anselm", "Bastian", "Beturian", "Chabier", "Chorache", "Chuse", "Dodorol", "Ebardo", "Ferrando", "Fertus", "Guillen", "Larpe",
             "Obano", "Zelipe");
@@ -86,6 +88,7 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
     private static final float ORB_PITCH_BASE = 1.0F;
     private static final float ORB_PITCH_SPREAD = 0.1F;
 
+    private final CloakTracker cloak = new CloakTracker();
     private int title;
 
     public EntityCultistLeader(EntityType<? extends EntityCultistLeader> type, Level level) {
@@ -95,6 +98,17 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
 
     public static AttributeSupplier.Builder createAttributes() {
         return createBossAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED).add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE);
+    }
+
+    @Override
+    public void tick() {
+        cloak.tick(this);
+        super.tick();
+    }
+
+    @Override
+    public CloakTracker cloak() {
+        return cloak;
     }
 
     @Override

@@ -23,7 +23,7 @@ public final class ThaumostaticHarnessModel extends AbstractTTArmorModel {
     }
 
     public static LayerDefinition createChest() {
-        MeshDefinition mesh = KnightArmorModel.emptyMesh();
+        MeshDefinition mesh = emptyMesh();
         PartDefinition body = mesh.getRoot().getChild("body");
         body.addOrReplaceChild("harness_body", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, SHELL_INFLATE), PartPose.ZERO);
         PartDefinition front = body.addOrReplaceChild("harness_front",

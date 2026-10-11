@@ -1,6 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
+import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakTracker;
+import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakWearer;
 import java.util.Map;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceKey;
@@ -31,7 +33,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public abstract class EntityCultist extends Monster {
+public abstract class EntityCultist extends Monster implements CloakWearer {
     public static final byte ARRIVAL_EVENT = 20;
 
     public record LookAngles(float yaw, float pitch) {
@@ -84,6 +86,8 @@ public abstract class EntityCultist extends Monster {
     private static final double ARRIVAL_DRIFT = 0.05;
     private static final float LOOK_YAW_OFFSET = 90.0F;
 
+    private final CloakTracker cloak = new CloakTracker();
+
     protected EntityCultist(EntityType<? extends EntityCultist> type, Level level) {
         super(type, level);
         this.xpReward = EXPERIENCE;
@@ -101,6 +105,17 @@ public abstract class EntityCultist extends Monster {
     }
 
     protected abstract ResourceKey<LootTable> equipmentTable();
+
+    @Override
+    public void tick() {
+        cloak.tick(this);
+        super.tick();
+    }
+
+    @Override
+    public CloakTracker cloak() {
+        return cloak;
+    }
 
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
