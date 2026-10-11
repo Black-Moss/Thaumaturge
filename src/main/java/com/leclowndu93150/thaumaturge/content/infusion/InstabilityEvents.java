@@ -21,9 +21,9 @@ public final class InstabilityEvents {
 
     private InstabilityEvents() {}
 
-    public static void trigger(ServerLevel level, BlockPos matrixPos, List<BlockPos> pedestals) {
+    public static void trigger(ServerLevel level, BlockPos matrixPos, List<BlockPos> pedestals, float stability) {
         grantInstabilityResearch(level, matrixPos);
-        InstabilityOutcome.roll(level.registryAccess(), level.getRandom()).ifPresent(outcome -> outcome.effect().apply(new InstabilityContext(level, matrixPos, pedestals)));
+        InstabilityOutcome.roll(level.registryAccess(), level.getRandom()).ifPresent(outcome -> outcome.effect().apply(new InstabilityContext(level, matrixPos, pedestals, stability)));
     }
 
     private static void grantInstabilityResearch(ServerLevel level, BlockPos matrixPos) {

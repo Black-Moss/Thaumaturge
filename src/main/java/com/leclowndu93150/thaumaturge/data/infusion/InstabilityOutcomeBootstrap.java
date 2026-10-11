@@ -28,6 +28,7 @@ public final class InstabilityOutcomeBootstrap {
     private static final IntProvider TEMPORARY_WARP = UniformInt.of(2, 5);
     private static final float EXPLOSION_MIN = 1.5F;
     private static final float EXPLOSION_MAX = 2.5F;
+    private static final float FLUX_CONSUME_STABILITY_LIMIT = -50.0F;
 
     private InstabilityOutcomeBootstrap() {}
 
@@ -38,7 +39,7 @@ public final class InstabilityOutcomeBootstrap {
         register(context, "zap_everyone", 2, new ZapEffect(true, ZAP_DAMAGE));
         register(context, "drop_item_flux", 2, EjectEffect.of(false, EjectAftermath.FLUX));
         register(context, "drop_item_pollute", 2, EjectEffect.of(false, EjectAftermath.POLLUTE));
-        register(context, "consume_item_flux", 1, EjectEffect.of(true, EjectAftermath.FLUX));
+        register(context, "consume_item_flux", 1, EjectEffect.of(false, EjectAftermath.FLUX).consumingAtOrBelow(FLUX_CONSUME_STABILITY_LIMIT));
         register(context, "consume_item_pollute", 1, EjectEffect.of(true, EjectAftermath.POLLUTE));
         register(context, "harm", 2, new HarmEffect(false, harmEffects()));
         register(context, "drop_item_explode", 2, EjectEffect.of(false, EjectAftermath.EXPLODE));

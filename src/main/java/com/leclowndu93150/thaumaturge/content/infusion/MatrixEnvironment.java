@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import org.jspecify.annotations.Nullable;
 
-public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float costMult, float stabilityReplenish) {
+public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float costMult, float stabilityReplenish, List<BlockPos> problemBlocks) {
     private static final int BASE_CYCLE_TIME = 10;
     private static final float BASE_COST_MULTIPLIER = 1.0F;
     private static final int ALTAR_DEPTH = 2;
@@ -22,6 +22,7 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
 
     public MatrixEnvironment {
         pedestals = List.copyOf(pedestals);
+        problemBlocks = List.copyOf(problemBlocks);
     }
 
     public static MatrixEnvironment survey(Level level, BlockPos matrix) {
@@ -32,13 +33,14 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
         List<InfusionModifier> modifiers = Stream.of(fromPedestals, fromPillars, fromUpgrades).flatMap(stream -> stream).filter(Objects::nonNull).toList();
         int cycle = BASE_CYCLE_TIME;
         float cost = BASE_COST_MULTIPLIER;
-        float stability = InfusionStabilitySurvey.survey(level, matrix).stabilityReplenish();
+        InfusionStabilitySurvey.Result stabilisers = InfusionStabilitySurvey.survey(level, matrix);
+        float stability = stabilisers.stabilityReplenish();
         for (InfusionModifier entry : modifiers) {
             cycle += entry.cycleTime();
             cost += entry.cost();
             stability += entry.stability();
         }
-        return new MatrixEnvironment(spots, cycle, cost, stability);
+        return new MatrixEnvironment(spots, cycle, cost, stability, stabilisers.problemBlocks());
     }
 
     public static boolean validLocation(Level level, BlockPos matrix) {

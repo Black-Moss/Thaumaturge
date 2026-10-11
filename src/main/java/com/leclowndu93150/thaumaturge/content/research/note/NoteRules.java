@@ -51,7 +51,7 @@ public final class NoteRules {
             if (origin == null || !origin.active()) {
                 continue;
             }
-            IntStream.range(0, HexGrid.NEIGHBOURS.length).mapToObj(here::neighbour).filter(there -> !seen.contains(there) && linksTo(origin, cells.get(there), discovered)).toList().forEach(there -> {
+            IntStream.range(0, HexGrid.DIRECTIONS).mapToObj(here::neighbour).filter(there -> !seen.contains(there) && linksTo(origin, cells.get(there), discovered)).toList().forEach(there -> {
                 seen.add(there);
                 frontier.push(there);
             });

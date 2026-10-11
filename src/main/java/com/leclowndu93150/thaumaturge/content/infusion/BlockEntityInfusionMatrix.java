@@ -61,15 +61,8 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     private static final int IDLE_CHECK_INTERVAL = 100;
     private static final int IDLE_REGEN_MIN_INTERVAL = 5;
     private static final float IDLE_REGEN_MIN_GAIN = 0.1F;
-    private static final int RUNE_INTERVAL = 5;
+    private static final int GLYPH_INTERVAL = 5;
     private static final int LOOP_SOUND_INTERVAL = 65;
-    private static final float RUNE_RED_BASE = 0.5F;
-    private static final float RUNE_RED_SPREAD = 0.2F;
-    private static final float RUNE_GREEN = 0.1F;
-    private static final float RUNE_BLUE_BASE = 0.7F;
-    private static final float RUNE_BLUE_SPREAD = 0.3F;
-    private static final int RUNE_LIFETIME = 25;
-    private static final float RUNE_GRAVITY = -0.03F;
     private static final float SOUND_VOLUME = 0.5F;
     private static final float SOUND_PITCH = 1.0F;
     private static final float FAIL_VOLUME = 1.0F;
@@ -80,7 +73,22 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     private static final float EVENT_STABILITY_SPREAD = 5.0F;
     private static final float FAILED_DRAIN_PENALTY = 0.25F;
     private static final int PULL_TICKS = 5;
-    private static final int FINISH_GRACE_CYCLES = 3;
+    private static final int FINISH_DELAY_STEPS = 1;
+    private static final float GLYPH_RED_LOW = 0.55F;
+    private static final float GLYPH_RED_RANGE = 0.25F;
+    private static final float GLYPH_GREEN = 0.12F;
+    private static final float GLYPH_BLUE_LOW = 0.75F;
+    private static final float GLYPH_BLUE_RANGE = 0.25F;
+    private static final int GLYPH_LIFETIME = 7;
+    private static final float GLYPH_RISE = -0.03F;
+    private static final float UNSTABLE_SPARKS_AT_FLOOR = 0.2F;
+    private static final int PROBLEM_SPARK_INTERVAL = 20;
+    private static final float SPARK_RED = 0.65F;
+    private static final float SPARK_GREEN = 0.2F;
+    private static final float SPARK_BLUE = 0.9F;
+    private static final float SPARK_SIZE = 0.35F;
+    private static final double PROBLEM_SPARK_INSET = 0.25;
+    private static final double PROBLEM_SPARK_SPAN = 0.5;
 
     private boolean active;
     private final StabilityState stability = new StabilityState();
@@ -175,8 +183,8 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         if (ingredients == null) {
             return false;
         }
-        job = new InfusionCraftJob(ingredients, projectedCost(level, recipe.jobEssentia(input)), recipe.jobResult(input, level.getRandom()), input.catalyst(), recipe.jobInstability(input),
-                Optional.of(player.getUUID()));
+        AspectList cost = projectedCost(level, recipe.jobEssentia(input));
+        job = new InfusionCraftJob(ingredients, cost, recipe.jobResult(input, level.getRandom()), input.catalyst(), recipe.jobInstability(input), Optional.of(player.getUUID()), cost);
         pipeline.reset();
         playSound(level, TTSounds.CRAFTSTART.get(), SOUND_VOLUME, SOUND_PITCH);
         setChangedAndSync();
@@ -316,11 +324,13 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             return;
         }
         int half = halfCycle(env);
+        flagProblemBlocks(level, env);
         if (!crafting) {
             regenerateIdle(half);
             return;
         }
         ambience(level);
+        crackle(level);
         if (due(half)) {
             runCycle(level, env, half);
         }
@@ -350,16 +360,43 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     }
 
     private void ambience(ServerLevel level) {
-        if (due(RUNE_INTERVAL)) {
+        if (due(GLYPH_INTERVAL)) {
             RandomSource random = level.getRandom();
-            float red = RUNE_RED_BASE + random.nextFloat() * RUNE_RED_SPREAD;
-            float blue = RUNE_BLUE_BASE + random.nextFloat() * RUNE_BLUE_SPREAD;
+            float red = GLYPH_RED_LOW + random.nextFloat() * GLYPH_RED_RANGE;
+            float blue = GLYPH_BLUE_LOW + random.nextFloat() * GLYPH_BLUE_RANGE;
             Vec3 origin = Vec3.atLowerCornerOf(worldPosition.below(ALTAR_DEPTH));
-            Effects.glyphField(level, origin).color(red, RUNE_GREEN, blue).lifetime(RUNE_LIFETIME).drift(RUNE_GRAVITY).send();
+            Effects.glyphField(level, origin).color(red, GLYPH_GREEN, blue).lifetime(GLYPH_LIFETIME).drift(GLYPH_RISE).send();
         }
         if (due(LOOP_SOUND_INTERVAL)) {
             playSound(level, TTSounds.INFUSER.get(), SOUND_VOLUME, SOUND_PITCH);
         }
+    }
+
+    private void crackle(ServerLevel level) {
+        float unrest = stability.unrest();
+        RandomSource random = level.getRandom();
+        if (unrest <= 0.0F || random.nextFloat() >= unrest * UNSTABLE_SPARKS_AT_FLOOR) {
+            return;
+        }
+        Vec3 point = Vec3.atLowerCornerWithOffset(worldPosition, random.nextDouble(), random.nextDouble(), random.nextDouble());
+        sendSpark(level, point);
+    }
+
+    private void flagProblemBlocks(ServerLevel level, MatrixEnvironment env) {
+        List<BlockPos> problems = env.problemBlocks();
+        if (problems.isEmpty() || !due(PROBLEM_SPARK_INTERVAL)) {
+            return;
+        }
+        RandomSource random = level.getRandom();
+        BlockPos culprit = problems.get(random.nextInt(problems.size()));
+        double x = PROBLEM_SPARK_INSET + random.nextDouble() * PROBLEM_SPARK_SPAN;
+        double y = PROBLEM_SPARK_INSET + random.nextDouble() * PROBLEM_SPARK_SPAN;
+        double z = PROBLEM_SPARK_INSET + random.nextDouble() * PROBLEM_SPARK_SPAN;
+        sendSpark(level, Vec3.atLowerCornerWithOffset(culprit, x, y, z));
+    }
+
+    private static void sendSpark(ServerLevel level, Vec3 point) {
+        Effects.spark(level, point).color(SPARK_RED, SPARK_GREEN, SPARK_BLUE).size(SPARK_SIZE).send();
     }
 
     private void runCycle(ServerLevel level, MatrixEnvironment env, int half) {
@@ -372,7 +409,7 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         BlockEntityPedestal center = centralPedestal(level);
         CycleOutcome outcome = CycleOutcome.decide(center != null && catalystMatches(center, current), stability, random);
         if (outcome.firesEvent()) {
-            InstabilityEvents.trigger(level, worldPosition, env.pedestals());
+            InstabilityEvents.trigger(level, worldPosition, env.pedestals(), stability.value());
             stability.rebound(random);
         }
         switch (outcome) {
@@ -459,6 +496,14 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             stability.punish();
         }
 
+        private void componentMissing(int position) {
+            RandomSource random = level.getRandom();
+            if (random.nextInt(position) == 0) {
+                current.oweOneMore(random);
+                stability.punish();
+            }
+        }
+
         private void markChanged() {
             setChangedAndSync();
         }
@@ -482,25 +527,24 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
 
     private static final class CraftPipeline {
         private final List<CraftStage> stages;
-        private int cursor;
 
         private CraftPipeline(List<CraftStage> stages) {
             this.stages = stages;
         }
 
         private void reset() {
-            cursor = 0;
             for (CraftStage stage : stages) {
                 stage.reset();
             }
         }
 
         private void advance(CycleContext context) {
-            int last = stages.size() - 1;
-            while (cursor < last && stages.get(cursor).complete(context.job())) {
-                cursor++;
+            for (CraftStage stage : stages) {
+                if (!stage.complete(context.job())) {
+                    stage.advance(context);
+                    return;
+                }
             }
-            stages.get(cursor).advance(context);
         }
     }
 
@@ -550,6 +594,7 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
                     pull(context, holder, ingredients, index);
                     return;
                 }
+                context.componentMissing(index + 1);
             }
         }
 
@@ -590,7 +635,7 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     }
 
     private static final class FinishStage implements CraftStage {
-        private int grace;
+        private int waited;
 
         @Override
         public boolean complete(InfusionCraftJob job) {
@@ -599,16 +644,16 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
 
         @Override
         public void advance(CycleContext context) {
-            grace++;
-            if (grace >= FINISH_GRACE_CYCLES) {
-                grace = 0;
+            waited++;
+            if (waited >= FINISH_DELAY_STEPS) {
+                waited = 0;
                 finish(context);
             }
         }
 
         @Override
         public void reset() {
-            grace = 0;
+            waited = 0;
         }
 
         private static void finish(CycleContext context) {
@@ -657,6 +702,10 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             value = Mth.clamp(value - loss + replenish, STABILITY_FLOOR, STABILITY_CAP);
         }
 
+        private float unrest() {
+            return value < 0.0F ? Math.min(1.0F, value / STABILITY_FLOOR) : 0.0F;
+        }
+
         private boolean eventRoll(RandomSource random) {
             return value < 0.0F && random.nextInt(INSTABILITY_ROLL_BOUND) <= Math.abs(value);
         }
@@ -697,17 +746,17 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     }
 
     private static final class ClientAnimator {
-        private static final float START_UP_MAX = 1.0F;
-        private static final float START_UP_RATE = 10.0F;
-        private static final float START_UP_MIN_STEP = 0.001F;
-        private static final int CRAFT_TICKS_DECAY = 2;
-        private static final int CRAFT_TICKS_MAX = 50;
+        private static final float FULLY_AWAKE = 1.0F;
+        private static final float WAKE_EASE = 0.09F;
+        private static final float WAKE_SNAP = 0.005F;
+        private static final int SWAY_SETTLED_TICKS = 50;
+        private static final int SWAY_WIND_DOWN = 2;
 
         private ClientAnimator() {}
 
         private static int craftTicks(Level level, BlockPos pos, int ticks, boolean crafting) {
             if (!crafting) {
-                return ticks > 0 ? Mth.clamp(ticks - CRAFT_TICKS_DECAY, 0, CRAFT_TICKS_MAX) : ticks;
+                return Math.max(0, Math.min(ticks, SWAY_SETTLED_TICKS) - SWAY_WIND_DOWN);
             }
             if (ticks == 0) {
                 level.playLocalSound(pos, TTSounds.INFUSERSTART.get(), SoundSource.BLOCKS, SOUND_VOLUME, SOUND_PITCH, false);
@@ -716,15 +765,9 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         }
 
         private static float startUp(float current, boolean active) {
-            float step = current / START_UP_RATE;
-            if (active) {
-                return current < START_UP_MAX ? Math.min(START_UP_MAX, current + Math.max(step, START_UP_MIN_STEP)) : current;
-            }
-            if (current > 0.0F) {
-                float eased = current - step;
-                return eased < START_UP_MIN_STEP ? 0.0F : eased;
-            }
-            return current;
+            float target = active ? FULLY_AWAKE : 0.0F;
+            float eased = current + (target - current) * WAKE_EASE;
+            return Math.abs(target - eased) < WAKE_SNAP ? target : eased;
         }
     }
 

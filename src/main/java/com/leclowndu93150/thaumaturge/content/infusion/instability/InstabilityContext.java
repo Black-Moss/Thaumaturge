@@ -11,7 +11,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-public record InstabilityContext(ServerLevel level, BlockPos matrix, List<BlockPos> pedestals) {
+public record InstabilityContext(ServerLevel level, BlockPos matrix, List<BlockPos> pedestals, float stability) {
     private static final double EVENT_RANGE = 10.0;
     private static final int ARC_COLOR = 0x4C004C;
     private static final float ZAP_VOLUME = 0.1F;

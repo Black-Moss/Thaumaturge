@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.infusion;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -8,12 +9,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 
 public final class InfusionCraftJob {
     public static final Codec<InfusionCraftJob> CODEC = RecordCodecBuilder.create(i -> i.group(ItemStack.CODEC.listOf().fieldOf("ingredients").forGetter(j -> j.ingredients),
             AspectList.CODEC.fieldOf("essentia").forGetter(j -> j.essentia), ItemStack.CODEC.fieldOf("result").forGetter(j -> j.result), ItemStack.CODEC.fieldOf("catalyst").forGetter(j -> j.catalyst),
-            Codec.INT.fieldOf("instability").forGetter(j -> j.instability), UUIDUtil.CODEC.optionalFieldOf("player").forGetter(j -> j.player)).apply(i, InfusionCraftJob::new));
+            Codec.INT.fieldOf("instability").forGetter(j -> j.instability), UUIDUtil.CODEC.optionalFieldOf("player").forGetter(j -> j.player),
+            AspectList.CODEC.optionalFieldOf("cost", AspectList.EMPTY).forGetter(j -> j.cost)).apply(i, InfusionCraftJob::new));
 
     private final List<ItemStack> ingredients;
     private AspectList essentia;
@@ -21,14 +24,16 @@ public final class InfusionCraftJob {
     private final ItemStack catalyst;
     private final int instability;
     private final Optional<UUID> player;
+    private final AspectList cost;
 
-    public InfusionCraftJob(List<ItemStack> ingredients, AspectList essentia, ItemStack result, ItemStack catalyst, int instability, Optional<UUID> player) {
+    public InfusionCraftJob(List<ItemStack> ingredients, AspectList essentia, ItemStack result, ItemStack catalyst, int instability, Optional<UUID> player, AspectList cost) {
         this.ingredients = new ArrayList<>(ingredients);
         this.essentia = essentia;
         this.result = result;
         this.catalyst = catalyst;
         this.instability = instability;
         this.player = player;
+        this.cost = cost;
     }
 
     public List<ItemStack> ingredients() {
@@ -57,5 +62,16 @@ public final class InfusionCraftJob {
 
     public Optional<UUID> player() {
         return player;
+    }
+
+    public AspectList cost() {
+        return cost;
+    }
+
+    public void oweOneMore(RandomSource random) {
+        List<AspectInstance> pool = cost.entries();
+        if (!pool.isEmpty()) {
+            essentia = essentia.add(pool.get(random.nextInt(pool.size())).aspect(), 1);
+        }
     }
 }
