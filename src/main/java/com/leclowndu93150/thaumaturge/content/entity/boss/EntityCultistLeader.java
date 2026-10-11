@@ -6,13 +6,19 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
+import com.leclowndu93150.thaumaturge.content.entity.portal.CultistPortals;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitNames;
 import com.leclowndu93150.thaumaturge.registry.TTLootTables;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -35,8 +41,8 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.providers.VanillaEnchantmentProviders;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
@@ -77,14 +83,17 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
     private static final double RALLY_RADIUS = 8.0;
     private static final int RALLY_TICKS = 60;
     private static final int RALLY_AMPLIFIER = 1;
-    private static final float ORB_SPEED = 0.66F;
-    private static final float ORB_SPREAD = 3.0F;
-    private static final double ORB_CLEARANCE = 1.0;
-    private static final double ORB_ARC_PER_BLOCK = 0.1;
-    private static final double CHEST_FRACTION = 0.65;
     private static final float ORB_VOLUME = 1.0F;
     private static final float ORB_PITCH_BASE = 1.0F;
     private static final float ORB_PITCH_SPREAD = 0.1F;
+    private static final float ORB_LAUNCH_SPEED = 0.3F;
+    private static final float ORB_LAUNCH_SCATTER = 8.0F;
+    private static final double TARGET_BODY_MIDDLE = 0.5;
+    private static final double LOB_CLEARANCE = 0.75;
+    private static final double LOB_RISE_PER_BLOCK = 0.04;
+    private static final float FACE_TURN = 180.0F;
+    private static final int WEAPON_ENCHANT_BASE = 7;
+    private static final int WEAPON_ENCHANT_ROLL = 21;
 
     private int title;
 
@@ -99,25 +108,72 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
 
     @Override
     protected void registerGoals() {
-        registerBehaviourGoals();
-        registerTargetingGoals();
-    }
-
-    private void registerBehaviourGoals() {
         goalSelector.addGoal(FLOAT_PRIORITY, new FloatGoal(this));
-        LongRangeAttackGoal ranged = new LongRangeAttackGoal(this, RANGED_SPEED, RANGED_MIN_DISTANCE, RANGED_MIN_INTERVAL, RANGED_MAX_INTERVAL, RANGED_RADIUS);
-        goalSelector.addGoal(RANGED_PRIORITY, ranged);
+        goalSelector.addGoal(RANGED_PRIORITY, new LongRangeAttackGoal(this, RANGED_SPEED, RANGED_MIN_DISTANCE, RANGED_MIN_INTERVAL, RANGED_MAX_INTERVAL, RANGED_RADIUS));
         goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
         goalSelector.addGoal(HOME_PRIORITY, new MoveTowardsRestrictionGoal(this, HOME_SPEED));
         goalSelector.addGoal(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
         goalSelector.addGoal(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_RANGE));
         goalSelector.addGoal(LOOK_PRIORITY, new RandomLookAroundGoal(this));
+        targetSelector.addGoal(RETALIATE_PRIORITY, new CultistHurtByTargetGoal(this));
+        targetSelector.addGoal(PLAYER_TARGET_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
-    private void registerTargetingGoals() {
-        NearestAttackableTargetGoal<Player> playerHunt = new NearestAttackableTargetGoal<>(this, Player.class, true);
-        targetSelector.addGoal(RETALIATE_PRIORITY, new CultistHurtByTargetGoal(this));
-        targetSelector.addGoal(PLAYER_TARGET_PRIORITY, playerHunt);
+    @Override
+    public void performRangedAttack(LivingEntity target, float distanceFactor) {
+        if (!(level() instanceof ServerLevel server) || !hasLineOfSight(target)) {
+            return;
+        }
+        lookAt(target, FACE_TURN, FACE_TURN);
+        swing(InteractionHand.MAIN_HAND);
+        EntityGolemOrb orb = new EntityGolemOrb(server, this, target, true);
+        Vec3 heading = lobPoint(target).subtract(orb.position());
+        orb.shoot(heading.x, heading.y, heading.z, ORB_LAUNCH_SPEED, ORB_LAUNCH_SCATTER);
+        server.addFreshEntity(orb);
+        playOrbSound(server);
+    }
+
+    private Vec3 lobPoint(LivingEntity target) {
+        double rise = LOB_CLEARANCE + distanceTo(target) * LOB_RISE_PER_BLOCK;
+        return new Vec3(target.getX(), target.getY(TARGET_BODY_MIDDLE) + rise, target.getZ());
+    }
+
+    private void enchantWeapon(ServerLevelAccessor level, DifficultyInstance difficulty) {
+        ItemStack weapon = getMainHandItem();
+        float clamped = difficulty.getSpecialMultiplier();
+        RandomSource random = getRandom();
+        if (weapon.isEmpty() || random.nextFloat() >= WEAPON_ENCHANT_CHANCE * clamped) {
+            return;
+        }
+        int power = WEAPON_ENCHANT_BASE + (int) (random.nextInt(WEAPON_ENCHANT_ROLL + 1) * clamped);
+        Optional<HolderSet.Named<Enchantment>> pool = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(EnchantmentTags.ON_MOB_SPAWN_EQUIPMENT);
+        setItemSlot(EquipmentSlot.MAINHAND, EnchantmentHelper.enchantItem(random, weapon, power, level.registryAccess(), pool));
+    }
+
+    @Override
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
+        if (tickCount % RALLY_INTERVAL == 0) {
+            rally(level);
+        }
+    }
+
+    private void rally(ServerLevel level) {
+        double reachSqr = RALLY_RADIUS * RALLY_RADIUS;
+        for (EntityCultist follower : level.getEntitiesOfClass(EntityCultist.class, getBoundingBox().inflate(RALLY_RADIUS), EntityCultistLeader::lacksRegeneration)) {
+            if (distanceToSqr(follower) <= reachSqr) {
+                grantRallyRegeneration(follower);
+            }
+        }
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        if (id == EntityCultist.ARRIVAL_EVENT) {
+            CultistPortals.showArrival(this);
+        } else {
+            super.handleEntityEvent(id);
+        }
     }
 
     @Override
@@ -127,14 +183,6 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
         ChampionHelper.makeChampion(this, true);
         title = TITLES.roll(getRandom());
         return super.finalizeSpawn(level, difficulty, reason, groupData);
-    }
-
-    private void enchantWeapon(ServerLevelAccessor level, DifficultyInstance difficulty) {
-        ItemStack weapon = getMainHandItem();
-        if (!weapon.isEmpty() && getRandom().nextFloat() < WEAPON_ENCHANT_CHANCE * difficulty.getSpecialMultiplier()) {
-            EnchantmentHelper.enchantItemFromProvider(weapon, level.registryAccess(), VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT, difficulty, getRandom());
-            setItemSlot(EquipmentSlot.MAINHAND, weapon);
-        }
     }
 
     @Override
@@ -161,45 +209,12 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
         return false;
     }
 
-    @Override
-    protected void customServerAiStep(ServerLevel level) {
-        super.customServerAiStep(level);
-        if (tickCount % RALLY_INTERVAL == 0) {
-            rally(level);
-        }
-    }
-
-    private void rally(ServerLevel level) {
-        List<EntityCultist> needy = level.getEntitiesOfClass(EntityCultist.class, getBoundingBox().inflate(RALLY_RADIUS), EntityCultistLeader::lacksRegeneration);
-        needy.forEach(EntityCultistLeader::grantRallyRegeneration);
-    }
-
     private static boolean lacksRegeneration(EntityCultist cultist) {
         return cultist.isAlive() && !cultist.hasEffect(MobEffects.REGENERATION);
     }
 
     private static void grantRallyRegeneration(EntityCultist cultist) {
         cultist.addEffect(new MobEffectInstance(MobEffects.REGENERATION, RALLY_TICKS, RALLY_AMPLIFIER));
-    }
-
-    @Override
-    public void performRangedAttack(LivingEntity target, float power) {
-        if (!(level() instanceof ServerLevel level) || !hasLineOfSight(target)) {
-            return;
-        }
-        swing(InteractionHand.MAIN_HAND);
-        EntityGolemOrb orb = new EntityGolemOrb(level, this, target, true);
-        Vec3 aim = arcedAim(orb, target);
-        orb.setPos(orb.position().add(aim.normalize().scale(ORB_CLEARANCE)));
-        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_SPREAD);
-        level.addFreshEntity(orb);
-        playOrbSound(level);
-    }
-
-    private static Vec3 arcedAim(EntityGolemOrb orb, LivingEntity target) {
-        Vec3 flat = new Vec3(target.getX() - orb.getX(), 0.0, target.getZ() - orb.getZ());
-        double rise = target.getY(CHEST_FRACTION) - orb.getY() + Math.sqrt(flat.lengthSqr()) * ORB_ARC_PER_BLOCK;
-        return new Vec3(flat.x, rise, flat.z);
     }
 
     private void playOrbSound(ServerLevel level) {

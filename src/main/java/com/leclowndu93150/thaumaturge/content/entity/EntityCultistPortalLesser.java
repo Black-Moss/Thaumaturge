@@ -8,6 +8,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -32,7 +33,7 @@ public class EntityCultistPortalLesser extends Monster {
     private static final double CULTIST_RANGE = 32.0;
     private static final int ACTIVATION_INTERVAL = 10;
     private static final int FIRST_ATTEMPT_DELAY = 100;
-    private static final int ATTEMPT_DELAY_BASE = 51;
+    private static final int ATTEMPT_DELAY_MIN = 50;
     private static final int ATTEMPT_DELAY_SPREAD = 50;
     private static final int HARD_CULTIST_CAP = 6;
     private static final int NORMAL_CULTIST_CAP = 4;
@@ -63,22 +64,65 @@ public class EntityCultistPortalLesser extends Monster {
     protected void registerGoals() {}
 
     @Override
+    public void aiStep() {
+        this.pulse = this.pulse > 0 ? this.pulse - 1 : 0;
+    }
+
+    @Override
     public void tick() {
         super.tick();
-        boolean awake = this.isActive();
-        this.activeCounter += awake ? 1 : 0;
-        if (this.level() instanceof ServerLevel level) {
-            if (awake) {
-                runSpawnCycle(level);
-            } else {
-                awakenIfWatched(level);
+        if (this.isActive()) {
+            this.activeCounter++;
+        }
+        if (this.level() instanceof ServerLevel server && this.isAlive()) {
+            if (this.isActive()) {
+                this.countDownToAttempt(server);
+            } else if (this.tickCount % ACTIVATION_INTERVAL == 0) {
+                this.wakeIfPlayerNear(server);
             }
         }
     }
 
-    @Override
-    public void aiStep() {
-        this.pulse = this.pulse > 0 ? this.pulse - 1 : 0;
+    private void wakeIfPlayerNear(ServerLevel server) {
+        if (server.getNearestPlayer(this, PLAYER_RANGE) == null) {
+            return;
+        }
+        this.setActive(true);
+        this.spawnCountdown = FIRST_ATTEMPT_DELAY;
+        server.playSound(null, this.getX(), this.getY(), this.getZ(), TTSounds.CRAFTSTART.get(), SoundSource.HOSTILE, ACTIVATION_SOUND_VOLUME, ACTIVATION_SOUND_PITCH);
+    }
+
+    private void countDownToAttempt(ServerLevel server) {
+        if (--this.spawnCountdown > 0) {
+            return;
+        }
+        this.spawnCountdown = ATTEMPT_DELAY_MIN + this.random.nextInt(ATTEMPT_DELAY_SPREAD + 1);
+        if (this.mayBringCultist(server)) {
+            this.bringCultist(server);
+        }
+    }
+
+    private boolean mayBringCultist(ServerLevel server) {
+        Player witness = server.getNearestPlayer(this, PLAYER_RANGE);
+        return witness != null && this.hasLineOfSight(witness) && CultistPortals.cultistsNear(this, CULTIST_RANGE) < cultistCapFor(server.getDifficulty());
+    }
+
+    private static int cultistCapFor(Difficulty difficulty) {
+        return switch (difficulty) {
+            case HARD -> HARD_CULTIST_CAP;
+            case NORMAL -> NORMAL_CULTIST_CAP;
+            default -> LOW_CULTIST_CAP;
+        };
+    }
+
+    private void bringCultist(ServerLevel server) {
+        EntityCultist arrival = CultistPortals.rollMinion(server, this.random);
+        if (arrival == null) {
+            return;
+        }
+        CultistPortals.pulse(server, this);
+        CultistPortals.summon(this, server, arrival);
+        this.hurtServer(server, server.damageSources().magic(), SPAWN_DAMAGE_BASE + this.random.nextInt(SPAWN_DAMAGE_SPREAD));
     }
 
     @Override
@@ -178,40 +222,4 @@ public class EntityCultistPortalLesser extends Monster {
         }
     }
 
-    private void awakenIfWatched(ServerLevel level) {
-        boolean due = this.tickCount % ACTIVATION_INTERVAL == 0;
-        Player viewer = due ? level.getNearestPlayer(this, PLAYER_RANGE) : null;
-        if (viewer == null) {
-            return;
-        }
-        this.setActive(true);
-        level.playSound(null, this.getX(), this.getY(), this.getZ(), TTSounds.CRAFTSTART.get(), SoundSource.HOSTILE, ACTIVATION_SOUND_VOLUME, ACTIVATION_SOUND_PITCH);
-    }
-
-    private void runSpawnCycle(ServerLevel level) {
-        if (--this.spawnCountdown > 0) {
-            return;
-        }
-        this.spawnCountdown = ATTEMPT_DELAY_BASE + this.random.nextInt(ATTEMPT_DELAY_SPREAD);
-        Player witness = level.getNearestPlayer(this, PLAYER_RANGE);
-        boolean watched = witness != null && this.hasLineOfSight(witness);
-        if (!watched || CultistPortals.cultistsNear(this, CULTIST_RANGE) >= cultistCap(level)) {
-            return;
-        }
-        level.broadcastEntityEvent(this, CultistPortals.PULSE_EVENT);
-        EntityCultist minion = CultistPortals.rollMinion(level, this.random);
-        if (minion == null) {
-            return;
-        }
-        CultistPortals.summon(this, level, minion);
-        this.hurtServer(level, level.damageSources().fellOutOfWorld(), SPAWN_DAMAGE_BASE + this.random.nextInt(SPAWN_DAMAGE_SPREAD));
-    }
-
-    private static int cultistCap(ServerLevel level) {
-        return switch (level.getDifficulty()) {
-            case HARD -> HARD_CULTIST_CAP;
-            case NORMAL -> NORMAL_CULTIST_CAP;
-            default -> LOW_CULTIST_CAP;
-        };
-    }
 }

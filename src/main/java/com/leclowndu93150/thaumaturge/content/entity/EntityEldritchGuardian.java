@@ -4,10 +4,14 @@ import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
 import com.leclowndu93150.thaumaturge.api.warp.WarpType;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
+import com.leclowndu93150.thaumaturge.content.eldritch.OuterLands;
+import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.eldritch.CastingArms;
+import com.leclowndu93150.thaumaturge.content.entity.eldritch.LeadingAim;
 import com.leclowndu93150.thaumaturge.network.ClientboundWarpFXPayload;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -15,6 +19,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -22,6 +27,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -40,6 +46,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
     private static final double MAX_HEALTH = 50.0;
@@ -86,6 +93,19 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
     private static final int WITHER_TICKS = 400;
     private static final int SCREECH_WARP_BASE = 1;
     private static final int SCREECH_WARP_SPREAD = 3;
+    private static final int SCREECH_AMPLIFIER = 0;
+    private static final float SHIELD_FACTOR = 0.5F;
+    private static final int SHIELD_REGEN_INTERVAL = 25;
+    private static final float SHIELD_REGEN_AMOUNT = 1.0F;
+    private static final int FOG_PHASE = 1;
+    private static final int WISP_INTERVAL = 3;
+    private static final double WISP_HEIGHT = 0.2;
+    private static final double WISP_SPREAD = 0.4;
+    private static final double WISP_RISE = 0.02;
+    private static final float WISP_DRIFT = -0.02F;
+    private static final float WISP_RED = 0.18F;
+    private static final float WISP_GREEN = 0.08F;
+    private static final float WISP_BLUE = 0.24F;
 
     private static final boolean LOOTS_GROUND_ITEMS = false;
 
@@ -98,7 +118,7 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH).add(Attributes.FOLLOW_RANGE, FOLLOW_RANGE).add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED)
-                .add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE).add(Attributes.ARMOR, ARMOR);
+                .add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE).add(Attributes.ARMOR, ARMOR).add(Attributes.MAX_ABSORPTION, MAX_HEALTH * SHIELD_FACTOR);
     }
 
     public static boolean checkGuardianSpawnRules(EntityType<EntityEldritchGuardian> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
@@ -124,15 +144,9 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         hunt(CULTIST_PRIORITY, EntityCultist.class);
     }
 
-    private <T extends LivingEntity> void hunt(int priority, Class<T> quarry) {
-        this.targetSelector.addGoal(priority, new NearestAttackableTargetGoal<>(this, quarry, true));
-    }
-
     private void registerCombatGoals() {
-        Goal caster = new LongRangeAttackGoal(this, CAST_SPEED, CAST_MIN_DISTANCE, CAST_MIN_INTERVAL, CAST_MAX_INTERVAL, CAST_RADIUS);
-        Goal brawler = new MeleeAttackGoal(this, MELEE_SPEED, false);
-        behave(CAST_PRIORITY, caster);
-        behave(MELEE_PRIORITY, brawler);
+        behave(CAST_PRIORITY, new LongRangeAttackGoal(this, CAST_SPEED, CAST_MIN_DISTANCE, CAST_MIN_INTERVAL, CAST_MAX_INTERVAL, CAST_RADIUS));
+        behave(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
     }
 
     private void registerIdleGoals() {
@@ -140,6 +154,10 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         behave(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
         behave(LOOK_PLAYER_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
         behave(LOOK_AROUND_PRIORITY, new RandomLookAroundGoal(this));
+    }
+
+    private <T extends LivingEntity> void hunt(int priority, Class<T> quarry) {
+        this.targetSelector.addGoal(priority, new NearestAttackableTargetGoal<>(this, quarry, true));
     }
 
     private void behave(int priority, Goal goal) {
@@ -158,18 +176,6 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (this.level() instanceof ServerLevel level) {
-            if (this.tickCount % FOG_INTERVAL == 0 && level.getDifficulty() != Difficulty.EASY) {
-                fogNearbyPlayers(level);
-            }
-        } else {
-            this.arms.relax();
-        }
-    }
-
-    @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
         if (!super.doHurtTarget(level, target)) {
             return false;
@@ -180,23 +186,110 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         return true;
     }
 
-    private void spreadFlames(ServerLevel level, Entity target) {
-        int severity = level.getDifficulty().getId();
-        float roll = this.getRandom().nextFloat();
-        if (roll < IGNITE_CHANCE_PER_DIFFICULTY * severity) {
-            target.igniteForSeconds(IGNITE_SECONDS_PER_DIFFICULTY * severity);
+    @Override
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+        SpawnGroupData data = super.finalizeSpawn(level, difficulty, reason, groupData);
+        if (inOuterLands()) {
+            this.setAbsorptionAmount(shieldCapacity());
+        }
+        return data;
+    }
+
+    private boolean inOuterLands() {
+        return this.level().dimension() == OuterLands.DIMENSION;
+    }
+
+    private float shieldCapacity() {
+        return (float) (this.getAttributeBaseValue(Attributes.MAX_HEALTH) * SHIELD_FACTOR);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.arms.relax();
+        if (!(this.level() instanceof ServerLevel level) || !this.isAlive()) {
+            return;
+        }
+        if (this.tickCount % FOG_INTERVAL == FOG_PHASE) {
+            fogNearbyPlayers(level);
+        }
+        if (inOuterLands()) {
+            mendShield();
+        }
+        trailWisps(level);
+    }
+
+    private void mendShield() {
+        float capacity = shieldCapacity();
+        float shield = this.getAbsorptionAmount();
+        if (this.tickCount % SHIELD_REGEN_INTERVAL == 0 && this.invulnerableTime <= 0 && shield < capacity) {
+            this.setAbsorptionAmount(Math.min(capacity, shield + SHIELD_REGEN_AMOUNT));
+        }
+    }
+
+    private void trailWisps(ServerLevel level) {
+        if (this.tickCount % WISP_INTERVAL != 0) {
+            return;
+        }
+        RandomSource random = this.getRandom();
+        Vec3 at = new Vec3(this.getX() + random.triangle(0.0, WISP_SPREAD), this.getY() + this.getBbHeight() * WISP_HEIGHT + random.triangle(0.0, WISP_SPREAD),
+                this.getZ() + random.triangle(0.0, WISP_SPREAD));
+        Effects.wispyMotes(level, at).color(WISP_RED, WISP_GREEN, WISP_BLUE).motion(0.0, WISP_RISE, 0.0).drift(WISP_DRIFT).send();
+    }
+
+    private void fogNearbyPlayers(ServerLevel level) {
+        Difficulty difficulty = level.getDifficulty();
+        if (inOuterLands() || difficulty == Difficulty.PEACEFUL || difficulty == Difficulty.EASY) {
+            return;
+        }
+        double reachSqr = difficulty == Difficulty.HARD ? HARD_FOG_RANGE_SQR : FOG_RANGE_SQR;
+        for (ServerPlayer player : level.players()) {
+            if (player.isAlive() && !player.isSpectator() && player.distanceToSqr(this) <= reachSqr) {
+                PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.mistShort());
+            }
         }
     }
 
     @Override
     public void performRangedAttack(LivingEntity target, float power) {
-        if (this.level() instanceof ServerLevel level) {
-            boolean castsOrb = this.getRandom().nextFloat() < ORB_CHANCE;
-            if (castsOrb) {
-                castOrb(level, target);
-                return;
-            }
+        if (!(this.level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (this.getRandom().nextFloat() < ORB_CHANCE) {
+            castOrb(level, target);
+        } else if (this.hasLineOfSight(target)) {
             screech(level, target);
+        }
+    }
+
+    private void castOrb(ServerLevel level, LivingEntity target) {
+        Vec3 hand = this.arms.castFromNextHand();
+        EntityEldritchOrb orb = new EntityEldritchOrb(level, this);
+        orb.setPos(orb.getX() + hand.x, orb.getY(), orb.getZ() + hand.z);
+        Vec3 aim = leadAim(orb, target);
+        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
+        level.addFreshEntity(orb);
+        playSpread(level, TTSounds.EGATTACK.get(), ORB_SOUND_VOLUME);
+    }
+
+    private static Vec3 leadAim(Entity orb, LivingEntity target) {
+        return LeadingAim.at(orb, target, LEAD_TICKS);
+    }
+
+    private void screech(ServerLevel level, LivingEntity target) {
+        this.arms.raiseBoth();
+        target.addEffect(new MobEffectInstance(MobEffects.WITHER, WITHER_TICKS, SCREECH_AMPLIFIER), this);
+        if (target instanceof ServerPlayer player) {
+            WarpHelper.addWarp(player, SCREECH_WARP_BASE + this.getRandom().nextInt(SCREECH_WARP_SPREAD), WarpType.TEMPORARY);
+        }
+        level.sendParticles(ParticleTypes.SONIC_BOOM, this.getX(), this.getEyeY(), this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);
+        playSpread(level, TTSounds.EGSCREECH.get(), SCREECH_SOUND_VOLUME);
+    }
+
+    private void spreadFlames(ServerLevel level, Entity target) {
+        int severity = level.getDifficulty().getId();
+        if (this.getRandom().nextFloat() < IGNITE_CHANCE_PER_DIFFICULTY * severity) {
+            target.igniteForSeconds(IGNITE_SECONDS_PER_DIFFICULTY * severity);
         }
     }
 
@@ -241,43 +334,9 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         return TTSounds.EGDEATH.get();
     }
 
-    private void fogNearbyPlayers(ServerLevel level) {
-        double range = level.getDifficulty() == Difficulty.HARD ? HARD_FOG_RANGE_SQR : FOG_RANGE_SQR;
-        for (ServerPlayer player : level.players()) {
-            if (player.isAlive() && player.distanceToSqr(this) < range) {
-                PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.mistShort());
-            }
-        }
-    }
-
-    private void castOrb(ServerLevel level, LivingEntity target) {
-        Vec3 hand = this.arms.castFromNextHand();
-        Vec3 aim = leadAim(target);
-        EntityEldritchOrb orb = new EntityEldritchOrb(level, this);
-        orb.setPos(orb.position().add(hand.x, 0.0, hand.z));
-        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
-        level.addFreshEntity(orb);
-        playSpread(level, TTSounds.EGATTACK.get(), ORB_SOUND_VOLUME);
-    }
-
-    private Vec3 leadAim(LivingEntity target) {
-        Vec3 predicted = target.position().add(target.getKnownMovement().scale(LEAD_TICKS));
-        return predicted.subtract(this.position()).normalize();
-    }
-
     private void playSpread(ServerLevel level, SoundEvent sound, float volume) {
         float pitch = 1.0F + this.getRandom().nextFloat() * SOUND_PITCH_SPREAD;
         level.playSound(null, this.getX(), this.getY(), this.getZ(), sound, SoundSource.HOSTILE, volume, pitch);
     }
 
-    private void screech(ServerLevel level, LivingEntity target) {
-        if (!this.hasLineOfSight(target)) {
-            return;
-        }
-        target.addEffect(new MobEffectInstance(MobEffects.WITHER, WITHER_TICKS, 0));
-        if (target instanceof ServerPlayer player) {
-            WarpHelper.addWarp(player, SCREECH_WARP_BASE + this.getRandom().nextInt(SCREECH_WARP_SPREAD), WarpType.TEMPORARY);
-        }
-        playSpread(level, TTSounds.EGSCREECH.get(), SCREECH_SOUND_VOLUME);
-    }
 }
