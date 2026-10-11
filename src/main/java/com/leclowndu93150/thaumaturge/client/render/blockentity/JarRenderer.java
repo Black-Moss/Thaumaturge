@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -155,9 +156,13 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     }
 
     public static void submitFluid(float amount, int capacity, int colour, int light, TextureAtlasSprite sprite, PoseStack poseStack, SubmitNodeCollector collector) {
+        submitFluid(amount, capacity, colour, light, sprite, Sheets.translucentBlockItemSheet(), poseStack, collector);
+    }
+
+    public static void submitFluid(float amount, int capacity, int colour, int light, TextureAtlasSprite sprite, RenderType type, PoseStack poseStack, SubmitNodeCollector collector) {
         float fill = Math.min(1.0F, amount / capacity);
         float height = FLUID_BASE_Y + FLUID_MAX_HEIGHT * fill;
-        collector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(), (pose, buffer) -> {
+        collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {
             VertexConsumer wrapped = sprite.wrap(buffer);
             fluidQuadTop(wrapped, pose, height, colour, light);
             fluidQuadBottom(wrapped, pose, colour, light);

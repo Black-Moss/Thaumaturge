@@ -1575,11 +1575,13 @@ public final class TTEnglishProvider extends LanguageProvider {
         addJadeMode("everfull_urns", "Everfull Urns");
         addJadeMode("infernal_furnaces", "Infernal Furnaces");
         addJadeMode("focal_manipulators", "Focal Manipulators");
+        addJadeMode("brain_jars", "Brains in Jars");
         add("config.jade.thaumaturge", "Thaumcraft");
         add("config.jade.plugin_thaumaturge.display", "Thaumcraft Overlay Information");
         add("jade.thaumaturge.essentia.none", "Essentia: None");
         add("jade.thaumaturge.essentia.empty_capacity", "Essentia: Empty (0 / %s)");
         add("jade.thaumaturge.essentia.amount", "Essentia stored: %s / %s");
+        add("jade.thaumaturge.brain_jar.experience", "Experience: %s / %s");
         add("jade.thaumaturge.tube.valve.open", "Valve: Open");
         add("jade.thaumaturge.tube.valve.closed", "Valve: Closed");
         add("jade.thaumaturge.tube.direction", "Flow direction: %s");

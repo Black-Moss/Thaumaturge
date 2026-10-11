@@ -17,6 +17,9 @@ public final class TTFlatRenderTypes {
     private static final Function<Identifier, RenderType> ADDITIVE_FLAT = Util.memoize(texture -> RenderType.create("tc_additive_flat",
             RenderSetup.builder(TTRenderPipelines.ENTITY_ADDITIVE_EMISSIVE).withTexture("Sampler0", texture).useLightmap().sortOnUpload().createRenderSetup()));
 
+    private static final Function<Identifier, RenderType> TRANSLUCENT_NO_DEPTH_WRITE = Util.memoize(texture -> RenderType.create("tc_entity_translucent_no_depth_write",
+            RenderSetup.builder(TTRenderPipelines.ENTITY_TRANSLUCENT_NO_DEPTH_WRITE).withTexture("Sampler0", texture).useLightmap().useOverlay().sortOnUpload().createRenderSetup()));
+
     private TTFlatRenderTypes() {}
 
     public static RenderType entityCutoutFlat(Identifier texture) {
@@ -29,5 +32,9 @@ public final class TTFlatRenderTypes {
 
     public static RenderType entityAdditiveFlat(Identifier texture) {
         return ADDITIVE_FLAT.apply(texture);
+    }
+
+    public static RenderType entityTranslucentNoDepthWrite(Identifier texture) {
+        return TRANSLUCENT_NO_DEPTH_WRITE.apply(texture);
     }
 }

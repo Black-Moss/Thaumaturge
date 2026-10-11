@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.leclowndu93150.thaumaturge.content.essentia.BlockEntityCentrifuge;
 import com.leclowndu93150.thaumaturge.content.essentia.crystalizer.BlockEntityEssentiaCrystalizer;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
+import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJarBrain;
 import com.leclowndu93150.thaumaturge.content.essentia.reservoir.BlockEntityEssentiaReservoir;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
 import com.leclowndu93150.thaumaturge.content.essentia.thaumatorium.BlockEntityThaumatorium;
@@ -65,6 +66,10 @@ final class JadeEssentiaDetails {
     }
     static void reservoir(BlockEntityEssentiaReservoir reservoir, JadeDetailBuilder data) {
         data.storage(reservoir.contents(), BlockEntityEssentiaReservoir.CAPACITY, false);
+    }
+
+    static void brainJar(BlockEntityJarBrain jar, JadeDetailBuilder data) {
+        data.summary("jade.thaumaturge.brain_jar.experience", jar.xp(), BlockEntityJarBrain.XP_MAX);
     }
 
     static void tube(BlockEntityTube tube, JadeDetailBuilder data) {
