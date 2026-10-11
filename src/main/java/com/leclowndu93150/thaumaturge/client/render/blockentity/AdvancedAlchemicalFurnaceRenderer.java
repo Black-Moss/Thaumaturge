@@ -282,7 +282,7 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
     }
 
     private static void panelVertex(VertexConsumer buffer, PoseStack.Pose pose, PanelPlane plane, float px, float py, float u, float v, int light, float nx, float ny, float nz) {
-        buffer.addVertex(pose, plane.x(px, py), plane.y(px, py), plane.z(px, py)).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
+        buffer.addVertex(pose, plane.x(px, py), plane.y(px, py), plane.z(px, py)).setUv(u, v).setColor(WHITE).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
     }
 
     private record PanelPlane(float originX, float originY, float originZ, float rightX, float rightY, float rightZ, float downX, float downY, float downZ) {

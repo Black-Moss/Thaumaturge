@@ -32,8 +32,8 @@ public final class TTBiomes {
 
     private static final float MAGICAL_FOREST_TEMPERATURE = 0.8F;
     private static final float MAGICAL_FOREST_DOWNFALL = 0.4F;
-    private static final int MAGICAL_FOREST_GRASS = 0x55D98A;
-    private static final int MAGICAL_FOREST_FOLIAGE = 0x7EE3C6;
+    private static final int MAGICAL_FOREST_GRASS = 0x6EF0A5;
+    private static final int MAGICAL_FOREST_FOLIAGE = 0xA6F7DE;
     private static final int MAGICAL_FOREST_WATER = 0x1F4FD6;
     private static final float EERIE_TEMPERATURE = 0.8F;
     private static final int EERIE_GRASS = 0x5E6E5A;

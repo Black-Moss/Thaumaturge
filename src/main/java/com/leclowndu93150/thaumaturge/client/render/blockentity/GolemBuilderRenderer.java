@@ -111,6 +111,6 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     }
 
     private static void lavaVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float z, float u, float v) {
-        buffer.addVertex(pose, x, LAVA_HEIGHT, z).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LAVA_LIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+        buffer.addVertex(pose, x, LAVA_HEIGHT, z).setUv(u, v).setColor(WHITE).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LAVA_LIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
     }
 }

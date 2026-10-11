@@ -50,7 +50,7 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
 
     public static final float JARRED_SIZE = 0.26F;
 
-    private static final Identifier SHEET = TTIds.rl("textures/misc/auranodes.png");
+    private static final Identifier SHEET = TTIds.rl("textures/effect/auranodes.png");
     private static final int SHEET_GRID = 32;
     private static final float FRAMES_PER_TICK = 1.2F;
     private static final int WHITE_RGB = 0xFFFFFF;

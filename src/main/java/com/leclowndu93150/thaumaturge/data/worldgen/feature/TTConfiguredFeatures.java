@@ -106,11 +106,11 @@ public final class TTConfiguredFeatures {
     private static final int CROWN_TREE_BASE_HEIGHT = 11;
     private static final int CROWN_TREE_HEIGHT_SPREAD = 10;
     private static final int GREATWOOD_TRUNK_WIDTH = 2;
-    private static final double GREATWOOD_TRUNK_SHARE = 0.5;
-    private static final double GREATWOOD_BRANCH_SLOPE = 0.25;
-    private static final double GREATWOOD_CROWN_WIDTH = 1.35;
+    private static final double GREATWOOD_TRUNK_SHARE = 0.55;
+    private static final double GREATWOOD_BRANCH_SLOPE = 0.2;
+    private static final double GREATWOOD_CROWN_WIDTH = 1.7;
     private static final float GREATWOOD_SPIDER_CHANCE = 0.125F;
-    private static final double MAGIC_OAK_TRUNK_SHARE = 0.4;
+    private static final double MAGIC_OAK_TRUNK_SHARE = 0.5;
     private static final double MAGIC_OAK_BRANCH_SLOPE = 0.55;
     private static final double MAGIC_OAK_CROWN_WIDTH = 1.0;
     private static final int SILVERWOOD_NATURAL_MIN_HEIGHT = 8;

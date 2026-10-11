@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world.tree.crown;
 
 import com.leclowndu93150.thaumaturge.registry.TTTreePlacers;
+import com.leclowndu93150.thaumaturge.content.world.tree.TrunkCorner;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
@@ -259,7 +260,7 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
                 for (int dx = 0; dx < width; dx++) {
                     for (int dz = 0; dz < width; dz++) {
                         cursor.set(base.getX() + dx, y, base.getZ() + dz);
-                        setLog(level, trunkSetter, random, config, cursor, Direction.Axis.Y);
+                        setLog(level, trunkSetter, random, config, cursor, Direction.Axis.Y, TrunkCorner.atOffset(dx, dz, width));
                     }
                 }
             }
@@ -292,10 +293,14 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
         }
 
         private void setLog(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos pos, Direction.Axis axis) {
+            setLog(level, trunkSetter, random, config, pos, axis, TrunkCorner.NONE);
+        }
+
+        private void setLog(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos pos, Direction.Axis axis, TrunkCorner corner) {
             if (level.isOutsideBuildHeight(pos) || !level.isStateAtPosition(pos, CrownRule::canHostLog)) {
                 return;
             }
-            trunkSetter.accept(pos, config.trunkProvider.getState(level, random, pos).trySetValue(RotatedPillarBlock.AXIS, axis));
+            trunkSetter.accept(pos, config.trunkProvider.getState(level, random, pos).trySetValue(RotatedPillarBlock.AXIS, axis).trySetValue(TrunkCorner.PROPERTY, corner));
         }
     }
 }
