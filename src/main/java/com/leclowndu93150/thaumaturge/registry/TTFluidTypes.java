@@ -22,8 +22,8 @@ public final class TTFluidTypes {
                     .sound(SoundActions.FLUID_VAPORIZE, SoundEvents.FIRE_EXTINGUISH).rarity(Rarity.UNCOMMON)));
 
     public static final DeferredHolder<FluidType, PurifyingFluidType> PURIFYING = FLUID_TYPES.register("purifying",
-            () -> new PurifyingFluidType(FluidType.Properties.create().descriptionId("fluid_type.thaumaturge.purifying").lightLevel(5).canConvertToSource(false)
-                    .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL).sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY).rarity(Rarity.RARE)));
+            () -> new PurifyingFluidType(FluidType.Properties.create().descriptionId("fluid_type.thaumaturge.purifying").lightLevel(5).canConvertToSource(false).isWaterLike(true)
+                    .fallDistanceModifier(0.0F).sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL).sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY).rarity(Rarity.RARE)));
 
     public static final DeferredHolder<FluidType, LiquidDeathFluidType> LIQUID_DEATH = FLUID_TYPES.register("liquid_death",
             () -> new LiquidDeathFluidType(FluidType.Properties.create().descriptionId("fluid_type.thaumaturge.liquid_death").canConvertToSource(false).canDrown(true)
