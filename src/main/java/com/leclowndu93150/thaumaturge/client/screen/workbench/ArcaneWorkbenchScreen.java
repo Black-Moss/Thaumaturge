@@ -41,7 +41,7 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
     private static final int WAND_SLOT_TEX_OFFSET_X = 10;
     private static final int WAND_SLOT_TEX_OFFSET_Y = 6;
     private static final int WAND_COST_Y_OFFSET = 129;
-    private static final int WAND_COST_HOVER_HEIGHT = 6;
+    private static final int TEXT_HOVER_HEIGHT = 6;
     private static final int WAND_COST_HOVER_MIN_HALF_WIDTH = 10;
     private static final int SLOT_SIZE = 16;
     private static final DecimalFormat WAND_COST_FORMAT = new DecimalFormat("#.##");
@@ -90,9 +90,18 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
         if (recipe != null) {
             drawCrystalGlows(graphics, recipe, level.getGameTime(), partialTick);
         }
-        drawHalfText(graphics, TTTooltips.workbenchVisAvailable(available), VIS_TEXT_X, VIS_AVAILABLE_Y, available < required ? VIS_SHORT_COLOR : VIS_ENOUGH_COLOR);
+        boolean visShort = available < required;
+        Component availableLine = TTTooltips.workbenchVisAvailable(available);
+        drawHalfText(graphics, availableLine, VIS_TEXT_X, VIS_AVAILABLE_Y, visShort ? VIS_SHORT_COLOR : VIS_ENOUGH_COLOR);
+        if (isOverHalfText(availableLine, VIS_TEXT_X, VIS_AVAILABLE_Y, 0, mouseX, mouseY)) {
+            graphics.setComponentTooltipForNextFrame(font, TTTooltips.workbenchVisAvailableTooltip(visShort), mouseX, mouseY);
+        }
         if (recipe != null && plan != null && required > 0) {
-            drawHalfText(graphics, costLine(recipe, plan), VIS_TEXT_X, VIS_COST_Y, VIS_COST_COLOR);
+            Component costLine = costLine(recipe, plan);
+            drawHalfText(graphics, costLine, VIS_TEXT_X, VIS_COST_Y, VIS_COST_COLOR);
+            if (isOverHalfText(costLine, VIS_TEXT_X, VIS_COST_Y, 0, mouseX, mouseY)) {
+                graphics.setComponentTooltipForNextFrame(font, costTooltip(recipe, plan), mouseX, mouseY);
+            }
         }
         if (recipe != null) {
             showCrystalTooltip(graphics, recipe, mouseX, mouseY);
@@ -154,8 +163,20 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
         if (!plan.crystalsToConsume().isEmpty()) {
             return TTTooltips.workbenchVisCostUnfocused(vis);
         }
-        int discount = recipe.visCost() <= 0 ? 0 : Math.round((1.0F - (float) vis / recipe.visCost()) * PERCENT);
+        int discount = discountPercent(recipe, plan);
         return discount > 0 ? TTTooltips.workbenchVisCostDiscounted(vis, discount) : TTTooltips.workbenchVisCost(vis);
+    }
+
+    private static List<Component> costTooltip(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
+        if (!plan.crystalsToConsume().isEmpty()) {
+            return TTTooltips.workbenchVisCostUnfocusedTooltip(Math.round((WandEconomy.CRAFT_AURA_SURCHARGE - 1.0F) * PERCENT));
+        }
+        int discount = discountPercent(recipe, plan);
+        return discount > 0 ? TTTooltips.workbenchVisCostDiscountedTooltip(discount) : TTTooltips.workbenchVisCostTooltip();
+    }
+
+    private static int discountPercent(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
+        return recipe.visCost() <= 0 ? 0 : Math.round((1.0F - (float) plan.auraVis() / recipe.visCost()) * PERCENT);
     }
 
     private void drawWandPayment(GuiGraphicsExtractor graphics, HolderLookup.Provider registries, Map<ResourceKey<IAspect>, Integer> wandCentivis, int mouseX, int mouseY) {
@@ -171,10 +192,14 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
         }
         int centreX = MenuArcaneWorkbench.WAND_X + SLOT_SIZE / 2;
         drawHalfText(graphics, line, centreX, WAND_COST_Y_OFFSET, WAND_COST_COLOR);
-        int halfWidth = Math.max(Math.round(font.width(line) * TEXT_SCALE / 2.0F), WAND_COST_HOVER_MIN_HALF_WIDTH);
-        if (isHovering(centreX - halfWidth, WAND_COST_Y_OFFSET, halfWidth * 2, WAND_COST_HOVER_HEIGHT, mouseX, mouseY)) {
-            graphics.setTooltipForNextFrame(font, TTTooltips.workbenchWandPayment(WandEconomy.CRYSTAL_SUBSTITUTE_VIS), mouseX, mouseY);
+        if (isOverHalfText(line, centreX, WAND_COST_Y_OFFSET, WAND_COST_HOVER_MIN_HALF_WIDTH, mouseX, mouseY)) {
+            graphics.setComponentTooltipForNextFrame(font, TTTooltips.workbenchWandPayment(WandEconomy.CRYSTAL_SUBSTITUTE_VIS), mouseX, mouseY);
         }
+    }
+
+    private boolean isOverHalfText(Component text, int centreX, int top, int minHalfWidth, int mouseX, int mouseY) {
+        int halfWidth = Math.max(Math.round(font.width(text) * TEXT_SCALE / 2.0F), minHalfWidth);
+        return isHovering(centreX - halfWidth, top, halfWidth * 2, TEXT_HOVER_HEIGHT, mouseX, mouseY);
     }
 
     private void drawHalfText(GuiGraphicsExtractor graphics, Component text, int centreX, int top, int color) {
