@@ -17,6 +17,8 @@ public abstract class LiquidDeathFluid extends BaseFlowingFluid {
     private static final float MAX_AMOUNT = 8.0F;
     private static final float BASE_DAMAGE = 1.0F;
     private static final int LEVELS_PER_DAMAGE_STEP = 2;
+    private static final double FULL_DEPTH_HORIZONTAL = 0.38;
+    private static final double FULL_DEPTH_VERTICAL = 0.6;
 
     protected LiquidDeathFluid(Properties properties) {
         super(properties);
@@ -26,9 +28,13 @@ public abstract class LiquidDeathFluid extends BaseFlowingFluid {
     protected void entityInside(Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier) {
         FluidState fs = level.getFluidState(pos);
         int amount = fs.getAmount();
-        Vec3 motion = entity.getDeltaMovement();
-        double damp = 1.0 - amount / MAX_AMOUNT / 2.0;
-        entity.setDeltaMovement(motion.x * damp, motion.y, motion.z * damp);
+        if (!entity.blockPosition().equals(pos)) {
+            return;
+        }
+        double depth = amount / MAX_AMOUNT;
+        double horizontal = Mth.lerp(depth, 1.0, FULL_DEPTH_HORIZONTAL);
+        double vertical = Mth.lerp(depth, 1.0, FULL_DEPTH_VERTICAL);
+        entity.makeStuckInBlock(fs.createLegacyBlock(), new Vec3(horizontal, vertical, horizontal));
         if (!level.isClientSide() && entity instanceof LivingEntity) {
             entity.hurt(TTDamageSources.dissolve(level), damageFor(amount));
         }
