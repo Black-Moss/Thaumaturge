@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
+import com.leclowndu93150.thaumaturge.api.client.golems.GolemPartRenderView;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessory;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessoryStateView;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
@@ -8,7 +9,7 @@ import java.util.List;
 import net.minecraft.client.renderer.entity.state.CopperGolemRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 
-public class GolemRenderState extends CopperGolemRenderState {
+public class GolemRenderState extends CopperGolemRenderState implements GolemPartRenderView {
     public GolemProperties props;
     public byte color;
     public float bodyRot;
@@ -19,7 +20,6 @@ public class GolemRenderState extends CopperGolemRenderState {
     public double speedSq;
     public float yawDelta;
     public float wheelRotation;
-    public float grinderRot;
     public boolean combat;
     public boolean invisible;
     public boolean ghost;
@@ -32,4 +32,54 @@ public class GolemRenderState extends CopperGolemRenderState {
     public boolean haulerItemIsBlock;
     public List<GolemAccessory> accessories = List.of();
     public GolemAccessoryStateView accessoryStates = GolemAccessoryStates.EMPTY;
+
+    @Override
+    public float swingProgress() {
+        return attackTime;
+    }
+
+    @Override
+    public float ageInTicks() {
+        return ageInTicks;
+    }
+
+    @Override
+    public float headPitch() {
+        return xRot;
+    }
+
+    @Override
+    public boolean fighting() {
+        return combat;
+    }
+
+    @Override
+    public float wheelRotation() {
+        return wheelRotation;
+    }
+
+    @Override
+    public int lightCoords() {
+        return lightCoords;
+    }
+
+    @Override
+    public int outlineColor() {
+        return outlineColor;
+    }
+
+    @Override
+    public boolean hasSecondHandItem() {
+        return haulingItem;
+    }
+
+    @Override
+    public boolean secondHandItemIsBlock() {
+        return haulerItemIsBlock;
+    }
+
+    @Override
+    public ItemStackRenderState secondHandItem() {
+        return haulerItem;
+    }
 }

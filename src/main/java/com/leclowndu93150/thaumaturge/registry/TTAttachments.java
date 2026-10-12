@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumaturge.content.eldritch.encounter.LabyrinthBindin
 import com.leclowndu93150.thaumaturge.content.eldritch.portal.TransitState;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitRuntime;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitState;
+import com.leclowndu93150.thaumaturge.content.equipment.DestructiveSwingMemory;
 import com.leclowndu93150.thaumaturge.content.equipment.runic.RunicShieldState;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealWorldIndex;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealsChunkData;
@@ -82,6 +83,9 @@ public final class TTAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> SLOT_SCAN_TIME = register("slot_scan_time", () -> AttachmentType.builder(() -> 0L).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> CLOUD_JUMP_TIME = register("cloud_jump_time", () -> AttachmentType.builder(() -> 0L).build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<DestructiveSwingMemory>> DESTRUCTIVE_SWING = register("destructive_swing",
+            () -> AttachmentType.builder(DestructiveSwingMemory::new).build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<RunicShieldState>> RUNIC_SHIELD = register("runic_shield", () -> AttachmentType.builder(RunicShieldState::new).build());
 

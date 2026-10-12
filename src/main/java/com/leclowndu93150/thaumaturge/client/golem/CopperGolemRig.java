@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
 import com.leclowndu93150.thaumaturge.api.client.golems.GolemAccessoryAnchor;
+import com.leclowndu93150.thaumaturge.api.client.golems.GolemPartRenderHook;
 import com.leclowndu93150.thaumaturge.api.golems.accessory.GolemAccessory;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPartModel;

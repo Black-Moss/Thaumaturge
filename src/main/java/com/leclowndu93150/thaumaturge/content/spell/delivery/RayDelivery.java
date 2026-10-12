@@ -43,7 +43,7 @@ public record RayDelivery(double range, boolean reach, Visual visual, float widt
             Entity source = origin.entity().orElse(ctx.caster());
             List<HitResult> hits = SpellRayTrace.pierce(ctx.level(), source, origin.position(), origin.direction(), distance, pierce + 1);
             Vec3 end = hits.isEmpty() ? origin.position().add(origin.direction().scale(distance)) : hits.getLast().getLocation();
-            show(ctx, look, origin, end);
+            show(ctx, look, origin, end, !hits.isEmpty());
             for (HitResult hit : hits) {
                 out.add(SpellTarget.of(hit, origin.direction()));
             }
@@ -62,10 +62,10 @@ public record RayDelivery(double range, boolean reach, Visual visual, float widt
         return caster instanceof Player player ? player.blockInteractionRange() : MOB_REACH;
     }
 
-    private void show(CastContext ctx, SpellLook look, SpellTarget origin, Vec3 end) {
+    private void show(CastContext ctx, SpellLook look, SpellTarget origin, Vec3 end, boolean struck) {
         switch (visual) {
             case ARC -> ctx.fx().arc(origin.position(), end, look.color(), width * ctx.power());
-            case BEAM -> ctx.fx().beam(origin.position(), end, look.color(), linger);
+            case BEAM -> ctx.fx().beam(origin.position(), end, look.color(), linger, struck);
             case FLASH -> ctx.fx().burst(look.fx(), origin.position(), origin.direction().scale(FLASH_SPEED), look.color());
         }
     }

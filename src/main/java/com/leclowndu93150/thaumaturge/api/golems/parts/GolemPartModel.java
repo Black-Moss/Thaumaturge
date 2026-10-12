@@ -9,8 +9,8 @@ import org.jspecify.annotations.Nullable;
  * <p>Object groups of the mesh whose names start with {@code bm} take the golem material's texture;
  * all other groups take the fallback texture, unless the mesh names a texture slot itself.
  *
- * @apiNote instances use identity equality. Client render hooks are keyed by model instance, so a model must be created
- *          once and reused.
+ * @apiNote instances use identity equality, so a model should be created once and reused. Client render hooks attach to
+ *          the mesh location rather than the model instance, through {@code RegisterGolemPartRenderHooksEvent}.
  * @since 1.0.0
  */
 public final class GolemPartModel {

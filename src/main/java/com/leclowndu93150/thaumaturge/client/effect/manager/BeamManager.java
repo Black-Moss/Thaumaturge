@@ -47,6 +47,9 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     private static final float GLOW_SHEET_CELLS = 32.0F;
     private static final float GLOW_HALF_SIZE = 0.4F;
     private static final float GLOW_OPACITY = 0.8F;
+    private static final float FLARE_HALF_SIZE = 0.3F;
+    private static final float FLARE_OPACITY = 1.0F;
+    private static final float FLARE_WHITE_MIX = 0.5F;
     private static final float ARC_HALF_WIDTH = 0.045F;
 
     private BeamManager() {}
@@ -212,6 +215,9 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             if (beam.withSource()) {
                 drawGlow(poseStack, nodeConsumer, camera, beam, partialTick);
             }
+            if (beam.hit()) {
+                drawFlare(poseStack, nodeConsumer, camera, beam, partialTick);
+            }
         }
         buffers.endBatch(nodeType);
     }
@@ -300,23 +306,41 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         if (alpha <= 0.0F) {
             return;
         }
+        float red = Mth.clamp(beam.colorR(), 0.0F, 1.0F);
+        float green = Mth.clamp(beam.colorG(), 0.0F, 1.0F);
+        float blue = Mth.clamp(beam.colorB(), 0.0F, 1.0F);
+        drawGlowFrame(poseStack, consumer, camera, source, beam.age(), GLOW_HALF_SIZE, red, green, blue, alpha);
+    }
+
+    private static void drawFlare(PoseStack poseStack, VertexConsumer consumer, Camera camera, BeamInstance beam, float partialTick) {
+        if (outOfView(beam.sourcePos(partialTick))) {
+            return;
+        }
+        float halfSize = FLARE_HALF_SIZE * beam.hitFactor(partialTick);
+        if (halfSize <= 0.0F) {
+            return;
+        }
+        float red = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorR(), 1.0F), 0.0F, 1.0F);
+        float green = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorG(), 1.0F), 0.0F, 1.0F);
+        float blue = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorB(), 1.0F), 0.0F, 1.0F);
+        drawGlowFrame(poseStack, consumer, camera, beam.targetPos(partialTick), beam.age(), halfSize, red, green, blue, FLARE_OPACITY);
+    }
+
+    private static void drawGlowFrame(PoseStack poseStack, VertexConsumer consumer, Camera camera, Vec3 at, int tick, float halfSize, float red, float green, float blue, float alpha) {
         Vec3 cameraPos = camera.position();
-        int frame = Math.floorMod(beam.age(), GLOW_FRAMES);
+        int frame = Math.floorMod(tick, GLOW_FRAMES);
         float u0 = frame / GLOW_SHEET_CELLS;
         float u1 = (frame + 1) / GLOW_SHEET_CELLS;
         float v0 = GLOW_ROW / GLOW_SHEET_CELLS;
         float v1 = (GLOW_ROW + 1) / GLOW_SHEET_CELLS;
-        float red = Mth.clamp(beam.colorR(), 0.0F, 1.0F);
-        float green = Mth.clamp(beam.colorG(), 0.0F, 1.0F);
-        float blue = Mth.clamp(beam.colorB(), 0.0F, 1.0F);
         poseStack.pushPose();
-        poseStack.translate(source.x - cameraPos.x, source.y - cameraPos.y, source.z - cameraPos.z);
+        poseStack.translate(at.x - cameraPos.x, at.y - cameraPos.y, at.z - cameraPos.z);
         poseStack.mulPose(camera.rotation());
         Matrix4f matrix = poseStack.last().pose();
-        vertex(consumer, matrix, -GLOW_HALF_SIZE, -GLOW_HALF_SIZE, 0.0, u0, v1, red, green, blue, alpha);
-        vertex(consumer, matrix, GLOW_HALF_SIZE, -GLOW_HALF_SIZE, 0.0, u1, v1, red, green, blue, alpha);
-        vertex(consumer, matrix, GLOW_HALF_SIZE, GLOW_HALF_SIZE, 0.0, u1, v0, red, green, blue, alpha);
-        vertex(consumer, matrix, -GLOW_HALF_SIZE, GLOW_HALF_SIZE, 0.0, u0, v0, red, green, blue, alpha);
+        vertex(consumer, matrix, -halfSize, -halfSize, 0.0, u0, v1, red, green, blue, alpha);
+        vertex(consumer, matrix, halfSize, -halfSize, 0.0, u1, v1, red, green, blue, alpha);
+        vertex(consumer, matrix, halfSize, halfSize, 0.0, u1, v0, red, green, blue, alpha);
+        vertex(consumer, matrix, -halfSize, halfSize, 0.0, u0, v0, red, green, blue, alpha);
         poseStack.popPose();
     }
 

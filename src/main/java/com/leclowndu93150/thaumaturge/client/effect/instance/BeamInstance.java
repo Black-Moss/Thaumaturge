@@ -20,6 +20,7 @@ public final class BeamInstance implements IFXInstance {
     private static final float FADE_DURATION = 5.0F;
     private static final float PEAK_OPACITY = 0.38F;
     private static final double SAME_SOURCE_DISTANCE_SQR = 0.01;
+    private static final int HIT_DURATION = 6;
 
     private final float[] tint;
     private final int beamType;
@@ -34,9 +35,10 @@ public final class BeamInstance implements IFXInstance {
     private BeamPose latest;
     private BeamPose earlier;
     private int age;
+    private int hitTicks;
     private boolean expired;
 
-    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {
+    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource, boolean hit) {
         this.target = new Vec3(targetX, targetY, targetZ);
         this.tint = new float[]{ARGB.red(color) / CHANNEL_SCALE, ARGB.green(color) / CHANNEL_SCALE, ARGB.blue(color) / CHANNEL_SCALE};
         this.maxAge = maxAge;
@@ -48,6 +50,7 @@ public final class BeamInstance implements IFXInstance {
         this.requestedSource = new Vec3(sourceX, sourceY, sourceZ);
         this.latest = BeamPose.between(this.requestedSource, this.target);
         this.earlier = this.latest;
+        this.hitTicks = hit ? HIT_DURATION : 0;
     }
 
     @Override
@@ -55,8 +58,12 @@ public final class BeamInstance implements IFXInstance {
         LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
         this.earlier = this.latest;
         this.latest = BeamPose.between(anchor != null ? BeamAnchor.castPoint(anchor, 1.0F) : this.earlier.source(), this.target);
-        this.expired = this.age >= this.maxAge;
-        if (!this.expired) {
+        if (this.hitTicks > 0) {
+            this.hitTicks--;
+        }
+        boolean finished = this.age >= this.maxAge;
+        this.expired = finished && this.hitTicks <= 0;
+        if (!finished) {
             this.age++;
         }
     }
@@ -79,6 +86,7 @@ public final class BeamInstance implements IFXInstance {
     public void refresh(BeamInstance newer) {
         this.target = newer.target;
         this.maxAge = Math.max(this.maxAge, this.age + newer.maxAge);
+        this.hitTicks = Math.max(this.hitTicks, newer.hitTicks);
         this.expired = false;
     }
 
@@ -93,6 +101,14 @@ public final class BeamInstance implements IFXInstance {
     public float fadeFactor(float partialTick) {
         float remaining = this.maxAge - (this.age + partialTick);
         return ramp(remaining / FADE_DURATION);
+    }
+
+    public float hitFactor(float partialTick) {
+        return ramp((this.hitTicks - partialTick) / (float) HIT_DURATION);
+    }
+
+    public boolean hit() {
+        return this.hitTicks > 0;
     }
 
     public float texScroll(float partialTick) {

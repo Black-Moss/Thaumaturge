@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.entity.EntityFollowingItem;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
+import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -15,11 +16,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -28,7 +27,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -51,7 +49,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -61,7 +58,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
@@ -99,7 +95,6 @@ public final class InfusionEnchantmentEvents {
     private static final int ESSENCE_ROLL_BOUND = InfusionEnchantment.ESSENCE.maxLevel();
     private static final int ESSENCE_SKIP_MIN = 1;
     private static final int ESSENCE_SKIP_OPTIONS = 2;
-    private static final Map<UUID, DestructiveTarget> TARGETS = new HashMap<>();
     private static final Map<Direction.Axis, List<Vec3i>> PLANE_STEPS = planeSteps();
     private static final ThreadLocal<Boolean> EXPANDING = ThreadLocal.withInitial(() -> false);
     private static final List<NuggetChance> NUGGET_CHANCES = Stream
@@ -110,10 +105,6 @@ public final class InfusionEnchantmentEvents {
             .sorted(Comparator.comparingDouble(NuggetChance::chance).reversed()).toList();
 
     private InfusionEnchantmentEvents() {}
-
-    public static void resetSession() {
-        TARGETS.clear();
-    }
 
     @SubscribeEvent
     public static void onBreakBlock(BreakBlockEvent event) {
@@ -139,8 +130,12 @@ public final class InfusionEnchantmentEvents {
             return;
         }
         Player player = event.getEntity();
-        DestructiveTarget swing = startsDestructiveSwing(event, player) ? new DestructiveTarget(event.getLevel().dimension(), event.getPos().immutable(), event.getFace()) : null;
-        TARGETS.compute(player.getUUID(), (id, previous) -> swing);
+        DestructiveSwingMemory memory = player.getData(TTAttachments.DESTRUCTIVE_SWING);
+        if (startsDestructiveSwing(event, player)) {
+            memory.remember(event.getLevel().dimension(), event.getPos(), event.getFace());
+        } else {
+            memory.forget();
+        }
     }
 
     private static boolean startsDestructiveSwing(PlayerInteractEvent.LeftClickBlock event, Player player) {
@@ -238,13 +233,8 @@ public final class InfusionEnchantmentEvents {
         }
     }
 
-    @SubscribeEvent
-    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        TARGETS.remove(event.getEntity().getUUID());
-    }
-
     private static void applyHarvestPerks(ServerLevel level, BlockDropsEvent event, Player player, ItemStack tool) {
-        DestructiveTarget target = TARGETS.remove(player.getUUID());
+        Direction swungFace = player.getData(TTAttachments.DESTRUCTIVE_SWING).takeFace(level.dimension(), event.getPos());
         boolean sneaking = player.isShiftKeyDown();
         if (!sneaking && InfusionEnchantmentHelper.has(tool, InfusionEnchantment.COLLECTOR)) {
             follow(level, event.getDrops(), player);
@@ -252,7 +242,7 @@ public final class InfusionEnchantmentEvents {
         if (!sneaking && InfusionEnchantmentHelper.has(tool, InfusionEnchantment.LAMPLIGHT)) {
             placeGlimmer(level, event.getPos());
         }
-        expand(level, player, tool, target, event);
+        expand(level, player, tool, swungFace, event);
     }
 
     private static int cappedLevel(ItemStack stack, InfusionEnchantment enchantment) {
@@ -358,12 +348,12 @@ public final class InfusionEnchantmentEvents {
         return Math.max(own, spill);
     }
 
-    private static void expand(ServerLevel level, Player player, ItemStack tool, @Nullable DestructiveTarget target, BlockDropsEvent event) {
+    private static void expand(ServerLevel level, Player player, ItemStack tool, @Nullable Direction swungFace, BlockDropsEvent event) {
         if (EXPANDING.get() || player.isShiftKeyDown() || !InfusionEnchantmentHelper.has(tool, InfusionEnchantment.DESTRUCTIVE) || !tool.isCorrectToolForDrops(event.getState())) {
             return;
         }
         BlockPos origin = event.getPos();
-        Direction.Axis axis = swingFace(level, origin, player, target).getAxis();
+        Direction.Axis axis = swingFace(player, swungFace).getAxis();
         EXPANDING.set(true);
         try {
             Iterator<Vec3i> steps = PLANE_STEPS.get(axis).iterator();
@@ -375,11 +365,8 @@ public final class InfusionEnchantmentEvents {
         }
     }
 
-    private static Direction swingFace(ServerLevel level, BlockPos pos, Player player, @Nullable DestructiveTarget target) {
-        if (target != null && target.covers(level.dimension(), pos)) {
-            return target.face();
-        }
-        return Direction.getApproximateNearest(player.getLookAngle());
+    private static Direction swingFace(Player player, @Nullable Direction swungFace) {
+        return swungFace != null ? swungFace : Direction.getApproximateNearest(player.getLookAngle());
     }
 
     private static Vec3i cell(int index) {
@@ -439,12 +426,6 @@ public final class InfusionEnchantmentEvents {
     private static void discardRandom(RandomSource random, List<AspectInstance> pool, int count) {
         for (int removed = 0; removed < count && !pool.isEmpty(); removed++) {
             pool.remove(random.nextInt(pool.size()));
-        }
-    }
-
-    private record DestructiveTarget(ResourceKey<Level> dimension, BlockPos pos, Direction face) {
-        boolean covers(ResourceKey<Level> where, BlockPos at) {
-            return dimension.equals(where) && pos.equals(at);
         }
     }
 
